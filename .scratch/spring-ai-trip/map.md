@@ -23,6 +23,13 @@ Labels: wayfinder:map
 <!-- the index — one line per closed ticket: enough to judge relevance, then zoom the link for the detail the ticket holds -->
 
 - [Spring AI 最新版挂接点调研](issues/01-research-spring-ai-surface.md) — Spring AI 2.0.0（Boot 4.x）：工具调用循环已在 Advisor 链内、ToolCallingManager 可整体替换；reasoning 无统一抽象、MCP 运行时增删无公开 API，需 Harness 自建。详见 `research/spring-ai-surface.md`。
+- [Maven 多模块划分与依赖方向](issues/03-module-structure.md) — 12 模块细切（后增补存储扩展 ×2 → 14）；core 收厚（会话/持久化SPI/策略/估算/Hook链/事件总线/并行脊柱）；core 事件总线解环，星形依赖无环；buzhou-* 短前缀；模块自装配 + 聚合 starter；写侧 Onload 归 spill。
+- [会话入口 API 形态](issues/04-session-api.md) — 双层 API（spawn 门面 + Builder 增强）；AgentSession 显式生命周期 + 会话作用域资源注册表成套清理；chat/stream 对齐 ChatClient + 事件监听器透出 HITL；sessionId 传入即续接、会话租约互斥（可 steal）。
+- [配置体系与策略模型](issues/05-configuration-model.md) — 四层覆盖（默认<yml<绑定级<工具级），绑定级入持久层；PolicyConfigProvider 动态配置 SPI（内置 properties/DB，Nacos/Apollo 留可选扩展）；工具策略=工具声明默认+配置通配覆盖；安全项全开、依赖项优雅降级。
+- [持久化 SPI 与默认实现选型](issues/06-persistence-spi.md) — 四 SPI（Message/Summary/SessionState/SessionLease）；首发三实现：内存（core 默认）+ buzhou-store-jdbc + buzhou-store-redis（模块 12→14）；自研全保真消息模型 + ChatMemory 适配器；完整事务（unit-of-work，JDBC 本地事务/Redis Lua）。
+- [动态预算算法与 token 估算器](issues/07-token-budget.md) — 蓝本公式定稿（先扣后算、摘要计入、0.90 阈值可配）；窗口=内置模型表+配置覆盖+未知默认32K；估算=字符启发式默认+TokenEstimator SPI（jtokkit 可选扩展）；Schema 按工具集哈希缓存、其余每轮现算，注入视图构建时统一触发。
+- [微压缩策略模型](issues/08-micro-compaction.md) — 完结=结论落地（tool_calls 全回应+assistant 文本收尾）；注入前总先微压缩再算预算；策略=neverCompress/maxAgeTurns(3)/minSizeChars(200)+protectRecentTurns(1)；evidence-id=消息 id，统一证据回查工具（范围读取实现升 core 共享）。
+- [九段式摘要模板与增量合并](issues/09-summary-template.md) — CC 九段映射定稿（P0=意图/现场/下一步，P3=用户消息清单）；增量合并+analysis 草稿；主模型默认可配独立、失败熔断；system-reminder 包裹插在近期原文前；段落超限降级为 gist+指针不整段删。
 - [参照系与留白推演素材调研](issues/02-research-reference-implementations.md) — Claude Code 三层压缩与九段 compact prompt 坐实蓝本借鉴；AgentScope Java 的 eviction/compaction 分层与蓝文同构，可作推演主参照；LangChain4j 止于滑窗，正是定位空间。详见 `research/reference-implementations.md`。
 - [HITL 与 Hook 机制行业调研](issues/22-research-hitl-hooks-landscape.md) — Spring AI 2.0 无原生 HITL/暂停恢复，需自建（DECO 式「事件+state+续跑重放」落地成本最低）；ADK/LangGraph/Claude Code 范式已归档。详见 `research/hitl-hooks-landscape.md`。
 
@@ -31,7 +38,6 @@ Labels: wayfinder:map
 <!-- 在范围内但还不能精确成票的雾；前沿推进后毕业 -->
 
 - **性能基准与压测方案** — 压缩延迟、并发吞吐、token 节省率的验收标准；需等机制设计成形后才能精确提问。
-- **九段式摘要的 prompt 调优与评测方法** — 模板定型后才谈得上调优与评测指标。
 - **可视化后台的具体 UI 交互与线框** — 依赖 Span/Event 数据模型定型；前台只做到形态设计，细节待毕业。
 - **Maven Central 实际发布流程** — 依赖工程化 ticket 定下 groupId 与账号后才能精确。
 - **示例模块的场景设计** — 用哪个业务 demo 串起所有机制（文章用排障会话）；需等模块划分后细化。
