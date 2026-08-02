@@ -6,6 +6,8 @@ public interface HookContext {
 
     String sessionId();
 
+    String agentName();
+
     int turn();
 
     SessionStateHandle state();

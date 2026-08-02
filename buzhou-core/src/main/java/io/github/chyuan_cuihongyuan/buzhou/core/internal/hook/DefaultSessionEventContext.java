@@ -25,6 +25,11 @@ public class DefaultSessionEventContext implements SessionEventContext {
     }
 
     @Override
+    public String agentName() {
+        return env.agentName();
+    }
+
+    @Override
     public int turn() {
         return env.currentTurn();
     }

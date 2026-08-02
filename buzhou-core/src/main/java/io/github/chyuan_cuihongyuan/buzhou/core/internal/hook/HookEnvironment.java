@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 public class HookEnvironment {
 
     private final String sessionId;
+    private final String agentName;
     private final SessionStateStore stateStore;
     private final AtomicInteger turn = new AtomicInteger();
     private volatile Consumer<SessionEvent> eventPublisher = event -> {
@@ -39,13 +40,18 @@ public class HookEnvironment {
         }
     };
 
-    public HookEnvironment(String sessionId, SessionStateStore stateStore) {
+    public HookEnvironment(String sessionId, String agentName, SessionStateStore stateStore) {
         this.sessionId = sessionId;
+        this.agentName = agentName;
         this.stateStore = stateStore;
     }
 
     public String sessionId() {
         return sessionId;
+    }
+
+    public String agentName() {
+        return agentName;
     }
 
     public int nextTurn() {

@@ -36,4 +36,30 @@ public record RuntimeConfig(
     public static RuntimeConfig defaults() {
         return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of());
     }
+
+    public static RuntimeConfig merge(RuntimeConfig... configs) {
+        List<BuzhouHook> hooks = new java.util.ArrayList<>();
+        Set<String> disabled = new java.util.HashSet<>();
+        Set<String> idempotent = new java.util.HashSet<>();
+        MemoryViewProcessor viewProcessor = null;
+        List<ToolCallback> autoTools = new java.util.ArrayList<>();
+        Map<String, String> serialGroups = new java.util.HashMap<>();
+        List<SessionResourceCustomizer> customizers = new java.util.ArrayList<>();
+        for (RuntimeConfig config : configs) {
+            if (config == null) {
+                continue;
+            }
+            hooks.addAll(config.hooks());
+            disabled.addAll(config.disabledHookNames());
+            idempotent.addAll(config.idempotentToolNames());
+            if (config.viewProcessor() != null) {
+                viewProcessor = config.viewProcessor();
+            }
+            autoTools.addAll(config.autoTools());
+            serialGroups.putAll(config.serialGroups());
+            customizers.addAll(config.sessionCustomizers());
+        }
+        return new RuntimeConfig(hooks, disabled, idempotent, viewProcessor, autoTools,
+                serialGroups, customizers);
+    }
 }

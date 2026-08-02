@@ -17,20 +17,29 @@ public class SpillService {
         this.listPreviewItems = listPreviewItems;
     }
 
+    public record OffloadOutcome(String text, boolean offloaded, boolean degraded, SpillUri uri) {
+    }
+
     public String offloadIfNeeded(String agentName, String sessionId, String toolCallId,
                                   String toolName, String toolResult, int thresholdChars) {
+        return tryOffload(agentName, sessionId, toolCallId, toolName, toolResult, thresholdChars)
+                .text();
+    }
+
+    public OffloadOutcome tryOffload(String agentName, String sessionId, String toolCallId,
+                                     String toolName, String toolResult, int thresholdChars) {
         if (toolResult == null || toolResult.length() < thresholdChars) {
-            return toolResult;
+            return new OffloadOutcome(toolResult, false, false, null);
         }
         SpillUri uri = new SpillUri(sanitize(agentName), sanitize(sessionId), sanitize(toolCallId));
         try {
             store.store(SpillEntry.of(uri, toolResult), previewChars);
         } catch (RuntimeException e) {
             LOG.log(Level.WARNING, "Spill offload failed, passthrough original: " + uri, e);
-            return toolResult;
+            return new OffloadOutcome(toolResult, false, true, uri);
         }
         String preview = RangeReadEngine.previewOf(toolResult, previewChars, listPreviewItems);
-        return placeholder(uri, toolResult.length(), preview);
+        return new OffloadOutcome(placeholder(uri, toolResult.length(), preview), true, false, uri);
     }
 
     public RangeReadResult readBack(String spillUri, RangeReadRequest request) {

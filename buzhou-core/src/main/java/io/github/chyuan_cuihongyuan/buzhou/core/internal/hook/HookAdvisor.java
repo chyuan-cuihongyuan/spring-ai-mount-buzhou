@@ -103,6 +103,11 @@ public class HookAdvisor implements BaseAdvisor {
         }
 
         @Override
+        public String agentName() {
+            return env.agentName();
+        }
+
+        @Override
         public int turn() {
             return env.currentTurn();
         }

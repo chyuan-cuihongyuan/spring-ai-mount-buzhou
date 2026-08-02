@@ -133,6 +133,10 @@ public class DiskSpillStore implements SpillStore {
         return Files.exists(dataPath(uri));
     }
 
+    public Path dataPathOf(SpillUri uri) {
+        return dataPath(uri);
+    }
+
     private Path dataPath(SpillUri uri) {
         return rootDir.resolve(uri.agentName()).resolve(uri.sessionId())
                 .resolve(uri.toolCallId() + DATA_SUFFIX);

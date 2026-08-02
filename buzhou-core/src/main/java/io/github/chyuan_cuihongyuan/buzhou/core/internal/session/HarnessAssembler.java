@@ -33,7 +33,7 @@ public class HarnessAssembler {
                                  java.util.concurrent.ExecutorService executor,
                                  java.util.Map<String, String> serialGroups,
                                  ToolCallback... tools) {
-        HookEnvironment env = new HookEnvironment(sessionId, stores.sessionStateStore());
+        HookEnvironment env = new HookEnvironment(sessionId, agentName, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
         ToolCallback[] hookedTools = hookTools(tools, chain, env);
 

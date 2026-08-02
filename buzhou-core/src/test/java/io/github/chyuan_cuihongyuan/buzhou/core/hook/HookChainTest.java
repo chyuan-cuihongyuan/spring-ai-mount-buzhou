@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class HookChainTest {
 
-    private final HookEnvironment env = new HookEnvironment("s1", new InMemorySessionStateStore());
+    private final HookEnvironment env = new HookEnvironment("s1", "agent", new InMemorySessionStateStore());
 
     static class RecordingHook implements BuzhouHook {
         final List<String> calls = new ArrayList<>();

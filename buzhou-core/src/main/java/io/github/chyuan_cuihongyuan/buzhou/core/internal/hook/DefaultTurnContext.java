@@ -21,6 +21,11 @@ public class DefaultTurnContext implements TurnContext {
     }
 
     @Override
+    public String agentName() {
+        return env.agentName();
+    }
+
+    @Override
     public int turn() {
         return env.currentTurn();
     }
