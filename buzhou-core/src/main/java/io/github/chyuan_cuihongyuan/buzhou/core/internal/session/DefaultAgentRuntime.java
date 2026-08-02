@@ -25,16 +25,19 @@ public class DefaultAgentRuntime implements AgentRuntime {
     private final ToolCallback[] tools;
     private final List<BuzhouHook> hooks;
     private final Set<String> disabledHookNames;
+    private final Set<String> idempotentToolNames;
     private final String ownerId = UUID.randomUUID().toString();
 
     public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
                                HarnessAssembler assembler, List<BuzhouHook> hooks,
-                               Set<String> disabledHookNames, ToolCallback... tools) {
+                               Set<String> disabledHookNames, Set<String> idempotentToolNames,
+                               ToolCallback... tools) {
         this.chatModel = chatModel;
         this.stores = stores;
         this.assembler = assembler;
         this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
         this.disabledHookNames = disabledHookNames == null ? Set.of() : Set.copyOf(disabledHookNames);
+        this.idempotentToolNames = idempotentToolNames == null ? Set.of() : Set.copyOf(idempotentToolNames);
         this.tools = tools == null ? new ToolCallback[0] : tools.clone();
     }
 
@@ -65,7 +68,7 @@ public class DefaultAgentRuntime implements AgentRuntime {
                 java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
         registry.register("session-executor", executor::shutdownNow);
         AgentSession session = assembler.assemble(appId, agentName, sessionId, chatModel, stores, registry,
-                registry::closeAll, hooks, disabledHookNames, tools);
+                registry::closeAll, hooks, disabledHookNames, idempotentToolNames, tools);
         options.listeners().forEach(session::addEventListener);
         return session;
     }

@@ -7,6 +7,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookedToolCallback;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.BuzhouChatMemory;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.BuzhouMemoryAdvisor;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DanglingCallRepairer;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import org.springframework.ai.chat.client.ChatClient;
@@ -26,12 +27,21 @@ public class HarnessAssembler {
                                  Runnable onClose,
                                  Collection<BuzhouHook> hooks,
                                  Set<String> disabledHookNames,
+                                 Set<String> idempotentToolNames,
                                  ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
         ToolCallback[] hookedTools = hookTools(tools, chain, env);
 
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
+        memory.setRepairer(new DanglingCallRepairer(
+                toolsByName(tools), idempotentToolNames,
+                (sid, event) -> env.emit(new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent(
+                        "dangling.repaired",
+                        java.util.Map.of("messageId", event.messageId(),
+                                "toolCalls", event.danglingToolCalls(),
+                                "action", event.action()),
+                        java.time.Instant.now()))));
         ChatClient.Builder builder = ChatClient.builder(chatModel)
                 .defaultAdvisors(
                         ToolCallingAdvisor.builder().build(),
@@ -49,6 +59,16 @@ public class HarnessAssembler {
         return builder.defaultAdvisors(
                 ToolCallingAdvisor.builder().build(),
                 new BuzhouMemoryAdvisor(memory));
+    }
+
+    private java.util.Map<String, ToolCallback> toolsByName(ToolCallback[] tools) {
+        java.util.Map<String, ToolCallback> map = new java.util.HashMap<>();
+        if (tools != null) {
+            for (ToolCallback tool : tools) {
+                map.put(tool.getToolDefinition().name(), tool);
+            }
+        }
+        return map;
     }
 
     private ToolCallback[] hookTools(ToolCallback[] tools, HookChain chain, HookEnvironment env) {

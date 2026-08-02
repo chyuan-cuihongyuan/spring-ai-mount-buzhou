@@ -23,11 +23,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BuzhouChatMemory implements ChatMemory {
 
     private final MessageStore messageStore;
+    private DanglingCallRepairer repairer;
     private final ConcurrentHashMap<String, AtomicInteger> turnByConversation = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AtomicInteger> seqByConversation = new ConcurrentHashMap<>();
 
     public BuzhouChatMemory(MessageStore messageStore) {
         this.messageStore = messageStore;
+    }
+
+    public void setRepairer(DanglingCallRepairer repairer) {
+        this.repairer = repairer;
     }
 
     @Override
@@ -56,6 +61,9 @@ public class BuzhouChatMemory implements ChatMemory {
     @Override
     public List<Message> get(String conversationId) {
         List<BuzhouMessage> stored = messageStore.load(conversationId);
+        if (repairer != null) {
+            stored = repairer.repair(conversationId, stored);
+        }
         List<Message> result = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> pendingToolResponses = new ArrayList<>();
         for (BuzhouMessage message : stored) {
