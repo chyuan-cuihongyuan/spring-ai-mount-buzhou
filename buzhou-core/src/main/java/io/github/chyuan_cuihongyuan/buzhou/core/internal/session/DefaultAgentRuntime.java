@@ -1,8 +1,9 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
-import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult;
@@ -10,6 +11,8 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class DefaultAgentRuntime implements AgentRuntime {
@@ -20,13 +23,18 @@ public class DefaultAgentRuntime implements AgentRuntime {
     private final BuzhouStores stores;
     private final HarnessAssembler assembler;
     private final ToolCallback[] tools;
+    private final List<BuzhouHook> hooks;
+    private final Set<String> disabledHookNames;
     private final String ownerId = UUID.randomUUID().toString();
 
     public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
-                               HarnessAssembler assembler, ToolCallback... tools) {
+                               HarnessAssembler assembler, List<BuzhouHook> hooks,
+                               Set<String> disabledHookNames, ToolCallback... tools) {
         this.chatModel = chatModel;
         this.stores = stores;
         this.assembler = assembler;
+        this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
+        this.disabledHookNames = disabledHookNames == null ? Set.of() : Set.copyOf(disabledHookNames);
         this.tools = tools == null ? new ToolCallback[0] : tools.clone();
     }
 
@@ -57,7 +65,7 @@ public class DefaultAgentRuntime implements AgentRuntime {
                 java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
         registry.register("session-executor", executor::shutdownNow);
         AgentSession session = assembler.assemble(appId, agentName, sessionId, chatModel, stores, registry,
-                registry::closeAll, tools);
+                registry::closeAll, hooks, disabledHookNames, tools);
         options.listeners().forEach(session::addEventListener);
         return session;
     }

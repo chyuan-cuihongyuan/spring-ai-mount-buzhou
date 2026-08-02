@@ -8,8 +8,12 @@ import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryS
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemoryUnitOfWork;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.HarnessAssembler;
+import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
+
+import java.util.List;
+import java.util.Set;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
@@ -34,7 +38,15 @@ public final class Buzhou {
     }
 
     public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores, ToolCallback... tools) {
-        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), tools);
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(),
+                List.of(), Set.of(), tools);
+    }
+
+    public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores,
+                                       List<BuzhouHook> hooks, Set<String> disabledHookNames,
+                                       ToolCallback... tools) {
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(),
+                hooks, disabledHookNames, tools);
     }
 
     public static ChatClient.Builder enhance(ChatClient.Builder builder) {

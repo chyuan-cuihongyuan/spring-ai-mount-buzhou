@@ -165,7 +165,7 @@ class AgentSessionSpineTest {
 
         AgentSession session = new HarnessAssembler().assemble(
                 "app", "agent", "sess-res", model, Buzhou.inMemoryStores(), registry,
-                registry::closeAll);
+                registry::closeAll, java.util.List.of(), java.util.Set.of());
         session.close();
 
         assertThat(cleaned).isTrue();

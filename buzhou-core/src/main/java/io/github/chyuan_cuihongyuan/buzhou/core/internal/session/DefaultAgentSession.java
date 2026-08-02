@@ -1,5 +1,11 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
+import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultSessionEventContext;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultTurnContext;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
+import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
@@ -20,18 +26,23 @@ public class DefaultAgentSession implements AgentSession {
     private final ChatClient chatClient;
     private final SessionResourceRegistry registry;
     private final Runnable onClose;
+    private final HookChain hookChain;
+    private final HookEnvironment hookEnv;
     private final List<SessionEventListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean closed = new AtomicBoolean();
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
-                               Runnable onClose) {
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
         this.chatClient = chatClient;
         this.registry = registry;
         this.onClose = onClose;
+        this.hookChain = hookChain;
+        this.hookEnv = hookEnv;
+        this.hookEnv.bindEventPublisher(this::dispatchEvent);
     }
 
     @Override
@@ -52,18 +63,33 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public String chat(String input) {
         ensureOpen();
-        return chatClient.prompt()
-                .user(input)
+        hookEnv.nextTurn();
+        DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
+        HookResult before = hookChain.beforeTurn(turnCtx);
+        if (before instanceof HookResult.Block block) {
+            return block.reason();
+        }
+        String response = chatClient.prompt()
+                .user(turnCtx.input())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                 .call()
                 .content();
+        turnCtx.markResponded(response);
+        hookChain.afterTurn(turnCtx);
+        return turnCtx.response();
     }
 
     @Override
     public Flux<ChatResponse> stream(String input) {
         ensureOpen();
+        hookEnv.nextTurn();
+        DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
+        HookResult before = hookChain.beforeTurn(turnCtx);
+        if (before instanceof HookResult.Block block) {
+            return Flux.error(new IllegalStateException(block.reason()));
+        }
         return chatClient.prompt()
-                .user(input)
+                .user(turnCtx.input())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                 .stream()
                 .chatResponse();
@@ -73,14 +99,14 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public void cancel() {
         ensureOpen();
-        fire(SessionEvent.of("session.cancelled"));
+        dispatchEvent(SessionEvent.of("session.cancelled"));
     }
 
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
             onClose.run();
-            fire(SessionEvent.of("session.closed"));
+            dispatchEvent(SessionEvent.of("session.closed"));
             listeners.clear();
         }
     }
@@ -95,7 +121,8 @@ public class DefaultAgentSession implements AgentSession {
         listeners.remove(listener);
     }
 
-    private void fire(SessionEvent event) {
+    private void dispatchEvent(SessionEvent event) {
+        hookChain.fireEvent(new DefaultSessionEventContext(hookEnv, event));
         listeners.forEach(listener -> listener.onEvent(event));
     }
 
@@ -104,5 +131,4 @@ public class DefaultAgentSession implements AgentSession {
             throw new IllegalStateException("Session already closed: " + sessionId);
         }
     }
-
 }
