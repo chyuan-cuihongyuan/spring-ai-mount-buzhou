@@ -10,4 +10,11 @@
   </parent>
   <artifactId>buzhou-spill</artifactId>
   <name>buzhou-spill</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+  </dependencies>
 </project>

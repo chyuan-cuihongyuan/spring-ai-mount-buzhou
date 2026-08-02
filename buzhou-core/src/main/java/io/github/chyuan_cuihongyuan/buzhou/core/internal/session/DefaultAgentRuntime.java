@@ -63,6 +63,7 @@ public class DefaultAgentRuntime implements AgentRuntime {
         java.util.concurrent.ExecutorService executor =
                 java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
         registry.register("session-executor", executor::shutdownNow);
+        config.sessionCustomizers().forEach(c -> c.customize(registry, appId, agentName, sessionId));
         ToolCallback[] allTools = java.util.stream.Stream.concat(
                         java.util.Arrays.stream(tools),
                         config.autoTools().stream())

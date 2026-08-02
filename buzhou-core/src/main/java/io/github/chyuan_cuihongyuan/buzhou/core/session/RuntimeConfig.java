@@ -14,7 +14,8 @@ public record RuntimeConfig(
         Set<String> idempotentToolNames,
         MemoryViewProcessor viewProcessor,
         List<ToolCallback> autoTools,
-        Map<String, String> serialGroups) {
+        Map<String, String> serialGroups,
+        List<SessionResourceCustomizer> sessionCustomizers) {
 
     public RuntimeConfig {
         hooks = hooks == null ? List.of() : List.copyOf(hooks);
@@ -22,12 +23,14 @@ public record RuntimeConfig(
         idempotentToolNames = idempotentToolNames == null ? Set.of() : Set.copyOf(idempotentToolNames);
         autoTools = autoTools == null ? List.of() : List.copyOf(autoTools);
         serialGroups = serialGroups == null ? Map.of() : Map.copyOf(serialGroups);
+        sessionCustomizers = sessionCustomizers == null ? List.of() : List.copyOf(sessionCustomizers);
     }
 
     public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
                          Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
                          List<ToolCallback> autoTools) {
-        this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, Map.of());
+        this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, Map.of(),
+                List.of());
     }
 
     public static RuntimeConfig defaults() {
