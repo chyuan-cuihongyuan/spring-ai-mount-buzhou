@@ -172,12 +172,12 @@ class HookEndToEndTest {
 
         session.chat("do both");
 
-        assertThat(seen).containsExactly(
-                "before:tool_a:" + seen.get(0).split(":")[2],
-                "after:tool_a:ra",
-                "before:tool_b:" + seen.get(2).split(":")[2],
-                "after:tool_b:rb");
-        assertThat(seen.get(0).split(":")[2]).isNotEqualTo(seen.get(2).split(":")[2]);
+        String beforeA = seen.stream().filter(x -> x.startsWith("before:tool_a")).findFirst().orElseThrow();
+        String beforeB = seen.stream().filter(x -> x.startsWith("before:tool_b")).findFirst().orElseThrow();
+        assertThat(seen).contains(beforeA, beforeB, "after:tool_a:ra", "after:tool_b:rb");
+        assertThat(seen.indexOf(beforeA)).isLessThan(seen.indexOf("after:tool_a:ra"));
+        assertThat(seen.indexOf(beforeB)).isLessThan(seen.indexOf("after:tool_b:rb"));
+        assertThat(beforeA.split(":")[2]).isNotEqualTo(beforeB.split(":")[2]);
         session.close();
     }
 

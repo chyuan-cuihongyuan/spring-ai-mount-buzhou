@@ -69,7 +69,8 @@ public class DefaultAgentRuntime implements AgentRuntime {
                 .toArray(ToolCallback[]::new);
         AgentSession session = assembler.assemble(appId, agentName, sessionId, chatModel, stores, registry,
                 registry::closeAll, config.hooks(), config.disabledHookNames(),
-                config.idempotentToolNames(), config.viewProcessor(), allTools);
+                config.idempotentToolNames(), config.viewProcessor(), executor,
+                config.serialGroups(), allTools);
         options.listeners().forEach(session::addEventListener);
         return session;
     }

@@ -5,6 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookAdvisor;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookedToolCallback;
+import io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.BuzhouChatMemory;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.BuzhouMemoryAdvisor;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DanglingCallRepairer;
@@ -29,11 +30,16 @@ public class HarnessAssembler {
                                  Set<String> disabledHookNames,
                                  Set<String> idempotentToolNames,
                                  io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor viewProcessor,
+                                 java.util.concurrent.ExecutorService executor,
+                                 java.util.Map<String, String> serialGroups,
                                  ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
         ToolCallback[] hookedTools = hookTools(tools, chain, env);
 
+        HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
+                org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
+                executor, 8, java.time.Duration.ofSeconds(60), serialGroups);
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
         memory.setViewProcessor(viewProcessor);
         memory.setRepairer(new DanglingCallRepairer(
@@ -46,14 +52,14 @@ public class HarnessAssembler {
                         java.time.Instant.now()))));
         ChatClient.Builder builder = ChatClient.builder(chatModel)
                 .defaultAdvisors(
-                        ToolCallingAdvisor.builder().build(),
+                        ToolCallingAdvisor.builder().toolCallingManager(toolManager).build(),
                         new BuzhouMemoryAdvisor(memory),
                         new HookAdvisor(chain, env));
         if (hookedTools.length > 0) {
             builder.defaultToolCallbacks(Arrays.asList(hookedTools));
         }
         return new DefaultAgentSession(appId, agentName, sessionId, builder.build(), registry, onClose,
-                chain, env);
+                chain, env, toolManager);
     }
 
     public ChatClient.Builder enhance(ChatClient.Builder builder, BuzhouStores stores) {

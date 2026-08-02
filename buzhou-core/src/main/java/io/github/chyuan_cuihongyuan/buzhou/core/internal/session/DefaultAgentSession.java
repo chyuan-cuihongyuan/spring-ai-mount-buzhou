@@ -28,12 +28,14 @@ public class DefaultAgentSession implements AgentSession {
     private final Runnable onClose;
     private final HookChain hookChain;
     private final HookEnvironment hookEnv;
+    private final io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager;
     private final List<SessionEventListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean closed = new AtomicBoolean();
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
-                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv) {
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
+                               io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
@@ -42,6 +44,7 @@ public class DefaultAgentSession implements AgentSession {
         this.onClose = onClose;
         this.hookChain = hookChain;
         this.hookEnv = hookEnv;
+        this.toolManager = toolManager;
         this.hookEnv.bindEventPublisher(this::dispatchEvent);
     }
 
@@ -95,10 +98,11 @@ public class DefaultAgentSession implements AgentSession {
                 .chatResponse();
     }
 
-    /** 取消在途轮次。执行脊柱（并行工具调用）随 ticket 09 落地后接入取消传播；当前为事件占位。 */
+    /** 取消在途轮次：中断全部在途工具调用；会话不谢幕，可继续 chat。 */
     @Override
     public void cancel() {
         ensureOpen();
+        toolManager.cancelInFlight();
         dispatchEvent(SessionEvent.of("session.cancelled"));
     }
 
