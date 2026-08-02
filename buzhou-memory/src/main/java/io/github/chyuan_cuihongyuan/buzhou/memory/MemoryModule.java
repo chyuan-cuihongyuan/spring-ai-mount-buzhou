@@ -1,12 +1,20 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver;
 import io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatcher;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStore;
+import io.github.chyuan_cuihongyuan.buzhou.memory.budget.DefaultBudgetCalculator;
 import io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultCompletedTurnDetector;
 import io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultMicroCompactor;
 import io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionPolicy;
+import io.github.chyuan_cuihongyuan.buzhou.memory.summary.DefaultSummaryGenerator;
+import io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryCircuitBreaker;
+import io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge;
 import io.github.chyuan_cuihongyuan.buzhou.memory.tool.EvidenceLookupTool;
+import org.springframework.ai.chat.model.ChatModel;
 
 import java.util.List;
 import java.util.Map;
@@ -18,15 +26,83 @@ public final class MemoryModule {
     }
 
     public static RuntimeConfig configure(Map<String, Object> ymlConfig, MessageStore messageStore) {
+        return configure(ymlConfig, null, messageStore, null, null);
+    }
+
+    public static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
+                                          ChatModel mainModel, ChatModel summaryModel) {
+        return configure(ymlConfig, stores, stores.messageStore(),
+                mainModel, summaryModel == null ? mainModel : summaryModel);
+    }
+
+    private static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
+                                           MessageStore messageStore,
+                                           ChatModel mainModel, ChatModel summaryModel) {
         DefaultMicroCompactor compactor = new DefaultMicroCompactor(new DefaultCompletedTurnDetector());
         Function<String, MicroCompactionPolicy> policyFn = policyFn(ymlConfig);
         int protectRecentTurns = protectRecentTurns(ymlConfig);
 
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor processor;
+        if (summaryModel == null || stores == null) {
+            processor = (sessionId, stored, currentTurn) ->
+                    compactor.compact(stored, currentTurn, policyFn, protectRecentTurns)
+                            .compactedView();
+        } else {
+            DefaultBudgetCalculator budgetCalculator = new DefaultBudgetCalculator(
+                    new TableContextWindowResolver(windowOverrides(ymlConfig)),
+                    new CharHeuristicTokenEstimator());
+            processor = new InjectionViewProcessor(compactor, policyFn, protectRecentTurns,
+                    budgetCalculator, new SummaryStoreBridge(stores.summaryStore()),
+                    new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3), summaryModel,
+                    modelName(ymlConfig), keepRecentTurns(ymlConfig), extraInstruction(ymlConfig));
+        }
         return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(),
-                (sessionId, stored, currentTurn) ->
-                        compactor.compact(stored, currentTurn, policyFn, protectRecentTurns)
-                                .compactedView(),
-                List.of(new EvidenceLookupTool(messageStore)));
+                processor, List.of(new EvidenceLookupTool(messageStore)));
+    }
+
+    private static String modelName(Map<String, Object> ymlConfig) {
+        Object value = ymlConfig.get("model-name");
+        return value instanceof String s ? s : "unknown";
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Integer> windowOverrides(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object overrides = ((Map<String, Object>) memory).get("context-window");
+            if (overrides instanceof Map) {
+                Map<String, Integer> result = new java.util.HashMap<>();
+                ((Map<String, Object>) overrides).forEach((k, v) -> {
+                    if (v instanceof Number n) {
+                        result.put(k, n.intValue());
+                    }
+                });
+                return result;
+            }
+        }
+        return Map.of();
+    }
+
+    private static int keepRecentTurns(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object value = ((Map<String, Object>) memory).get("keep-recent-turns");
+            if (value instanceof Number n) {
+                return n.intValue();
+            }
+        }
+        return 2;
+    }
+
+    private static String extraInstruction(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object value = ((Map<String, Object>) memory).get("summary-extra-instruction");
+            if (value instanceof String s) {
+                return s;
+            }
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
