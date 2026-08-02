@@ -75,7 +75,10 @@ class HookEndToEndTest {
     private AgentRuntime runtime(ScriptedChatModel model, List<BuzhouHook> hooks,
                                  ToolCallback... tools) {
         BuzhouStores stores = Buzhou.inMemoryStores();
-        return Buzhou.runtime(model, stores, hooks, Set.of(), tools);
+        return Buzhou.runtime(model, stores,
+                new io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig(
+                        hooks, Set.of(), Set.of(), null, List.of()),
+                tools);
     }
 
     @Test
@@ -127,7 +130,9 @@ class HookEndToEndTest {
             }
         };
         BuzhouStores stores = Buzhou.inMemoryStores();
-        AgentRuntime runtime = Buzhou.runtime(observing, stores, List.of(offloader), Set.of(),
+        AgentRuntime runtime = Buzhou.runtime(observing, stores,
+                new io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig(
+                        List.of(offloader), Set.of(), Set.of(), null, List.of()),
                 tool("read_file", "5万字原文"));
         AgentSession session = runtime.spawn("app", "agent", "s-replace");
         session.chat("读文件");

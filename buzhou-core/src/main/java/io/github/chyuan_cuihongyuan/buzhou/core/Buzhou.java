@@ -38,22 +38,13 @@ public final class Buzhou {
     }
 
     public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores, ToolCallback... tools) {
-        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(),
-                List.of(), Set.of(), Set.of(), tools);
+        return runtime(chatModel, stores, io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(), tools);
     }
 
     public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores,
-                                       List<BuzhouHook> hooks, Set<String> disabledHookNames,
+                                       io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig config,
                                        ToolCallback... tools) {
-        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(),
-                hooks, disabledHookNames, Set.of(), tools);
-    }
-
-    public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores,
-                                       List<BuzhouHook> hooks, Set<String> disabledHookNames,
-                                       Set<String> idempotentToolNames, ToolCallback... tools) {
-        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(),
-                hooks, disabledHookNames, idempotentToolNames, tools);
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), config, tools);
     }
 
     public static ChatClient.Builder enhance(ChatClient.Builder builder) {

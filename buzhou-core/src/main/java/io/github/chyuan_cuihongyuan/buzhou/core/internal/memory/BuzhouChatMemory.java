@@ -24,6 +24,7 @@ public class BuzhouChatMemory implements ChatMemory {
 
     private final MessageStore messageStore;
     private DanglingCallRepairer repairer;
+    private io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor viewProcessor;
     private final ConcurrentHashMap<String, AtomicInteger> turnByConversation = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AtomicInteger> seqByConversation = new ConcurrentHashMap<>();
 
@@ -33,6 +34,10 @@ public class BuzhouChatMemory implements ChatMemory {
 
     public void setRepairer(DanglingCallRepairer repairer) {
         this.repairer = repairer;
+    }
+
+    public void setViewProcessor(io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor viewProcessor) {
+        this.viewProcessor = viewProcessor;
     }
 
     @Override
@@ -63,6 +68,11 @@ public class BuzhouChatMemory implements ChatMemory {
         List<BuzhouMessage> stored = messageStore.load(conversationId);
         if (repairer != null) {
             stored = repairer.repair(conversationId, stored);
+        }
+        if (viewProcessor != null) {
+            int currentTurn = turnByConversation.containsKey(conversationId)
+                    ? turnByConversation.get(conversationId).get() : 1;
+            stored = viewProcessor.process(conversationId, stored, Math.max(currentTurn, 1));
         }
         List<Message> result = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> pendingToolResponses = new ArrayList<>();

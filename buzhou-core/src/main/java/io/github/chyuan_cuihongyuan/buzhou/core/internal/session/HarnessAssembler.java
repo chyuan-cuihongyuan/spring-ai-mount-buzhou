@@ -28,12 +28,14 @@ public class HarnessAssembler {
                                  Collection<BuzhouHook> hooks,
                                  Set<String> disabledHookNames,
                                  Set<String> idempotentToolNames,
+                                 io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor viewProcessor,
                                  ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
         ToolCallback[] hookedTools = hookTools(tools, chain, env);
 
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
+        memory.setViewProcessor(viewProcessor);
         memory.setRepairer(new DanglingCallRepairer(
                 toolsByName(tools), idempotentToolNames,
                 (sid, event) -> env.emit(new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent(

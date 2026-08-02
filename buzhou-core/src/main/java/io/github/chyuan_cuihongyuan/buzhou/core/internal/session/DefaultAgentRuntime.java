@@ -3,6 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
@@ -23,21 +24,16 @@ public class DefaultAgentRuntime implements AgentRuntime {
     private final BuzhouStores stores;
     private final HarnessAssembler assembler;
     private final ToolCallback[] tools;
-    private final List<BuzhouHook> hooks;
-    private final Set<String> disabledHookNames;
-    private final Set<String> idempotentToolNames;
+    private final RuntimeConfig config;
     private final String ownerId = UUID.randomUUID().toString();
 
     public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
-                               HarnessAssembler assembler, List<BuzhouHook> hooks,
-                               Set<String> disabledHookNames, Set<String> idempotentToolNames,
+                               HarnessAssembler assembler, RuntimeConfig config,
                                ToolCallback... tools) {
         this.chatModel = chatModel;
         this.stores = stores;
         this.assembler = assembler;
-        this.hooks = hooks == null ? List.of() : List.copyOf(hooks);
-        this.disabledHookNames = disabledHookNames == null ? Set.of() : Set.copyOf(disabledHookNames);
-        this.idempotentToolNames = idempotentToolNames == null ? Set.of() : Set.copyOf(idempotentToolNames);
+        this.config = config == null ? RuntimeConfig.defaults() : config;
         this.tools = tools == null ? new ToolCallback[0] : tools.clone();
     }
 
@@ -67,8 +63,13 @@ public class DefaultAgentRuntime implements AgentRuntime {
         java.util.concurrent.ExecutorService executor =
                 java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
         registry.register("session-executor", executor::shutdownNow);
+        ToolCallback[] allTools = java.util.stream.Stream.concat(
+                        java.util.Arrays.stream(tools),
+                        config.autoTools().stream())
+                .toArray(ToolCallback[]::new);
         AgentSession session = assembler.assemble(appId, agentName, sessionId, chatModel, stores, registry,
-                registry::closeAll, hooks, disabledHookNames, idempotentToolNames, tools);
+                registry::closeAll, config.hooks(), config.disabledHookNames(),
+                config.idempotentToolNames(), config.viewProcessor(), allTools);
         options.listeners().forEach(session::addEventListener);
         return session;
     }
