@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.chyuan-cuihongyuan</groupId>
+  <artifactId>spring-ai-mount-buzhou</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Spring AI Mount Buzhou</name>
+  <description>Runtime harness mounted between Spring AI and business agents</description>
+  <url>https://github.com/chyuan-cuihongyuan/spring-ai-mount-buzhou</url>
+
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <!-- 构建环境对 repo.maven.apache.org 有 TLS 指纹级拦截（Maven 403、curl 可通），暂用阿里云镜像解锁构建；发布前迁移至 settings.xml 或 CI 专用配置，避免传染下游。 -->
+  <repositories>
+    <repository>
+      <id>aliyun-public</id>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>aliyun-public</id>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <modules>
+    <module>buzhou-bom</module>
+    <module>buzhou-core</module>
+    <module>buzhou-memory</module>
+    <module>buzhou-spill</module>
+    <module>buzhou-observability</module>
+    <module>buzhou-observe-otel</module>
+    <module>buzhou-observe-dashboard</module>
+    <module>buzhou-skills</module>
+    <module>buzhou-mcp</module>
+    <module>buzhou-guard</module>
+    <module>buzhou-tools</module>
+    <module>buzhou-store-jdbc</module>
+    <module>buzhou-store-redis</module>
+    <module>buzhou-spring-boot-starter</module>
+    <module>examples</module>
+  </modules>
+
+  <properties>
+    <java.version>21</java.version>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spring-ai.version>2.0.0</spring-ai.version>
+    <spring-boot.version>4.1.0</spring-boot.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.14.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.5.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
