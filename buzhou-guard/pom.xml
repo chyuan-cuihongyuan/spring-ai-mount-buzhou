@@ -10,4 +10,23 @@
   </parent>
   <artifactId>buzhou-guard</artifactId>
   <name>buzhou-guard</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!-- 参数指纹规范化 JSON + yml 配置解析 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!-- 复用 core 测试工具（ScriptedChatModel 风格） -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
