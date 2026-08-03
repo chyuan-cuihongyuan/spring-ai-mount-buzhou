@@ -1,5 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.exec;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
@@ -33,6 +34,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private final Semaphore turnPermits;
     private final Duration toolTimeout;
     private final Map<String, String> serialGroups;
+    private final SpanContextCarrier spanContextCarrier;
     private final ConcurrentHashMap<String, Object> groupLocks = new ConcurrentHashMap<>();
     private final List<Future<?>> inFlight = new CopyOnWriteArrayList<>();
 
@@ -41,11 +43,21 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                                      int maxConcurrencyPerTurn,
                                      Duration toolTimeout,
                                      Map<String, String> serialGroups) {
+        this(delegate, executor, maxConcurrencyPerTurn, toolTimeout, serialGroups, null);
+    }
+
+    public HarnessToolCallingManager(DefaultToolCallingManager delegate,
+                                     ExecutorService executor,
+                                     int maxConcurrencyPerTurn,
+                                     Duration toolTimeout,
+                                     Map<String, String> serialGroups,
+                                     SpanContextCarrier spanContextCarrier) {
         this.delegate = delegate;
         this.executor = executor;
         this.turnPermits = new Semaphore(maxConcurrencyPerTurn);
         this.toolTimeout = toolTimeout;
         this.serialGroups = serialGroups == null ? Map.of() : serialGroups;
+        this.spanContextCarrier = spanContextCarrier;
     }
 
     @Override
@@ -69,7 +81,10 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         }
 
         Map<String, Object> toolContextMap = options.getToolContext() == null
-                ? Map.of() : options.getToolContext();
+                ? new java.util.HashMap<>() : new java.util.HashMap<>(options.getToolContext());
+        if (spanContextCarrier != null) {
+            toolContextMap.put(SpanContextCarrier.KEY, spanContextCarrier);
+        }
         ToolContext toolContext = new ToolContext(toolContextMap);
         List<Future<ToolResponseMessage.ToolResponse>> futures = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> responses = new ArrayList<>();

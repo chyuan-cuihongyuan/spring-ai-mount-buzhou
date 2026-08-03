@@ -15,7 +15,8 @@ public record RuntimeConfig(
         MemoryViewProcessor viewProcessor,
         List<ToolCallback> autoTools,
         Map<String, String> serialGroups,
-        List<SessionResourceCustomizer> sessionCustomizers) {
+        List<SessionResourceCustomizer> sessionCustomizers,
+        List<SessionAssemblyCustomizer> assemblyCustomizers) {
 
     public RuntimeConfig {
         hooks = hooks == null ? List.of() : List.copyOf(hooks);
@@ -24,13 +25,22 @@ public record RuntimeConfig(
         autoTools = autoTools == null ? List.of() : List.copyOf(autoTools);
         serialGroups = serialGroups == null ? Map.of() : Map.copyOf(serialGroups);
         sessionCustomizers = sessionCustomizers == null ? List.of() : List.copyOf(sessionCustomizers);
+        assemblyCustomizers = assemblyCustomizers == null ? List.of() : List.copyOf(assemblyCustomizers);
     }
 
     public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
                          Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
                          List<ToolCallback> autoTools) {
         this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, Map.of(),
-                List.of());
+                List.of(), List.of());
+    }
+
+    public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
+                         Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
+                         List<ToolCallback> autoTools, Map<String, String> serialGroups,
+                         List<SessionResourceCustomizer> sessionCustomizers) {
+        this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
+                sessionCustomizers, List.of());
     }
 
     public static RuntimeConfig defaults() {
@@ -45,6 +55,7 @@ public record RuntimeConfig(
         List<ToolCallback> autoTools = new java.util.ArrayList<>();
         Map<String, String> serialGroups = new java.util.HashMap<>();
         List<SessionResourceCustomizer> customizers = new java.util.ArrayList<>();
+        List<SessionAssemblyCustomizer> assemblyCustomizers = new java.util.ArrayList<>();
         for (RuntimeConfig config : configs) {
             if (config == null) {
                 continue;
@@ -58,8 +69,9 @@ public record RuntimeConfig(
             autoTools.addAll(config.autoTools());
             serialGroups.putAll(config.serialGroups());
             customizers.addAll(config.sessionCustomizers());
+            assemblyCustomizers.addAll(config.assemblyCustomizers());
         }
         return new RuntimeConfig(hooks, disabled, idempotent, viewProcessor, autoTools,
-                serialGroups, customizers);
+                serialGroups, customizers, assemblyCustomizers);
     }
 }

@@ -1,14 +1,17 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultSessionEventContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultTurnContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
+import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -28,14 +31,26 @@ public class DefaultAgentSession implements AgentSession {
     private final Runnable onClose;
     private final HookChain hookChain;
     private final HookEnvironment hookEnv;
-    private final io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager;
+    private final HarnessToolCallingManager toolManager;
+    private final SpanContextCarrier spanContextCarrier;
+    private final List<SessionObserver> observers;
     private final List<SessionEventListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean closed = new AtomicBoolean();
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
                                Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
-                               io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager) {
+                               HarnessToolCallingManager toolManager) {
+        this(appId, agentName, sessionId, chatClient, registry, onClose, hookChain, hookEnv,
+                toolManager, new SpanContextCarrier(), List.of());
+    }
+
+    public DefaultAgentSession(String appId, String agentName, String sessionId,
+                               ChatClient chatClient, SessionResourceRegistry registry,
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
+                               HarnessToolCallingManager toolManager,
+                               SpanContextCarrier spanContextCarrier,
+                               List<SessionObserver> observers) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
@@ -45,7 +60,14 @@ public class DefaultAgentSession implements AgentSession {
         this.hookChain = hookChain;
         this.hookEnv = hookEnv;
         this.toolManager = toolManager;
+        this.spanContextCarrier = spanContextCarrier;
+        this.observers = new CopyOnWriteArrayList<>(observers);
         this.hookEnv.bindEventPublisher(this::dispatchEvent);
+        observers.forEach(SessionObserver::onOpen);
+    }
+
+    public SpanContextCarrier spanContextCarrier() {
+        return spanContextCarrier;
     }
 
     @Override
@@ -66,7 +88,8 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public String chat(String input) {
         ensureOpen();
-        hookEnv.nextTurn();
+        int turnSeq = hookEnv.nextTurn();
+        observers.forEach(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
         HookResult before = hookChain.beforeTurn(turnCtx);
         if (before instanceof HookResult.Block block) {
@@ -79,13 +102,15 @@ public class DefaultAgentSession implements AgentSession {
                 .content();
         turnCtx.markResponded(response);
         hookChain.afterTurn(turnCtx);
+        observers.forEach(o -> o.onTurnEnd(turnSeq, response));
         return turnCtx.response();
     }
 
     @Override
     public Flux<ChatResponse> stream(String input) {
         ensureOpen();
-        hookEnv.nextTurn();
+        int turnSeq = hookEnv.nextTurn();
+        observers.forEach(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
         HookResult before = hookChain.beforeTurn(turnCtx);
         if (before instanceof HookResult.Block block) {
@@ -103,15 +128,18 @@ public class DefaultAgentSession implements AgentSession {
     public void cancel() {
         ensureOpen();
         toolManager.cancelInFlight();
+        observers.forEach(SessionObserver::onCancel);
         dispatchEvent(SessionEvent.of("session.cancelled"));
     }
 
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
+            observers.forEach(SessionObserver::onClose);
             onClose.run();
             dispatchEvent(SessionEvent.of("session.closed"));
             listeners.clear();
+            spanContextCarrier.clear();
         }
     }
 

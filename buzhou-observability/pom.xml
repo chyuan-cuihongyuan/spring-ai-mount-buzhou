@@ -10,4 +10,42 @@
   </parent>
   <artifactId>buzhou-observability</artifactId>
   <name>buzhou-observability</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!-- Span/Event 采集挂接走 Spring AI advisor + ToolCallback 包装 -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-client-chat</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+    </dependency>
+    <!-- 思维链 payload / attributes JSON 序列化（与 core 一致用 jackson） -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!-- Micrometer 双写：token/耗时指标同步进业务 Prometheus 栈 -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
+    <!-- 复用 core 契约/测试工具（ScriptedChatModel 风格在 core test-jar 内可继承断言习惯） -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

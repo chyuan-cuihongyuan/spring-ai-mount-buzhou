@@ -69,6 +69,11 @@ class LongContentGuardEndToEndTest {
                 .build();
     }
 
+    /** 把路径转成 JSON 安全形式：Windows 反斜杠转正斜杠，避免 Jackson \U 转义错误。 */
+    static String jsonPath(java.nio.file.Path path) {
+        return path.toString().replace('\\', '/');
+    }
+
     static ToolCallback fixedTool(String name, String result) {
         return new ToolCallback() {
             @Override
@@ -139,7 +144,7 @@ class LongContentGuardEndToEndTest {
         Files.writeString(fullFile, fullContent);
         ScriptedChatModel model = new ScriptedChatModel();
         model.enqueue(toolCall("tc-1", "write_file",
-                "{\"path\":\"out.etl\",\"contentPath\":\"" + fullFile + "\"}"));
+                "{\"path\":\"out.etl\",\"contentPath\":\"" + jsonPath(fullFile) + "\"}"));
         model.enqueue(new AssistantMessage("已写入"));
         RecordingTool writeFile = new RecordingTool("write_file");
         SpillModule spill = SpillModule.withDefaults(spillRoot);
@@ -163,7 +168,7 @@ class LongContentGuardEndToEndTest {
         Path outsideFile = Files.writeString(spillRoot.resolve("secret.txt"), "secret");
         ScriptedChatModel model = new ScriptedChatModel();
         model.enqueue(toolCall("tc-1", "write_file",
-                "{\"path\":\"out.txt\",\"contentPath\":\"" + outsideFile + "\"}"));
+                "{\"path\":\"out.txt\",\"contentPath\":\"" + jsonPath(outsideFile) + "\"}"));
         model.enqueue(new AssistantMessage("路径被拒，我改用内联内容"));
         RecordingTool writeFile = new RecordingTool("write_file");
         List<SessionEvent> events = new CopyOnWriteArrayList<>();
@@ -212,12 +217,12 @@ class LongContentGuardEndToEndTest {
         Files.writeString(snapshot, "原始内容待修改");
         ScriptedChatModel model = new ScriptedChatModel();
         model.enqueue(toolCall("tc-1", "str_replace",
-                "{\"path\":\"" + snapshot + "\",\"oldStr\":\"原始\",\"newStr\":\"篡改\"}"));
+                "{\"path\":\"" + jsonPath(snapshot) + "\",\"oldStr\":\"原始\",\"newStr\":\"篡改\"}"));
         Path workCopy = sandboxRoot.resolve("work.txt");
         model.enqueue(toolCall("tc-2", "copy_file",
-                "{\"srcPath\":\"" + snapshot + "\",\"destPath\":\"" + workCopy + "\"}"));
+                "{\"srcPath\":\"" + jsonPath(snapshot) + "\",\"destPath\":\"" + jsonPath(workCopy) + "\"}"));
         model.enqueue(toolCall("tc-3", "str_replace",
-                "{\"path\":\"" + workCopy + "\",\"oldStr\":\"原始\",\"newStr\":\"已改\"}"));
+                "{\"path\":\"" + jsonPath(workCopy) + "\",\"oldStr\":\"原始\",\"newStr\":\"已改\"}"));
         model.enqueue(new AssistantMessage("编辑完成"));
         SpillModule spill = SpillModule.withDefaults(spillRoot);
         SpillGuardModule guard = SpillGuardModule.fromModule(spill, sandboxRoot).build();

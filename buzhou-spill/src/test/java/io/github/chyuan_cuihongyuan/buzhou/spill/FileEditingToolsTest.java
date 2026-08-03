@@ -29,14 +29,19 @@ class FileEditingToolsTest {
         return new StrReplaceTool(sandbox());
     }
 
+    /** 把路径转成 JSON 安全形式：Windows 反斜杠转正斜杠，避免 Jackson \U 转义错误。 */
+    private static String jsonPath(Path path) {
+        return path.toString().replace('\\', '/');
+    }
+
     @Test
     void copyFileCopiesIntoSandbox() throws Exception {
         Path src = readonlyRoot.resolve("origin.txt");
         Files.writeString(src, "原始内容");
-        String dest = workRoot.resolve("work.txt").toString();
+        String dest = jsonPath(workRoot.resolve("work.txt"));
 
         String result = copyTool().call(
-                "{\"srcPath\":\"" + src + "\",\"destPath\":\"" + dest + "\"}");
+                "{\"srcPath\":\"" + jsonPath(src) + "\",\"destPath\":\"" + dest + "\"}");
 
         assertThat(result).contains("work.txt");
         assertThat(Files.readString(workRoot.resolve("work.txt"))).isEqualTo("原始内容");
@@ -50,7 +55,7 @@ class FileEditingToolsTest {
         Files.writeString(dest, "old");
 
         String result = copyTool().call(
-                "{\"srcPath\":\"" + src + "\",\"destPath\":\"" + dest + "\"}");
+                "{\"srcPath\":\"" + jsonPath(src) + "\",\"destPath\":\"" + jsonPath(dest) + "\"}");
 
         assertThat(result).contains("已存在");
         assertThat(Files.readString(dest)).isEqualTo("old");
@@ -64,7 +69,7 @@ class FileEditingToolsTest {
         Files.writeString(dest, "old");
 
         copyTool().call(
-                "{\"srcPath\":\"" + src + "\",\"destPath\":\"" + dest + "\",\"overwrite\":true}");
+                "{\"srcPath\":\"" + jsonPath(src) + "\",\"destPath\":\"" + jsonPath(dest) + "\",\"overwrite\":true}");
 
         assertThat(Files.readString(dest)).isEqualTo("new");
     }
@@ -75,7 +80,7 @@ class FileEditingToolsTest {
         Files.writeString(src, "data");
 
         String result = copyTool().call(
-                "{\"srcPath\":\"" + src + "\",\"destPath\":\"" + readonlyRoot.resolve("x.txt") + "\"}");
+                "{\"srcPath\":\"" + jsonPath(src) + "\",\"destPath\":\"" + jsonPath(readonlyRoot.resolve("x.txt")) + "\"}");
 
         assertThat(result).contains("失败");
         assertThat(readonlyRoot.resolve("x.txt")).doesNotExist();
@@ -87,7 +92,7 @@ class FileEditingToolsTest {
         Files.writeString(file, "hello world, hello buzhou");
 
         String result = replaceTool().call(
-                "{\"path\":\"" + file + "\",\"oldStr\":\"world\",\"newStr\":\"buzhou\"}");
+                "{\"path\":\"" + jsonPath(file) + "\",\"oldStr\":\"world\",\"newStr\":\"buzhou\"}");
 
         assertThat(result).contains("成功");
         assertThat(Files.readString(file)).isEqualTo("hello buzhou, hello buzhou");
@@ -99,7 +104,7 @@ class FileEditingToolsTest {
         Files.writeString(file, "foo bar foo");
 
         String result = replaceTool().call(
-                "{\"path\":\"" + file + "\",\"oldStr\":\"foo\",\"newStr\":\"baz\"}");
+                "{\"path\":\"" + jsonPath(file) + "\",\"oldStr\":\"foo\",\"newStr\":\"baz\"}");
 
         assertThat(result).contains("不唯一");
         assertThat(Files.readString(file)).isEqualTo("foo bar foo");
@@ -111,7 +116,7 @@ class FileEditingToolsTest {
         Files.writeString(file, "content");
 
         String result = replaceTool().call(
-                "{\"path\":\"" + file + "\",\"oldStr\":\"absent\",\"newStr\":\"x\"}");
+                "{\"path\":\"" + jsonPath(file) + "\",\"oldStr\":\"absent\",\"newStr\":\"x\"}");
 
         assertThat(result).contains("未找到");
     }
@@ -130,7 +135,7 @@ class FileEditingToolsTest {
         Files.writeString(file, "content");
 
         String result = replaceTool().call(
-                "{\"path\":\"" + file + "\",\"oldStr\":\"content\",\"newStrPath\":\"x.txt\"}");
+                "{\"path\":\"" + jsonPath(file) + "\",\"oldStr\":\"content\",\"newStrPath\":\"x.txt\"}");
 
         assertThat(result).contains("newStr");
     }
