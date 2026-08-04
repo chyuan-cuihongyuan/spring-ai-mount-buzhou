@@ -4,6 +4,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicToke
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor;
 import io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetInput;
 import io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetReport;
@@ -37,6 +38,7 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     private final String modelName;
     private final int keepRecentTurns;
     private final String extraInstruction;
+    private AttachmentRenderer attachmentRenderer;
 
     public InjectionViewProcessor(DefaultMicroCompactor compactor,
                                   Function<String, MicroCompactionPolicy> policyFn,
@@ -62,6 +64,11 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         this.extraInstruction = extraInstruction;
     }
 
+    /** 注入事实 Attachment 渲染器（spec 07 Hook→state→Attachment 闭环）。 */
+    public void setAttachmentRenderer(AttachmentRenderer attachmentRenderer) {
+        this.attachmentRenderer = attachmentRenderer;
+    }
+
     @Override
     public List<BuzhouMessage> process(String sessionId, List<BuzhouMessage> stored, int currentTurn) {
         List<BuzhouMessage> compacted = compactor
@@ -74,7 +81,7 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         NineSectionSummary previous = summaryBridge.loadLatest(sessionId).orElse(null);
         BudgetReport budget = evaluateBudget(compacted, previous);
         if (!budget.compactionNeeded()) {
-            return injectSummaryOnly(compacted, previous, currentTurn);
+            return injectSummaryOnly(compacted, previous, currentTurn, sessionId);
         }
 
         int cutoffTurn = currentTurn - keepRecentTurns;
@@ -101,7 +108,7 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 return compacted;
             }
         }
-        return assembleWithSummary(recent, merged, currentTurn);
+        return assembleWithSummary(recent, merged, currentTurn, sessionId);
     }
 
     private BudgetReport evaluateBudget(List<BuzhouMessage> compacted, NineSectionSummary summary) {
@@ -121,30 +128,60 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     }
 
     private List<BuzhouMessage> injectSummaryOnly(List<BuzhouMessage> compacted,
-                                                  NineSectionSummary summary, int currentTurn) {
-        if (summary == null) {
+                                                  NineSectionSummary summary, int currentTurn,
+                                                  String sessionId) {
+        // 无摘要且无 Attachment 渲染器 → 直接返回（无需注入）
+        if (summary == null && attachmentRenderer == null) {
             return compacted;
         }
         int cutoffTurn = currentTurn - keepRecentTurns;
         List<BuzhouMessage> recent = compacted.stream()
                 .filter(m -> m.turnSeq() > cutoffTurn)
                 .toList();
-        return assembleWithSummary(recent.isEmpty() ? compacted : recent, summary, currentTurn);
+        return assembleWithSummary(recent.isEmpty() ? compacted : recent, summary, currentTurn, sessionId);
     }
 
     private List<BuzhouMessage> assembleWithSummary(List<BuzhouMessage> recent,
-                                                    NineSectionSummary summary, int currentTurn) {
-        if (summary == null) {
+                                                    NineSectionSummary summary, int currentTurn,
+                                                    String sessionId) {
+        List<BuzhouMessage> result = new ArrayList<>();
+        if (summary != null) {
+            // 把未过期事实追加到 CURRENT_STATE 段（P0 死保，压缩不丢现场）
+            NineSectionSummary enriched = enrichWithFacts(summary, sessionId, currentTurn);
+            BuzhouMessage synthetic = new BuzhouMessage(
+                    UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
+                    "<system-reminder>\n以下是早前对话的结构化摘要：\n" + enriched.render()
+                            + "\n</system-reminder>",
+                    List.of(), null, null, null, Map.of("summary", true), Instant.now());
+            result.add(synthetic);
+        }
+        // 事实 Attachment 块（spec 07：摘要块在前、事实块随后、近期原文在后）
+        if (attachmentRenderer != null && sessionId != null) {
+            java.util.Optional<String> facts = attachmentRenderer.render(sessionId, currentTurn);
+            if (facts.isPresent()) {
+                BuzhouMessage factBlock = new BuzhouMessage(
+                        UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
+                        "<system-reminder>\n" + facts.get() + "\n</system-reminder>",
+                        List.of(), null, null, null, Map.of("facts", true), Instant.now());
+                result.add(factBlock);
+            }
+        }
+        if (result.isEmpty()) {
             return recent;
         }
-        BuzhouMessage synthetic = new BuzhouMessage(
-                UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
-                "<system-reminder>\n以下是早前对话的结构化摘要：\n" + summary.render()
-                        + "\n</system-reminder>",
-                List.of(), null, null, null, Map.of("summary", true), Instant.now());
-        List<BuzhouMessage> result = new ArrayList<>();
-        result.add(synthetic);
         result.addAll(recent);
         return result;
+    }
+
+    /** 把未过期事实追加到摘要 CURRENT_STATE 段（保证压缩后事实仍保留，P0 不丢）。 */
+    private NineSectionSummary enrichWithFacts(NineSectionSummary summary, String sessionId, int currentTurn) {
+        if (attachmentRenderer == null || sessionId == null) {
+            return summary;
+        }
+        java.util.Optional<String> facts = attachmentRenderer.render(sessionId, currentTurn);
+        if (facts.isEmpty()) {
+            return summary;
+        }
+        return summary.appendCurrentState("\n[已采集事实]\n" + facts.get());
     }
 }

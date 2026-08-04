@@ -2,13 +2,19 @@ package io.github.chyuan_cuihongyuan.buzhou.guard;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DefaultFactStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.AuthTtl;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.ConfirmOption;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.Confirmation;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.DangerousToolConfig;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.DangerousToolEntry;
+import io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactAttachmentRenderer;
+import io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactCollectorHook;
+import io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactDefinition;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHook;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.GuardAuthApi;
 
@@ -33,16 +39,24 @@ public final class GuardModule {
 
     private final List<BuzhouHook> hooks;
     private final GuardAuthApi authApi;
+    private final AttachmentRenderer attachmentRenderer;
+    private final FactStore factStore;
 
     private GuardModule(Builder builder) {
         DangerousToolConfig config = new DangerousToolConfig(
                 builder.enabled, builder.authTtl, List.copyOf(builder.dangerousTools));
         this.authApi = new GuardAuthApi(builder.stores.sessionStateStore());
+        this.factStore = new DefaultFactStore(builder.stores.sessionStateStore());
         List<BuzhouHook> h = new ArrayList<>();
         if (builder.enabled) {
             h.add(new DangerousToolGuardHook(config, builder.stores.sessionStateStore()));
         }
+        if (!builder.factDefinitions.isEmpty()) {
+            h.add(new FactCollectorHook(builder.factDefinitions, factStore));
+        }
         this.hooks = List.copyOf(h);
+        this.attachmentRenderer = builder.factDefinitions.isEmpty() ? null
+                : new FactAttachmentRenderer(factStore, builder.factDefinitions);
     }
 
     public static Builder builder(BuzhouStores stores) {
@@ -63,12 +77,23 @@ public final class GuardModule {
         return authApi;
     }
 
+    /** 事实 Attachment 渲染器（供 memory 注入视图构建方注入事实块）；无采集器时返回 null。 */
+    public AttachmentRenderer attachmentRenderer() {
+        return attachmentRenderer;
+    }
+
+    /** 事实存取门面（调试/查询用）。 */
+    public FactStore factStore() {
+        return factStore;
+    }
+
     public static final class Builder {
 
         private final BuzhouStores stores;
         private boolean enabled = true;
         private AuthTtl authTtl = AuthTtl.ONCE;
         private final List<DangerousToolEntry> dangerousTools = new ArrayList<>();
+        private final List<FactDefinition> factDefinitions = new ArrayList<>();
 
         private Builder(BuzhouStores stores) {
             this.stores = stores;
@@ -86,6 +111,14 @@ public final class GuardModule {
 
         public Builder dangerousTool(DangerousToolEntry entry) {
             this.dangerousTools.add(entry);
+            return this;
+        }
+
+        /** 注册事实采集器（FactCollector 三要素脚手架）。 */
+        public Builder factDefinition(FactDefinition definition) {
+            if (definition != null) {
+                this.factDefinitions.add(definition);
+            }
             return this;
         }
 

@@ -26,18 +26,27 @@ public final class MemoryModule {
     }
 
     public static RuntimeConfig configure(Map<String, Object> ymlConfig, MessageStore messageStore) {
-        return configure(ymlConfig, null, messageStore, null, null);
+        return configure(ymlConfig, null, messageStore, null, null, null);
     }
 
     public static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
                                           ChatModel mainModel, ChatModel summaryModel) {
         return configure(ymlConfig, stores, stores.messageStore(),
-                mainModel, summaryModel == null ? mainModel : summaryModel);
+                mainModel, summaryModel == null ? mainModel : summaryModel, null);
+    }
+
+    /** 带 AttachmentRenderer 的重载（Hook→state→Attachment 闭环，ticket 13）。 */
+    public static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
+                                          ChatModel mainModel, ChatModel summaryModel,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer) {
+        return configure(ymlConfig, stores, stores.messageStore(),
+                mainModel, summaryModel == null ? mainModel : summaryModel, attachmentRenderer);
     }
 
     private static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
                                            MessageStore messageStore,
-                                           ChatModel mainModel, ChatModel summaryModel) {
+                                           ChatModel mainModel, ChatModel summaryModel,
+                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer) {
         DefaultMicroCompactor compactor = new DefaultMicroCompactor(new DefaultCompletedTurnDetector());
         Function<String, MicroCompactionPolicy> policyFn = policyFn(ymlConfig);
         int protectRecentTurns = protectRecentTurns(ymlConfig);
@@ -51,10 +60,12 @@ public final class MemoryModule {
             DefaultBudgetCalculator budgetCalculator = new DefaultBudgetCalculator(
                     new TableContextWindowResolver(windowOverrides(ymlConfig)),
                     new CharHeuristicTokenEstimator());
-            processor = new InjectionViewProcessor(compactor, policyFn, protectRecentTurns,
+            InjectionViewProcessor ivp = new InjectionViewProcessor(compactor, policyFn, protectRecentTurns,
                     budgetCalculator, new SummaryStoreBridge(stores.summaryStore()),
                     new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3), summaryModel,
                     modelName(ymlConfig), keepRecentTurns(ymlConfig), extraInstruction(ymlConfig));
+            ivp.setAttachmentRenderer(attachmentRenderer);
+            processor = ivp;
         }
         return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(),
                 processor, List.of(new EvidenceLookupTool(messageStore)));

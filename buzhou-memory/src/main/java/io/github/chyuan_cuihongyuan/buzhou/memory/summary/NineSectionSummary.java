@@ -27,4 +27,20 @@ public record NineSectionSummary(long generation, int coversUpToTurn,
         }
         return sb.toString();
     }
+
+    /**
+     * 把文本追加到 CURRENT_STATE 段（保证事实经摘要 P0 段保留，压缩不丢现场）。
+     * 若 CURRENT_STATE 段不存在则新建。返回新实例（不可变）。
+     */
+    public NineSectionSummary appendCurrentState(String text) {
+        EnumMap<SummarySection, SectionContent> copy = new EnumMap<>(sections);
+        SectionContent existing = copy.get(SummarySection.CURRENT_STATE);
+        String newBody = text == null || text.isBlank() ? ""
+                : (existing == null || existing.body() == null || existing.body().isBlank()
+                        ? text : existing.body() + "\n" + text);
+        SectionContent form = existing == null ? SectionContent.full(newBody)
+                : new SectionContent(newBody, existing.form(), existing.evidenceIds());
+        copy.put(SummarySection.CURRENT_STATE, form);
+        return new NineSectionSummary(generation, coversUpToTurn, copy);
+    }
 }
