@@ -18,4 +18,18 @@ public interface AttachmentRenderer {
      * @param currentTurn 当前轮次
      */
     java.util.Optional<String> render(String sessionId, int currentTurn);
+
+    /**
+     * 带注入上限的渲染（spec 07：{@code buzhou.facts.max-inject-chars} 总量约束，超出截断并附指针）。
+     * 默认实现为纯文本截断；实现方宜覆写为按事实粒度截断并附被省略事实的 key 清单指针。
+     *
+     * @param maxChars 注入总字符上限；<=0 表示不限制
+     */
+    default java.util.Optional<String> render(String sessionId, int currentTurn, int maxChars) {
+        java.util.Optional<String> text = render(sessionId, currentTurn);
+        if (text.isEmpty() || maxChars <= 0 || text.get().length() <= maxChars) {
+            return text;
+        }
+        return java.util.Optional.of(text.get().substring(0, maxChars));
+    }
 }

@@ -21,6 +21,10 @@ public interface SessionObserver {
     default void onTurnEnd(int turnSeq, String finalReply) {
     }
 
+    /** 轮次异常终止时调用（如 stream 错误）；用于置在途 Turn span 为 ERROR 并关闭，防泄漏。 */
+    default void onTurnError(int turnSeq, Throwable error) {
+    }
+
     /** 会话关闭时调用；用于关 SESSION span + 强制 flush。 */
     default void onClose() {
     }

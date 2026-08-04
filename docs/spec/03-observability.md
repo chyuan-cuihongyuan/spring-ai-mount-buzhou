@@ -198,7 +198,7 @@ public record InjectSnapshot(
 ### 挂接点（依据 spring-ai-surface.md §5/附表）
 
 ```java
-/** 自定义 advisor：循环内 order +400（官方点位），每次迭代可见含 ToolResponseMessage 的完整请求 */
+/** 自定义 advisor：循环内 order +500（memory advisor 占 +400，见 01 号档；hook advisor +600，见 07 号档），每次迭代可见含 ToolResponseMessage 的完整请求 */
 public class ObservabilityAdvisor implements CallAdvisor, StreamAdvisor {
     // 进链：开/续 Turn span（首轮迭代开启，turnSeq 递增）
     // 每次迭代：开 ModelCall span（iteration 递增）→ 内层链 → 关 span
@@ -207,7 +207,7 @@ public class ObservabilityAdvisor implements CallAdvisor, StreamAdvisor {
     //   - 末次迭代（无 tool_calls）：FINAL_REPLY Event
     // 出链：关 Turn span；注入视图构建完成 → saveInjectSnapshot
     // SpanContext 经 advisedRequest context 显式下传到 ToolCallback 包装层
-    @Override public int getOrder() { return 400; }  // 循环内 +400
+    @Override public int getOrder() { return 500; }  // 循环内 +500（+400 为 memory 占用，语义：memory 之后、hook 之前）
 }
 
 /** ToolCallback 包装：工具调用必经点，不替换 ToolCallingManager（升级兼容面最小） */
@@ -220,7 +220,7 @@ public class ObservableToolCallback implements ToolCallback {
 
 挂接关系：
 
-1. **Turn / ModelCall span**：`ObservabilityAdvisor`（循环内 +400）开/关；官方三层 Observation（`spring.ai.chat.client` / `spring.ai.advisor` / `gen_ai.client.operation`）仅作辅助校正（耗时对拍），不替换官方约定。
+1. **Turn / ModelCall span**：`ObservabilityAdvisor`（循环内 +500）开/关；官方三层 Observation（`spring.ai.chat.client` / `spring.ai.advisor` / `gen_ai.client.operation`）仅作辅助校正（耗时对拍），不替换官方约定。
 2. **ToolCall span**：`ObservableToolCallback` 包装全部工具回调（Bean 后处理器统一包装）；从调用上下文显式取 `SpanContext`。
 3. **Session span**：`AgentSession` 生命周期（spawn/close，见 08-session-config-persistence）开/关。
 4. **HarnessInternal span**：压缩、Spill、Hook 链、悬空修复、HITL 等各机制经 `SpanRecorder` 开内部 span，parent 为当前 Turn 的 `SpanContext`。
@@ -295,7 +295,7 @@ REST 查询 API（公开稳定，前缀可配，默认 `/buzhou/api`）：
 | `queue-capacity` | `10000` | 内存队列容量；满则背压 |
 | `thinking.capture` | `true` | 思维链采集开关 |
 | `thinking.extra-keys` | `[]` | 厂商适配表扩展：`metadata key → 处理方式` 映射 |
-| `thinking.max-chars` | `32768` | 单条思维链超长走 Spill 管道落盘、Event 留句柄（复用 ticket 11/12） |
+| `thinking.max-chars` | `32768` | 单条思维链超长截断 + `truncated=true` + 记原始长度（定案：不走 Spill 管道——observability 按模块表仅依赖 core，接 Spill 会引入反向依赖；后续若升级需先把 Spill 读路径下沉或引可选依赖） |
 | `event.include-stacktrace` | `true` | ERROR Event 是否记录堆栈 |
 | `snapshot.capture` | `true` | 注入快照落库开关 |
 | `snapshot.ttl` | `7d` | 快照保留期（对齐 spill TTL 兜底口径）；0 为不过期 |
@@ -376,7 +376,7 @@ sequenceDiagram
     autonumber
     participant U as 用户
     participant S as AgentSession
-    participant ADV as ObservabilityAdvisor(+400)
+    participant ADV as ObservabilityAdvisor(+500)
     participant MGR as HarnessToolCallingManager
     participant T1 as ObservableToolCallback(A)
     participant T2 as ObservableToolCallback(B)
@@ -460,7 +460,8 @@ sequenceDiagram
 6. OTel 桥 traceId 由 sessionId 派生、自建 trace（OTel 映射节）。
 7. 全部配置 key 名、默认值与 `snapshot.ttl`（配置项节）。
 8. Redis 存储结构（Hash + ZSet/List + EXPIRE）（Schema 节）。
-9. 思维链超长走 Spill 管道（配置项 `thinking.max-chars`）。
+9. 思维链超长处理定为截断 + 标记（配置项 `thinking.max-chars`；原「走 Spill 管道」与本档模块表「observability 仅依赖 core」矛盾，收口为截断）。
+10. advisor order 定为 +500：+400 已由 01 号档 memory advisor 占用（原稿 +400 撞号，实现期暴露后回本档收口）。
 
 ## 开放问题
 

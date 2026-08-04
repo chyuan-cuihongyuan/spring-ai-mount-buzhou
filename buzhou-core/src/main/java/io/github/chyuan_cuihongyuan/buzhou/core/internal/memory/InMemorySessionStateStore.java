@@ -37,4 +37,22 @@ public class InMemorySessionStateStore implements SessionStateStore {
             session.remove(key);
         }
     }
+
+    @Override
+    public boolean deleteIfValueMatches(String sessionId, String key, String expectedValue) {
+        ConcurrentHashMap<String, StateEntry> session = bySession.get(sessionId);
+        if (session == null) {
+            return false;
+        }
+        // CHM compute 对单 key 原子：value 匹配才置 null（删除）
+        boolean[] removed = {false};
+        session.computeIfPresent(key, (k, e) -> {
+            if (java.util.Objects.equals(e.value(), expectedValue)) {
+                removed[0] = true;
+                return null;
+            }
+            return e;
+        });
+        return removed[0];
+    }
 }

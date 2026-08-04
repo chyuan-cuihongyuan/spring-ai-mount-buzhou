@@ -38,6 +38,43 @@ public class FactAttachmentRenderer implements AttachmentRenderer {
         return text.isBlank() ? Optional.empty() : Optional.of(text);
     }
 
+    /**
+     * 按事实粒度截断（spec 07：max-inject-chars 总量约束）：逐条累积至上限，
+     * 被省略事实以其 {@code fact.{producer}.{name}} key 清单作指针附尾（仅供排障核对，
+     * 事实无模型侧回读工具）。
+     */
+    @Override
+    public Optional<String> render(String sessionId, int currentTurn, int maxChars) {
+        if (maxChars <= 0) {
+            return render(sessionId, currentTurn);
+        }
+        List<Fact> active = factStore.activeFacts(sessionId, currentTurn);
+        if (active.isEmpty()) {
+            return Optional.empty();
+        }
+        StringBuilder sb = new StringBuilder();
+        List<String> omittedKeys = new java.util.ArrayList<>();
+        for (Fact fact : active) {
+            String line = renderFact(fact);
+            if (line == null || line.isBlank()) {
+                continue;
+            }
+            if (sb.length() + line.length() + 1 > maxChars) {
+                omittedKeys.add(fact.key());
+                continue;
+            }
+            if (sb.length() > 0) {
+                sb.append("\n");
+            }
+            sb.append(line);
+        }
+        if (!omittedKeys.isEmpty()) {
+            sb.append("\n[更多事实未注入（超出 max-inject-chars）：")
+                    .append(String.join(", ", omittedKeys)).append("]");
+        }
+        return sb.isEmpty() ? Optional.empty() : Optional.of(sb.toString());
+    }
+
     private String renderFact(Fact fact) {
         // 按 producer 匹配 FactDefinition 的 render；找不到则用通用渲染
         return definitions.stream()

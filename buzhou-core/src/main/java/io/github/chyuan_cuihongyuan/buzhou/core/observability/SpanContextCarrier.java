@@ -12,9 +12,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * 同时 {@code HarnessToolCallingManager} 构造 toolContext 时把载体写进 {@link #KEY}，供 ToolCallback
  * 经 {@code ToolContext} 取（双重通道，防御）。
  *
- * <p><b>并发抗串味</b>：fan-out 任务提交前由采集方调 {@link #snapshotTurn()} / {@link #snapshotModelCall()}
- * 捕获当前 SpanContext（record 不可变），任务内用快照开 TOOL_CALL span，不读可变状态——同轮并发工具
- * 各自的 parent 均指向正确的 Turn span。
+ * <p><b>并发抗串味</b>：fan-out 任务提交前由采集方调 {@link #snapshotTurn()}
+ * 捕获当前 Turn 的 SpanContext（record 不可变），任务内用快照开 TOOL_CALL span，不读可变状态——
+ * 同轮并发工具各自的 parent 均指向正确的 Turn span（spec 03 时序图：TOOL_CALL parent = TURN）。
  */
 public final class SpanContextCarrier {
 
@@ -22,7 +22,6 @@ public final class SpanContextCarrier {
     public static final String KEY = "__buzhou.spanContextCarrier";
 
     private final AtomicReference<SpanContext> currentTurn = new AtomicReference<>();
-    private final AtomicReference<SpanContext> currentModelCall = new AtomicReference<>();
     private final AtomicInteger parallelIndex = new AtomicInteger();
     private volatile SpanContext sessionSpan;
 
@@ -36,27 +35,16 @@ public final class SpanContextCarrier {
 
     public void bindTurn(SpanContext turn) {
         currentTurn.set(turn);
-        currentModelCall.set(null);
         parallelIndex.set(0);
-    }
-
-    public void bindModelCall(SpanContext modelCall) {
-        currentModelCall.set(modelCall);
     }
 
     /** 当前 Turn 的 SpanContext（ToolCallback 包装层用作 TOOL_CALL 的 parent）。 */
     public SpanContext currentTurn() {
-        SpanContext model = currentModelCall.get();
-        return model != null ? model : currentTurn.get();
+        return currentTurn.get();
     }
 
-    /** 当前 Turn 的 SpanContext（优先 ModelCall，回退 Turn）；并发任务应改用 {@link #snapshotTurn()}。 */
+    /** 当前 Turn 的 SpanContext 快照；并发任务捕获此值开 TOOL_CALL span。 */
     public SpanContext snapshotTurn() {
-        return currentTurn();
-    }
-
-    /** 会话级 SESSION span（根）。 */
-    public SpanContext currentTurnRaw() {
         return currentTurn.get();
     }
 
@@ -67,7 +55,6 @@ public final class SpanContextCarrier {
 
     public void clear() {
         currentTurn.set(null);
-        currentModelCall.set(null);
         parallelIndex.set(0);
         sessionSpan = null;
     }

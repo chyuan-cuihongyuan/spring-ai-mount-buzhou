@@ -107,7 +107,86 @@ class FactInjectionTest {
         assertThat(cs.body()).contains("死保事实");
     }
 
+    @Test
+    void factsInjectedEvenWithoutSummaryModel() {
+        // 无摘要模型（summaryModel=null）时事实仍须注入（spec 07：闭环不依赖摘要链路）
+        InMemorySessionStateStore state = new InMemorySessionStateStore();
+        FactStore factStore = new DefaultFactStore(state);
+        factStore.save("s1", new Fact(Fact.keyFor("risk", "table-1"), "无摘要也要注入", "risk", 1, 3));
+        AttachmentRenderer renderer = new TestAttachmentRenderer(factStore);
+
+        InjectionViewProcessor ivp = newProcessor(renderer, null, 4000);
+        List<BuzhouMessage> view = ivp.process("s1",
+                List.of(userMsg(1, "改表"), asstMsg(1, "已改")), 2);
+
+        assertThat(view).anyMatch(m -> m.metadata().containsKey("facts")
+                && m.content().contains("无摘要也要注入"));
+    }
+
+    @Test
+    void factsBlockTruncatedByMaxInjectChars() {
+        // maxInjectChars 经 AttachmentRenderer 带限渲染生效（默认实现=纯文本截断）
+        InMemorySessionStateStore state = new InMemorySessionStateStore();
+        FactStore factStore = new DefaultFactStore(state);
+        factStore.save("s1", new Fact(Fact.keyFor("p", "long"), "x".repeat(500), "p", 1, 3));
+        AttachmentRenderer renderer = new TestAttachmentRenderer(factStore);
+
+        InjectionViewProcessor ivp = newProcessor(renderer, new StubSummaryModel(), 100);
+        List<BuzhouMessage> view = ivp.process("s1",
+                List.of(userMsg(1, "q"), asstMsg(1, "a")), 2);
+
+        BuzhouMessage factBlock = view.stream().filter(m -> m.metadata().containsKey("facts"))
+                .findFirst().orElseThrow();
+        // 上限 100 + 包裹文本，远小于 500 原文
+        assertThat(factBlock.content().length()).isLessThan(200);
+    }
+
+    @Test
+    void factsTokensCountedAsSystemSideBudgetDeduction() {
+        // spec 07：事实注入 token 先渲染后评估，计 BudgetInput.systemPrompt 固定扣除
+        InMemorySessionStateStore state = new InMemorySessionStateStore();
+        FactStore factStore = new DefaultFactStore(state);
+        factStore.save("s1", new Fact(Fact.keyFor("p", "f"), "计入预算的事实", "p", 1, 3));
+        AttachmentRenderer renderer = new TestAttachmentRenderer(factStore);
+
+        CapturingBudgetCalculator capturing = new CapturingBudgetCalculator();
+        DefaultMicroCompactor compactor = new DefaultMicroCompactor(new DefaultCompletedTurnDetector());
+        InjectionViewProcessor ivp = new InjectionViewProcessor(compactor,
+                t -> MicroCompactionPolicy.defaults(), 1, capturing,
+                new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryStore()),
+                new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3),
+                new StubSummaryModel(), "stub", 1, null, 4000);
+        ivp.setAttachmentRenderer(renderer);
+        ivp.process("s1", List.of(userMsg(1, "q"), asstMsg(1, "a")), 2);
+
+        assertThat(capturing.lastInput).isNotNull();
+        assertThat(capturing.lastInput.systemPrompt()).contains("计入预算的事实");
+    }
+
+    /** 捕获 BudgetInput 的计算器（验证事实 token 入账路径）。 */
+    static class CapturingBudgetCalculator extends DefaultBudgetCalculator {
+        volatile io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetInput lastInput;
+
+        CapturingBudgetCalculator() {
+            super(new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(Map.of()),
+                    new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator());
+        }
+
+        @Override
+        public io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetReport evaluate(
+                io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetInput input) {
+            this.lastInput = input;
+            return super.evaluate(input);
+        }
+    }
+
     private InjectionViewProcessor newProcessor(AttachmentRenderer renderer) {
+        return newProcessor(renderer, new StubSummaryModel(), 4000);
+    }
+
+    private InjectionViewProcessor newProcessor(AttachmentRenderer renderer, ChatModel summaryModel,
+                                                int maxInjectChars) {
         DefaultMicroCompactor compactor = new DefaultMicroCompactor(new DefaultCompletedTurnDetector());
         InjectionViewProcessor ivp = new InjectionViewProcessor(compactor,
                 t -> MicroCompactionPolicy.defaults(), 1,
@@ -117,7 +196,7 @@ class FactInjectionTest {
                 new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge(
                         new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryStore()),
                 new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3),
-                new StubSummaryModel(), "stub", 1, null);
+                summaryModel, "stub", 1, null, maxInjectChars);
         ivp.setAttachmentRenderer(renderer);
         return ivp;
     }

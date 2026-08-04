@@ -67,7 +67,7 @@ class ObservabilityEndToEndTest {
         assertThat(turnSpans).isNotEmpty();
         assertThat(modelCalls).isNotEmpty();
 
-        // 并发归属：终态 TOOL_CALL 的 parent 必须都落在同一 turn 子树，且属于同一会话
+        // 并发归属：终态 TOOL_CALL 的 parent 必须都是 TURN span（spec 03 时序图定案），且属于同一会话
         List<SpanRecord> terminalToolCalls = filterTerminal(toolCalls);
         assertThat(terminalToolCalls).hasSize(2);
         for (SpanRecord tc : terminalToolCalls) {
@@ -76,9 +76,51 @@ class ObservabilityEndToEndTest {
                     .findFirst().orElseThrow(() -> new AssertionError(
                             "TOOL_CALL parent not found: " + tc.parentSpanId()));
             assertThat(parent.sessionId()).isEqualTo("sess-tree");
-            // parent 必是 TURN 或 MODEL_CALL（都在 turn 子树）
-            assertThat(parent.kind()).isIn(SpanKind.TURN, SpanKind.MODEL_CALL);
+            assertThat(parent.kind()).isEqualTo(SpanKind.TURN);
         }
+        // MODEL_CALL 的 parent 也必须是 TURN span（完整嵌套树：SESSION⊃TURN⊃MODEL_CALL/TOOL_CALL）
+        for (SpanRecord mc : filterTerminal(modelCalls)) {
+            SpanRecord parent = spans.stream().filter(s -> s.spanId().equals(mc.parentSpanId()))
+                    .findFirst().orElseThrow(() -> new AssertionError(
+                            "MODEL_CALL parent not found: " + mc.parentSpanId()));
+            assertThat(parent.kind()).isEqualTo(SpanKind.TURN);
+        }
+        // TURN span 的 parent 是 SESSION span
+        for (SpanRecord turn : filterTerminal(turnSpans)) {
+            SpanRecord parent = spans.stream().filter(s -> s.spanId().equals(turn.parentSpanId()))
+                    .findFirst().orElseThrow(() -> new AssertionError(
+                            "TURN parent not found: " + turn.parentSpanId()));
+            assertThat(parent.kind()).isEqualTo(SpanKind.SESSION);
+        }
+    }
+
+    @Test
+    void streamTurnCollectsFinalReplyAndClosesTurnSpan() {
+        ScriptedChatModel model = new ScriptedChatModel();
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        RuntimeConfig config = ObservabilityModule.configureSync(
+                stores, ObservabilityConfig.testDefaults(), "test-model");
+        AgentRuntime runtime = Buzhou.runtime(model, stores, config);
+
+        model.enqueue(new AssistantMessage("流式回复"));
+
+        AgentSession session = runtime.spawn("app", "agent", "sess-stream");
+        StringBuilder received = new StringBuilder();
+        session.stream("流式问一句")
+                .doOnNext(r -> received.append(r.getResult().getOutput().getText()))
+                .blockLast();
+        session.close();
+
+        assertThat(received.toString()).contains("流式回复");
+        List<SpanRecord> spans = stores.observabilityStore().spansOfSession("sess-stream");
+        // TURN span 必须关闭（OK 终态，不泄漏 RUNNING）
+        List<SpanRecord> turns = spans.stream().filter(s -> SpanKind.TURN.equals(s.kind())).toList();
+        assertThat(filterTerminal(turns)).isNotEmpty()
+                .allMatch(t -> Boolean.TRUE.equals(t.attributes().get("turn.completed")));
+        // 流式末次迭代产出 FINAL_REPLY（聚合正文）
+        List<EventRecord> events = stores.observabilityStore().eventsOfSession("sess-stream");
+        assertThat(events).anyMatch(e -> EventType.FINAL_REPLY.equals(e.type())
+                && "流式回复".equals(e.payload().get("content")));
     }
 
     @Test

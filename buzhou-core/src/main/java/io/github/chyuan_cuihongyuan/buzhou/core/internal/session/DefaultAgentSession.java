@@ -116,11 +116,25 @@ public class DefaultAgentSession implements AgentSession {
         if (before instanceof HookResult.Block block) {
             return Flux.error(new IllegalStateException(block.reason()));
         }
+        StringBuilder replyAccumulator = new StringBuilder();
         return chatClient.prompt()
                 .user(turnCtx.input())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                 .stream()
-                .chatResponse();
+                .chatResponse()
+                .doOnNext(resp -> {
+                    if (resp != null && resp.getResult() != null && resp.getResult().getOutput() != null
+                            && resp.getResult().getOutput().getText() != null) {
+                        replyAccumulator.append(resp.getResult().getOutput().getText());
+                    }
+                })
+                .doOnComplete(() -> {
+                    // 与 chat() 对齐的轮次收尾：afterTurn 钩子 + onTurnEnd（TURN span 关闭防泄漏）
+                    turnCtx.markResponded(replyAccumulator.toString());
+                    hookChain.afterTurn(turnCtx);
+                    observers.forEach(o -> o.onTurnEnd(turnSeq, turnCtx.response()));
+                })
+                .doOnError(e -> observers.forEach(o -> o.onTurnError(turnSeq, e)));
     }
 
     /** 取消在途轮次：中断全部在途工具调用；会话不谢幕，可继续 chat。 */

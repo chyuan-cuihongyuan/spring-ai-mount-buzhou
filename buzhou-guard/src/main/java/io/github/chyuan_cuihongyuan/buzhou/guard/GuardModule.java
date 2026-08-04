@@ -45,7 +45,8 @@ public final class GuardModule {
     private GuardModule(Builder builder) {
         DangerousToolConfig config = new DangerousToolConfig(
                 builder.enabled, builder.authTtl, List.copyOf(builder.dangerousTools));
-        this.authApi = new GuardAuthApi(builder.stores.sessionStateStore());
+        this.authApi = new GuardAuthApi(builder.stores.sessionStateStore(), builder.authTtl,
+                builder.stores.observabilityStore());
         this.factStore = new DefaultFactStore(builder.stores.sessionStateStore());
         List<BuzhouHook> h = new ArrayList<>();
         if (builder.enabled) {

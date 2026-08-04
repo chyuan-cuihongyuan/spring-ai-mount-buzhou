@@ -96,20 +96,25 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
 
     @Override
     public void close() {
-        if (!running.compareAndSet(true, false)) {
+        if (!running.get()) {
             return;
         }
         try {
             Runtime.getRuntime().removeShutdownHook(shutdownHook);
         } catch (IllegalStateException ignored) {
         }
+        // 先经 FlushToken 让存活 drain 线程处理完队列（FIFO 保证 token 之前的条目全部落库），
+        // 再停线程——反序则 token 无人处理，close 必白等满 flushTimeout。
         flush();
+        running.set(false);
         drainThread.interrupt();
         try {
             drainThread.join(config.flushTimeout().toMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        // token 之后、running=false 之前入队的残留条目兜底 drain
+        drainBatch();
     }
 
     private void shutdownForJvmHook() {

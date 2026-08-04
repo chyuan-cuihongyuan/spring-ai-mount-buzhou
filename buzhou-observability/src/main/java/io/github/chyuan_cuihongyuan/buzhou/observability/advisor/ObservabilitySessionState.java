@@ -101,6 +101,21 @@ public class ObservabilitySessionState
         turnSpanRef.set(null);
     }
 
+    @Override
+    public void onTurnError(int turnSeq, Throwable error) {
+        if (turnSpanHandle == null) {
+            return;
+        }
+        turnSpanHandle.attribute("turn.completed", false);
+        turnSpanHandle.attribute("usage.prompt_tokens", turnPromptTokens.get());
+        turnSpanHandle.attribute("usage.completion_tokens", turnCompletionTokens.get());
+        turnSpanHandle.attribute("iteration.count", iterationCounter.get());
+        turnSpanHandle.error(error);
+        turnSpanHandle.close();
+        turnSpanHandle = null;
+        turnSpanRef.set(null);
+    }
+
     /** 由 advisor 在每次 ModelCall 关闭时累加本轮 usage。 */
     void accumulateTurnUsage(Integer promptTokens, Integer completionTokens) {
         if (promptTokens != null) {
@@ -133,6 +148,11 @@ public class ObservabilitySessionState
     }
 
     @Override
+    public SpanContext turnSpan() {
+        return turnSpanRef.get();
+    }
+
+    @Override
     public Integer currentTurnSeq(String sid) {
         SpanContext turn = turnSpanRef.get();
         return turn == null ? null : turn.turnSeq();
@@ -141,12 +161,5 @@ public class ObservabilitySessionState
     @Override
     public int nextIteration(String sid) {
         return iterationCounter.incrementAndGet();
-    }
-
-    @Override
-    public void bindModelCall(SpanContext modelCall) {
-        if (carrier != null && modelCall != null) {
-            carrier.bindModelCall(modelCall);
-        }
     }
 }

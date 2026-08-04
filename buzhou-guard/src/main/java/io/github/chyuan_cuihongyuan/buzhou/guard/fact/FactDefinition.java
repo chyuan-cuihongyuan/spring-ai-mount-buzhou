@@ -17,7 +17,14 @@ public interface FactDefinition {
     /** producer 名（入 fact.{producer}.{name} key 命名空间）。 */
     String name();
 
-    /** 判定器：本次工具调用是否产生事实；命中返回事实载荷名 + value。 */
+    /**
+     * 判定器：本次工具调用是否产生事实。
+     *
+     * <p><b>key 契约</b>：返回的 {@link Fact#key()} 只承载 name 段（如 {@code "table-1"}），
+     * 不含 {@code fact.{producer}.} 前缀——FactCollectorHook 会用 {@link #name()} 自动拼接完整
+     * 命名空间 key；返回已命名空间化的 key 会导致双重前缀。返回 Fact 的 producer/createdTurn/ttl
+     * 字段被忽略（hook 以本 definition 的 name/ttl 与当前轮次覆盖）。
+     */
     Optional<Fact> judge(ToolCallContext ctx);
 
     /** 渲染器：事实 → 注入 prompt 文本。 */

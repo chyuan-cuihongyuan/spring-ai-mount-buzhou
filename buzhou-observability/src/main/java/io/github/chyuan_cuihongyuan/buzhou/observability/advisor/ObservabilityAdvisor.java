@@ -34,7 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 可观测 advisor（spec 03 挂接点）。
@@ -83,10 +83,9 @@ public class ObservabilityAdvisor implements BaseAdvisor {
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain callChain) {
-        SpanContext sessionSpan = hooks.sessionSpan();
         int turnSeq = currentTurnSeq(request);
-        SpanContext turnParent = sessionSpan != null
-                ? new SpanContext(sessionSpan.spanId(), sessionSpan.sessionId(), turnSeq) : null;
+        // MODEL_CALL 的 parent 是所属 TURN span（spec 03 时序图）；TURN 未开时兜底挂 SESSION
+        SpanContext turnParent = resolveTurnParent(turnSeq);
         // 注入快照：memory advisor 已重建注入视图（+400 < +500），此处捕获
         captureInjectionSnapshot(request, turnSeq);
         SpanHandle modelCall = openModelCall(turnParent, request);
@@ -98,25 +97,28 @@ public class ObservabilityAdvisor implements BaseAdvisor {
             modelCall.close();
             throw e;
         }
-        recordModelCallOutcome(modelCall, response, turnParent);
+        recordModelCallOutcome(modelCall, response);
         return response;
     }
 
     @Override
     public Flux<ChatClientResponse> adviseStream(ChatClientRequest request, StreamAdvisorChain streamChain) {
-        SpanContext sessionSpan = hooks.sessionSpan();
         int turnSeq = currentTurnSeq(request);
         captureInjectionSnapshot(request, turnSeq);
-        SpanContext parent = sessionSpan != null
-                ? new SpanContext(sessionSpan.spanId(), sessionSpan.sessionId(), turnSeq) : null;
+        SpanContext parent = resolveTurnParent(turnSeq);
         SpanHandle modelCall = openModelCall(parent, request);
-        // 流式思维链 delta 在 span 关闭时聚合（本票按完成态单事件，spec 推演 2）
+        // 流式增量在 span 关闭时聚合（思维链 delta 合并单事件，spec 推演 2；正文同理聚合 FINAL_REPLY）
         StringBuilder thinkingAccumulator = new StringBuilder();
+        StringBuilder replyAccumulator = new StringBuilder();
+        AtomicReference<Usage> lastUsage = new AtomicReference<>();
+        AtomicReference<String> lastFinishReason = new AtomicReference<>();
+        AtomicReference<Boolean> sawToolCalls = new AtomicReference<>(false);
         return streamChain.nextStream(request)
                 .doOnEach(signal -> {
                     ChatClientResponse resp = signal.get();
                     if (resp != null && resp.chatResponse() != null) {
-                        accumulateThinking(resp.chatResponse(), thinkingAccumulator);
+                        accumulateStreamChunk(resp.chatResponse(), thinkingAccumulator, replyAccumulator,
+                                lastUsage, lastFinishReason, sawToolCalls);
                     }
                 })
                 .doOnError(e -> {
@@ -124,13 +126,8 @@ public class ObservabilityAdvisor implements BaseAdvisor {
                     modelCall.close();
                 })
                 .doOnComplete(() -> {
-                    if (thinkingAccumulator.length() > 0) {
-                        recorder.emit(modelCall.context(), EventType.THINKING,
-                                Map.of("content", thinkingAccumulator.toString(),
-                                        "provider.key", "stream-accumulated"));
-                        modelCall.attribute("thinking.available", "YES");
-                    }
-                    modelCall.close();
+                    recordStreamOutcome(modelCall, thinkingAccumulator, replyAccumulator,
+                            lastUsage.get(), lastFinishReason.get(), sawToolCalls.get());
                 });
     }
 
@@ -148,14 +145,89 @@ public class ObservabilityAdvisor implements BaseAdvisor {
         Map<String, Object> attrs = new LinkedHashMap<>();
         attrs.put("model.name", modelName);
         attrs.put("iteration", nextIteration(parent));
-        SpanHandle modelCall = recorder.openSpan(SpanKind.MODEL_CALL, "model-call", parent, attrs);
-        // 把 ModelCall 的 SpanContext 写回 carrier，供本轮 ToolCallback 包装层取作 parent
-        hooks.bindModelCall(modelCall.context());
-        return modelCall;
+        return recorder.openSpan(SpanKind.MODEL_CALL, "model-call", parent, attrs);
     }
 
-    private void recordModelCallOutcome(SpanHandle modelCall, ChatClientResponse response,
-                                        SpanContext turnParent) {
+    /** MODEL_CALL 的 parent：优先所属 TURN span（spec 03 时序图），TURN 未开时兜底挂 SESSION。 */
+    private SpanContext resolveTurnParent(int turnSeq) {
+        SpanContext turnSpan = hooks.turnSpan();
+        if (turnSpan != null) {
+            return turnSpan;
+        }
+        SpanContext sessionSpan = hooks.sessionSpan();
+        return sessionSpan != null
+                ? new SpanContext(sessionSpan.spanId(), sessionSpan.sessionId(), turnSeq) : null;
+    }
+
+    private void recordStreamOutcome(SpanHandle modelCall, StringBuilder thinkingAccumulator,
+                                     StringBuilder replyAccumulator, Usage usage,
+                                     String finishReason, boolean sawToolCalls) {
+        if (usage != null) {
+            if (usage.getPromptTokens() != null) {
+                modelCall.attribute("usage.prompt_tokens", usage.getPromptTokens());
+                meters.recordTokens(modelName, "prompt", usage.getPromptTokens());
+            }
+            if (usage.getCompletionTokens() != null) {
+                modelCall.attribute("usage.completion_tokens", usage.getCompletionTokens());
+                meters.recordTokens(modelName, "completion", usage.getCompletionTokens());
+            }
+            if (hooks instanceof ObservabilitySessionState state) {
+                state.accumulateTurnUsage(usage.getPromptTokens(), usage.getCompletionTokens());
+            }
+        }
+        if (finishReason != null) {
+            modelCall.attribute("finish_reason", finishReason);
+        }
+        if (thinkingAccumulator.length() > 0) {
+            recorder.emit(modelCall.context(), EventType.THINKING,
+                    Map.of("content", thinkingAccumulator.toString(),
+                            "provider.key", "stream-accumulated"));
+            modelCall.attribute("thinking.available", "YES");
+        }
+        if (!sawToolCalls && replyAccumulator.length() > 0) {
+            Map<String, Object> reply = new LinkedHashMap<>();
+            reply.put("content", replyAccumulator.toString());
+            if (finishReason != null) {
+                reply.put("finish_reason", finishReason);
+            }
+            recorder.emit(modelCall.context(), EventType.FINAL_REPLY, reply);
+        }
+        modelCall.close();
+    }
+
+    private void accumulateStreamChunk(ChatResponse chatResponse, StringBuilder thinkingAccumulator,
+                                       StringBuilder replyAccumulator, AtomicReference<Usage> lastUsage,
+                                       AtomicReference<String> lastFinishReason,
+                                       AtomicReference<Boolean> sawToolCalls) {
+        if (chatResponse.getMetadata() != null && chatResponse.getMetadata().getUsage() != null) {
+            Usage u = chatResponse.getMetadata().getUsage();
+            if (u.getPromptTokens() != null || u.getCompletionTokens() != null) {
+                lastUsage.set(u);
+            }
+        }
+        Generation result = chatResponse.getResult();
+        AssistantMessage assistant = result == null ? null : result.getOutput();
+        if (assistant == null) {
+            return;
+        }
+        if (result.getMetadata() != null && result.getMetadata().getFinishReason() != null
+                && !result.getMetadata().getFinishReason().isBlank()) {
+            lastFinishReason.set(result.getMetadata().getFinishReason());
+        }
+        if (assistant.hasToolCalls()) {
+            sawToolCalls.set(true);
+        }
+        if (assistant.getText() != null) {
+            replyAccumulator.append(assistant.getText());
+        }
+        thinkingExtractor.extract(assistant).ifPresent(t -> {
+            if (t.content() != null && !t.content().isBlank()) {
+                thinkingAccumulator.append(t.content());
+            }
+        });
+    }
+
+    private void recordModelCallOutcome(SpanHandle modelCall, ChatClientResponse response) {
         if (response == null || response.chatResponse() == null) {
             modelCall.close();
             return;
@@ -226,20 +298,6 @@ public class ObservabilityAdvisor implements BaseAdvisor {
         modelCall.close();
     }
 
-    private void accumulateThinking(ChatResponse chatResponse, StringBuilder accumulator) {
-        Generation result = chatResponse.getResult();
-        AssistantMessage assistant = result == null ? null : result.getOutput();
-        if (assistant == null) {
-            return;
-        }
-        Optional<ExtractedThinking> thinking = thinkingExtractor.extract(assistant);
-        thinking.ifPresent(t -> {
-            if (t.content() != null && !t.content().isBlank()) {
-                accumulator.append(t.content());
-            }
-        });
-    }
-
     private void captureInjectionSnapshot(ChatClientRequest request, int turnSeq) {
         if (!config.snapshotCapture()) {
             return;
@@ -307,11 +365,11 @@ public class ObservabilityAdvisor implements BaseAdvisor {
     public interface ObservabilitySessionHooks {
         SpanContext sessionSpan();
 
+        /** 当前 TURN span 的 SpanContext（MODEL_CALL/TOOL_CALL 的 parent）；未开轮时返回 null。 */
+        SpanContext turnSpan();
+
         Integer currentTurnSeq(String sessionId);
 
         int nextIteration(String sessionId);
-
-        /** advisor 开 ModelCall span 后回写 carrier，供 ToolCallback 包装层取作 parent。 */
-        void bindModelCall(SpanContext modelCall);
     }
 }

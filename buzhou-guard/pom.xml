@@ -28,5 +28,11 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+    <!-- Hook→state→Attachment 真端到端测试（FactCollectorHook + InjectionViewProcessor 闭环） -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-memory</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

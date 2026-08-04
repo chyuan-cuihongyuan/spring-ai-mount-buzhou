@@ -58,4 +58,13 @@ public class JdbcSessionStateStore implements SessionStateStore {
         jdbc.update("DELETE FROM buzhou_session_state WHERE session_id = ? AND state_key = ?",
                 sessionId, key);
     }
+
+    @Override
+    public boolean deleteIfValueMatches(String sessionId, String key, String expectedValue) {
+        // 带 value 条件的 DELETE：影响行数 1 = CAS 删除成功（HITL 一次性授权原子消费）
+        return jdbc.update("""
+                        DELETE FROM buzhou_session_state
+                        WHERE session_id = ? AND state_key = ? AND state_value = ?
+                        """, sessionId, key, expectedValue) == 1;
+    }
 }

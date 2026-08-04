@@ -52,18 +52,20 @@ public final class MemoryModule {
         int protectRecentTurns = protectRecentTurns(ymlConfig);
 
         io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor processor;
-        if (summaryModel == null || stores == null) {
+        if (stores == null) {
             processor = (sessionId, stored, currentTurn) ->
                     compactor.compact(stored, currentTurn, policyFn, protectRecentTurns)
                             .compactedView();
         } else {
+            // summaryModel 可空：InjectionViewProcessor 在无摘要模型时仍注入事实块（spec 07 闭环）
             DefaultBudgetCalculator budgetCalculator = new DefaultBudgetCalculator(
                     new TableContextWindowResolver(windowOverrides(ymlConfig)),
                     new CharHeuristicTokenEstimator());
             InjectionViewProcessor ivp = new InjectionViewProcessor(compactor, policyFn, protectRecentTurns,
                     budgetCalculator, new SummaryStoreBridge(stores.summaryStore()),
                     new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3), summaryModel,
-                    modelName(ymlConfig), keepRecentTurns(ymlConfig), extraInstruction(ymlConfig));
+                    modelName(ymlConfig), keepRecentTurns(ymlConfig), extraInstruction(ymlConfig),
+                    maxInjectChars(ymlConfig));
             ivp.setAttachmentRenderer(attachmentRenderer);
             processor = ivp;
         }
@@ -114,6 +116,19 @@ public final class MemoryModule {
             }
         }
         return null;
+    }
+
+    /** spec 07 配置项 {@code buzhou.facts.max-inject-chars}（默认 4000；<=0 不截断）。 */
+    @SuppressWarnings("unchecked")
+    private static int maxInjectChars(Map<String, Object> ymlConfig) {
+        Object facts = ymlConfig.get("facts");
+        if (facts instanceof Map) {
+            Object value = ((Map<String, Object>) facts).get("max-inject-chars");
+            if (value instanceof Number n) {
+                return n.intValue();
+            }
+        }
+        return 4000;
     }
 
     @SuppressWarnings("unchecked")

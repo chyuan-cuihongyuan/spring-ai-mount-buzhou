@@ -7,6 +7,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.AuthTtl;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.ConfirmOption;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.Confirmation;
@@ -230,6 +231,108 @@ class HitlGuardEndToEndTest {
         session.chat("rollback");
         assertThat(tool.callCount.get()).isEqualTo(1); // 仍未执行 rollback
         session.close();
+    }
+
+    @Test
+    void authRecordMatchesSpecSchemaAndAuditEventsDualCast() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        GuardModule guard = GuardModule.builder(stores)
+                .authTtl(AuthTtl.ONCE)
+                .dangerousTool("run_command", "confirm_run", "即将执行")
+                .build();
+        List<SessionEvent> authEvents = new CopyOnWriteArrayList<>();
+        guard.authApi().addListener(authEvents::add);
+
+        // approve（带审批人输入 + 授权轮次）→ 授权记录六字段 schema + guard.auth.granted 双投
+        guard.authApi().approve("sess-audit", "run_command", Map.of("command", "deploy"),
+                "approval", "审批人 rtx", 7);
+
+        String authKey = "auth.run_command." + io.github.chyuan_cuihongyuan.buzhou.guard.fingerprint
+                .ArgumentFingerprint.fingerprint(Map.of("command", "deploy"));
+        var entry = stores.sessionStateStore().get("sess-audit", authKey);
+        assertThat(entry).isPresent();
+        Map<String, Object> record = readJson(entry.get().value());
+        assertThat(record).containsEntry("optionId", "approval")
+                .containsEntry("value", "approval")
+                .containsEntry("input", "审批人 rtx")
+                .containsEntry("grantedTurn", 7)
+                .containsEntry("ttlMode", "once")
+                .containsEntry("consumed", false);
+        // 监听器通道
+        assertThat(authEvents).anyMatch(e -> GuardAuthApi.EVENT_AUTH_GRANTED.equals(e.type()));
+        // 可观测层通道
+        assertThat(stores.observabilityStore().eventsOfSession("sess-audit"))
+                .anyMatch(e -> GuardAuthApi.EVENT_AUTH_GRANTED.equals(e.type()));
+
+        // revoke → guard.auth.revoked 双投 + key 删除
+        guard.authApi().revoke("sess-audit", "run_command", Map.of("command", "deploy"));
+        assertThat(stores.sessionStateStore().get("sess-audit", authKey)).isEmpty();
+        assertThat(authEvents).anyMatch(e -> GuardAuthApi.EVENT_AUTH_REVOKED.equals(e.type()));
+        assertThat(stores.observabilityStore().eventsOfSession("sess-audit"))
+                .anyMatch(e -> GuardAuthApi.EVENT_AUTH_REVOKED.equals(e.type()));
+    }
+
+    @Test
+    void lostCasRaceIsTreatedAsUnauthorized() {
+        // 模拟多实例并发消费同一授权：CAS 永远失败（授权已被别的实例消费）
+        ScriptedChatModel model = new ScriptedChatModel();
+        BuzhouStores mem = Buzhou.inMemoryStores();
+        SessionStateStore racingStore = new SessionStateStore() {
+            private final SessionStateStore delegate = mem.sessionStateStore();
+
+            @Override
+            public void put(String sessionId, io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry entry) {
+                delegate.put(sessionId, entry);
+            }
+
+            @Override
+            public java.util.Optional<io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry> get(
+                    String sessionId, String key) {
+                return delegate.get(sessionId, key);
+            }
+
+            @Override
+            public Map<String, io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry> getAll(String sessionId) {
+                return delegate.getAll(sessionId);
+            }
+
+            @Override
+            public void delete(String sessionId, String key) {
+                delegate.delete(sessionId, key);
+            }
+
+            @Override
+            public boolean deleteIfValueMatches(String sessionId, String key, String expectedValue) {
+                return false; // 永远输掉竞态
+            }
+        };
+        BuzhouStores stores = new BuzhouStores(mem.messageStore(), mem.summaryStore(), racingStore,
+                mem.sessionLeaseStore(), mem.observabilityStore(), mem.unitOfWork());
+        RecordingTool tool = new RecordingTool("run_command");
+        GuardModule guard = GuardModule.builder(stores)
+                .dangerousTool("run_command", "confirm_run", "即将执行")
+                .build();
+        AgentRuntime runtime = Buzhou.runtime(model, stores, guard.configure(), tool);
+        Map<String, Object> args = Map.of("command", "deploy");
+        guard.authApi().approve("sess-race", "run_command", args);
+
+        // 授权存在但 CAS 消费失败 → 视同未授权 → BLOCK（不双放行）
+        model.enqueue(toolCall("tc-1", "run_command", "{\"command\":\"deploy\"}"));
+        model.enqueue(new AssistantMessage("仍需确认"));
+        AgentSession session = runtime.spawn("app", "agent", "sess-race");
+        String reply = session.chat("部署");
+        assertThat(reply).isEqualTo("仍需确认");
+        assertThat(tool.callCount.get()).isEqualTo(0);
+        session.close();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> readJson(String json) {
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(json, Map.class);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     // --- helpers ---

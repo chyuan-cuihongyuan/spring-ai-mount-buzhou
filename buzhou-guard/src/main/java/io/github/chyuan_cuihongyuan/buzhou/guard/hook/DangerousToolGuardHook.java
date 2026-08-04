@@ -28,7 +28,7 @@ import java.util.Optional;
  *   <li>命中授权：一次性即消费删除（authTtl=once）或保留（authTtl=session）→ CONTINUE 放行。</li>
  *   <li>无授权：BLOCK，工具结果="等待人工确认：{hint}"；经 emitEvent 透出确认请求事件
  *       （{@code buzhou.guard.confirmation.requested}，schema 含 confirmation.options 多选项 +
- *       单输入控件 + hint 嵌 diff）；记 {@code guard.blocked} 审计 Event。</li>
+ *       单输入控件 + hint 嵌 diff）；记 {@code guard.tool.blocked} 审计 Event。</li>
  * </ul>
  *
  * <p>授权写回经 {@link GuardAuthApi#approve}（业务侧 REST），写回后业务重发同一输入 →
@@ -39,7 +39,7 @@ public class DangerousToolGuardHook implements BuzhouHook {
     /** 确认请求事件类型（透出与回写共用）。 */
     public static final String EVENT_CONFIRMATION_REQUESTED = "buzhou.guard.confirmation.requested";
     public static final String EVENT_CONFIRMATION_RESPONSE = "buzhou.guard.confirmation.response";
-    public static final String EVENT_GUARD_BLOCKED = "guard.blocked";
+    public static final String EVENT_GUARD_BLOCKED = "guard.tool.blocked";
     public static final String EVENT_AUTH_CONSUMED = "guard.auth.consumed";
     public static final String EVENT_AUTH_REUSED = "guard.auth.reused";
 
@@ -73,21 +73,27 @@ public class DangerousToolGuardHook implements BuzhouHook {
             return HookResult.CONTINUE;
         }
         DangerousToolEntry entry = matched.get();
-        String fingerprint = ArgumentFingerprint.fingerprint(ctx.toolName(), ctx.arguments());
+        String fingerprint = ArgumentFingerprint.fingerprint(ctx.arguments());
         String authKey = ArgumentFingerprint.authKey(ctx.toolName(), fingerprint);
 
         Optional<StateEntry> auth = stateStore.get(ctx.sessionId(), authKey);
-        if (auth.isPresent()) {
-            return handleAuthorized(ctx, entry, fingerprint, authKey);
+        if (auth.isPresent()
+                && consumeIfOnce(ctx, fingerprint, authKey, auth.get().value())) {
+            return HookResult.CONTINUE;
         }
         return handleUnauthorized(ctx, entry, fingerprint);
     }
 
-    private HookResult handleAuthorized(ToolCallContext ctx, DangerousToolEntry entry,
-                                        String fingerprint, String authKey) {
+    /**
+     * 授权命中处理：once → 经 {@link SessionStateStore#deleteIfValueMatches} 原子消费
+     * （CAS 失败 = 授权已被并发实例消费，视同未授权返回 false，重新走确认流程）；
+     * session → 保留放行。
+     */
+    private boolean consumeIfOnce(ToolCallContext ctx, String fingerprint, String authKey, String authValue) {
         if (config.authTtl() == AuthTtl.ONCE) {
-            // 一次性消费：删除 auth key
-            stateStore.delete(ctx.sessionId(), authKey);
+            if (!stateStore.deleteIfValueMatches(ctx.sessionId(), authKey, authValue)) {
+                return false;
+            }
             ctx.emitEvent(new SessionEvent(EVENT_AUTH_CONSUMED, Map.of(
                     "toolName", ctx.toolName(),
                     "toolCallId", ctx.toolCallId(),
@@ -100,7 +106,7 @@ public class DangerousToolGuardHook implements BuzhouHook {
                     "fingerprint", fingerprint,
                     "ttl", "session"), Instant.now()));
         }
-        return HookResult.CONTINUE;
+        return true;
     }
 
     private HookResult handleUnauthorized(ToolCallContext ctx, DangerousToolEntry entry, String fingerprint) {

@@ -76,6 +76,21 @@ public abstract class AbstractBuzhouStoresContractTest {
     }
 
     @Test
+    void stateStoreDeleteIfValueMatchesIsConditional() {
+        String sessionId = "contract-state-cas-" + UUID.randomUUID();
+        stores().sessionStateStore().put(sessionId,
+                new StateEntry("auth.t.fp", "v1", "guard", 3, null, Instant.now()));
+
+        // value 不匹配 → 不删除，返回 false
+        assertThat(stores().sessionStateStore().deleteIfValueMatches(sessionId, "auth.t.fp", "v2")).isFalse();
+        assertThat(stores().sessionStateStore().get(sessionId, "auth.t.fp")).isPresent();
+        // value 匹配 → 删除成功，返回 true；再次消费返回 false（一次性语义）
+        assertThat(stores().sessionStateStore().deleteIfValueMatches(sessionId, "auth.t.fp", "v1")).isTrue();
+        assertThat(stores().sessionStateStore().get(sessionId, "auth.t.fp")).isEmpty();
+        assertThat(stores().sessionStateStore().deleteIfValueMatches(sessionId, "auth.t.fp", "v1")).isFalse();
+    }
+
+    @Test
     void leaseMutualExclusionStealRenewRelease() {
         String sessionId = "contract-lease-" + UUID.randomUUID();
         LeaseAcquireResult first = stores().sessionLeaseStore()

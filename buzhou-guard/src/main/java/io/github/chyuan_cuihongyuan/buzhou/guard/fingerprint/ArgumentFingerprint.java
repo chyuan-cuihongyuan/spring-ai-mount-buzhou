@@ -10,10 +10,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * 参数指纹（spec 07 授权粒度）：工具名 + 危险参数规范化 JSON 的 SHA-256 前 16 hex。
+ * 参数指纹（spec 07 授权粒度）：危险参数规范化 JSON 的 SHA-256 前 16 hex。
  *
- * <p>规范化 JSON：键按字典序排列（TreeMap），保证同语义参数产生稳定指纹。
- * auth state key = {@code auth.{toolName}.{fingerprint}}。
+ * <p>授权粒度 = 工具名 + 参数指纹，体现在 auth state key = {@code auth.{toolName}.{fingerprint}}；
+ * 指纹本身只对参数哈希（spec 公式 {@code SHA-256(canonicalJson(arguments))} 前 16 hex）。
+ *
+ * <p>规范化 JSON：键按字典序递归排列（含 List 元素内的 Map），保证同语义参数产生稳定指纹。
  */
 public final class ArgumentFingerprint {
 
@@ -25,11 +27,9 @@ public final class ArgumentFingerprint {
     private ArgumentFingerprint() {
     }
 
-    /** 计算工具名 + 参数的指纹哈希（SHA-256 前 16 hex）。 */
-    public static String fingerprint(String toolName, Map<String, Object> arguments) {
-        String canonical = canonicalJson(arguments);
-        String material = toolName + "|" + canonical;
-        return sha256Hex16(material);
+    /** 计算参数的指纹哈希（SHA-256 前 16 hex；spec 公式，工具名不入哈希材质）。 */
+    public static String fingerprint(Map<String, Object> arguments) {
+        return sha256Hex16(canonicalJson(arguments));
     }
 
     /** 构造 auth state key。 */
@@ -72,6 +72,11 @@ public final class ArgumentFingerprint {
             TreeMap<String, Object> sorted = new TreeMap<>();
             map.forEach((k, v) -> sorted.put(String.valueOf(k), sortKeys(v)));
             return sorted;
+        }
+        if (value instanceof Iterable<?> list) {
+            java.util.List<Object> sortedList = new java.util.ArrayList<>();
+            list.forEach(item -> sortedList.add(sortKeys(item)));
+            return sortedList;
         }
         return value;
     }
