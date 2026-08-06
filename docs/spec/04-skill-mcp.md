@@ -49,7 +49,10 @@ public record Skill(String name, String description, List<String> allowedTools,
 /** Skill 注册表：解析顺序 = DB 覆盖内置（见时序节） */
 public interface SkillRegistry {
 
-    /** 当前 (appId, agentName) 绑定下可见的清单；未绑定时返回空 */
+    /** 当前 (appId, agentName) 绑定下可见的清单。
+     *  <p>绑定语义（与 MCP 绑定「全局清单的裁剪视图」同源）：未显式绑定时返回全部 classpath
+     *  内置 Skill（满足「引依赖即得，清单出现在系统提示词」）；存在绑定时返回该显式清单。
+     *  各 name 仍按 DB-PUBLISHED &gt; classpath 解析。 */
     List<SkillMetadata> listFor(String appId, String agentName);
 
     /** 按名加载全文；先查 DB 动态 Skill，未命中再查 classpath 内置 */
@@ -61,7 +64,19 @@ public interface SkillRegistry {
 }
 ```
 
-解析顺序伪码：
+listFor 解析顺序伪码（绑定 = 全局清单的裁剪视图，与 MCP 绑定同源）：
+
+```text
+listFor(appId, agentName):
+  binding = policyConfigProvider.getBindingPolicy(appId, agentName).skillNames
+  candidates = binding 非空 ? binding : classpathScanner.allNames()   # 未绑定 = 全部内置
+  for name in candidates:
+    skill = resolve(name)            # DB-PUBLISHED > classpath；两者皆无则跳过
+    若命中 → 收集 SkillMetadata(name, description, source)
+  截断至 catalog-max-entries
+```
+
+load 解析顺序伪码：
 
 ```text
 load(name):
@@ -71,6 +86,8 @@ load(name):
 ```
 
 > 【推演】DB Skill 仅 `PUBLISHED` 状态参与解析；`DRAFT`/`DISABLED` 对运行时不可见。ticket 16 只定「同名 DB 覆盖内置」，状态过滤属管理语义推演。
+
+> 【推演·规格矛盾收口】`listFor` 原注释「未绑定时返回空」与 ticket 14 验收项「jar 内置 Skill 引依赖即得，清单出现在系统提示词」矛盾。按 MCP 绑定「全局清单的裁剪视图」同源原则收口：**未显式绑定 = 全部 classpath 内置 Skill 可见；存在绑定 = 该显式清单（裁剪）**。两种情形下 DB 覆盖语义不变。
 
 ### load_skill 原子工具
 
@@ -83,7 +100,9 @@ load_skill(name: string) → string
 - 正文返回后直接进工具结果消息，后续轮次受微压缩策略约束（工具结果不豁免）。
 - Skill 资源按需读取：模型依清单中的 relativePath 调 `read_range`（文本）或再次 `load_skill` 指引的原子工具读取；资源内容超过 Spill 阈值（默认 32000 字符）走 02 号档 spill 管道，留引用句柄。
 
-> 【推演】资源读取复用 `read_range` 而非新增 `load_skill_resource` 工具：ticket 16 定「资源内容按需读取」，未定工具形态；复用既有工具减少模型认知负担，路径约定为 `skill://<name>/<relativePath>`。
+> 【推演】资源读取复用 `read_range` 而非新增 `load_skill_resource` 工具：ticket 16 定「资源内容按需读取」，未定工具形态；复用既有工具减少模型认知负担，路径约定为 `skill://<name>/<relativePath>`。落地形态：`read_range` 对 `skill://` 路径委托 core SPI `SkillResourceResolver`（buzhou-skills 提供实现、装配期注入 `SpillModule`，同 `SkillCatalogRenderer` 桥接模式），资源仅支持 bytes 模式；超大资源内容随工具返回自动进 spill 溢出管道。
+
+> 【推演】入参校验的会话上下文传递：`load_skill`（及 `skill://` 解析）需要的 sessionId 由 `HarnessToolCallingManager` 装配期注入 ToolContext（键 `buzhou.sessionId`），工具经 `HarnessToolCallingManager.sessionIdOf` 读取后反查绑定索引判定可见性（不受清单展示上限 catalogMaxEntries 约束——上限只管提示词渲染）。非会话内直调（无 sessionId）不做绑定校验，按名解析放行——校验保护的是 harness 内模型调用面。
 
 ### 系统提示词注入形态
 
@@ -113,13 +132,15 @@ load_skill(name: string) → string
 | POST | `/api/skills` | 新建 DB Skill（初始 DRAFT） |
 | PUT | `/api/skills/{name}` | 编辑（仅 DB Skill；内置只读） |
 | DELETE | `/api/skills/{name}` | 删除（仅 DB Skill；删除后同名内置自动恢复可见） |
-| POST | `/api/skills/{name}/publish` | 上架：DRAFT → PUBLISHED |
-| POST | `/api/skills/{name}/disable` | 下架：PUBLISHED → DISABLED |
+| POST | `/api/skills/{name}/publish` | 上架：DRAFT → PUBLISHED；DISABLED → PUBLISHED（重新上架）；已上架拒绝 |
+| POST | `/api/skills/{name}/disable` | 下架：PUBLISHED → DISABLED；非上架状态拒绝 |
 | PUT | `/api/skills/{name}/resources/{path}` | 上传/替换资源（文本） |
 | GET | `/api/bindings/skills?appId=&agentName=` | 查绑定 |
 | PUT | `/api/bindings/skills` | 设绑定：`(appId, agentName) → [skillName...]`（整体替换） |
 
 管理页为 dashboard 单页应用内新增「Skills」页签：列表/编辑（Markdown 编辑器 + frontmatter 表单）/绑定三视图。前端形态细节属 05 号档（dashboard）范畴，本档只定 API 边界。
+
+> 【推演】状态流转来源态校验与并发兜底：publish 仅接受 DRAFT/DISABLED（DISABLED→PUBLISHED 为重新上架——否则下架操作不可逆，语义残缺），disable 仅接受 PUBLISHED；重复上架/非法下架视为操作错误抛异常。`version` 乐观锁落地为 `SkillStore.save` 契约：更新时携带 version 须等于库内现值（新建传 0），冲突抛 `SkillVersionConflictException` 不静默覆盖；create 遇同名 DB Skill 拒绝（引导走 update）。
 
 ### ToolSetProvider SPI（MCP）
 
@@ -389,16 +410,21 @@ sequenceDiagram
 
 ## 推演标注
 
-本档含 6 处 `> 【推演】` 就地标注，清单：
+本档含 9 处 `> 【推演】` 就地标注，清单：
 
 1. DB Skill 仅 PUBLISHED 参与解析（状态过滤语义）。
-2. 资源读取复用 `read_range`、`skill://` 路径约定，不新增资源专用工具。
+2. 资源读取复用 `read_range`、`skill://` 路径约定，不新增资源专用工具；落地经 core SPI `SkillResourceResolver` 桥接。
 3. 引用计数与 ToolCall Span 同位包装，一次代理双职责。
 4. MCP spec 变更 = 删旧增新而非原地重连；bindings 变更不动连接。
 5. `catalog-max-entries`、绑定级 MCP 清单键格式。
 6. 资源表仅文本（CLOB），二进制不入模型；`version` 乐观锁。
+7. **规格矛盾收口**：`listFor` 未绑定时返回全部 classpath 内置（而非空），与「引依赖即得」验收项及 MCP 绑定裁剪语义对齐。
+8. 入参校验的会话上下文传递：sessionId 经 `HarnessToolCallingManager` 注入 ToolContext；非会话内直调不校验。
+9. **状态流转来源态校验**：publish 仅接受 DRAFT/DISABLED（DISABLED→PUBLISHED 为重新上架——否则下架不可逆，操作语义残缺），disable 仅接受 PUBLISHED；`version` 乐观锁落地为 `SkillStore.save` 契约（携带 version 须等于库内现值，冲突抛 `SkillVersionConflictException`）；create 重名拒绝（防静默覆盖）。
 
 另有两处未就地标注的归属判断，记录于此：MCP 热插拔落独立模块 `buzhou-mcp`（03 模块清单之外的增补）；Skill 清单注入采用 system-reminder 块挂系统提示词尾部、每轮现取（复用 08/09 注入通道）。
+
+> **模块归属补充（09 模块表为准）**：Skill 加载/注册表/`load_skill`/管理 API 归 `buzhou-skills` 模块（09 模块表第 9 席）；本文档上方「Skill 加载与注入归 `buzhou-core`」系早期设计表述，已被 09 模块表覆盖。`load_skill` 与 `read_range` 同位，落机制自身模块（不进 `buzhou-tools`，否则 tools→skills 形成禁止的 feature→feature 边）。清单注入的跨机制桥接经 core SPI `SkillCatalogRenderer`（由 buzhou-memory 的注入视图构建方持有可选引用，同 `AttachmentRenderer`）。
 
 ## 开放问题
 

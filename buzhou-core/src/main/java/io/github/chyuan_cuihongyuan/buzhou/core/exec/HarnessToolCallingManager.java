@@ -29,12 +29,25 @@ import java.util.concurrent.TimeoutException;
 
 public class HarnessToolCallingManager implements ToolCallingManager {
 
+    /** ToolContext 中携带当前会话 id 的键（供内置工具做会话级解析，如 load_skill 绑定校验）。 */
+    public static final String SESSION_ID_KEY = "buzhou.sessionId";
+
+    /** 从 ToolContext 取当前会话 id（无则 null；内置工具的会话级解析统一经此读取）。 */
+    public static String sessionIdOf(org.springframework.ai.chat.model.ToolContext toolContext) {
+        if (toolContext == null || toolContext.getContext() == null) {
+            return null;
+        }
+        Object value = toolContext.getContext().get(SESSION_ID_KEY);
+        return value instanceof String s ? s : null;
+    }
+
     private final DefaultToolCallingManager delegate;
     private final ExecutorService executor;
     private final Semaphore turnPermits;
     private final Duration toolTimeout;
     private final Map<String, String> serialGroups;
     private final SpanContextCarrier spanContextCarrier;
+    private final String sessionId;
     private final ConcurrentHashMap<String, Object> groupLocks = new ConcurrentHashMap<>();
     private final List<Future<?>> inFlight = new CopyOnWriteArrayList<>();
 
@@ -52,12 +65,24 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                                      Duration toolTimeout,
                                      Map<String, String> serialGroups,
                                      SpanContextCarrier spanContextCarrier) {
+        this(delegate, executor, maxConcurrencyPerTurn, toolTimeout, serialGroups,
+                spanContextCarrier, null);
+    }
+
+    public HarnessToolCallingManager(DefaultToolCallingManager delegate,
+                                     ExecutorService executor,
+                                     int maxConcurrencyPerTurn,
+                                     Duration toolTimeout,
+                                     Map<String, String> serialGroups,
+                                     SpanContextCarrier spanContextCarrier,
+                                     String sessionId) {
         this.delegate = delegate;
         this.executor = executor;
         this.turnPermits = new Semaphore(maxConcurrencyPerTurn);
         this.toolTimeout = toolTimeout;
         this.serialGroups = serialGroups == null ? Map.of() : serialGroups;
         this.spanContextCarrier = spanContextCarrier;
+        this.sessionId = sessionId;
     }
 
     @Override
@@ -84,6 +109,9 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 ? new java.util.HashMap<>() : new java.util.HashMap<>(options.getToolContext());
         if (spanContextCarrier != null) {
             toolContextMap.put(SpanContextCarrier.KEY, spanContextCarrier);
+        }
+        if (sessionId != null) {
+            toolContextMap.put(SESSION_ID_KEY, sessionId);
         }
         ToolContext toolContext = new ToolContext(toolContextMap);
         List<Future<ToolResponseMessage.ToolResponse>> futures = new ArrayList<>();

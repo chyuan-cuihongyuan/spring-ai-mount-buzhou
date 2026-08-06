@@ -85,7 +85,7 @@ public class HarnessAssembler {
 
         HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
                 org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
-                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier);
+                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier, sessionId);
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
         memory.setViewProcessor(viewProcessor);
         memory.setRepairer(new DanglingCallRepairer(

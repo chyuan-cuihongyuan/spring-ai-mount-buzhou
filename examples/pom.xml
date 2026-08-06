@@ -14,4 +14,45 @@
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- 全模块同版本由 buzhou-bom 统一 -->
+      <dependency>
+        <groupId>io.github.chyuan-cuihongyuan</groupId>
+        <artifactId>buzhou-bom</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!--
+      跨机制集成测试落于此（聚合侧）：feature 模块之间禁止直接依赖（09 模块工程档依赖白名单），
+      涉及两个及以上 feature 模块的端到端测试只能由聚合模块承载。
+    -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-memory</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-skills</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-spill</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

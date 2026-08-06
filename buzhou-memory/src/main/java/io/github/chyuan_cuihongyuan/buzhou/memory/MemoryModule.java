@@ -26,13 +26,13 @@ public final class MemoryModule {
     }
 
     public static RuntimeConfig configure(Map<String, Object> ymlConfig, MessageStore messageStore) {
-        return configure(ymlConfig, null, messageStore, null, null, null);
+        return configure(ymlConfig, null, messageStore, null, null, null, null);
     }
 
     public static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
                                           ChatModel mainModel, ChatModel summaryModel) {
         return configure(ymlConfig, stores, stores.messageStore(),
-                mainModel, summaryModel == null ? mainModel : summaryModel, null);
+                mainModel, summaryModel == null ? mainModel : summaryModel, null, null);
     }
 
     /** 带 AttachmentRenderer 的重载（Hook→state→Attachment 闭环，ticket 13）。 */
@@ -40,13 +40,24 @@ public final class MemoryModule {
                                           ChatModel mainModel, ChatModel summaryModel,
                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer) {
         return configure(ymlConfig, stores, stores.messageStore(),
-                mainModel, summaryModel == null ? mainModel : summaryModel, attachmentRenderer);
+                mainModel, summaryModel == null ? mainModel : summaryModel, attachmentRenderer, null);
+    }
+
+    /** 带 AttachmentRenderer + SkillCatalogRenderer 的重载（ticket 14 Skill Catalog 注入）。 */
+    public static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
+                                          ChatModel mainModel, ChatModel summaryModel,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillCatalogRenderer skillCatalogRenderer) {
+        return configure(ymlConfig, stores, stores.messageStore(),
+                mainModel, summaryModel == null ? mainModel : summaryModel,
+                attachmentRenderer, skillCatalogRenderer);
     }
 
     private static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
                                            MessageStore messageStore,
                                            ChatModel mainModel, ChatModel summaryModel,
-                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer) {
+                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer,
+                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillCatalogRenderer skillCatalogRenderer) {
         DefaultMicroCompactor compactor = new DefaultMicroCompactor(new DefaultCompletedTurnDetector());
         Function<String, MicroCompactionPolicy> policyFn = policyFn(ymlConfig);
         int protectRecentTurns = protectRecentTurns(ymlConfig);
@@ -67,6 +78,7 @@ public final class MemoryModule {
                     modelName(ymlConfig), keepRecentTurns(ymlConfig), extraInstruction(ymlConfig),
                     maxInjectChars(ymlConfig));
             ivp.setAttachmentRenderer(attachmentRenderer);
+            ivp.setSkillCatalogRenderer(skillCatalogRenderer);
             processor = ivp;
         }
         return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(),

@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.spill;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillResourceResolver;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -9,6 +10,7 @@ public final class SpillModule {
 
     private final DiskSpillStore store;
     private final SpillService service;
+    private SkillResourceResolver skillResourceResolver;
 
     public SpillModule(Path rootDir, int previewChars, int listPreviewItems) {
         this.store = new DiskSpillStore(rootDir);
@@ -17,6 +19,17 @@ public final class SpillModule {
 
     public static SpillModule withDefaults(Path rootDir) {
         return new SpillModule(rootDir, 2048, 20);
+    }
+
+    /**
+     * 注入 Skill 资源解析器（spec 04：read_range 接管 {@code skill://} 路径）。
+     *
+     * <p>由 buzhou-skills 的 {@code SkillModule.skillResourceResolver()} 提供，装配期接线，
+     * 无 feature→feature Maven 依赖。不注入时 {@code skill://} 路径返回接线提示文本。
+     */
+    public SpillModule skillResourceResolver(SkillResourceResolver resolver) {
+        this.skillResourceResolver = resolver;
+        return this;
     }
 
     public SpillService service() {
@@ -29,7 +42,7 @@ public final class SpillModule {
 
     public RuntimeConfig configure() {
         return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(), null,
-                List.of(new ReadRangeTool(service)), java.util.Map.of(),
+                List.of(new ReadRangeTool(service, skillResourceResolver)), java.util.Map.of(),
                 List.of((registry, appId, agentName, sessionId) ->
                         registry.register("spill-cleanup",
                                 () -> store.deleteBySession(

@@ -10,4 +10,27 @@
   </parent>
   <artifactId>buzhou-skills</artifactId>
   <name>buzhou-skills</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!-- load_skill 工具入参解析 / frontmatter 处理 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!-- 复用 core 测试工具（ScriptedChatModel 风格） -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <!--
+      注意：不得在此加 buzhou-memory 等其他 feature 模块依赖（含 test scope）——
+      09 模块工程档「feature 模块之间禁止直接依赖」是依赖白名单；跨机制集成测试落 examples 聚合侧。
+    -->
+  </dependencies>
 </project>

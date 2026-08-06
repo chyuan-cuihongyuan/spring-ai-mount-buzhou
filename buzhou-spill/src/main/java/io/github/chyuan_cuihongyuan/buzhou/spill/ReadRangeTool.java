@@ -2,27 +2,48 @@ package io.github.chyuan_cuihongyuan.buzhou.spill;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillResourceResolver;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
 
+import java.util.Optional;
+
+/**
+ * {@code read_range} 内置原子工具：范围回读 spill:// 溢出内容；接管 skill:// 技能资源路径
+ * （spec 04 推演：资源读取复用 read_range，不新增专用工具）。
+ *
+ * <p>skill:// 解析委托装配期注入的 {@link SkillResourceResolver}（buzhou-skills 提供，
+ * 含会话绑定校验，sessionId 取自 ToolContext 的 {@link HarnessToolCallingManager#SESSION_ID_KEY}）；
+ * 资源仅支持 bytes 模式（offset/limit 区间截取）。超大资源内容随工具返回自动走 spill 溢出管道。
+ */
 public class ReadRangeTool implements ToolCallback {
+
+    static final String SKILL_SCHEME = "skill://";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final SpillService spillService;
+    private final SkillResourceResolver skillResourceResolver;
 
     public ReadRangeTool(SpillService spillService) {
+        this(spillService, null);
+    }
+
+    public ReadRangeTool(SpillService spillService, SkillResourceResolver skillResourceResolver) {
         this.spillService = spillService;
+        this.skillResourceResolver = skillResourceResolver;
     }
 
     @Override
     public ToolDefinition getToolDefinition() {
         return ToolDefinition.builder()
                 .name("read_range")
-                .description("按 spill:// 路径范围读取已溢出内容。mode=bytes 字符区间 / json JSON path 抽取 / page 数组分页。")
+                .description("按路径范围读取内容：spill:// 溢出内容 / skill:// 技能资源。mode=bytes 字符区间 / json JSON path 抽取 / page 数组分页（skill:// 仅支持 bytes）。")
                 .inputSchema("""
                         {"type":"object","properties":{
-                          "path":{"type":"string","description":"spill:// URI"},
+                          "path":{"type":"string","description":"spill:// 或 skill://<name>/<relativePath> URI"},
                           "mode":{"type":"string","enum":["bytes","json","page"]},
                           "offset":{"type":"integer","description":"bytes 模式起始偏移"},
                           "limit":{"type":"integer","description":"bytes/page 模式返回量"},
@@ -35,10 +56,19 @@ public class ReadRangeTool implements ToolCallback {
 
     @Override
     public String call(String toolInput) {
+        return call(toolInput, null);
+    }
+
+    @Override
+    public String call(String toolInput, ToolContext toolContext) {
         try {
             JsonNode args = MAPPER.readTree(toolInput);
             String path = args.path("path").asText();
             String mode = args.path("mode").asText("bytes");
+            if (path != null && path.startsWith(SKILL_SCHEME)) {
+                return readSkillResource(path, mode, args,
+                        HarnessToolCallingManager.sessionIdOf(toolContext));
+            }
             RangeReadRequest request = switch (mode) {
                 case "json" -> RangeReadRequest.json(args.path("jsonPath").asText("$"));
                 case "page" -> RangeReadRequest.page(
@@ -55,5 +85,35 @@ public class ReadRangeTool implements ToolCallback {
         } catch (Exception e) {
             return "read_range 调用失败：" + e.getMessage();
         }
+    }
+
+    /** skill://&lt;name&gt;/&lt;relativePath&gt; 解析：委托注入的 resolver，bytes 模式区间截取。 */
+    private String readSkillResource(String path, String mode, JsonNode args, String sessionId) {
+        if (!"bytes".equals(mode)) {
+            return "skill:// 资源仅支持 bytes 模式（收到：" + mode + "）";
+        }
+        if (skillResourceResolver == null) {
+            return "skill:// 资源读取未接线（需引入 buzhou-skills 并经 SpillModule.skillResourceResolver 注入）";
+        }
+        String rest = path.substring(SKILL_SCHEME.length());
+        int slash = rest.indexOf('/');
+        if (slash < 0 || slash == rest.length() - 1) {
+            return "skill:// 路径缺少资源相对路径：" + path;
+        }
+        String skillName = rest.substring(0, slash);
+        String relativePath = rest.substring(slash + 1);
+        Optional<String> content = skillResourceResolver.resolve(sessionId, skillName, relativePath);
+        if (content.isEmpty()) {
+            return "技能资源不存在或未绑定：" + path;
+        }
+        String text = content.get();
+        int offset = Math.max(0, args.hasNonNull("offset") ? args.path("offset").asInt() : 0);
+        int limit = args.hasNonNull("limit") ? args.path("limit").asInt() : 20000;
+        if (offset >= text.length()) {
+            return "[已越界：offset=" + offset + "，资源长度=" + text.length() + "]";
+        }
+        int end = limit < 0 ? text.length() : Math.min(text.length(), offset + limit);
+        String slice = text.substring(offset, end);
+        return end < text.length() ? slice + "\n[已截断，可用 offset 续读]" : slice;
     }
 }
