@@ -18,4 +18,9 @@ public record SpanRecord(
     public SpanRecord {
         attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
     }
+
+    /** 活动时刻：endedAt 兜底 startedAt（RUNNING 中间态未关闭）；两参均空返回 null。 */
+    public Instant activityAt() {
+        return endedAt == null ? startedAt : endedAt;
+    }
 }

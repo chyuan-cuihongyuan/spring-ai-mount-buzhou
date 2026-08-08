@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -149,6 +151,62 @@ public abstract class AbstractBuzhouStoresContractTest {
         assertThat(stores().observabilityStore().eventsOfSession(sessionId))
                 .extracting(EventRecord::eventId).containsExactly(event.eventId());
         assertThat(stores().observabilityStore().injectionSnapshot(sessionId, 1)).isPresent();
+    }
+
+    @Test
+    void observabilityListsSessionSummariesAndEventsOfSpan() {
+        String prefix = "contract-sum-" + UUID.randomUUID();
+        String older = prefix + "-older";
+        String newer = prefix + "-newer";
+        Instant base = Instant.now();
+        stores().observabilityStore().saveSpans(List.of(
+                new SpanRecord("sp-sess-" + prefix, null, older, -1, "SESSION", "session",
+                        base, base, "OK", Map.of("agent.name", "contract-agent")),
+                new SpanRecord("sp-turn-" + prefix, "sp-sess-" + prefix, older, 1, "TURN",
+                        "turn-1", base, base, "OK", Map.of())));
+        stores().observabilityStore().saveSpans(List.of(
+                new SpanRecord("sp-turn2-" + prefix, null, newer, 1, "TURN", "turn-1",
+                        base.plusSeconds(60), base.plusSeconds(61), "OK", Map.of())));
+        EventRecord event = new EventRecord("ev-" + prefix, "sp-turn2-" + prefix, newer,
+                "FINAL_REPLY", base.plusSeconds(61), Map.of("content", "done"));
+        EventRecord earlier = new EventRecord("ev0-" + prefix, "sp-turn2-" + prefix, newer,
+                "THINKING", base.plusSeconds(60), Map.of("content", "想"));
+        // 后入先存：断言实现按 occurredAt 排序返回，而非依赖写入序
+        stores().observabilityStore().saveEvents(List.of(event, earlier));
+
+        // offset 语义游标翻页拉全量（store 为全类共享，只断言相对序与字段，不断言全局位置）
+        List<SessionSummary> all = new ArrayList<>();
+        String cursor = null;
+        for (int i = 0; i < 200; i++) {
+            List<SessionSummary> page = stores().observabilityStore().listSessionSummaries(cursor, 3);
+            if (page.isEmpty()) {
+                break;
+            }
+            all.addAll(page);
+            cursor = String.valueOf(all.size());
+        }
+        List<SessionSummary> mine = all.stream()
+                .filter(s -> s.sessionId().startsWith(prefix)).toList();
+        assertThat(mine).extracting(SessionSummary::sessionId)
+                .containsExactly(newer, older); // 最近活跃降序
+
+        SessionSummary olderSummary = mine.get(1);
+        assertThat(olderSummary.turnCount()).isEqualTo(1);
+        assertThat(olderSummary.spanCount()).isEqualTo(2);
+        assertThat(olderSummary.sessionAttributes())
+                .containsEntry("agent.name", "contract-agent");
+        assertThat(olderSummary.firstActivityAt()).isNotNull();
+        assertThat(olderSummary.lastActivityAt())
+                .isAfterOrEqualTo(olderSummary.firstActivityAt());
+
+        SessionSummary newerSummary = mine.get(0);
+        assertThat(newerSummary.turnCount()).isEqualTo(1);
+        assertThat(newerSummary.spanCount()).isEqualTo(1);
+        assertThat(newerSummary.sessionAttributes()).isEmpty();
+
+        assertThat(stores().observabilityStore().eventsOfSpan("sp-turn2-" + prefix))
+                .extracting(EventRecord::eventId)
+                .containsExactly(earlier.eventId(), event.eventId()); // occurredAt 升序
     }
 
     @Test

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buzhou 开发者控制台</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+         margin: 0; padding: 12px; max-width: 1280px; }
+  h1 { font-size: 16px; margin: 0 0 12px; }
+  h2 { font-size: 13px; margin: 16px 0 6px; color: #888; }
+  .tabs button { padding: 4px 12px; margin-right: 4px; cursor: pointer; }
+  .tabs button.active { font-weight: bold; border-bottom: 2px solid currentColor; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+  th, td { border: 1px solid #6664; padding: 3px 8px; text-align: left; vertical-align: top; }
+  tr.clickable { cursor: pointer; }
+  tr.clickable:hover { background: #8882; }
+  .turn { border: 1px solid #6666; border-radius: 6px; padding: 8px; margin: 8px 0; }
+  .span { margin-left: 16px; white-space: pre-wrap; word-break: break-all; }
+  .ev { margin-left: 24px; white-space: pre-wrap; word-break: break-all; color: #69c; }
+  .ev.THINKING { color: #9a6; } .ev.ERROR { color: #e66; } .ev.FINAL_REPLY { color: #da0; }
+  .badge { border: 1px solid #888; border-radius: 4px; padding: 0 4px; font-size: 11px; }
+  .badge.ERROR { color: #e66; } .badge.RUNNING { color: #da0; } .badge.OK { color: #6a5; }
+  input, textarea, select { font: inherit; margin: 2px 4px 2px 0; }
+  textarea { width: 100%; height: 80px; }
+  button { cursor: pointer; }
+  .muted { color: #888; }
+  .err { color: #e66; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>不周山 · 开发者控制台 <span class="muted">开发调试用；生产监控走 OTel</span></h1>
+<div class="tabs">
+  <button id="tab-sessions" class="active" onclick="showTab('sessions')">会话回放</button>
+  <button id="tab-skills" onclick="showTab('skills')">Skill 管理</button>
+</div>
+<div id="error" class="err"></div>
+
+<div id="page-sessions">
+  <h2>会话列表（最近活跃序）<button onclick="loadSessions()">刷新</button></h2>
+  <table id="sessions"><thead><tr>
+    <th>sessionId</th><th>agent</th><th>轮次</th><th>span 数</th><th>最近活跃</th>
+  </tr></thead><tbody></tbody></table>
+  <button id="more" style="display:none" onclick="loadSessions(true)">下一页</button>
+
+  <div id="detail" style="display:none">
+    <h2 id="detail-title"></h2>
+    <h2>统计（token / 耗时，口径 = Span 属性）</h2><div id="stats"></div>
+    <h2>轮次回放（Span 树 + Event 流 + 注入快照）</h2><div id="replay"></div>
+  </div>
+</div>
+
+<div id="page-skills" style="display:none">
+  <h2>Skill 列表（DB + 内置合并视图）<button onclick="loadSkills()">刷新</button></h2>
+  <table id="skills"><thead><tr>
+    <th>name</th><th>来源</th><th>状态</th><th>覆盖内置</th><th>描述</th><th>操作</th>
+  </tr></thead><tbody></tbody></table>
+
+  <h2>新建 / 编辑 DB Skill</h2>
+  <div>
+    <input id="sk-name" placeholder="name" size="24">
+    <input id="sk-desc" placeholder="description" size="40">
+    <input id="sk-tools" placeholder="allowedTools（逗号分隔，可空）" size="32">
+    <textarea id="sk-body" placeholder="SKILL.md 正文（编辑时留空 = 保持原值）"></textarea>
+    <button onclick="saveSkill(false)">新建</button>
+    <button onclick="saveSkill(true)">保存编辑</button>
+  </div>
+
+  <h2>绑定管理（appId + agentName → skillNames）</h2>
+  <div>
+    <input id="bd-app" placeholder="appId" size="16">
+    <input id="bd-agent" placeholder="agentName" size="16">
+    <button onclick="getBinding()">查询</button>
+    <input id="bd-names" placeholder="skillNames（逗号分隔）" size="32">
+    <button onclick="setBinding()">设置</button>
+    <span id="bd-result" class="muted"></span>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let cursor = null;
+
+async function api(path, opts) {
+  const r = await fetch('api' + path, opts && {
+    method: opts.method,
+    headers: {'Content-Type': 'application/json'},
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(r.status + ' ' + (data.error || ''));
+  return data;
+}
+function fail(e) { $('#error').textContent = String(e.message || e); }
+function clearErr() { $('#error').textContent = ''; }
+
+function showTab(name) {
+  for (const t of ['sessions', 'skills']) {
+    $('#page-' + t).style.display = t === name ? '' : 'none';
+    $('#tab-' + t).classList.toggle('active', t === name);
+  }
+  if (name === 'skills') loadSkills();
+}
+
+// ---- 会话 ----
+async function loadSessions(more) {
+  clearErr();
+  try {
+    if (!more) { cursor = null; $('#sessions tbody').innerHTML = ''; }
+    const page = await api('/sessions?size=50' + (cursor ? '&cursor=' + cursor : ''));
+    cursor = page.nextCursor;
+    $('#more').style.display = cursor ? '' : 'none';
+    for (const s of page.items) {
+      const tr = document.createElement('tr');
+      tr.className = 'clickable';
+      tr.innerHTML = `<td>${esc(s.sessionId)}</td>
+        <td>${esc(s.sessionAttributes['agent.name'] || '')}</td>
+        <td>${s.turnCount}</td><td>${s.spanCount}</td>
+        <td>${esc(s.lastActivityAt)}</td>`;
+      tr.onclick = () => openSession(s.sessionId);
+      $('#sessions tbody').appendChild(tr);
+    }
+  } catch (e) { fail(e); }
+}
+
+async function openSession(sid) {
+  clearErr();
+  try {
+    const [replay, stats] = await Promise.all([
+      api(`/sessions/${encodeURIComponent(sid)}/replay`),
+      api(`/sessions/${encodeURIComponent(sid)}/stats`)
+    ]);
+    $('#detail').style.display = '';
+    $('#detail-title').textContent = '会话 ' + sid;
+    renderStats(stats);
+    renderReplay(sid, replay);
+  } catch (e) { fail(e); }
+}
+
+function renderStats(st) {
+  let html = `<div>合计：prompt ${st.totalPromptTokens} · completion ${st.totalCompletionTokens}
+    · 耗时 ${st.totalDurationMs}ms</div>`;
+  html += '<table><thead><tr><th>轮次</th><th>prompt</th><th>completion</th><th>耗时ms</th><th>迭代</th></tr></thead><tbody>'
+    + st.perTurn.map(t => `<tr><td>${t.turnSeq}</td><td>${t.promptTokens}</td>
+      <td>${t.completionTokens}</td><td>${t.durationMs}</td><td>${t.iterations}</td></tr>`).join('')
+    + '</tbody></table>';
+  html += '<table><thead><tr><th>模型</th><th>调用</th><th>prompt</th><th>completion</th><th>reasoning</th><th>耗时ms</th></tr></thead><tbody>'
+    + st.perModel.map(m => `<tr><td>${esc(m.model)}</td><td>${m.calls}</td><td>${m.promptTokens}</td>
+      <td>${m.completionTokens}</td><td>${m.reasoningTokens}</td><td>${m.totalDurationMs}</td></tr>`).join('')
+    + '</tbody></table>';
+  html += '<table><thead><tr><th>工具</th><th>调用</th><th>错误</th><th>耗时ms</th></tr></thead><tbody>'
+    + st.perTool.map(t => `<tr><td>${esc(t.tool)}</td><td>${t.calls}</td>
+      <td>${t.errors}</td><td>${t.totalDurationMs}</td></tr>`).join('')
+    + '</tbody></table>';
+  $('#stats').innerHTML = html;
+}
+
+function spanTree(spans) {
+  const byId = {}, roots = [];
+  spans.forEach(s => byId[s.spanId] = {s, children: []});
+  spans.forEach(s => {
+    const p = s.parentSpanId && byId[s.parentSpanId];
+    p ? p.children.push(byId[s.spanId]) : roots.push(byId[s.spanId]);
+  });
+  const render = n => {
+    const s = n.s;
+    const dur = s.endedAt ? (new Date(s.endedAt) - new Date(s.startedAt)) + 'ms' : '…';
+    return `<div class="span">└ <span class="badge ${esc(s.status)}">${esc(s.status)}</span>
+      <b>${esc(s.kind)}</b> ${esc(s.name)} <span class="muted">${dur}</span>
+      ${n.children.map(render).join('')}</div>`;
+  };
+  return roots.map(render).join('');
+}
+
+function renderReplay(sid, replay) {
+  const box = $('#replay');
+  box.innerHTML = '';
+  for (const t of replay.turns) {
+    const div = document.createElement('div');
+    div.className = 'turn';
+    div.innerHTML = `<b>轮次 ${t.turnSeq}</b>
+      ${t.hasSnapshot ? `<button onclick="showSnapshot('${esc(sid)}', ${t.turnSeq})">注入快照</button>` : ''}
+      ${spanTree(t.spans)}
+      <div>${t.events.map(e => `<div class="ev ${esc(e.type)}">[${esc(e.type)}]
+        ${esc(e.payload.content || e.payload.arguments || e.payload.result
+          || JSON.stringify(e.payload))}</div>`).join('')}</div>
+      <div class="snapshot"></div>`;
+    box.appendChild(div);
+  }
+  if (replay.unboundEvents.length) {
+    box.innerHTML += `<div class="turn muted">未归属事件 ${replay.unboundEvents.length} 条</div>`;
+  }
+}
+
+async function showSnapshot(sid, turnSeq) {
+  clearErr();
+  try {
+    const snap = await api(`/sessions/${encodeURIComponent(sid)}/turns/${turnSeq}/snapshot`);
+    const msgs = snap.messages.map(m =>
+      `[${esc(m.role)}] ${esc(m.content)}` +
+      (m.evidenceId ? `（evidence: ${esc(m.evidenceId)}）` : '') +
+      (m.spillUri ? `（spill: ${esc(m.spillUri)}）` : '')).join('\n');
+    alert(`注入快照 turn=${turnSeq}\n策略版本: ${snap.policyVersion || '-'}\n` +
+      `预算: ${JSON.stringify(snap.budgetBreakdown)}\n\n${msgs || '(无消息序列)'}`);
+  } catch (e) { fail(e); }
+}
+
+// ---- Skill 管理 ----
+async function loadSkills() {
+  clearErr();
+  try {
+    const list = await api('/skills');
+    const tbody = $('#skills tbody');
+    tbody.innerHTML = '';
+    for (const s of list) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${esc(s.name)}</td><td>${esc(s.source)}</td>
+        <td>${esc(s.status)}</td><td>${s.dbOverridesClasspath ? '是' : ''}</td>
+        <td>${esc(s.description)}</td><td></td>`;
+      const ops = tr.lastChild;
+      if (s.source === 'DB') {
+        ops.append(btn('编辑', () => { $('#sk-name').value = s.name;
+          $('#sk-desc').value = s.description || ''; }));
+        if (s.status !== 'PUBLISHED') ops.append(btn('上架', () => skillOp(s.name, 'publish')));
+        if (s.status === 'PUBLISHED') ops.append(btn('下架', () => skillOp(s.name, 'disable')));
+        ops.append(btn('删除', () => skillOp(s.name, null)));
+      }
+      tbody.appendChild(tr);
+    }
+  } catch (e) { fail(e); }
+}
+function btn(label, fn) { const b = document.createElement('button');
+  b.textContent = label; b.onclick = fn; return b; }
+
+async function saveSkill(isUpdate) {
+  clearErr();
+  try {
+    const name = $('#sk-name').value.trim();
+    const payload = {name, description: $('#sk-desc').value};
+    if (isUpdate) {
+      // 编辑时正文/白名单留空 = 保持不变（update 契约：null 字段保留原值）；
+      // 防「只改描述却把 body/allowedTools 冲掉」
+      const body = $('#sk-body').value;
+      if (body !== '') payload.body = body;
+      const tools = $('#sk-tools').value.split(',').map(x => x.trim()).filter(Boolean);
+      if (tools.length) payload.allowedTools = tools;
+      await api('/skills/' + encodeURIComponent(name), {method: 'PUT', body: payload});
+    } else {
+      payload.body = $('#sk-body').value;
+      payload.allowedTools = $('#sk-tools').value.split(',').map(x => x.trim()).filter(Boolean);
+      payload.createdBy = 'dashboard';
+      await api('/skills', {method: 'POST', body: payload});
+    }
+    loadSkills();
+  } catch (e) { fail(e); }
+}
+
+async function skillOp(name, op) {
+  clearErr();
+  try {
+    if (op) await api(`/skills/${encodeURIComponent(name)}/${op}`, {method: 'POST', body: {}});
+    else await api('/skills/' + encodeURIComponent(name), {method: 'DELETE'});
+    loadSkills();
+  } catch (e) { fail(e); }
+}
+
+async function getBinding() {
+  clearErr();
+  try {
+    const r = await api(`/skill-bindings?appId=${encodeURIComponent($('#bd-app').value)}` +
+      `&agentName=${encodeURIComponent($('#bd-agent').value)}`);
+    $('#bd-result').textContent = '当前绑定：' + (r.skillNames || []).join(', ');
+  } catch (e) { fail(e); }
+}
+async function setBinding() {
+  clearErr();
+  try {
+    await api('/skill-bindings', {method: 'PUT', body: {appId: $('#bd-app').value,
+      agentName: $('#bd-agent').value,
+      skillNames: $('#bd-names').value.split(',').map(x => x.trim()).filter(Boolean)}});
+    getBinding();
+  } catch (e) { fail(e); }
+}
+
+loadSessions();
+</script>
+</body>
+</html>

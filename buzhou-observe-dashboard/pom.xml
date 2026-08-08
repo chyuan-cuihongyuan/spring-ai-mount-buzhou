@@ -10,4 +10,53 @@
   </parent>
   <artifactId>buzhou-observe-dashboard</artifactId>
   <name>buzhou-observe-dashboard</name>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- 全模块同版本由 buzhou-bom 统一 -->
+      <dependency>
+        <groupId>io.github.chyuan-cuihongyuan</groupId>
+        <artifactId>buzhou-bom</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!--
+      唯一允许的二层边（09 模块工程档白名单）：dashboard → observability。
+      查询侧实际只消费 core.spi 的 ObservabilityStore/记录类型；Skill 管理页不依赖
+      buzhou-skills——经本模块 SkillAdminPort SPI 由装配侧适配注入（03 档推演 #13）。
+    -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-observability</artifactId>
+    </dependency>
+    <!-- 查询侧直接消费 core.spi 记录类型，显式声明而非靠传递依赖 -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!-- REST JSON 序列化 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

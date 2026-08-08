@@ -1,14 +1,17 @@
 package io.github.chyuan_cuihongyuan.buzhou.store.jdbc;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanKind;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class JdbcObservabilityStore implements ObservabilityStore {
@@ -114,5 +117,50 @@ public class JdbcObservabilityStore implements ObservabilityStore {
                         JdbcJson.readMap(rs.getString("budget_detail")),
                         rs.getTimestamp("created_at").toInstant()),
                 sessionId, turnSeq).stream().findFirst();
+    }
+
+    /** 会话汇总 SQL：TURN 计数经常量注入（SpanKind），COALESCE 与 SpanRecord.activityAt 同语义。 */
+    private static final String SESSION_SUMMARY_SQL = """
+            SELECT session_id,
+                   MIN(started_at) AS first_at,
+                   MAX(COALESCE(ended_at, started_at)) AS last_at,
+                   SUM(CASE WHEN kind = '%s' THEN 1 ELSE 0 END) AS turn_count,
+                   COUNT(*) AS span_count
+            FROM buzhou_span
+            GROUP BY session_id
+            ORDER BY last_at DESC, session_id
+            LIMIT ? OFFSET ?
+            """.formatted(SpanKind.TURN);
+
+    @Override
+    public List<SessionSummary> listSessionSummaries(String cursor, int size) {
+        int offset = cursor == null || cursor.isBlank() ? 0 : Integer.parseInt(cursor);
+        List<SessionSummary> page = jdbc.query(SESSION_SUMMARY_SQL,
+                (rs, n) -> new SessionSummary(
+                        rs.getString("session_id"),
+                        rs.getTimestamp("first_at").toInstant(),
+                        rs.getTimestamp("last_at").toInstant(),
+                        rs.getInt("turn_count"),
+                        rs.getInt("span_count"),
+                        Map.of()),
+                size, offset);
+        // SESSION span 属性袋按页内会话逐条补齐（页大小上限内，开发调试量级可接受——
+        // spec 03 推演块第 3 条已声明 N+1 取舍）；ORDER BY 保证多 SESSION span 时取最早一条
+        return page.stream().map(s -> jdbc.query("""
+                        SELECT attributes FROM buzhou_span
+                        WHERE session_id = ? AND kind = ? ORDER BY started_at LIMIT 1
+                        """,
+                        (rs, n) -> JdbcJson.readMap(rs.getString("attributes")),
+                        s.sessionId(), SpanKind.SESSION)
+                .stream().findFirst()
+                .map(attrs -> new SessionSummary(s.sessionId(), s.firstActivityAt(),
+                        s.lastActivityAt(), s.turnCount(), s.spanCount(), attrs))
+                .orElse(s)).toList();
+    }
+
+    @Override
+    public List<EventRecord> eventsOfSpan(String spanId) {
+        return jdbc.query("SELECT * FROM buzhou_event WHERE span_id = ? ORDER BY created_at",
+                EVENT_MAPPER, spanId);
     }
 }

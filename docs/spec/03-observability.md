@@ -180,7 +180,20 @@ public interface ObservabilityStore {
     TokenUsageStats aggregateTokenUsage(String sessionId);   // 按 Turn/模型分组聚合
 
     void deleteBySession(String sessionId);             // 会话资源成套清理的一环（ticket 04）
+
+    // ticket 17 增补（dashboard 数据源；实现定名见推演 11）：
+    List<SessionSummary> listSessionSummaries(String cursor, int size);  // 会话列表（最近活跃序）
 }
+
+/** 会话摘要：dashboard 会话列表行（ticket 17） */
+public record SessionSummary(
+        String sessionId,
+        Instant firstActivityAt,     // 会话内最早 span startedAt
+        Instant lastActivityAt,      // 会话内最晚 span 活动（endedAt 兜底 startedAt）
+        int turnCount,               // TURN 类 span 数
+        int spanCount,
+        Map<String, Object> sessionAttributes  // SESSION span 属性袋（agent.name/app.id 等），无则空
+) {}
 
 /** 注入快照（ticket 15：消息序列 + 动态预算明细） */
 public record InjectSnapshot(
@@ -282,6 +295,13 @@ REST 查询 API（公开稳定，前缀可配，默认 `/buzhou/api`）：
 | `GET /sessions/{sessionId}/stats` | token/耗时统计：按轮次、按模型、按工具分组 |
 | `GET /skills` 等 Skill CRUD/上架/绑定端点 | Skill 管理页后端（管理 API 由 buzhou-skills 提供，dashboard 挂管理页；详见 04-skill-mcp） |
 
+> 【推演】（ticket 17 首发形态，实现期收口）：
+>
+> 1. **程序化装配 + 独立端口内嵌服务器首发**：`DashboardModule` 编程式构建，HTTP 层用 JDK 内置 `com.sun.net.httpserver`（零新增 Web 依赖、测试可 hermetic）；「复用业务 Boot 容器」经 Spring MVC 控制器挂载归 ticket 20 starter（AutoConfiguration 全仓后置，同 06 推演 #13 口径）。首发 `dashboard.port=0` 语义为随机端口。
+> 2. **Skill 管理页不直依 buzhou-skills**：09 模块工程档白名单的唯一二层边是 `→ buzhou-observability`；dashboard 定义 `SkillAdminPort` SPI（方法面与 `SkillAdminApi` 对齐），装配侧适配器薄包 `SkillAdminApi` 注入，未注入时 Skill 端点回 501。上文模块表「+ buzhou-skills 可选」按此收口。
+> 3. **cursor 分页 = offset 语义**（不透明字符串承载整数偏移）：开发调试定位，不做键集分页；分页间新会话插入可能跨页重复/漏行，接受。SESSION 属性袋按页内会话逐条回填（N+1 查询，页大小上限内的开发调试量级，接受）。
+> 4. **前端首发为手写单页静态资源**（`buzhou-dashboard/index.html`，vanilla JS + fetch）打进 jar；node 构建链选型是 09 档开放问题，未决前不引入。
+
 ## 配置项
 
 前缀 `buzhou.observability.*`，纳入四层覆盖体系（默认 < yml < 绑定级 < 工具级，ticket 05）：
@@ -303,7 +323,7 @@ REST 查询 API（公开稳定，前缀可配，默认 `/buzhou/api`）：
 | `otel.enabled` | `false` | OTel 导出桥开关（模块引入后仍需显式开） |
 | `otel.include-content` | `false` | 导出 Event 时是否携带思维链/回复正文 |
 | `dashboard.enabled` | `true`（模块引入时） | dashboard 自动装配开关 |
-| `dashboard.port` | `0`（复用业务容器） | 独立端口；0 = 复用业务 Boot 容器 |
+| `dashboard.port` | `0` | 独立端口；ticket 17 首发形态 0 = 随机端口（「复用业务容器」归 ticket 20 starter 的 MVC 挂载，见推演 12） |
 | `dashboard.path` | `/buzhou` | 静态资源与 API 前缀 |
 
 > 【推演】具体配置 key 名、默认值与 `snapshot.ttl` 均为本 Spec 推演：ticket 只定"批大小与 flush 间隔可配""复用业务容器或独立端口可配"。TTL 对齐 ticket 11 的 7 天兜底口径。
@@ -462,6 +482,10 @@ sequenceDiagram
 8. Redis 存储结构（Hash + ZSet/List + EXPIRE）（Schema 节）。
 9. 思维链超长处理定为截断 + 标记（配置项 `thinking.max-chars`；原「走 Spill 管道」与本档模块表「observability 仅依赖 core」矛盾，收口为截断）。
 10. advisor order 定为 +500：+400 已由 01 号档 memory advisor 占用（原稿 +400 撞号，实现期暴露后回本档收口）。
+11. SPI 实现定名（ticket 11/17）：存储记录类型定名 `SpanRecord`/`EventRecord`/`InjectionSnapshot`（本档代码块的 HarnessSpan/HarnessEvent 为设计期名）；读方法定名 `spansOfSession`/`eventsOfSession`/`eventsOfSpan`/`injectionSnapshot`。ticket 17 增补 `listSessionSummaries` + `SessionSummary`——本档 dashboard API 有 `GET /sessions` 但 SPI 节漏配对应读方法，实现期暴露回本档收口；`findEventsBySpan` 同步补回实现。
+12. ticket 17 首发形态：程序化装配 + JDK 内置 HTTP 服务器独立端口；复用 Boot 容器归 ticket 20（见 dashboard API 节推演块）。
+13. Skill 管理页经 dashboard 侧 `SkillAdminPort` SPI 适配，不直依 buzhou-skills（09 白名单收口；见 dashboard API 节推演块）。
+14. cursor=offset 语义、手写单页静态资源首发（见 dashboard API 节推演块）。
 
 ## 开放问题
 

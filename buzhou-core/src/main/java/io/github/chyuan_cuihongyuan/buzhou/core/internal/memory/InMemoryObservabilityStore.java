@@ -1,10 +1,14 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanKind;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore;
 
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,5 +57,54 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
     @Override
     public Optional<InjectionSnapshot> injectionSnapshot(String sessionId, int turnSeq) {
         return Optional.ofNullable(snapshots.get(key(sessionId, turnSeq)));
+    }
+
+    @Override
+    public List<SessionSummary> listSessionSummaries(String cursor, int size) {
+        List<SessionSummary> all = spans.entrySet().stream()
+                .map(e -> summarize(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparing(SessionSummary::lastActivityAt).reversed()
+                        .thenComparing(SessionSummary::sessionId))
+                .toList();
+        int from = cursor == null || cursor.isBlank() ? 0 : Integer.parseInt(cursor);
+        if (from >= all.size()) {
+            return List.of();
+        }
+        return all.subList(from, Math.min(from + size, all.size()));
+    }
+
+    private static SessionSummary summarize(String sessionId, List<SpanRecord> sessionSpans) {
+        Instant first = null;
+        Instant last = null;
+        int turns = 0;
+        Map<String, Object> sessionAttributes = Map.of();
+        for (SpanRecord s : sessionSpans) {
+            if (s.startedAt() != null && (first == null || s.startedAt().isBefore(first))) {
+                first = s.startedAt();
+            }
+            Instant activity = s.activityAt();
+            if (activity != null && (last == null || activity.isAfter(last))) {
+                last = activity;
+            }
+            if (SpanKind.TURN.equals(s.kind())) {
+                turns++;
+            }
+            if (SpanKind.SESSION.equals(s.kind())) {
+                sessionAttributes = s.attributes();
+            }
+        }
+        // startedAt 全空（内存实现无 NOT NULL 约束）时兜底 EPOCH，保排序键非空
+        Instant epoch = Instant.EPOCH;
+        return new SessionSummary(sessionId, first == null ? epoch : first,
+                last == null ? epoch : last, turns, sessionSpans.size(), sessionAttributes);
+    }
+
+    @Override
+    public List<EventRecord> eventsOfSpan(String spanId) {
+        return events.values().stream()
+                .flatMap(List::stream)
+                .filter(e -> e.spanId().equals(spanId))
+                .sorted(Comparator.comparing(EventRecord::occurredAt))
+                .toList();
     }
 }
