@@ -410,7 +410,7 @@ sequenceDiagram
 
 ## 推演标注
 
-本档含 9 处 `> 【推演】` 就地标注，清单：
+本档含 9 处 `> 【推演】` 就地标注，另 4 处实现期推演（编号 10–13，ticket 15 落地补充）清单：
 
 1. DB Skill 仅 PUBLISHED 参与解析（状态过滤语义）。
 2. 资源读取复用 `read_range`、`skill://` 路径约定，不新增资源专用工具；落地经 core SPI `SkillResourceResolver` 桥接。
@@ -421,6 +421,10 @@ sequenceDiagram
 7. **规格矛盾收口**：`listFor` 未绑定时返回全部 classpath 内置（而非空），与「引依赖即得」验收项及 MCP 绑定裁剪语义对齐。
 8. 入参校验的会话上下文传递：sessionId 经 `HarnessToolCallingManager` 注入 ToolContext；非会话内直调不校验。
 9. **状态流转来源态校验**：publish 仅接受 DRAFT/DISABLED（DISABLED→PUBLISHED 为重新上架——否则下架不可逆，操作语义残缺），disable 仅接受 PUBLISHED；`version` 乐观锁落地为 `SkillStore.save` 契约（携带 version 须等于库内现值，冲突抛 `SkillVersionConflictException`）；create 重名拒绝（防静默覆盖）。
+10. **MCP 建连失败语义**（ticket 15 落地）：refresh 内单条建连失败记核心 `ERROR` Event（payload 含 `server`、`phase=connect`）并跳过该条目，不阻断其余差量项；坏配置（如清单重名）整批拒绝生效、注册表保持旧清单。
+11. **DbToolSetProvider 落地形态**：`ToolSetSpecStore` seam（持久化侧实现，JSON 序列化归存储）+ 轮询比对快照推送（默认 5s，`buzhou.mcp.poll-interval` 可调）；内存实现写后即时通知免等轮询。
+12. **摘除后旧快照调用的硬边界**：`toolCallbacksFor` 快照里的回调在调用入口校验条目仍 ACTIVE 才放行，DRAINING/CLOSED 返回失败文本（失败转文本，同 06 工具失败语义）——消除「计数 +1 而连接已关」竞态；已开始的在途调用持引用不受限。
+13. **mcp.forceClosed 的 Span 标记与 mcp.closed reason 闭集**：force-close 距 refresh 已 5min、refresh span 早关闭，落地为 ERROR 语义事件（payload `error=true, reason=close-timeout`），不再回溯标记已关闭 span；强杀成功补发终态 `mcp.closed(reason=forceClosed)`（reason 闭集扩为 refCountZero/graceCompleted/graceExpired/forceClosed 四值）；物理 close 抛异常不篡改 reason，另发核心 `ERROR` Event（phase=close）。
 
 另有两处未就地标注的归属判断，记录于此：MCP 热插拔落独立模块 `buzhou-mcp`（03 模块清单之外的增补）；Skill 清单注入采用 system-reminder 块挂系统提示词尾部、每轮现取（复用 08/09 注入通道）。
 

@@ -10,4 +10,24 @@
   </parent>
   <artifactId>buzhou-mcp</artifactId>
   <name>buzhou-mcp</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!--
+      MCP 原材料（spec 04：starter 只供协议/传输公开类，Harness 自建 client 生命周期注册表）：
+      McpClient.sync / McpSyncClient / HttpClientStreamableHttpTransport / StdioClientTransport
+      / SyncMcpToolCallbackProvider。传递引入 io.modelcontextprotocol.sdk:mcp（mcp-core）。
+    -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-mcp</artifactId>
+    </dependency>
+    <!--
+      注意：不得在此加其他 feature 模块依赖（含 test scope）——09 模块工程档「feature 模块之间
+      禁止直接依赖」是依赖白名单；可观测事件经 core 的 SpanRecorder SPI 注入。
+    -->
+  </dependencies>
 </project>
