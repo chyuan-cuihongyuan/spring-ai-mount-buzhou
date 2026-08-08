@@ -10,4 +10,60 @@
   </parent>
   <artifactId>buzhou-store-redis</artifactId>
   <name>buzhou-store-redis</name>
+
+  <properties>
+    <jedis-mock.version>1.1.5</jedis-mock.version>
+  </properties>
+
+  <dependencies>
+    <!-- store 实现只依赖 core SPI（09 模块工程档：store 实现由用户按需引入） -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!-- Redis 客户端：Lettuce（同步 API + Lua EVAL + MULTI/EXEC），版本由 Boot BOM 管理 -->
+    <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+    </dependency>
+
+    <!-- 复用 core 契约测试套件（AbstractBuzhouStoresContractTest） -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <!-- jedis-mock：进程内 Redis（hermetic 契约测试，H2 之于 JDBC 的等价物） -->
+    <dependency>
+      <groupId>com.github.fppt</groupId>
+      <artifactId>jedis-mock</artifactId>
+      <version>${jedis-mock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- 真实 Redis 集成（CI 环境 Docker 可用时跑；本机无 Docker 自动跳过，与 jdbc 模块同口径） -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

@@ -443,12 +443,20 @@ CREATE TABLE buzhou_binding_policy (
 
 ### buzhou-store-redis（轻量 KV 场景）
 
-设计要点（详规归实现期，Spec 定语义边界）：
+设计要点（ticket 19 落地；key 布局以 `io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisKeys` 为准，前缀默认 `buzhou:`，可由 `buzhou.store.redis.key-prefix` 覆盖）：
 
-- Key 布局：`{prefix}msg:{sessionId}`（List，追加即 RPUSH）、`{prefix}sum:{sessionId}`（List，版本=下标）、`{prefix}state:{sessionId}`（Hash）、`{prefix}lease:{sessionId}`（String，带 PX 过期）、`{prefix}span/event/snap:{sessionId}`（List）。
-- 事务：unit-of-work 内多 key 写打包为单个 Lua 脚本（原子）；超出脚本合理体积时退化 MULTI（原子但不隔离），见「开放问题」。
-- 租约：`SET NX PX` 抢租 + Lua 校验 owner/fencing 后续约、释放、steal，全部脚本化保证原子。
-- 持久性依赖 Redis 自身持久化配置（AOF/RDB），文档明示与 JDBC 的可靠性差异；消息/摘要 key 不设 TTL，租约 key TTL = 租约 ttl。
+- Key 布局：
+  - message：`{p}msg:{sid}` LIST（RPUSH，按写入序）+ `{p}msgid:{id}` STRING（findById 索引）；load 在内存按 (turnSeq, seqInTurn) 排序返回。
+  - summary：`{p}sum:{sid}:seq` 计数器（`INCR` 单调递增版本，免 read-then-write 竞态）+ `{p}sum:{sid}:v:{ver}` STRING（正文）+ `{p}sum:{sid}:versions` ZSET（score=version 索引）。
+  - state：`{p}state:{sid}:{key}` HASH（per-key，字段含原始 value）+ `{p}statekeys:{sid}` SET（key 集合）。per-key 设计让 `deleteIfValueMatches` 的 Lua 能直接 `HGET value` 比价后 `DEL`+`SREM`，无需在 Lua 解析 JSON。
+  - lease：`{p}lease:{sid}` HASH（owner/fencingToken/acquiredAt/expiresAt）+ `PEXPIRE` 设毫秒 TTL；`{p}lease:{sid}:seq` fencing 计数器（`INCR`，无 TTL——保证 token 单调不复用）。
+  - span：`{p}obs:{sid}:span:{spanId}` HASH（HSET 实现 upsert：RUNNING→终态覆盖同 spanId）+ `{p}obs:{sid}:spans` ZSET（score=startedAt）+ `{p}obs:sessions` ZSET（全局会话活跃索引，score=lastActivity，listSessionSummaries 数据源）。
+  - event：`{p}obs:event:{eventId}` STRING（全局按 eventId 索引）+ `{p}obs:{sid}:events` ZSET（score=occurredAt）+ `{p}obs:spev:{spanId}` ZSET（eventsOfSpan）。
+  - snapshot：`{p}obs:{sid}:snap:{turnSeq}` STRING（JSON）+ 可配 `PEXPIRE`（snapshot.ttl，默认 0=不过期）。
+- 事务：unit-of-work 每事务**独占一条连接**进 MULTI/EXEC——store 写命令经 ThreadLocal 绑定路由到该连接、自动入队，`exec` 原子提交、`discard` 回滚。独占连接规避共享连接 MULTI 的线程串入。CAS/lease 的 read-compare-write 走 Lua 原子脚本（`eval`），不依赖事务。
+- 租约：`tryAcquire` = Lua「`EXISTS` 判占用 → `INCR` 取 token → `HSET` + `PEXPIRE`」（自然到期由 Redis 删 key，EXISTS 即占用判定）；`renew`/`release` = Lua owner+fencingToken 双校验；`steal` = 无条件 `INCR` 取新 token 覆写。
+- 持久性与 TTL（与 JDBC 可靠性差异，文档明示）：message/summary/state/span/event **不设 TTL**，依赖 Redis 自身持久化配置（AOF/RDB）；lease key TTL = 租约 ttl（PEXPIRE）；snapshot TTL 可配。Redis 崩溃未配 AOF/RDB 时数据丢失，与 JDBC 的事务持久性不同。
+- 测试：契约套件双轨——`RedisStoresContractTest` 基于 **jedis-mock 进程内** hermetic 跑全（H2 之于 JDBC 的等价物）；`RedisStoresTestcontainersTest` 基于 Testcontainers `redis:7-alpine` 跑真实 Redis（`disabledWithoutDocker=true`，CI 环境 Docker 可用时跑，本机无 Docker 跳过）。
 
 ### core 内存实现（默认）
 
@@ -539,7 +547,7 @@ sequenceDiagram
 | 6 | 配置·yml | `idle-timeout=30m`、租约 `ttl=90s`/心跳 30s、DB 轮询 15s 默认值 | 蓝本与各 ticket 均未给数值 |
 | 7 | 配置·工具策略 | 单星号 glob 通配语法与「精确 > 最长前缀 > `*`」消歧 | ticket 05 只定「精确名 + 通配符」 |
 | 8 | Schema | 全部 JDBC 表结构、列选型（CLOB 存 JSON 取双方言公分母）、索引 | ticket 06/13/15 只定「存什么」未定 DDL |
-| 9 | Schema·Redis | Key 布局、Lua/MULTI 边界、TTL 策略 | ticket 06 只定「Lua/MULTI 原子批」方向 |
+| 9 | Schema·Redis | Key 布局、Lua/MULTI 边界、TTL 策略 | ticket 06 只定「Lua/MULTI 原子批」方向；**ticket 19 已落地收口**（见上「buzhou-store-redis」节） |
 
 ## 开放问题
 
