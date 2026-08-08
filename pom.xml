@@ -20,6 +20,25 @@
     </license>
   </licenses>
 
+  <scm>
+    <url>https://github.com/chyuan-cuihongyuan/spring-ai-mount-buzhou</url>
+    <connection>scm:git:https://github.com/chyuan-cuihongyuan/spring-ai-mount-buzhou.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/chyuan-cuihongyuan/spring-ai-mount-buzhou.git</developerConnection>
+  </scm>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/chyuan-cuihongyuan/spring-ai-mount-buzhou/issues</url>
+  </issueManagement>
+
+  <developers>
+    <developer>
+      <id>chyuan-cuihongyuan</id>
+      <name>chyuan</name>
+      <url>https://github.com/chyuan-cuihongyuan</url>
+    </developer>
+  </developers>
+
   <!-- 构建环境对 repo.maven.apache.org 有 TLS 指纹级拦截（Maven 403、curl 可通），暂用阿里云镜像解锁构建；发布前迁移至 settings.xml 或 CI 专用配置，避免传染下游。 -->
   <repositories>
     <repository>
@@ -137,7 +156,136 @@
             <argLine>-Dfile.encoding=UTF-8</argLine>
           </configuration>
         </plugin>
+        <!-- 发布工程化（ticket 20）：以下插件仅在 release profile 激活时执行，版本在此统一锁定 -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.3.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.11.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>3.2.7</version>
+        </plugin>
+        <plugin>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>0.7.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.5.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <!--
+        全模块同版本演进校验（ticket 20 验收项）：禁止在同一 POM 内对 io.github.chyuan-cuihongyuan
+        的依赖声明不同版本。模块版本本身由父 POM 统一继承、BOM 以 ${project.version} 收口；
+        本规则在 validate 阶段（含 CI verify）守门，捕获硬编码的版本漂移。
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-buzhou-version-alignment</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireSameVersions>
+                  <dependencies>
+                    <dependency>io.github.chyuan-cuihongyuan</dependency>
+                  </dependencies>
+                </requireSameVersions>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
+
+  <!--
+    release profile（ticket 20）：本地 `mvn -Prelease verify` 出齐 sources/javadoc/signature 构件；
+    CI 打 tag 后 `mvn -Prelease deploy` 经 central-publishing-maven-plugin 上传 Central Portal staging。
+    签名与上传凭证从环境变量读取（GPG_PASSPHRASE / CENTRAL_USERNAME / CENTRAL_TOKEN），见 RELEASING.md。
+  -->
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <doclint>none</doclint>
+              <charset>UTF-8</charset>
+              <encoding>UTF-8</encoding>
+              <docencoding>UTF-8</docencoding>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <passphrase>${env.GPG_PASSPHRASE}</passphrase>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <!-- 首发人工确认：上传至 staging 后由 Portal 手动发布（spec 09 开放问题 #4）；
+                   稳定后可改 autoPublish=true / waitUntil=published。 -->
+              <autoPublish>false</autoPublish>
+              <waitUntil>uploaded</waitUntil>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
