@@ -39,19 +39,9 @@
     </developer>
   </developers>
 
-  <!-- 构建环境对 repo.maven.apache.org 有 TLS 指纹级拦截（Maven 403、curl 可通），暂用阿里云镜像解锁构建；发布前迁移至 settings.xml 或 CI 专用配置，避免传染下游。 -->
-  <repositories>
-    <repository>
-      <id>aliyun-public</id>
-      <url>https://maven.aliyun.com/repository/public</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>aliyun-public</id>
-      <url>https://maven.aliyun.com/repository/public</url>
-    </pluginRepository>
-  </pluginRepositories>
+  <!-- 本机构建用阿里云镜像（绕过 repo.maven.apache.org 的 TLS 指纹拦截）：见仓库根 settings.xml，
+       本机首次执行 `cp settings.xml ~/.m2/settings.xml`；CI（ubuntu-latest）直连 central，无需镜像。
+       POM 不声明 repositories，避免已发布 POM 把镜像传染下游、且被 Central Portal 拒收。 -->
 
   <modules>
     <module>buzhou-bom</module>

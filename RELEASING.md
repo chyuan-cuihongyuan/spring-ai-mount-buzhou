@@ -13,7 +13,7 @@
 | 3 | **仓库 Secrets** | 在仓库 Settings → Secrets 录入四项（见下表）。 |
 | 4 | **LICENSE 文件** | 仓库根补 Apache-2.0 全文（POM 已声明许可证；仓库级 LICENSE 文件仍需人工落盘）。 |
 | 5 | **Portal 用户令牌** | Central Portal → Account → Generate User Token；`CENTRAL_USERNAME` / `CENTRAL_TOKEN` 用令牌值，**不是**门户登录密码。 |
-| 6 | **迁移阿里云镜像（硬性门禁）** | 根 POM 的 `<repositories>`/`<pluginRepositories>`（阿里云镜像，仅用于绕过本机对 repo.maven.apache.org 的 TLS 指纹拦截）会被写进**已发布 POM**，传染下游消费者，且 Central Portal 会拒绝含 `<repositories>` 的 POM。**首次发布前必须将其迁出 POM**：本机改用 `~/.m2/settings.xml` 声明镜像；CI（ubuntu-latest）直连 central，无需镜像。 |
+| 6 | **阿里云镜像已在 settings.xml**（已处理） | 阿里云镜像（绕本机 TLS 指纹拦截）已从根 POM 迁至仓库根 `settings.xml`（本机 `cp settings.xml ~/.m2/settings.xml`）；POM 不含 `<repositories>`，已发布 POM 干净、不传染下游、Central 不拒收。CI 直连 central，无需镜像。 |
 
 ### 仓库 Secrets（Settings → Secrets and variables → Actions）
 
@@ -77,4 +77,4 @@ ls buzhou-core/target/*.asc
 - **Portal 401 / Unauthorized**：`CENTRAL_USERNAME` / `CENTRAL_TOKEN` 必须用 **User Token**，不是门户登录密码；确认命名空间已验证。
 - **签名校验失败（key not found）**：公钥未发布到 Portal 信任的 keyserver，回第 1 节第 2 项。
 - **POM 元数据校验失败**：Central 硬性要求 name/description/url/license/scm/developers/issueManagement，已在父 POM 声明并被全模块继承。
-- **Central 拒收含 `<repositories>` 的 POM**：根 POM 的阿里云镜像须在发布前迁出（见 §1 第 6 项），否则已发布 POM 会把镜像传染给下游并被 Central 拒收。
+- **已发布 POM 干净（无 repositories）**：阿里云镜像在仓库根 `settings.xml`（不进 POM），已发布 POM 不含 `<repositories>`，Central 不会因镜像拒收。

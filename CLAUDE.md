@@ -20,7 +20,7 @@ mvn -pl buzhou-core test -Dtest=HookChainTest#method    # 单个测试方法
 ```
 
 - 环境：JDK 21+、Maven 3.9+
-- 根 pom.xml 内置了阿里云 Maven 镜像（本构建环境对 repo.maven.apache.org 有 TLS 指纹级拦截）——**不要删除该 repositories 配置**，否则依赖拉取 403
+- 本机构建（对 repo.maven.apache.org 有 TLS 指纹级拦截的环境）：首次执行 `cp settings.xml ~/.m2/settings.xml`，之后 `mvn` 直连阿里云镜像；CI（ubuntu-latest）直连 central，无需此文件。**POM 不声明 repositories**——阿里云镜像只放仓库根 `settings.xml`，避免已发布 POM 把镜像传染下游、被 Central Portal 拒收
 - `buzhou-store-jdbc` 的测试用 Testcontainers，需要 Docker 可用
 
 ## 模块架构（16 模块星形依赖）

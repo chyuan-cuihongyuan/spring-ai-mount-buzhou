@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  本机构建用 Maven settings（绕过 repo.maven.apache.org 的 TLS 指纹拦截）。
+
+  用法（一次性）：cp settings.xml ~/.m2/settings.xml
+  之后本机 `mvn` 直接可用；CI（ubuntu-latest）直连 central，无需此文件。
+
+  仅镜像 central → 阿里云公共仓；不新增 repository，故不会写进任何已发布 POM。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>aliyun-central</id>
+      <name>Aliyun Central Mirror</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
