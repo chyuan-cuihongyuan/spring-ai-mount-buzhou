@@ -38,8 +38,8 @@
 | `load_skill` | 开 | 无害（只读） | 否 | buzhou-skills |
 | `read_evidence` | 开（可被工具策略关闭，ticket 08） | 无害（只读） | 否 | buzhou-memory |
 | `write_file` | 关（绑定级 opt-in） | 危险（写/不可逆） | 默认挂（ticket 27） | buzhou-tools |
-| `copy_file` | 关（绑定级 opt-in） | 危险（写） | 默认挂（见推演标注 #1） | buzhou-tools |
-| `str_replace` | 关（绑定级 opt-in） | 危险（写） | 默认挂（见推演标注 #1） | buzhou-tools |
+| `copy_file` | 关（绑定级 opt-in） | 危险（写） | 默认挂（见推演标注 #1） | buzhou-spill（ticket 24 已落地，见推演标注 #12） |
+| `str_replace` | 关（绑定级 opt-in） | 危险（写） | 默认挂（见推演标注 #1） | buzhou-spill（ticket 24 已落地，见推演标注 #12） |
 | `run_command` | 关（绑定级 opt-in） | 危险（执行） | 默认挂（ticket 27） | buzhou-tools |
 | `http_request` | 关（绑定级 opt-in） | 危险（外发） | 写方法默认挂（ticket 27） | buzhou-tools |
 
@@ -170,13 +170,13 @@
 
 - `workdir` 限沙箱内；命中黑名单即拒；超时默认 60s。
 
-> 【推演】命令黑名单默认条目：`rm -rf /`、`mkfs*`、`dd`（块设备写）、`shutdown` / `reboot` / `halt`、fork 炸弹模式。ticket 19 仅举例（rm -rf /、mkfs、dd），默认集合为本文拟定。
+> 【推演】命令黑名单默认条目：`rm -rf /`（含 `/*`、`-fr` 变体）、`mkfs*`、`dd` 块设备写（`of=/dev/*`、`if=/dev/zero of=/`）、`shutdown` / `reboot` / `halt`、fork 炸弹模式；ticket 16 复审加固增补 `chmod -r 777 /*`、`mv /* /dev/null`、`> /dev/sd*`。ticket 19 仅举例（rm -rf /、mkfs、dd），默认集合为本文拟定。
 
 **SSRF 防护**（http_request）
 
 - 默认拦内网段与云元数据端点，可配放行。
 
-> 【推演】拦截清单：`127.0.0.0/8`、`10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16`、`169.254.0.0/16`（含云元数据 `169.254.169.254`）、`0.0.0.0/8`、`::1` 与 `fc00::/7`；DNS 解析后对目标 IP 校验。ticket 19 只说「拦内网段与云元数据端点」，CIDR 集合自选。
+> 【推演】拦截清单：`127.0.0.0/8`、`10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16`、`169.254.0.0/16`（含云元数据 `169.254.169.254`）、`0.0.0.0/8`、`::1` 与 `fc00::/7`；DNS 解析后对目标 IP 校验。ticket 19 只说「拦内网段与云元数据端点」，CIDR 集合自选。逐 IP 全量校验（ticket 16 复审加固）：每个解析 IP 均须「命中放行网段或不命中拦截段」，任一被拦即整体拒绝——防混合 DNS 应答绕过（连接实际使用的 IP 由解析结果任选，只验其一即有漏）。
 
 以上全部经 `buzhou.tool-policies` 四层策略可调（默认 < yml < 绑定级 < 工具级，通配匹配）——「安全项全开、依赖项优雅降级」原则落地。
 
@@ -303,6 +303,10 @@ sequenceDiagram
 | 9 | 安全边界 | 命令黑名单默认条目集 | 19 仅举例（rm -rf /、mkfs、dd） |
 | 10 | 安全边界 | SSRF 拦截 CIDR 清单与 DNS 解析后校验 | 19 只定「内网段与元数据端点」 |
 | 11 | 存储 Schema | todo 渲染复用 26 的 Attachment 管道 | 19 只说「同构」 |
+| 12 | 开关矩阵 | `copy_file`/`str_replace` 归 buzhou-spill（ticket 24 先于 16 落地）；文件沙箱上移 `core.fs.FileSandbox`（feature 模块禁互依，沙箱为跨机制共享件），spill 保留 @Deprecated 壳类兼容 | 09 依赖白名单的必然推论 |
+| 13 | 注册模型 | AutoConfiguration 装配归 starter（ticket 20）；首发经 `ToolsModule` 编程式装配，危险名单经 `enabledDangerousToolNames()`、Onload 配对经 `longContentParamDecls()` 暴露给装配侧接线 | AutoConfiguration 全仓统一后置 |
+| 14 | run_command | 输出设 5MB 内存兜底截断——防 OOM 的运行时兜底，与「工具自身不做截断（上下文治理归 Spill）」不冲突：Spill 管道治理的是上下文体积，兜底线防的是进程输出先把堆打爆；超时时强杀整棵进程树（`destroyForcibly` 只杀 sh 本身，后台子进程会成孤儿悬挂输出管道），主进程退出后排空管道设宽限，逾期同样杀树 | ticket 16 复审修复 |
+| 15 | http_request | 请求头不限制（模型可设任意 header 含 `Host`；CRLF 注入由 JDK `HttpRequest.Builder` 拒绝兜底）；SSRF 放行清单 CIDR 前缀超地址位数按配置错误显式拒绝 | ticket 16 复审修复 |
 
 ## 开放问题
 

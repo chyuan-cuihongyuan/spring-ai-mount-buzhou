@@ -10,4 +10,21 @@
   </parent>
   <artifactId>buzhou-tools</artifactId>
   <name>buzhou-tools</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!-- 工具入参 JSON 解析 / todo state 序列化 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!--
+      注意：不得在此加 buzhou-spill 等其他 feature 模块依赖——09 模块工程档「feature 模块之间
+      禁止直接依赖」是依赖白名单。文件沙箱共用 core.fs.FileSandbox；写侧 Onload 配对参数经
+      ToolsModule.longContentParamDecls() 暴露、装配侧接线进 SpillGuardModule。
+    -->
+  </dependencies>
 </project>

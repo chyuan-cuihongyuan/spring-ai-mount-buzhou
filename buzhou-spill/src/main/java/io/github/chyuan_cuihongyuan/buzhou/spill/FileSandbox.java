@@ -1,80 +1,37 @@
 package io.github.chyuan_cuihongyuan.buzhou.spill;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-public class FileSandbox {
-
-    private final Path root;
-    private final List<Path> allowedRoots;
+/**
+ * @deprecated 实现已上移至 {@link io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox}
+ *             （ticket 16：沙箱归 core 公共包，feature 模块共享）；本壳类仅为兼容保留。
+ *             为保持旧调用方 {@code catch (spill.SandboxViolationException)} 语义，
+ *             壳类把 core 异常包装为本包子类型再抛出（新代码直接 catch core 父类型亦可，
+ *             本异常是其子类）。
+ */
+@Deprecated(forRemoval = false)
+public class FileSandbox extends io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox {
 
     public FileSandbox(Path root, List<Path> additionalAllowedRoots) {
-        this.root = realpathOrAbsolute(root);
-        this.allowedRoots = (additionalAllowedRoots == null ? List.<Path>of() : additionalAllowedRoots)
-                .stream().map(FileSandbox::realpathOrAbsolute).toList();
+        super(root, additionalAllowedRoots);
     }
 
-    public Path root() {
-        return root;
-    }
-
+    @Override
     public Path resolve(String raw) {
-        Path candidate = absolutize(raw);
-        Path check = Files.exists(candidate) ? realpath(candidate) : candidate;
-        if (!contains(check)) {
-            throw new SandboxViolationException("路径越出沙箱：" + raw);
+        try {
+            return super.resolve(raw);
+        } catch (io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException e) {
+            throw new SandboxViolationException(e.getMessage());
         }
-        return check;
     }
 
+    @Override
     public Path resolveForWrite(String raw) {
-        Path candidate = absolutize(raw);
-        Path parent = candidate.getParent();
-        if (parent == null) {
-            throw new SandboxViolationException("路径越出沙箱：" + raw);
-        }
-        Path realParent = Files.exists(parent) ? realpath(parent) : parent;
-        Path resolved = realParent.resolve(candidate.getFileName().toString());
-        if (!contains(resolved)) {
-            throw new SandboxViolationException("路径越出沙箱：" + raw);
-        }
-        return resolved;
-    }
-
-    public boolean contains(Path path) {
-        Path normalized = path.toAbsolutePath().normalize();
-        if (normalized.startsWith(root)) {
-            return true;
-        }
-        return allowedRoots.stream().anyMatch(normalized::startsWith);
-    }
-
-    private Path absolutize(String raw) {
-        if (raw == null || raw.isBlank()) {
-            throw new SandboxViolationException("路径为空");
-        }
-        Path path = Path.of(raw);
-        if (!path.isAbsolute()) {
-            path = root.resolve(path);
-        }
-        return path.normalize();
-    }
-
-    private static Path realpath(Path path) {
         try {
-            return path.toRealPath();
-        } catch (IOException e) {
-            throw new SandboxViolationException("路径解析失败：" + path);
-        }
-    }
-
-    private static Path realpathOrAbsolute(Path path) {
-        try {
-            return path.toRealPath();
-        } catch (IOException e) {
-            return path.toAbsolutePath().normalize();
+            return super.resolveForWrite(raw);
+        } catch (io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException e) {
+            throw new SandboxViolationException(e.getMessage());
         }
     }
 }

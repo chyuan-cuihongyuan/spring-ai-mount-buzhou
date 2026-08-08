@@ -39,13 +39,16 @@ class FileSandboxTest {
     @Test
     void rejectsDotDotEscape() {
         assertThatThrownBy(() -> sandbox().resolve("../escape.txt"))
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException.class);
+        // 壳类兼容语义：旧调用方 catch spill 子类型依然命中（ticket 16 复审修复——壳内包装再抛）
+        assertThatThrownBy(() -> sandbox().resolve("../escape.txt"))
                 .isInstanceOf(SandboxViolationException.class);
     }
 
     @Test
     void rejectsAbsolutePathOutsideRoots() {
         assertThatThrownBy(() -> sandbox().resolve(outside.resolve("x.txt").toString()))
-                .isInstanceOf(SandboxViolationException.class);
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException.class);
     }
 
     @Test
@@ -63,7 +66,7 @@ class FileSandboxTest {
         Path link = root.resolve("link.txt");
         Files.createSymbolicLink(link, secret);
         assertThatThrownBy(() -> sandbox().resolve("link.txt"))
-                .isInstanceOf(SandboxViolationException.class);
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException.class);
     }
 
     @Test
@@ -75,9 +78,9 @@ class FileSandboxTest {
     @Test
     void resolveForWriteRejectsOutsideRoot() {
         assertThatThrownBy(() -> sandbox().resolveForWrite("../new.txt"))
-                .isInstanceOf(SandboxViolationException.class);
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException.class);
         assertThatThrownBy(() -> sandbox().resolveForWrite(outside.resolve("n.txt").toString()))
-                .isInstanceOf(SandboxViolationException.class);
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException.class);
     }
 
     @Test
@@ -85,6 +88,6 @@ class FileSandboxTest {
         Path linkDir = root.resolve("linked-dir");
         Files.createSymbolicLink(linkDir, outside);
         assertThatThrownBy(() -> sandbox().resolveForWrite("linked-dir/new.txt"))
-                .isInstanceOf(SandboxViolationException.class);
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException.class);
     }
 }

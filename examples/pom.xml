@@ -50,6 +50,16 @@
     </dependency>
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-guard</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-tools</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
       <artifactId>buzhou-core</artifactId>
       <type>test-jar</type>
       <scope>test</scope>

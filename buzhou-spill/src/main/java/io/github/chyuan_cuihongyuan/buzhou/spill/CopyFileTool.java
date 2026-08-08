@@ -66,7 +66,7 @@ public class CopyFileTool implements ToolCallback {
     private Path resolveSource(String raw) {
         try {
             return writeSandbox.resolve(raw);
-        } catch (SandboxViolationException e) {
+        } catch (io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException e) {
             Path candidate = SessionReadOnlyRegistry.normalize(Path.of(raw));
             boolean readable = additionalReadableRoots.stream().anyMatch(candidate::startsWith);
             if (!readable) {
