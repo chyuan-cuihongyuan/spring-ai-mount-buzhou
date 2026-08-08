@@ -12,6 +12,7 @@ import io.github.chyuan_cuihongyuan.buzhou.observability.advisor.ObservabilitySe
 import io.github.chyuan_cuihongyuan.buzhou.observability.micrometer.MicrometerDualWriter;
 import io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.AsyncObservabilityPipeline;
 import io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.BaseSpanRecorder;
+import io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PipelineSink;
 import io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.SynchronousObservabilityPipeline;
 import io.github.chyuan_cuihongyuan.buzhou.observability.thinking.ThinkingChainExtractor;
 import io.github.chyuan_cuihongyuan.buzhou.observability.tool.ObservableToolCallback;
@@ -35,25 +36,42 @@ public final class ObservabilityModule {
     /** 生产配置：异步管线 + 可选 Micrometer 双写。modelName 由调用方从 yml 解析。 */
     public static RuntimeConfig configure(BuzhouStores stores, ObservabilityConfig config,
                                           MeterRegistry meterRegistry, String modelName) {
-        return configure(stores, config, meterRegistry, modelName, false);
+        return configure(stores, config, meterRegistry, modelName, false, List.of());
+    }
+
+    /**
+     * 生产配置（带旁路 sink）：异步管线 + 可选 Micrometer 双写 + 旁路 {@link PipelineSink}
+     * （OTel 导出桥等）。{@code buzhou-observe-otel} 模块产出 sink 后经此接入。
+     */
+    public static RuntimeConfig configure(BuzhouStores stores, ObservabilityConfig config,
+                                          MeterRegistry meterRegistry, String modelName,
+                                          List<PipelineSink> sinks) {
+        return configure(stores, config, meterRegistry, modelName, false, sinks);
     }
 
     /** 测试配置：同步管线，便于即时断言。 */
     public static RuntimeConfig configureSync(BuzhouStores stores, ObservabilityConfig config,
                                               String modelName) {
-        return configure(stores, config, null, modelName, true);
+        return configure(stores, config, null, modelName, true, List.of());
+    }
+
+    /** 测试配置（带旁路 sink）：同步管线 + 旁路 {@link PipelineSink}，便于即时断言。 */
+    public static RuntimeConfig configureSync(BuzhouStores stores, ObservabilityConfig config,
+                                              String modelName, List<PipelineSink> sinks) {
+        return configure(stores, config, null, modelName, true, sinks);
     }
 
     private static RuntimeConfig configure(BuzhouStores stores, ObservabilityConfig config,
-                                           MeterRegistry meterRegistry, String modelName, boolean synchronous) {
+                                           MeterRegistry meterRegistry, String modelName,
+                                           boolean synchronous, List<PipelineSink> sinks) {
         if (!config.enabled()) {
             return RuntimeConfig.defaults();
         }
         MicrometerDualWriter meters = config.micrometerEnabled() && meterRegistry != null
                 ? new MicrometerDualWriter(meterRegistry) : MicrometerDualWriter.NOOP;
         BaseSpanRecorder recorder = synchronous
-                ? new SynchronousObservabilityPipeline(stores.observabilityStore(), config, meters)
-                : new AsyncObservabilityPipeline(stores.observabilityStore(), config, meters);
+                ? new SynchronousObservabilityPipeline(stores.observabilityStore(), config, meters, sinks)
+                : new AsyncObservabilityPipeline(stores.observabilityStore(), config, meters, sinks);
         TokenEstimator tokenEstimator = new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator();
         ThinkingChainExtractor thinkingExtractor = new ThinkingChainExtractor(
                 config.thinkingExtraKeys(), config.thinkingMaxChars());

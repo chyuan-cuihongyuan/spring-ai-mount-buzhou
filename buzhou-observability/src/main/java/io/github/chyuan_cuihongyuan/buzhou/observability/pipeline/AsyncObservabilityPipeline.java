@@ -42,7 +42,13 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
 
     public AsyncObservabilityPipeline(ObservabilityStore store, ObservabilityConfig config,
                                       MicrometerDualWriter meters) {
-        super(meters, config.includeStacktrace());
+        this(store, config, meters, List.of());
+    }
+
+    /** 全参构造：额外接入旁路 {@link PipelineSink}（OTel 导出桥等）。 */
+    public AsyncObservabilityPipeline(ObservabilityStore store, ObservabilityConfig config,
+                                      MicrometerDualWriter meters, List<PipelineSink> sinks) {
+        super(meters, config.includeStacktrace(), sinks);
         this.store = store;
         this.config = config;
         this.queue = new ArrayBlockingQueue<>(Math.max(1, config.queueCapacity()));
@@ -57,7 +63,7 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
     }
 
     @Override
-    public void enqueue(PendingItem item) {
+    protected void doEnqueue(PendingItem item) {
         if (!running.get()) {
             // 已关闭：直接同步落库，避免丢数据
             applyOne(item);

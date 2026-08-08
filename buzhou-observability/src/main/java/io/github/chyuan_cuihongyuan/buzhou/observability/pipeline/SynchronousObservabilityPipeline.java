@@ -18,12 +18,18 @@ public class SynchronousObservabilityPipeline extends BaseSpanRecorder {
 
     public SynchronousObservabilityPipeline(ObservabilityStore store, ObservabilityConfig config,
                                             MicrometerDualWriter meters) {
-        super(meters, config.includeStacktrace());
+        this(store, config, meters, List.of());
+    }
+
+    /** 全参构造：额外接入旁路 {@link PipelineSink}（OTel 导出桥等）。 */
+    public SynchronousObservabilityPipeline(ObservabilityStore store, ObservabilityConfig config,
+                                            MicrometerDualWriter meters, List<PipelineSink> sinks) {
+        super(meters, config.includeStacktrace(), sinks);
         this.store = store;
     }
 
     @Override
-    public void enqueue(PendingItem item) {
+    protected void doEnqueue(PendingItem item) {
         switch (item) {
             case PendingSpan s -> store.saveSpans(List.of(s.record()));
             case PendingEvent e -> store.saveEvents(List.of(e.record()));

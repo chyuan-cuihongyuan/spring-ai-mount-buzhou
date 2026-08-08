@@ -166,5 +166,16 @@ class AsyncObservabilityPipelineTest {
                 injectionSnapshot(String sessionId, int turnSeq) {
             return java.util.Optional.empty();
         }
+
+        @Override
+        public java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary>
+                listSessionSummaries(String cursor, int size) {
+            return java.util.List.of();
+        }
+
+        @Override
+        public java.util.List<EventRecord> eventsOfSpan(String spanId) {
+            return events.stream().filter(e -> e.spanId() != null && e.spanId().equals(spanId)).toList();
+        }
     }
 }

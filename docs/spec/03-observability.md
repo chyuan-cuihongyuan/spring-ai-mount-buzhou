@@ -273,7 +273,7 @@ Span 关闭时同步写 Micrometer 指标（与 span 属性双写）：
 | MODEL_CALL span | span 名 `chat <model>`，走 `gen_ai.*` 语义约定：`gen_ai.operation.name=chat`、`gen_ai.request.model`、`gen_ai.usage.input_tokens/output_tokens` | 与官方模型层 Observation 语义对齐 |
 | TOOL_CALL span | span 名 `execute_tool <tool>`：`gen_ai.operation.name=execute_tool`、`gen_ai.tool.name`、`gen_ai.tool.call.id` | 对齐官方 `TOOL_CALL` 观测属性 |
 | HARNESS_INTERNAL span | span 名 `buzhou.internal.<action>` | 属性原样透传 |
-| Event | `span.addEvent(name, attributes)` | THINKING/FINAL_REPLY 的 content 作为 event 属性（受 `buzhou.observability.otel.include-content` 开关控制，默认关，对齐官方 `include-content` 默认关的隐私立场） |
+| Event | `span.addEvent(name, attributes)` | THINKING/FINAL_REPLY 的 content 作为 event 属性（受 `buzhou.observability.otel.include-content` 开关控制，默认关，对齐官方 `include-content` 默认关的隐私立场；实现期门控泛化见推演 #15） |
 | status | `StatusCode.OK / ERROR`；CANCELLED → `StatusCode.UNSET` + `buzhou.cancelled=true` | ERROR 附 `exception.*` 语义约定属性 |
 | 起止时间 | 原样映射（不取导出时刻） | 保真回放 |
 
@@ -486,6 +486,7 @@ sequenceDiagram
 12. ticket 17 首发形态：程序化装配 + JDK 内置 HTTP 服务器独立端口；复用 Boot 容器归 ticket 20（见 dashboard API 节推演块）。
 13. Skill 管理页经 dashboard 侧 `SkillAdminPort` SPI 适配，不直依 buzhou-skills（09 白名单收口；见 dashboard API 节推演块）。
 14. cursor=offset 语义、手写单页静态资源首发（见 dashboard API 节推演块）。
+15. OTel 导出桥 `include-content` 门控泛化（ticket 18 实现期收口）：上文 Event 行原仅写「THINKING/FINAL_REPLY 的 content 受 include-content 控制」；实现期把门控对象**泛化为全部内容型 event payload 字段**——`content`（思维链/回复正文）、`arguments`（工具入参 JSON）、`result`（工具出参 JSON）、`stacktrace`（异常堆栈）四类，受 `buzhou.observability.otel.include-content` 同一开关门控，默认关。理由：工具入参/出参与思维链同属「模型实际所见/所产的 prompt/response 内容」，按官方 `include-content` 默认关的隐私立场，不应默认导出到运维 trace；非内容型元数据（`tool.name`、`tool.call.id`、`evidence.id`、`provider.key`、`finish_reason`、`spill.uri` 等）不受门控、始终导出。Span 属性（含 usage / tool.* 等）不受本开关影响。
 
 ## 开放问题
 

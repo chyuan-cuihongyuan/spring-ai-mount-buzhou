@@ -10,4 +10,64 @@
   </parent>
   <artifactId>buzhou-observe-otel</artifactId>
   <name>buzhou-observe-otel</name>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- 全模块同版本由 buzhou-bom 统一 -->
+      <dependency>
+        <groupId>io.github.chyuan-cuihongyuan</groupId>
+        <artifactId>buzhou-bom</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!--
+      唯一允许的二层边（09 模块工程档白名单）：observe-otel → observability。
+      消费 observability 的 PipelineSink 扩展点 + core.spi 的 SpanRecord/EventRecord。
+    -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-observability</artifactId>
+    </dependency>
+    <!-- 显式声明而非靠传递依赖：映射消费 core.spi 记录类型与 SpanKind/SpanStatus 常量 -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+    </dependency>
+    <!-- OpenTelemetry SDK：版本由 spring-boot-dependencies 4.1 统一管理 -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-trace</artifactId>
+    </dependency>
+    <!-- OTLP 导出（HTTP/protobuf，内置 JDK HttpClient，无额外运行时） -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-otlp</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- InMemorySpanExporter：hermetic 断言导出的 span 树，无需真实 Collector -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
