@@ -4,9 +4,9 @@
 
 **Blocked by:** 12, 10
 
-**Status:** ready-for-agent
+**Status:** done（实现 86b13f4；复审修复同提交：spill 壳类异常包装保旧 catch 语义、run_command 进程树终止+管道排空宽限防悬挂、todo remove 如实报数、SSRF 逐 IP 全量校验+CIDR 前缀校验；spec 06 增补推演 #12–#15；http_request 方法粒度 HITL 归 ticket 27，AutoConfiguration 归 ticket 20）
 
-- [ ] 危险工具默认不出现在工具清单，opt-in 后挂 HITL 守卫
-- [ ] 沙箱逃逸（../、符号链接）、黑名单命令、SSRF 内网地址被拦有测试
-- [ ] todo 写入会话 state，跨实例续接后清单仍在
-- [ ] 每个工具参数 Schema 与 06 spec 一致
+- [x] 危险工具默认不出现在工具清单，opt-in 后挂 HITL 守卫（AtomicToolsIntegrationTest：阻断→授权→放行全链路）
+- [x] 沙箱逃逸（../、符号链接）、黑名单命令、SSRF 内网地址被拦有测试（FileToolsTest/RunCommandToolTest/HttpRequestToolTest）
+- [x] todo 写入会话 state，跨实例续接后清单仍在（TodoToolTest.persistsAcrossInstances + 集成测试 Attachment 注入验证）
+- [x] 每个工具参数 Schema 与 06 spec 一致（ToolsModuleTest.schemasMatchSpec 逐工具断言）
