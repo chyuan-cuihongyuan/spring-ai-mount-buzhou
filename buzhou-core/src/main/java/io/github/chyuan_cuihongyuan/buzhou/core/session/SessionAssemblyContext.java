@@ -44,6 +44,18 @@ public interface SessionAssemblyContext {
      */
     void wrapToolCallbacks(UnaryOperator<org.springframework.ai.tool.ToolCallback> wrapper);
 
+    /**
+     * 向本会话追加新的工具回调（如 MCP 热插拔注册表在装配期按 {@code (appId, agentName)}
+     * 解析的当前可见工具）。与 {@link #wrapToolCallbacks} 区别：本方法注入「新工具」，
+     * 后者包装「既有工具」。注入的工具同样会被后续注册的包装函数（如可观测包装层）覆盖。
+     *
+     * <p>调用时机：customizer 在 {@code customize(ctx)} 内调用，由 {@code HarnessAssembler}
+     * 在应用工具包装之前并入工具集。
+     *
+     * @param tools 待注入的工具回调；{@code null} 或空列表忽略
+     */
+    void addToolCallbacks(List<org.springframework.ai.tool.ToolCallback> tools);
+
     /** 注册会话生命周期观察者（开/关 SESSION span、强制 flush 等）。 */
     void addObserver(SessionObserver observer);
 }

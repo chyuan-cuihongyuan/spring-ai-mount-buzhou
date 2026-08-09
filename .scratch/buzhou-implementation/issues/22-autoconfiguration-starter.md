@@ -4,7 +4,7 @@
 
 **Blocked by:** 20（已 done）
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## 范围
 
@@ -31,13 +31,13 @@
 - 契约：引入单模块（如 `buzhou-memory`）不拖入其他机制（依赖白名单物理无环保证）。
 
 ## 验收
-- [ ] 引 `buzhou-spring-boot-starter` 默认配置即可 spawn AgentSession 跑通多轮对话（机制按默认开关启用）
-- [ ] 每模块 `@ConditionalOnProperty` 开关生效（关掉 `buzhou.memory.enabled` 后 memory bean 不装配）
-- [ ] `buzhou.store.type=memory|jdbc|redis` 三态切换装配对应 store
-- [ ] `otel` / `dashboard` 默认关，显式开才生效
-- [ ] starter 仅聚合、无装配类、无代码
-- [ ] ApplicationContextRunner 装配测试覆盖每模块开关
-- [ ] `mvn verify` 全绿
+- [x] 引 `buzhou-spring-boot-starter` 默认配置即可 spawn AgentSession 跑通多轮对话（机制按默认开关启用）
+- [x] 每模块 `@ConditionalOnProperty` 开关生效（关掉 `buzhou.memory.enabled` 后 memory bean 不装配）
+- [x] `buzhou.store.type=memory|jdbc|redis` 三态切换装配对应 store
+- [x] `otel` / `dashboard` 默认关，显式开才生效
+- [x] starter 仅聚合、无装配类、无代码
+- [x] ApplicationContextRunner 装配测试覆盖每模块开关
+- [x] `mvn verify` 全绿
 
 ## 备注
 - spec 依据：`docs/spec/09-modules-engineering.md`「运行期：模块装配开关」表、「自装配注册」约定（第 5 条）。

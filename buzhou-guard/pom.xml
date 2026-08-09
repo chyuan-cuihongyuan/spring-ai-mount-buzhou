@@ -21,11 +21,22 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <!-- 自装配层（ticket 22）：@AutoConfiguration / @ConditionalOn* -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
     <!-- 复用 core 测试工具（ScriptedChatModel 风格） -->
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
       <artifactId>buzhou-core</artifactId>
       <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <!-- 装配测试 ApplicationContextRunner -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- Hook→state→Attachment 真端到端测试（FactCollectorHook + InjectionViewProcessor 闭环） -->

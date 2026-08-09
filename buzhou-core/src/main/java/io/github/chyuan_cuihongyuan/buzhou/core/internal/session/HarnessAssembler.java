@@ -75,11 +75,13 @@ public class HarnessAssembler {
             assemblyCustomizers.forEach(c -> c.customize(assemblyCtx));
         }
 
-        // 把已注册工具包装层叠应用到全部工具（autoTools + 传入 tools）
+        // 把已注册工具包装层叠应用到全部工具（autoTools + 传入 tools + customizer 注入的 extraTools）
         List<ToolCallback> allToolCallbacks = new ArrayList<>();
         if (tools != null) {
             allToolCallbacks.addAll(Arrays.asList(tools));
         }
+        // MCP 等动态工具集经 SessionAssemblyCustomizer.addToolCallbacks 注入（spec 04 / ticket 22）
+        allToolCallbacks.addAll(assemblyCtx.extraTools());
         List<ToolCallback> wrapped = applyWrappers(allToolCallbacks, assemblyCtx.toolWrappers());
         ToolCallback[] allTools = wrapped.toArray(new ToolCallback[0]);
 

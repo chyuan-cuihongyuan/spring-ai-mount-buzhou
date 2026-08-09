@@ -16,6 +16,11 @@
       <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-client-chat</artifactId>
     </dependency>
+    <!-- 自装配层（ticket 22）：@AutoConfiguration / @ConditionalOn* / @ConfigurationProperties -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
@@ -23,6 +28,12 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!-- 装配测试用 ApplicationContextRunner（随 test-jar 发布供各模块复用） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

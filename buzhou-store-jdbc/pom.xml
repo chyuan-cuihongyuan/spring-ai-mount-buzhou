@@ -24,6 +24,17 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <!-- 自装配层（ticket 22）：@AutoConfiguration / @ConditionalOn* -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <!-- 装配测试 ApplicationContextRunner -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>

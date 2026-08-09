@@ -34,6 +34,17 @@
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
+    <!-- 自装配层（ticket 22）：@AutoConfiguration / @ConditionalOn* -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <!-- 装配测试 ApplicationContextRunner -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <!-- 复用 core 契约测试套件（AbstractBuzhouStoresContractTest） -->
     <dependency>

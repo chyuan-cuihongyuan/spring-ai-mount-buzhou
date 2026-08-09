@@ -25,6 +25,23 @@
       <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-mcp</artifactId>
     </dependency>
+    <!-- 自装配层（ticket 22）：@AutoConfiguration / @ConditionalOn* -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <!-- 装配测试 ApplicationContextRunner + 复用 core 测试工具（ScriptedChatModel） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
     <!--
       注意：不得在此加其他 feature 模块依赖（含 test scope）——09 模块工程档「feature 模块之间
       禁止直接依赖」是依赖白名单；可观测事件经 core 的 SpanRecorder SPI 注入。

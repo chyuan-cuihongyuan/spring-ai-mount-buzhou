@@ -47,6 +47,33 @@ public record RuntimeConfig(
         return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of());
     }
 
+    // ---- 单维度便捷工厂：供装配层把零散扩展 bean 包成 RC 后并入 merge（位置参数可读性） ----
+
+    /** 仅含 hooks（其余字段空）。 */
+    public static RuntimeConfig hooks(List<BuzhouHook> hooks) {
+        return new RuntimeConfig(hooks, Set.of(), Set.of(), null, List.of());
+    }
+
+    /** 仅含自动工具（autoTools）。 */
+    public static RuntimeConfig autoTools(List<ToolCallback> autoTools) {
+        return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, autoTools);
+    }
+
+    /** 仅含 memory view processor。 */
+    public static RuntimeConfig viewProcessor(MemoryViewProcessor viewProcessor) {
+        return new RuntimeConfig(List.of(), Set.of(), Set.of(), viewProcessor, List.of());
+    }
+
+    /** 仅含会话资源定制器（sessionCustomizers）。 */
+    public static RuntimeConfig sessionCustomizers(List<SessionResourceCustomizer> customizers) {
+        return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of(), Map.of(), customizers);
+    }
+
+    /** 仅含会话装配定制器（assemblyCustomizers）。 */
+    public static RuntimeConfig assemblyCustomizers(List<SessionAssemblyCustomizer> customizers) {
+        return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of(), Map.of(), List.of(), customizers);
+    }
+
     public static RuntimeConfig merge(RuntimeConfig... configs) {
         List<BuzhouHook> hooks = new java.util.ArrayList<>();
         Set<String> disabled = new java.util.HashSet<>();

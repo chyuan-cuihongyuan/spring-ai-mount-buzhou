@@ -1,0 +1,84 @@
+package io.github.chyuan_cuihongyuan.buzhou.core.config;
+
+import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
+import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.HarnessAssembler;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionResourceCustomizer;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 内核自装配（spec 09 / ticket 22）。
+ *
+ * <p>两件套：
+ * <ol>
+ *   <li>按 {@code buzhou.store.type}（默认 {@code memory}）装配 {@link BuzhouStores}；
+ *       jdbc/redis 实现由各自模块按 store.type 条件装配，本类只提供内存默认。</li>
+ *   <li>收集容器内全部 {@link RuntimeConfig}（机制模块产出）与扩展组件 bean
+ *       （{@link BuzhouHook} / {@link ToolCallback} / {@link SessionAssemblyCustomizer} /
+ *       {@link SessionResourceCustomizer} / {@link MemoryViewProcessor}，供用户自定义扩展），
+ *       经 {@link RuntimeConfig#merge} 合成单一 {@link AgentRuntime}（依赖 {@link ChatModel}）。</li>
+ * </ol>
+ *
+ * <p>合并后的 {@link RuntimeConfig} 是 {@link #buzhouAgentRuntime} 方法内的局部变量，
+ * <b>不</b>暴露为 bean，避免被 {@code List<RuntimeConfig>} 自收集（无环）。
+ */
+@AutoConfiguration
+@EnableConfigurationProperties(BuzhouCoreProperties.class)
+public class BuzhouCoreAutoConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "buzhou.store", name = "type", havingValue = "memory", matchIfMissing = true)
+    public BuzhouStores buzhouStores() {
+        return Buzhou.inMemoryStores();
+    }
+
+    @Bean
+    @ConditionalOnBean(ChatModel.class)
+    @ConditionalOnMissingBean
+    public AgentRuntime buzhouAgentRuntime(ChatModel chatModel, BuzhouStores stores,
+                                           List<RuntimeConfig> moduleConfigs,
+                                           List<BuzhouHook> hooks,
+                                           List<ToolCallback> autoTools,
+                                           List<SessionAssemblyCustomizer> assemblyCustomizers,
+                                           List<SessionResourceCustomizer> resourceCustomizers,
+                                           ObjectProvider<MemoryViewProcessor> viewProcessor) {
+        List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
+        // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
+        if (!hooks.isEmpty()) {
+            all.add(RuntimeConfig.hooks(hooks));
+        }
+        if (!autoTools.isEmpty()) {
+            all.add(RuntimeConfig.autoTools(autoTools));
+        }
+        if (!assemblyCustomizers.isEmpty()) {
+            all.add(RuntimeConfig.assemblyCustomizers(assemblyCustomizers));
+        }
+        if (!resourceCustomizers.isEmpty()) {
+            all.add(RuntimeConfig.sessionCustomizers(resourceCustomizers));
+        }
+        MemoryViewProcessor mvp = viewProcessor.getIfAvailable();
+        if (mvp != null) {
+            all.add(RuntimeConfig.viewProcessor(mvp));
+        }
+        RuntimeConfig merged = RuntimeConfig.merge(all.toArray(new RuntimeConfig[0]));
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged);
+    }
+}

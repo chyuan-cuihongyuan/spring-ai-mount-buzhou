@@ -21,6 +21,7 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
     private final SpanContextCarrier spanContextCarrier;
     private final List<Advisor> advisors = new ArrayList<>();
     private final List<UnaryOperator<ToolCallback>> toolWrappers = new ArrayList<>();
+    private final List<ToolCallback> extraTools = new ArrayList<>();
     private final List<SessionObserver> observers = new ArrayList<>();
 
     public DefaultSessionAssemblyContext(String appId, String agentName, String sessionId,
@@ -79,8 +80,20 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
         toolWrappers.add(wrapper);
     }
 
+    @Override
+    public void addToolCallbacks(List<ToolCallback> tools) {
+        if (tools != null && !tools.isEmpty()) {
+            extraTools.addAll(tools);
+        }
+    }
+
     public List<UnaryOperator<ToolCallback>> toolWrappers() {
         return toolWrappers;
+    }
+
+    /** customizer 经 {@link #addToolCallbacks} 注入的新工具（MCP 等动态工具集）。 */
+    public List<ToolCallback> extraTools() {
+        return extraTools;
     }
 
     @Override

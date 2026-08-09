@@ -10,4 +10,83 @@
   </parent>
   <artifactId>buzhou-spring-boot-starter</artifactId>
   <name>buzhou-spring-boot-starter</name>
+  <description>Buzhou 聚合 starter：引入即得全部机制模块的自装配（spec 09 / ticket 22）</description>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- 全模块同版本由 buzhou-bom 统一 -->
+      <dependency>
+        <groupId>io.github.chyuan-cuihongyuan</groupId>
+        <artifactId>buzhou-bom</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!--
+      starter 仅做依赖聚合，无代码、无装配类、无 .imports（spec 09「自装配注册」第 5 条）。
+      各机制模块自带 AutoConfiguration（按 buzhou.<mech>.enabled 开关，默认值对齐 spec 09）。
+      store 实现按 buzhou.store.type 激活，默认 memory 由 core 提供。
+    -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-memory</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-spill</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-observability</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-observe-otel</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-observe-dashboard</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-skills</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-mcp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-guard</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-tools</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-store-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-store-redis</artifactId>
+    </dependency>
+
+    <!-- starter 集成测试：验证聚合后默认配置即可 spawn 跑通（headline 验收） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
