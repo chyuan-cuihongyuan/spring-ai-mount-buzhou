@@ -5,26 +5,19 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
+import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import io.github.chyuan_cuihongyuan.buzhou.guard.GuardModule;
 import io.github.chyuan_cuihongyuan.buzhou.memory.MemoryModule;
 import io.github.chyuan_cuihongyuan.buzhou.tools.ToolsModule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
-import reactor.core.publisher.Flux;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,7 +64,7 @@ class AtomicToolsIntegrationTest {
 
         Prompt secondCall = model.seenPrompts.get(1);
         assertThat(secondCall.getInstructions())
-                .anyMatch(m -> m instanceof ToolResponseMessage && contains(m, "等待人工确认"));
+                .anyMatch(m -> m instanceof ToolResponseMessage && ScriptedChatModel.contains(m, "等待人工确认"));
 
         // 用户授权（业务侧 REST 等效调用）→ 重发同一输入 → 放行执行
         guard.authApi().approve("sess-hitl", "run_command",
@@ -87,7 +80,7 @@ class AtomicToolsIntegrationTest {
 
         Prompt fourthCall = model.seenPrompts.get(3);
         assertThat(fourthCall.getInstructions())
-                .anyMatch(m -> m instanceof ToolResponseMessage && contains(m, "guarded-ok"));
+                .anyMatch(m -> ScriptedChatModel.contains(m, "guarded-ok"));
     }
 
     @Test
@@ -124,43 +117,6 @@ class AtomicToolsIntegrationTest {
         // 续接后首轮 prompt 注入 todo 清单（system-reminder Attachment 通道）
         Prompt resumedFirstCall = model.seenPrompts.get(2);
         assertThat(resumedFirstCall.getInstructions())
-                .anyMatch(m -> contains(m, "任务清单") && contains(m, "续接验证任务"));
-    }
-
-    private static boolean contains(Message m, String text) {
-        if (m instanceof ToolResponseMessage trm) {
-            return trm.getResponses().stream()
-                    .anyMatch(r -> r.responseData() != null && r.responseData().contains(text));
-        }
-        return m.getText() != null && m.getText().contains(text);
-    }
-
-    static class ScriptedChatModel implements ChatModel {
-        final Queue<ChatResponse> script = new ConcurrentLinkedQueue<>();
-        final List<Prompt> seenPrompts = new CopyOnWriteArrayList<>();
-
-        void enqueue(AssistantMessage message) {
-            script.add(new ChatResponse(List.of(new Generation(message))));
-        }
-
-        @Override
-        public org.springframework.ai.chat.prompt.ChatOptions getOptions() {
-            return org.springframework.ai.model.tool.ToolCallingChatOptions.builder().build();
-        }
-
-        @Override
-        public ChatResponse call(Prompt prompt) {
-            seenPrompts.add(prompt);
-            ChatResponse next = script.poll();
-            if (next == null) {
-                next = new ChatResponse(List.of(new Generation(new AssistantMessage("default"))));
-            }
-            return next;
-        }
-
-        @Override
-        public Flux<ChatResponse> stream(Prompt prompt) {
-            return Flux.just(call(prompt));
-        }
+                .anyMatch(m -> ScriptedChatModel.contains(m, "任务清单") && ScriptedChatModel.contains(m, "续接验证任务"));
     }
 }

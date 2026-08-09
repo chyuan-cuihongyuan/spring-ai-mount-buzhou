@@ -63,6 +63,17 @@
       <artifactId>buzhou-observe-dashboard</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- ticket 21：四簇 demo 覆盖可观测回放与 MCP 热插拔，补两依赖 -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-observability</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-mcp</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
       <artifactId>buzhou-core</artifactId>

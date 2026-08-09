@@ -5,26 +5,19 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
+import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import io.github.chyuan_cuihongyuan.buzhou.memory.MemoryModule;
 import io.github.chyuan_cuihongyuan.buzhou.skill.SkillModule;
 import io.github.chyuan_cuihongyuan.buzhou.spill.SpillModule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
-import reactor.core.publisher.Flux;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -66,13 +59,13 @@ class SkillIntegrationTest {
         // checkbox 1：模型首次调用收到的 prompt 含 Skill Catalog system-reminder 块
         Prompt firstCall = model.seenPrompts.get(0);
         assertThat(firstCall.getInstructions())
-                .anyMatch(m -> contains(m, "可用技能") && contains(m, "code-review")
-                        && contains(m, "load_skill(name)"));
+                .anyMatch(m -> ScriptedChatModel.contains(m,"可用技能") && ScriptedChatModel.contains(m,"code-review")
+                        && ScriptedChatModel.contains(m,"load_skill(name)"));
 
         // checkbox 2：load_skill 工具结果（第二次调用 prompt 中的 ToolResponseMessage）含正文 + 资源清单
         Prompt secondCall = model.seenPrompts.get(1);
         assertThat(secondCall.getInstructions())
-                .anyMatch(m -> contains(m, "# Code Review Skill") && contains(m, "checklists/security.md"));
+                .anyMatch(m -> ScriptedChatModel.contains(m,"# Code Review Skill") && ScriptedChatModel.contains(m,"checklists/security.md"));
     }
 
     @Test
@@ -98,10 +91,10 @@ class SkillIntegrationTest {
 
         Prompt firstCall = model.seenPrompts.get(0);
         assertThat(firstCall.getInstructions())
-                .anyMatch(m -> contains(m, "sql-tuning") && contains(m, "可用技能"));
+                .anyMatch(m -> ScriptedChatModel.contains(m,"sql-tuning") && ScriptedChatModel.contains(m,"可用技能"));
         // code-review 被裁剪
         assertThat(firstCall.getInstructions())
-                .noneMatch(m -> contains(m, "code-review"));
+                .noneMatch(m -> ScriptedChatModel.contains(m,"code-review"));
     }
 
     @Test
@@ -134,10 +127,10 @@ class SkillIntegrationTest {
         Prompt secondCall = model.seenPrompts.get(1);
         assertThat(secondCall.getInstructions())
                 .anyMatch(m -> m instanceof ToolResponseMessage
-                        && contains(m, "技能不存在或未绑定") && contains(m, "code-review"));
+                        && ScriptedChatModel.contains(m,"技能不存在或未绑定") && ScriptedChatModel.contains(m,"code-review"));
         // 且正文未被带出
         assertThat(secondCall.getInstructions())
-                .noneMatch(m -> contains(m, "# Code Review Skill"));
+                .noneMatch(m -> ScriptedChatModel.contains(m,"# Code Review Skill"));
     }
 
     @Test
@@ -170,7 +163,7 @@ class SkillIntegrationTest {
         Prompt secondCall = model.seenPrompts.get(1);
         assertThat(secondCall.getInstructions())
                 .anyMatch(m -> m instanceof ToolResponseMessage
-                        && contains(m, "输入是否经校验/转义"));
+                        && ScriptedChatModel.contains(m,"输入是否经校验/转义"));
     }
 
     @Test
@@ -207,46 +200,9 @@ class SkillIntegrationTest {
         Prompt secondCall = model.seenPrompts.get(1);
         assertThat(secondCall.getInstructions())
                 .anyMatch(m -> m instanceof ToolResponseMessage
-                        && contains(m, "技能资源不存在或未绑定"));
+                        && ScriptedChatModel.contains(m,"技能资源不存在或未绑定"));
         assertThat(secondCall.getInstructions())
-                .noneMatch(m -> contains(m, "输入是否经校验"));
+                .noneMatch(m -> ScriptedChatModel.contains(m,"输入是否经校验"));
     }
 
-    /** 工具结果在 ToolResponseMessage.getResponses() 里（getText() 恒为空串），文本消息直接取 getText()。 */
-    private static boolean contains(Message m, String text) {
-        if (m instanceof ToolResponseMessage trm) {
-            return trm.getResponses().stream()
-                    .anyMatch(r -> r.responseData() != null && r.responseData().contains(text));
-        }
-        return m.getText() != null && m.getText().contains(text);
-    }
-
-    static class ScriptedChatModel implements ChatModel {
-        final Queue<ChatResponse> script = new ConcurrentLinkedQueue<>();
-        final List<Prompt> seenPrompts = new CopyOnWriteArrayList<>();
-
-        void enqueue(AssistantMessage message) {
-            script.add(new ChatResponse(List.of(new Generation(message))));
-        }
-
-        @Override
-        public org.springframework.ai.chat.prompt.ChatOptions getOptions() {
-            return org.springframework.ai.model.tool.ToolCallingChatOptions.builder().build();
-        }
-
-        @Override
-        public ChatResponse call(Prompt prompt) {
-            seenPrompts.add(prompt);
-            ChatResponse next = script.poll();
-            if (next == null) {
-                next = new ChatResponse(List.of(new Generation(new AssistantMessage("default"))));
-            }
-            return next;
-        }
-
-        @Override
-        public Flux<ChatResponse> stream(Prompt prompt) {
-            return Flux.just(call(prompt));
-        }
-    }
 }
