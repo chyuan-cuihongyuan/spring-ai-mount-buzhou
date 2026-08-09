@@ -1,6 +1,18 @@
-.idea/
+# ---- Build output ----
 target/
 *.class
+
+# ---- IDE ----
 .idea/
 *.iml
+.vscode/
+
+# ---- AI / Flow2Spec local tooling (private, not published) ----
+.claude/
+.codex/
+.cursor/
 .zcode/
+.Knowledge/
+.task/
+AGENTS.md
+flow2spec.config.json
