@@ -22,9 +22,9 @@ Spring AI 解决了「如何把模型、工具、Advisor 链接到一起」的�
 - **危险操作无护栏**——删库、发版、改线上配置这类不可逆操作，缺乏框架级人工确认（HITL）。
 - **状态记不住又不可靠**——跨实例续接、悬空调用修复、长产物读写，每家都要自己造一遍。
 
-Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐生产所需的稳定性与可观测性。
+Buzhou 把这些「Agent 运行时」该有的能力收敛成十大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐生产所需的稳定性与可观测性。
 
-## 九大机制
+## 十大机制
 
 | # | 机制 | 一句话 | 模块 |
 |---|------|--------|------|
@@ -37,8 +37,9 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 7 | **原子工具** | 框架内置最小可复用工具集：文件读写、命令执行、HTTP 调用、任务清单等 | `buzhou-tools` |
 | 8 | **Hook 护栏体系** | 长产物读写护栏、HITL 危险操作人工审核、Hook→state→Attachment 联动闭环（补失忆范式） | `buzhou-guard` |
 | 9 | **持久化 SPI** | 五大存储 SPI（Message / Summary / SessionState / SessionLease / Observability）+ 内存/JDBC/Redis 实现，按需切换 | `buzhou-core` / `buzhou-store-jdbc` / `buzhou-store-redis` |
+| 10 | **模型韧性层** | 模型调用重试（指数退避 + 抖动 + Retry-After）、统一超时（deadline + 中断在途调用）、跨 provider 五类归一化错误分类、`onModelError` 兜底切面 | `buzhou-resilience` |
 
-> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 九份机制详设）。
+> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 十份机制详设）。
 
 ## 技术基线
 
@@ -51,14 +52,14 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 
 ## 模块结构
 
-依赖图是以 [`buzhou-core`](buzhou-core) 为根的两层星形，**物理无环**：各机制模块（memory / spill / skills / mcp / guard / tools / store-*）互不直接依赖，跨机制协作一律走 core 的事件总线或 core SPI。唯一允许的二层边是 `buzhou-observe-otel` / `buzhou-observe-dashboard` 依赖 `buzhou-observability`。
+依赖图是以 [`buzhou-core`](buzhou-core) 为根的两层星形，**物理无环**：各机制模块（memory / spill / skills / mcp / guard / resilience / tools / store-*）互不直接依赖，跨机制协作一律走 core 的事件总线或 core SPI。唯一允许的二层边是 `buzhou-observe-otel` / `buzhou-observe-dashboard` 依赖 `buzhou-observability`。
 
 ```
                      buzhou-core（内核：session / exec / hook / spi / policy）
                             │
-   ┌────────┬──────────┬────┴─────┬──────────┬──────────┬──────────┐
-buzhou-   buzhou-   buzhou-    buzhou-    buzhou-    buzhou-    buzhou-
-memory    spill     observability skills   mcp        guard      tools
+   ┌────────┬──────────┬────┴─────┬──────────┬──────────┬──────────┬──────────┐
+buzhou-   buzhou-   buzhou-    buzhou-    buzhou-    buzhou-    buzhou-   buzhou-
+memory    spill     observability skills   mcp        guard     tools     resilience
    │                  │   │
    │        buzhou-observe-otel / buzhou-observe-dashboard（二层边）
    │

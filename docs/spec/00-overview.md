@@ -63,7 +63,7 @@ flowchart TB
 
 ## 模块依赖
 
-16 模块、星形依赖无环（core 事件总线解环）；完整清单、依赖白名单与依赖图见 [09 模块划分与开源工程化](09-modules-engineering.md)。
+17 模块、星形依赖无环（core 事件总线解环）；完整清单、依赖白名单与依赖图见 [09 模块划分与开源工程化](09-modules-engineering.md)。
 
 ```mermaid
 flowchart LR
@@ -78,15 +78,16 @@ flowchart LR
     K[buzhou-skills]
     C[buzhou-mcp]
     G[buzhou-guard]
+    RES[buzhou-resilience]
     T[buzhou-tools]
     J[buzhou-store-jdbc]
     R[buzhou-store-redis]
     E[examples]
-    M & S & O & K & C & G & T --> CORE
+    M & S & O & K & C & G & RES & T --> CORE
     OT & D --> O
     J & R --> CORE
     E --> STARTER
-    STARTER --> M & S & O & K & C & G & T
+    STARTER --> M & S & O & K & C & G & RES & T
 ```
 
 ## 端到端数据流
@@ -141,6 +142,7 @@ HITL 确认往返、Onload 写侧拦截、MCP 差量刷新等专项时序见各�
 | 07 | [Hook 护栏体系](07-hooks.md) | Hook 链框架 + 读写护栏 + HITL + 闭环 | 六切面；密封三态；狗粮原则；读降级写阻断；阻断+state+续跑重放 |
 | 08 | [会话、配置与持久化](08-session-config-persistence.md) | 双层 API + 四层配置 + 五 SPI | spawn/enhance；PolicyConfigProvider；unit-of-work；全保真消息模型+ChatMemory 适配器 |
 | 09 | [模块与工程化](09-modules-engineering.md) | 16 模块 + 发布工程 | 星形依赖无环；buzhou-* 前缀；Central Portal；模块自装配 |
+| 10 | [模型韧性层](10-resilience.md) | 重试 + 统一超时 + 归一化错误分类 + onModelError | ResilienceAdvisor 最内层包裹单次模型调用；五类分类（限流/鉴权/内容/网络/未知）；指数退避+抖动+Retry-After；deadline+cancel 共用中断路径；onModelError 兜底/放行 |
 
 ## 推演清单
 

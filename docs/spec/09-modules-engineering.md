@@ -40,9 +40,11 @@
 - artifactId：统一 `buzhou-*` 短前缀；仓库名 `spring-ai-mount-buzhou`。
 - 版本：全模块同版本演进，由 `buzhou-bom` 统一（版本号策略见「开放问题」）。
 
-### 16 模块清单
+### 17 模块清单
 
 > 【推演】ticket 03 原表含 `buzhou-dashboard`；ticket 15 将可视化后台定名为 `buzhou-observe-dashboard`（与 `buzhou-observe-otel` 对齐）。本文为对齐「14→16」的票数定案，按「`buzhou-dashboard` 更名为 `buzhou-observe-dashboard`（不占新名额）+ 根聚合父 POM 计入模块数」还原 16：父 POM 是 Maven 物理存在的模块，承担聚合与继承双职。若社区认为父 POM 不应计数，则备选是 examples 拆为场景示例 + 评测脚本两模块（ticket 28/30 已有独立目录伏笔），留「开放问题」。
+>
+> 【新增】`buzhou-resilience`（模型韧性层 M1，wayfinder production-readiness 03 号票）作为第 17 个模块加入 feature 集合，仅依赖 core、遵守星形白名单；与既有机制一样自带 AutoConfiguration（`buzhou.resilience.enabled`，safe-by-default 默认开），详见 [10 模型韧性层](10-resilience.md)。
 
 | # | 模块 | 职责 | 依赖方向 |
 |---|---|---|---|
@@ -57,15 +59,16 @@
 | 9 | `buzhou-skills` | Skill 体系：classpath 内置 + DB 动态覆盖、`load_skill`、管理 API | core |
 | 10 | `buzhou-mcp` | MCP 热插拔：client 生命周期注册表、差量刷新、引用计数延迟关闭 | core |
 | 11 | `buzhou-guard` | HITL 危险操作门禁 + Hook→state→Attachment 联动闭环 | core |
-| 12 | `buzhou-tools` | 内置原子工具：文件读写、命令执行、HTTP、任务清单 + 机制衍生工具 | core |
-| 13 | `buzhou-store-jdbc` | 持久化 SPI 的 JDBC 实现（生产主推，本地事务 / unit-of-work） | core |
-| 14 | `buzhou-store-redis` | 持久化 SPI 的 Redis 实现（Lua 保证事务语义） | core |
-| 15 | `buzhou-spring-boot-starter` | 聚合全部机制模块的便利依赖 | 3–14 全部 |
-| 16 | `buzhou-examples` | 示例应用：排障单场景多脚本（压缩链/可观测回放/护栏 HITL/Skill+MCP），mock DB+HTTP；摘要评测脚本独立目录复用 mock。**不发布 Maven Central**（`maven.deploy.skip=true`） | starter |
+| 12 | `buzhou-resilience` | 模型韧性层：模型调用重试（指数退避+抖动+Retry-After）、统一超时（deadline+cancel）、五类归一化错误分类、onModelError 兜底 | core |
+| 13 | `buzhou-tools` | 内置原子工具：文件读写、命令执行、HTTP、任务清单 + 机制衍生工具 | core |
+| 14 | `buzhou-store-jdbc` | 持久化 SPI 的 JDBC 实现（生产主推，本地事务 / unit-of-work） | core |
+| 15 | `buzhou-store-redis` | 持久化 SPI 的 Redis 实现（Lua 保证事务语义） | core |
+| 16 | `buzhou-spring-boot-starter` | 聚合全部机制模块的便利依赖 | 3–15 全部 |
+| 17 | `buzhou-examples` | 示例应用：排障单场景多脚本（压缩链/可观测回放/护栏 HITL/Skill+MCP），mock DB+HTTP；摘要评测脚本独立目录复用 mock。**不发布 Maven Central**（`maven.deploy.skip=true`） | starter |
 
 依赖规则：
 
-1. 上表即**允许依赖白名单**——feature 模块（4–14）之间禁止互相依赖；跨机制协作一律走 core 事件总线或 core SPI。
+1. 上表即**允许依赖白名单**——feature 模块（4–15）之间禁止互相依赖；跨机制协作一律走 core 事件总线或 core SPI。
 2. `buzhou-observe-otel` / `buzhou-observe-dashboard` 依赖 `buzhou-observability` 是星形图中唯一允许的「同域二层边」；二者互不依赖。
 3. store 实现只依赖 core 的 SPI 包，不被任何 feature 模块依赖——由用户按需引入、绑定级配置激活。
 4. community extension（`buzhou-config-nacos`、`buzhou-tokenizer-jtokkit` 等）遵循同一规则：只依赖 core，不进 starter 聚合。
@@ -84,6 +87,7 @@ graph TD
     ROOT -.聚合.-> SKILL[buzhou-skills]
     ROOT -.聚合.-> MCP[buzhou-mcp]
     ROOT -.聚合.-> GUARD[buzhou-guard]
+    ROOT -.聚合.-> RES[buzhou-resilience]
     ROOT -.聚合.-> TOOLS[buzhou-tools]
     ROOT -.聚合.-> JDBC[buzhou-store-jdbc]
     ROOT -.聚合.-> REDIS[buzhou-store-redis]
@@ -96,17 +100,19 @@ graph TD
     SKILL --> CORE
     MCP --> CORE
     GUARD --> CORE
+    RES --> CORE
     TOOLS --> CORE
     JDBC --> CORE
     REDIS --> CORE
     OTEL --> OBS
     DASH --> OBS
-    STARTER --> MEM & SPILL & OBS & OTEL & DASH & SKILL & MCP & GUARD & TOOLS & JDBC & REDIS
+    STARTER --> MEM & SPILL & OBS & OTEL & DASH & SKILL & MCP & GUARD & RES & TOOLS & JDBC & REDIS
     EX --> STARTER
 
     MEM -.事件.-> CORE
     SPILL -.事件.-> CORE
     GUARD -.事件.-> CORE
+    RES -.事件.-> CORE
     OBS -.订阅事件总线.-> CORE
 ```
 
@@ -142,6 +148,7 @@ graph TD
 | `buzhou.skills.enabled` | `true` | Skill 体系 |
 | `buzhou.mcp.enabled` | `true` | MCP 热插拔注册表 |
 | `buzhou.guard.enabled` | `true` | HITL 门禁 + state→Attachment 闭环 |
+| `buzhou.resilience.enabled` | `true` | 模型韧性层（重试/超时/错误分类/onModelError）；关则回退底座原生行为 |
 | `buzhou.tools.enabled` | `true` | 内置原子工具（危险工具仍 opt-in，见 06 号专档） |
 | `buzhou.store.type` | `memory` | `memory` / `jdbc` / `redis`，选后两者需引入对应 store 模块 |
 

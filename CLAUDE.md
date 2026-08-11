@@ -2,9 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+git提交不包括Co-Authored-By: 
+代码中不要出现魔法数字
+
+
 ## 项目定位
 
-Spring AI Mount Buzhou（不周山）是挂载在 **Spring AI 与业务 Agent 之间的运行时中间层（Harness）**——叠加而非替代 Spring AI。提供九大机制：渐进式记忆压缩、Spill 溢出保护、Span+Event 认知可观测、Skill 体系、MCP 热插拔、并行工具调用、原子工具、Hook 护栏体系（读写护栏/HITL/事实闭环）、持久化 SPI。
+Spring AI Mount Buzhou（不周山）是挂载在 **Spring AI 与业务 Agent 之间的运行时中间层（Harness）**——叠加而非替代 Spring AI。提供十大机制：渐进式记忆压缩、Spill 溢出保护、Span+Event 认知可观测、Skill 体系、MCP 热插拔、并行工具调用、原子工具、Hook 护栏体系（读写护栏/HITL/事实闭环）、持久化 SPI、模型韧性层（重试/统一超时/归一化错误分类/onModelError 兜底）。
 
 - 技术基线：JDK 21+（虚拟线程）、Spring Boot 4.x、Spring AI 2.0.0（工具调用循环在 Advisor 链内）
 - 文档与注释主语言为中文；领域术语以根目录 [CONTEXT.md](CONTEXT.md) 为准
@@ -23,11 +27,11 @@ mvn -pl buzhou-core test -Dtest=HookChainTest#method    # 单个测试方法
 - 本机构建（对 repo.maven.apache.org 有 TLS 指纹级拦截的环境）：首次执行 `cp settings.xml ~/.m2/settings.xml`，之后 `mvn` 直连阿里云镜像；CI（ubuntu-latest）直连 central，无需此文件。**POM 不声明 repositories**——阿里云镜像只放仓库根 `settings.xml`，避免已发布 POM 把镜像传染下游、被 Central Portal 拒收
 - `buzhou-store-jdbc` 的测试用 Testcontainers，需要 Docker 可用
 
-## 模块架构（16 模块星形依赖）
+## 模块架构（17 模块星形依赖）
 
 依赖图是以 `buzhou-core` 为根的两层星形，**物理无环**。硬性规则（见 [docs/spec/09-modules-engineering.md](docs/spec/09-modules-engineering.md)）：
 
-1. **feature 模块之间禁止直接依赖**（memory/spill/skills/mcp/guard/tools/store-* 互不依赖）；跨机制协作一律走 core 的**事件总线**或 core SPI。这是依赖白名单，不是建议。
+1. **feature 模块之间禁止直接依赖**（memory/spill/skills/mcp/guard/resilience/tools/store-* 互不依赖）；跨机制协作一律走 core 的**事件总线**或 core SPI。这是依赖白名单，不是建议。
 2. 唯一允许的二层边：`buzhou-observe-otel` / `buzhou-observe-dashboard` 依赖 `buzhou-observability`。
 3. store 实现（jdbc/redis）只依赖 core SPI，由用户按需引入、`buzhou.store.type` 配置激活。
 4. 每个机制模块独立可用（用户只引 `buzhou-memory` 即得记忆压缩）；`buzhou-spring-boot-starter` 只做依赖聚合、无代码。
