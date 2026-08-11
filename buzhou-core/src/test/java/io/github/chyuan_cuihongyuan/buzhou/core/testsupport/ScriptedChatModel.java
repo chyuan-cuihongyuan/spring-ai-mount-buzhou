@@ -28,12 +28,24 @@ public class ScriptedChatModel implements ChatModel {
     public final Queue<ChatResponse> script = new ConcurrentLinkedQueue<>();
     public final List<Prompt> seenPrompts = new CopyOnWriteArrayList<>();
 
+    /**
+     * 第 N 次 {@code call} 时抛出的异常（韧性层重试/分类测试用）。每次 {@code call} 先抛出队首异常
+     * （若非空），再尝试弹出回复；故「抛异常 K 次后第 K+1 次成功」可由 K 次
+     * {@link #enqueueThrow(RuntimeException)} + 一次 {@link #enqueue(AssistantMessage)} 表达。
+     */
+    public final Queue<RuntimeException> throwOnCall = new ConcurrentLinkedQueue<>();
+
     public void enqueue(AssistantMessage message) {
         script.add(new ChatResponse(List.of(new Generation(message))));
     }
 
     public void enqueueText(String content) {
         enqueue(new AssistantMessage(content));
+    }
+
+    /** 入队一次「下次 call 抛此异常」（按入队顺序消费）。 */
+    public void enqueueThrow(RuntimeException ex) {
+        throwOnCall.add(ex);
     }
 
     @Override
@@ -44,6 +56,10 @@ public class ScriptedChatModel implements ChatModel {
     @Override
     public ChatResponse call(Prompt prompt) {
         seenPrompts.add(prompt);
+        RuntimeException ex = throwOnCall.poll();
+        if (ex != null) {
+            throw ex;
+        }
         ChatResponse next = script.poll();
         if (next == null) {
             next = new ChatResponse(List.of(new Generation(new AssistantMessage("default"))));

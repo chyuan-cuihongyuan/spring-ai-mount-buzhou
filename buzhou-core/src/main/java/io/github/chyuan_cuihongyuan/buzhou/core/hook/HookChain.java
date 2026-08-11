@@ -46,6 +46,14 @@ public class HookChain {
         return run(ctx, (hook, c) -> hook.afterModel(c));
     }
 
+    /**
+     * 终态失败后派发 {@code onModelError}。复用 {@link #run}：{@code Replace(ChatClientResponse)} 经
+     * {@code applyReplace} 回填响应、{@code Block(reason)} 提前返回；全 {@code CONTINUE} 时返回放行。
+     */
+    public HookResult onModelError(ModelCallContext ctx) {
+        return run(ctx, (hook, c) -> hook.onModelError(c));
+    }
+
     public HookResult beforeTool(ToolCallContext ctx) {
         return run(ctx, (hook, c) -> hook.beforeTool(c));
     }

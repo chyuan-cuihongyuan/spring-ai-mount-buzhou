@@ -67,8 +67,10 @@ public class HarnessAssembler {
         HookChain chain = new HookChain(hooks, disabledHookNames);
 
         SpanContextCarrier spanContextCarrier = new SpanContextCarrier();
+        // 事件发射器复用 HookEnvironment 的延迟绑定发布者：装配期为 no-op，
+        // DefaultAgentSession 构造后绑到 dispatchEvent——机制模块 advisor 注入的事件进会话既有通道。
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
-                appId, agentName, sessionId, stores, registry, spanContextCarrier);
+                appId, agentName, sessionId, stores, registry, spanContextCarrier, env::emit);
         assemblyCtx.wrapToolCallbacks(t -> (ToolCallback) new HookedToolCallback(t, chain, env));
         // 机制模块（buzhou-observability）经 customizer 注入 advisor + 工具包装 + observer
         if (assemblyCustomizers != null) {

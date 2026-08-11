@@ -58,4 +58,19 @@ public interface SessionAssemblyContext {
 
     /** 注册会话生命周期观察者（开/关 SESSION span、强制 flush 等）。 */
     void addObserver(SessionObserver observer);
+
+    /**
+     * 向本会话既有事件通道（与 Hook 事件同炉的 {@link SessionEvent} 流）发射一条事件。
+     *
+     * <p>实现侧（{@code DefaultSessionAssemblyContext}）复用 {@code HookEnvironment} 的事件发布者：
+     * 它在装配期尚未绑定时为 no-op，会话装配完成（{@code DefaultAgentSession} 构造）后被绑到
+     * {@code dispatchEvent}，故 customizer 注入的 advisor（如 ResilienceAdvisor）在 {@code chat()}
+     * 期间发射的事件会进到 {@code SessionEventListener} 与 Hook 链——不新增 SPI、不新增存储通道。
+     *
+     * <p>默认 no-op，保证既有实现源码/二进制兼容。
+     *
+     * @param event 待发射事件；不应为 {@code null}
+     */
+    default void emitEvent(SessionEvent event) {
+    }
 }
