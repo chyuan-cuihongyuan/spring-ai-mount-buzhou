@@ -9,7 +9,11 @@ import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookedToolCallback
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.BuzhouChatMemory;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.BuzhouMemoryAdvisor;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DanglingCallRepairer;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.DedupGate;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.DedupRecorder;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier;
+import io.github.chyuan_cuihongyuan.buzhou.core.recovery.IdempotencyKeyExtractor;
+import io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoveryConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
@@ -48,7 +52,7 @@ public class HarnessAssembler {
                                  ToolCallback... tools) {
         return assemble(appId, agentName, sessionId, chatModel, stores, registry, onClose,
                 hooks, disabledHookNames, idempotentToolNames, viewProcessor, executor, serialGroups,
-                List.of(), tools);
+                null, List.of(), tools);
     }
 
     public AgentSession assemble(String appId, String agentName, String sessionId,
@@ -61,6 +65,24 @@ public class HarnessAssembler {
                                  MemoryViewProcessor viewProcessor,
                                  ExecutorService executor,
                                  Map<String, String> serialGroups,
+                                 List<SessionAssemblyCustomizer> assemblyCustomizers,
+                                 ToolCallback... tools) {
+        return assemble(appId, agentName, sessionId, chatModel, stores, registry, onClose,
+                hooks, disabledHookNames, idempotentToolNames, viewProcessor, executor, serialGroups,
+                null, assemblyCustomizers, tools);
+    }
+
+    public AgentSession assemble(String appId, String agentName, String sessionId,
+                                 ChatModel chatModel, BuzhouStores stores,
+                                 SessionResourceRegistry registry,
+                                 Runnable onClose,
+                                 Collection<BuzhouHook> hooks,
+                                 Set<String> disabledHookNames,
+                                 Set<String> idempotentToolNames,
+                                 MemoryViewProcessor viewProcessor,
+                                 ExecutorService executor,
+                                 Map<String, String> serialGroups,
+                                 RecoveryConfig recoveryConfig,
                                  List<SessionAssemblyCustomizer> assemblyCustomizers,
                                  ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, agentName, stores.sessionStateStore());
@@ -87,9 +109,12 @@ public class HarnessAssembler {
         List<ToolCallback> wrapped = applyWrappers(allToolCallbacks, assemblyCtx.toolWrappers());
         ToolCallback[] allTools = wrapped.toArray(new ToolCallback[0]);
 
+        // 幂等去重闸门（spec「幂等三件套」）：safe-by-default 开；键提取器取自未包装的原始工具声明
+        DedupGate dedupGate = buildDedupGate(recoveryConfig, stores, allToolCallbacks,
+                event -> env.emit(event));
         HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
                 org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
-                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier, sessionId);
+                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier, sessionId, dedupGate);
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
         memory.setViewProcessor(viewProcessor);
         memory.setRepairer(new DanglingCallRepairer(
@@ -99,7 +124,8 @@ public class HarnessAssembler {
                         Map.of("messageId", event.messageId(),
                                 "toolCalls", event.danglingToolCalls(),
                                 "action", event.action()),
-                        Instant.now()))));
+                        Instant.now())),
+                dedupGate));
 
         ChatClient.Builder builder = ChatClient.builder(chatModel);
         List<Advisor> advisors = new ArrayList<>();
@@ -121,6 +147,25 @@ public class HarnessAssembler {
         return builder.defaultAdvisors(
                 ToolCallingAdvisor.builder().build(),
                 new BuzhouMemoryAdvisor(memory));
+    }
+
+    /**
+     * 构建幂等去重闸门：仅当恢复机制开 + 幂等去重开时装配；否则返回 {@code null}（执行脊柱不去重）。
+     * 键提取器从未包装的原始工具回调上探测（{@link IdempotencyKeyExtractor} 由工具类直接实现）。
+     */
+    private DedupGate buildDedupGate(RecoveryConfig recoveryConfig, BuzhouStores stores,
+                                     List<ToolCallback> rawTools,
+                                     java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> emitter) {
+        if (recoveryConfig == null || !recoveryConfig.enabled() || !recoveryConfig.idempotencyEnabled()) {
+            return null;
+        }
+        Map<String, IdempotencyKeyExtractor> extractors = new java.util.HashMap<>();
+        for (ToolCallback tool : rawTools) {
+            if (tool instanceof IdempotencyKeyExtractor extractor) {
+                extractors.put(tool.getToolDefinition().name(), extractor);
+            }
+        }
+        return new DedupGate(new DedupRecorder(stores.sessionStateStore()), extractors, emitter);
     }
 
     private Map<String, ToolCallback> toolsByName(ToolCallback[] tools) {

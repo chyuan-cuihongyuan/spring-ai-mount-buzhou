@@ -89,6 +89,27 @@ public class RedisSessionStateStore implements SessionStateStore {
         return hit != null && hit == 1L;
     }
 
+    /** Lua 原子 put-if-absent（幂等去重 reserve）：键不存在才 HSET + SADD，返回 1；否则 0。KEYS=[entryKey, setKey] ARGV=[stateKey, 各字段...]。 */
+    private static final String PUT_IF_ABSENT_SCRIPT = """
+            if redis.call('EXISTS', KEYS[1]) == 1 then
+              return 0
+            end
+            redis.call('HSET', KEYS[1], 'key', ARGV[1], 'value', ARGV[2], 'producer', ARGV[3],
+                       'createdTurn', ARGV[4], 'ttlTurns', ARGV[5], 'updatedAt', ARGV[6])
+            redis.call('SADD', KEYS[2], ARGV[1])
+            return 1""";
+
+    @Override
+    public boolean putIfAbsent(String sessionId, StateEntry entry) {
+        Long inserted = sync.commands().eval(PUT_IF_ABSENT_SCRIPT, ScriptOutputType.INTEGER,
+                new String[]{keys.stateEntry(sessionId, entry.key()), keys.stateKeys(sessionId)},
+                entry.key(), entry.value(), entry.producer(),
+                Integer.toString(entry.createdTurn()),
+                entry.ttlTurns() == null ? "" : Integer.toString(entry.ttlTurns()),
+                entry.updatedAt().toString());
+        return inserted != null && inserted == 1L;
+    }
+
     private static StateEntry fromHash(Map<String, String> fields) {
         if (fields == null || fields.isEmpty()) {
             return null;

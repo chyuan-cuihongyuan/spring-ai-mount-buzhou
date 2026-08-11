@@ -67,4 +67,21 @@ public class JdbcSessionStateStore implements SessionStateStore {
                         WHERE session_id = ? AND state_key = ? AND state_value = ?
                         """, sessionId, key, expectedValue) == 1;
     }
+
+    @Override
+    public boolean putIfAbsent(String sessionId, StateEntry entry) {
+        // 原子 put-if-absent（幂等去重 reserve）：主键 (session_id, state_key) 冲突即放弃，
+        // 影响行数 1 = 占位成功。捕获主键冲突异常而非先查后插，保证并发下原子语义。
+        try {
+            return jdbc.update("""
+                            INSERT INTO buzhou_session_state
+                            (session_id, state_key, state_value, producer, created_turn, ttl_turns, updated_at)
+                            VALUES (?,?,?,?,?,?,?)
+                            """,
+                    sessionId, entry.key(), entry.value(), entry.producer(),
+                    entry.createdTurn(), entry.ttlTurns(), Timestamp.from(entry.updatedAt())) == 1;
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            return false;
+        }
+    }
 }

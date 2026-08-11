@@ -47,6 +47,18 @@ public final class Buzhou {
         return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), config, tools);
     }
 
+    /**
+     * 带崩溃恢复配置的 runtime（spec「崩溃中轮次恢复」）。
+     *
+     * @param recoveryConfig 恢复/持久化/幂等参数；{@code null} 等效关闭机制
+     */
+    public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores,
+                                       io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig config,
+                                       io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoveryConfig recoveryConfig,
+                                       ToolCallback... tools) {
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), config, recoveryConfig, tools);
+    }
+
     public static ChatClient.Builder enhance(ChatClient.Builder builder) {
         return enhance(builder, inMemoryStores());
     }

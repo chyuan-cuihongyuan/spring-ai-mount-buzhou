@@ -1,5 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.DedupGate;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord;
@@ -9,6 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -24,13 +26,22 @@ public class DanglingCallRepairer {
     private final Map<String, ToolCallback> toolsByName;
     private final Set<String> idempotentToolNames;
     private final BiConsumer<String, RepairEvent> repairListener;
+    private final DedupGate dedupGate;
 
     public DanglingCallRepairer(Map<String, ToolCallback> toolsByName,
                                 Set<String> idempotentToolNames,
                                 BiConsumer<String, RepairEvent> repairListener) {
+        this(toolsByName, idempotentToolNames, repairListener, null);
+    }
+
+    public DanglingCallRepairer(Map<String, ToolCallback> toolsByName,
+                                Set<String> idempotentToolNames,
+                                BiConsumer<String, RepairEvent> repairListener,
+                                DedupGate dedupGate) {
         this.toolsByName = toolsByName;
         this.idempotentToolNames = idempotentToolNames;
         this.repairListener = repairListener;
+        this.dedupGate = dedupGate;
     }
 
     public List<BuzhouMessage> repair(String sessionId, List<BuzhouMessage> stored) {
@@ -89,6 +100,21 @@ public class DanglingCallRepairer {
     }
 
     private BuzhouMessage tryReplay(String sessionId, BuzhouMessage parent, ToolCallRecord call) {
+        // 先查去重记录（spec「幂等三件套 ③」）：崩溃窗口「工具已执行、结果未落库」内结果已被
+        // reserve-then-fill 捕获 → 命中即用存储结果合成工具响应、不重执行（效果恰好一次）；
+        // 对非幂等副作用工具同样生效——这是「不重复扣款」的关键路径。
+        if (dedupGate != null) {
+            String key = dedupGate.keyOf(call.name(), call.id(), call.arguments(), null);
+            Optional<String> filled = dedupGate.recorder().filledResult(sessionId, key);
+            if (filled.isPresent()) {
+                dedupGate.emitHit(call.name(), key);
+                notifyRepair(sessionId, new RepairEvent(parent.id(), List.of(call.name()), "dedup-hit"));
+                return new BuzhouMessage(UUID.randomUUID().toString(), sessionId,
+                        parent.turnSeq(), parent.seqInTurn() + 1, Role.TOOL, filled.get(), List.of(),
+                        call.id(), null, null,
+                        Map.of("toolName", call.name(), "dedupHit", true), Instant.now());
+            }
+        }
         ToolCallback tool = toolsByName.get(call.name());
         if (tool == null || !idempotentToolNames.contains(call.name())) {
             return null;

@@ -36,6 +36,7 @@ public class DefaultAgentSession implements AgentSession {
     private final List<SessionObserver> observers;
     private final List<SessionEventListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean closed = new AtomicBoolean();
+    private volatile boolean leaseLost;
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
@@ -176,5 +177,45 @@ public class DefaultAgentSession implements AgentSession {
         if (closed.get()) {
             throw new IllegalStateException("Session already closed: " + sessionId);
         }
+        if (leaseLost) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.session.LeaseLostException(sessionId);
+        }
+    }
+
+    /** 租约心跳检测到易主时由运行时调用：置会话失效，后续 chat/stream 抛 LeaseLostException。 */
+    public void markLeaseLost() {
+        this.leaseLost = true;
+    }
+
+    /** 供运行时 / 恢复层在装配后向既有事件通道发射事件（与 chat() 内 dispatchEvent 同炉）。 */
+    public void emit(io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent event) {
+        dispatchEvent(event);
+    }
+
+    /**
+     * 自动重驱动（spec「崩溃中轮次恢复 / AUTO_RESUME」）：无需用户输入，对被中断轮次
+     * 重新发起一次模型调用续跑。历史经记忆 advisor 加载 + 悬空修复后注入模型；
+     * 续跑对副作用安全由幂等去重保证（修复重放命中去重记录不重执行）。
+     *
+     * <p>仅由 {@code DefaultAgentRuntime} 在恢复语义档位为 AUTO_RESUME 且判定为中断轮次时调用；
+     * 续跑消息无新 USER 输入，记忆侧 turnSeq 计数不推进——语义上是「继续被中断的同一轮」。
+     *
+     * @return 续跑轮次的最终回复
+     */
+    public String resumeInterruptedTurn() {
+        ensureOpen();
+        int turnSeq = hookEnv.nextTurn();
+        observers.forEach(o -> o.onTurnStart(turnSeq, ""));
+        DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, "");
+        // 不带新 USER 输入：提示词由记忆 advisor 从「加载 + 悬空修复后的历史」整体重建，
+        // 记忆侧 turnSeq（按 USER 消息计数）不推进——语义上是「继续被中断的同一轮」。
+        String response = chatClient.prompt()
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
+                .call()
+                .content();
+        turnCtx.markResponded(response);
+        hookChain.afterTurn(turnCtx);
+        observers.forEach(o -> o.onTurnEnd(turnSeq, response));
+        return turnCtx.response();
     }
 }

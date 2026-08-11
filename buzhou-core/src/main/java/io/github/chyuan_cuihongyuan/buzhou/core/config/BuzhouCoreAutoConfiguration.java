@@ -40,7 +40,7 @@ import java.util.List;
  * <b>不</b>暴露为 bean，避免被 {@code List<RuntimeConfig>} 自收集（无环）。
  */
 @AutoConfiguration
-@EnableConfigurationProperties(BuzhouCoreProperties.class)
+@EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRecoveryProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     @Bean
@@ -59,7 +59,8 @@ public class BuzhouCoreAutoConfiguration {
                                            List<ToolCallback> autoTools,
                                            List<SessionAssemblyCustomizer> assemblyCustomizers,
                                            List<SessionResourceCustomizer> resourceCustomizers,
-                                           ObjectProvider<MemoryViewProcessor> viewProcessor) {
+                                           ObjectProvider<MemoryViewProcessor> viewProcessor,
+                                           BuzhouRecoveryProperties recoveryProperties) {
         List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
         // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
         if (!hooks.isEmpty()) {
@@ -79,6 +80,7 @@ public class BuzhouCoreAutoConfiguration {
             all.add(RuntimeConfig.viewProcessor(mvp));
         }
         RuntimeConfig merged = RuntimeConfig.merge(all.toArray(new RuntimeConfig[0]));
-        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged);
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
+                recoveryProperties.toRecoveryConfig());
     }
 }

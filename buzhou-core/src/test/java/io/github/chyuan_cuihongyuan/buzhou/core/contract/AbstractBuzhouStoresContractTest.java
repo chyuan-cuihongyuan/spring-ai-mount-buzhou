@@ -1,7 +1,9 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.contract;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.DurabilityTieredStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
+import io.github.chyuan_cuihongyuan.buzhou.core.recovery.DurabilityTier;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
@@ -90,6 +92,27 @@ public abstract class AbstractBuzhouStoresContractTest {
         assertThat(stores().sessionStateStore().deleteIfValueMatches(sessionId, "auth.t.fp", "v1")).isTrue();
         assertThat(stores().sessionStateStore().get(sessionId, "auth.t.fp")).isEmpty();
         assertThat(stores().sessionStateStore().deleteIfValueMatches(sessionId, "auth.t.fp", "v1")).isFalse();
+    }
+
+    @Test
+    void stateStorePutIfAbsentIsAtomic() {
+        String sessionId = "contract-state-pia-" + UUID.randomUUID();
+        // 键不存在 → 插入成功，返回 true
+        assertThat(stores().sessionStateStore().putIfAbsent(sessionId,
+                new StateEntry("dedup.tool-A.k1", "", "dedup:pending", 3, null, Instant.now()))).isTrue();
+        // 键已存在 → 不覆盖，返回 false；原值保留
+        assertThat(stores().sessionStateStore().putIfAbsent(sessionId,
+                new StateEntry("dedup.tool-A.k1", "filled", "dedup:filled", 3, null, Instant.now()))).isFalse();
+        assertThat(stores().sessionStateStore().get(sessionId, "dedup.tool-A.k1")).isPresent()
+                .get().extracting(StateEntry::value).isEqualTo("");
+        // reserve 成功后由持有者 put 回填（reserve-then-fill 语义：持有者拥有键，可直接覆写）
+        stores().sessionStateStore().put(sessionId,
+                new StateEntry("dedup.tool-A.k1", "result-1", "dedup:filled", 3, null, Instant.now()));
+        assertThat(stores().sessionStateStore().get(sessionId, "dedup.tool-A.k1")).isPresent()
+                .get().extracting(StateEntry::value).isEqualTo("result-1");
+        // 不同键各自独立 reserve
+        assertThat(stores().sessionStateStore().putIfAbsent(sessionId,
+                new StateEntry("dedup.tool-A.k2", "", "dedup:pending", 3, null, Instant.now()))).isTrue();
     }
 
     @Test
@@ -217,5 +240,67 @@ public abstract class AbstractBuzhouStoresContractTest {
         assertThatThrownBy(() -> stores().unitOfWork().executeInTransaction("session-x", () -> {
             throw new IllegalStateException("boom");
         })).isInstanceOf(IllegalStateException.class);
+    }
+
+    // ---- 持久化强度三档（spec「崩溃中轮次恢复 / 持久化强度三档」）：并发观测，三后端一致 ----
+
+    @Test
+    void durabilityTierSyncWritesImmediatelyVisibleToOtherHandle() {
+        String sessionId = "contract-tier-sync-" + UUID.randomUUID();
+        BuzhouStores tiered = DurabilityTieredStores.wrap(stores(), DurabilityTier.SYNC);
+        tiered.messageStore().append(sessionId, List.of(msg(sessionId, 1, 0, Role.USER)));
+        // SYNC：写直达——经另一句柄（底层存储）立即可见，相邻步骤间崩溃至多丢在途那一步
+        assertThat(stores().messageStore().load(sessionId)).hasSize(1);
+    }
+
+    @Test
+    void durabilityTierAsyncWritesReachUnderlyingStore() {
+        String sessionId = "contract-tier-async-" + UUID.randomUUID();
+        BuzhouStores tiered = DurabilityTieredStores.wrap(stores(), DurabilityTier.ASYNC);
+        tiered.messageStore().append(sessionId, List.of(msg(sessionId, 1, 0, Role.USER)));
+        // ASYNC（默认档）：内存 / JDBC / Redis 的 append 本身即「shortly after 持久」语义边界
+        assertThat(stores().messageStore().load(sessionId)).hasSize(1);
+    }
+
+    @Test
+    void durabilityTierExitBuffersUntilFlush() {
+        String sessionId = "contract-tier-exit-" + UUID.randomUUID();
+        BuzhouStores tiered = DurabilityTieredStores.wrap(stores(), DurabilityTier.EXIT);
+        tiered.messageStore().append(sessionId, List.of(msg(sessionId, 1, 0, Role.USER)));
+        tiered.sessionStateStore().put(sessionId,
+                new StateEntry("fact.k", "v", "hook", 1, null, Instant.now()));
+
+        // 读侧穿透：本会话视图仍见自己的写（编排方不按档位分支）
+        assertThat(tiered.messageStore().load(sessionId)).hasSize(1);
+        assertThat(tiered.sessionStateStore().get(sessionId, "fact.k")).isPresent();
+        // 并发观测：flush 前底层不可见（崩溃丢整轮，由恢复语义兜底）
+        assertThat(stores().messageStore().load(sessionId)).isEmpty();
+        assertThat(stores().sessionStateStore().get(sessionId, "fact.k")).isEmpty();
+
+        // flush（会话谢幕 / 06 drain 钩子）后批量落底层
+        DurabilityTieredStores.flush(tiered);
+        assertThat(stores().messageStore().load(sessionId)).hasSize(1);
+        assertThat(stores().sessionStateStore().get(sessionId, "fact.k")).isPresent()
+                .get().extracting(StateEntry::value).isEqualTo("v");
+        // flush 幂等：重复 flush 不重复落库
+        DurabilityTieredStores.flush(tiered);
+        assertThat(stores().messageStore().load(sessionId)).hasSize(1);
+    }
+
+    @Test
+    void durabilityTierExitDedupRecordsWriteThrough() {
+        String sessionId = "contract-tier-exit-dedup-" + UUID.randomUUID();
+        BuzhouStores tiered = DurabilityTieredStores.wrap(stores(), DurabilityTier.EXIT);
+        // dedup. 前缀的幂等去重记录是恰好一次语义的崩溃凭证：EXIT 档下写直达底层、不入缓冲
+        StateEntry record = new StateEntry("dedup.charge.tc-1", "Fcharged", "dedup", 0, null,
+                Instant.now());
+        assertThat(tiered.sessionStateStore().putIfAbsent(sessionId, record)).isTrue();
+        assertThat(tiered.sessionStateStore().putIfAbsent(sessionId, record)).isFalse();
+
+        // flush 前底层已可见（与普通 state 键的缓冲语义相反）
+        assertThat(stores().sessionStateStore().get(sessionId, "dedup.charge.tc-1")).isPresent()
+                .get().extracting(StateEntry::value).isEqualTo("Fcharged");
+        tiered.sessionStateStore().delete(sessionId, "dedup.charge.tc-1");
+        assertThat(stores().sessionStateStore().get(sessionId, "dedup.charge.tc-1")).isEmpty();
     }
 }

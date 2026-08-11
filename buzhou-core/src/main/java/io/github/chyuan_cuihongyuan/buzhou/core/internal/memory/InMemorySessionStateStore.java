@@ -55,4 +55,12 @@ public class InMemorySessionStateStore implements SessionStateStore {
         });
         return removed[0];
     }
+
+    @Override
+    public boolean putIfAbsent(String sessionId, StateEntry entry) {
+        // computeIfAbsent 对单 key 原子：仅当键不存在时置入，返回值非 null 表示已存在
+        ConcurrentHashMap<String, StateEntry> session =
+                bySession.computeIfAbsent(sessionId, k -> new ConcurrentHashMap<>());
+        return session.putIfAbsent(entry.key(), entry) == null;
+    }
 }

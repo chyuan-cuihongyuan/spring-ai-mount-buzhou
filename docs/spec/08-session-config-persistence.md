@@ -119,7 +119,7 @@ public interface AgentSession extends AutoCloseable {
 
 - 同一会话同时只允许一个活跃 AgentSession：spawn 时向 `SessionLeaseStore` 抢租约，已被持有则第二个 spawn 抛 `SessionAlreadyActiveException`。
 - `SpawnOptions.steal=true` 时强制夺权：租约强制过户，原持有实例的下一次写操作（或心跳续约）发现租约丢失，其会话被框架置为失效（后续 `chat` 抛 `LeaseLostException`，触发本地资源清理）。
-- 租约带 TTL，活跃会话期间由框架心跳续约；实例崩溃后租约到期自然释放，其他实例可接管续接。
+- 租约带 TTL，活跃会话期间由框架心跳续约（`LeaseHeartbeat`，间隔默认 30s，见 [11 崩溃中轮次恢复](11-crash-recovery.md)）；实例崩溃后租约到期自然释放，其他实例可接管续接。
 
 > 【推演】租约持有者宕机与租约过期之间存在窗口期，期间旧持有者仍可能写库。为防脑裂写，租约记录携带 fencing token（单调递增序号），每次租约变更 +1；MessageStore/SessionStateStore 的写路径在 unit-of-work 内校验「携带 token ≥ 库内 token」。该校验是否默认开启见「开放问题」。
 
@@ -156,6 +156,13 @@ public interface SessionStateStore {
      * JDBC 用带 value 条件的 DELETE（影响行数判定），Redis 用 Lua 比价后 DEL，内存用 ConcurrentHashMap.remove(key, value)。
      */
     boolean deleteIfValueMatches(String sessionId, String key, String expectedValue);
+
+    /**
+     * 原子 put-if-absent（11 崩溃恢复 / 幂等三件套增补）：仅当键不存在时插入。
+     * 幂等去重「reserve 一条 pending 记录」依赖本方法；默认实现为非原子兜底，
+     * 生产后端必须覆写（JDBC 主键冲突判定 / Redis Lua / 内存 CHM）。
+     */
+    default boolean putIfAbsent(String sessionId, StateEntry entry);
 }
 
 public record StateEntry(String key, String value, String producer,
@@ -306,6 +313,10 @@ buzhou:
     "mcp_prod_*":    { hitl: required, spill-threshold-chars: 16000 }
     "*":             { micro-compaction: { max-age-turns: 3, min-size-chars: 200 } }
   memory:    { enabled: true }    # 微压缩/摘要/悬空修复，见 01
+  recovery:                       # 崩溃中轮次恢复 + 幂等，见 11
+    enabled: true                 # 机制总开关（safe-by-default）
+    durability-tier: ASYNC        # SYNC / ASYNC（默认）/ EXIT
+    resume-strategy: VOID         # VOID（默认）/ AUTO_RESUME（无人值守 opt-in）
   spill:     { enabled: true }    # 见 02
   observability: { enabled: true } # 见 03
   guard:     { enabled: true }    # HITL + 联动闭环，见 07

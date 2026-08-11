@@ -1,5 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.exec;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.DedupGate;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -48,6 +49,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private final Map<String, String> serialGroups;
     private final SpanContextCarrier spanContextCarrier;
     private final String sessionId;
+    private final DedupGate dedupGate;
     private final ConcurrentHashMap<String, Object> groupLocks = new ConcurrentHashMap<>();
     private final List<Future<?>> inFlight = new CopyOnWriteArrayList<>();
 
@@ -76,6 +78,18 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                                      Map<String, String> serialGroups,
                                      SpanContextCarrier spanContextCarrier,
                                      String sessionId) {
+        this(delegate, executor, maxConcurrencyPerTurn, toolTimeout, serialGroups,
+                spanContextCarrier, sessionId, null);
+    }
+
+    public HarnessToolCallingManager(DefaultToolCallingManager delegate,
+                                     ExecutorService executor,
+                                     int maxConcurrencyPerTurn,
+                                     Duration toolTimeout,
+                                     Map<String, String> serialGroups,
+                                     SpanContextCarrier spanContextCarrier,
+                                     String sessionId,
+                                     DedupGate dedupGate) {
         this.delegate = delegate;
         this.executor = executor;
         this.turnPermits = new Semaphore(maxConcurrencyPerTurn);
@@ -83,6 +97,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         this.serialGroups = serialGroups == null ? Map.of() : serialGroups;
         this.spanContextCarrier = spanContextCarrier;
         this.sessionId = sessionId;
+        this.dedupGate = dedupGate;
     }
 
     @Override
@@ -152,13 +167,24 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
                     "未知工具：" + toolCall.name());
         }
+        // 幂等去重（spec「幂等三件套」）：调用前原子 reserve；命中已回填结果则直接返回首次结果、
+        // 不重执行（重试/恢复两条路径都经此闸门 → 效果恰好一次）
+        String dedupKey = null;
+        if (dedupGate != null && sessionId != null) {
+            dedupKey = dedupGate.keyOf(toolCall.name(), toolCall.id(), toolCall.arguments(), toolContext);
+            if (!dedupGate.recorder().reserve(sessionId, dedupKey)) {
+                return dedupHitResponse(toolCall, dedupKey);
+            }
+        }
         Object lock = groupLock(toolCall.name());
         synchronized (lock) {
             String result;
+            boolean succeeded = false;
             try {
                 turnPermits.acquire();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                releaseDedup(dedupKey);
                 return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
                         "执行被中断");
             }
@@ -166,6 +192,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             inFlight.add(task);
             try {
                 result = task.get(toolTimeout.toMillis(), TimeUnit.MILLISECONDS);
+                succeeded = true;
             } catch (java.util.concurrent.CancellationException e) {
                 result = "执行已取消";
             } catch (TimeoutException e) {
@@ -177,7 +204,34 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 inFlight.remove(task);
                 turnPermits.release();
             }
+            // 成功才回填（崩溃窗口「已执行、未落库」内结果已被捕获）；失败/超时/取消释放 pending 允许重试
+            if (dedupKey != null) {
+                if (succeeded) {
+                    dedupGate.recorder().fill(sessionId, dedupKey, result);
+                } else {
+                    dedupGate.recorder().release(sessionId, dedupKey);
+                }
+            }
             return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), result);
+        }
+    }
+
+    /** 去重命中：等持有者回填后返回首次结果；超时仍 pending / 记录消失按交断语义处理（不重执行）。 */
+    private ToolResponseMessage.ToolResponse dedupHitResponse(AssistantMessage.ToolCall toolCall,
+                                                              String dedupKey) {
+        java.util.Optional<String> filled = dedupGate.recorder().awaitFilled(sessionId, dedupKey, toolTimeout);
+        if (filled.isPresent()) {
+            dedupGate.emitHit(toolCall.name(), dedupKey);
+            return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), filled.get());
+        }
+        // 前次执行结果未知（崩溃窗口）：与悬空修复交断语义一致，交由模型知情，不擅自重执行副作用
+        return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
+                io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DanglingCallRepairer.INTERRUPTED_RESULT);
+    }
+
+    private void releaseDedup(String dedupKey) {
+        if (dedupKey != null) {
+            dedupGate.recorder().release(sessionId, dedupKey);
         }
     }
 

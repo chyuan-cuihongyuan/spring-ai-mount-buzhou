@@ -143,6 +143,7 @@ HITL 确认往返、Onload 写侧拦截、MCP 差量刷新等专项时序见各�
 | 08 | [会话、配置与持久化](08-session-config-persistence.md) | 双层 API + 四层配置 + 五 SPI | spawn/enhance；PolicyConfigProvider；unit-of-work；全保真消息模型+ChatMemory 适配器 |
 | 09 | [模块与工程化](09-modules-engineering.md) | 16 模块 + 发布工程 | 星形依赖无环；buzhou-* 前缀；Central Portal；模块自装配 |
 | 10 | [模型韧性层](10-resilience.md) | 重试 + 统一超时 + 归一化错误分类 + onModelError | ResilienceAdvisor 最内层包裹单次模型调用；五类分类（限流/鉴权/内容/网络/未知）；指数退避+抖动+Retry-After；deadline+cancel 共用中断路径；onModelError 兜底/放行 |
+| 11 | [崩溃中轮次恢复 + 幂等](11-crash-recovery.md) | 恢复语义分档 + 持久化强度三档 + 幂等三件套 + 租约心跳 | core 扩展不新增模块/SPI；VOID 默认 / AUTO_RESUME opt-in；SYNC/ASYNC/EXIT 存储侧分档；reserve-then-fill 去重 = 效果恰好一次；心跳续约修补长轮次误判崩溃 |
 
 ## 推演清单
 
