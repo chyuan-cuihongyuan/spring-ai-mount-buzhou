@@ -13,13 +13,16 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.convert.DurationStyle;
 import org.springframework.context.annotation.Bean;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +43,8 @@ import java.util.List;
  * <b>不</b>暴露为 bean，避免被 {@code List<RuntimeConfig>} 自收集（无环）。
  */
 @AutoConfiguration
-@EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRecoveryProperties.class})
+@EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRecoveryProperties.class,
+        BuzhouShutdownProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     @Bean
@@ -82,5 +86,31 @@ public class BuzhouCoreAutoConfiguration {
         RuntimeConfig merged = RuntimeConfig.merge(all.toArray(new RuntimeConfig[0]));
         return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
                 recoveryProperties.toRecoveryConfig());
+    }
+
+    /**
+     * drain 生命周期 bean（spec「06 优雅停机 · SmartLifecycle 装配」）。
+     *
+     * <p>safe-by-default：{@code buzhou.shutdown.enabled} 默认开；用户可经 {@code @ConditionalOnMissingBean}
+     * 覆盖。Spring 停机时触发与编程式入口同一 drain 编排（Spring 只是触发器）。
+     *
+     * <p>超时派生优先级：{@code buzhou.shutdown.drain-timeout}（显式配置）>
+     * {@code spring.lifecycle.timeout-per-shutdown-phase}（Boot 4 内建属性，默认 30s）。
+     * 不裸读 {@code Environment}——经 {@link BuzhouShutdownProperties} + {@link Value} 声明式注入。
+     */
+    @Bean
+    @ConditionalOnBean(AgentRuntime.class)
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "buzhou.shutdown", name = "enabled", matchIfMissing = true)
+    public BuzhouDrainLifecycle buzhouDrainLifecycle(AgentRuntime runtime,
+                                                     BuzhouShutdownProperties shutdownProperties,
+                                                     @Value("${spring.lifecycle.timeout-per-shutdown-phase:30s}")
+                                                     String springPhaseTimeoutStr) {
+        // @Value 不经 ApplicationConversionService（ApplicationContextRunner 无 Duration 转换器），
+        // 故注入 String 后用 DurationStyle 解析（与 @ConfigurationProperties 的 Duration 绑定同口径）
+        Duration springPhaseTimeout = DurationStyle.detect(springPhaseTimeoutStr).parse(springPhaseTimeoutStr);
+        Duration effective = shutdownProperties.drainTimeout() != null
+                ? shutdownProperties.drainTimeout() : springPhaseTimeout;
+        return new BuzhouDrainLifecycle(runtime, effective);
     }
 }
