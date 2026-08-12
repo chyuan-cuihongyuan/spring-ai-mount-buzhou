@@ -31,7 +31,25 @@ public record ResilienceProperties(
         Double multiplier,
         Double jitter,
         List<String> retryableCategories,
-        Duration deadline) {
+        Duration deadline,
+        RateLimit rateLimit) {
+
+    /**
+     * 模型 RPM+TPM 双桶限流参数组（spec「背压 · 维度③」）。
+     *
+     * <p>前缀 {@code buzhou.resilience.rate-limit}。boxed null = 不限（safe-by-default）。
+     *
+     * @param requestsPerMinute 每分钟请求数上限（null = 不限）
+     * @param tokensPerMinute   每分钟 token 数上限（null = 不限；TPM 事后记账+下次预检=平均速率保护）
+     * @param queueTimeout      QUEUE 档排队超时（null = 取保守默认 30s）
+     * @param overloadPolicy    过载策略（null = QUEUE；FAIL_FAST = 不排队直接拒）
+     */
+    public record RateLimit(
+            Integer requestsPerMinute,
+            Integer tokensPerMinute,
+            Duration queueTimeout,
+            String overloadPolicy) {
+    }
 
     public ResilienceProperties {
         enabled = enabled == null ? true : enabled;
@@ -43,10 +61,24 @@ public record ResilienceProperties(
         retryableCategories = retryableCategories == null || retryableCategories.isEmpty()
                 ? List.of("RATE_LIMIT", "NETWORK") : List.copyOf(retryableCategories);
         deadline = deadline == null ? Duration.ofSeconds(60) : deadline;
+        // rateLimit 保持 null = 未配置（不限），由模块层判定
     }
 
     /** 全默认（装配测试 / 兜底用）。 */
     public static ResilienceProperties defaults() {
-        return new ResilienceProperties(null, null, null, null, null, null, null, null);
+        return new ResilienceProperties(null, null, null, null, null, null, null, null, null);
+    }
+
+    /** rate-limit 过载策略生效值（null / 非法值落回 QUEUE 默认档）。 */
+    public io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy effectiveRateLimitOverloadPolicy() {
+        if (rateLimit == null || rateLimit.overloadPolicy() == null || rateLimit.overloadPolicy().isBlank()) {
+            return io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy.QUEUE;
+        }
+        try {
+            return io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy.valueOf(
+                    rateLimit.overloadPolicy().trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy.QUEUE;
+        }
     }
 }

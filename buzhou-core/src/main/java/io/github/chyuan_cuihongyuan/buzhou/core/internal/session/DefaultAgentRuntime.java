@@ -1,5 +1,9 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy;
+import io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate;
+import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties;
+import io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.InterruptedTurnDetector;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.LeaseHeartbeat;
 import io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoveryConfig;
@@ -11,6 +15,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeDrainingException
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
@@ -28,12 +33,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -59,6 +66,11 @@ public class DefaultAgentRuntime implements AgentRuntime {
     /** spawn（读）与 drain 快照（写）互斥：drain 快照须看到所有已注册会话，不孤儿刚 assemble 完的会话。 */
     private final ReentrantReadWriteLock drainLock = new ReentrantReadWriteLock();
 
+    /** spawn 闸（spec「背压 · 维度①」）：null = 不限并发会话（默认，safe-by-default）。 */
+    private final SpawnGate spawnGate;
+    /** 运行时级事件监听器：收会话建立<b>前</b>的事件（backpressure.spawn-queued / spawn-rejected）。 */
+    private final List<SessionEventListener> runtimeListeners = new CopyOnWriteArrayList<>();
+
     public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
                                HarnessAssembler assembler, RuntimeConfig config,
                                ToolCallback... tools) {
@@ -70,12 +82,69 @@ public class DefaultAgentRuntime implements AgentRuntime {
                                HarnessAssembler assembler, RuntimeConfig config,
                                RecoveryConfig recoveryConfig,
                                ToolCallback... tools) {
+        this(chatModel, stores, assembler, config, recoveryConfig, BuzhouBackpressureProperties.defaults(), tools);
+    }
+
+    /**
+     * 带背压配置的 runtime（spec「背压与多层限流」）。
+     *
+     * @param backpressureProperties 背压参数（spawn 闸 + 工具扇出闸）；{@code null} 等效 {@code defaults()}（不限）
+     */
+    public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
+                               HarnessAssembler assembler, RuntimeConfig config,
+                               RecoveryConfig recoveryConfig,
+                               BuzhouBackpressureProperties backpressureProperties,
+                               ToolCallback... tools) {
         this.chatModel = chatModel;
         this.stores = stores;
         this.assembler = assembler;
         this.config = config == null ? RuntimeConfig.defaults() : config;
         this.recoveryConfig = recoveryConfig == null ? RecoveryConfig.disabled() : recoveryConfig;
         this.tools = tools == null ? new ToolCallback[0] : tools.clone();
+
+        BuzhouBackpressureProperties bp = backpressureProperties == null
+                ? BuzhouBackpressureProperties.defaults() : backpressureProperties;
+        // 工具扇出闸参数接线（消除硬编码 8 / 60s；permitAcquireTimeout 按 FAIL_FAST 档映射为 ZERO）
+        if (bp.enabled() && bp.tool() != null) {
+            BuzhouBackpressureProperties.Tool t = bp.tool();
+            int maxPerTurn = t.maxConcurrentPerTurn() != null
+                    ? t.maxConcurrentPerTurn() : HarnessToolCallingManager.DEFAULT_MAX_CONCURRENT_PER_TURN;
+            Duration timeout = t.toolTimeout() != null
+                    ? t.toolTimeout() : HarnessToolCallingManager.DEFAULT_TOOL_TIMEOUT;
+            Duration permitTimeout = t.permitAcquireTimeout();
+            if (bp.effectiveToolOverloadPolicy() == OverloadPolicy.FAIL_FAST) {
+                permitTimeout = Duration.ZERO;
+            }
+            assembler.withToolFanout(maxPerTurn, timeout, permitTimeout);
+        }
+        // spawn 闸：仅当显式配置 maxConcurrentSessions 时创建（null = 不限，safe-by-default）
+        if (bp.enabled() && bp.maxConcurrentSessions() != null && bp.maxConcurrentSessions() > 0) {
+            this.spawnGate = new SpawnGate(
+                    bp.maxConcurrentSessions(),
+                    bp.effectiveSpawnQueueTimeout(),
+                    bp.effectiveSpawnOverloadPolicy(),
+                    this::runtimeEmit);
+        } else {
+            this.spawnGate = null;
+        }
+    }
+
+    @Override
+    public void addRuntimeEventListener(SessionEventListener listener) {
+        if (listener != null) {
+            runtimeListeners.add(listener);
+        }
+    }
+
+    /** 运行时级事件发射：fan-out 到所有已注册监听器（会话建立前事件，如 backpressure.spawn-*）。 */
+    private void runtimeEmit(SessionEvent event) {
+        runtimeListeners.forEach(listener -> {
+            try {
+                listener.onEvent(event);
+            } catch (RuntimeException e) {
+                log.warn("运行时级事件监听器异常 type={}", event.type(), e);
+            }
+        });
     }
 
     @Override
@@ -90,16 +159,40 @@ public class DefaultAgentRuntime implements AgentRuntime {
 
     @Override
     public AgentSession spawn(String appId, String agentName, String sessionId, SpawnOptions options) {
+        // 背压 spawn 闸（spec「背压 · 维度①」）：steal=true 接管路径不占新容量，绕过闸门。
+        // 闸门内部排队等待空位 / drain 唤醒拒绝，排队期间不持有租约——拿到空位后才走 doSpawn 全流程。
+        // 幂等释放：onClose 成功释放 vs doSpawn 失败释放，AtomicBoolean 保证恰好一次。
+        AtomicBoolean slotReleased = new AtomicBoolean(false);
+        Runnable slotReleaser = spawnGate == null ? null : () -> {
+            if (slotReleased.compareAndSet(false, true)) {
+                spawnGate.releaseSlot();
+            }
+        };
+        if (spawnGate != null && !options.steal()) {
+            spawnGate.acquireSlotOrThrow(sessionId);
+        }
         // drain 已开始：拒新 spawn（拒绝即调用方路由信号——不排队、不缓冲）。读锁内判定，避免与 drain 快照竞争
         drainLock.readLock().lock();
         try {
             if (drainFuture.get() != null) {
+                // drain 在闸门等待期间置位：释放已获取的空位后抛拒新异常
+                if (slotReleaser != null) {
+                    slotReleaser.run();
+                }
                 throw new RuntimeDrainingException(sessionId);
             }
             TurnGate turnGate = new TurnGate();
-            AgentSession assembled = doSpawn(appId, agentName, sessionId, options, turnGate);
-            liveSessions.put(sessionId, new LiveSession(assembled, turnGate));
-            return assembled;
+            try {
+                AgentSession assembled = doSpawn(appId, agentName, sessionId, options, turnGate, slotReleaser);
+                liveSessions.put(sessionId, new LiveSession(assembled, turnGate));
+                return assembled;
+            } catch (RuntimeException e) {
+                // doSpawn 失败（如 SessionAlreadyActiveException / 装配异常）：释放空位后重新抛出
+                if (slotReleaser != null) {
+                    slotReleaser.run();
+                }
+                throw e;
+            }
         } finally {
             drainLock.readLock().unlock();
         }
@@ -119,6 +212,10 @@ public class DefaultAgentRuntime implements AgentRuntime {
                 return awaitExistingDrain(existing, budget);
             }
             drainFuture.set(future);
+            // 背压 spawn 闸：唤醒全部排队等待者（drain 置位 → 等待者抛 RuntimeDrainingException）
+            if (spawnGate != null) {
+                spawnGate.signalDrainStarted();
+            }
             snapshot = new ArrayList<>(liveSessions.values());
         } finally {
             drainLock.writeLock().unlock();
@@ -341,7 +438,7 @@ public class DefaultAgentRuntime implements AgentRuntime {
     }
 
     private AgentSession doSpawn(String appId, String agentName, String sessionId, SpawnOptions options,
-                                 TurnGate turnGate) {
+                                 TurnGate turnGate, Runnable slotReleaser) {
         java.time.Duration leaseTtl = recoveryConfig.leaseTtl();
         LeaseAcquireResult lease = stores.sessionLeaseStore().tryAcquire(sessionId, ownerId, leaseTtl);
         if (!lease.acquired()) {
@@ -390,13 +487,17 @@ public class DefaultAgentRuntime implements AgentRuntime {
                 idempotentToolNames.add(meta.name());
             }
         }
-        // onClose 回调链：既有 registry.closeAll（谢幕资源 LIFO close）+ drain 台账注销。
-        // 经既有 onClose 回调链挂上，不新增会话生命周期切面；try/finally 保证台账注销不因 closeAll 失败遗漏。
+        // onClose 回调链：既有 registry.closeAll（谢幕资源 LIFO close）+ drain 台账注销 + 背压空位释放。
+        // 经既有 onClose 回调链挂上，不新增会话生命周期切面；try/finally 保证台账注销与空位释放不因 closeAll 失败遗漏。
+        // slotReleaser 自身幂等（AtomicBoolean），与 spawn() catch 块的失败释放不冲突。
         Runnable onClose = () -> {
             try {
                 registry.closeAll();
             } finally {
                 liveSessions.remove(sessionId);
+                if (slotReleaser != null) {
+                    slotReleaser.run();
+                }
             }
         };
         // 轮次在途门闸经 customizer 注册为 observer（drain 等待当前轮次完结用，覆盖 chat/stream/AUTO_RESUME）

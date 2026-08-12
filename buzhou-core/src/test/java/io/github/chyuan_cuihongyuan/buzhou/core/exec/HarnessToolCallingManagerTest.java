@@ -189,4 +189,56 @@ class HarnessToolCallingManagerTest {
         assertThat(responses.getResponses().getFirst().responseData())
                 .isIn("interrupted", "执行已取消");
     }
+
+    /** 许可获取超时（permitAcquireTimeout）后该工具返回错误结果并发射事件，不吊死轮次。 */
+    @Test
+    void permitAcquireTimeoutReturnsErrorResultAndEmitsEvent() throws Exception {
+        CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> events =
+                new java.util.concurrent.CopyOnWriteArrayList<>();
+        ToolCallback block = new ToolCallback() {
+            @Override
+            public ToolDefinition getToolDefinition() {
+                return ToolDefinition.builder().name("block").description("d")
+                        .inputSchema("{}").build();
+            }
+
+            @Override
+            public String call(String toolInput) {
+                started.countDown();
+                try {
+                    release.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return "block-done";
+            }
+        };
+        ToolCallback fast = tool("fast", 0, "fast-done");
+        // maxConcurrentPerTurn=1 + permitAcquireTimeout=100ms
+        HarnessToolCallingManager manager = new HarnessToolCallingManager(
+                DefaultToolCallingManager.builder().build(),
+                Executors.newVirtualThreadPerTaskExecutor(),
+                1, Duration.ofSeconds(5), Duration.ofMillis(100),
+                Map.of(), null, "sess-permit", null, events::add);
+
+        // 先在另一线程上启动 block——它拿到许可后不释放（等 release）
+        java.util.concurrent.ExecutorService vt = Executors.newVirtualThreadPerTaskExecutor();
+        java.util.concurrent.Future<ToolExecutionResult> blockFuture = vt.submit(
+                () -> execute(manager, List.of(block), call("1", "block")));
+        assertThat(started.await(2, TimeUnit.SECONDS)).isTrue();
+
+        // 此时 block 持有许可——fast 必然超时
+        ToolExecutionResult fastResult = execute(manager, List.of(fast), call("2", "fast"));
+        ToolResponseMessage fastResponses = (ToolResponseMessage) fastResult.conversationHistory().getLast();
+        assertThat(fastResponses.getResponses().getFirst().responseData()).contains("许可等待超时");
+        assertThat(events).anyMatch(e -> HarnessToolCallingManager.EVENT_TOOL_PERMIT_TIMEOUT
+                .equals(e.type()));
+
+        // 释放 block → 首次调用完结
+        release.countDown();
+        blockFuture.get(5, TimeUnit.SECONDS);
+        vt.shutdownNow();
+    }
 }

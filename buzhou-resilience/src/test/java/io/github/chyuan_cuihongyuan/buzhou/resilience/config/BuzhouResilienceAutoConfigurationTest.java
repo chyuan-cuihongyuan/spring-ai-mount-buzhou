@@ -46,4 +46,32 @@ class BuzhouResilienceAutoConfigurationTest {
             assertThat(props.jitter()).isEqualTo(0.0);
         });
     }
+
+    // ---- 限流配置绑定（spec「背压 · 维度③」） ----
+
+    @Test
+    void rateLimitDefaultsToNull() {
+        runner.run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.rateLimit()).isNull();  // null = 不限（safe-by-default）
+        });
+    }
+
+    @Test
+    void rateLimitYmlOverridesBindToProperties() {
+        runner.withPropertyValues(
+                "buzhou.resilience.rate-limit.requests-per-minute=100",
+                "buzhou.resilience.rate-limit.tokens-per-minute=50000",
+                "buzhou.resilience.rate-limit.queue-timeout=10s",
+                "buzhou.resilience.rate-limit.overload-policy=FAIL_FAST"
+        ).run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.rateLimit()).isNotNull();
+            assertThat(props.rateLimit().requestsPerMinute()).isEqualTo(100);
+            assertThat(props.rateLimit().tokensPerMinute()).isEqualTo(50000);
+            assertThat(props.rateLimit().queueTimeout()).isEqualTo(Duration.ofSeconds(10));
+            assertThat(props.effectiveRateLimitOverloadPolicy())
+                    .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy.FAIL_FAST);
+        });
+    }
 }

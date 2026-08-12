@@ -37,7 +37,7 @@ class StreamingResilienceEndToEndTest {
     void streamTimeoutFiresAndTerminates() {
         StreamScriptedModel model = new StreamScriptedModel(Flux.never());
         ResilienceProperties props = new ResilienceProperties(true, 1,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofMillis(50));
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofMillis(50), null);
 
         AgentSession session = newRuntime(model, props, List.of());
         List<SessionEvent> events = listen(session);
@@ -55,7 +55,7 @@ class StreamingResilienceEndToEndTest {
     void streamErrorClassifiedWithFallback() {
         StreamScriptedModel model = new StreamScriptedModel(Flux.error(networkError("boom")));
         ResilienceProperties props = new ResilienceProperties(true, 3,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(5));
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(5), null);
 
         AgentSession session = newRuntime(model, props, List.of(fallbackHook("流式兜底")));
         List<SessionEvent> events = listen(session);
@@ -71,7 +71,7 @@ class StreamingResilienceEndToEndTest {
     void streamFailureDoesNotRetryMidStream() {
         StreamScriptedModel model = new StreamScriptedModel(Flux.error(networkError("boom")));
         ResilienceProperties props = new ResilienceProperties(true, 3,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(5));
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(5), null);
 
         AgentSession session = newRuntime(model, props, List.of());
         List<SessionEvent> events = listen(session);

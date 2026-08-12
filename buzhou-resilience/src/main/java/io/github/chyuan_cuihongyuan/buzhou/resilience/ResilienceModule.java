@@ -1,5 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.resilience;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
@@ -7,6 +8,8 @@ import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCallInFlight;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties;
+import io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter;
+import io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -17,7 +20,7 @@ import java.util.concurrent.Executors;
  *
  * <p>独立可用、仅依赖 {@code buzhou-core}，遵守星形依赖白名单（不与 memory/spill/guard/tools/store-* 互依）。
  * {@link #configure(ResilienceProperties)} 返回一个只含「装配定制器」的 {@link RuntimeConfig}：
- * 定制器在会话装配期把 {@link ResilienceAdvisor} 注入 ChatClient advisor 链最内层。
+ * 定制器在会话装配期把 {@link ResilienceAdvisor} + {@link RateLimitAdvisor}（如配置了限流）注入 ChatClient advisor 链。
  *
  * <p>装配形态对齐 {@code ObservabilityModule}（贡献 advisor 而非 hook 的模块）：
  * core 收集所有 {@link RuntimeConfig} bean 并 merge，故自装配侧只需暴露一个 {@code RuntimeConfig} bean。
@@ -29,28 +32,53 @@ public final class ResilienceModule {
 
     /**
      * @param properties 韧性参数（null 字段取规范默认）
-     * @return 含一个装配定制器的 {@link RuntimeConfig}；{@code enabled=false} 时返回 {@link RuntimeConfig#defaults()}（不注入 advisor）
+     * @return 含装配定制器的 {@link RuntimeConfig}；{@code enabled=false} 时返回 {@link RuntimeConfig#defaults()}（不注入 advisor）
      */
     public static RuntimeConfig configure(ResilienceProperties properties) {
+        return configure(properties, null);
+    }
+
+    /**
+     * 带模型名的配置入口（spec「背压 · 维度③」）。
+     *
+     * @param modelName 模型名（RPM/TPM 分桶键；null = "unknown"）
+     */
+    public static RuntimeConfig configure(ResilienceProperties properties, String modelName) {
         if (!properties.enabled()) {
             return RuntimeConfig.defaults();
         }
         ProviderErrorClassifier classifier = new DefaultErrorClassifier();
         return RuntimeConfig.assemblyCustomizers(
-                List.of(new ResilienceAssemblyCustomizer(properties, classifier)));
+                List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName)));
     }
 
     static final class ResilienceAssemblyCustomizer implements SessionAssemblyCustomizer {
         private final ResilienceProperties properties;
         private final ProviderErrorClassifier classifier;
+        private final String modelName;
 
-        ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier) {
+        ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
+                                     String modelName) {
             this.properties = properties;
             this.classifier = classifier;
+            this.modelName = modelName;
         }
 
         @Override
         public void customize(SessionAssemblyContext ctx) {
+            // 限流 Advisor（spec「背压 · 维度③」）：先于 ResilienceAdvisor 注入（order +650 < +700）
+            ResilienceProperties.RateLimit rl = properties.rateLimit();
+            if (rl != null) {
+                ModelRateLimiter limiter = new ModelRateLimiter(
+                        rl.requestsPerMinute(),
+                        rl.tokensPerMinute(),
+                        rl.queueTimeout(),
+                        properties.effectiveRateLimitOverloadPolicy(),
+                        ctx::emitEvent);
+                if (limiter.isEnabled()) {
+                    ctx.addAdvisor(new RateLimitAdvisor(limiter, modelName));
+                }
+            }
             // 虚拟线程执行器：deadline 兜底 + cancel 中断在途模型调用复用同一条路径。
             // 每会话一个，随会话关闭由 ResilienceSessionObserver.shutdownNow()。
             ExecutorService deadlineExecutor = Executors.newVirtualThreadPerTaskExecutor();

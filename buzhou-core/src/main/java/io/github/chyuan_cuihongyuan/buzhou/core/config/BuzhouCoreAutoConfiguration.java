@@ -44,7 +44,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRecoveryProperties.class,
-        BuzhouShutdownProperties.class})
+        BuzhouShutdownProperties.class, BuzhouBackpressureProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /** Boot 4 {@code spring.lifecycle.timeout-per-shutdown-phase} 的规范默认（drain 超时派生兜底）。 */
@@ -67,7 +67,8 @@ public class BuzhouCoreAutoConfiguration {
                                            List<SessionAssemblyCustomizer> assemblyCustomizers,
                                            List<SessionResourceCustomizer> resourceCustomizers,
                                            ObjectProvider<MemoryViewProcessor> viewProcessor,
-                                           BuzhouRecoveryProperties recoveryProperties) {
+                                           BuzhouRecoveryProperties recoveryProperties,
+                                           BuzhouBackpressureProperties backpressureProperties) {
         List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
         // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
         if (!hooks.isEmpty()) {
@@ -88,7 +89,7 @@ public class BuzhouCoreAutoConfiguration {
         }
         RuntimeConfig merged = RuntimeConfig.merge(all.toArray(new RuntimeConfig[0]));
         return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
-                recoveryProperties.toRecoveryConfig());
+                recoveryProperties.toRecoveryConfig(), backpressureProperties);
     }
 
     /**

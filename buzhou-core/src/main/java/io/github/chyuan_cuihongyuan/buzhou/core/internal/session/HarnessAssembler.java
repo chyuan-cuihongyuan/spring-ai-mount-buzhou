@@ -39,6 +39,29 @@ import java.util.concurrent.ExecutorService;
 
 public class HarnessAssembler {
 
+    private int maxConcurrentPerTurn = HarnessToolCallingManager.DEFAULT_MAX_CONCURRENT_PER_TURN;
+    private Duration toolTimeout = HarnessToolCallingManager.DEFAULT_TOOL_TIMEOUT;
+    private Duration permitAcquireTimeout = null;
+
+    /**
+     * 配置工具扇出闸参数（spec「背压 · 维度② 扇出闸」）。
+     *
+     * <p>fluent setter——在 {@code DefaultAgentRuntime} 构造期从 {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties}
+     * 派生后调用；未调用时保持现值常量（8 / 60s / 无限等待），行为不变。
+     *
+     * @param maxConcurrentPerTurn 每轮工具并发上限
+     * @param toolTimeout          单工具执行超时
+     * @param permitAcquireTimeout 扇出许可获取超时；{@code null} = 无限等待（现状），{@code ZERO} = FAIL_FAST
+     * @return this（fluent）
+     */
+    public HarnessAssembler withToolFanout(int maxConcurrentPerTurn, Duration toolTimeout,
+                                            Duration permitAcquireTimeout) {
+        this.maxConcurrentPerTurn = maxConcurrentPerTurn;
+        this.toolTimeout = toolTimeout;
+        this.permitAcquireTimeout = permitAcquireTimeout;
+        return this;
+    }
+
     public AgentSession assemble(String appId, String agentName, String sessionId,
                                  ChatModel chatModel, BuzhouStores stores,
                                  SessionResourceRegistry registry,
@@ -114,7 +137,8 @@ public class HarnessAssembler {
                 event -> env.emit(event));
         HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
                 org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
-                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier, sessionId, dedupGate);
+                executor, maxConcurrentPerTurn, toolTimeout, permitAcquireTimeout,
+                serialGroups, spanContextCarrier, sessionId, dedupGate, env::emit);
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
         memory.setViewProcessor(viewProcessor);
         memory.setRepairer(new DanglingCallRepairer(

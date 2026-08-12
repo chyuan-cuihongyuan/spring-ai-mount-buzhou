@@ -37,7 +37,7 @@ class OnModelErrorEndToEndTest {
         model.enqueueThrow(networkError("boom-1"));
         model.enqueueThrow(networkError("boom-2"));
         ResilienceProperties props = new ResilienceProperties(true, 2,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null);
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null, null);
 
         AgentSession session = newRuntime(model, props, List.of(fallbackHook("模型暂不可用，请稍后重试")));
         List<SessionEvent> events = listen(session);
@@ -54,7 +54,7 @@ class OnModelErrorEndToEndTest {
         model.enqueueThrow(networkError("boom-1"));
         model.enqueueThrow(networkError("boom-2"));
         ResilienceProperties props = new ResilienceProperties(true, 2,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null);
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null, null);
 
         AgentSession session = newRuntime(model, props, List.of());
         assertThatThrownBy(() -> session.chat("hi")).isInstanceOf(UncheckedIOException.class);
@@ -66,7 +66,7 @@ class OnModelErrorEndToEndTest {
     void timeoutTriggersFallback() throws Exception {
         ResilienceEndToEndTest.BlockingChatModel model = ResilienceEndToEndTest.BlockingChatModel.neverReturns();
         ResilienceProperties props = new ResilienceProperties(true, 1,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofMillis(50));
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofMillis(50), null);
 
         AgentSession session = newRuntime(model, props, List.of(fallbackHook("超时兜底")));
         List<SessionEvent> events = listen(session);
@@ -82,7 +82,7 @@ class OnModelErrorEndToEndTest {
         ScriptedChatModel model = new ScriptedChatModel();
         model.enqueueThrow(networkError("boom"));
         ResilienceProperties props = new ResilienceProperties(true, 1,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null);
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null, null);
 
         java.util.concurrent.atomic.AtomicReference<Throwable> seen = new java.util.concurrent.atomic.AtomicReference<>();
         AgentSession session = newRuntime(model, props, List.of(new io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook() {
@@ -104,7 +104,7 @@ class OnModelErrorEndToEndTest {
         ScriptedChatModel model = new ScriptedChatModel();
         model.enqueueThrow(networkError("boom"));
         ResilienceProperties props = new ResilienceProperties(true, 1,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null);
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null, null);
 
         AgentSession session = newRuntime(model, props, List.of(new io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook() {
             @Override

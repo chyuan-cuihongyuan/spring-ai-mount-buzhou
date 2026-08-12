@@ -86,7 +86,7 @@ class ResilienceEndToEndTest {
         model.enqueueThrow(networkError("boom"));
         model.enqueue(new AssistantMessage("ok"));
         ResilienceProperties props = new ResilienceProperties(false, 3,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null);
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null, null);
 
         AgentSession session = newRuntime(model, props);
         List<SessionEvent> events = listen(session);
@@ -144,7 +144,7 @@ class ResilienceEndToEndTest {
         model.enqueue(new AssistantMessage("ok"));
         // maxBackoff=20ms：Retry-After(100s) 钳到 20ms，测试快且证明 Retry-After 价值流向退避。
         ResilienceProperties props = new ResilienceProperties(true, 3,
-                Duration.ofMillis(1), Duration.ofMillis(20), 2.0, 0.0, null, null);
+                Duration.ofMillis(1), Duration.ofMillis(20), 2.0, 0.0, null, null, null);
 
         AgentSession session = newRuntime(model, props);
         List<SessionEvent> events = listen(session);
@@ -219,7 +219,7 @@ class ResilienceEndToEndTest {
         model.enqueueThrow(new IllegalStateException("weird"));
         model.enqueue(new AssistantMessage("ok"));
         ResilienceProperties props = new ResilienceProperties(true, 3,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, List.of("UNKNOWN"), null);
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, List.of("UNKNOWN"), null, null);
 
         AgentSession session = newRuntime(model, props);
         List<SessionEvent> events = listen(session);
@@ -238,7 +238,7 @@ class ResilienceEndToEndTest {
     void deadlineTimeoutFiresAndCancelsInFlightCall() throws Exception {
         BlockingChatModel model = BlockingChatModel.neverReturns(); // 阻塞，直到被中断
         ResilienceProperties props = new ResilienceProperties(true, 1,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofMillis(50));
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofMillis(50), null);
         AgentSession session = newRuntime(model, props);
         List<SessionEvent> events = listen(session);
 
@@ -256,7 +256,7 @@ class ResilienceEndToEndTest {
     void sessionCancelInterruptsInFlightModelCall() throws Exception {
         BlockingChatModel model = BlockingChatModel.neverReturns();
         ResilienceProperties props = new ResilienceProperties(true, 1,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(10));
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(10), null);
         AgentSession session = newRuntime(model, props);
 
         ExecutorService testExec = Executors.newVirtualThreadPerTaskExecutor();
@@ -279,7 +279,7 @@ class ResilienceEndToEndTest {
         ScriptedChatModel model = new ScriptedChatModel();
         model.enqueue(new AssistantMessage("ok"));
         ResilienceProperties props = new ResilienceProperties(true, 1,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(5));
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, Duration.ofSeconds(5), null);
         AgentSession session = newRuntime(model, props);
 
         assertThat(session.chat("hi")).isEqualTo("ok"); // 模型即时返回，5s deadline 不触发
@@ -303,7 +303,7 @@ class ResilienceEndToEndTest {
     /** 小退避、关抖动、默认可重试表 {RATE_LIMIT, NETWORK}：让重试测试快且确定。 */
     private static ResilienceProperties fastBackoff(int maxAttempts) {
         return new ResilienceProperties(true, maxAttempts,
-                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null);
+                Duration.ofMillis(1), Duration.ofMillis(10), 2.0, 0.0, null, null, null);
     }
 
     /** 一个会被默认分类器归入 NETWORK 的瞬时错误（类名含 IOException 子串）。 */
