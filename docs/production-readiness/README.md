@@ -21,7 +21,7 @@
 |---|---|---|---|
 | 03 模型层韧性 | **做** | 归一化错误五分类 + 重试（429/Retry-After）+ 统一超时；ResilienceAdvisor 执行 + Hook onModelError 切面；M2 熔断+兜底与 04 同炉 | 新模块 `buzhou-resilience`（Advisor + Hook） |
 | 05 崩溃中轮次恢复 + 幂等 | **做** | 恢复语义分档（默认轮次作废，opt-in 自动重驱动）+ 持久化强度三档（sync/async/exit，默认 async）+ 幂等三件套 `> 【推演】`；不新增 SPI，消息即检查点 | core 扩展（session/exec）+ store 契约 |
-| 06 优雅停机与会话 drain | **做** | drain 粒度 = 当前轮次完结（拒新/等轮次/超时强杀）；SmartLifecycle 四步清单；可接管性靠五 SPI+租约天然供给，无显式迁移 | core + autoconfig 扩展 |
+| 06 优雅停机与会话 drain | **做** ✅ | drain 粒度 = 当前轮次完结（拒新/等轮次/超时强杀）；SmartLifecycle 相位 DEFAULT_PHASE；可接管性靠五 SPI+租约天然供给，无显式迁移 | core + autoconfig 扩展；详设 [spec 12](../spec/12-graceful-shutdown.md) |
 | 07 背压与多层限流 | **做** | 三维挂点（spawn 并发会话上限 / 脊柱工具扇出上限 / Advisor 每模型 RPM+TPM 双桶）；过载两档（有界排队/快速失败）；网关 QPS 不做 | core（spawn/脊柱）+ resilience 模块（双桶 Advisor） |
 | 08 死循环与失控检测 | **做** | M1 数值硬顶（轮次×会话双窗口 + 按工具 + wall-clock）+ M2 确定性重复检测 `> 【推演】`；软退出通道（Attachment 注入剩余步数）+ 终止携带部分结果 | core 执行脊柱 + Hook |
 

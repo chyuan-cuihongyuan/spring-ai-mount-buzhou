@@ -150,6 +150,8 @@ graph TD
 | `buzhou.guard.enabled` | `true` | HITL 门禁 + state→Attachment 闭环 |
 | `buzhou.resilience.enabled` | `true` | 模型韧性层（重试/超时/错误分类/onModelError）；关则回退底座原生行为 |
 | `buzhou.tools.enabled` | `true` | 内置原子工具（危险工具仍 opt-in，见 06 号专档） |
+| `buzhou.shutdown.enabled` | `true` | 优雅停机 drain 生命周期 bean（core 内置，非独立模块；见 [12 优雅停机](12-graceful-shutdown.md)） |
+| `buzhou.shutdown.drain-timeout` | 派生自 `spring.lifecycle.timeout-per-shutdown-phase`（30s） | drain 总预算；显式配置优先 |
 | `buzhou.store.type` | `memory` | `memory` / `jdbc` / `redis`，选后两者需引入对应 store 模块 |
 
 > 【推演】上表默认值的「safe-by-default」取向出自 ticket 03「safe-by-default 项默认开」与 ticket 20 示例定位：纯增强且无副作用的机制（memory/spill/observability/skills/mcp/guard/tools）默认开；对外暴露面或仅开发期使用的（otel 导出、dashboard）默认关。store.type 三选一键名是本模块划分层的新约定，05 配置体系内落在 yml 层。

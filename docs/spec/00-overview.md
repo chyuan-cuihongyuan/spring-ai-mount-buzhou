@@ -144,6 +144,7 @@ HITL 确认往返、Onload 写侧拦截、MCP 差量刷新等专项时序见各�
 | 09 | [模块与工程化](09-modules-engineering.md) | 16 模块 + 发布工程 | 星形依赖无环；buzhou-* 前缀；Central Portal；模块自装配 |
 | 10 | [模型韧性层](10-resilience.md) | 重试 + 统一超时 + 归一化错误分类 + onModelError | ResilienceAdvisor 最内层包裹单次模型调用；五类分类（限流/鉴权/内容/网络/未知）；指数退避+抖动+Retry-After；deadline+cancel 共用中断路径；onModelError 兜底/放行 |
 | 11 | [崩溃中轮次恢复 + 幂等](11-crash-recovery.md) | 恢复语义分档 + 持久化强度三档 + 幂等三件套 + 租约心跳 | core 扩展不新增模块/SPI；VOID 默认 / AUTO_RESUME opt-in；SYNC/ASYNC/EXIT 存储侧分档；reserve-then-fill 去重 = 效果恰好一次；心跳续约修补长轮次误判崩溃 |
+| 12 | [优雅停机与会话 drain](12-graceful-shutdown.md) | drain 三步协议 + 活跃会话台账 + SmartLifecycle 装配 | core 扩展不新增模块/SPI；拒新即路由信号；轮次粒度等待 + 超时强杀（取消传播）；可接管性靠五 SPI+租约天然供给；相位 DEFAULT_PHASE 先于 web/观测管线 |
 
 ## 推演清单
 
