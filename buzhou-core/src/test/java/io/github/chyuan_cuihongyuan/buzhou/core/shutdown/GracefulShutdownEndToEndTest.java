@@ -1,11 +1,15 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.shutdown;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
+import io.github.chyuan_cuihongyuan.buzhou.core.recovery.DurabilityTier;
+import io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoveryConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.recovery.ResumeStrategy;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.DrainResult;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeDrainingException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionResourceCustomizer;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
@@ -174,5 +178,126 @@ class GracefulShutdownEndToEndTest {
             }
         }
         throw new AssertionError("事件流中未找到类型: " + type + "，实际事件: " + events);
+    }
+
+    // ---- ticket 02: 等完在途轮次 + EXIT 档 flush 联动 ----
+
+    /** 恢复配置 helper：指定持久化档位（EXIT 档 flush 联动测试用）。 */
+    private static RecoveryConfig recoveryWithTier(DurabilityTier tier) {
+        return new RecoveryConfig(true, Duration.ofSeconds(5), Duration.ofMillis(500),
+                tier, ResumeStrategy.VOID, RecoveryConfig.DEFAULT_CRASHLOOP_HARD_CAP, true);
+    }
+
+    @Test
+    void drainWaitsForInFlightTurnThenCloses() throws Exception {
+        ScriptedChatModel model = new ScriptedChatModel();
+        BlockingTool tool = new BlockingTool("slow_op", "done");
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores, io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(),
+                recoveryWithTier(DurabilityTier.ASYNC), tool);
+
+        AgentSession session = runtime.spawn("app", "agent", "sess-inflight",
+                new SpawnOptions(false, List.of(events::add)));
+        model.enqueue(toolCall("tc-1", "slow_op"));
+        model.enqueueText("轮次完成");
+        ExecutorService vt = Executors.newVirtualThreadPerTaskExecutor();
+        Future<String> chat = vt.submit(() -> session.chat("跑长任务"));
+        // 工具已开始执行（在途轮次）：drain 不应返回
+        assertThat(tool.started.await(2, TimeUnit.SECONDS)).isTrue();
+
+        // drain 在另一虚拟线程上发起；在途轮次未完结前应阻塞
+        Future<DrainResult> drainFuture = vt.submit(() -> runtime.drain(Duration.ofSeconds(5)));
+        assertThatThrownBy(() -> drainFuture.get(500, TimeUnit.MILLISECONDS))
+                .isInstanceOf(java.util.concurrent.TimeoutException.class);
+
+        // 释放 latch → 轮次完结 → drain 返回；工具恰好执行一次
+        tool.release.countDown();
+        assertThat(chat.get(5, TimeUnit.SECONDS)).isEqualTo("轮次完成");
+        DrainResult result = drainFuture.get(5, TimeUnit.SECONDS);
+        assertThat(result.drainedCount()).isEqualTo(1);
+        assertThat(tool.calls).hasValue(1);
+
+        // drain.session.completed 事件带 sessionId + 处置方式=等完 + 耗时
+        assertThat(events).anySatisfy(e -> {
+            assertThat(e.type()).isEqualTo("drain.session.completed");
+            assertThat(e.payload())
+                    .containsEntry("sessionId", "sess-inflight")
+                    .containsEntry("disposition", "waited");
+            assertThat(e.payload()).containsKey("durationMs");
+        });
+        vt.shutdownNow();
+    }
+
+    @Test
+    void idleSessionIsClosedDirectlyWithoutWaiting() {
+        ScriptedChatModel model = new ScriptedChatModel();
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores);
+
+        runtime.spawn("app", "agent", "sess-idle-direct",
+                new SpawnOptions(false, List.of(events::add)));
+
+        // 空闲会话：drain 应迅速返回（无在途轮次可等）
+        java.time.Instant before = java.time.Instant.now();
+        DrainResult result = runtime.drain(Duration.ofSeconds(5));
+        Duration elapsed = Duration.between(before, java.time.Instant.now());
+        assertThat(result.drainedCount()).isEqualTo(1);
+        // 无在途轮次：drain 不应消耗显著时间（远低于预算）
+        assertThat(elapsed).isLessThan(Duration.ofSeconds(2));
+    }
+
+    @Test
+    void drainFlushesExitTierBufferedWritesOnClose() {
+        // durability-tier=EXIT：轮次完结但缓冲未落底层；drain 关闭会话触发既有 flush 钩子同步落盘
+        String sid = "sess-exit-drain";
+        ScriptedChatModel model = new ScriptedChatModel();
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores, io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(),
+                recoveryWithTier(DurabilityTier.EXIT));
+
+        AgentSession session = runtime.spawn("app", "agent", sid,
+                new SpawnOptions(false, List.of(events::add)));
+        model.enqueueText("完成");
+        session.chat("你好");
+        // EXIT 档：轮次完结但底层尚不可见（缓冲）
+        assertThat(stores.messageStore().load(sid)).isEmpty();
+
+        // drain 关闭会话 → 触发既有谢幕链 → EXIT flush 同步落盘
+        runtime.drain(Duration.ofSeconds(5));
+        assertThat(stores.messageStore().load(sid)).isNotEmpty();
+    }
+
+    @Test
+    void singleSessionCloseExceptionDoesNotBlockOthers() {
+        // 同一 runtime 上两个会话：sess-boom 注册 close 时抛异常的资源，sess-ok 正常。
+        // drain 仍关闭两者（boom 异常被首异常收集），最终汇总抛出 boom 异常；sess-ok 已 close（租约释放可接管）。
+        ScriptedChatModel model = new ScriptedChatModel();
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        SessionResourceCustomizer boomCustomizer = (registry, appId, agentName, sessionId) -> {
+            if ("sess-boom".equals(sessionId)) {
+                registry.register("boom", () -> {
+                    throw new RuntimeException("boom on close: " + sessionId);
+                });
+            }
+        };
+        AgentRuntime runtime = Buzhou.runtime(model, stores,
+                io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.merge(
+                        io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(),
+                        io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.sessionCustomizers(List.of(boomCustomizer))));
+
+        runtime.spawn("app", "agent", "sess-boom");
+        runtime.spawn("app", "agent", "sess-ok",
+                new SpawnOptions(false, List.of(events::add)));
+
+        // drain 收集首异常后汇总抛出（boom 会话）；sess-ok 仍被正常 close
+        assertThatThrownBy(() -> runtime.drain(Duration.ofSeconds(5)))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("boom");
+
+        // sess-ok 的租约已释放：另一 runtime 可立即 spawn 续接
+        AgentRuntime runtime2 = Buzhou.runtime(new ScriptedChatModel(), stores);
+        AgentSession resumed = runtime2.spawn("app", "agent", "sess-ok");
+        resumed.close();
+        runtime2.drain(Duration.ofSeconds(2));
     }
 }

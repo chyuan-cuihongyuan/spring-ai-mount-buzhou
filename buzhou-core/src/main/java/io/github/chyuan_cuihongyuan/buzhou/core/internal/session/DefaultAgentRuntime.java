@@ -9,7 +9,9 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.DrainResult;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeDrainingException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult;
@@ -27,6 +29,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,7 +53,7 @@ public class DefaultAgentRuntime implements AgentRuntime {
     private final String ownerId = UUID.randomUUID().toString();
 
     /** 活跃会话台账：spawn 注册、close 注销（经既有 onClose 回调链挂上，不新增会话生命周期切面）。 */
-    private final ConcurrentHashMap<String, AgentSession> liveSessions = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, LiveSession> liveSessions = new ConcurrentHashMap<>();
     /** drain 状态机：首次 drain 写入 future 并执行；后续调用等待同一 future（幂等）。null = 未 drain。 */
     private final AtomicReference<CompletableFuture<DrainResult>> drainFuture = new AtomicReference<>();
     /** spawn（读）与 drain 快照（写）互斥：drain 快照须看到所有已注册会话，不孤儿刚 assemble 完的会话。 */
@@ -91,8 +96,9 @@ public class DefaultAgentRuntime implements AgentRuntime {
             if (drainFuture.get() != null) {
                 throw new RuntimeDrainingException(sessionId);
             }
-            AgentSession assembled = doSpawn(appId, agentName, sessionId, options);
-            liveSessions.put(sessionId, assembled);
+            TurnGate turnGate = new TurnGate();
+            AgentSession assembled = doSpawn(appId, agentName, sessionId, options, turnGate);
+            liveSessions.put(sessionId, new LiveSession(assembled, turnGate));
             return assembled;
         } finally {
             drainLock.readLock().unlock();
@@ -103,7 +109,7 @@ public class DefaultAgentRuntime implements AgentRuntime {
     public DrainResult drain(Duration timeout) {
         Duration budget = timeout == null ? DEFAULT_DRAIN_TIMEOUT : timeout;
         CompletableFuture<DrainResult> future = new CompletableFuture<>();
-        List<AgentSession> snapshot;
+        List<LiveSession> snapshot;
         // 写锁内：CAS 设 future（幂等首生效）+ 快照活跃会话，确保快照看到所有已注册会话
         drainLock.writeLock().lock();
         try {
@@ -147,41 +153,77 @@ public class DefaultAgentRuntime implements AgentRuntime {
     }
 
     /**
-     * drain 编排骨架（ticket 01）：fan-out drain.started → close 全部活跃会话 → fan-out drain.finished。
+     * drain 编排（ticket 02）：fan-out drain.started → 等待每个会话当前轮次完结（虚拟线程 fan-out）
+     * → fan-out drain.session.completed → fan-out drain.finished → close 全部会话。
      *
-     * <p>等完在途轮次（02）/ 超时强杀（03）在此方法内增量补入；本票只处理空载/仅空闲会话场景：
-     * 直接走既有 {@code SessionResourceRegistry.closeAll()} 正常谢幕链（EXIT flush → 停心跳 → 关执行器 → 释租约）。
-     * drain 事件经各在途会话的事件通道 fan-out（每会话均见 drain 全周期，便于观测管线按会话归因）。
+     * <p>等完粒度 = 当前轮次（与微压缩「完结轮次」原子单位对齐；不等整个会话）。轮次在途信号复用
+     * {@link SessionObserver} 轮次边界（onTurnStart/onTurnEnd/onTurnError，覆盖 chat/stream/AUTO_RESUME）。
+     * 等待用虚拟线程 + 计数门闸（对齐 HarnessToolCallingManager fan-out），禁止轮询 sleep；
+     * 单会话等待失败不阻塞其他会话。轮次完结后 drain 主动 close 该会话（触发既有谢幕链：
+     * EXIT flush → 停心跳 → 关执行器 → 释租约）。drain 事件经各在途会话的事件通道 fan-out。
+     *
+     * <p>超时强杀（03）在此方法内增量补入：预算耗尽仍在轮次中的会话走取消传播强杀后 close。
      */
-    private DrainResult executeDrain(List<AgentSession> snapshot, Duration budget) {
+    private DrainResult executeDrain(List<LiveSession> snapshot, Duration budget) {
         Instant started = Instant.now();
         int activeCount = snapshot.size();
         SessionEvent startedEvent = new SessionEvent("drain.started",
                 Map.of("activeCount", activeCount), Instant.now());
-        snapshot.forEach(s -> emitIfDefault(s, startedEvent));
+        snapshot.forEach(ls -> emitIfDefault(ls.session(), startedEvent));
 
-        // 01：无在途轮次判定 → 直接 close（02 增量：等完在途轮次；03 增量：超时强杀）
-        int drainedCount = activeCount;
+        // 等待每个会话当前轮次完结：虚拟线程 fan-out，每会话独立等待 budget；单会话失败不阻塞其他
+        ExecutorService vt = Executors.newVirtualThreadPerTaskExecutor();
+        List<Future<DrainOutcome>> waitFutures = new ArrayList<>();
+        for (LiveSession ls : snapshot) {
+            waitFutures.add(vt.submit(() -> {
+                Instant sessionStart = Instant.now();
+                boolean idle = ls.turnGate().awaitIdle(budget);
+                return new DrainOutcome(ls, idle, Duration.between(sessionStart, Instant.now()));
+            }));
+        }
+        List<DrainOutcome> outcomes = new ArrayList<>();
+        for (Future<DrainOutcome> f : waitFutures) {
+            try {
+                outcomes.add(f.get());
+            } catch (Exception e) {
+                // awaitIdle 不抛 InterruptedException（内部消化）；此分支仅防御——异常会话仍走 close
+                log.warn("drain 等待轮次完结时异常，仍将 close 该会话", e);
+            }
+        }
+        vt.shutdownNow();
+
+        // drain.session.completed fan-out（处置方式=等完；03 增量：强杀分支 disposition=force-killed）
+        for (DrainOutcome o : outcomes) {
+            SessionEvent completed = new SessionEvent("drain.session.completed",
+                    Map.of("sessionId", o.session().sessionId(),
+                            "disposition", "waited",
+                            "durationMs", o.duration().toMillis()),
+                    Instant.now());
+            emitIfDefault(o.session(), completed);
+        }
+
+        int drainedCount = outcomes.size();
         int forceKilledCount = 0;
-
         Duration totalDuration = Duration.between(started, Instant.now());
+
         // drain.finished 须在 close 前 fan-out：close 会清空会话监听器
         SessionEvent finishedEvent = new SessionEvent("drain.finished",
                 Map.of("drainedCount", drainedCount, "forceKilledCount", forceKilledCount,
                         "totalDurationMs", totalDuration.toMillis()),
                 Instant.now());
-        snapshot.forEach(s -> emitIfDefault(s, finishedEvent));
+        snapshot.forEach(ls -> emitIfDefault(ls.session(), finishedEvent));
 
-        // close 全部会话：单会话 close 异常不阻塞其他会话（首异常收集后汇总抛出）
+        // close 全部会话（触发既有谢幕链：EXIT flush 同步落盘 → 停心跳 → 关执行器 → 释租约）。
+        // 单会话 close 异常不阻塞其他会话（首异常收集后汇总抛出）。
         RuntimeException first = null;
-        for (AgentSession s : snapshot) {
+        for (LiveSession ls : snapshot) {
             try {
-                s.close();
+                ls.session().close();
             } catch (RuntimeException e) {
                 if (first == null) {
                     first = e;
                 }
-                log.warn("drain 期间关闭会话失败 sessionId={}", s.sessionId(), e);
+                log.warn("drain 期间关闭会话失败 sessionId={}", ls.session().sessionId(), e);
             }
         }
         if (first != null) {
@@ -197,7 +239,72 @@ public class DefaultAgentRuntime implements AgentRuntime {
         }
     }
 
-    private AgentSession doSpawn(String appId, String agentName, String sessionId, SpawnOptions options) {
+    /** 活跃会话台账条目：会话句柄 + 轮次在途门闸（drain 等待用）。 */
+    private record LiveSession(AgentSession session, TurnGate turnGate) {
+    }
+
+    /** 单会话 drain 等待结果。 */
+    private record DrainOutcome(LiveSession live, boolean idle, Duration duration) {
+        AgentSession session() {
+            return live.session();
+        }
+    }
+
+    /**
+     * 轮次在途门闸：经 {@link SessionObserver} 轮次边界（onTurnStart/onTurnEnd/onTurnError）维护在途计数，
+     * 提供 {@link #awaitIdle(Duration)} 非轮询有界等待（monitor wait/notify，latch 等价语义）。
+     * 覆盖 chat/stream/AUTO_RESUME 全部轮次形态——三者均在 DefaultAgentSession 内回调 onTurnStart/End。
+     */
+    static final class TurnGate implements SessionObserver {
+        private int inFlight = 0;
+
+        @Override
+        public synchronized void onTurnStart(int turnSeq, String userInput) {
+            inFlight++;
+        }
+
+        @Override
+        public synchronized void onTurnEnd(int turnSeq, String finalReply) {
+            decrement();
+        }
+
+        @Override
+        public synchronized void onTurnError(int turnSeq, Throwable error) {
+            decrement();
+        }
+
+        private synchronized void decrement() {
+            if (inFlight > 0) {
+                inFlight--;
+            }
+            if (inFlight == 0) {
+                notifyAll();
+            }
+        }
+
+        synchronized boolean isIdle() {
+            return inFlight == 0;
+        }
+
+        /** 有界等待轮次完结：返回 true=已空闲，false=预算耗尽仍在轮次中（03 据此强杀）。不抛 InterruptedException。 */
+        synchronized boolean awaitIdle(Duration timeout) {
+            long remainingNanos = timeout.toNanos();
+            while (inFlight > 0 && remainingNanos > 0) {
+                long start = System.nanoTime();
+                try {
+                    TimeUnit.NANOSECONDS.timedWait(this, remainingNanos);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                remainingNanos -= System.nanoTime() - start;
+            }
+            return inFlight == 0;
+        }
+    }
+
+    private AgentSession doSpawn(String appId, String agentName, String sessionId, SpawnOptions options,
+                                 TurnGate turnGate) {
         java.time.Duration leaseTtl = recoveryConfig.leaseTtl();
         LeaseAcquireResult lease = stores.sessionLeaseStore().tryAcquire(sessionId, ownerId, leaseTtl);
         if (!lease.acquired()) {
@@ -255,10 +362,13 @@ public class DefaultAgentRuntime implements AgentRuntime {
                 liveSessions.remove(sessionId);
             }
         };
+        // 轮次在途门闸经 customizer 注册为 observer（drain 等待当前轮次完结用，覆盖 chat/stream/AUTO_RESUME）
+        List<SessionAssemblyCustomizer> customizers = new ArrayList<>(config.assemblyCustomizers());
+        customizers.add(ctx -> ctx.addObserver(turnGate));
         AgentSession assembled = assembler.assemble(appId, agentName, sessionId, chatModel, effectiveStores, registry,
                 onClose, config.hooks(), config.disabledHookNames(),
                 idempotentToolNames, config.viewProcessor(), executor,
-                config.serialGroups(), recoveryConfig, config.assemblyCustomizers(), allTools);
+                config.serialGroups(), recoveryConfig, customizers, allTools);
         options.listeners().forEach(assembled::addEventListener);
 
         if (recoveryEnabled && assembled instanceof DefaultAgentSession session) {
