@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * 内核自装配测试（ticket 22）：内存 store 默认装配、AgentRuntime 收集 RuntimeConfig bean 合成。
- * 背压配置绑定（spec「背压与多层限流 · 05」）。
+ * 背压配置绑定（spec「背压与多层限流 · 05」）+ 失控检测配置绑定（spec「死循环与失控检测」）。
  */
 class BuzhouCoreAutoConfigurationTest {
 
@@ -85,6 +85,58 @@ class BuzhouCoreAutoConfigurationTest {
             assertThat(props.enabled()).isFalse();
             // runtime 仍可 spawn（背压关闭 = 不限）
             ctx.getBean(AgentRuntime.class).spawn("app", "agent", "sid-bp-off").close();
+        });
+    }
+
+    // ---- 失控检测配置绑定（spec「死循环与失控检测」） ----
+
+    @Test
+    void runawayPropertiesBindWithDefaultsNull() {
+        runner.run(ctx -> {
+            BuzhouRunawayProperties props = ctx.getBean(BuzhouRunawayProperties.class);
+            assertThat(props.enabled()).isTrue();  // safe-by-default
+            assertThat(props.perTurn()).isNull();  // null = 不限
+            assertThat(props.perSession()).isNull();
+            assertThat(props.repetition()).isNull();
+        });
+    }
+
+    @Test
+    void runawayYmlOverridesBindToProperties() {
+        runner.withPropertyValues(
+                "buzhou.runaway.per-turn.max-steps=10",
+                "buzhou.runaway.per-turn.max-tool-calls=20",
+                "buzhou.runaway.per-turn.wall-clock=30s",
+                "buzhou.runaway.per-session.max-steps=100",
+                "buzhou.runaway.soft-threshold-ratio=0.15",
+                "buzhou.runaway.repetition.consecutive=3",
+                "buzhou.runaway.repetition.action=flag-only"
+        ).run(ctx -> {
+            BuzhouRunawayProperties props = ctx.getBean(BuzhouRunawayProperties.class);
+            assertThat(props.perTurn().maxSteps()).isEqualTo(10);
+            assertThat(props.perTurn().maxToolCalls()).isEqualTo(20);
+            assertThat(props.perTurn().wallClock()).isEqualTo(java.time.Duration.ofSeconds(30));
+            assertThat(props.perSession().maxSteps()).isEqualTo(100);
+            assertThat(props.effectiveSoftThresholdRatio()).isEqualTo(0.15);
+            assertThat(props.repetition().consecutive()).isEqualTo(3);
+            assertThat(props.repetition().action()).isEqualTo("flag-only");
+        });
+    }
+
+    @Test
+    void runawayBeansRegisteredByDefault() {
+        runner.run(ctx -> {
+            assertThat(ctx).hasBean("runawayHook");
+            assertThat(ctx).hasBean("runawayBudgetRenderer");
+            assertThat(ctx).hasBean("runawayCounters");
+        });
+    }
+
+    @Test
+    void runawayDisabledDropsBeans() {
+        runner.withPropertyValues("buzhou.runaway.enabled=false").run(ctx -> {
+            assertThat(ctx).doesNotHaveBean("runawayHook");
+            assertThat(ctx).doesNotHaveBean("runawayBudgetRenderer");
         });
     }
 }

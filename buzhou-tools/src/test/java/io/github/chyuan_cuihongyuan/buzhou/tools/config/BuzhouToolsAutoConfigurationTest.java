@@ -1,7 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.tools.config;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration;
-import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import io.github.chyuan_cuihongyuan.buzhou.tools.ToolsModule;
 import org.junit.jupiter.api.Test;
@@ -22,8 +21,8 @@ class BuzhouToolsAutoConfigurationTest {
     void enabledByDefault() {
         runner.run(ctx -> {
             assertThat(ctx).hasSingleBean(ToolsModule.class);
-            // todo 默认开 → TodoAttachmentRenderer 注册为 AttachmentRenderer
-            assertThat(ctx).hasSingleBean(AttachmentRenderer.class);
+            // todo 默认开 → TodoAttachmentRenderer 注册为 AttachmentRenderer bean
+            assertThat(ctx).hasBean("todoAttachmentRenderer");
         });
     }
 
@@ -36,6 +35,6 @@ class BuzhouToolsAutoConfigurationTest {
     @Test
     void todoRendererAbsentWhenTodoDisabled() {
         runner.withPropertyValues("buzhou.tools.todo.enabled=false")
-                .run(ctx -> assertThat(ctx).doesNotHaveBean(AttachmentRenderer.class));
+                .run(ctx -> assertThat(ctx).doesNotHaveBean("todoAttachmentRenderer"));
     }
 }

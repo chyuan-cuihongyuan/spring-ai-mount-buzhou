@@ -141,11 +141,12 @@ HITL 确认往返、Onload 写侧拦截、MCP 差量刷新等专项时序见各�
 | 06 | [内置原子工具](06-atomic-tools.md) | 工具清单 + 安全边界 | 无害默认开/危险 opt-in；沙箱+黑名单+SSRF；todo 入会话 state |
 | 07 | [Hook 护栏体系](07-hooks.md) | Hook 链框架 + 读写护栏 + HITL + 闭环 | 六切面；密封三态；狗粮原则；读降级写阻断；阻断+state+续跑重放 |
 | 08 | [会话、配置与持久化](08-session-config-persistence.md) | 双层 API + 四层配置 + 五 SPI | spawn/enhance；PolicyConfigProvider；unit-of-work；全保真消息模型+ChatMemory 适配器 |
-| 09 | [模块与工程化](09-modules-engineering.md) | 16 模块 + 发布工程 | 星形依赖无环；buzhou-* 前缀；Central Portal；模块自装配 |
+| 09 | [模块与工程化](09-modules-engineering.md) | 17 模块 + 发布工程 | 星形依赖无环；buzhou-* 前缀；Central Portal；模块自装配 |
 | 10 | [模型韧性层](10-resilience.md) | 重试 + 统一超时 + 归一化错误分类 + onModelError | ResilienceAdvisor 最内层包裹单次模型调用；五类分类（限流/鉴权/内容/网络/未知）；指数退避+抖动+Retry-After；deadline+cancel 共用中断路径；onModelError 兜底/放行 |
 | 11 | [崩溃中轮次恢复 + 幂等](11-crash-recovery.md) | 恢复语义分档 + 持久化强度三档 + 幂等三件套 + 租约心跳 | core 扩展不新增模块/SPI；VOID 默认 / AUTO_RESUME opt-in；SYNC/ASYNC/EXIT 存储侧分档；reserve-then-fill 去重 = 效果恰好一次；心跳续约修补长轮次误判崩溃 |
 | 12 | [优雅停机与会话 drain](12-graceful-shutdown.md) | drain 三步协议 + 活跃会话台账 + SmartLifecycle 装配 | core 扩展不新增模块/SPI；拒新即路由信号；轮次粒度等待 + 超时强杀（取消传播）；可接管性靠五 SPI+租约天然供给；相位 DEFAULT_PHASE 先于 web/观测管线 |
 | 13 | [背压与多层限流](13-backpressure-rate-limit.md) | 三维挂点（spawn 闸 / 扇出闸 / 模型双桶）+ 过载两档 | core 扩展 spawn/脊柱 + resilience 扩展双桶；QUEUE/FAIL_FAST 两档；自限流拒绝不经重试；TPM 事后记账=平均速率保护；safe-by-default null=不限 |
+| 14 | [死循环与失控检测](14-runaway-detection.md) | 双窗口数值硬顶 + 软退出通道 + 确定性重复检测 | core 扩展 Hook + AttachmentRenderer；轮次级×会话级双窗口 + 按工具 + wall-clock；软阈值注入剩余预算提醒；硬顶携带部分结果；M2 连续同参数重复检测；safe-by-default null=不限 |
 
 ## 推演清单
 

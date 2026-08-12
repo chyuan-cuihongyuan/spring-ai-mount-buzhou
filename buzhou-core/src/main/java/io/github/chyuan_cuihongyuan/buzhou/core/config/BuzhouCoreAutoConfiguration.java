@@ -4,10 +4,14 @@ import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.HarnessAssembler;
+import io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayBudgetRenderer;
+import io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters;
+import io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionResourceCustomizer;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor;
 import org.springframework.ai.chat.model.ChatModel;
@@ -44,7 +48,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRecoveryProperties.class,
-        BuzhouShutdownProperties.class, BuzhouBackpressureProperties.class})
+        BuzhouShutdownProperties.class, BuzhouBackpressureProperties.class, BuzhouRunawayProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /** Boot 4 {@code spring.lifecycle.timeout-per-shutdown-phase} 的规范默认（drain 超时派生兜底）。 */
@@ -90,6 +94,47 @@ public class BuzhouCoreAutoConfiguration {
         RuntimeConfig merged = RuntimeConfig.merge(all.toArray(new RuntimeConfig[0]));
         return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
                 recoveryProperties.toRecoveryConfig(), backpressureProperties);
+    }
+
+    // ---- 死循环与失控检测（spec「死循环与失控检测」）----
+
+    /**
+     * 失控检测内存计数器（单例，hook 与 renderer 共享）。
+     *
+     * <p>safe-by-default：机制默认装配，各阈值默认 null=不限（显式配置才生效）。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RunawayCounters runawayCounters() {
+        return new RunawayCounters();
+    }
+
+    /**
+     * 失控检测 Hook（{@code buzhou.runaway.enabled} 默认开）。
+     *
+     * <p>注入 {@link BuzhouStores} 的 {@code observabilityStore} 使 {@code runaway.*} 事件双重写入
+     * （SessionEvent + EventRecord），在 dashboard 可查（参照 {@code GuardAuthApi.emitAudit} 先例）。
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "runawayHook")
+    @ConditionalOnProperty(prefix = "buzhou.runaway", name = "enabled", matchIfMissing = true)
+    public BuzhouHook runawayHook(BuzhouRunawayProperties runawayProperties, RunawayCounters counters,
+                                   BuzhouStores stores) {
+        return new RunawayHook(runawayProperties, counters, stores.observabilityStore());
+    }
+
+    /**
+     * 软退出提醒渲染器（达软阈值时经既有 Attachment 通道注入「剩余步数预算」信号）。
+     *
+     * <p>被 {@code BuzhouMemoryAutoConfiguration} 自动组合进 {@code CompositeAttachmentRenderer}。
+     * 无 {@code per-turn.max-steps} 时不注入（合法长任务不受影响）。
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "runawayBudgetRenderer")
+    @ConditionalOnProperty(prefix = "buzhou.runaway", name = "enabled", matchIfMissing = true)
+    public AttachmentRenderer runawayBudgetRenderer(BuzhouRunawayProperties runawayProperties,
+                                                     RunawayCounters counters) {
+        return new RunawayBudgetRenderer(runawayProperties, counters);
     }
 
     /**
