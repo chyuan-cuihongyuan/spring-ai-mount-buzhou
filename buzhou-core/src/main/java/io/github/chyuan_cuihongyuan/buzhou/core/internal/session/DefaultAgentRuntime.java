@@ -5,20 +5,39 @@ import io.github.chyuan_cuihongyuan.buzhou.core.internal.recovery.LeaseHeartbeat
 import io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoveryConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.DrainResult;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeDrainingException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DefaultAgentRuntime implements AgentRuntime {
+
+    private static final Logger log = LoggerFactory.getLogger(DefaultAgentRuntime.class);
+
+    /** drain 总预算保守默认（编程式入口未给 timeout 时兜底；自装配层由 buzhou.shutdown.drain-timeout 派生）。 */
+    private static final Duration DEFAULT_DRAIN_TIMEOUT = Duration.ofSeconds(30);
 
     private final ChatModel chatModel;
     private final BuzhouStores stores;
@@ -27,6 +46,13 @@ public class DefaultAgentRuntime implements AgentRuntime {
     private final RuntimeConfig config;
     private final RecoveryConfig recoveryConfig;
     private final String ownerId = UUID.randomUUID().toString();
+
+    /** 活跃会话台账：spawn 注册、close 注销（经既有 onClose 回调链挂上，不新增会话生命周期切面）。 */
+    private final ConcurrentHashMap<String, AgentSession> liveSessions = new ConcurrentHashMap<>();
+    /** drain 状态机：首次 drain 写入 future 并执行；后续调用等待同一 future（幂等）。null = 未 drain。 */
+    private final AtomicReference<CompletableFuture<DrainResult>> drainFuture = new AtomicReference<>();
+    /** spawn（读）与 drain 快照（写）互斥：drain 快照须看到所有已注册会话，不孤儿刚 assemble 完的会话。 */
+    private final ReentrantReadWriteLock drainLock = new ReentrantReadWriteLock();
 
     public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
                                HarnessAssembler assembler, RuntimeConfig config,
@@ -59,6 +85,119 @@ public class DefaultAgentRuntime implements AgentRuntime {
 
     @Override
     public AgentSession spawn(String appId, String agentName, String sessionId, SpawnOptions options) {
+        // drain 已开始：拒新 spawn（拒绝即调用方路由信号——不排队、不缓冲）。读锁内判定，避免与 drain 快照竞争
+        drainLock.readLock().lock();
+        try {
+            if (drainFuture.get() != null) {
+                throw new RuntimeDrainingException(sessionId);
+            }
+            AgentSession assembled = doSpawn(appId, agentName, sessionId, options);
+            liveSessions.put(sessionId, assembled);
+            return assembled;
+        } finally {
+            drainLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public DrainResult drain(Duration timeout) {
+        Duration budget = timeout == null ? DEFAULT_DRAIN_TIMEOUT : timeout;
+        CompletableFuture<DrainResult> future = new CompletableFuture<>();
+        List<AgentSession> snapshot;
+        // 写锁内：CAS 设 future（幂等首生效）+ 快照活跃会话，确保快照看到所有已注册会话
+        drainLock.writeLock().lock();
+        try {
+            CompletableFuture<DrainResult> existing = drainFuture.get();
+            if (existing != null) {
+                // 已有 drain 在进行：等待首次结果（幂等——重复/并发调用得到同一结果）
+                return awaitExistingDrain(existing, budget);
+            }
+            drainFuture.set(future);
+            snapshot = new ArrayList<>(liveSessions.values());
+        } finally {
+            drainLock.writeLock().unlock();
+        }
+        // 首次 drain：在锁外执行编排（close 可能阻塞，不持写锁）
+        try {
+            DrainResult result = executeDrain(snapshot, budget);
+            future.complete(result);
+            return result;
+        } catch (RuntimeException e) {
+            future.completeExceptionally(e);
+            throw e;
+        }
+    }
+
+    /** 等待已存在的 drain future 完成（幂等分支）：复用首次调用方的预算做有界等待。 */
+    private DrainResult awaitExistingDrain(CompletableFuture<DrainResult> existing, Duration budget) {
+        try {
+            return existing.get(budget.toNanos(), TimeUnit.NANOSECONDS);
+        } catch (TimeoutException e) {
+            throw new RuntimeException("drain did not complete within timeout: " + budget, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("drain interrupted", e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException re) {
+                throw re;
+            }
+            throw new RuntimeException("drain failed", cause);
+        }
+    }
+
+    /**
+     * drain 编排骨架（ticket 01）：fan-out drain.started → close 全部活跃会话 → fan-out drain.finished。
+     *
+     * <p>等完在途轮次（02）/ 超时强杀（03）在此方法内增量补入；本票只处理空载/仅空闲会话场景：
+     * 直接走既有 {@code SessionResourceRegistry.closeAll()} 正常谢幕链（EXIT flush → 停心跳 → 关执行器 → 释租约）。
+     * drain 事件经各在途会话的事件通道 fan-out（每会话均见 drain 全周期，便于观测管线按会话归因）。
+     */
+    private DrainResult executeDrain(List<AgentSession> snapshot, Duration budget) {
+        Instant started = Instant.now();
+        int activeCount = snapshot.size();
+        SessionEvent startedEvent = new SessionEvent("drain.started",
+                Map.of("activeCount", activeCount), Instant.now());
+        snapshot.forEach(s -> emitIfDefault(s, startedEvent));
+
+        // 01：无在途轮次判定 → 直接 close（02 增量：等完在途轮次；03 增量：超时强杀）
+        int drainedCount = activeCount;
+        int forceKilledCount = 0;
+
+        Duration totalDuration = Duration.between(started, Instant.now());
+        // drain.finished 须在 close 前 fan-out：close 会清空会话监听器
+        SessionEvent finishedEvent = new SessionEvent("drain.finished",
+                Map.of("drainedCount", drainedCount, "forceKilledCount", forceKilledCount,
+                        "totalDurationMs", totalDuration.toMillis()),
+                Instant.now());
+        snapshot.forEach(s -> emitIfDefault(s, finishedEvent));
+
+        // close 全部会话：单会话 close 异常不阻塞其他会话（首异常收集后汇总抛出）
+        RuntimeException first = null;
+        for (AgentSession s : snapshot) {
+            try {
+                s.close();
+            } catch (RuntimeException e) {
+                if (first == null) {
+                    first = e;
+                }
+                log.warn("drain 期间关闭会话失败 sessionId={}", s.sessionId(), e);
+            }
+        }
+        if (first != null) {
+            throw first;
+        }
+        return new DrainResult(drainedCount, forceKilledCount, totalDuration);
+    }
+
+    /** 经会话既有事件通道发射 drain 事件（仅 DefaultAgentSession 暴露 emit；assembler 恒产出该类型）。 */
+    private static void emitIfDefault(AgentSession session, SessionEvent event) {
+        if (session instanceof DefaultAgentSession das) {
+            das.emit(event);
+        }
+    }
+
+    private AgentSession doSpawn(String appId, String agentName, String sessionId, SpawnOptions options) {
         java.time.Duration leaseTtl = recoveryConfig.leaseTtl();
         LeaseAcquireResult lease = stores.sessionLeaseStore().tryAcquire(sessionId, ownerId, leaseTtl);
         if (!lease.acquired()) {
@@ -107,8 +246,17 @@ public class DefaultAgentRuntime implements AgentRuntime {
                 idempotentToolNames.add(meta.name());
             }
         }
+        // onClose 回调链：既有 registry.closeAll（谢幕资源 LIFO close）+ drain 台账注销。
+        // 经既有 onClose 回调链挂上，不新增会话生命周期切面；try/finally 保证台账注销不因 closeAll 失败遗漏。
+        Runnable onClose = () -> {
+            try {
+                registry.closeAll();
+            } finally {
+                liveSessions.remove(sessionId);
+            }
+        };
         AgentSession assembled = assembler.assemble(appId, agentName, sessionId, chatModel, effectiveStores, registry,
-                registry::closeAll, config.hooks(), config.disabledHookNames(),
+                onClose, config.hooks(), config.disabledHookNames(),
                 idempotentToolNames, config.viewProcessor(), executor,
                 config.serialGroups(), recoveryConfig, config.assemblyCustomizers(), allTools);
         options.listeners().forEach(assembled::addEventListener);
