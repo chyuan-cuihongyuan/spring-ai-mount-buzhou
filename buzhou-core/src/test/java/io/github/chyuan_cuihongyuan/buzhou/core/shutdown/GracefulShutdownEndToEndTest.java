@@ -41,10 +41,11 @@ class GracefulShutdownEndToEndTest {
 
     private final List<SessionEvent> events = new CopyOnWriteArrayList<>();
 
-    /** 阻塞型副作用工具：started 后开始等待 release，count 记录真实执行次数。 */
+    /** 阻塞型副作用工具：started 后开始等待 release，count 记录真实执行次数，interrupted 捕获取消传播。 */
     static final class BlockingTool implements ToolCallback {
         final CountDownLatch started = new CountDownLatch(1);
         final CountDownLatch release = new CountDownLatch(1);
+        final CountDownLatch interrupted = new CountDownLatch(1);
         final AtomicInteger calls = new AtomicInteger();
         private final String name;
         private final String result;
@@ -67,6 +68,7 @@ class GracefulShutdownEndToEndTest {
                 release.await(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                interrupted.countDown();
             }
             return result;
         }
@@ -299,5 +301,102 @@ class GracefulShutdownEndToEndTest {
         AgentSession resumed = runtime2.spawn("app", "agent", "sess-ok");
         resumed.close();
         runtime2.drain(Duration.ofSeconds(2));
+    }
+
+    // ---- ticket 03: 超时强杀（取消传播） ----
+
+    @Test
+    void drainForceKillsOnTimeoutViaCancelPropagation() throws Exception {
+        ScriptedChatModel model = new ScriptedChatModel();
+        BlockingTool tool = new BlockingTool("slow_op", "done");
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores,
+                io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(),
+                recoveryWithTier(DurabilityTier.ASYNC), tool);
+
+        AgentSession session = runtime.spawn("app", "agent", "sess-kill",
+                new SpawnOptions(false, List.of(events::add)));
+        model.enqueue(toolCall("tc-1", "slow_op"));
+        ExecutorService vt = Executors.newVirtualThreadPerTaskExecutor();
+        Future<String> chat = vt.submit(() -> session.chat("跑长任务"));
+        assertThat(tool.started.await(2, TimeUnit.SECONDS)).isTrue();
+
+        // 不释放 latch：drain 预算耗尽后强杀（取消传播到达工具层——工具收到中断语义）
+        Duration budget = Duration.ofMillis(500);
+        java.time.Instant before = java.time.Instant.now();
+        DrainResult result = runtime.drain(budget);
+        Duration elapsed = Duration.between(before, java.time.Instant.now());
+        // drain 在预算附近返回（预算 + 处理 slack，远低于工具的 10s await）
+        assertThat(elapsed).isLessThan(Duration.ofSeconds(3));
+
+        // 取消传播到达工具层：工具收到中断语义
+        assertThat(tool.interrupted.await(2, TimeUnit.SECONDS)).isTrue();
+        // 强杀事件带被强杀 sessionId
+        assertThat(events).anySatisfy(e -> {
+            assertThat(e.type()).isEqualTo("drain.timeout-force-kill");
+            assertThat(e.payload()).containsEntry("count", 1);
+            java.util.List<?> ids = (java.util.List<?>) e.payload().get("sessionIds");
+            assertThat(ids).hasSize(1);
+            assertThat(ids.get(0)).isEqualTo("sess-kill");
+        });
+        // drain.finished 计数区分等完/强杀
+        assertThat(result.forceKilledCount()).isEqualTo(1);
+        assertThat(result.drainedCount()).isEqualTo(0);
+        // drain.session.completed 处置方式=强杀
+        assertThat(events).anySatisfy(e -> {
+            assertThat(e.type()).isEqualTo("drain.session.completed");
+            assertThat(e.payload())
+                    .containsEntry("sessionId", "sess-kill")
+                    .containsEntry("disposition", "force-killed");
+        });
+
+        // 强杀后会话仍被正常 close：租约已释放，同 sessionId 可立即在新 runtime spawn 续接
+        AgentRuntime runtime2 = Buzhou.runtime(new ScriptedChatModel(), stores);
+        AgentSession resumed = runtime2.spawn("app", "agent", "sess-kill");
+        resumed.close();
+        runtime2.drain(Duration.ofSeconds(2));
+        vt.shutdownNow();
+    }
+
+    @Test
+    void drainMixesWaitedAndForceKilledSessions() throws Exception {
+        // 竞争边界（latch 控制时序，无 sleep）：两会话同一 runtime——一会话释放 latch 等完，
+        // 另一会话不释放被强杀。drain.finished 计数 drainedCount=1 / forceKilledCount=1。
+        ScriptedChatModel model = new ScriptedChatModel();
+        BlockingTool toolA = new BlockingTool("slow_a", "a-done");
+        BlockingTool toolB = new BlockingTool("slow_b", "b-done");
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores,
+                io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(),
+                recoveryWithTier(DurabilityTier.ASYNC), toolA, toolB);
+
+        AgentSession sessionA = runtime.spawn("app", "agent", "sess-mix-a",
+                new SpawnOptions(false, List.of(events::add)));
+        AgentSession sessionB = runtime.spawn("app", "agent", "sess-mix-b",
+                new SpawnOptions(false, List.of(events::add)));
+        // 两个工具调用先入队（FIFO 共享队列，两会话各取一个），再入一个文本（供等完会话的二次模型调用）
+        model.enqueue(toolCall("tc-a", "slow_a"));
+        model.enqueue(toolCall("tc-b", "slow_b"));
+        model.enqueueText("完成");
+        ExecutorService vt = Executors.newVirtualThreadPerTaskExecutor();
+        Future<String> chatA = vt.submit(() -> sessionA.chat("跑 a"));
+        Future<String> chatB = vt.submit(() -> sessionB.chat("跑 b"));
+        assertThat(toolA.started.await(2, TimeUnit.SECONDS)).isTrue();
+        assertThat(toolB.started.await(2, TimeUnit.SECONDS)).isTrue();
+
+        // 释放 A 的 latch（等完），不释放 B（强杀）；drain 用足够 A 完结但 B 超时的预算
+        toolA.release.countDown();
+        DrainResult result = runtime.drain(Duration.ofSeconds(3));
+        assertThat(result.drainedCount()).isEqualTo(1);
+        assertThat(result.forceKilledCount()).isEqualTo(1);
+        // B 收到取消传播
+        assertThat(toolB.interrupted.await(2, TimeUnit.SECONDS)).isTrue();
+
+        // 两会话均被 close：租约均释放，另一 runtime 可分别 spawn 续接
+        AgentRuntime runtime2 = Buzhou.runtime(new ScriptedChatModel(), stores);
+        runtime2.spawn("app", "agent", "sess-mix-a").close();
+        runtime2.spawn("app", "agent", "sess-mix-b").close();
+        runtime2.drain(Duration.ofSeconds(2));
+        vt.shutdownNow();
     }
 }

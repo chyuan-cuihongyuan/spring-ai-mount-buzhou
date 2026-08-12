@@ -192,18 +192,48 @@ public class DefaultAgentRuntime implements AgentRuntime {
         }
         vt.shutdownNow();
 
-        // drain.session.completed fan-out（处置方式=等完；03 增量：强杀分支 disposition=force-killed）
+        // 超时强杀（03）：预算耗尽仍在轮次中的会话走取消传播强杀（session.cancel → cancelInFlight →
+        // future.cancel(true) 中断语义），随后仍走正常 close 路径——被强杀会话与正常关闭会话可接管性一致。
+        // 诚实边界：模型调用阶段无取消句柄（探查事实），强杀只能等模型层自身超时返回——此边界如实表达，
+        // 不伪造能力；cancel 仅作用于工具层在途调用。
+        List<String> forceKilledIds = new ArrayList<>();
+        int drainedCount = 0;
         for (DrainOutcome o : outcomes) {
+            if (o.idle()) {
+                drainedCount++;
+            } else {
+                forceKilledIds.add(o.session().sessionId());
+            }
+        }
+        for (DrainOutcome o : outcomes) {
+            if (!o.idle()) {
+                try {
+                    o.session().cancel();
+                } catch (RuntimeException e) {
+                    // cancel 仅是尽力取消（会话可能恰好完结）；不阻塞后续 close
+                    log.warn("drain 强杀取消传播异常 sessionId={}", o.session().sessionId(), e);
+                }
+            }
+        }
+        if (!forceKilledIds.isEmpty()) {
+            SessionEvent forceKillEvent = new SessionEvent("drain.timeout-force-kill",
+                    Map.of("sessionIds", forceKilledIds, "count", forceKilledIds.size()),
+                    Instant.now());
+            snapshot.forEach(ls -> emitIfDefault(ls.session(), forceKillEvent));
+        }
+        int forceKilledCount = forceKilledIds.size();
+
+        // drain.session.completed fan-out（处置方式：等完 / 强杀）
+        for (DrainOutcome o : outcomes) {
+            String disposition = o.idle() ? "waited" : "force-killed";
             SessionEvent completed = new SessionEvent("drain.session.completed",
                     Map.of("sessionId", o.session().sessionId(),
-                            "disposition", "waited",
+                            "disposition", disposition,
                             "durationMs", o.duration().toMillis()),
                     Instant.now());
             emitIfDefault(o.session(), completed);
         }
 
-        int drainedCount = outcomes.size();
-        int forceKilledCount = 0;
         Duration totalDuration = Duration.between(started, Instant.now());
 
         // drain.finished 须在 close 前 fan-out：close 会清空会话监听器
