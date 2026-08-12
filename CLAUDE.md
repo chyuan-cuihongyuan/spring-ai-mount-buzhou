@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 git提交不包括Co-Authored-By: 
 代码中不要出现魔法数字
-
+全部用中文回复
 
 ## 项目定位
 

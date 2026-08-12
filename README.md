@@ -1,6 +1,6 @@
 # Spring AI Mount Buzhou（不周山）
 
-> **English** · A runtime harness mounted between **Spring AI** and your business agents — layered *on top of* Spring AI rather than replacing it. Buzhou makes a single agent stable, controllable and explainable in production through nine mechanisms: progressive memory compaction, spill protection, cognitive observability, skills, hot-pluggable MCP, parallel tool calls, atomic tools, hook guardrails, and a pluggable persistence SPI. Requires JDK 21+, Spring Boot 4.x and Spring AI 2.0.0.
+> **English** · A runtime harness mounted between **Spring AI** and your business agents — layered *on top of* Spring AI rather than replacing it. Buzhou makes a single agent stable, controllable and explainable in production through ten mechanisms: progressive memory compaction, spill protection, cognitive observability, skills, hot-pluggable MCP, parallel tool calls, atomic tools, hook guardrails, a pluggable persistence SPI, and a model resilience layer. Requires JDK 21+, Spring Boot 4.x and Spring AI 2.0.0.
 
 > **中文** · 挂载在 **Spring AI** 与业务 Agent 之间的运行时中间层（Harness）——叠加而非替代 Spring AI，让单个 Agent 稳定、可控、可解释地跑在生产里。
 
@@ -39,7 +39,7 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成十大机制，作�
 | 9 | **持久化 SPI** | 五大存储 SPI（Message / Summary / SessionState / SessionLease / Observability）+ 内存/JDBC/Redis 实现，按需切换 | `buzhou-core` / `buzhou-store-jdbc` / `buzhou-store-redis` |
 | 10 | **模型韧性层** | 模型调用重试（指数退避 + 抖动 + Retry-After）、统一超时（deadline + 中断在途调用）、跨 provider 五类归一化错误分类、`onModelError` 兜底切面 | `buzhou-resilience` |
 
-> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 十份机制详设）。
+> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 十三份机制详设）。
 
 ## 技术基线
 
@@ -81,6 +81,7 @@ buzhou-bom                 —— 全模块同版本收口
 | `buzhou-mcp` | MCP 工具集热插拔 | `buzhou.mcp.enabled` | 开 |
 | `buzhou-guard` | Hook 护栏（读写护栏 / HITL / 事实闭环） | `buzhou.guard.enabled` | 开 |
 | `buzhou-tools` | 原子工具集 | `buzhou.tools.enabled` | 开 |
+| `buzhou-resilience` | 模型韧性层（重试 / 超时 / 错误分类 / onModelError） | `buzhou.resilience.enabled` | 开 |
 | `buzhou-store-jdbc` | JDBC 持久化实现 | `buzhou.store.type=jdbc` | — |
 | `buzhou-store-redis` | Redis 持久化实现 | `buzhou.store.type=redis` | — |
 | `buzhou-spring-boot-starter` | 依赖聚合 starter（无代码） | — | — |
@@ -192,6 +193,7 @@ try (AgentSession session = runtime.spawn("app", "agent", "session-1")) {
 | `buzhou.mcp.enabled` | `true` | MCP 热插拔 |
 | `buzhou.guard.enabled` | `true` | Hook 护栏 |
 | `buzhou.tools.enabled` | `true` | 原子工具 |
+| `buzhou.resilience.enabled` | `true` | 模型韧性层（重试/超时/错误分类/onModelError） |
 | `buzhou.observe.otel.enabled` | `false` | OpenTelemetry 导出器 |
 | `buzhou.observe.dashboard.enabled` | `false` | 可视化回放后台 |
 
@@ -201,7 +203,7 @@ try (AgentSession session = runtime.spawn("app", "agent", "session-1")) {
 
 - [CONTEXT.md](CONTEXT.md) — 领域术语表（Harness、微压缩、Spill、Span/Event、Hook 链……）
 - [docs/spec/00-overview.md](docs/spec/00-overview.md) — 设计总入口
-- 机制详设：[01 记忆压缩](docs/spec/01-memory-compaction.md) · [02 Spill](docs/spec/02-spill.md) · [03 可观测](docs/spec/03-observability.md) · [04 Skill/MCP](docs/spec/04-skill-mcp.md) · [05 并行工具](docs/spec/05-parallel-tools.md) · [06 原子工具](docs/spec/06-atomic-tools.md) · [07 Hook 护栏](docs/spec/07-hooks.md) · [08 会话/配置/持久化](docs/spec/08-session-config-persistence.md) · [09 模块与工程化](docs/spec/09-modules-engineering.md)
+- 机制详设：[01 记忆压缩](docs/spec/01-memory-compaction.md) · [02 Spill](docs/spec/02-spill.md) · [03 可观测](docs/spec/03-observability.md) · [04 Skill/MCP](docs/spec/04-skill-mcp.md) · [05 并行工具](docs/spec/05-parallel-tools.md) · [06 原子工具](docs/spec/06-atomic-tools.md) · [07 Hook 护栏](docs/spec/07-hooks.md) · [08 会话/配置/持久化](docs/spec/08-session-config-persistence.md) · [09 模块与工程化](docs/spec/09-modules-engineering.md) · [10 模型韧性](docs/spec/10-resilience.md) · [11 崩溃恢复](docs/spec/11-crash-recovery.md) · [12 优雅停机](docs/spec/12-graceful-shutdown.md) · [13 背压与限流](docs/spec/13-backpressure-rate-limit.md)
 - [RELEASING.md](RELEASING.md) — 发布到 Maven Central 的流程
 
 ## 项目状态
