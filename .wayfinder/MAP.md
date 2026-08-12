@@ -1,0 +1,51 @@
+# Wayfinder Map — Buzhou core 做深做透
+
+## Destination
+
+把 `buzhou-core` / `buzhou-memory` / `buzhou-spill` / `buzhou-guard` 四个核心机制做到**真实鲁棒**：先让 CI 在干净 runner 上真正绿（T1），摸清 Spring AI 2.0 原生边界（T2），再锚定「做深做透」的量化验收基线（T3），随后按基线逐机制深化。用户列出的 1-7 信誉项（措辞降级 / 可运行 demo / 真实 LLM 集成测试 / Spring AI 边界文档 / run_command 安全默认 / `.scratch` 卫生）作为**深化过程的副产品**收口，不另起 effort。目的地是「core 先做深」，不是「打满九机制」。
+
+## Notes
+
+- **领域**：Spring AI 2.0.0 之上的 Agent 运行时 Harness（JDK 21 / Spring Boot 4.1 / 虚拟线程）。术语见仓库 `CONTEXT.md`，机制详设见 `docs/spec/`。
+- **KB 门禁**：下钻业务源码前先按仓库根 `AGENTS.md` 的 KB 路由（`.Knowledge/manifest-routing.json`）。
+- **每会话**：先读本 MAP → 从 frontier 取一张 ticket → resolve 后回写「Decisions so far」。
+- **tracker 约定**：见 `.wayfinder/README.md`。
+- **已知事实（2026-08-13 核验）**：
+  - CI badge = `failing`，但本地 `mvn -B -ntp clean verify`（与 `ci.yml` 同命令）**15 模块全绿**。
+  - 本地非 clean 的 `mvn verify` 曾报 15 个 `NoSuchMethodError`——那是 `target/test-classes` 里**已删除且从未提交**的旧测试（`*DedupTest` / `CrashRecovery*`）残留 `.class` 造成的幽灵错误，非真实缺陷，`mvn clean` 即消。
+  - **CI 根因已被 T2 research 纠正**：`spring-ai 2.0.0` / `spring-boot 4.1.0` **均为 GA、在 Maven Central**，pom 无 `<repositories>` 是对的。CI 失败是**环境性**——疑为 GitHub Actions `setup-java` 的 `cache: maven` 残留 GA 前的否定解析标记（`.lastUpdated` 不重查）。修复=清缓存/`-U`，**勿加 milestone 仓**。本地 POM 时间戳=GA 当天 → 本地绿可信。
+  - 无法直接取 GitHub Actions 日志（环境无 `gh`、未鉴权）。
+
+## Decisions so far
+
+- [Spring AI 2.0.0 原生能力 vs Buzhou 增强面](tickets/T2-spring-ai-native-vs-buzhou.md) — `spring-ai 2.0.0` / `spring-boot 4.1.0` **均为 GA、在 Maven Central**（→ [T1](tickets/T1-ci-red-remotely-green-locally.md) 根因从「缺仓」纠正为「环境性 maven 缓存」，修复=清缓存/`-U`，**勿加 milestone 仓**）；逐机制 NATIVE/ADDS/REPLACES 表成为 [T3](tickets/T3-depth-definition-of-done.md) 与边界文档 [T9](tickets/T9-spring-ai-boundary-doc.md) 的事实骨架；**MCP 热插拔=NATIVE** 须诚实标注。
+
+## Not yet specified
+
+- core / memory / spill / guard 各自的「深度」ticket（属性测试 / 故障注入 / 预算压力下压缩正确性 / read_range 字节·jsonpath·分页正确性 / HITL→state→attachment 闭环 / 内部 SPI 契约稳定）——等 [T3 验收基线](tickets/T3-depth-definition-of-done.md) 定后逐项 graduate。
+- ~~item 6「Spring AI 边界文档」~~ → 已 graduate 为 [T9](tickets/T9-spring-ai-boundary-doc.md)（基于 T2 表）。
+- T2 已揭示 MCP 热插拔 = NATIVE；该结论已注入 T9，MCP 本身维持 out-of-scope，无需再范围 ticket。
+- crash-recovery / 并行工具调用 / 动态预算 的正确性深挖范围，部分依赖 T1 结果与 T3 基线。
+
+## Out of scope
+
+- `buzhou-observe-otel` / `buzhou-observe-dashboard` / `buzhou-mcp` / `buzhou-skills` / `buzhou-tools`（除 run_command 安全）的「做深」——本次目的地只含 core+memory+spill+guard，其余维持现状。
+- 发布到 Maven Central（已有 `RELEASING.md` 流程，属后续独立 effort）。
+- 除「一个可运行 src/main demo + 一个真实行为集成测试」外的 `examples/` 扩展。
+- 从 git 历史抹除 `.scratch`（除非 T7 发现含敏感信息；默认仅 untrack）。
+
+## Tickets
+
+开放 ticket 在 `tickets/`；frontier = `status:open` + `assignee:""` + 无未闭合 `blocked-by`。索引（含依赖）：
+
+- [CI 在 GitHub 红而本地绿的根因与修复](tickets/T1-ci-red-remotely-green-locally.md) — `research` · **frontier** · 阻塞 T4/T5
+- [Spring AI 2.0.0 原生能力 vs Buzhou 增强面（含 2.0.0/4.1.0 发布状态）](tickets/T2-spring-ai-native-vs-buzhou.md) — `research` · ✅ **closed**
+- [core/memory/spill/guard "做深做透"的验收基线](tickets/T3-depth-definition-of-done.md) — `grilling` · **frontier**（T2 已闭合，解锁）
+- [可运行 src/main demo 的形态](tickets/T4-runnable-main-demo.md) — `prototype` · blocked-by T1
+- [真实 LLM 集成测试策略](tickets/T5-real-llm-integration-test.md) — `prototype` · blocked-by T1
+- [run_command 默认关闭 vs 沙箱执行](tickets/T6-run-command-safety-default.md) — `grilling` · **frontier**
+- [.scratch 移出 git 历史 + 加 .gitignore](tickets/T7-remove-scratch-from-git.md) — `task` · **frontier**
+- [README "生产就绪"措辞降级，正文与 alpha 对齐](tickets/T8-downgrade-production-wording.md) — `task` · **frontier**
+- [撰写「与 Spring AI 原生能力边界」文档（item 6）](tickets/T9-spring-ai-boundary-doc.md) — `task` · **frontier**（T2 已闭合，解锁）
+
+**Frontier（本会话后可领取）**：T1、T3、T6、T7、T8、T9。（T2 已闭合）
