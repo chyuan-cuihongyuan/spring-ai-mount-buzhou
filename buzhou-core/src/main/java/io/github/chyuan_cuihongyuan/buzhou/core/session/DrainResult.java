@@ -10,9 +10,4 @@ import java.time.Duration;
  * @param totalDuration    drain 总耗时（从开始到全部会话 close 完成）
  */
 public record DrainResult(int drainedCount, int forceKilledCount, Duration totalDuration) {
-
-    /** 参与 drain 的会话总数。 */
-    public int totalCount() {
-        return drainedCount + forceKilledCount;
-    }
 }

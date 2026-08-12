@@ -182,12 +182,19 @@ public class DefaultAgentRuntime implements AgentRuntime {
             }));
         }
         List<DrainOutcome> outcomes = new ArrayList<>();
-        for (Future<DrainOutcome> f : waitFutures) {
+        for (int i = 0; i < waitFutures.size(); i++) {
+            Future<DrainOutcome> f = waitFutures.get(i);
+            LiveSession ls = snapshot.get(i);
             try {
                 outcomes.add(f.get());
-            } catch (Exception e) {
-                // awaitIdle 不抛 InterruptedException（内部消化）；此分支仅防御——异常会话仍走 close
-                log.warn("drain 等待轮次完结时异常，仍将 close 该会话", e);
+            } catch (ExecutionException e) {
+                // awaitIdle 不抛 InterruptedException（内部消化）；此分支仅防御——异常会话按未空闲处置（强杀 + close）
+                log.warn("drain 等待轮次完结时异常，按未空闲处置 sessionId={}", ls.session().sessionId(), e);
+                outcomes.add(new DrainOutcome(ls, false, Duration.ZERO));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("drain 等待被中断，按未空闲处置 sessionId={}", ls.session().sessionId());
+                outcomes.add(new DrainOutcome(ls, false, Duration.ZERO));
             }
         }
         vt.shutdownNow();

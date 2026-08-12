@@ -47,6 +47,9 @@ import java.util.List;
         BuzhouShutdownProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
+    /** Boot 4 {@code spring.lifecycle.timeout-per-shutdown-phase} 的规范默认（drain 超时派生兜底）。 */
+    private static final String DEFAULT_SHUTDOWN_PHASE_TIMEOUT = "30s";
+
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "buzhou.store", name = "type", havingValue = "memory", matchIfMissing = true)
@@ -104,7 +107,8 @@ public class BuzhouCoreAutoConfiguration {
     @ConditionalOnProperty(prefix = "buzhou.shutdown", name = "enabled", matchIfMissing = true)
     public BuzhouDrainLifecycle buzhouDrainLifecycle(AgentRuntime runtime,
                                                      BuzhouShutdownProperties shutdownProperties,
-                                                     @Value("${spring.lifecycle.timeout-per-shutdown-phase:30s}")
+                                                     @Value("${spring.lifecycle.timeout-per-shutdown-phase:"
+                                                             + DEFAULT_SHUTDOWN_PHASE_TIMEOUT + "}")
                                                      String springPhaseTimeoutStr) {
         // @Value 不经 ApplicationConversionService（ApplicationContextRunner 无 Duration 转换器），
         // 故注入 String 后用 DurationStyle 解析（与 @ConfigurationProperties 的 Duration 绑定同口径）

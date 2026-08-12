@@ -399,4 +399,63 @@ class GracefulShutdownEndToEndTest {
         runtime2.drain(Duration.ofSeconds(2));
         vt.shutdownNow();
     }
+
+    @Test
+    void drainWaitsForInFlightStreamTurn() throws Exception {
+        // 轮次在途信号覆盖 stream 形态：stream() 内 onTurnStart 触发（返回前）→ drain 等完；
+        // 订阅完结 onTurnEnd → drain 返回
+        ScriptedChatModel model = new ScriptedChatModel();
+        BlockingTool tool = new BlockingTool("slow_stream_op", "done");
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores,
+                io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(),
+                recoveryWithTier(DurabilityTier.ASYNC), tool);
+
+        AgentSession session = runtime.spawn("app", "agent", "sess-stream",
+                new SpawnOptions(false, List.of(events::add)));
+        model.enqueue(toolCall("tc-s", "slow_stream_op"));
+        model.enqueueText("stream 完成");
+        // stream() 立即返回（Flux 惰性）；onTurnStart 已在 stream() 内触发 → 轮次在途
+        reactor.core.publisher.Flux<org.springframework.ai.chat.model.ChatResponse> flux = session.stream("跑流式任务");
+        ExecutorService vt = Executors.newVirtualThreadPerTaskExecutor();
+        // 订阅触发模型调用 → 工具阻塞
+        java.util.concurrent.Future<?> subscription = vt.submit(() -> flux.blockLast());
+        assertThat(tool.started.await(2, TimeUnit.SECONDS)).isTrue();
+
+        // drain 在途轮次未完结前应阻塞（stream turn 在途，onTurnEnd 未触发）
+        java.util.concurrent.Future<DrainResult> drainFuture = vt.submit(() -> runtime.drain(Duration.ofSeconds(5)));
+        assertThatThrownBy(() -> drainFuture.get(500, TimeUnit.MILLISECONDS))
+                .isInstanceOf(java.util.concurrent.TimeoutException.class);
+
+        // 释放 latch → 工具完结 → 流完结 → onTurnEnd → drain 返回
+        tool.release.countDown();
+        DrainResult result = drainFuture.get(5, TimeUnit.SECONDS);
+        assertThat(result.drainedCount()).isEqualTo(1);
+        vt.shutdownNow();
+    }
+
+    @Test
+    void drainForceKillsAndFlushesExitTierBufferedWrites() throws Exception {
+        // EXIT 档下被强杀会话的缓冲写仍被 flush（close 路径一致）
+        String sid = "sess-exit-kill";
+        ScriptedChatModel model = new ScriptedChatModel();
+        BlockingTool tool = new BlockingTool("slow_op", "done");
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores,
+                io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.defaults(),
+                recoveryWithTier(DurabilityTier.EXIT), tool);
+
+        AgentSession session = runtime.spawn("app", "agent", sid,
+                new SpawnOptions(false, List.of(events::add)));
+        model.enqueue(toolCall("tc-1", "slow_op"));
+        ExecutorService vt = Executors.newVirtualThreadPerTaskExecutor();
+        vt.submit(() -> session.chat("跑长任务"));
+        assertThat(tool.started.await(2, TimeUnit.SECONDS)).isTrue();
+
+        // 不释放 latch：强杀 + close → EXIT flush 同步落盘缓冲写（USER + ASSISTANT 工具调用消息）
+        DrainResult result = runtime.drain(Duration.ofMillis(500));
+        assertThat(result.forceKilledCount()).isEqualTo(1);
+        assertThat(stores.messageStore().load(sid)).isNotEmpty();
+        vt.shutdownNow();
+    }
 }
