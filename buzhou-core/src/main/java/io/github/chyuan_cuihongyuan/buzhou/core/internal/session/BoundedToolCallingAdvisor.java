@@ -38,6 +38,7 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
     private final String sessionId;
     private final String agentName;
     private final Consumer<SessionEvent> eventSink;
+    private final ToolCallingManager toolCallingManager;
     private final AtomicInteger executedToolRounds = new AtomicInteger();
     private final AtomicReference<Instant> loopStartedAt = new AtomicReference<>();
 
@@ -53,12 +54,14 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         this.sessionId = sessionId;
         this.agentName = agentName;
         this.eventSink = eventSink;
+        this.toolCallingManager = toolCallingManager;
     }
 
     @Override
     protected ChatClientRequest doInitializeLoop(ChatClientRequest request, CallAdvisorChain chain) {
         executedToolRounds.set(0);
         loopStartedAt.set(Instant.now());
+        resetValidationBudget();
         return super.doInitializeLoop(request, chain);
     }
 
@@ -66,6 +69,7 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
     protected ChatClientRequest doInitializeLoopStream(ChatClientRequest request, StreamAdvisorChain chain) {
         executedToolRounds.set(0);
         loopStartedAt.set(Instant.now());
+        resetValidationBudget();
         return super.doInitializeLoopStream(request, chain);
     }
 
@@ -91,6 +95,16 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         }
         int nextRound = executedToolRounds.get() + 1;
         TurnLoopContext ctx = snapshot(nextRound);
+        // impl-04 / T30：参数校验重试预算——校验失败累计超过预算（且模型仍在要工具）→
+        // REASK_FAILED 优雅收尾（与轮数上界独立扣减的第三条护栏）
+        int validationFailures = validationFailures();
+        if (validationFailures > policy.effectiveRetryBudget()) {
+            emitReaskFailed(ctx, validationFailures);
+            String finalText = policy.reaskFailedFinal(ctx, validationFailures);
+            ChatResponse graceful = new ChatResponse(
+                    List.of(new Generation(new AssistantMessage(finalText))));
+            return new ChatClientResponse(graceful, response.context());
+        }
         if (!policy.shouldStop(ctx)) {
             executedToolRounds.incrementAndGet();
             return response;
@@ -100,6 +114,33 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         String finalText = policy.gracefulFinal(ctx);
         ChatResponse graceful = new ChatResponse(List.of(new Generation(new AssistantMessage(finalText))));
         return new ChatClientResponse(graceful, response.context());
+    }
+
+    /** impl-04：Turn 开始复位校验失败计数（仅 Harness 管理器持有计数器）。 */
+    private void resetValidationBudget() {
+        if (toolCallingManager instanceof io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager harness) {
+            harness.resetValidationFailures();
+        }
+    }
+
+    private int validationFailures() {
+        if (toolCallingManager instanceof io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager harness) {
+            return harness.validationFailures();
+        }
+        return 0;
+    }
+
+    private void emitReaskFailed(TurnLoopContext ctx, int validationFailures) {
+        if (eventSink == null) {
+            return;
+        }
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("sessionId", ctx.sessionId());
+        payload.put("agentName", ctx.agentName());
+        payload.put("validationFailures", validationFailures);
+        payload.put("retryBudget", policy.effectiveRetryBudget());
+        payload.put("onFail", "REASK_FAILED");
+        eventSink.accept(new SessionEvent("turn.loop.reask_failed", payload, Instant.now()));
     }
 
     private TurnLoopContext snapshot(int nextRound) {

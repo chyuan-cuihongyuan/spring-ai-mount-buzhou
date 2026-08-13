@@ -50,6 +50,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private final String sessionId;
     private final ConcurrentHashMap<String, Object> groupLocks = new ConcurrentHashMap<>();
     private final List<Future<?>> inFlight = new CopyOnWriteArrayList<>();
+    /** impl-04 / T30：入参 schema 校验开关（默认开）。 */
+    private volatile boolean argsValidation = true;
+    /** impl-04 / T30：本 Turn 累计校验反馈次数（BoundedToolCallingAdvisor 在 Turn 开始时复位）。 */
+    private final java.util.concurrent.atomic.AtomicInteger validationFailures =
+            new java.util.concurrent.atomic.AtomicInteger();
 
     public HarnessToolCallingManager(DefaultToolCallingManager delegate,
                                      ExecutorService executor,
@@ -83,6 +88,21 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         this.serialGroups = serialGroups == null ? Map.of() : serialGroups;
         this.spanContextCarrier = spanContextCarrier;
         this.sessionId = sessionId;
+    }
+
+    /** impl-04 / T30：入参 schema 校验开关（默认开；关闭后回到「直接执行」旧行为）。 */
+    public void setArgsValidation(boolean argsValidation) {
+        this.argsValidation = argsValidation;
+    }
+
+    /** 本 Turn 累计的校验反馈次数（供停止条件裁决）。 */
+    public int validationFailures() {
+        return validationFailures.get();
+    }
+
+    /** Turn 开始时复位校验失败计数（BoundedToolCallingAdvisor 调用）。 */
+    public void resetValidationFailures() {
+        validationFailures.set(0);
     }
 
     @Override
@@ -161,6 +181,17 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
                     ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
                             ToolErrorFeedback.missingToolReason(toolCall.name())));
+        }
+        // impl-04 / T30：执行前 schema 校验——未过则不执行工具，回喂校验反馈（REASK 通道）
+        if (argsValidation) {
+            Optional<String> violation = ToolArgsValidator.validate(
+                    callback.getToolDefinition().inputSchema(), toolCall.arguments());
+            if (violation.isPresent()) {
+                validationFailures.incrementAndGet();
+                return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
+                        ToolValidationFeedback.format(toolCall.name(), toolCall.arguments(),
+                                violation.get()));
+            }
         }
         Object lock = groupLock(toolCall.name());
         synchronized (lock) {

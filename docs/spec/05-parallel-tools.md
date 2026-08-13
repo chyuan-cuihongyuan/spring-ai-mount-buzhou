@@ -232,3 +232,10 @@ sequenceDiagram
   - `RecordingChatModel` + `RecordingFixture`：录制 (请求结构指纹, 响应脚本) 序列落 JSON（脱敏由序列化形状保证）；`FakeChatModel.fromRecording` **严格回放**——指纹失配/超录调用即 `AssertionError`，防静默漏断言。
   - `TestDoubleChatModel` 标记接口：examples 端到端入场断言（防真实请求门）。
 - 来源：Vercel AI SDK MockLanguageModelV4/mockValues + Pydantic AI TestModel/FunctionModel（Spring AI 9.3K★ 官方无 fake，自建）。
+
+## 参数 schema 校验 + per-turn 重试预算（wayfinder2 impl-04 / T30 / docs/spec/12）
+
+- **执行前校验**：工具调用 fan-out 层在执行<b>前</b>对 arguments 做 JSON Schema 结构校验（自实现最小子集 `ToolArgsValidator`：type/required/properties/items/enum/长度与数值边界；未知关键字忽略、schema 缺失放行——宁漏报不误拦、零新依赖）。
+- **两档失败词汇**：校验失败 = `ToolValidationFeedback`（`[工具参数校验失败]`，工具未执行、REASK 通道）；执行失败 = `ToolErrorFeedback`（工具已执行出错）。观测与策略可分别对待。
+- **重试预算**：`TurnLoopPolicy.retryBudget`（默认 2，Pydantic AI retries 语义；与轮数上界独立扣减）——校验失败累计超过预算且模型仍请求工具时，`BoundedToolCallingAdvisor` 以 **REASK_FAILED** 优雅收尾并发 `turn.loop.reask_failed` 事件。
+- 默认开（`HarnessToolCallingManager.setArgsValidation(false)` 可回退旧行为）。

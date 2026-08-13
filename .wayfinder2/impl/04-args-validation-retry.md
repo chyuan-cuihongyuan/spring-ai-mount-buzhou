@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：ToolArgsValidator 自实现最小 schema 子集 + ToolValidationFeedback 两档词汇 + manager 执行前拦截计数 + TurnLoopPolicy.retryBudget + advisor REASK_FAILED 收尾/事件；ToolArgsValidatorTest 6 例 + ArgsValidationRetryEndToEndTest 2 例；spec 05 新节）
 
 - [ ] 工具执行前对 arguments 做 JSON Schema 校验（复用 spring-ai 工具 schema 生成）
 - [ ] 校验失败合成 `ToolValidationFeedback`（与执行期 `ToolErrorFeedback` 两档词汇分明，格式对齐错误回喂通道）
