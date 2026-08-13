@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：redteam/promptfooconfig.yaml（注入类 plugins 对准四层防御）+ redteam/README + nightly workflow（观测期不阻塞）+ examples RedteamTargetSmokeTest（OpenAI 兼容 target、guard 全开、护栏行为基线断言：写侧零执行））
 
 - [ ] examples 暴露测试用 HTTP target（OpenAI 兼容端点包 agent loop，stub 模型驱动）
 - [ ] 仓库 `redteam/` promptfoo 配置：注入类 plugins（prompt-injection/excessive-agency/tool-discovery/shell-injection 等）+ strategies（jailbreak 单/多轮）

@@ -1,0 +1,51 @@
+name: redteam-nightly
+
+# wayfinder2 impl-20 / T48：guard 配置红队门——nightly 观测期，不阻塞 PR。
+# 事实源 promptfoo（24,206★）。指标基线稳定后再升硬门（见 redteam/README.md）。
+on:
+  schedule:
+    - cron: '0 19 * * *'  # UTC 19:00 = 北京 03:00，避开日间 CI
+  workflow_dispatch: {}
+
+jobs:
+  redteam:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 1) 起 Buzhou guard target（OpenAI 兼容端点，确定性替身模型——红队评护栏不评生成）
+      - name: Start Buzhou guard target
+        run: |
+          nohup mvn -B -ntp -pl examples -am test -DskipTests install -q
+          nohup mvn -B -ntp -pl examples test -Dtest=RedteamTargetSmokeTest \
+            -Dredteam.serve=8090 -Dsurefire.failIfNoSpecifiedTests=false \
+            > target-serve.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:8090/health && break || sleep 5
+          done
+
+      # 2) promptfoo 红队（观测期不 --fail-on-error；离线生成避免远端依赖）
+      - name: Run promptfoo redteam
+        env:
+          PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION: 'true'
+        run: |
+          npx --yes promptfoo@latest redteam run -c redteam/promptfooconfig.yaml --output redteam-results.json || true
+          npx --yes promptfoo@latest redteam eval -c redteam/promptfooconfig.yaml || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redteam-results
+          path: |
+            redteam-results.json
+            target-serve.log
+          if-no-files-found: ignore

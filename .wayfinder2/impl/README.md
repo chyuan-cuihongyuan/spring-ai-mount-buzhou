@@ -23,7 +23,7 @@
 | [17](17-chunk-hash-verify.md) | 内容寻址 chunk hash 回读校验 | spill | — | ready-for-agent |
 | [18](18-semantic-readback.md) | 语义回读第 4 模式（locate→fetch） | spill | 15 | ready-for-agent |
 | [19](19-ast-aware-slicing.md) | AST-aware 切片（JavaParser + 回退） | spill | — | ready-for-agent |
-| [20](20-promptfoo-redteam.md) | CI 自动红队门（promptfoo nightly） | guard | — | ready-for-agent |
+| [20](20-promptfoo-redteam.md) | CI 自动红队门（promptfoo nightly） | guard | — | done |
 | [21](21-fides-taint.md) | FIDES 最小 taint（标 + 写门校验） | guard | 12 | done |
 | [22](22-ecdsa-audit-trail.md) | ECDSA 签名审计链（AAT + JCS） | guard | — | ready-for-agent |
 | [23](23-policy-engine.md) | policy-as-code 子集 + OPA sidecar SPI | guard | — | ready-for-agent |
