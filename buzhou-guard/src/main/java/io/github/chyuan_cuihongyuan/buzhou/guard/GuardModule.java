@@ -62,6 +62,13 @@ public final class GuardModule {
         if (builder.spotlighting) {
             h.add(new SpotlightHook());
         }
+        // impl-21 / T49：FIDES 最小 taint（读侧打标 + 写门校验；默认关，按机制开关）
+        if (builder.taintTracking) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintTrackingHook(
+                    builder.stores.sessionStateStore()));
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintWriteGateHook(
+                    config, builder.stores.sessionStateStore()));
+        }
         if (!builder.factDefinitions.isEmpty()) {
             h.add(new FactCollectorHook(builder.factDefinitions, factStore));
         }
@@ -110,6 +117,8 @@ public final class GuardModule {
         private boolean canaryGuard = false;
         private String canaryToken = null;
         private double canarySimilarityThreshold = 0.6;
+        // impl-21 / T49：FIDES 最小 taint 信息流控制（默认关）
+        private boolean taintTracking = false;
 
         private Builder(BuzhouStores stores) {
             this.stores = stores;
@@ -135,6 +144,12 @@ public final class GuardModule {
         /** 一键开启读侧注入防御（spotlighting + canary）。 */
         public Builder injectionDefense() {
             return spotlighting().canaryGuard();
+        }
+
+        /** 开启 FIDES 最小 taint 信息流控制（读侧打标 + 写门：untrusted 上下文写侧调用转 HITL）。 */
+        public Builder taintTracking() {
+            this.taintTracking = true;
+            return this;
         }
 
         /** 固定密语（默认随机；测试/诊断用）。 */

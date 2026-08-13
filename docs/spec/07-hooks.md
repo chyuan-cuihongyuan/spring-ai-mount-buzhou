@@ -257,9 +257,17 @@ public interface SessionEventContext extends HookContext {
    - 密语（会话随机，可固定供测试）泄漏进工具输出 → **拦截**该结果（REPLACE 为拦截告示，不回灌模型）+ Error Event `guard.canary.leaked` + 载荷录入**拒识记忆**（会话状态 `guard.canary.rejected`，≤32 条）；
    - **自硬化**：后续**变体**载荷（字符 n-gram Jaccard ≥ 0.6——Tier-1 的 embedding 近邻近似）即使不含密语也被拦截（`guard.canary.variant.blocked`）；
    - 来源：Rebuff。
-3. **纵深序**（与 T15 分层防御序一致）：Spotlighting → canary →（既有）写侧 HITL 门最后确定性阻断。
+3. **纵深序**（与 T15 分层防御序一致）：Spotlighting → canary → FIDES 写门 →（既有）写侧 HITL 门最后确定性阻断。
 
 > 【推演】向量拒识（embedding 入拒识向量）为 Tier-2；Tier-1 用字符 n-gram Jaccard 近似语义近邻，确定性、无外部依赖。测试证据：`InjectionDefenseUnitTest` / `InjectionDefenseEndToEndTest`（注入载荷不影响写侧：dangerous 工具零调用）。
+
+### FIDES 最小 taint 信息流控制（wayfinder2 impl-21 / T49 / docs/spec/12 §guard-21）
+
+读写非对称的**形式化终点**（MSRC FIDES 论文的最小可行子集；AgentDojo 实测注入归零、效用损失 4.5–16.2%）。经 `GuardModule.builder().taintTracking()` 开启（默认关）：
+
+1. **读侧打标**（`TaintTrackingHook`，order 150）：任何工具输出进入会话即把上下文标签 join 到 **UNTRUSTED**（保守单调；持久化于会话 state `taint.context`，值含来源工具名；跨轮/跨实例续接有效）。消毒是**显式动作**（`TaintTrackingHook.clear`，业务确认可信后调用）。
+2. **写门校验**（`TaintWriteGateHook`，order 250，Onload 200 之后、HITL 300 之前）：tainted 上下文中的**写侧工具调用**（= 既有危险工具清单）被拦截转 HITL——「未经消毒/审批的不可信数据不得流入特权动作」；**审批通道复用既有授权台账**（auth.{tool}.{fingerprint}，`GuardAuthApi.approve` 写回）= FIDES approver 的 Buzhou 等价物；trusted 上下文正常流零扰动。事件 `guard.taint.marked` / `guard.taint.blocked`。
+3. **Out of Scope**（FIDES 二期，fog）：变量隐藏 Hide/Expand、隔离 LLM + 约束解码、类型容量格。
 
 ### 失败语义非对称（专节）
 

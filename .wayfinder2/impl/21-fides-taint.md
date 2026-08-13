@@ -4,7 +4,7 @@
 
 **Blocked by:** 12（memory 防投毒——TaintLabel 与 provenance 同源）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：TaintTrackingHook（读侧打标 UNTRUSTED、保守单调、持久化跨续接、显式消毒）+ TaintWriteGateHook（order 250 写门：tainted 上下文写侧调用拦截转 HITL、审批复用既有授权台账=FIDES approver 等价）+ GuardModule.taintTracking() 开关；TaintWriteGateEndToEndTest 2 例（AgentDojo 式拦截/approve 放行/trusted 零扰动）；guard 37/37 绿；spec 07 新节 + 纵深序更新）
 
 - [ ] `TaintLabel`（枚举起步 TRUSTED/UNTRUSTED + 来源）读侧 hook 给工具/RAG 输出 Attachment 打标（与 memory provenance 同源）
 - [ ] LLM 响应保守取输入标签 join 传播进会话状态
