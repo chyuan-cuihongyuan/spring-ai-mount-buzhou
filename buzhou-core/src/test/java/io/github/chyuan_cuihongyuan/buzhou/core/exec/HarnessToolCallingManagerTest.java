@@ -67,6 +67,10 @@ class HarnessToolCallingManagerTest {
         return new AssistantMessage.ToolCall(id, "function", name, "{}");
     }
 
+    private AssistantMessage.ToolCall call(String id, String name, String arguments) {
+        return new AssistantMessage.ToolCall(id, "function", name, arguments);
+    }
+
     @Test
     void parallelExecutionTakesMaxNotSum() {
         HarnessToolCallingManager manager = manager(Map.of());
@@ -186,7 +190,8 @@ class HarnessToolCallingManagerTest {
 
         ToolExecutionResult result = future.get(5, TimeUnit.SECONDS);
         ToolResponseMessage responses = (ToolResponseMessage) result.conversationHistory().getLast();
+        // T16 后取消路径为结构化反馈文案（含「执行已取消」子串）；工具自身中断分支仍返回 interrupted。
         assertThat(responses.getResponses().getFirst().responseData())
-                .isIn("interrupted", "执行已取消");
+                .containsAnyOf("interrupted", "执行已取消");
     }
 }

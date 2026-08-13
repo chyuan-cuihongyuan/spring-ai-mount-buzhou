@@ -16,7 +16,8 @@ public record RuntimeConfig(
         List<ToolCallback> autoTools,
         Map<String, String> serialGroups,
         List<SessionResourceCustomizer> sessionCustomizers,
-        List<SessionAssemblyCustomizer> assemblyCustomizers) {
+        List<SessionAssemblyCustomizer> assemblyCustomizers,
+        TurnLoopPolicy turnLoopPolicy) {
 
     public RuntimeConfig {
         hooks = hooks == null ? List.of() : List.copyOf(hooks);
@@ -32,7 +33,7 @@ public record RuntimeConfig(
                          Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
                          List<ToolCallback> autoTools) {
         this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, Map.of(),
-                List.of(), List.of());
+                List.of(), List.of(), null);
     }
 
     public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
@@ -40,7 +41,16 @@ public record RuntimeConfig(
                          List<ToolCallback> autoTools, Map<String, String> serialGroups,
                          List<SessionResourceCustomizer> sessionCustomizers) {
         this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
-                sessionCustomizers, List.of());
+                sessionCustomizers, List.of(), null);
+    }
+
+    public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
+                         Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
+                         List<ToolCallback> autoTools, Map<String, String> serialGroups,
+                         List<SessionResourceCustomizer> sessionCustomizers,
+                         List<SessionAssemblyCustomizer> assemblyCustomizers) {
+        this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
+                sessionCustomizers, assemblyCustomizers, null);
     }
 
     public static RuntimeConfig defaults() {
@@ -74,15 +84,22 @@ public record RuntimeConfig(
         return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of(), Map.of(), List.of(), customizers);
     }
 
+    /** 仅含有界 Turn 策略（turnLoopPolicy）。 */
+    public static RuntimeConfig turnLoopPolicy(TurnLoopPolicy turnLoopPolicy) {
+        return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of(), Map.of(), List.of(), List.of(),
+                turnLoopPolicy);
+    }
+
     public static RuntimeConfig merge(RuntimeConfig... configs) {
         List<BuzhouHook> hooks = new java.util.ArrayList<>();
         Set<String> disabled = new java.util.HashSet<>();
         Set<String> idempotent = new java.util.HashSet<>();
-        MemoryViewProcessor viewProcessor = null;
+        List<MemoryViewProcessor> viewProcessors = new java.util.ArrayList<>();
         List<ToolCallback> autoTools = new java.util.ArrayList<>();
         Map<String, String> serialGroups = new java.util.HashMap<>();
         List<SessionResourceCustomizer> customizers = new java.util.ArrayList<>();
         List<SessionAssemblyCustomizer> assemblyCustomizers = new java.util.ArrayList<>();
+        TurnLoopPolicy turnLoopPolicy = null;
         for (RuntimeConfig config : configs) {
             if (config == null) {
                 continue;
@@ -91,14 +108,37 @@ public record RuntimeConfig(
             disabled.addAll(config.disabledHookNames());
             idempotent.addAll(config.idempotentToolNames());
             if (config.viewProcessor() != null) {
-                viewProcessor = config.viewProcessor();
+                viewProcessors.add(config.viewProcessor());
             }
             autoTools.addAll(config.autoTools());
             serialGroups.putAll(config.serialGroups());
             customizers.addAll(config.sessionCustomizers());
             assemblyCustomizers.addAll(config.assemblyCustomizers());
+            if (config.turnLoopPolicy() != null) {
+                turnLoopPolicy = config.turnLoopPolicy();
+            }
         }
-        return new RuntimeConfig(hooks, disabled, idempotent, viewProcessor, autoTools,
-                serialGroups, customizers, assemblyCustomizers);
+        return new RuntimeConfig(hooks, disabled, idempotent, compose(viewProcessors), autoTools,
+                serialGroups, customizers, assemblyCustomizers, turnLoopPolicy);
+    }
+
+    /**
+     * 多个 viewProcessor 时按 merge 顺序<b>链式组合</b>（前一个的输出是后一个的输入），
+     * 替代旧的「后者静默覆盖前者」——支持 spill（hot-tail 溢出）与 memory（压缩/注入）叠加。
+     */
+    private static MemoryViewProcessor compose(List<MemoryViewProcessor> processors) {
+        if (processors.isEmpty()) {
+            return null;
+        }
+        if (processors.size() == 1) {
+            return processors.getFirst();
+        }
+        return (sessionId, stored, currentTurn) -> {
+            List<io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage> view = stored;
+            for (MemoryViewProcessor processor : processors) {
+                view = processor.process(sessionId, view, currentTurn);
+            }
+            return view;
+        };
     }
 }

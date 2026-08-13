@@ -14,6 +14,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.TurnLoopPolicy;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor;
 import org.springframework.ai.chat.client.ChatClient;
@@ -48,7 +49,7 @@ public class HarnessAssembler {
                                  ToolCallback... tools) {
         return assemble(appId, agentName, sessionId, chatModel, stores, registry, onClose,
                 hooks, disabledHookNames, idempotentToolNames, viewProcessor, executor, serialGroups,
-                List.of(), tools);
+                List.of(), null, tools);
     }
 
     public AgentSession assemble(String appId, String agentName, String sessionId,
@@ -62,6 +63,7 @@ public class HarnessAssembler {
                                  ExecutorService executor,
                                  Map<String, String> serialGroups,
                                  List<SessionAssemblyCustomizer> assemblyCustomizers,
+                                 TurnLoopPolicy turnLoopPolicy,
                                  ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, agentName, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
@@ -101,7 +103,9 @@ public class HarnessAssembler {
 
         ChatClient.Builder builder = ChatClient.builder(chatModel);
         List<Advisor> advisors = new ArrayList<>();
-        advisors.add(ToolCallingAdvisor.builder().toolCallingManager(toolManager).build());
+        // 有界 Turn（T17）：默认策略给 think→tool 递归上硬上界；policy=null 时用框架默认（40 轮）
+        advisors.add(new BoundedToolCallingAdvisor(toolManager, turnLoopPolicy, sessionId, agentName,
+                event -> env.emit(event)));
         advisors.add(new BuzhouMemoryAdvisor(memory));
         advisors.add(new HookAdvisor(chain, env));
         // 机制模块注入的 advisor（如 ObservabilityAdvisor）

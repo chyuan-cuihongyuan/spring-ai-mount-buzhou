@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.internal.hook;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolErrorFeedback;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
 import org.springframework.ai.chat.model.ToolContext;
@@ -61,8 +62,10 @@ public class HookedToolCallback implements ToolCallback {
         try {
             result = delegate.call(serializeArguments(ctx.arguments()), toolContext);
         } catch (RuntimeException e) {
+            // 工具侧异常统一走「错误即反馈」通道：结构化错误文案（含原入参）回喂模型，Turn 不死。
             error = e;
-            result = "执行失败：" + e.getMessage();
+            result = ToolErrorFeedback.format(toolName, toolInput,
+                    "执行失败：" + e.getMessage());
         }
         ctx.markExecuted(result, error);
 

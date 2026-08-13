@@ -101,7 +101,8 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         ToolCallingChatOptions options = prompt.getOptions() instanceof ToolCallingChatOptions t
                 ? t : ToolCallingChatOptions.builder().build();
         Map<String, ToolCallback> callbacksByName = new java.util.HashMap<>();
-        for (ToolCallback callback : options.getToolCallbacks()) {
+        for (ToolCallback callback : options.getToolCallbacks() == null
+                ? List.<ToolCallback>of() : options.getToolCallbacks()) {
             callbacksByName.put(callback.getToolDefinition().name(), callback);
         }
 
@@ -120,14 +121,21 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         for (AssistantMessage.ToolCall toolCall : toolCalls) {
             futures.add(executor.submit(() -> executeOne(toolCall, callbacksByName, toolContext)));
         }
-        for (Future<ToolResponseMessage.ToolResponse> future : futures) {
+        for (int i = 0; i < futures.size(); i++) {
+            AssistantMessage.ToolCall toolCall = toolCalls.get(i);
+            ToolResponseMessage.ToolResponse response;
             try {
-                ToolResponseMessage.ToolResponse response = future.get();
-                responses.add(response);
-                returnDirect |= isReturnDirect(callbacksByName.get(response.name()));
+                response = futures.get(i).get();
             } catch (Exception e) {
-                throw new IllegalStateException("Tool execution aggregation failed", e);
+                // 兜底：任何漏网的执行异常也降级为错误反馈，保证每个 tool_call 恒有一个
+                // ToolResponse（协议要求）且 Turn 不死，而非上抛终结整轮。
+                Throwable cause = e.getCause() == null ? e : e.getCause();
+                response = new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
+                        ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                                "执行失败：" + cause));
             }
+            responses.add(response);
+            returnDirect |= isReturnDirect(callbacksByName.get(response.name()));
         }
 
         List<Message> conversationHistory = new ArrayList<>(prompt.getInstructions());
@@ -149,8 +157,10 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             ToolContext toolContext) {
         ToolCallback callback = callbacksByName.get(toolCall.name());
         if (callback == null) {
+            // 工具缺失同样回喂为结构化错误结果（含原入参），让模型自我纠错，而非崩溃/终结 Turn。
             return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
-                    "未知工具：" + toolCall.name());
+                    ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                            ToolErrorFeedback.missingToolReason(toolCall.name())));
         }
         Object lock = groupLock(toolCall.name());
         synchronized (lock) {
@@ -160,19 +170,22 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
-                        "执行被中断");
+                        ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行被中断"));
             }
             Future<String> task = executor.submit(() -> callback.call(toolCall.arguments(), toolContext));
             inFlight.add(task);
             try {
                 result = task.get(toolTimeout.toMillis(), TimeUnit.MILLISECONDS);
             } catch (java.util.concurrent.CancellationException e) {
-                result = "执行已取消";
+                result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行已取消");
             } catch (TimeoutException e) {
                 task.cancel(true);
-                result = "执行超时（" + toolTimeout.toSeconds() + "s）";
+                result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                        "执行超时（" + toolTimeout.toSeconds() + "s）");
             } catch (Exception e) {
-                result = "执行失败：" + (e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
+                Throwable cause = e.getCause() == null ? e : e.getCause();
+                result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                        "执行失败：" + cause);
             } finally {
                 inFlight.remove(task);
                 turnPermits.release();

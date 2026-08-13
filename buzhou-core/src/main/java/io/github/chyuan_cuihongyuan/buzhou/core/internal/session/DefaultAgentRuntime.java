@@ -71,7 +71,7 @@ public class DefaultAgentRuntime implements AgentRuntime {
         AgentSession session = assembler.assemble(appId, agentName, sessionId, chatModel, stores, registry,
                 registry::closeAll, config.hooks(), config.disabledHookNames(),
                 config.idempotentToolNames(), config.viewProcessor(), executor,
-                config.serialGroups(), config.assemblyCustomizers(), allTools);
+                config.serialGroups(), config.assemblyCustomizers(), config.turnLoopPolicy(), allTools);
         options.listeners().forEach(session::addEventListener);
         return session;
     }

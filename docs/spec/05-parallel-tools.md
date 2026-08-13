@@ -106,12 +106,22 @@ public final class SessionToolExecutor implements AutoCloseable {
 - 单工具超时默认 60s（工具级策略可覆盖）；超时即中断该虚拟线程并生成超时文本结果。
 - 任一调用失败不影响同轮其他调用收敛；聚合一定发生，轮次不因单点失败而崩。
 - 轮次取消（`AgentSession.cancel()`）：`cancelAll()` 对全部在途 `Future` `cancel(true)`，取消传播到全部在途调用。
+- **错误即反馈（统一通道，wayfinder T16 / docs/spec/11）**：工具侧全部失败路径——执行异常、超时、取消、中断、**工具缺失**——一律经 `ToolErrorFeedback` 合成**结构化错误文案**（`[工具执行失败]` + 工具名 + **原工具入参** + 原因 + 纠错建议）作为该 tool_call 的 `ToolResponse` 按原序回注模型，递归继续，Turn 不死；模型据此自我纠错。聚合层兜底保证**每个 tool_call 恒有一个 ToolResponse**（协议硬要求），漏网异常（含 `Error`）也降级为错误反馈而非上抛。
+- **边界正交**：本通道只作用于工具侧异常；模型侧异常（调用 ChatModel 抛错）不属于本通道、照常上抛，由模型韧性层（`onModelError` 语义）处理，互不吞没。
 
 > 【推演】超时实现选型 = `Future.get(timeout)` + 中断取消；未采用 `StructuredTaskScope`——JDK 21 中结构化并发仍为预览特性，不宜入主干 API 表面。
 
 > 【推演】不响应中断的工具（自旋 / 阻塞 native 调用）：结果丢弃、记取消 Event，线程随会话执行器销毁由 JVM 回收；不引入强制杀线程机制（Java 无安全手段）。
 
-> 【推演】失败文本格式：「执行失败：<异常摘要>」/「执行超时：<时长>」，并附 toolCallId 于消息元数据——文案语义忠于 ticket 18，元数据附加为排障增强。
+> 【推演】失败文本格式：「执行失败：<异常摘要>」/「执行超时：<时长>」，并附 toolCallId 于消息元数据——文案语义忠于 ticket 18，元数据附加为排障增强。T16 起该文案升级为结构化错误反馈（保留既有关键词子串兼容），来源 = OpenAI Agents SDK `return_error_to_model` + `tool_error_formatter`。
+
+### 有界 Turn 与可组合停止条件（wayfinder T17 / docs/spec/11）
+
+- Turn 内 think→tool 递归引入**硬上界**（`TurnLoopPolicy`，经 `RuntimeConfig.turnLoopPolicy` 注入）：默认 40 个工具执行轮（业界保守值），可配、可关（`unbounded()` 逃生舱）。
+- 停止条件建模为**可组合 `Predicate<TurnLoopContext>` 链**（JDK Predicate 原生 `and`/`or`）：内置「轮数预算」「循环超时」两条；工具信号 / 外部取消由接入方以自定义 Predicate 表达（如闭包引用取消旗标）。
+- 裁决点 = Spring AI `ToolCallingAdvisor` 的「模型响应后、工具执行前」缝隙（`BoundedToolCallingAdvisor` 继承扩展）：命中即把该工具调用响应**替换为优雅最终回复**（可插兜底 handler，默认如实告知用户已在预算内收尾），循环自然退出——工具不再执行、不再烧 token。
+- 停止可观测：发 `turn.loop.bounded` 事件（sessionId / executedToolRounds / nextToolRound / 上界）。
+- 与工具侧「错误即反馈」正交：那是单工具失败的恢复通道；这是整轮递归的成本护栏。来源：Vercel `stopWhen` / OpenAI `max_turns` / AutoGen 可组合终止条件。
 
 ### 与 HITL / Hook 链的并行语义
 
