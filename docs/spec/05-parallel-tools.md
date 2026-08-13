@@ -266,3 +266,12 @@ sequenceDiagram
   - `ALL`（默认）：并行批全部结果（成功与失败反馈）同轮回喂——整批 ToolResponse 单条消息注入 = **状态层原子**；
   - `FAILED_ONLY`：任一失败时成功者结果**暂存事件日志**（executeOne 已 append-only 记录、按 toolCallId 可回查），上下文以占位提示替代——失败信号聚焦、窗口更省。诚实边界：**不宣称副作用回滚**。
   - 经 `SessionAssemblyContext.toolManager().setBatchFeedbackPolicy(...)` 配置。
+
+## interrupt/resume 按 toolCallId（wayfinder2 impl-08 / T34 / docs/spec/12）
+
+`SessionInterrupts`（core.session，LangGraph `interrupt()/Command(resume)` 反模式的规避版）：
+pending 从持久历史推导（assistant 工具调用 × 无应答的差集——挂起/HITL/中断现场一律适用）；
+`resumeWith(sessionId, toolCallId, resultText)` **按 toolCallId 精确注入** ToolResponse 直接落库
+（下一轮模型即见）——<b>绝不重放 Turn 前段</b>（无 Turn 重跑、无 LangGraph「resume 所在节点从头
+重执行」缺陷）；多挂起可逐个 resume；幂等（已应答/未知 id 返回 false）。人审通道与既有
+GuardAuthApi 授权台账合流（approve → 模型重发或 resumeWith 注入结果二选一）。

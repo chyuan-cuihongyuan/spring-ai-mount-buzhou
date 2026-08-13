@@ -28,8 +28,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * T19「on_fail 动词汇 · REASK」端到端（docs/spec/11 guard）：可恢复失败（工具入参 schema 不合法）
- * 按 REASK 把结构化错误回喂模型自我纠错重试，且<b>有上界</b>（T17 有界 Turn 预算兜底，不无限循环）。
+ * T19「on_fail 动词汇 · REASK」端到端（docs/spec/11 guard + wayfinder2 impl-04/T30 强化）：
+ * 可恢复失败按 REASK 回喂自纠重试且<b>有上界</b>——坏参现在被<b>执行前 schema 校验</b>更早拦截
+ * （`[工具参数校验失败]`，工具零误执行），与执行期错误（`[工具执行失败]`）两档词汇分明；
+ * 永不修正时由 per-Turn 重试预算（T30）先于 Turn 上界优雅收尾。
  */
 class OnFailReaskIntegrationTest {
 
@@ -38,7 +40,6 @@ class OnFailReaskIntegrationTest {
         BuzhouStores stores = Buzhou.inMemoryStores();
         SelfCorrectingArgsModel model = new SelfCorrectingArgsModel();
         AtomicInteger calls = new AtomicInteger();
-        // 可恢复 schema 失败的典型缝：工具侧入参校验（缺必填字段抛错 → T16 错误回喂 → 模型自纠重试）
         ToolCallback query = FunctionToolCallback.builder("query_order",
                         (java.util.function.Function<Map<String, Object>, String>) input -> {
                             if (!input.containsKey("orderId")) {
@@ -57,8 +58,9 @@ class OnFailReaskIntegrationTest {
         String reply = session.chat("查订单 ORD-1");
         session.close();
 
-        // 第一次坏参（缺 orderId）被 REASK 回喂（T16 结构化错误反馈），第二次自纠成功 → 工具恰好执行 1 次
-        assertThat(model.errorFeedbackSeen).contains("[工具执行失败]").contains("orderId 必填");
+        // 坏参被<b>执行前</b> schema 校验拦截（REASK 通道：参数校验失败词汇 + 缺失字段说明），
+        // 模型自纠后成功——工具恰好执行 1 次（坏参零误执行）
+        assertThat(model.errorFeedbackSeen).contains("[工具参数校验失败]").contains("orderId");
         assertThat(calls.get()).isEqualTo(1);
         assertThat(reply).contains("已查到");
     }
@@ -85,12 +87,12 @@ class OnFailReaskIntegrationTest {
         String reply = session.chat("查订单 ORD-1");
         session.close();
 
-        // REASK 有上界：模型永不修正时，T17 有界 Turn 预算兜底、优雅收尾（不无限烧 token）
-        assertThat(reply).contains("预算内收尾");
-        assertThat(model.calls.get()).isLessThanOrEqualTo(41);
+        // REASK 有上界：永不修正时由 T30 重试预算（默认 2）先于 Turn 上界 REASK_FAILED 优雅收尾
+        assertThat(reply).contains("重试预算上限");
+        assertThat(model.calls.get()).isLessThanOrEqualTo(4);
     }
 
-    /** 先发坏参（缺必填字段，REASK 一次），见到错误反馈后自纠。 */
+    /** 先发坏参（触发执行前 schema 校验反馈），见到校验反馈后自纠。 */
     static final class SelfCorrectingArgsModel implements ChatModel {
         String errorFeedbackSeen;
 
@@ -105,14 +107,14 @@ class OnFailReaskIntegrationTest {
             Message last = msgs.isEmpty() ? null : msgs.get(msgs.size() - 1);
             if (last instanceof ToolResponseMessage toolResponse) {
                 String data = toolResponse.getResponses().getFirst().responseData();
-                if (data.contains("[工具执行失败]")) {
+                if (data.contains("[工具参数校验失败]") || data.contains("[工具执行失败]")) {
                     errorFeedbackSeen = data;
                     // 自纠：补上必填字段
                     return toolCall("query_order", "{\"orderId\":\"ORD-1\"}");
                 }
                 return text("已查到：" + data);
             }
-            // 首次：坏参（用错字段名，触发工具侧必填校验失败）
+            // 首次：坏参（用错字段名，触发执行前 schema 校验失败）
             return toolCall("query_order", "{\"orderNo\":\"ORD-1\"}");
         }
 

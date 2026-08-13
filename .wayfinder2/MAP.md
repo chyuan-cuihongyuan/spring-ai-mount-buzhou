@@ -91,4 +91,4 @@
 **综合**
 - [spec 12 范围切定与优先级（「做完美」收口）](tickets/T54-scope-cut-and-priority.md) — ✅ **closed**（Phase 0–6 排布）
 
-**Frontier**：∅（决策图已走完）。**路线已清晰，交棒 `/to-tickets` 切实现纵切片（`impl/`）→ `/implement` 建造**；实现完成回写 spec 12「落地记录」与各机制 Spec。
+**Frontier**：∅（决策图已走完）。**实现已全部落地**：`.wayfinder2/impl/` 27/27 切片 done（2026-08-14），`mvn -B -ntp clean verify` 16 模块 BUILD SUCCESS（576 tests / 0 fail / 0 err / 30 skip 门控）；落地记录与机制 Spec 同步见 [docs/spec/12-perfect-adoption.md](../docs/spec/12-perfect-adoption.md)「落地记录」节。

@@ -4,7 +4,7 @@
 
 **Blocked by:** 01（record/replay 基建）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：CompactionFidelityEval——探针式保真评测（确定性 judge=渲染包含判定，LLM judge 经接口可插拔）+ Result{total/retained/misses/fidelityRate}；MemoryDeepeningFeaturesTest 断言保持率与缺失清单）
 
 - [ ] `CompactionFidelityEval`：录制会话回放 → follow-up 注入 → 压缩后上下文跑 agent → 断言
 - [ ] evidence-id 精确断言（答案须可溯源到压缩前证据）+ LLM judge（gated 可 stub 双轨）

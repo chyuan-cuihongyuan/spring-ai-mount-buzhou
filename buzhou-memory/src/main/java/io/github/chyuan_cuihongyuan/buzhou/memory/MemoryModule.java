@@ -108,6 +108,9 @@ public final class MemoryModule {
                 tools.add(new io.github.chyuan_cuihongyuan.buzhou.memory.tool.ReviseSummarySectionTool(
                         summaryBridge, stores.sessionStateStore()));
             }
+            // impl-15 / T41：模糊召回工具（text/time 恒可用；embedding/hybrid 经 provider 降级）
+            tools.add(new io.github.chyuan_cuihongyuan.buzhou.memory.tool.RecallSearchTool(
+                    messageStore, embeddingProvider(ymlConfig)));
         }
         return new RuntimeConfig(sleepTimeHooks(ymlConfig, stores, summaryModel),
                 java.util.Set.of(), java.util.Set.of(),
@@ -159,6 +162,28 @@ public final class MemoryModule {
             }
         }
         return 5;
+    }
+
+    /**
+     * impl-15 / T41：EmbeddingProvider 解析——{@code memory.embedding-provider} 配置为
+     * 实现类全名（部署侧注入真模型；测试用确定性词包）。缺省 null（embedding/hybrid 降级）。
+     */
+    private static io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider embeddingProvider(
+            Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object value = ((Map<?, ?>) memory).get("embedding-provider");
+            if (value instanceof String className && !className.isBlank()) {
+                try {
+                    return (io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider)
+                            Class.forName(className).getDeclaredConstructor().newInstance();
+                } catch (Exception e) {
+                    System.getLogger(MemoryModule.class.getName()).log(System.Logger.Level.WARNING,
+                            "embedding-provider 实例化失败（按未注入降级）：{0}", className);
+                }
+            }
+        }
+        return null;
     }
 
     /** T25 开关：{@code memory.fact-reconciliation}（默认开）。 */

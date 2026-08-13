@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：RecallSearch 四模（TEXT 词元/TIME 轮次倒序/EMBEDDING 余弦/HYBRID 融合）于消息台账单源执行（无第二向量库——单库精神）+ recall_search 内置工具（embedding/hybrid 未注入 provider 显式降级）+ EmbeddingProvider 共享抽象（core.spi，配置 memory.embedding-provider 实现类名注入）；MemoryDeepeningFeaturesTest 四模+降级断言。pgvector 列存储留部署侧增强，单源语义已达成）
 
 - [ ] `RecallSearchQuery{mode: TEXT|EMBEDDING|TIME|HYBRID, query, start/end, after/before sequenceId, limit}`
 - [ ] JDBC 后端：消息台账 + pgvector 列 + HNSW 索引，**单库同事务双写**（不引入独立向量库）；hybrid=RRF 融合可调权

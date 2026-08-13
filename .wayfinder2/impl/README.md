@@ -11,14 +11,14 @@
 | [05](05-cancel-mode.md) | CancelMode 三档 + token 贯穿 | core | — | done |
 | [06](06-run-registry.md) | 持久 Run 注册表 + 枚举续跑（lease 门） | core | — | done |
 | [07](07-event-sourced-tool-log.md) | 事件溯源工具调用日志 + 幂等键 | core | 06 | done |
-| [08](08-interrupt-resume.md) | HITL interrupt/resume 按 toolCallId | core | 07 | ready-for-agent |
+| [08](08-interrupt-resume.md) | HITL interrupt/resume 按 toolCallId | core | 07 | done |
 | [09](09-timetravel-fork.md) | time-travel fork（Completed-Turn 检查点） | core | 07 | done |
 | [10](10-transactional-batch.md) | 事务性并行批——批提交语义 | core | 07 | done |
 | [11](11-sleeptime-consolidation.md) | sleep-time 后台整理 | memory | — | done |
 | [12](12-memory-tools-antipoisoning.md) | memory-as-tools 自愈记忆 + 防投毒 | memory | — | done |
 | [13](13-compaction-checkpoint.md) | 压缩前检查点与三档回滚 | memory | — | done |
-| [14](14-fidelity-eval.md) | 压缩保真度 eval | memory | 01 | ready-for-agent |
-| [15](15-vector-recall-search.md) | 向量 recall 四模搜（pgvector 单库） | memory | — | ready-for-agent |
+| [14](14-fidelity-eval.md) | 压缩保真度 eval | memory | 01 | done |
+| [15](15-vector-recall-search.md) | 向量 recall 四模搜（pgvector 单库） | memory | — | done |
 | [16](16-context-clearing.md) | context-clearing + 显式逐出 | spill | — | done |
 | [17](17-chunk-hash-verify.md) | 内容寻址 chunk hash 回读校验 | spill | — | done |
 | [18](18-semantic-readback.md) | 语义回读第 4 模式（locate→fetch） | spill | 15 | done（共享 EmbeddingProvider 先行落地） |
@@ -29,7 +29,7 @@
 | [23](23-policy-engine.md) | policy-as-code 子集 + OPA sidecar SPI | guard | — | done |
 | [24](24-onnx-classifier.md) | ONNX 分类器（默认关） | guard | — | done |
 | [25](25-command-sandbox.md) | CommandSandbox SPI + Deno 档 | guard | — | done |
-| [26](26-episodic-fewshot.md) | episodic memory few-shot | memory | 15 | ready-for-agent |
-| [27](27-final-verification.md) | 收口：全量验证 + 落地记录回写 | 全部 | 01–26 | ready-for-agent |
+| [26](26-episodic-fewshot.md) | episodic memory few-shot | memory | 15 | done |
+| [27](27-final-verification.md) | 收口：全量验证 + 落地记录回写 | 全部 | 01–26 | done |
 
-**frontier**（无未闭合 blocker）：01–06、11–13、15–17、19、20、22–25。推荐实现序（研究 ROI）：**01（地基）→ 02/03（廉价 wins）→ 04 → 05 → 20 → 06+07 → 11 → 12 → 21 → 22 → 13 → 14 → 15 → 18 → 17 → 16 → 08 → 23 → 10 → 24 → 25 → 19 → 26 → 27**。
+**全部 27 片 done（2026-08-14）**。验证：`mvn -B -ntp clean verify` 16 模块 BUILD SUCCESS（576 tests / 0 fail / 0 err / 30 skip 门控）；落地记录见 [docs/spec/12-perfect-adoption.md](../../docs/spec/12-perfect-adoption.md)「落地记录」节。

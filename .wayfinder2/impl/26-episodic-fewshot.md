@@ -4,7 +4,7 @@
 
 **Blocked by:** 15（向量 recall——embedding provider 与检索基建）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：EpisodeLedger——成功经验存 state（episode.N）、goal 向量召回 top-k（语义地板 0.10 防哈希碰撞噪声）、fewShotBlock 按预算渲染；默认关（无 provider 显式 no-op）；MemoryDeepeningFeaturesTest 召回/注入块/无关零命中断言）
 
 - [ ] `EpisodeLedger{task_signature, goal, tool_trace_digest, outcome, embedding}` 存储与契约
 - [ ] 采集 hook：任务成功判定后写入（sleep-time 整理器蒸馏可选路径）

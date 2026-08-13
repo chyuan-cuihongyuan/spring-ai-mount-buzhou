@@ -158,3 +158,15 @@ Tier-1（docs/spec/11）已把四机制抬到「对标开源最优」，但横�
 - **测试接缝确认**：沿用 spec 11 判定（examples 端到端主接缝 + 既有模块单测次接缝），新增 FakeChatModel 为基建——用户常设授权下免问询采纳（可推翻）。
 - **语言与许可**：文档与注释主语言中文；坐标 `io.github.chyuan-cuihongyuan:buzhou-*`，Apache-2.0。
 - **反模式（勿踩）**：checkpoint-only 宣称 durable；resume 重放 Turn 前段；销毁式截断与无标记静默截断；一次逐出 100%；让模型自决审批；单一审核模型当唯一防御；副作用谎称回滚；全量重摘要；裸路径占位符；读写失败无差别；把 access token 当完整性证明。
+
+## 落地记录（2026-08-14）
+
+**27/27 实现纵切片全部落地**（wayfinder2 impl-01..27；`.wayfinder2/impl/README.md` 索引含逐片状态）。本地 `mvn -B -ntp clean verify` **16 模块 BUILD SUCCESS**（576 tests / 0 failures / 0 errors / 30 skipped——skip 为 MySQL/PG/Redis 门控与既有 gated 用例）。
+
+- **core**：FakeChatModel+record/replay 测试基建（01）；参数 schema 校验+retryBudget/REASK_FAILED（04）；CancelMode 三档+取消令牌（05）；Run 注册表+lease 门（06）+事件溯源 ToolCallLog exactly-once 回放（07）；interrupt/resume 按 toolCallId 注入式恢复（08）；SessionForks 检查点分叉（09）；BatchFeedbackPolicy 批提交语义（10）。
+- **memory**：sleep-time 后台整理（11）；revise_summary_section 自愈+防投毒（12）；压缩前检查点三档回滚（13，按 Turn 对齐修复多次 get 撕裂）；保真 eval 确定性 judge（14）；recall_search 四模模糊召回（15，消息台账单源+provider 降级）；EpisodeLedger episodic few-shot（26）。
+- **spill**：head+tail 窗口风味（03）；context-clearing 句柄生命周期双路径（16）；内容寻址回读校验（17）；语义定位 locate→fetch（18）；语言感知切片 Java AST-lite（19）。
+- **guard**：promptfoo 红队门 nightly（20）；FIDES 最小 taint 写门（21）；AAT 审计链+JCS 自实现+ECDSA P1363（22）；policy-as-code 内嵌子集（23）；ONNX 分类器编排层（24）；CommandSandbox 三档（25，Deno 档零内层 shell）。
+- **交互缺陷修复（实现中发现）**：OnFailReaskIntegrationTest 预期对齐 impl-04 新契约（schema 拦截先于执行、REASK 预算先于 Turn 上界）；回滚标记按 Turn 对齐（一次 chat 多次 get 的一致性）；T19×T30 词汇分化（校验失败 vs 执行失败）。
+- **机制 Spec 同步**：01（evictRatio/sleep-time/revise/checkpoint 配置）、02（窗口风味/clearing/完整性/语义定位/切片）、05（测试基建/校验重试/取消/proactive 恢复/fork/批提交）、07（taint/审计链/policy/分类器/沙箱 + 纵深序更新）。
+- **依赖卫生**：全程零新增不达标依赖（JavaParser 6.1K★ 以零依赖 AST-lite 替代；onnxruntime/opa-java 为部署侧 optional；cedar/Rebuff/NeMo/PyRIT/garak 均未引入）。

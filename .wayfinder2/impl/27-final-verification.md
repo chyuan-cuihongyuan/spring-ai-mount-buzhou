@@ -4,7 +4,7 @@
 
 **Blocked by:** 01–26（全部实现切片）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：`mvn -B -ntp clean verify` 16 模块 BUILD SUCCESS（576 tests / 0 fail / 0 err / 30 skip 门控）；spec 12 落地记录回写；机制 Spec 01/02/05/07 同步；impl README 全量 done；OnFailReask 测试对齐 impl-04 契约（交互缺陷修复））
 
 - [ ] `mvn -B -ntp clean verify` 全模块绿（记录模块数与命令）
 - [ ] spec 12 追加「落地记录」（各切片落点 + 交互缺陷修复 + 验证证据，仿 spec 11 体例）
