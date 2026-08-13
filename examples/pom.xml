@@ -30,14 +30,21 @@
 
   <dependencies>
     <!--
-      跨机制集成测试落于此（聚合侧）：feature 模块之间禁止直接依赖（09 模块工程档依赖白名单），
-      涉及两个及以上 feature 模块的端到端测试只能由聚合模块承载。
+      可运行 src/main demo（impl/05）：examples 是 Buzhou 的消费侧（非 feature 模块），
+      demo 需 core + memory 编译期依赖以编程式装配。feature 模块互不直接依赖的硬约束（09）不受影响。
     -->
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
-      <artifactId>buzhou-memory</artifactId>
-      <scope>test</scope>
+      <artifactId>buzhou-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-memory</artifactId>
+    </dependency>
+    <!--
+      跨机制集成测试落于此（聚合侧）：feature 模块之间禁止直接依赖（09 模块工程档依赖白名单），
+      涉及两个及以上 feature 模块的端到端测试只能由聚合模块承载。
+    -->
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
       <artifactId>buzhou-skills</artifactId>

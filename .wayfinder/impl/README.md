@@ -24,8 +24,9 @@
 - ✅ **03 已完成**（README「生产」措辞降级，与 alpha 对齐）。
 - ✅ **04 已完成**（与 Spring AI 边界文档，中英双语）。
 - ✅ **07 已完成**（run_command safe-default 既有实现 + 跨平台约束 javadoc + T6 决策）。
-- 05 / 06 — 等 **01** 完成 + 决策票 **T4 / T5** 拍板。
-- 08 — 等决策票 **T3** 拍板 + **01** 完成。
+- ✅ **05 已完成**（可运行 src/main demo BuzhouDemo：stub-first + 微压缩 + evidence 回查，T4 拍板）。
+- 06 — 等决策票 **T5** 拍板（依赖前提已满足）。
+- 08 — 等决策票 **T3** 拍板。
 
 ## 索引
 
@@ -35,7 +36,7 @@
 | [02](02-untrack-scratch.md) ✅ done | `.scratch/` 移出 git 跟踪 + `.gitignore` | 无 |
 | [03](03-readme-wording-downgrade.md) ✅ done | README「生产」措辞降级 | 无 |
 | [04](04-spring-ai-boundary-doc.md) ✅ done | 撰写「与 Spring AI 原生能力边界」文档 | 无（T2 已闭合）|
-| [05](05-runnable-main-demo.md) | 提供真正可运行的 `src/main` demo | 01 + 决策 T4 |
+| [05](05-runnable-main-demo.md) ✅ done | 提供真正可运行的 `src/main` demo | 决策 T4 |
 | [06](06-real-llm-integration-test.md) | 加入至少一条真实 LLM 行为的集成测试 | 01 + 决策 T5 |
 | [07](07-run-command-safe-default.md) ✅ done | `run_command` 原子工具安全默认 | 决策 T6 |
 | [08](08-depth-tests-four-mechanisms.md) | 四机制「做深做透」深度测试基线 | 决策 T3 + 01 |
