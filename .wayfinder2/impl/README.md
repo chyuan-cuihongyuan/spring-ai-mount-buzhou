@@ -14,7 +14,7 @@
 | [08](08-interrupt-resume.md) | HITL interrupt/resume 按 toolCallId | core | 07 | ready-for-agent |
 | [09](09-timetravel-fork.md) | time-travel fork（Completed-Turn 检查点） | core | 07 | ready-for-agent |
 | [10](10-transactional-batch.md) | 事务性并行批——批提交语义 | core | 07 | ready-for-agent |
-| [11](11-sleeptime-consolidation.md) | sleep-time 后台整理 | memory | — | ready-for-agent |
+| [11](11-sleeptime-consolidation.md) | sleep-time 后台整理 | memory | — | done |
 | [12](12-memory-tools-antipoisoning.md) | memory-as-tools 自愈记忆 + 防投毒 | memory | — | ready-for-agent |
 | [13](13-compaction-checkpoint.md) | 压缩前检查点与三档回滚 | memory | — | ready-for-agent |
 | [14](14-fidelity-eval.md) | 压缩保真度 eval | memory | 01 | ready-for-agent |

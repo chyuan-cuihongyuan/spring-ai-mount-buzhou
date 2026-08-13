@@ -101,8 +101,56 @@ public final class MemoryModule {
                         null));
             }
         }
-        return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(),
+        return new RuntimeConfig(sleepTimeHooks(ymlConfig, stores, summaryModel),
+                java.util.Set.of(), java.util.Set.of(),
                 processor, tools);
+    }
+
+    /**
+     * impl-11 / T37：sleep-time 后台整理钩子（默认开、每 5 Turn 一次；虚拟线程 + 每 session
+     * 串行；热路径零阻塞）。无 stores/摘要模型时不注册。
+     */
+    private static java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook> sleepTimeHooks(
+            Map<String, Object> ymlConfig, BuzhouStores stores, ChatModel summaryModel) {
+        if (stores == null || summaryModel == null || !sleepTimeEnabled(ymlConfig)) {
+            return List.of();
+        }
+        io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeScheduler scheduler =
+                new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeScheduler();
+        io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidator consolidator =
+                new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidator(
+                        new SummaryStoreBridge(stores.summaryStore()), summaryModel,
+                        stores.sessionStateStore(), null);
+        return List.of(new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidationHook(
+                scheduler, consolidator, sleepTimeEveryTurns(ymlConfig)));
+    }
+
+    /** impl-11 开关：{@code memory.sleep-time.enabled}（默认开）。 */
+    private static boolean sleepTimeEnabled(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object st = ((Map<?, ?>) memory).get("sleep-time");
+            if (st instanceof Map) {
+                Object value = ((Map<?, ?>) st).get("enabled");
+                return !(value instanceof Boolean b) || b;
+            }
+        }
+        return true;
+    }
+
+    /** impl-11 频率：{@code memory.sleep-time.every-turns}（默认 5）。 */
+    private static int sleepTimeEveryTurns(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object st = ((Map<?, ?>) memory).get("sleep-time");
+            if (st instanceof Map) {
+                Object value = ((Map<?, ?>) st).get("every-turns");
+                if (value instanceof Number n && n.intValue() > 0) {
+                    return n.intValue();
+                }
+            }
+        }
+        return 5;
     }
 
     /** T25 开关：{@code memory.fact-reconciliation}（默认开）。 */

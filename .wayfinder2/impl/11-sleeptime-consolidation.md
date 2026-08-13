@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：SleepTimeScheduler 串行队列执行器（共享虚拟线程池、同 session 严格 FIFO）+ SleepTimeConsolidator（对最新摘要重跑对账、无摘要 NOOP、失败不外溢）+ afterTurn 频率触发钩子；配置 memory.sleep-time.enabled/every-turns；SleepTimeConsolidationTest 3 例（异步触发/串行/NOOP）；spec 01 配置表同步）
 
 - [ ] turn 后 hook 投递 `MemoryConsolidationTask` 到专用 executor（JDK21 虚拟线程 + 每 session 串行化防写竞争）
 - [ ] 整理动作：SummaryFactReconciler 对账、去冗余、P0–P3 重排、archival evidence 归档——全走双时序台账
