@@ -2,8 +2,8 @@
 id: T9
 title: 撰写「与 Spring AI 原生能力边界」文档（item 6）
 type: task
-status: open
-assignee: ""
+status: closed
+assignee: zcode
 blocked-by: [T2]
 created: 2026-08-13
 ---
@@ -26,4 +26,10 @@ created: 2026-08-13
 
 ## Resolution
 
-<!-- task 完成后填写：文档位置 + 改动 + commit -->
+**交付**：`docs/spec/10-spring-ai-boundary.md`（中英双语，89 行）——落位 `docs/spec/` 第 10 篇；README「文档」段加链接。
+
+**决策**：落位选 `docs/spec/` 新增一篇（而非 README 单列一节）——与既有 00-09 详设同处、便于评估者一处看全；中英同步（English + 中文 并列）。
+
+**内容**：T2 九条机制全覆、置信标注——REPLACES（Spill 高 / 并行工具 高 / Skill 中）、ADDS（记忆压缩 中高 / 认知可观测 高 / Hook 护栏 高 / 持久化 SPI 中高 / 原子工具 中高）、NATIVE（MCP 热插拔 高，诚实单独段标注非差异化）。doc 内部相对链接全 resolve。
+
+**实现切片**：[impl/04](../impl/04-spring-ai-boundary-doc.md)。
