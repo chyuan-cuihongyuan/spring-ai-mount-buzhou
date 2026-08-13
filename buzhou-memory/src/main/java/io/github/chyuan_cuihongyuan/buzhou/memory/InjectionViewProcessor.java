@@ -48,7 +48,14 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     // T25/T26：事实对账 + 双时序台账（会话状态经 setter 注入，避免构造器涟漪）
     private io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore sessionStateStore;
     private boolean factReconciliation = true;
+    // impl-02 / T36：部分逐出比例（默认 0.7，Letta「evict only ~70%」）+ 10% 步进梯子
+    private double evictRatio = DEFAULT_EVICT_RATIO;
     private java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink;
+
+    /** impl-02：默认逐出比例（保留 30% 最新候选原文内联续接）。 */
+    public static final double DEFAULT_EVICT_RATIO = 0.7d;
+    /** impl-02：预算仍超时的步进梯子步长（0.7→0.8→…→1.0）。 */
+    public static final double EVICT_RATIO_LADDER_STEP = 0.10d;
 
     public InjectionViewProcessor(DefaultMicroCompactor compactor,
                                   Function<String, MicroCompactionPolicy> policyFn,
@@ -113,6 +120,13 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         this.factReconciliation = factReconciliation;
     }
 
+    /** impl-02 / T36：部分逐出比例（(0,1]，默认 0.7；1.0 即全量逐出旧行为）。 */
+    public void setEvictRatio(double evictRatio) {
+        this.evictRatio = evictRatio <= 0.0d || Double.isNaN(evictRatio)
+                ? DEFAULT_EVICT_RATIO
+                : Math.min(evictRatio, 1.0d);
+    }
+
     /** 对账事件出口（T25 四态裁决可观测；未注入则仅日志）。 */
     public void setEventSink(
             java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink) {
@@ -122,7 +136,7 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     @Override
     public List<BuzhouMessage> process(String sessionId, List<BuzhouMessage> stored, int currentTurn) {
         List<BuzhouMessage> compacted = compactor
-                .compact(stored, currentTurn, policyFn, protectRecentTurns)
+                .compact(stored, currentTurn, policyFn, protectRecentTurns, evictRatio)
                 .compactedView();
         // 先渲染事实块（maxInjectChars 截断 + 指针），供预算入账与注入共用（spec 07：先渲染后评估；
         // system-reminder 块与摘要 Current State 追加两通道共享同一文本，不重复超额）
@@ -138,6 +152,16 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
 
         NineSectionSummary previous = summaryBridge.loadLatest(sessionId).orElse(null);
         BudgetReport budget = evaluateBudget(compacted, previous, factsBlock, catalogBlock);
+        // impl-02 / T36：10% 步进梯子——部分逐出后仍超预算时逐级加压（0.7→0.8→…→1.0）；
+        // 梯子救回预算则免落摘要折叠（保连续优先于折摘要）
+        double ladderRatio = evictRatio;
+        while (budget.compactionNeeded() && ladderRatio < 1.0d) {
+            ladderRatio = Math.min(1.0d, ladderRatio + EVICT_RATIO_LADDER_STEP);
+            compacted = compactor
+                    .compact(stored, currentTurn, policyFn, protectRecentTurns, ladderRatio)
+                    .compactedView();
+            budget = evaluateBudget(compacted, previous, factsBlock, catalogBlock);
+        }
         // T23：摘要 token 预算（动态拆解为每段字符预算页脚渲染给模型）
         int summaryTokenBudget = Math.max(budget.historyBudget(), 1000);
         if (!budget.compactionNeeded()) {

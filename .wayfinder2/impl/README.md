@@ -5,8 +5,8 @@
 | # | 切片 | 模块 | Blocked by | 状态 |
 |---|------|------|-----------|------|
 | [01](01-fake-chat-model.md) | FakeChatModel + record/replay 测试基建 | core | — | done |
-| [02](02-evict-ratio.md) | evictRatio 部分逐出保连续 | memory | — | ready-for-agent |
-| [03](03-head-tail-window.md) | head+tail 窗口回读风味 + 显式中段标记 | spill | — | ready-for-agent |
+| [02](02-evict-ratio.md) | evictRatio 部分逐出保连续 | memory | — | done |
+| [03](03-head-tail-window.md) | head+tail 窗口回读风味 + 显式中段标记 | spill | — | done |
 | [04](04-args-validation-retry.md) | 参数 schema 校验 + per-turn 重试预算 | core | — | ready-for-agent |
 | [05](05-cancel-mode.md) | CancelMode 三档 + token 贯穿 | core | — | ready-for-agent |
 | [06](06-run-registry.md) | 持久 Run 注册表 + 枚举续跑（lease 门） | core | — | ready-for-agent |

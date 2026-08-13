@@ -24,12 +24,46 @@ public final class RangeReadEngine {
     }
 
     private static RangeReadResult readBytes(String content, RangeReadRequest request) {
+        if (request.window() != null && request.window() != RangeReadRequest.Window.NONE) {
+            return readWindow(content, request);
+        }
         int offset = request.offset() == null ? 0 : Math.max(0, request.offset());
         int limit = request.limit() == null ? 20000 : request.limit();
         int start = Math.min(offset, content.length());
         int end = Math.min(start + limit, content.length());
         return new RangeReadResult(content.substring(start, end), content.length(),
                 end < content.length(), null);
+    }
+
+    /**
+     * 窗口风味（impl-03 / T43）：head / tail / head_tail——被省略的中段以显式标记行替代
+     * （省略量 + offset 区间 + 回读指引），<b>永不静默</b>；返回不置 truncated（标记即自描述）。
+     */
+    private static RangeReadResult readWindow(String content, RangeReadRequest request) {
+        int length = content.length();
+        int head = request.limit() == null ? 20000 : request.limit();
+        int tail = request.tailLimit() == null ? head : request.tailLimit();
+        int headEnd = Math.min(head, length);
+        int tailStart = Math.max(0, Math.min(length - tail, length));
+        // 头尾覆盖整个内容 → 无省略、原样返回（小内容不加标记）
+        if (headEnd >= tailStart) {
+            return new RangeReadResult(content, length, false, null);
+        }
+        String marker = omittedMarker(headEnd, tailStart);
+        String body = switch (request.window()) {
+            case HEAD -> content.substring(0, headEnd) + "\n" + marker;
+            case TAIL -> marker + "\n" + content.substring(tailStart);
+            case HEAD_TAIL -> content.substring(0, headEnd) + "\n" + marker + "\n"
+                    + content.substring(tailStart);
+            default -> content;
+        };
+        return new RangeReadResult(body, length, false, null);
+    }
+
+    /** 省略标记行：省略量 + offset 区间 + 精确回读指引（与 T20 显式截断标记同哲学）。 */
+    static String omittedMarker(int from, int to) {
+        return "…[omitted " + (to - from) + " bytes, offset " + from + ".." + to
+                + "; refetch via mode=bytes]";
     }
 
     private static RangeReadResult readJson(String content, RangeReadRequest request) {

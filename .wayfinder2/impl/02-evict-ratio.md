@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：MicroCompactor 5 参重载 + InjectionViewProcessor 梯子 + MemoryModule 配置；DefaultMicroCompactorTest +2 例、EvictRatioLadderTest 集成；spec 01 配置表同步）
 
 - [ ] `evictRatio` 参数化（默认 0.7）+ 10% 步进升级梯子（预算仍超时逐级加压）
 - [ ] 不变式：最近 N Turn 原文 + 上一次增量摘要永不逐出（与 summarized_message_ids 双水位兼容）

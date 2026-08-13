@@ -61,13 +61,15 @@ public final class MemoryModule {
         DefaultMicroCompactor compactor = new DefaultMicroCompactor(new DefaultCompletedTurnDetector());
         Function<String, MicroCompactionPolicy> policyFn = policyFn(ymlConfig);
         int protectRecentTurns = protectRecentTurns(ymlConfig);
+        // impl-02 / T36：部分逐出比例（默认 0.7；1.0 回到全量逐出旧行为）
+        double evictRatio = evictRatio(ymlConfig);
 
         io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor processor;
         java.util.List<org.springframework.ai.tool.ToolCallback> tools =
                 new java.util.ArrayList<>(java.util.List.of(new EvidenceLookupTool(messageStore)));
         if (stores == null) {
             processor = (sessionId, stored, currentTurn) ->
-                    compactor.compact(stored, currentTurn, policyFn, protectRecentTurns)
+                    compactor.compact(stored, currentTurn, policyFn, protectRecentTurns, evictRatio)
                             .compactedView();
         } else {
             // summaryModel 可空：InjectionViewProcessor 在无摘要模型时仍注入事实块（spec 07 闭环）
@@ -82,6 +84,7 @@ public final class MemoryModule {
                     maxInjectChars(ymlConfig));
             ivp.setAttachmentRenderer(attachmentRenderer);
             ivp.setSkillCatalogRenderer(skillCatalogRenderer);
+            ivp.setEvictRatio(evictRatio);
             // T25/T26：事实对账 + 双时序台账（会话状态；对账默认开、韧性 NOOP）
             ivp.setSessionStateStore(stores.sessionStateStore());
             ivp.setFactReconciliation(factReconciliation(ymlConfig));
@@ -120,6 +123,21 @@ public final class MemoryModule {
             return !(value instanceof Boolean b) || b;
         }
         return true;
+    }
+
+    /** impl-02 / T36：{@code memory.micro-compaction.evict-ratio}（默认 0.7；(0,1] 钳制）。 */
+    private static double evictRatio(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object mc = ((Map<?, ?>) memory).get("micro-compaction");
+            if (mc instanceof Map) {
+                Object value = ((Map<?, ?>) mc).get("evict-ratio");
+                if (value instanceof Number n && n.doubleValue() > 0.0d && n.doubleValue() <= 1.0d) {
+                    return n.doubleValue();
+                }
+            }
+        }
+        return InjectionViewProcessor.DEFAULT_EVICT_RATIO;
     }
 
     private static String modelName(Map<String, Object> ymlConfig) {

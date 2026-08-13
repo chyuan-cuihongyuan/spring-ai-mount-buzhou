@@ -163,6 +163,13 @@ public class SpillOffloadHook implements BuzhouHook {
 - **永不静默截断**：预览截断必发显式标记（`（预览已截断，仅前 X/Y 字符，全文请回读）`）；任何截断都伴随回读句柄（Codex 反面教材 + copilot-cli 静默损坏案例）。
 - 数组 per-item 溢出的占位符描述**被溢出 item** 的形状（对象字段线索）。
 
+### head+tail 窗口回读风味（wayfinder2 impl-03 / T43 / docs/spec/12）
+
+- `read_range` 的 `mode=bytes` 增 **`window=head|tail|head_tail`** 风味参数（`limit`=头窗大小、`tailLimit`=尾窗大小，默认对称）：一次回读取「头+尾」窗口（schema 在头、结论在尾的数据一次看全）。
+- 被省略的中段以**显式标记行**替代：`…[omitted N bytes, offset X..Y; refetch via mode=bytes]`（省略量 + 精确区间 + 回读指引；与 T20 显式截断标记同哲学，**永不静默**）。
+- 与 Codex（头尾各半掐中间、无标记销毁）的本质差异：原始字节在 spill 存储完整保留，按标记区间 `mode=bytes` 回读即无损取回（测试 `RangeReadWindowTest.omittedRangeRefetchesLosslessly` 闭环验证）。
+- 头尾窗口覆盖整个内容时原样返回、不加标记（小内容零噪声）。
+
 ### hot-tail / cold-storage 两级保留（wayfinder T21 / docs/spec/11）
 
 `HotTailViewProcessor`（`MemoryViewProcessor` 视图级实现，来源 Claude Code microcompaction）：

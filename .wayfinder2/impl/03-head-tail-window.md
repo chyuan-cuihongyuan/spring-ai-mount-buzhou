@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：RangeReadRequest.Window + RangeReadEngine.readWindow + read_range schema/解析；RangeReadWindowTest 6 例含无损回取闭环；spec 02 增「head+tail 窗口回读风味」节）
 
 - [ ] `mode=byte` 增 `window=head|tail|head_tail` 风味参数（headBytes/tailBytes 默认对称）
 - [ ] 中段显式标记行：`…[omitted N bytes, offset X..Y; refetch via mode=byte]`（与 T20 显式截断标记统一格式）

@@ -269,6 +269,7 @@ public class EvidenceLookupTool {
 | `buzhou.memory.micro-compaction.min-size-chars` | `200` | 小于此字符数不回收 | D/Y/B/T |
 | `buzhou.memory.micro-compaction.never-compress` | `false`（写类/不可逆类内置工具 `true`） | 死保清单 | D/Y/B/T |
 | `buzhou.memory.micro-compaction.protect-recent-turns` | `1` | 最近 N 轮原文全局死保 | D/Y/B |
+| `buzhou.memory.micro-compaction.evict-ratio` | `0.7` | 部分逐出比例（impl-02/T36，Letta「evict only ~70%」）：只逐出最旧 `ceil(候选×ratio)` 条、最新 (1-ratio) 原文内联续接；预算仍超时按 10% 步进梯子加压至 1.0，梯子救回预算则免落摘要折叠 | D/Y/B |
 | `buzhou.memory.micro-compaction.evidence-tool.enabled` | `true` | 证据回查内置工具注册开关 | D/Y/B |
 | `buzhou.memory.summary.enabled` | `true` | LLM 摘要开关；关闭后超阈值只滑窗 | D/Y/B |
 | `buzhou.memory.summary.model` | 空（复用主模型） | 独立摘要模型（可配便宜模型） | Y/B |

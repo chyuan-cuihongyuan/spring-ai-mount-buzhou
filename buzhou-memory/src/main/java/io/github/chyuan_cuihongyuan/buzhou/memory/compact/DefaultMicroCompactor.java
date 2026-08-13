@@ -21,7 +21,8 @@ public class DefaultMicroCompactor implements MicroCompactor {
     public MicroCompactionResult compact(List<BuzhouMessage> history,
                                          int currentTurnIndex,
                                          Function<String, MicroCompactionPolicy> policyByToolName,
-                                         int protectRecentTurns) {
+                                         int protectRecentTurns,
+                                         double evictRatio) {
         Set<Integer> completedTurns = new HashSet<>();
         for (TurnSpan span : detector.detectTurns(history)) {
             if (span.completed()) {
@@ -29,12 +30,31 @@ public class DefaultMicroCompactor implements MicroCompactor {
             }
         }
 
+        // 第一遍：识别可回收候选（判定语义与既有完全一致）
+        List<BuzhouMessage> candidates = new ArrayList<>();
+        for (BuzhouMessage message : history) {
+            if (isReclaimable(message, currentTurnIndex, completedTurns,
+                    policyByToolName, protectRecentTurns)) {
+                candidates.add(message);
+            }
+        }
+
+        // impl-02 / T36：部分逐出保连续——只逐出最旧的 ceil(n×ratio)，最新 (1-ratio) 原文留内联
+        // 续接（Letta：一次压到底有断崖风险；ratio 由注入视图按预算 10% 步进梯子加压）
+        int evictCount = candidates.isEmpty()
+                ? 0
+                : (int) Math.ceil(candidates.size() * clampRatio(evictRatio));
+        Set<String> evictIds = new HashSet<>();
+        for (int i = 0; i < evictCount; i++) {
+            evictIds.add(candidates.get(i).id());
+        }
+
+        // 第二遍：构建视图
         List<BuzhouMessage> view = new ArrayList<>(history.size());
         List<String> compactedIds = new ArrayList<>();
         int reclaimed = 0;
         for (BuzhouMessage message : history) {
-            if (isReclaimable(message, currentTurnIndex, completedTurns,
-                    policyByToolName, protectRecentTurns)) {
+            if (evictIds.contains(message.id())) {
                 reclaimed += message.content() == null ? 0 : message.content().length();
                 compactedIds.add(message.id());
                 view.add(placeholder(message));
@@ -43,6 +63,13 @@ public class DefaultMicroCompactor implements MicroCompactor {
             }
         }
         return new MicroCompactionResult(view, compactedIds, reclaimed);
+    }
+
+    private static double clampRatio(double evictRatio) {
+        if (Double.isNaN(evictRatio) || evictRatio <= 0.0d) {
+            return 0.0d;
+        }
+        return Math.min(evictRatio, 1.0d);
     }
 
     private boolean isReclaimable(BuzhouMessage message,
