@@ -26,6 +26,7 @@
 - [CI 在 GitHub 红而本地绿的根因](tickets/T1-ci-red-remotely-green-locally.md) — 公开 API 取证：最近 **8 连红**（含 doc-only 提交）、恒挂在 ci.yml `Build & test`（`mvn -B verify`）exit 1、`setup-java` 缓存步骤成功；**推翻「`.lastUpdated` 缓存」假设**（24h 自愈 + T2 证依赖 GA 在 Central + 本地解析成功），定为**确定性 Linux/JDK21 构建测试缺陷**（`/bin/sh`/CRLF/JDK8 均已排除为 Windows 本地假红、blob 全 LF；Linux 特有失败身份未知）；具体失败行需日志 / Linux 复现 → graduate [T10](tickets/T10-fix-ci-os-specific-defect.md) 执行；正确配置下本地绿可信、T3+ 不必等 badge。
 - [可运行 src/main demo 的形态](tickets/T4-runnable-main-demo.md) — `examples/src/main/.../BuzhouDemo`（纯编程式 `Buzhou.runtime` + `MemoryModule`，无 key 即跑）；**stub-first + 可插真 key**（`run(ChatModel)`，`main` 默认 `StubChatModel`）；预置 10 轮排障历史触发微压缩 + `read_evidence` 回查；`BuzhouDemoTest` 守回归、`main()` 实跑输出可见；README「方式三」snippet 同 API 互证；examples/pom 加 compile-scope core+memory；实现见 [impl/05](impl/05-runnable-main-demo.md)。
 - [真实 LLM 集成测试策略](tickets/T5-real-llm-integration-test.md) — **双轨**（同一条 core 链：多轮+工具+压缩）：Mock 变体（反应式模型按输入决策工具调用）进默认 `mvn verify`、CI 绿；真实 API 变体 `@EnabledIfEnvironmentVariable("BUZHOU_LLM_API_KEY")` + `@SpringBootTest`（`spring-ai-starter-model-openai` 自动装配 ChatModel）凭据门控、CI 跳过、弱断言防脆；实现见 [impl/06](impl/06-real-llm-integration-test.md)。
+- [core/memory/spill/guard 做深做透 DoD 基线](tickets/T3-depth-definition-of-done.md) — ratify SPEC 既列判据为基线 + **审计既有测试为证据**：四模块深度判据已被既有（Linux-green）套件满足（memory 微压缩占位符/P0-P3 优先级、spill read_range 多模式+读写失败语义非对称、guard HITL→state→Attachment 跨三模块端到端、core 并行/超时/崩溃续跑/去重）；SPI 冻结由 `AbstractBuzhouStoresContractTest` × 4 后端证明——无需新增冗余测试；实现见 [impl/08](impl/08-depth-tests-four-mechanisms.md)。
 
 ## Not yet specified
 
@@ -48,7 +49,7 @@
 
 - [CI 在 GitHub 红而本地绿的根因与修复](tickets/T1-ci-red-remotely-green-locally.md) — `research` · ✅ **closed**（根因=确定性 OS 缺陷，推翻缓存假设；执行尾见 T10）
 - [Spring AI 2.0.0 原生能力 vs Buzhou 增强面（含 2.0.0/4.1.0 发布状态）](tickets/T2-spring-ai-native-vs-buzhou.md) — `research` · ✅ **closed**
-- [core/memory/spill/guard "做深做透"的验收基线](tickets/T3-depth-definition-of-done.md) — `grilling` · **frontier**（T2 已闭合，解锁）
+- [core/memory/spill/guard "做深做透"的验收基线](tickets/T3-depth-definition-of-done.md) — `grilling` · ✅ **closed**（ratify SPEC 判据 + 审计既有测试为证据；T2 已闭合，解锁）
 - [可运行 src/main demo 的形态](tickets/T4-runnable-main-demo.md) — `prototype` · ✅ **closed**（stub-first + 可插真 key；BuzhouDemo 入口；CI 绿由 T10 单独追踪、不阻塞形态决策）
 - [真实 LLM 集成测试策略](tickets/T5-real-llm-integration-test.md) — `prototype` · ✅ **closed**（Mock 进 CI + 真实 gated；CI 绿由 T10 单独追踪、不阻塞策略决策）
 - [run_command 默认关闭 vs 沙箱执行](tickets/T6-run-command-safety-default.md) — `grilling` · ✅ **closed**
@@ -57,4 +58,4 @@
 - [撰写「与 Spring AI 原生能力边界」文档（item 6）](tickets/T9-spring-ai-boundary-doc.md) — `task` · ✅ **closed**（T2 已闭合，解锁）
 - [取 CI 失败日志/ Linux 复现 → 修 OS 缺陷 → badge 转绿](tickets/T10-fix-ci-os-specific-defect.md) — `task` · **frontier**（HITL/环境）
 
-**Frontier（本会话后可领取）**：T3、T10。（T1、T2、T4、T5、T6、T7、T8、T9 已闭合）
+**Frontier（本会话后可领取）**：T10。（T1、T2、T3、T4、T5、T6、T7、T8、T9 已闭合）

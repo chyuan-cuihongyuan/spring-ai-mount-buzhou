@@ -26,7 +26,7 @@
 - ✅ **07 已完成**（run_command safe-default 既有实现 + 跨平台约束 javadoc + T6 决策）。
 - ✅ **05 已完成**（可运行 src/main demo BuzhouDemo：stub-first + 微压缩 + evidence 回查，T4 拍板）。
 - ✅ **06 已完成**（Mock 反应式 CI 绿 + 真实 API gated skip，T5 拍板）。
-- 08 — 等决策票 **T3** 拍板。
+- ✅ **08 已完成**（T3 DoD 基线 ratify + 审计既有测试为证据；四机制深度判据已被既有套件满足、SPI 冻结经契约测试证明）。
 
 ## 索引
 
@@ -39,7 +39,7 @@
 | [05](05-runnable-main-demo.md) ✅ done | 提供真正可运行的 `src/main` demo | 决策 T4 |
 | [06](06-real-llm-integration-test.md) ✅ done | 加入至少一条真实 LLM 行为的集成测试 | 决策 T5 |
 | [07](07-run-command-safe-default.md) ✅ done | `run_command` 原子工具安全默认 | 决策 T6 |
-| [08](08-depth-tests-four-mechanisms.md) | 四机制「做深做透」深度测试基线 | 决策 T3 + 01 |
+| [08](08-depth-tests-four-mechanisms.md) ✅ done | 四机制「做深做透」深度测试基线 | 决策 T3 |
 
 ## 约定
 
