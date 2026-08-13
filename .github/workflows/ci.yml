@@ -14,6 +14,10 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-          cache: maven
+          # No `cache: maven` — a clean ~/.m2 each run guarantees reproducible
+          # dependency resolution and avoids stale .lastUpdated markers / partial
+          # downloads cached from before spring-ai 2.0.0 / spring-boot 4.1.0 GA
+          # (root cause per T1/T2 research). Re-add caching once CI is stably
+          # green if build time becomes a concern.
       - name: Build & test
         run: mvn -B verify
