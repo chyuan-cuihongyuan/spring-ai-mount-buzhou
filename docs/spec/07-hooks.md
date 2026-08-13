@@ -269,6 +269,15 @@ public interface SessionEventContext extends HookContext {
 2. **写门校验**（`TaintWriteGateHook`，order 250，Onload 200 之后、HITL 300 之前）：tainted 上下文中的**写侧工具调用**（= 既有危险工具清单）被拦截转 HITL——「未经消毒/审批的不可信数据不得流入特权动作」；**审批通道复用既有授权台账**（auth.{tool}.{fingerprint}，`GuardAuthApi.approve` 写回）= FIDES approver 的 Buzhou 等价物；trusted 上下文正常流零扰动。事件 `guard.taint.marked` / `guard.taint.blocked`。
 3. **Out of Scope**（FIDES 二期，fog）：变量隐藏 Hide/Expand、隔离 LLM + 约束解码、类型容量格。
 
+### ECDSA 签名审计链（wayfinder2 impl-22 / T50 / docs/spec/12 §guard-22，IETF AAT 草案）
+
+「授权发生过、决策链完整」的防篡改证明（纯本地、零新依赖）：
+
+- **AAT 11 字段**记录（record_id/timestamp/agent_id/agent_version/session_id/action_type/action_detail/outcome/trust_level/parent_record_id/prev_hash）+ **prev_hash 哈希链**（`prev_hash(N)=SHA-256(JCS(record(N-1)))`，RFC 8785 JCS 强制）；会话收尾 `sessionHash`。
+- **JCS 自实现子集**（`Jcs`，JDK 无内置）：键按 UTF-16 码单元排序、最小转义；<b>数值仅整数</b>（审计面约束规避 ECMAScript number 规范化复杂度，非法数值即拒——诚实子集）。
+- **ECDSA P-256 可选签名**：SHA256withECDSA → DER→**IEEE P1363 r||s 64 字节** Base64url（`AuditChain.generateKeyPair` 产钥，私钥业务保管）；`verify` 全链重算——篡改任一记录即失配（不可否认）。
+- **事件收集器**（`AuditTrailCollector` 经 `SpawnOptions.withListeners` 挂入）：guard.tool.blocked / guard.auth.granted / guard.taint.marked|blocked / canary / 界定护栏事件 → 审计记录；记忆修订的审计在 state 台账（impl-12）。
+
 ### 失败语义非对称（专节）
 
 读侧与写侧的失败代价方向相反，框架把差异编码进默认语义：

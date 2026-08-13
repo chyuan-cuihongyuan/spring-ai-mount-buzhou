@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.（记忆写/taint 裁决的接入点随 12/21 联动补挂，链本体独立）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：AgentAuditRecord AAT 11 字段 + Jcs 自实现子集（键排序/最小转义/整数约束——诚实规避 ECMAScript number 规范化）+ AuditChain 哈希链/会话摘要/ECDSA P-256 P1363 64 字节签名/全链验证 + AuditTrailCollector 事件收集（SpawnOptions.withListeners 挂入）；AgentAuditTrailTest 4 例（JCS/链篡改/签名 64 字节/收集器）；guard 41/41 绿；spec 07 新节）
 
 - [ ] 审计记录 11 字段（record_id/timestamp/agent_id/agent_version/session_id/action_type/action_detail/outcome/trust_level/parent_record_id/prev_hash）
 - [ ] 链语义 `prev_hash(N)=SHA-256(JCS(record(N-1)))`——**JCS 规范化自写约 200 行、零新依赖**
