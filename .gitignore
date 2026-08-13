@@ -16,3 +16,8 @@ target/
 .task/
 AGENTS.md
 flow2spec.config.json
+
+# ---- Internal design / issue drafts (private, not published) ----
+# Local-markdown issue tracker drafts & spec scratchpads; tracked convention
+# (see docs/agents/issue-tracker.md) but not part of the public repo.
+.scratch/

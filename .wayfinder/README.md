@@ -1,6 +1,6 @@
 # Wayfinder Tracker（本地 markdown）
 
-本目录是当前 effort 的 wayfinder 图。**map = `MAP.md`**；**ticket = `tickets/T<n>-<slug>.md`**。
+本目录是当前 effort 的 wayfinder 图。**map = `MAP.md`**；**ticket = `tickets/T<n>-<slug>.md`**；**总纲 spec = `SPEC.md`**（`/to-spec` 从 map + ticket 合成，规定问题 / 方案 / 验收 / 边界 / 测试缝）；**实现纵切片 = `impl/<NN>-<slug>.md`**（`/to-tickets` 从 SPEC 切成，与决策票 T1–T9 共存、被未决决策门控的片把 T 票列为 blocker，索引见 [`impl/README.md`](impl/README.md)）。
 这是 fallback 的「local-markdown tracker」——没有 GitHub Issues / `gh`，全在仓内文件。
 
 ## Ticket 文件约定
