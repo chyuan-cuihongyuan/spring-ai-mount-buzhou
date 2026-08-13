@@ -55,6 +55,10 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** impl-04 / T30：本 Turn 累计校验反馈次数（BoundedToolCallingAdvisor 在 Turn 开始时复位）。 */
     private final java.util.concurrent.atomic.AtomicInteger validationFailures =
             new java.util.concurrent.atomic.AtomicInteger();
+    /** impl-05 / T31：待生效的取消请求（BoundedToolCallingAdvisor 在 Turn 开始时清零）。 */
+    private final java.util.concurrent.atomic.AtomicReference<
+            io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode> pendingCancel =
+            new java.util.concurrent.atomic.AtomicReference<>();
 
     public HarnessToolCallingManager(DefaultToolCallingManager delegate,
                                      ExecutorService executor,
@@ -105,6 +109,29 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         validationFailures.set(0);
     }
 
+    /**
+     * impl-05 / T31：请求取消。IMMEDIATE 立即中断在飞工具（丢弃在飞结果）；其余档位
+     * 置位标记、由护栏在下一轮工具执行前裁决。Turn 开始时标记清零（空闲期取消视为 no-op）。
+     */
+    public void requestCancel(io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode mode) {
+        io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode effective = mode == null
+                ? io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.IMMEDIATE : mode;
+        pendingCancel.set(effective);
+        if (effective == io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.IMMEDIATE) {
+            cancelInFlight();
+        }
+    }
+
+    /** 待生效的取消请求（无则 null）。 */
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode pendingCancel() {
+        return pendingCancel.get();
+    }
+
+    /** Turn 开始清零取消标记（BoundedToolCallingAdvisor 调用）。 */
+    public void clearPendingCancel() {
+        pendingCancel.set(null);
+    }
+
     @Override
     public List<ToolDefinition> resolveToolDefinitions(ToolCallingChatOptions toolCallingChatOptions) {
         return delegate.resolveToolDefinitions(toolCallingChatOptions);
@@ -134,6 +161,9 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         if (sessionId != null) {
             toolContextMap.put(SESSION_ID_KEY, sessionId);
         }
+        // impl-05 / T31：取消令牌贯穿工具执行链（协作式取消：长任务轮询提前中止）
+        toolContextMap.put(CancellationToken.KEY,
+                CancellationToken.of(() -> pendingCancel.get() != null));
         ToolContext toolContext = new ToolContext(toolContextMap);
         List<Future<ToolResponseMessage.ToolResponse>> futures = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> responses = new ArrayList<>();

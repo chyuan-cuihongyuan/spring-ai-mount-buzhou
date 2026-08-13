@@ -62,6 +62,7 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         executedToolRounds.set(0);
         loopStartedAt.set(Instant.now());
         resetValidationBudget();
+        clearPendingCancel();
         return super.doInitializeLoop(request, chain);
     }
 
@@ -70,6 +71,7 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         executedToolRounds.set(0);
         loopStartedAt.set(Instant.now());
         resetValidationBudget();
+        clearPendingCancel();
         return super.doInitializeLoopStream(request, chain);
     }
 
@@ -95,6 +97,16 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         }
         int nextRound = executedToolRounds.get() + 1;
         TurnLoopContext ctx = snapshot(nextRound);
+        // impl-05 / T31：取消护栏——IMMEDIATE / AFTER_CURRENT_TOOLS 命中时本轮工具不执行，
+        // 替换为优雅取消收尾（在飞工具已被中断或已自然完成）；AFTER_CURRENT_TURN 不打断本轮
+        io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode cancelMode = pendingCancel();
+        if (cancelMode == io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.IMMEDIATE
+                || cancelMode == io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.AFTER_CURRENT_TOOLS) {
+            emitCancelled(ctx, cancelMode);
+            ChatResponse graceful = new ChatResponse(List.of(new Generation(
+                    new AssistantMessage(cancelledFinal(cancelMode)))));
+            return new ChatClientResponse(graceful, response.context());
+        }
         // impl-04 / T30：参数校验重试预算——校验失败累计超过预算（且模型仍在要工具）→
         // REASK_FAILED 优雅收尾（与轮数上界独立扣减的第三条护栏）
         int validationFailures = validationFailures();
@@ -121,6 +133,45 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         if (toolCallingManager instanceof io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager harness) {
             harness.resetValidationFailures();
         }
+    }
+
+    /** impl-05：Turn 开始清零取消标记（空闲期取消不影响下一 Turn）。 */
+    private void clearPendingCancel() {
+        if (toolCallingManager instanceof io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager harness) {
+            harness.clearPendingCancel();
+        }
+    }
+
+    private io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode pendingCancel() {
+        if (toolCallingManager instanceof io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager harness) {
+            return harness.pendingCancel();
+        }
+        return null;
+    }
+
+    /** impl-05：取消收尾文案（按档位如实描述语义）。 */
+    private static String cancelledFinal(
+            io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode mode) {
+        return switch (mode) {
+            case IMMEDIATE -> "本次请求已按「立即」模式取消：在飞工具调用被中断、在途结果已丢弃，"
+                    + "未产生半成品更新。如需继续请重新发起请求。";
+            case AFTER_CURRENT_TOOLS -> "本次请求已按「当前工具批后」模式取消：已启动的工具已执行完成，"
+                    + "此后不再进入新的工具调用轮次。已获得的结果可用于回答；如需继续请重新发起。";
+            default -> "本次请求已取消。";
+        };
+    }
+
+    private void emitCancelled(TurnLoopContext ctx,
+                               io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode mode) {
+        if (eventSink == null) {
+            return;
+        }
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("sessionId", ctx.sessionId());
+        payload.put("agentName", ctx.agentName());
+        payload.put("cancelMode", mode.name());
+        payload.put("executedToolRounds", ctx.executedToolRounds());
+        eventSink.accept(new SessionEvent("turn.loop.cancelled", payload, Instant.now()));
     }
 
     private int validationFailures() {

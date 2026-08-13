@@ -12,4 +12,8 @@ public record SessionEvent(String type, Map<String, Object> payload, Instant occ
     public static SessionEvent of(String type) {
         return new SessionEvent(type, Map.of(), Instant.now());
     }
+
+    public static SessionEvent of(String type, Map<String, Object> payload) {
+        return new SessionEvent(type, payload, Instant.now());
+    }
 }

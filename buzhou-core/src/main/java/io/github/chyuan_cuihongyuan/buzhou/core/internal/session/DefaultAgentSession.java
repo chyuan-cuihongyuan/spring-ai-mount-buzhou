@@ -140,10 +140,20 @@ public class DefaultAgentSession implements AgentSession {
     /** 取消在途轮次：中断全部在途工具调用；会话不谢幕，可继续 chat。 */
     @Override
     public void cancel() {
+        cancel(io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.IMMEDIATE);
+    }
+
+    /** impl-05 / T31：按模式取消（三档语义见 {@link io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode}）。 */
+    @Override
+    public void cancel(io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode mode) {
         ensureOpen();
-        toolManager.cancelInFlight();
+        io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode effective = mode == null
+                ? io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.IMMEDIATE : mode;
+        toolManager.requestCancel(effective);
         observers.forEach(SessionObserver::onCancel);
-        dispatchEvent(SessionEvent.of("session.cancelled"));
+        dispatchEvent(io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent.of(
+                "session.cancelled",
+                java.util.Map.of("cancelMode", effective.name())));
     }
 
     @Override

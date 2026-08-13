@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：CancelMode 三档 + AgentSession.cancel(mode) + manager requestCancel/pendingCancel + advisor 取消护栏（IMMEDIATE/AFTER_CURRENT_TOOLS 截断、AFTER_CURRENT_TURN 放行）+ CancellationToken 随 ToolContext 贯穿；CancelModeEndToEndTest 3 例含令牌翻转断言；spec 05 新节）
 
 - [ ] `enum CancelMode { IMMEDIATE, AFTER_CURRENT_TOOLS, AFTER_CURRENT_TURN }`（AutoGen 两档 + 中间档）
 - [ ] IMMEDIATE=虚拟线程 interrupt、丢弃在飞工具结果；AFTER_CURRENT_TOOLS=等 StructuredTaskScope join 后停；AFTER_CURRENT_TURN=完整落 Completed-Turn（部分输出保留语义）

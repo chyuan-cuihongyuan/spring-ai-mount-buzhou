@@ -239,3 +239,13 @@ sequenceDiagram
 - **两档失败词汇**：校验失败 = `ToolValidationFeedback`（`[工具参数校验失败]`，工具未执行、REASK 通道）；执行失败 = `ToolErrorFeedback`（工具已执行出错）。观测与策略可分别对待。
 - **重试预算**：`TurnLoopPolicy.retryBudget`（默认 2，Pydantic AI retries 语义；与轮数上界独立扣减）——校验失败累计超过预算且模型仍请求工具时，`BoundedToolCallingAdvisor` 以 **REASK_FAILED** 优雅收尾并发 `turn.loop.reask_failed` 事件。
 - 默认开（`HarnessToolCallingManager.setArgsValidation(false)` 可回退旧行为）。
+
+## 显式取消 CancelMode 三档 + token 贯穿（wayfinder2 impl-05 / T31 / docs/spec/12）
+
+- `AgentSession.cancel()` 保留为立即档；新增 `cancel(CancelMode)` 三档语义：
+  - **IMMEDIATE**：立即中断在飞工具、<b>丢弃在飞结果</b>（防半成品泄漏；AutoGen partial 丢弃语义）；后续工具轮次被护栏替换为优雅取消收尾。
+  - **AFTER_CURRENT_TOOLS**：不中断在飞工具（结果正常回喂一次），但不再进入下一轮 think→tool 递归——循环优雅收尾。
+  - **AFTER_CURRENT_TURN**：本轮完整收尾（模型自然产出、完整落 Completed-Turn），取消仅作标记与可观测。
+- **取消令牌贯穿工具执行链**：`CancellationToken` 随 ToolContext 下发（`buzhou.cancelToken`），长任务协作式轮询 `isCancelled()` 提前中止（无需依赖线程中断）。
+- 取消标记每 Turn 开始清零（空闲期取消不影响下一 Turn）；事件 `session.cancelled`（含档位）+ `turn.loop.cancelled`（护栏截断时）。
+- 来源：AutoGen（CancellationToken/ExternalTermination 两档）+ OpenAI Agents SDK（cancel 清理语义）——Buzhou 两档 + 中间档共三档。
