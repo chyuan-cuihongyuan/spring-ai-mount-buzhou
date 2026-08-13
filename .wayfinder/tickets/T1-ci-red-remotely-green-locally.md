@@ -30,17 +30,20 @@ CI badge 显示 `failing`，但本地 `mvn -B -ntp clean verify`（与 `ci.yml` 
 - annotations 仅 3 条：`checkout@v4`/`setup-java@v4` 仍跑 Node 20（deprecated）、`setup-java v4 deprecated → v5`（deprecated）、`Process completed with exit code 1.`；**无 Maven 报错文本**（Maven 不产 annotation）。
 
 **为何排除「依赖解析/缓存」假设**：
-1. [T2](T2-spring-ai-native-vs-buzhou.md) 已证 `spring-ai 2.0.0` / `spring-boot 4.1.0` **GA 且在 Maven Central**；本地 `mvn clean verify` 全绿 → 所有依赖**从 Central 解析成功**（pom 无自定义仓）。
+1. [T2](T2-spring-ai-native-vs-buzhou.md) 已证 `spring-ai 2.0.0` / `spring-boot 4.1.0` **GA 且在 Maven Central**；pom 无自定义仓 → 依赖取自 Central，本地能解析全部依赖（无 missing-artifact）。
 2. Maven `.lastUpdated` 否定标记有 **24h 重查间隔**：GA 窗口（2026-06 中旬）遗留的标记到 2026-08-12 早已过期 → Maven 会重查并成功解析。故「缓存否定标记」**无法解释持续到 08-12 的红**。
 3. 失败对 doc-only 提交也确定性地复现 → 与依赖可用性无关，指向**源码/测试在 ubuntu 上的确定性行为差异**。
 
-**最可能根因（~80% 置信）**：**OS/runner 环境相关的构建或测试缺陷**——在 Ubuntu 确定性失败、本地 Windows 通过的经典 gap（路径/大小写敏感、行尾、默认 charset/locale、`/bin/sh` 类进程依赖、端口/网络/资源需求）。AFK 扫描出的**强嫌疑**（待日志确认）：
-- `buzhou-tools/.../command/RunCommandTool.java:92` → `new ProcessBuilder("/bin/sh","-c",command)` **硬编码 `/bin/sh`**（Ubuntu 有、Windows 无），`RunCommandToolTest` 会触发。
-- `buzhou-tools` 测试用 Unix 路径（`/tmp`、`/var/data`）与反斜杠转义（`FileToolsTest`、`ToolsModuleTest`）。
+**最可能根因（~80% 置信）**：**Linux/JDK21-runner 特定的构建或测试缺陷**——在 Ubuntu 确定性失败。注意：本机 Windows shell 的已知「假红」**全部是 Windows 本地问题、已逐一排除为 Linux-CI 根因**（2026-08-13 核验，见记忆 `windows-host-cant-build-linux-project`）：
+- `RunCommandTool` 硬编码 `/bin/sh -c`（`buzhou-tools/.../RunCommandTool.java:92`）→ `/bin/sh` 在 **Linux 存在**、`RunCommandToolTest` 在 CI 能跑；它是 **Windows 本地**跑不了的假红，**非 CI 因**。
+- `core.autocrlf=true` + **无 `.gitattributes`** → Windows 工作区被转成 CRLF，打断资源串断言（如 `buzhou-skills` `ClasspathSkillScannerTest`）；但 `git ls-files --eol` 核验 **blob 全 LF（0 个 CRLF/mixed）** → Linux 检出为 LF、不受影响，亦为 Windows 本地假红。
+- 默认 `JAVA_HOME=D:\JDK\JDK-8`（java 1.8）→ Windows 本地编不出 JDK16+ 语法；CI 用 temurin 21，无关。
 
-**未能确定（环境受限）**：**具体哪条测试/编译失败**——需 CI 日志原文或 Linux 复现，二者在本环境都不可得（job-logs API 返回 403 需鉴权；本机 WSL 无发行版、无 Docker）。残差可能：~15% runner 资源/网络需求或 OOM；~5% 本地 `~/.m2` 恰有而 CI 无的传递依赖。
+故 Linux-CI 失败的**确切身份仍未知**——所有显眼嫌疑（缓存、`/bin/sh`、CRLF、JDK8）均已排除，剩余可能：某条只在 Linux/JDK21 触发的测试（locale/TZ/charset、端口/网络/外部依赖、资源路径大小写）、runner 资源 OOM、或 JDK21 vs 本地 17/23 的 API 差异。**日志因此成为不可或缺的一块。**
 
-**可信度结论**：本地绿**可信**——构建本身是好的，gap 是 OS 相关缺陷，非地基问题。core 深化（T3+）**不必等 CI badge 转绿**；只有「对外发布绿徽章」这一件等 [T10](T10-fix-ci-os-specific-defect.md)。
+**未能确定（环境受限）**：**具体哪条测试/编译失败**——需 CI 日志原文或 Linux 复现，二者在本环境都不可得（job-logs API 返回 403 需鉴权；本机 WSL 无发行版、无 Docker）。
+
+**可信度结论**：**正确配置下**的本地绿（JDK 17/23 + LF 检出）说明代码本体健全；但本机 Windows shell 的 naive `mvn verify` 不可信（JDK8/CRLF/`/bin/sh` 三类假红）。CI 失败是 Linux/JDK21 特有、独立于这些 Windows 假红——故 local-green ≠ CI-green，确切失败行仍需日志。core 深化（T3+）可基于「代码本体健全」推进，**不必等 badge 转绿**；只有「对外发布绿徽章」这一件等 [T10](T10-fix-ci-os-specific-defect.md)。
 
 **修复路径（决策树，交拥有环境者执行）→ graduate [T10](T10-fix-ci-os-specific-defect.md)**：
 1. 取日志：`gh run view 31622806373 --log-failed`（或 Actions UI 下载），或在 Linux 复现。
@@ -50,4 +53,5 @@ CI badge 显示 `failing`，但本地 `mvn -B -ntp clean verify`（与 `ci.yml` 
 
 ## Assets
 
-- [Spring AI 2.0.0 原生能力 vs Buzhou 增强面](T2-spring-ai-native-vs-buzhou.md)（已闭合）结论：`2.0.0` 与 `4.1.0` 均为 GA、在 Maven Central → 排除「缺仓」假设，锁定环境性缓存问题。
+- [Spring AI 2.0.0 原生能力 vs Buzhou 增强面](T2-spring-ai-native-vs-buzhou.md)（已闭合）：`2.0.0` 与 `4.1.0` 均为 GA、在 Maven Central → 排除「缺仓」假设。
+- 取证来源（公开 API，免鉴权）：最近 CI run 列表 `actions/workflows/ci.yml/runs`；失败 run [31622806373](https://github.com/chyuan-cuihongyuan/spring-ai-mount-buzhou/actions/runs/31622806373)（`Build & test` exit 1）；check-run annotations（仅 exit code + 弃用警告，无 Maven 文本）。

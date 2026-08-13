@@ -17,7 +17,7 @@ created: 2026-08-13
 ## Context
 
 - 这是「core 做深」的**测试深度**部分：当前测试多为单元/脚本化，缺一条贴近真实模型行为的端到端链。
-- **blocked-by [T1](T1-ci-red-remotely-green-locally.md)**：测试要在依赖可解析的环境跑。
+- 依赖前提：[T1](T1-ci-red-remotely-green-locally.md)（已 closed）确证依赖从 Central 正常解析（CI 红是无关 OS 缺陷，见 [T10](T10-fix-ci-os-specific-defect.md)）；CI-badge 绿由 T10 追踪、不阻塞本 ticket 策略决策（本地可验证）。
 - 偏 prototype（HITL）：真实 LLM 的边界（成本/凭据/稳定性）需用户定。
 
 ## Resolution

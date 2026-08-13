@@ -18,7 +18,7 @@ created: 2026-08-13
 ## Context
 
 - 当前 `examples/` 有评测套件（`SummaryEvaluationTest`）与 `AtomicToolsIntegrationTest`，但缺一个能直接 run 的 `src/main` 入口。
-- **blocked-by [T1](T1-ci-red-remotely-green-locally.md)**：依赖可解析，demo 才能在干净环境复现。
+- 依赖前提：[T1](T1-ci-red-remotely-green-locally.md)（已 closed）确证依赖从 Central 正常解析（CI 红是无关 OS 缺陷，见 [T10](T10-fix-ci-os-specific-defect.md)）；CI-badge 绿由 T10 追踪、不阻塞本 ticket 形态决策（本地可验证）。
 - 偏 prototype（HITL）：demo 形态需用户拍板。
 
 ## Resolution
