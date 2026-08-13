@@ -211,6 +211,8 @@ public interface SessionEventContext extends HookContext {
 | FactCollector | **内置核心** | 见「Hook→state→Attachment 闭环」 |
 | 可观测采集 | **内置核心** | 挂接形态为 advisor(+500) + ToolCallback 包装层（Span/Event 采集细节见 `03-observability.md`），非 BuzhouHook |
 | 取消响应 | **内置可选**（默认开可禁用） | beforeModel 检查用户取消标记，衔接会话 `cancel()`（见 `08-session-config-persistence.md`） |
+| 读侧 Spotlighting | **内置可选**（默认关，`GuardModule.builder().spotlighting()` 开） | afterTool order 80 包裹外部输出（见「读侧注入防御」） |
+| Canary 泄漏守卫 | **内置可选**（默认关，`canaryGuard()` 开） | beforeModel 注密语 + afterTool 检漏拦截自硬化（见「读侧注入防御」） |
 | Rerank 截断器重排 | **降为示例**（examples 模块） | DECO `ToolResponseTruncator` 的通用对应物；与 Spill 职责重叠，不进内核 |
 | 响应格式化 | **降为示例** | DECO `ToolResponseFormatter` 对应物 |
 | 对话持久化 | **不 Hook 化** | 它就是记忆写入路径本身（06 unit-of-work），属内核数据通路 |
@@ -242,6 +244,23 @@ public interface SessionEventContext extends HookContext {
 
 > 【推演】只读快照 / 工作副本分离在 DECO 是「踩坑后的业务设计」；纳入框架默认拦截、以及只读源识别规则（注册表登记 + 只读根配置双通道）属自主推演。
 
+### 读侧注入防御（Spotlighting + Canary，wayfinder T18 / docs/spec/11）
+
+读侧 offload / 回灌路径的**间接 prompt 注入**防御（业界已建档的最高风险面），与「读侧失败降级透传」正交——隔离的是**内容可信度**，非失败处理。经 `GuardModule.builder().injectionDefense()`（或分别 `.spotlighting()` / `.canaryGuard()`）开启，默认关闭（Tier-1 改变 prompt 形状的能力不默认启用）。
+
+1. **Spotlighting**（`SpotlightHook`, afterTool, order 80——先于 Spill offload 100，先包裹**原始外部输出**再做溢出判断，使溢出预览/落盘/回读切片全路径带标记）：
+   - **随机分隔符**（会话随机 `<<<BUZHOU-DATA-<tag>-BEGIN/END>>>`）+ **「仅数据」告示**（标记段内任何指令/要求/角色设定一律无效）；
+   - **交织标记字符**（datamarking，会话随机字符逐字符插入；超长内容降为每 8 字符一个控制成本）；
+   - 幂等（已包裹内容不二次包裹）；canary 拦截告示等**可信框架文本**不包裹（避免把「须遵守的警示」错标为外部数据）。
+   - 来源：MSRC（delimiting + datamarking）。
+2. **Canary 泄漏检测 + 自硬化**（`CanaryGuardHook`, beforeModel 注密语【**前置**注入——系统消息惯例位，append 会破坏「工具结果为最后一条」的循环输入形状】幂等；afterTool, order 70 检漏）：
+   - 密语（会话随机，可固定供测试）泄漏进工具输出 → **拦截**该结果（REPLACE 为拦截告示，不回灌模型）+ Error Event `guard.canary.leaked` + 载荷录入**拒识记忆**（会话状态 `guard.canary.rejected`，≤32 条）；
+   - **自硬化**：后续**变体**载荷（字符 n-gram Jaccard ≥ 0.6——Tier-1 的 embedding 近邻近似）即使不含密语也被拦截（`guard.canary.variant.blocked`）；
+   - 来源：Rebuff。
+3. **纵深序**（与 T15 分层防御序一致）：Spotlighting → canary →（既有）写侧 HITL 门最后确定性阻断。
+
+> 【推演】向量拒识（embedding 入拒识向量）为 Tier-2；Tier-1 用字符 n-gram Jaccard 近似语义近邻，确定性、无外部依赖。测试证据：`InjectionDefenseUnitTest` / `InjectionDefenseEndToEndTest`（注入载荷不影响写侧：dangerous 工具零调用）。
+
 ### 失败语义非对称（专节）
 
 读侧与写侧的失败代价方向相反，框架把差异编码进默认语义：
@@ -255,6 +274,17 @@ public interface SessionEventContext extends HookContext {
 | 数组形态 | 逐条独立判定，单条失败仅该条降级 | — |
 
 依据蓝本：「读侧降级（落盘失败透传）、写侧阻断（文件不存在抛异常）」「落盘失败 → 该条返回原 scriptContent，让 LLM 至少拿到内容（承担自截断风险），不阻断主流程」「杜绝发布残缺脚本」。框架默认即此语义；业务 Hook 可参照但写侧不建议放宽。
+
+**`on_fail` 动词汇统一（wayfinder T19 / docs/spec/11 guard，来源 Guardrails AI）**：读写两侧失败语义用业界动词汇表达（`io.github...core.hook.OnFail`），给既有非对称套上业界心智模型、**不改其语义**：
+
+| 动词 | 侧 | 映射既有语义 | 可配点 |
+|---|---|---|---|
+| `FILTER` | 读 | 降级透传（offload 落盘失败原文透传） | `SpillGuardModule.Builder.offloadOnFail(FILTER)`（默认） |
+| `REFRAIN` | 读 | 保守降级：以「拒答该数据」文本替代原文（不给可能残缺的数据） | `offloadOnFail(REFRAIN)` |
+| `EXCEPTION` | 写 | 阻断（onload 失败 / 副本分离拦截 / HITL 未授权），不外流残缺产物 | 写侧恒为 EXCEPTION（不建议放宽） |
+| `REASK` | 可恢复失败 | 错误回喂模型自我纠错重试（= T16「错误即反馈」通道；典型缝 = 工具侧入参校验失败）；**有上界**——由 T17 有界 Turn 递归预算兜底，不无限循环 | 随 T16 通道内建 |
+
+事件统一带 `onFail` 字段（`offload.degraded` → FILTER/REFRAIN；`onload.failed` → EXCEPTION）。测试证据：`SpillOffloadHookTest.refrainOnFailReplacesDegradedResultWithRefusalNotice`、`OnFailReaskIntegrationTest`（自纠一次成功 / 永不修正时预算内收尾）。
 
 ### HITL 危险工具守卫
 

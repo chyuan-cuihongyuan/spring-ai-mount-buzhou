@@ -17,6 +17,8 @@ import io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactCollectorHook;
 import io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactDefinition;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHook;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.GuardAuthApi;
+import io.github.chyuan_cuihongyuan.buzhou.guard.inject.CanaryGuardHook;
+import io.github.chyuan_cuihongyuan.buzhou.guard.inject.SpotlightHook;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -51,6 +53,14 @@ public final class GuardModule {
         List<BuzhouHook> h = new ArrayList<>();
         if (builder.enabled) {
             h.add(new DangerousToolGuardHook(config, builder.stores.sessionStateStore()));
+        }
+        if (builder.canaryGuard) {
+            h.add(builder.canaryToken == null
+                    ? new CanaryGuardHook()
+                    : new CanaryGuardHook(builder.canaryToken, builder.canarySimilarityThreshold));
+        }
+        if (builder.spotlighting) {
+            h.add(new SpotlightHook());
         }
         if (!builder.factDefinitions.isEmpty()) {
             h.add(new FactCollectorHook(builder.factDefinitions, factStore));
@@ -95,6 +105,11 @@ public final class GuardModule {
         private AuthTtl authTtl = AuthTtl.ONCE;
         private final List<DangerousToolEntry> dangerousTools = new ArrayList<>();
         private final List<FactDefinition> factDefinitions = new ArrayList<>();
+        // T18 读侧注入防御（默认关闭、按机制开关；见 docs/spec/11 guard）
+        private boolean spotlighting = false;
+        private boolean canaryGuard = false;
+        private String canaryToken = null;
+        private double canarySimilarityThreshold = 0.6;
 
         private Builder(BuzhouStores stores) {
             this.stores = stores;
@@ -102,6 +117,35 @@ public final class GuardModule {
 
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
+            return this;
+        }
+
+        /** 开启读侧 Spotlighting（随机分隔符 + 交织标记包裹外部输出）。 */
+        public Builder spotlighting() {
+            this.spotlighting = true;
+            return this;
+        }
+
+        /** 开启 canary 泄漏检测 + 自硬化拒识。 */
+        public Builder canaryGuard() {
+            this.canaryGuard = true;
+            return this;
+        }
+
+        /** 一键开启读侧注入防御（spotlighting + canary）。 */
+        public Builder injectionDefense() {
+            return spotlighting().canaryGuard();
+        }
+
+        /** 固定密语（默认随机；测试/诊断用）。 */
+        public Builder canaryToken(String token) {
+            this.canaryToken = token;
+            return this;
+        }
+
+        /** 变体拒识相似度阈值（字符 n-gram Jaccard，默认 0.6）。 */
+        public Builder canarySimilarityThreshold(double threshold) {
+            this.canarySimilarityThreshold = threshold;
             return this;
         }
 
@@ -155,6 +199,18 @@ public final class GuardModule {
             Object ttlVal = ymlConfig.get("auth-ttl");
             if (ttlVal instanceof String s) {
                 this.authTtl = AuthTtl.parse(s);
+            }
+            Object spotVal = ymlConfig.get("spotlighting");
+            if (spotVal instanceof Boolean b) {
+                this.spotlighting = b;
+            }
+            Object canaryVal = ymlConfig.get("canary-guard");
+            if (canaryVal instanceof Boolean b2) {
+                this.canaryGuard = b2;
+            }
+            Object tokenVal = ymlConfig.get("canary-token");
+            if (tokenVal instanceof String s2 && !s2.isBlank()) {
+                this.canaryToken = s2;
             }
             Object toolsVal = ymlConfig.get("dangerous-tools");
             if (toolsVal instanceof List<?> list) {
