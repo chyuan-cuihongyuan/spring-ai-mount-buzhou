@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.（taint label 谓词衔接随 21 联动）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：PolicyDecision（allow/deny/escalate+reason、Input、Rule、LabelPredicate）+ EmbeddedPolicyEngine（默认拒/首条命中/glob/label 谓词/escalate+审批=allow）+ PolicyEngine SPI（OPA sidecar adapter 预留）+ PolicyGateHook（order 275、taint 标签衔接、policy.decided 事件）；EmbeddedPolicyEngineTest 3 例；guard 44/44 绿；spec 07 新节）
 
 - [ ] 声明式 JSON 规则子集：主体 × 工具 × 资源 × label 谓词 → `allow`/`deny`/`escalate`（→HITL），**默认拒**、决策附 reason
 - [ ] `PolicyEngine` SPI；既有危险工具门配置**迁移为子集的自然特例**（兼容不破坏）

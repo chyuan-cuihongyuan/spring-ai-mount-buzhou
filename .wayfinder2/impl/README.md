@@ -26,7 +26,7 @@
 | [20](20-promptfoo-redteam.md) | CI 自动红队门（promptfoo nightly） | guard | — | done |
 | [21](21-fides-taint.md) | FIDES 最小 taint（标 + 写门校验） | guard | 12 | done |
 | [22](22-ecdsa-audit-trail.md) | ECDSA 签名审计链（AAT + JCS） | guard | — | done |
-| [23](23-policy-engine.md) | policy-as-code 子集 + OPA sidecar SPI | guard | — | ready-for-agent |
+| [23](23-policy-engine.md) | policy-as-code 子集 + OPA sidecar SPI | guard | — | done |
 | [24](24-onnx-classifier.md) | ONNX 分类器（默认关） | guard | — | ready-for-agent |
 | [25](25-command-sandbox.md) | CommandSandbox SPI + Deno 档 | guard | — | ready-for-agent |
 | [26](26-episodic-fewshot.md) | episodic memory few-shot | memory | 15 | ready-for-agent |

@@ -278,6 +278,15 @@ public interface SessionEventContext extends HookContext {
 - **ECDSA P-256 可选签名**：SHA256withECDSA → DER→**IEEE P1363 r||s 64 字节** Base64url（`AuditChain.generateKeyPair` 产钥，私钥业务保管）；`verify` 全链重算——篡改任一记录即失配（不可否认）。
 - **事件收集器**（`AuditTrailCollector` 经 `SpawnOptions.withListeners` 挂入）：guard.tool.blocked / guard.auth.granted / guard.taint.marked|blocked / canary / 界定护栏事件 → 审计记录；记忆修订的审计在 state 台账（impl-12）。
 
+### policy-as-code 内嵌子集 + PolicyEngine SPI（wayfinder2 impl-23 / T52 / docs/spec/12 §guard-24）
+
+危险工具规则从 bespoke 配置升级为<b>默认拒、可分析</b>的策略（OPA「结构化 input→决策+reason」模型；OPA 12,099★ 达标概念源但 JVM 无成熟内嵌——官方 opa-java 仅 REST 客户端，故自有子集；cedar-java 75★ 注记备选不引入）：
+
+- **声明式规则**：主体 × 工具（glob）× label 谓词（eq/exists/contains——衔接 FIDES taint 标签）→ `allow`/`deny`/`escalate`；首条命中生效；<b>无命中 = 默认拒</b>；决策附 reason。
+- **escalate + 人工已审批 = allow**（`EmbeddedPolicyEngine`；approver 通道与既有授权台账一致）。
+- `PolicyGateHook`（order 275，taint 写门后、HITL 门前）：allow 放行 / deny 物理阻断 / escalate 转人工确认；`policy.decided` 事件（含 action 与 reason，可观测可审计）。
+- 既有危险工具门配置是本子集的自然特例（迁移按需）；**OPA sidecar adapter** 为 Rego 全表达力部署方预留接口。
+
 ### 失败语义非对称（专节）
 
 读侧与写侧的失败代价方向相反，框架把差异编码进默认语义：
