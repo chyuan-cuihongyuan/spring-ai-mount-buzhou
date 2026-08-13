@@ -224,3 +224,11 @@ sequenceDiagram
 - **替换型 ToolAdvisor 的组合**：链上只允许一个 `ToolAdvisor`；业务启用 `ToolSearchToolCallingAdvisor`（动态工具检索）时与本机制的注入通道互斥，组合形态（子类化还是并列 advisor）未定。
 - **并发上限默认值 8 的依据**：缺压测支撑；按历史失败率/延迟自适应限界属性能专项（map 中「性能压测方案」雾区，未毕业）。
 - **流式路径的行为对齐**：Spring AI 流式工具执行切 `Schedulers.boundedElastic()`，Harness 会话执行器嵌套其中的取消时序与背压交互需专项验证。
+
+## 测试基建（impl-01 / spec 12 §core-1）
+
+- 本机制（含并行工具调用块、错误回喂、有界 Turn）的行为回归以 **core test-jar 内的测试替身**驱动，不调真实 LLM：
+  - `FakeChatModel`：脚本队列按调用序消费、耗尽重复末步；脚本步支持**单条 assistant 消息多个 toolCall**（并行 fan-out 回放语义）；toolCall id 确定性派生。
+  - `RecordingChatModel` + `RecordingFixture`：录制 (请求结构指纹, 响应脚本) 序列落 JSON（脱敏由序列化形状保证）；`FakeChatModel.fromRecording` **严格回放**——指纹失配/超录调用即 `AssertionError`，防静默漏断言。
+  - `TestDoubleChatModel` 标记接口：examples 端到端入场断言（防真实请求门）。
+- 来源：Vercel AI SDK MockLanguageModelV4/mockValues + Pydantic AI TestModel/FunctionModel（Spring AI 9.3K★ 官方无 fake，自建）。

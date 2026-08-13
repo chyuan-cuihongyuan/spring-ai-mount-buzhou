@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * {@link Prompt}；队列空时返回默认回复。用于 AutoConfig 装配后的会话级集成断言，
  * 避免装配测试依赖 API key / 网络。
  */
-public class ScriptedChatModel implements ChatModel {
+public class ScriptedChatModel implements TestDoubleChatModel {
 
     public final Queue<ChatResponse> script = new ConcurrentLinkedQueue<>();
     public final List<Prompt> seenPrompts = new CopyOnWriteArrayList<>();

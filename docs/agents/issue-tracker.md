@@ -1,6 +1,6 @@
 # Issue tracker: Local Markdown
 
-Issues and specs for this repo live as markdown files in `.scratch/`.
+Issues and specs for this repo live as markdown files in **per-effort directories**. Durable efforts (wayfinder maps, specs, impl slices) live in **`.wayfinder*/` effort dirs** (committed to git): `.wayfinder/`（effort #1，已闭合）、`.wayfinder2/`（effort #2「做完美」，当前）。`.scratch/` is gitignored and only for throwaway drafts — do not put durable issues there.
 
 ## Conventions
 
@@ -20,11 +20,11 @@ Read the file at the referenced path. The user will normally pass the path or th
 
 ## Wayfinding operations
 
-Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
+Used by `/wayfinder`. The **map** is a file with one **child** file per ticket. Current convention (see the effort dir's `README.md` for frontmatter fields):
 
-- **Map**: `.scratch/<effort>/map.md` — the Notes / Decisions-so-far / Fog body.
-- **Child ticket**: `.scratch/<effort>/issues/NN-<slug>.md`, numbered from `01`, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `open`/`claimed`/`resolved`.
-- **Blocking**: a `Blocked by: NN, NN` line near the top. A ticket is unblocked when every file it lists is `resolved`.
-- **Frontier**: scan `.scratch/<effort>/issues/` for files that are open, unblocked, and unclaimed; first by number wins.
-- **Claim**: set `Status: claimed` and save before any work.
-- **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then append a context pointer (gist + link) to the map's Decisions-so-far in `map.md`.
+- **Map**: `.wayfinder*/MAP.md` — the Notes / Decisions-so-far / Fog body.
+- **Child ticket**: `.wayfinder*/tickets/T<n>-<slug>.md`（编号在 effort 间全局续用，如 `.wayfinder2/` 从 T28 起）, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `open`/`closed`.
+- **Blocking**: a `blocked-by:` line in frontmatter. A ticket is unblocked when every ticket it lists is `closed`.
+- **Frontier**: scan the effort's `tickets/` for files that are open, unblocked, and unclaimed; first by number wins.
+- **Claim**: set `assignee` and save before any work.
+- **Resolve**: append the answer under a `## Resolution` heading, set `status: closed`, then append a context pointer (gist + link) to the map's Decisions-so-far in `MAP.md`.
