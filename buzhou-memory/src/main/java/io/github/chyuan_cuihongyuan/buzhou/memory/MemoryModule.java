@@ -85,6 +85,9 @@ public final class MemoryModule {
             ivp.setAttachmentRenderer(attachmentRenderer);
             ivp.setSkillCatalogRenderer(skillCatalogRenderer);
             ivp.setEvictRatio(evictRatio);
+            // impl-13 / T40：压缩前检查点与三档回滚
+            ivp.setCheckpoints(new io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints(
+                    stores.sessionStateStore()));
             // T25/T26：事实对账 + 双时序台账（会话状态；对账默认开、韧性 NOOP）
             ivp.setSessionStateStore(stores.sessionStateStore());
             ivp.setFactReconciliation(factReconciliation(ymlConfig));

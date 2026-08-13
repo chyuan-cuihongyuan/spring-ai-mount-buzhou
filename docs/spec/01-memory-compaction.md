@@ -278,6 +278,7 @@ public class EvidenceLookupTool {
 | `buzhou.memory.sleep-time.enabled` | `true` | impl-11/T37：turn 后异步整理开关（虚拟线程 + 每 session 串行；对最新摘要重跑事实对账、全走双时序台账；热路径零阻塞） | D/Y/B |
 | `buzhou.memory.sleep-time.every-turns` | `5` | sleep-time 整理触发频率（每 N 个完结 Turn 一次） | Y/B |
 | `buzhou.memory.revise-section-tool` | `true` | impl-12/T38：自愈记忆工具 `revise_summary_section` 注册开关（精确匹配+唯一性+P0 只读+taint 门+全量审计） | D/Y/B |
+| `buzhou.memory.checkpoint.enabled` | `true` | impl-13/T40：压缩前检查点（折叠前保存压缩前消息窗快照至会话 state；三档回滚=视图级：MESSAGES_ONLY / +摘要失效 / +事实台账（默认关档）） | D/Y/B |
 | `buzhou.memory.repair.enabled` | `true` | 悬空修复开关（关闭则残缺历史原样注入，风险自负） | D/Y/B |
 | `buzhou.memory.retry.resume-replay-max` | `1` | 续接重放次数（固定 1 次，中断重试 ≠ 运行时重试） | D/Y/B |
 | `buzhou.memory.retry.runtime.max-attempts` | `0` | 运行期瞬断重试次数上限（最大 3） | D/Y/B/T |

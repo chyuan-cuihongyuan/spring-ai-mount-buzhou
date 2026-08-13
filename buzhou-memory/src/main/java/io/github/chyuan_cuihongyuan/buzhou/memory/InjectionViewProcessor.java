@@ -56,6 +56,8 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     public static final double DEFAULT_EVICT_RATIO = 0.7d;
     /** impl-02：预算仍超时的步进梯子步长（0.7→0.8→…→1.0）。 */
     public static final double EVICT_RATIO_LADDER_STEP = 0.10d;
+    /** impl-13 / T40：压缩前检查点与三档回滚（回滚 = 视图级，append-only 事实源不动）。 */
+    private io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints checkpoints;
 
     public InjectionViewProcessor(DefaultMicroCompactor compactor,
                                   Function<String, MicroCompactionPolicy> policyFn,
@@ -127,6 +129,12 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 : Math.min(evictRatio, 1.0d);
     }
 
+    /** impl-13 / T40：注入压缩前检查点（折叠前保存 + 回滚标记消费）。 */
+    public void setCheckpoints(
+            io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints checkpoints) {
+        this.checkpoints = checkpoints;
+    }
+
     /** 对账事件出口（T25 四态裁决可观测；未注入则仅日志）。 */
     public void setEventSink(
             java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink) {
@@ -135,6 +143,17 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
 
     @Override
     public List<BuzhouMessage> process(String sessionId, List<BuzhouMessage> stored, int currentTurn) {
+        // impl-13 / T40：回滚按 Turn 消费——同一 Turn 的全部视图生成一致恢复为检查点窗口
+        //（一次 chat 会触发多次 get，按 Turn 对齐避免「首次 get 恢复、后续 get 又折叠」的撕裂）
+        java.util.Optional<io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints.RollbackLevel> rollbackMarker =
+                checkpoints == null || sessionId == null
+                        ? java.util.Optional.empty()
+                        : checkpoints.consumeRollbackForTurn(sessionId, currentTurn);
+        if (rollbackMarker.isPresent()) {
+            return checkpoints.latestWindow(sessionId).orElseGet(() ->
+                    compactor.compact(stored, currentTurn, policyFn, protectRecentTurns, evictRatio)
+                            .compactedView());
+        }
         List<BuzhouMessage> compacted = compactor
                 .compact(stored, currentTurn, policyFn, protectRecentTurns, evictRatio)
                 .compactedView();
@@ -151,6 +170,13 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         }
 
         NineSectionSummary previous = summaryBridge.loadLatest(sessionId).orElse(null);
+        // impl-13 / T40：摘要失效标记（回滚档 ≥2）——视为无摘要，直至重新压缩生成新摘要
+        boolean summaryInvalidated = sessionStateStore != null && sessionId != null
+                && io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints
+                        .summaryInvalidated(sessionStateStore, sessionId);
+        if (summaryInvalidated) {
+            previous = null;
+        }
         BudgetReport budget = evaluateBudget(compacted, previous, factsBlock, catalogBlock);
         // impl-02 / T36：10% 步进梯子——部分逐出后仍超预算时逐级加压（0.7→0.8→…→1.0）；
         // 梯子救回预算则免落摘要折叠（保连续优先于折摘要）
@@ -184,6 +210,10 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         NineSectionSummary merged = previous;
         if (!toSummarize.isEmpty() && breaker.allows(sessionId)) {
             try {
+                // impl-13 / T40：折叠提交前保存压缩前检查点（护栏：事故可回滚）
+                if (checkpoints != null) {
+                    checkpoints.save(sessionId, cutoffTurn, stored);
+                }
                 merged = summaryGenerator.merge(previous, toSummarize, cutoffTurn,
                         extraInstruction, summaryModel);
                 merged = new DefaultSummaryDegrader().degradeToFit(merged,
@@ -201,6 +231,11 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 }
                 summaryBridge.save(sessionId, merged);
                 breaker.onSuccess(sessionId);
+                // impl-13 / T40：重新压缩成功 → 清除摘要失效标记（新一轮摘要生效）
+                if (summaryInvalidated && sessionStateStore != null) {
+                    io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints
+                            .clearSummaryInvalidation(sessionStateStore, sessionId);
+                }
             } catch (RuntimeException e) {
                 breaker.onFailure(sessionId);
                 return (factsBlock == null && catalogBlock == null) ? compacted

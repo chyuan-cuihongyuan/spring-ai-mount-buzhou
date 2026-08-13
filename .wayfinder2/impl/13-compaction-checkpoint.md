@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：CompactionCheckpoints——折叠前消息窗快照（DTO 序列化避 jsr310 依赖、200 条封顶）+ 按 Turn 对齐的三档回滚（同 Turn 多次视图生成一致恢复、下一 Turn 自动失效——修复一次 chat 多次 get 的撕裂）；档 ≥2 摘要失效直至重新折叠清除；档 3 清 fact.* 键；IVP 接缝断言（CompactionCheckpointTest 3 例）；spec 01 配置表同步）
 
 - [ ] `CompactionCheckpoint`（sessionId、seq、preWatermark、消息窗引用）：compact_now/增量摘要提交前按水位键不可变快照
 - [ ] 回滚档①：仅恢复消息窗
