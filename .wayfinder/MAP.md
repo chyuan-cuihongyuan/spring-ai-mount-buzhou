@@ -22,6 +22,7 @@
 - [.scratch/ 移出 git 跟踪 + 加入 .gitignore](tickets/T7-remove-scratch-from-git.md) — 59 个内部草稿 `.md` 经六类敏感扫描**无任何命中** → **仅 untrack**（`git rm -r --cached` + `.gitignore`），保留历史、不做 `filter-repo` 重写；`CLAUDE.md`/`docs/agents/issue-tracker.md` 的引用为路径模板、移出后仍成立；实现见 [impl/02](impl/02-untrack-scratch.md)。
 - [README "生产就绪"措辞降级](tickets/T8-downgrade-production-wording.md) — README 4 处「生产」措辞（L3 英 / L5 中 intro、L17 为什么需要、L25 能力段）降级为「**面向生产场景设计的实验性框架**」、中英同步、L25 显式锚定「项目状态：alpha」；`CONTEXT.md`/`docs/spec/00-overview.md` 的「跑在生产里」为术语定义/设计意图、无 alpha 矛盾、有意不动；实现见 [impl/03](impl/03-readme-wording-downgrade.md)。
 - [撰写「与 Spring AI 原生能力边界」文档](tickets/T9-spring-ai-boundary-doc.md) — `docs/spec/10-spring-ai-boundary.md`（中英双语）落位 docs/spec 第 10 篇、README 加链接；T2 九机制全覆 + 置信标注，REPLACES（Spill/并行工具/Skill）/ ADDS（记忆/可观测/Hook/持久化/原子工具）/ **NATIVE（MCP 热插拔 诚实标注非差异化）**；实现见 [impl/04](impl/04-spring-ai-boundary-doc.md)。
+- [run_command 默认关闭 vs 沙箱](tickets/T6-run-command-safety-default.md) — **默认关**（`ToolsModule.Builder` 既有默认，已由 `ToolsModuleTest` 守护）；沙箱方案=否（黑名单+FileSandbox+超时+HITL 多层已足、跨平台沙箱成本不值）；opt-in 经 `enabledDangerousToolNames()` 挂 HITL；`/bin/sh` POSIX 约束写入 `RunCommandTool` javadoc；implementer 确认既有安全默认（用户未应答 grilling、可推翻）；实现见 [impl/07](impl/07-run-command-safe-default.md)。
 
 ## Not yet specified
 
@@ -46,9 +47,9 @@
 - [core/memory/spill/guard "做深做透"的验收基线](tickets/T3-depth-definition-of-done.md) — `grilling` · **frontier**（T2 已闭合，解锁）
 - [可运行 src/main demo 的形态](tickets/T4-runnable-main-demo.md) — `prototype` · blocked-by T1
 - [真实 LLM 集成测试策略](tickets/T5-real-llm-integration-test.md) — `prototype` · blocked-by T1
-- [run_command 默认关闭 vs 沙箱执行](tickets/T6-run-command-safety-default.md) — `grilling` · **frontier**
+- [run_command 默认关闭 vs 沙箱执行](tickets/T6-run-command-safety-default.md) — `grilling` · ✅ **closed**
 - [.scratch 移出 git 历史 + 加 .gitignore](tickets/T7-remove-scratch-from-git.md) — `task` · ✅ **closed**
 - [README "生产就绪"措辞降级，正文与 alpha 对齐](tickets/T8-downgrade-production-wording.md) — `task` · ✅ **closed**
 - [撰写「与 Spring AI 原生能力边界」文档（item 6）](tickets/T9-spring-ai-boundary-doc.md) — `task` · ✅ **closed**（T2 已闭合，解锁）
 
-**Frontier（本会话后可领取）**：T1、T3、T6。（T2、T7、T8、T9 已闭合）
+**Frontier（本会话后可领取）**：T1、T3。（T2、T6、T7、T8、T9 已闭合）

@@ -23,6 +23,11 @@ import java.util.concurrent.TimeoutException;
  * <p>安全边界全部默认开：命令黑名单（命中即拒）+ workdir 限沙箱 + 超时（默认 60s，
  * 上限可配）。经 {@code /bin/sh -c} 执行以支持管道/重定向；输出超限由 Spill 管道治理，
  * 本工具只设 5MB 内存兜底截断（防 OOM，非上下文治理）。
+ *
+ * <p><b>跨平台约束（spec 06 / impl 07）</b>：命令经 {@code /bin/sh -c} 执行，需 POSIX
+ * shell 环境——Linux / macOS 原生可用；Windows 需 WSL 或 Git Bash 提供 {@code /bin/sh}。
+ * 因 run_command <b>默认关</b>（{@code buzhou.tools.run-command.enabled=false}，仅显式
+ * opt-in 才注册并挂 HITL 守卫），此跨平台差异只影响显式开启者，不影响开箱即用的安全默认。
  */
 @BuzhouTool(name = "run_command")
 public class RunCommandTool implements ToolCallback {

@@ -19,12 +19,12 @@
 
 ## Frontier（可立即领取）
 
-- **01** — 无 blocker，可立即开工。
+- **01** — 无 blocker，可立即开工（ci.yml 修复已应用，badge 验证待用户 push）。
 - ✅ **02 已完成**（`.scratch/` 移出 git 跟踪 + `.gitignore`）。
 - ✅ **03 已完成**（README「生产」措辞降级，与 alpha 对齐）。
 - ✅ **04 已完成**（与 Spring AI 边界文档，中英双语）。
+- ✅ **07 已完成**（run_command safe-default 既有实现 + 跨平台约束 javadoc + T6 决策）。
 - 05 / 06 — 等 **01** 完成 + 决策票 **T4 / T5** 拍板。
-- 07 — 等决策票 **T6** 拍板。
 - 08 — 等决策票 **T3** 拍板 + **01** 完成。
 
 ## 索引
@@ -37,7 +37,7 @@
 | [04](04-spring-ai-boundary-doc.md) ✅ done | 撰写「与 Spring AI 原生能力边界」文档 | 无（T2 已闭合）|
 | [05](05-runnable-main-demo.md) | 提供真正可运行的 `src/main` demo | 01 + 决策 T4 |
 | [06](06-real-llm-integration-test.md) | 加入至少一条真实 LLM 行为的集成测试 | 01 + 决策 T5 |
-| [07](07-run-command-safe-default.md) | `run_command` 原子工具安全默认 | 决策 T6 |
+| [07](07-run-command-safe-default.md) ✅ done | `run_command` 原子工具安全默认 | 决策 T6 |
 | [08](08-depth-tests-four-mechanisms.md) | 四机制「做深做透」深度测试基线 | 决策 T3 + 01 |
 
 ## 约定
