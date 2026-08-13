@@ -87,5 +87,18 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+    <!-- 真实 LLM 集成测试（impl/06）：凭据门控、CI 跳过、仅本地带 key 跑。
+         starter 提供 OpenAI 兼容 ChatModel 自动装配（从 spring.ai.openai.api-key 等属性）；
+         spring-boot-starter-test 提供 @SpringBootTest。 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-openai</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

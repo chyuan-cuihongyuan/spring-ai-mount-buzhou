@@ -2,8 +2,8 @@
 id: T5
 title: 加入至少一个真实 LLM 行为的集成测试
 type: prototype
-status: open
-assignee: ""
+status: closed
+assignee: zcode
 blocked-by: [T1]
 created: 2026-08-13
 ---
@@ -22,4 +22,13 @@ created: 2026-08-13
 
 ## Resolution
 
-<!-- prototype 后填写：策略决策 + 覆盖链 + 实现方式 -->
+**决策（两者都要：真实仅本地 + Mock 进 CI）**：
+- **覆盖链**：多轮 + 工具 + 渐进式压缩（最有代表性、与 demo 同链）。
+- **真实 vs Mock 边界**：Mock 变体（反应式 mock，按输入决策工具调用）进默认 `mvn verify`、CI 绿、无 key；真实 API 变体（OpenAI 兼容）`@EnabledIfEnvironmentVariable("BUZHOU_LLM_API_KEY")` 凭据门控、CI 跳过、仅本地带 key 跑。二者覆盖<b>同一条 core 链</b>。
+- **防脆性**：Mock = 确定性反应式（无网络）；真实 = 弱断言（回复非空 + 消息持久 + 不抛异常，不做精确文本匹配）+ 凭据门控，避免裸网络依赖。
+
+**实现**：`examples/src/test/.../demo/RealBehaviorIntegrationTest`（Mock，反应式模型驱动工具调用循环 + 微压缩 + evidence 回查，已断言）+ `RealLlmIntegrationTest`（真实，`@SpringBootTest` 经 `spring-ai-starter-model-openai` 自动装配 ChatModel、Buzhou 纯编程式装配）。
+
+**验证（JDK 21 本机）**：Mock `Tests run:1 Failures:0`；真实 `Skipped:1`（无 key）、`BUILD SUCCESS`（不红）。
+
+**实现切片**：[impl/06](../impl/06-real-llm-integration-test.md)。
