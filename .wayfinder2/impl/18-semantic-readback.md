@@ -4,7 +4,7 @@
 
 **Blocked by:** 15（向量 recall——共用 embedding provider 抽象）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：EmbeddingProvider（core.spi 共享）+ SemanticChunkIndex（locate→byte fetch 两段式闭环测试、默认关、未注入显式 no-op）；hot-tail 不索引对齐两级保留；SemanticSlicingTest 2 例）
 
 - [ ] durable/cold 层 offload 时**异步**按既有切片边界 embed（hot-tail 不索引，与两级保留对齐）
 - [ ] `mode=semantic`（query, k, minScore 可选, tag/filter）返回 top-k chunk 条目（evidence-id + byte offset + 摘要）

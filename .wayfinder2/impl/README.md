@@ -21,8 +21,8 @@
 | [15](15-vector-recall-search.md) | 向量 recall 四模搜（pgvector 单库） | memory | — | ready-for-agent |
 | [16](16-context-clearing.md) | context-clearing + 显式逐出 | spill | — | done |
 | [17](17-chunk-hash-verify.md) | 内容寻址 chunk hash 回读校验 | spill | — | done |
-| [18](18-semantic-readback.md) | 语义回读第 4 模式（locate→fetch） | spill | 15 | ready-for-agent |
-| [19](19-ast-aware-slicing.md) | AST-aware 切片（JavaParser + 回退） | spill | — | ready-for-agent |
+| [18](18-semantic-readback.md) | 语义回读第 4 模式（locate→fetch） | spill | 15 | done（共享 EmbeddingProvider 先行落地） |
+| [19](19-ast-aware-slicing.md) | AST-aware 切片（JavaParser + 回退） | spill | — | done（Java AST-lite 零依赖版） |
 | [20](20-promptfoo-redteam.md) | CI 自动红队门（promptfoo nightly） | guard | — | done |
 | [21](21-fides-taint.md) | FIDES 最小 taint（标 + 写门校验） | guard | 12 | done |
 | [22](22-ecdsa-audit-trail.md) | ECDSA 签名审计链（AAT + JCS） | guard | — | done |

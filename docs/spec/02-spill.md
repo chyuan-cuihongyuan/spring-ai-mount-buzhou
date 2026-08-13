@@ -187,6 +187,15 @@ git 惯例（对象名即内容 hash、读回重算必校验）的 spill 落地�
 - **读回复验**：`DiskSpillStore.verifyIntegrity` 重算比对；不一致 → 读回内容前缀**完整性告警**（读侧 lenient=warning 透传，数据仍可用但明示可能损坏/TOCTOU）；写侧 strict 阻断走 Onload 既有非对称。
 - **envelope**：`ReadIntegrity.envelope` 附 `{data, byteRange, chunkSha256, wholeSha256}`（chunk = 返回切片），调用方可自行复验（测试闭环：篡改即失配）。
 
+### 语义回读第 4 模式 + 语言感知切片（wayfinder2 impl-18/19 / T46+T47 / docs/spec/12）
+
+- **`EmbeddingProvider`**（core.spi，共享基建——T41 向量 recall 与本节复用）：embed + 余弦相似度；实现部署侧注入（真模型）/ 测试确定性词包。
+- **`SemanticChunkIndex`**（locate→fetch 两段式，Letta archival 同构）：durable 层溢出按既有切片边界异步 embed（hot-tail 不索引）；`locate(query,k,minScore)` 返回 top-k 命中（uri+offset+length+摘要+分数）——语义是「**定位**」、byte/jsonpath/pagination 是「**取回**」，模型按命中 offset 以 `mode=bytes` 精读（闭环测试：定位→字节精读=原文精确切片）。默认关（未注入 provider 即显式 no-op）。
+- **`ContentSlicer`**（语言感知切片，采纳 LangChain RecursiveCharacterTextSplitter 144,172★ + aider「先切再解析」）：
+  - **Java「AST-lite」**：字符串/行注释感知的花括深度 0 边界 + 成员声明对齐（方法不中间斩断；零依赖——JavaParser 全 AST 为后续可选，非达标源 6.1K★ 工程注记不引入）；
+  - **其他语言/文本**：语言分隔符阶梯（python/js/sql/json/text）递归二分；
+  - **永不静默**：每片 `[切片 i/N offset=… length=…]` 元数据标记；超长行（>2K）硬截 + 显式注记；切片拼接无损等于原文。
+
 ### hot-tail / cold-storage 两级保留（wayfinder T21 / docs/spec/11）
 
 `HotTailViewProcessor`（`MemoryViewProcessor` 视图级实现，来源 Claude Code microcompaction）：
