@@ -15,7 +15,7 @@
 | [09](09-timetravel-fork.md) | time-travel fork（Completed-Turn 检查点） | core | 07 | ready-for-agent |
 | [10](10-transactional-batch.md) | 事务性并行批——批提交语义 | core | 07 | ready-for-agent |
 | [11](11-sleeptime-consolidation.md) | sleep-time 后台整理 | memory | — | done |
-| [12](12-memory-tools-antipoisoning.md) | memory-as-tools 自愈记忆 + 防投毒 | memory | — | ready-for-agent |
+| [12](12-memory-tools-antipoisoning.md) | memory-as-tools 自愈记忆 + 防投毒 | memory | — | done |
 | [13](13-compaction-checkpoint.md) | 压缩前检查点与三档回滚 | memory | — | ready-for-agent |
 | [14](14-fidelity-eval.md) | 压缩保真度 eval | memory | 01 | ready-for-agent |
 | [15](15-vector-recall-search.md) | 向量 recall 四模搜（pgvector 单库） | memory | — | ready-for-agent |

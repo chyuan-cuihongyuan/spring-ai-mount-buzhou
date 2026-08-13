@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：ReviseSummarySectionTool——精确匹配+EDIT_NOT_FOUND/EDIT_AMBIGUOUS 类型化错误+P0 只读锁+taint 门（spotlighting 包裹/交织标记/canary → REJECTED_UNTRUSTED）+全量审计台账（provenance/taint/裁决）；MemoryModule 默认注册+开关；ReviseSummarySectionToolTest 3 例；spec 01 配置表同步）
 
 - [ ] `revise_summary_section(section_id, old_text, new_text)`：精确匹配 + 类型化错误 `EDIT_NOT_FOUND`/`EDIT_AMBIGUOUS`（多处命中拒绝）
 - [ ] P0 段只读锁（物理拒绝写入）

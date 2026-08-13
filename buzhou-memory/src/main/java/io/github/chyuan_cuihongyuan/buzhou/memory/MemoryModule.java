@@ -100,6 +100,11 @@ public final class MemoryModule {
                                 stores.sessionStateStore()) : null,
                         null));
             }
+            // impl-12 / T38：自愈记忆工具（精确匹配 + 唯一性 + P0 只读 + taint 门 + 全量审计）
+            if (reviseSectionTool(ymlConfig)) {
+                tools.add(new io.github.chyuan_cuihongyuan.buzhou.memory.tool.ReviseSummarySectionTool(
+                        summaryBridge, stores.sessionStateStore()));
+            }
         }
         return new RuntimeConfig(sleepTimeHooks(ymlConfig, stores, summaryModel),
                 java.util.Set.of(), java.util.Set.of(),
@@ -168,6 +173,16 @@ public final class MemoryModule {
         Object memory = ymlConfig.get("memory");
         if (memory instanceof Map) {
             Object value = ((Map<?, ?>) memory).get("compact-now-tool");
+            return !(value instanceof Boolean b) || b;
+        }
+        return true;
+    }
+
+    /** impl-12 开关：{@code memory.revise-section-tool}（默认开；自愈记忆 + 防投毒）。 */
+    private static boolean reviseSectionTool(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object value = ((Map<?, ?>) memory).get("revise-section-tool");
             return !(value instanceof Boolean b) || b;
         }
         return true;
