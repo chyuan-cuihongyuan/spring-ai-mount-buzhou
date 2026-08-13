@@ -28,6 +28,9 @@ import java.util.function.Function;
 
 public class InjectionViewProcessor implements MemoryViewProcessor {
 
+    /** 无摘要模型路径的页脚预算回退值（token）。 */
+    private static final int FALLBACK_SUMMARY_TOKEN_BUDGET = 2000;
+
     private final DefaultMicroCompactor compactor;
     private final Function<String, MicroCompactionPolicy> policyFn;
     private final int protectRecentTurns;
@@ -42,6 +45,10 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     private final int maxInjectChars;
     private AttachmentRenderer attachmentRenderer;
     private SkillCatalogRenderer skillCatalogRenderer;
+    // T25/T26：事实对账 + 双时序台账（会话状态经 setter 注入，避免构造器涟漪）
+    private io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore sessionStateStore;
+    private boolean factReconciliation = true;
+    private java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink;
 
     public InjectionViewProcessor(DefaultMicroCompactor compactor,
                                   Function<String, MicroCompactionPolicy> policyFn,
@@ -95,6 +102,23 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         this.skillCatalogRenderer = skillCatalogRenderer;
     }
 
+    /** 会话状态存储（T26 双时序台账用；未注入则对账照跑、不落台账）。 */
+    public void setSessionStateStore(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore sessionStateStore) {
+        this.sessionStateStore = sessionStateStore;
+    }
+
+    /** T25 事实对账开关（默认开；解析失败一律 NOOP，不影响既有压缩链）。 */
+    public void setFactReconciliation(boolean factReconciliation) {
+        this.factReconciliation = factReconciliation;
+    }
+
+    /** 对账事件出口（T25 四态裁决可观测；未注入则仅日志）。 */
+    public void setEventSink(
+            java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink) {
+        this.eventSink = eventSink;
+    }
+
     @Override
     public List<BuzhouMessage> process(String sessionId, List<BuzhouMessage> stored, int currentTurn) {
         List<BuzhouMessage> compacted = compactor
@@ -109,20 +133,25 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
             // 无摘要模型时事实/清单仍需注入（注入闭环不依赖摘要链路）
             return (factsBlock == null && catalogBlock == null) ? compacted
                     : assembleWithSummary(compacted, null, factsBlock, catalogBlock,
-                            currentTurn, sessionId);
+                            currentTurn, sessionId, FALLBACK_SUMMARY_TOKEN_BUDGET);
         }
 
         NineSectionSummary previous = summaryBridge.loadLatest(sessionId).orElse(null);
         BudgetReport budget = evaluateBudget(compacted, previous, factsBlock, catalogBlock);
+        // T23：摘要 token 预算（动态拆解为每段字符预算页脚渲染给模型）
+        int summaryTokenBudget = Math.max(budget.historyBudget(), 1000);
         if (!budget.compactionNeeded()) {
             return injectSummaryOnly(compacted, previous, factsBlock, catalogBlock,
-                    currentTurn, sessionId);
+                    currentTurn, sessionId, summaryTokenBudget);
         }
 
         int cutoffTurn = currentTurn - keepRecentTurns;
         int alreadyCovered = previous == null ? 0 : previous.coversUpToTurn();
+        List<String> summarizedIds = previous == null ? List.of() : previous.summarizedMessageIds();
+        // T24 增量摘要：轮次水位 + 消息 id 水位双保险，只折入「新消息」（不全量重摘要）
         List<BuzhouMessage> toSummarize = compacted.stream()
                 .filter(m -> m.turnSeq() <= cutoffTurn && m.turnSeq() > alreadyCovered)
+                .filter(m -> !summarizedIds.contains(m.id()))
                 .toList();
         List<BuzhouMessage> recent = compacted.stream()
                 .filter(m -> m.turnSeq() > cutoffTurn)
@@ -134,18 +163,29 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 merged = summaryGenerator.merge(previous, toSummarize, cutoffTurn,
                         extraInstruction, summaryModel);
                 merged = new DefaultSummaryDegrader().degradeToFit(merged,
-                        Math.max(budget.historyBudget(), 1000),
+                        summaryTokenBudget,
                         new CharHeuristicTokenEstimator());
+                merged = merged.withSummarizedMessageIds(NineSectionSummary.unionIds(
+                        summarizedIds, toSummarize.stream().map(BuzhouMessage::id).toList()));
+                if (factReconciliation) {
+                    // T25 事实对账（ADD/UPDATE/DELETE/NOOP；解析失败一律 NOOP）+ T26 双时序台账
+                    merged = new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryFactReconciler()
+                            .reconcile(sessionId, previous, merged, summaryModel, eventSink,
+                                    sessionStateStore == null ? null
+                                            : new io.github.chyuan_cuihongyuan.buzhou.memory.summary.BiTemporalFactLedger(
+                                            sessionStateStore));
+                }
                 summaryBridge.save(sessionId, merged);
                 breaker.onSuccess(sessionId);
             } catch (RuntimeException e) {
                 breaker.onFailure(sessionId);
                 return (factsBlock == null && catalogBlock == null) ? compacted
                         : assembleWithSummary(compacted, null, factsBlock, catalogBlock,
-                                currentTurn, sessionId);
+                                currentTurn, sessionId, summaryTokenBudget);
             }
         }
-        return assembleWithSummary(recent, merged, factsBlock, catalogBlock, currentTurn, sessionId);
+        return assembleWithSummary(recent, merged, factsBlock, catalogBlock, currentTurn, sessionId,
+                summaryTokenBudget);
     }
 
     /** 渲染未过期事实为注入文本（含截断与指针）；无渲染器/无事实/无 sessionId 时返回 null。 */
@@ -199,7 +239,8 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     private List<BuzhouMessage> injectSummaryOnly(List<BuzhouMessage> compacted,
                                                   NineSectionSummary summary, String factsBlock,
                                                   String catalogBlock,
-                                                  int currentTurn, String sessionId) {
+                                                  int currentTurn, String sessionId,
+                                                  int summaryTokenBudget) {
         // 无摘要、无事实块且无清单块 → 直接返回（无需注入）
         if (summary == null && factsBlock == null && catalogBlock == null) {
             return compacted;
@@ -209,20 +250,24 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 .filter(m -> m.turnSeq() > cutoffTurn)
                 .toList();
         return assembleWithSummary(recent.isEmpty() ? compacted : recent, summary, factsBlock,
-                catalogBlock, currentTurn, sessionId);
+                catalogBlock, currentTurn, sessionId, summaryTokenBudget);
     }
 
     private List<BuzhouMessage> assembleWithSummary(List<BuzhouMessage> recent,
                                                     NineSectionSummary summary, String factsBlock,
                                                     String catalogBlock,
-                                                    int currentTurn, String sessionId) {
+                                                    int currentTurn, String sessionId,
+                                                    int summaryTokenBudget) {
         List<BuzhouMessage> result = new ArrayList<>();
         if (summary != null) {
             // 把未过期事实追加到 CURRENT_STATE 段（P0 死保，压缩不丢现场）
             NineSectionSummary enriched = enrichWithFacts(summary, factsBlock);
+            // T23：动态预算拆解渲染给模型——每段 chars_current/chars_limit 页脚，模型自削 P3
+            String rendered = io.github.chyuan_cuihongyuan.buzhou.memory.budget.SegmentBudgetPlanner
+                    .renderWithFooters(enriched, summaryTokenBudget);
             BuzhouMessage synthetic = new BuzhouMessage(
                     UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
-                    "<system-reminder>\n以下是早前对话的结构化摘要：\n" + enriched.render()
+                    "<system-reminder>\n以下是早前对话的结构化摘要：\n" + rendered
                             + "\n</system-reminder>",
                     List.of(), null, null, null, Map.of("summary", true), Instant.now());
             result.add(synthetic);

@@ -63,6 +63,8 @@ public final class MemoryModule {
         int protectRecentTurns = protectRecentTurns(ymlConfig);
 
         io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor processor;
+        java.util.List<org.springframework.ai.tool.ToolCallback> tools =
+                new java.util.ArrayList<>(java.util.List.of(new EvidenceLookupTool(messageStore)));
         if (stores == null) {
             processor = (sessionId, stored, currentTurn) ->
                     compactor.compact(stored, currentTurn, policyFn, protectRecentTurns)
@@ -72,17 +74,52 @@ public final class MemoryModule {
             DefaultBudgetCalculator budgetCalculator = new DefaultBudgetCalculator(
                     new TableContextWindowResolver(windowOverrides(ymlConfig)),
                     new CharHeuristicTokenEstimator());
+            SummaryStoreBridge summaryBridge = new SummaryStoreBridge(stores.summaryStore());
             InjectionViewProcessor ivp = new InjectionViewProcessor(compactor, policyFn, protectRecentTurns,
-                    budgetCalculator, new SummaryStoreBridge(stores.summaryStore()),
+                    budgetCalculator, summaryBridge,
                     new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3), summaryModel,
                     modelName(ymlConfig), keepRecentTurns(ymlConfig), extraInstruction(ymlConfig),
                     maxInjectChars(ymlConfig));
             ivp.setAttachmentRenderer(attachmentRenderer);
             ivp.setSkillCatalogRenderer(skillCatalogRenderer);
+            // T25/T26：事实对账 + 双时序台账（会话状态；对账默认开、韧性 NOOP）
+            ivp.setSessionStateStore(stores.sessionStateStore());
+            ivp.setFactReconciliation(factReconciliation(ymlConfig));
             processor = ivp;
+            // T27：compact_now 语义边界压缩工具（有摘要模型才可自触发；token 阈值兜底不受影响）
+            if (summaryModel != null && compactNowTool(ymlConfig)) {
+                boolean reconcile = factReconciliation(ymlConfig);
+                tools.add(new io.github.chyuan_cuihongyuan.buzhou.memory.tool.CompactNowTool(
+                        stores.messageStore(), summaryBridge, new DefaultSummaryGenerator(),
+                        summaryModel, keepRecentTurns(ymlConfig),
+                        reconcile ? new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryFactReconciler() : null,
+                        reconcile ? new io.github.chyuan_cuihongyuan.buzhou.memory.summary.BiTemporalFactLedger(
+                                stores.sessionStateStore()) : null,
+                        null));
+            }
         }
         return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(),
-                processor, List.of(new EvidenceLookupTool(messageStore)));
+                processor, tools);
+    }
+
+    /** T25 开关：{@code memory.fact-reconciliation}（默认开）。 */
+    private static boolean factReconciliation(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object value = ((Map<?, ?>) memory).get("fact-reconciliation");
+            return !(value instanceof Boolean b) || b;
+        }
+        return true;
+    }
+
+    /** T27 开关：{@code memory.compact-now-tool}（默认开；需配置摘要模型）。 */
+    private static boolean compactNowTool(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object value = ((Map<?, ?>) memory).get("compact-now-tool");
+            return !(value instanceof Boolean b) || b;
+        }
+        return true;
     }
 
     private static String modelName(Map<String, Object> ymlConfig) {

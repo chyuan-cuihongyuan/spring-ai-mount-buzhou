@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.SummaryStore;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,6 +33,13 @@ public class SummaryStoreBridge {
                 map.put(section.name() + "|" + content.form(), content.render()));
         map.put("__generation", String.valueOf(summary.generation()));
         map.put("__coversUpToTurn", String.valueOf(summary.coversUpToTurn()));
+        // T24 增量摘要：消息级水位（逗号连接；截最近 MAX_PERSISTED_IDS 条防膨胀）
+        if (!summary.summarizedMessageIds().isEmpty()) {
+            List<String> ids = summary.summarizedMessageIds();
+            List<String> capped = ids.size() > MAX_PERSISTED_IDS
+                    ? ids.subList(ids.size() - MAX_PERSISTED_IDS, ids.size()) : ids;
+            map.put("__summarizedMessageIds", String.join(",", capped));
+        }
         return map;
     }
 
@@ -39,6 +47,7 @@ public class SummaryStoreBridge {
         EnumMap<SummarySection, SectionContent> sections = new EnumMap<>(SummarySection.class);
         long generation = 0;
         int covers = 0;
+        List<String> summarizedIds = new java.util.ArrayList<>();
         for (Map.Entry<String, String> entry : stored.sections().entrySet()) {
             String key = entry.getKey();
             if (key.equals("__generation")) {
@@ -47,6 +56,14 @@ public class SummaryStoreBridge {
             }
             if (key.equals("__coversUpToTurn")) {
                 covers = Integer.parseInt(entry.getValue());
+                continue;
+            }
+            if (key.equals("__summarizedMessageIds")) {
+                for (String id : entry.getValue().split(",")) {
+                    if (!id.isBlank()) {
+                        summarizedIds.add(id.trim());
+                    }
+                }
                 continue;
             }
             int pipe = key.lastIndexOf('|');
@@ -59,6 +76,9 @@ public class SummaryStoreBridge {
             } catch (IllegalArgumentException ignored) {
             }
         }
-        return new NineSectionSummary(generation, covers, sections);
+        return new NineSectionSummary(generation, covers, sections, summarizedIds);
     }
+
+    /** 持久化的消息 id 水位上限（防无限膨胀；更早的由轮次水位兜底）。 */
+    static final int MAX_PERSISTED_IDS = 400;
 }

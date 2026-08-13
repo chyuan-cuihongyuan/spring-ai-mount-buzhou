@@ -188,6 +188,16 @@ public interface SummaryDegrader {
 > 【推演】九段的具体段落划分与优先级排序蓝本未给（仅点名 User Intent 与 Current State），按 Claude Code compact prompt 九段映射推演定稿（ticket 09）。
 > 【推演】段落降级算法（P3→P0 顺序、降级为 gist+指针而非整段删除）是对蓝本「信息不丢弃，只降级」一句的具体化推演。
 
+### best-of-breed 增量：预算渲染 / 消息级水位 / 事实对账 / 双时序 / 语义触发（wayfinder T23–T27 / docs/spec/11）
+
+在既有九段管线上叠加五项 Tier-1 增强（对标开源最优；既有真原创——evidence-id 指针、P0–P3 分级、动态预算——不重做、只强化）：
+
+1. **预算拆解渲染给模型（T23，来源 Letta memory blocks）**：注入视图渲染摘要时，经 `SegmentBudgetPlanner` 在头部加预算提示、九段每段末尾渲染 `（本段 X/Y 字符）` 页脚——Y 按 P0 40% / P1 30% / P2 20% / P3 10% 拆分动态摘要 token 预算（×4 折算字符）；超限段带「请优先精简本段」告警。模型由此感知预算压力、主动削 P3，而非被动等强制压缩。
+2. **增量摘要·消息级水位（T24，来源 LangMem `RunningSummary`）**：`NineSectionSummary` 增加 `summarizedMessageIds`（持久化键 `__summarizedMessageIds`，截最近 400 条防膨胀）；`toSummarize` 过滤 = 轮次水位（`coversUpToTurn`）∩ 消息 id 水位双保险——再次压缩只折入**新消息**，避免全量重摘要的漂移累积与重复成本；代际连续单调。
+3. **Mem0 式事实对账（T25，来源 Mem0）**：合并后对「旧新皆非空」的段跑对账 pass（`SummaryFactReconciler`）：模型按四态裁决 `ADD`（新增无语义等价）/ `UPDATE`（并入互补）/ `DELETE`（被证伪）/ `NOOP`（不变）并输出对账后段正文（去重、矛盾以新证伪旧）；事件 `memory.fact.reconciled`（section + 四态计数）可观测。**韧性**：解析失败一律 NOOP（正文保持合并结果、不落半成品）。开关 `memory.fact-reconciliation`（默认开）。
+4. **双时序事实有效性（T26，来源 Zep/Graphiti + Mem0g）**：对账应用 UPDATE/DELETE 时，被取代段正文经 `BiTemporalFactLedger` **标失效（valid_until）而非物理删除**、保留 valid_from（会话状态 `bitemp.summary.<SECTION>`，≤32 条/段）；`historyOf` 看演变轨迹、`validAt` 时序回查「某时点以为的事实」——排障有据、旧值不断崖丢失。
+5. **语义边界压缩触发 `compact_now`（T27，来源 LangChain Deep Agents）**：`MemoryModule` 注册 `compact_now` 工具（有摘要模型时默认注册，开关 `memory.compact-now-tool`），模型可在任务边界/长草稿前自触发压缩——把未摘要完成轮折入摘要并回报统计；幂等（复用双水位）；**双触发路径**：质量自触发 + token 阈值兜底（`BudgetCalculator` 0.90 判据不变，不依赖模型自觉）。
+
 ### 悬空修复与重试重放
 
 ```java
