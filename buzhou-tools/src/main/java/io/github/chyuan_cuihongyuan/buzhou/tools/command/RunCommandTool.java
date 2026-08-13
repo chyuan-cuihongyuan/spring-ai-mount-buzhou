@@ -7,6 +7,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -35,8 +36,10 @@ public class RunCommandTool implements ToolCallback {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     /** 输出内存兜底上限（5MB）；上下文治理归 Spill offload，不在此截断语义内（spec 06 推演 #14）。 */
     private static final int MAX_OUTPUT_BYTES = 5 * 1024 * 1024;
-    /** 主进程退出后排空输出管道的等待上限：逾期视为分离子进程悬挂，强杀整棵进程树。 */
-    private static final long OUTPUT_DRAIN_GRACE_MILLIS = 2000;
+    /** 主进程退出后继续排空在途输出字节的宽限；逾期即返回已捕获内容，不阻塞在分离子进程持有的管道上。 */
+    private static final long OUTPUT_DRAIN_GRACE_MILLIS = 500;
+    /** 主进程存活 / 宽限期内复检输出管道的轮询间隔。 */
+    private static final long POLL_MILLIS = 10;
 
     private final FileSandbox sandbox;
     private final CommandBlacklist blacklist;
@@ -98,56 +101,99 @@ public class RunCommandTool implements ToolCallback {
                 .directory(workdir.toFile())
                 .redirectErrorStream(true)
                 .start();
-        // 异步读输出防管道缓冲区满死锁；读线程用虚拟线程，不占公共 ForkJoinPool
-        // （分离子进程可能长持管道，读线程阻塞时长不受控）
+        // 异步排空输出防管道缓冲区满死锁；读线程用虚拟线程，不占公共 ForkJoinPool。
+        // readBounded 自终止（主进程死后宽限即返回），故即便分离子进程（reparent 到 init）
+        // 仍持有管道、永不产生 EOF，主进程已产出的输出也不会丢失、读线程也不会悬挂。
         CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(
-                () -> readBounded(process.getInputStream()),
+                () -> readBounded(process.getInputStream(), process),
                 r -> Thread.ofVirtual().start(r));
         boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
         if (!finished) {
-            // 超时强杀整棵进程树（destroyForcibly 只杀 sh 本身，后台子进程会成孤儿悬挂管道）
+            // 超时：先 best-effort 杀整棵进程树（destroyForcibly 仅杀 sh，直接子进程需 descendants 兜底）
             killProcessTree(process);
             return "run_command 超时（" + timeoutSeconds + "s），进程已终止\n"
-                    + drainOutput(outputFuture, process);
+                    + drainOutput(outputFuture);
         }
-        String output = drainOutput(outputFuture, process);
+        String output = drainOutput(outputFuture);
         int exit = process.exitValue();
         return (exit == 0 ? "" : "exit=" + exit + "\n") + output;
     }
 
-    /** 排空输出管道；逾期（分离子进程悬挂管道）则强杀整棵进程树后再短等一次兜底。 */
-    private static String drainOutput(CompletableFuture<String> outputFuture, Process process)
+    /** 取回 readBounded 已捕获的输出。readBounded 自终止，此处仅设安全上限兜底（防异常时悬挂调用线程）。 */
+    private static String drainOutput(CompletableFuture<String> outputFuture)
             throws InterruptedException {
         try {
-            return outputFuture.get(OUTPUT_DRAIN_GRACE_MILLIS, TimeUnit.MILLISECONDS);
+            // 安全上限：远大于 readBounded 死后宽限（OUTPUT_DRAIN_GRACE_MILLIS）
+            return outputFuture.get(OUTPUT_DRAIN_GRACE_MILLIS * 4, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
-            killProcessTree(process);
-            try {
-                return outputFuture.get(OUTPUT_DRAIN_GRACE_MILLIS, TimeUnit.MILLISECONDS)
-                        + "\n[检测到分离子进程悬挂输出管道，已强杀进程树]";
-            } catch (TimeoutException | ExecutionException e2) {
-                return "[输出管道被悬挂子进程占用，已强杀进程树并放弃读取]";
-            }
+            return "[输出读取超时]";
         } catch (ExecutionException e) {
             return "[读取进程输出失败：" + e.getCause().getMessage() + "]";
         }
     }
 
+    /**
+     * Best-effort 杀整棵进程树。<b>已知局限</b>：分离（后台）子进程在 Linux 上会被 reparent 到 init，
+     * {@code descendants()} 追踪父子关系、reparent 后丢失 → 这类孤儿清不掉、会自然到期退出。纯 Java 无
+     * 可移植的 setpgid/setsid，进程组级清理留作已知边界（见类 javadoc 跨平台约束）；run_command 默认关、
+     * 仅显式 opt-in 才注册，影响面限于显式开启者。
+     */
     private static void killProcessTree(Process process) {
         process.toHandle().descendants().forEach(ProcessHandle::destroyForcibly);
         process.destroyForcibly();
     }
 
-    private static String readBounded(InputStream in) {
+    /**
+     * 排空进程输出，至多 {@link #MAX_OUTPUT_BYTES} 截断。
+     *
+     * <p><b>非阻塞轮询</b>（非 {@code readNBytes} 阻塞至 EOF）：主进程存活期间按 {@code available()}
+     * 排空可得字节、{@link #POLL_MILLIS} 复检；主进程退出后再给 {@link #OUTPUT_DRAIN_GRACE_MILLIS} 宽限
+     * 排空在途字节，随后即返回已捕获内容——<b>不再阻塞等待 EOF</b>。这样即使分离子进程（reparent 到
+     * init）仍持有管道、永不产生 EOF，主进程已产出的输出也不会丢失、读线程也不会悬挂
+     * （修前缺陷：{@code readNBytes} 阻塞至 EOF，分离子进程持有管道时丢失主进程输出）。
+     */
+    private static String readBounded(InputStream in, Process process) {
         try (in) {
-            byte[] buf = in.readNBytes(MAX_OUTPUT_BYTES + 1);
-            if (buf.length > MAX_OUTPUT_BYTES) {
-                return new String(buf, 0, MAX_OUTPUT_BYTES, StandardCharsets.UTF_8)
-                        + "\n[输出超过内存兜底上限 5MB，已截断]";
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            long diedAt = 0L;
+            for (;;) {
+                // 非阻塞排空当前可得字节
+                while (in.available() > 0) {
+                    int n = in.read(buf);
+                    if (n < 0) {
+                        return finish(out); // EOF：所有持有者已关闭管道，完整返回
+                    }
+                    out.write(buf, 0, n);
+                    if (out.size() > MAX_OUTPUT_BYTES) {
+                        return truncate(out);
+                    }
+                }
+                if (!process.isAlive()) {
+                    if (diedAt == 0L) {
+                        diedAt = System.nanoTime();
+                    } else if (System.nanoTime() - diedAt
+                            >= TimeUnit.MILLISECONDS.toNanos(OUTPUT_DRAIN_GRACE_MILLIS)) {
+                        return finish(out); // 主进程已死 + 宽限耗尽：返回已捕获，不阻塞在孤儿持有的管道
+                    }
+                }
+                Thread.sleep(POLL_MILLIS);
             }
-            return new String(buf, StandardCharsets.UTF_8);
         } catch (IOException e) {
             return "[读取进程输出失败：" + e.getMessage() + "]";
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return "[读取进程输出被中断]";
         }
+    }
+
+    private static String finish(ByteArrayOutputStream out) {
+        return out.toString(StandardCharsets.UTF_8);
+    }
+
+    private static String truncate(ByteArrayOutputStream out) {
+        byte[] data = out.toByteArray();
+        return new String(data, 0, Math.min(data.length, MAX_OUTPUT_BYTES), StandardCharsets.UTF_8)
+                + "\n[输出超过内存兜底上限 5MB，已截断]";
     }
 }

@@ -82,11 +82,15 @@ class RunCommandToolTest {
     }
 
     @Test
-    void detachedChildHoldingPipeKilledAndOutputDrained() {
-        // sh 退出后后台子进程仍持有输出管道：不得悬挂读线程，排空宽限后强杀整棵进程树
+    void detachedChildOutputDrainedWithoutHanging() {
+        // sh 退出后后台子进程（sleep 60）仍持有输出管道：主进程产出的 echo 输出仍须被捕获、读线程不得悬挂。
+        // 修前缺陷——readNbytes 阻塞等待 EOF，而 reparent 到 init 的分离子进程永不关管道 → echo 输出丢失、
+        // 读线程悬挂（Linux CI 实测失败）。readBounded 改为 available() 非阻塞排空 + 主进程死后宽限即返回。
+        // 注：分离子进程在 Linux 会被 reparent 到 init，best-effort 杀树（descendants）清不掉、会自然到期
+        //     退出（bounded）；此处验证「主进程输出不丢、读线程不挂」，孤儿清理非本断言范围。
         long start = System.currentTimeMillis();
         String result = tool.call("{\"command\":\"sleep 60 & echo detached-done\"}");
-        assertThat(result).contains("detached-done").contains("强杀进程树");
+        assertThat(result).contains("detached-done");
         assertThat(System.currentTimeMillis() - start).isLessThan(15_000);
     }
 
