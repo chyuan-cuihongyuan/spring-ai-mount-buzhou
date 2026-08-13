@@ -21,3 +21,4 @@ flow2spec.config.json
 # Local-markdown issue tracker drafts & spec scratchpads; tracked convention
 # (see docs/agents/issue-tracker.md) but not part of the public repo.
 .scratch/
+.mimosa/
