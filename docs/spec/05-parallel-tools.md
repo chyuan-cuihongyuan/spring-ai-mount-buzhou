@@ -258,3 +258,11 @@ sequenceDiagram
 - **exactly-once 回放**：DanglingCallRepairer 修复悬空调用时**优先回放事件日志命中 COMPLETED 的结局**（按 sessionId+toolCallId）——写型工具崩溃恢复后绝不重复执行；无命中才走既有幂等重放/合成中断。
 - **不重放 LLM**：恢复点 = 最后 Completed-Turn 之后（内容真相以持久化历史为准；快照 turn 计数为 per-spawn 逻辑值，跨 restart 取 Math.max 保留边界）。
 - 挂接方式：`RecoverySupport.attach(RuntimeConfig, registry, toolCallLog, appId)`（tracker hook + 装配 customizer 绑日志 + 谢幕观察者三件套）。
+
+## time-travel fork 与事务性并行批（wayfinder2 impl-09/10 / T34/T35 / docs/spec/12）
+
+- **`SessionForks`**（memory 模块）：Completed-Turn 即检查点——`listCheckpoints`（turnSeq + 消息数 + 截至该轮消息 id 的 sha256 指纹）；`forkFrom(turnSeq)` 复制截至该 Turn 的 history 到新 sessionId 续跑（Buzhou state=消息列表，无需 LangGraph channel 版本机制），原会话隔离不动。
+- **批提交语义**（`HarnessToolCallingManager.BatchFeedbackPolicy`，LangGraph superstep **修正版**——superstep 实为 pending-writes 半事务、兄弟成功写保留、副作用无回滚）：
+  - `ALL`（默认）：并行批全部结果（成功与失败反馈）同轮回喂——整批 ToolResponse 单条消息注入 = **状态层原子**；
+  - `FAILED_ONLY`：任一失败时成功者结果**暂存事件日志**（executeOne 已 append-only 记录、按 toolCallId 可回查），上下文以占位提示替代——失败信号聚焦、窗口更省。诚实边界：**不宣称副作用回滚**。
+  - 经 `SessionAssemblyContext.toolManager().setBatchFeedbackPolicy(...)` 配置。

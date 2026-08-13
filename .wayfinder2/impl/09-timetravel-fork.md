@@ -4,7 +4,7 @@
 
 **Blocked by:** 07（事件溯源日志——检查点元数据与指纹设施）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：SessionForks——Completed-Turn 检查点枚举（sha256 指纹+消息数单调）+ forkFrom 隔离分叉（新 sessionId 复制≤边界 history、原会话不动、分叉独立演进断言）；SessionForksTest；spec 05 新节）
 
 - [ ] `Session.listCompletedTurns()`：每检查点带历史指纹+元数据（时间、消息数、摘要引用）
 - [ ] `forkFrom(turnId)`：复制截至该 Turn 的 history 到新 sessionId 下续跑新 Turn

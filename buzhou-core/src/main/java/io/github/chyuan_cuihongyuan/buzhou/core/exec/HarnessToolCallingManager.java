@@ -61,6 +61,25 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             new java.util.concurrent.atomic.AtomicReference<>();
     /** impl-07 / T33：事件溯源工具调用日志（可选；RecoverySupport 经装配上下文注入）。 */
     private volatile io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog;
+    /** impl-10 / T35：并行批回喂策略（默认 ALL；FAILED_ONLY 见枚举语义）。 */
+    private volatile BatchFeedbackPolicy batchFeedbackPolicy = BatchFeedbackPolicy.ALL;
+
+    /** impl-10 / T35：批提交回喂策略（LangGraph superstep 修正版语义的显式化）。 */
+    public enum BatchFeedbackPolicy {
+        /** 全部回喂（默认）：成功与失败结果都注入模型。 */
+        ALL,
+        /**
+         * 仅失败回喂：任一失败时，成功者结果<b>暂存事件日志</b>（executeOne 已 append-only 记录、
+         * 可经 ToolCallLog 回查），上下文替换为占位提示——批内失败信号更聚焦、省窗口。
+         * 诚实边界：状态层原子（本批消息同轮注入）；副作用不回滚（不谎称事务回滚）。
+         */
+        FAILED_ONLY
+    }
+
+    /** impl-10 / T35：设置批回喂策略（经 SessionAssemblyContext.toolManager() 注入）。 */
+    public void setBatchFeedbackPolicy(BatchFeedbackPolicy policy) {
+        this.batchFeedbackPolicy = policy == null ? BatchFeedbackPolicy.ALL : policy;
+    }
 
     public HarnessToolCallingManager(DefaultToolCallingManager delegate,
                                      ExecutorService executor,
@@ -217,11 +236,37 @@ public class HarnessToolCallingManager implements ToolCallingManager {
 
         List<Message> conversationHistory = new ArrayList<>(prompt.getInstructions());
         conversationHistory.add(assistantMessage);
-        conversationHistory.add(ToolResponseMessage.builder().responses(responses).build());
+        conversationHistory.add(ToolResponseMessage.builder()
+                .responses(responsesForModel(responses)).build());
         return ToolExecutionResult.builder()
                 .conversationHistory(conversationHistory)
                 .returnDirect(returnDirect)
                 .build();
+    }
+
+    /** impl-10 / T35：按策略整备回喂内容（FAILED_ONLY=同伴失败时成功者以占位提示替代）。 */
+    private List<ToolResponseMessage.ToolResponse> responsesForModel(
+            List<ToolResponseMessage.ToolResponse> responses) {
+        if (batchFeedbackPolicy != BatchFeedbackPolicy.FAILED_ONLY) {
+            return responses;
+        }
+        boolean anyFailure = responses.stream().anyMatch(r -> isErrorFeedback(r.responseData()));
+        if (!anyFailure) {
+            return responses;
+        }
+        return responses.stream().map(r -> {
+            if (isErrorFeedback(r.responseData())) {
+                return r;
+            }
+            return new ToolResponseMessage.ToolResponse(r.id(), r.name(),
+                    "[本批有同伴失败：此工具已成功执行，结果已入事件日志（toolCallId="
+                            + r.id() + "）可回查；本轮仅回喂失败信号]");
+        }).toList();
+    }
+
+    private static boolean isErrorFeedback(String content) {
+        return content != null && (content.startsWith("[工具执行失败]")
+                || content.startsWith("[工具参数校验失败]"));
     }
 
     public void cancelInFlight() {

@@ -12,8 +12,8 @@
 | [06](06-run-registry.md) | 持久 Run 注册表 + 枚举续跑（lease 门） | core | — | done |
 | [07](07-event-sourced-tool-log.md) | 事件溯源工具调用日志 + 幂等键 | core | 06 | done |
 | [08](08-interrupt-resume.md) | HITL interrupt/resume 按 toolCallId | core | 07 | ready-for-agent |
-| [09](09-timetravel-fork.md) | time-travel fork（Completed-Turn 检查点） | core | 07 | ready-for-agent |
-| [10](10-transactional-batch.md) | 事务性并行批——批提交语义 | core | 07 | ready-for-agent |
+| [09](09-timetravel-fork.md) | time-travel fork（Completed-Turn 检查点） | core | 07 | done |
+| [10](10-transactional-batch.md) | 事务性并行批——批提交语义 | core | 07 | done |
 | [11](11-sleeptime-consolidation.md) | sleep-time 后台整理 | memory | — | done |
 | [12](12-memory-tools-antipoisoning.md) | memory-as-tools 自愈记忆 + 防投毒 | memory | — | done |
 | [13](13-compaction-checkpoint.md) | 压缩前检查点与三档回滚 | memory | — | done |

@@ -4,7 +4,7 @@
 
 **Blocked by:** 07（事件溯源日志——成功者结果暂存落 ToolCallLog 批记录）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：BatchFeedbackPolicy{ALL,FAILED_ONLY}——失败时成功者暂存事件日志+占位提示回喂、整批同轮注入=状态层原子、诚实不宣称副作用回滚；经 toolManager() 注入；TransactionalBatchEndToEndTest 2 例；spec 05 新节）
 
 - [ ] 并行批全部成功才把整批 ToolResponse 追加 history 并落 Completed-Turn
 - [ ] 任一失败：失败者走 `ToolErrorFeedback`、成功者结果暂存批记录（ToolCallLog）
