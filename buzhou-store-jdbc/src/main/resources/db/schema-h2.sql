@@ -76,3 +76,25 @@ CREATE TABLE IF NOT EXISTS buzhou_injection_snapshot (
     created_at        TIMESTAMP    NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_snapshot_session_turn ON buzhou_injection_snapshot (session_id, turn_seq);
+
+CREATE TABLE IF NOT EXISTS buzhou_run_registry (
+    session_id           VARCHAR(128) PRIMARY KEY,
+    app_id               VARCHAR(128) NOT NULL,
+    agent_name           VARCHAR(128) NOT NULL,
+    status               VARCHAR(16)  NOT NULL,
+    current_turn         INT          NOT NULL,
+    last_completed_turn  INT          NOT NULL,
+    owner_id             VARCHAR(128),
+    updated_at           TIMESTAMP    NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS buzhou_tool_call_log (
+    session_id   VARCHAR(128) NOT NULL,
+    tool_call_id VARCHAR(64)  NOT NULL,
+    tool_name    VARCHAR(128) NOT NULL,
+    args_hash    VARCHAR(128) NOT NULL,
+    outcome      VARCHAR(24)  NOT NULL,
+    result       CLOB,
+    occurred_at  TIMESTAMP    NOT NULL,
+    PRIMARY KEY (session_id, tool_call_id)
+);

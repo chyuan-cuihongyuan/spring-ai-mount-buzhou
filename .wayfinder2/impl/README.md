@@ -9,8 +9,8 @@
 | [03](03-head-tail-window.md) | head+tail 窗口回读风味 + 显式中段标记 | spill | — | done |
 | [04](04-args-validation-retry.md) | 参数 schema 校验 + per-turn 重试预算 | core | — | done |
 | [05](05-cancel-mode.md) | CancelMode 三档 + token 贯穿 | core | — | done |
-| [06](06-run-registry.md) | 持久 Run 注册表 + 枚举续跑（lease 门） | core | — | ready-for-agent |
-| [07](07-event-sourced-tool-log.md) | 事件溯源工具调用日志 + 幂等键 | core | 06 | ready-for-agent |
+| [06](06-run-registry.md) | 持久 Run 注册表 + 枚举续跑（lease 门） | core | — | done |
+| [07](07-event-sourced-tool-log.md) | 事件溯源工具调用日志 + 幂等键 | core | 06 | done |
 | [08](08-interrupt-resume.md) | HITL interrupt/resume 按 toolCallId | core | 07 | ready-for-agent |
 | [09](09-timetravel-fork.md) | time-travel fork（Completed-Turn 检查点） | core | 07 | ready-for-agent |
 | [10](10-transactional-batch.md) | 事务性并行批——批提交语义 | core | 07 | ready-for-agent |

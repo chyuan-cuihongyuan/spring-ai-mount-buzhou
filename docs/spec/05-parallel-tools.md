@@ -249,3 +249,12 @@ sequenceDiagram
 - **取消令牌贯穿工具执行链**：`CancellationToken` 随 ToolContext 下发（`buzhou.cancelToken`），长任务协作式轮询 `isCancelled()` 提前中止（无需依赖线程中断）。
 - 取消标记每 Turn 开始清零（空闲期取消不影响下一 Turn）；事件 `session.cancelled`（含档位）+ `turn.loop.cancelled`（护栏截断时）。
 - 来源：AutoGen（CancellationToken/ExternalTermination 两档）+ OpenAI Agents SDK（cancel 清理语义）——Buzhou 两档 + 中间档共三档。
+
+## proactive 恢复：Run 注册表 + 事件溯源工具日志（wayfinder2 impl-06/07 / T32+T33 / docs/spec/12）
+
+- **Run 注册表**（`core.recovery.RunRegistry`，InMemory + JDBC 双实现）：以会话为 run、**Completed-Turn 为快照单元**；`RunStateTrackerHook` 在 turn 开始/完结持久化快照（currentTurn/lastCompletedTurn），会话谢幕置 COMPLETED；`RunRecoveryService.runningRuns()` 枚举在途 run（含疑似崩溃者）。来源 Mastra listWorkflowRuns——规避其 restart 重跑已完结步骤缺陷（续跑点恒为 lastCompletedTurn 之后）。
+- **lease 门**：restart 经 spawn（默认不 steal）——租约他方持有时抛 SessionAlreadyActiveException（拿不到即拒绝），补上 Mastra 未明的并发防护。
+- **事件溯源工具调用日志**（`core.recovery.ToolCallLog`，append-only；InMemory + JDBC）：manager 对每次工具结局（COMPLETED/FAILED/TIMEOUT/CANCELLED/VALIDATION_REJECTED）append-only 记录（argsHash 指纹 + 结果封顶 64K）；**同键 COMPLETED 只记录一次**（Temporal Activity 结果语义）。**不引入 workflow engine**。
+- **exactly-once 回放**：DanglingCallRepairer 修复悬空调用时**优先回放事件日志命中 COMPLETED 的结局**（按 sessionId+toolCallId）——写型工具崩溃恢复后绝不重复执行；无命中才走既有幂等重放/合成中断。
+- **不重放 LLM**：恢复点 = 最后 Completed-Turn 之后（内容真相以持久化历史为准；快照 turn 计数为 per-spawn 逻辑值，跨 restart 取 Math.max 保留边界）。
+- 挂接方式：`RecoverySupport.attach(RuntimeConfig, registry, toolCallLog, appId)`（tracker hook + 装配 customizer 绑日志 + 谢幕观察者三件套）。

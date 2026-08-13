@@ -69,8 +69,12 @@ public class HarnessAssembler {
         HookChain chain = new HookChain(hooks, disabledHookNames);
 
         SpanContextCarrier spanContextCarrier = new SpanContextCarrier();
+        // impl-06/07：manager 先于 customizer 构造——恢复/审计类机制模块经装配上下文挂接事件日志
+        HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
+                org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
+                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier, sessionId);
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
-                appId, agentName, sessionId, stores, registry, spanContextCarrier);
+                appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager);
         assemblyCtx.wrapToolCallbacks(t -> (ToolCallback) new HookedToolCallback(t, chain, env));
         // 机制模块（buzhou-observability）经 customizer 注入 advisor + 工具包装 + observer
         if (assemblyCustomizers != null) {
@@ -87,13 +91,11 @@ public class HarnessAssembler {
         List<ToolCallback> wrapped = applyWrappers(allToolCallbacks, assemblyCtx.toolWrappers());
         ToolCallback[] allTools = wrapped.toArray(new ToolCallback[0]);
 
-        HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
-                org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
-                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier, sessionId);
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
         memory.setViewProcessor(viewProcessor);
+        // impl-07：悬空修复优先回放事件日志中已落盘的 COMPLETED 结局（exactly-once，不重跑工具）
         memory.setRepairer(new DanglingCallRepairer(
-                toolsByName(allTools), idempotentToolNames,
+                toolsByName(allTools), idempotentToolNames, toolManager.toolCallLog(),
                 (sid, event) -> env.emit(new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent(
                         "dangling.repaired",
                         Map.of("messageId", event.messageId(),

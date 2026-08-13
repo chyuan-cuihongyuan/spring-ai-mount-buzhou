@@ -4,7 +4,7 @@
 
 **Blocked by:** 06（Run 注册表——日志是快照的前置证据层、同存储介质）
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：ToolCallLog SPI + InMemory/JDBC 双实现（COMPLETED 只记录一次）+ manager 结局记录（五态 outcome + argsHash + 64K 封顶）+ DanglingCallRepairer 优先日志回放（exactly-once、写型工具零重跑断言）；schema 三方言增 buzhou_tool_call_log 表；崩溃恢复端到端含「不重放 LLM」路径——恢复点=Completed-Turn 后）
 
 - [ ] 追加式 `ToolCallLog`（turnId、toolCallId、请求指纹 argsHash、outcome）与 RunRegistry 同介质（InMemory+JDBC）
 - [ ] restart/续跑时已落盘 outcome 的 toolCall 按 id 短路不重跑（可观测：跳过计数）

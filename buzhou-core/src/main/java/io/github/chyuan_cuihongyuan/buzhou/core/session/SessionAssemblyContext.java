@@ -58,4 +58,12 @@ public interface SessionAssemblyContext {
 
     /** 注册会话生命周期观察者（开/关 SESSION span、强制 flush 等）。 */
     void addObserver(SessionObserver observer);
+
+    /**
+     * 本会话的 Harness 工具调用管理器（wayfinder2 impl-06/07：恢复/审计类机制模块
+     * 经此挂接事件日志等；core 装配恒非空，其他实现默认 null 保持兼容）。
+     */
+    default io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager() {
+        return null;
+    }
 }

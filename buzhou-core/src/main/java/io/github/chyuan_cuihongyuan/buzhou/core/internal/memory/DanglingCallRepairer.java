@@ -24,12 +24,22 @@ public class DanglingCallRepairer {
     private final Map<String, ToolCallback> toolsByName;
     private final Set<String> idempotentToolNames;
     private final BiConsumer<String, RepairEvent> repairListener;
+    /** impl-07 / T33：事件溯源日志——悬空调用优先回放已落盘 COMPLETED 结局（exactly-once）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog;
 
     public DanglingCallRepairer(Map<String, ToolCallback> toolsByName,
                                 Set<String> idempotentToolNames,
                                 BiConsumer<String, RepairEvent> repairListener) {
+        this(toolsByName, idempotentToolNames, null, repairListener);
+    }
+
+    public DanglingCallRepairer(Map<String, ToolCallback> toolsByName,
+                                Set<String> idempotentToolNames,
+                                io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog,
+                                BiConsumer<String, RepairEvent> repairListener) {
         this.toolsByName = toolsByName;
         this.idempotentToolNames = idempotentToolNames;
+        this.toolCallLog = toolCallLog;
         this.repairListener = repairListener;
     }
 
@@ -56,7 +66,12 @@ public class DanglingCallRepairer {
             List<BuzhouMessage> synthesized = new ArrayList<>();
             List<String> stillDangling = new ArrayList<>();
             for (ToolCallRecord call : missing) {
-                BuzhouMessage replayed = tryReplay(sessionId, message, call);
+                BuzhouMessage replayed = tryReplayFromLog(sessionId, message, call);
+                if (replayed != null) {
+                    synthesized.add(replayed);
+                    continue;
+                }
+                replayed = tryReplay(sessionId, message, call);
                 if (replayed != null) {
                     synthesized.add(replayed);
                 } else {
@@ -86,6 +101,28 @@ public class DanglingCallRepairer {
 
     private boolean isInterrupted(BuzhouMessage message) {
         return INTERRUPTED_RESULT.equals(message.content());
+    }
+
+    /**
+     * impl-07 / T33：事件日志回放——已落盘 COMPLETED 结局的调用<b>按 id 短路不重跑</b>，
+     * 直接重建其结果（exactly-once：写型工具崩溃恢复后不重复执行）。
+     */
+    private BuzhouMessage tryReplayFromLog(String sessionId, BuzhouMessage parent,
+                                           ToolCallRecord call) {
+        if (toolCallLog == null) {
+            return null;
+        }
+        return toolCallLog.find(sessionId, call.id())
+                .filter(entry -> entry.outcome() == io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.COMPLETED)
+                .map(entry -> {
+                    notifyRepair(sessionId, new RepairEvent(parent.id(), List.of(call.name()),
+                            "replayed-from-log"));
+                    return new BuzhouMessage(UUID.randomUUID().toString(), sessionId,
+                            parent.turnSeq(), parent.seqInTurn() + 1, Role.TOOL,
+                            entry.result(), List.of(), call.id(), null, null,
+                            Map.of("toolName", call.name(), "replayedFromLog", true), Instant.now());
+                })
+                .orElse(null);
     }
 
     private BuzhouMessage tryReplay(String sessionId, BuzhouMessage parent, ToolCallRecord call) {

@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：RunRegistry SPI + InMemory/JDBC 双实现 + RunStateTrackerHook + RunRecoveryService（lease 门）+ RecoverySupport.attach 三件套；schema 三方言增 buzhou_run_registry 表；RunRecoveryEndToEndTest 3 例 + JdbcRecoveryStoresTest；spec 05 增恢复章节）
 
 - [ ] `RunRegistry`：listRuns（按 status 过滤+分页）/ getRun / persistRunState，快照单元=Completed-Turn
 - [ ] `RunHandle.restart()`=从最后 Completed-Turn 之后续跑（不重跑已完结 Turn）

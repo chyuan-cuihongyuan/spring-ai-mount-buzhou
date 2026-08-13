@@ -23,16 +23,30 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
     private final List<UnaryOperator<ToolCallback>> toolWrappers = new ArrayList<>();
     private final List<ToolCallback> extraTools = new ArrayList<>();
     private final List<SessionObserver> observers = new ArrayList<>();
+    private final io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager;
 
     public DefaultSessionAssemblyContext(String appId, String agentName, String sessionId,
                                          BuzhouStores stores, SessionResourceRegistry registry,
                                          SpanContextCarrier spanContextCarrier) {
+        this(appId, agentName, sessionId, stores, registry, spanContextCarrier, null);
+    }
+
+    public DefaultSessionAssemblyContext(String appId, String agentName, String sessionId,
+                                         BuzhouStores stores, SessionResourceRegistry registry,
+                                         SpanContextCarrier spanContextCarrier,
+                                         io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
         this.stores = stores;
         this.registry = registry;
         this.spanContextCarrier = spanContextCarrier;
+        this.toolManager = toolManager;
+    }
+
+    @Override
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager() {
+        return toolManager;
     }
 
     @Override

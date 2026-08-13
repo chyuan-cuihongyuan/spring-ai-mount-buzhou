@@ -59,6 +59,8 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private final java.util.concurrent.atomic.AtomicReference<
             io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode> pendingCancel =
             new java.util.concurrent.atomic.AtomicReference<>();
+    /** impl-07 / T33：事件溯源工具调用日志（可选；RecoverySupport 经装配上下文注入）。 */
+    private volatile io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog;
 
     public HarnessToolCallingManager(DefaultToolCallingManager delegate,
                                      ExecutorService executor,
@@ -130,6 +132,31 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** Turn 开始清零取消标记（BoundedToolCallingAdvisor 调用）。 */
     public void clearPendingCancel() {
         pendingCancel.set(null);
+    }
+
+    /** impl-07 / T33：事件溯源工具调用日志（append-only 记录每次工具结局；null = 不记录）。 */
+    public void setToolCallLog(io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog) {
+        this.toolCallLog = toolCallLog;
+    }
+
+    public io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog() {
+        return toolCallLog;
+    }
+
+    /** 结局入日志（append-only；COMPLETED 只记录一次——Temporal Activity 结果语义）。 */
+    private void recordOutcome(
+            AssistantMessage.ToolCall toolCall,
+            io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome outcome,
+            String result) {
+        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog log = this.toolCallLog;
+        if (log == null || sessionId == null) {
+            return;
+        }
+        log.append(new io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLogEntry(
+                sessionId, toolCall.id(), toolCall.name(),
+                io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLogEntry.argsHash(
+                        toolCall.arguments()),
+                outcome, result, null));
     }
 
     @Override
@@ -218,9 +245,12 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                     callback.getToolDefinition().inputSchema(), toolCall.arguments());
             if (violation.isPresent()) {
                 validationFailures.incrementAndGet();
-                return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
-                        ToolValidationFeedback.format(toolCall.name(), toolCall.arguments(),
-                                violation.get()));
+                String feedback = ToolValidationFeedback.format(toolCall.name(),
+                        toolCall.arguments(), violation.get());
+                recordOutcome(toolCall,
+                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.VALIDATION_REJECTED,
+                        feedback);
+                return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), feedback);
             }
         }
         Object lock = groupLock(toolCall.name());
@@ -230,23 +260,33 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 turnPermits.acquire();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
-                        ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行被中断"));
+                String interrupted = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行被中断");
+                recordOutcome(toolCall,
+                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.CANCELLED, interrupted);
+                return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), interrupted);
             }
             Future<String> task = executor.submit(() -> callback.call(toolCall.arguments(), toolContext));
             inFlight.add(task);
             try {
                 result = task.get(toolTimeout.toMillis(), TimeUnit.MILLISECONDS);
+                recordOutcome(toolCall,
+                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.COMPLETED, result);
             } catch (java.util.concurrent.CancellationException e) {
                 result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行已取消");
+                recordOutcome(toolCall,
+                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.CANCELLED, result);
             } catch (TimeoutException e) {
                 task.cancel(true);
                 result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
                         "执行超时（" + toolTimeout.toSeconds() + "s）");
+                recordOutcome(toolCall,
+                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.TIMEOUT, result);
             } catch (Exception e) {
                 Throwable cause = e.getCause() == null ? e : e.getCause();
                 result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
                         "执行失败：" + cause);
+                recordOutcome(toolCall,
+                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.FAILED, result);
             } finally {
                 inFlight.remove(task);
                 turnPermits.release();
