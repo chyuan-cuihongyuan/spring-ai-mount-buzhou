@@ -170,6 +170,23 @@ public class SpillOffloadHook implements BuzhouHook {
 - 与 Codex（头尾各半掐中间、无标记销毁）的本质差异：原始字节在 spill 存储完整保留，按标记区间 `mode=bytes` 回读即无损取回（测试 `RangeReadWindowTest.omittedRangeRefetchesLosslessly` 闭环验证）。
 - 头尾窗口覆盖整个内容时原样返回、不加标记（小内容零噪声）。
 
+### context-clearing 与句柄生命周期（wayfinder2 impl-16 / T44 / docs/spec/12）
+
+Anthropic 判定「清除已消费 tool_result 是最安全最轻的压缩」的 harness 自持版（跨 provider、对所有模型生效——区别于 Claude API server 侧仅 Anthropic）：
+
+- **显式逐出**：内置工具 `evict_handle(spill://…)`——模型主动逐出已消费句柄；**TTL 自动逐出**：句柄引用计数（`ReadRangeTool` 成功回读置位、视图处理器按轮吸收刷新），连续 N 轮（默认 3）未引用自动过期。回读即复活。
+- 已逐出句柄的占位符在下一视图收缩为**极简墓碑**（`[句柄已逐出：…；原文可随时回读]`）；原文仍在 SpillStore 随时可回读——逐出是**视图优化、非数据删除**。
+- **cache 意识**：整窗一次性批量处理（视图级幂等重建），避免每 Turn 增量改写触发 provider cache 断点失效。
+- 与 hot-tail 分工：hot-tail 管「新结果何时溢出」；clearing 管「旧句柄何时收缩」。
+
+### 内容寻址 chunk hash 回读校验（wayfinder2 impl-17 / T45）
+
+git 惯例（对象名即内容 hash、读回重算必校验）的 spill 落地：
+
+- **落盘即记录** whole-content sha256（meta 文件 `contentSha256` 字段；旧条目无字段按通过、向后兼容）。
+- **读回复验**：`DiskSpillStore.verifyIntegrity` 重算比对；不一致 → 读回内容前缀**完整性告警**（读侧 lenient=warning 透传，数据仍可用但明示可能损坏/TOCTOU）；写侧 strict 阻断走 Onload 既有非对称。
+- **envelope**：`ReadIntegrity.envelope` 附 `{data, byteRange, chunkSha256, wholeSha256}`（chunk = 返回切片），调用方可自行复验（测试闭环：篡改即失配）。
+
 ### hot-tail / cold-storage 两级保留（wayfinder T21 / docs/spec/11）
 
 `HotTailViewProcessor`（`MemoryViewProcessor` 视图级实现，来源 Claude Code microcompaction）：

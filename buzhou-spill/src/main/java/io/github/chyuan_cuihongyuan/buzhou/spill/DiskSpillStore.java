@@ -42,6 +42,28 @@ public class DiskSpillStore implements SpillStore {
         }
     }
 
+    /**
+     * impl-17 / T45：完整性复验——当前数据文件 sha256 与落盘时 meta 记录的摘要比对
+     * （git 惯例：读回重算必校验；腐化/TOCTOU 可检测）。meta 缺失或无摘要字段 = 无法复验，
+     * 返回 true（向后兼容旧条目）。
+     */
+    public boolean verifyIntegrity(SpillUri uri) {
+        try {
+            Path meta = metaPath(uri);
+            if (!Files.exists(meta)) {
+                return true;
+            }
+            var node = MAPPER.readTree(Files.readString(meta));
+            String recorded = node.path("contentSha256").asText(null);
+            if (recorded == null || recorded.isBlank()) {
+                return true;
+            }
+            return ReadIntegrity.sha256(load(uri).orElse("")).equals(recorded);
+        } catch (Exception e) {
+            return true; // 复验通道自身故障不影响读路径（读侧 lenient）
+        }
+    }
+
     @Override
     public Optional<String> load(SpillUri uri) {
         try {
@@ -54,6 +76,15 @@ public class DiskSpillStore implements SpillStore {
 
     @Override
     public RangeReadResult readRange(SpillUri uri, RangeReadRequest request) {
+        // impl-17 / T45：读回复验——不一致时内容前缀完整性告警（读侧 lenient=warning 透传）
+        if (!verifyIntegrity(uri)) {
+            return load(uri)
+                    .map(content -> new RangeReadResult(
+                            ReadIntegrity.CORRUPTION_WARNING + "\n"
+                                    + RangeReadEngine.read(content, request).content(),
+                            content.length(), false, null))
+                    .orElse(new RangeReadResult("spill 不存在或已被清理：" + uri, 0, false, null));
+        }
         return load(uri)
                 .map(content -> RangeReadEngine.read(content, request))
                 .orElse(new RangeReadResult("spill 不存在或已被清理：" + uri, 0, false, null));
@@ -160,6 +191,8 @@ public class DiskSpillStore implements SpillStore {
         meta.put("contentType", entry.contentType());
         meta.put("createdAt", entry.createdAt().toString());
         meta.put("linked", linked);
+        // impl-17 / T45：落盘即记录 whole-content sha256（读回复验锚点）
+        meta.put("contentSha256", ReadIntegrity.sha256(entry.content()));
         return meta.toString();
     }
 

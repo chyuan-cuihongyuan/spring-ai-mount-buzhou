@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：HandleLifecycleRegistry（显式逐出+TTL 引用计数+回读复活）+ EvictHandleTool + HotTailViewProcessor 墓碑收缩（整窗批量、cache 意识）+ ReadRangeTool 回读置位/视图吸收；HandleLifecycleTest 3 例；spill 90/90 绿；spec 02 新节）
 
 - [ ] ConversationPostProcessor：超阈值时把旧 tool_result 替换为 Handle 占位（"cleared; refetch via ReadRangeTool(evidence-id)"）保最近 N 个完整
 - [ ] 跨 provider 由 harness 自持（不依赖厂商 server 侧 context editing）

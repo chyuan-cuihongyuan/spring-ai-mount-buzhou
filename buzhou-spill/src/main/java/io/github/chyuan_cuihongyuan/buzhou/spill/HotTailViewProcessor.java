@@ -38,6 +38,14 @@ public class HotTailViewProcessor implements MemoryViewProcessor {
     private final SessionReadOnlyRegistry readOnlyRegistry;
     private final Map<String, Object> toolPolicies;
     private final int defaultThresholdChars;
+    /** impl-16 / T44：句柄生命周期（显式逐出 + TTL 自动）；null = 不启用 context-clearing。 */
+    private HandleLifecycleRegistry handleLifecycle;
+    private int handleTtlTurns = 3;
+
+    public void setHandleLifecycle(HandleLifecycleRegistry handleLifecycle, int ttlTurns) {
+        this.handleLifecycle = handleLifecycle;
+        this.handleTtlTurns = Math.max(1, ttlTurns);
+    }
 
     public HotTailViewProcessor(SpillService spillService,
                                 int keepInlineToolResults,
@@ -81,7 +89,38 @@ public class HotTailViewProcessor implements MemoryViewProcessor {
         if (maxInlineChars > 0) {
             spillBeyondBudget(sessionId, result, toolIndexes);
         }
+        // impl-16 / T44：context-clearing——已消费句柄（显式逐出 / TTL 过期）收缩为极简墓碑；
+        // 整窗一次性批量处理（视图级幂等重建，避免每 Turn 增量改写触发 cache 断点失效）
+        if (handleLifecycle != null) {
+            handleLifecycle.absorbReads(currentTurn);
+            tombstoneEvictedHandles(result, currentTurn);
+        }
         return result;
+    }
+
+    /** 已逐出句柄的占位符 → 极简墓碑（比自描述占位符更省；原文在 SpillStore 随时可回读）。 */
+    private void tombstoneEvictedHandles(List<BuzhouMessage> result, int currentTurn) {
+        for (int i = 0; i < result.size(); i++) {
+            BuzhouMessage message = result.get(i);
+            if (message.role() != Role.TOOL || message.content() == null) {
+                continue;
+            }
+            String content = message.content();
+            int uriAt = content.indexOf("spill://");
+            if (uriAt < 0) {
+                continue;
+            }
+            // 提取首个 spill:// URI（占位符形状固定；逐出判定按 URI）
+            int end = uriAt;
+            while (end < content.length() && !Character.isWhitespace(content.charAt(end))
+                    && content.charAt(end) != ']' && content.charAt(end) != '）') {
+                end++;
+            }
+            String uri = content.substring(uriAt, end);
+            if (handleLifecycle.isEvicted(uri, currentTurn, handleTtlTurns)) {
+                result.set(i, withContent(message, "[句柄已逐出：" + uri + "；原文可随时回读]"));
+            }
+        }
     }
 
     private void spillBeyondBudget(String sessionId, List<BuzhouMessage> result, List<Integer> toolIndexes) {
@@ -128,10 +167,22 @@ public class HotTailViewProcessor implements MemoryViewProcessor {
                 VIEW_AGENT, sessionId, callId, toolName, effective, threshold);
         if (outcome.offloaded()) {
             registerReadOnly(sessionId, outcome.uri());
+            // impl-16 / T44：句柄登记（TTL 从溢出轮起算；回读刷新引用）
+            if (handleLifecycle != null) {
+                handleLifecycle.track(outcome.uri().toString(), currentTurnOf(result));
+            }
             result.set(idx, withContent(message, outcome.text()));
             return true;
         }
         return false; // degraded → 降级透传（onFail=FILTER）
+    }
+
+    /** 从视图推断当前轮次（取末条消息 turnSeq；回退 0）。 */
+    private static int currentTurnOf(List<BuzhouMessage> view) {
+        for (int i = view.size() - 1; i >= 0; i--) {
+            return view.get(i).turnSeq();
+        }
+        return 0;
     }
 
     private void registerReadOnly(String sessionId, SpillUri uri) {

@@ -19,8 +19,8 @@
 | [13](13-compaction-checkpoint.md) | 压缩前检查点与三档回滚 | memory | — | done |
 | [14](14-fidelity-eval.md) | 压缩保真度 eval | memory | 01 | ready-for-agent |
 | [15](15-vector-recall-search.md) | 向量 recall 四模搜（pgvector 单库） | memory | — | ready-for-agent |
-| [16](16-context-clearing.md) | context-clearing + 显式逐出 | spill | — | ready-for-agent |
-| [17](17-chunk-hash-verify.md) | 内容寻址 chunk hash 回读校验 | spill | — | ready-for-agent |
+| [16](16-context-clearing.md) | context-clearing + 显式逐出 | spill | — | done |
+| [17](17-chunk-hash-verify.md) | 内容寻址 chunk hash 回读校验 | spill | — | done |
 | [18](18-semantic-readback.md) | 语义回读第 4 模式（locate→fetch） | spill | 15 | ready-for-agent |
 | [19](19-ast-aware-slicing.md) | AST-aware 切片（JavaParser + 回退） | spill | — | ready-for-agent |
 | [20](20-promptfoo-redteam.md) | CI 自动红队门（promptfoo nightly） | guard | — | done |

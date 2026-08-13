@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：ReadIntegrity（sha256+envelope+复验谓词）+ DiskSpillStore 落盘记录 contentSha256 + 读回复验（不一致前缀完整性告警、lenient 透传；旧条目向后兼容）+ 篡改检测测试；ReadIntegrityTest 3 例含 envelope 闭环）
 
 - [ ] spill 落盘时记录 whole-content hash + 每切片 sha256（可选 Merkle root）
 - [ ] 回读响应 envelope 附 `{data, byteRange, chunkSha256, handleRoot}`

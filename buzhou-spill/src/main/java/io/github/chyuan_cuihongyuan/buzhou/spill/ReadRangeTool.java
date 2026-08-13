@@ -26,6 +26,8 @@ public class ReadRangeTool implements ToolCallback {
 
     private final SpillService spillService;
     private final SkillResourceResolver skillResourceResolver;
+    /** impl-16 / T44：句柄引用计数（成功回读刷新 TTL；null = 不启用）。 */
+    private HandleLifecycleRegistry handleLifecycle;
 
     public ReadRangeTool(SpillService spillService) {
         this(spillService, null);
@@ -34,6 +36,11 @@ public class ReadRangeTool implements ToolCallback {
     public ReadRangeTool(SpillService spillService, SkillResourceResolver skillResourceResolver) {
         this.spillService = spillService;
         this.skillResourceResolver = skillResourceResolver;
+    }
+
+    /** impl-16 / T44：注入句柄生命周期注册表（成功回读即刷新引用、句柄免于 TTL 逐出）。 */
+    public void setHandleLifecycle(HandleLifecycleRegistry handleLifecycle) {
+        this.handleLifecycle = handleLifecycle;
     }
 
     @Override
@@ -85,6 +92,10 @@ public class ReadRangeTool implements ToolCallback {
                         args.hasNonNull("limit") ? args.path("limit").asInt() : 20000));
             };
             RangeReadResult result = spillService.readBack(path, request);
+            // impl-16 / T44：成功回读置位标记（视图处理器吸收为引用、TTL 重启、句柄复活）
+            if (handleLifecycle != null) {
+                handleLifecycle.markRead(path);
+            }
             return result.truncated()
                     ? result.content() + "\n[已截断，可用 offset/cursor 续读]"
                     : result.content();
