@@ -287,6 +287,11 @@ public interface SessionEventContext extends HookContext {
 - `PolicyGateHook`（order 275，taint 写门后、HITL 门前）：allow 放行 / deny 物理阻断 / escalate 转人工确认；`policy.decided` 事件（含 action 与 reason，可观测可审计）。
 - 既有危险工具门配置是本子集的自然特例（迁移按需）；**OPA sidecar adapter** 为 Rego 全表达力部署方预留接口。
 
+### 分层分类器（wayfinder2 impl-24 / T53）与命令沙箱三档（impl-25 / T51）
+
+- **`InjectionClassifier`** + `OnnxPromptGuard` 编排层：阈值判定与**探测式降级**（classpath 无 onnxruntime / 模型缺失 / 后端异常 → 明确 not-detected + degraded 标签，不误报不静默拦）；**推理后端由部署侧注入**（onnxruntime Java 21,369★ 为 optional 承载依赖；HF gated 模型用户自备——分发细节 fog）。8B 后置审核（外部推理端点）接口预留。默认关（确定性层已备，概率层是纵深）。
+- **`CommandSandbox` SPI** 三档（run_command 爆炸半径伸缩）：**DenoSandbox 必做档**（deny-by-default + `--allow-read/net/env/run` 精细授权 + secret 白名单透传 + `--no-prompt`；**零内层 shell**——命令以独立 argv 传入固定 `deno eval` 启动脚本经 `Deno.Command` 执行，全链路无命令字符串拼接）；**FirecrackerSandbox**（Linux+KVM 重载档）与 **E2BSandbox**（E2B_API_KEY 托管档）接口预留（实现按部署需求）。进程执行经 `SandboxProcessLauncher` 部署侧注入（guard 模块不含进程原语）；探测式可用 + 明确指引（不静默回退裸执行）；既有 FileSandbox/黑名单 = 无依赖内联档。
+
 ### 失败语义非对称（专节）
 
 读侧与写侧的失败代价方向相反，框架把差异编码进默认语义：

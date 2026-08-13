@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done（2026-08-14：InjectionClassifier 接口 + OnnxPromptGuard 编排层（阈值/探测式降级 degraded:unavailable|error 标签、推理后端部署侧注入——onnxruntime optional 承载、模型自备）；8B 外部端点接口预留；InjectionClassifierTest 3 例）
 
 - [ ] `InjectionClassifier` 接口（输入文本→注入/越狱判定+分数）
 - [ ] `OnnxPromptGuard` 默认实现：onnxruntime Java **optional 依赖** + 模型文件探测式加载（HF gated：**用户自备下载**、路径/校验和/版本钉住文档化）
