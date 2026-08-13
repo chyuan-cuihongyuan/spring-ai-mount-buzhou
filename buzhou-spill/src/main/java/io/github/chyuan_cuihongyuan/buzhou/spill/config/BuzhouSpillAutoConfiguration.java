@@ -40,13 +40,15 @@ public class BuzhouSpillAutoConfiguration {
 
     @Bean
     public RuntimeConfig spillGuardRuntimeConfig(SpillModule module, SpillProperties props) {
-        return SpillGuardModule.fromModule(module, Path.of(props.sandboxRoot()))
+        SpillGuardModule.Builder builder = SpillGuardModule.fromModule(module, Path.of(props.sandboxRoot()))
                 .thresholdChars(props.thresholdChars())
                 .onloadEnabled(props.onloadEnabled())
                 .copyOnWriteEnabled(props.copyOnWriteEnabled())
                 .offloadEnabled(props.offloadEnabled())
-                .editingToolsEnabled(props.editingToolsEnabled())
-                .build()
-                .configure();
+                .editingToolsEnabled(props.editingToolsEnabled());
+        if (props.thresholdTokens() != null) {
+            builder.thresholdTokens(props.thresholdTokens());
+        }
+        return builder.build().configure();
     }
 }

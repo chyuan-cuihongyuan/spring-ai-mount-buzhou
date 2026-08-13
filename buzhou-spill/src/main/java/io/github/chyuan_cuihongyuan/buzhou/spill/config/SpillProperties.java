@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param previewChars         上下文留存预览字符数（默认 2048）
  * @param listPreviewItems     列表型返回预览条目数（默认 20）
  * @param thresholdChars       工具返回超阈值自动落盘（默认 32000）
+ * @param thresholdTokens      token-aware 溢出阈值（T20；配置后按 token 计、优先于 thresholdChars，×4 折算字符）
  * @param sandboxRoot          SpillGuard 沙箱根（默认当前工作目录）
  * @param onloadEnabled        写侧 Onload（默认开）
  * @param copyOnWriteEnabled   写时复制只读护栏（默认开）
@@ -23,6 +24,7 @@ public record SpillProperties(
         Integer previewChars,
         Integer listPreviewItems,
         Integer thresholdChars,
+        Integer thresholdTokens,
         String sandboxRoot,
         Boolean onloadEnabled,
         Boolean copyOnWriteEnabled,
@@ -36,6 +38,7 @@ public record SpillProperties(
         previewChars = (previewChars == null || previewChars <= 0) ? 2048 : previewChars;
         listPreviewItems = (listPreviewItems == null || listPreviewItems <= 0) ? 20 : listPreviewItems;
         thresholdChars = (thresholdChars == null || thresholdChars <= 0) ? 32000 : thresholdChars;
+        thresholdTokens = (thresholdTokens == null || thresholdTokens <= 0) ? null : thresholdTokens;
         onloadEnabled = onloadEnabled == null ? true : onloadEnabled;
         copyOnWriteEnabled = copyOnWriteEnabled == null ? true : copyOnWriteEnabled;
         offloadEnabled = offloadEnabled == null ? true : offloadEnabled;

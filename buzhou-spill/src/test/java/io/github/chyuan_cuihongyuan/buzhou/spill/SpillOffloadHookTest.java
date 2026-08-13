@@ -70,6 +70,85 @@ class SpillOffloadHookTest {
     }
 
     @Test
+    void selfDescribingPlaceholderContainsShapeSizeHandleAndVerbs() {
+        // T20 自描述 Handle：句柄 + 数据形状 + 字符/token 大小 + 回读动词；预览截断必发显式标记
+        setup(new DiskSpillStore(rootDir), THRESHOLD, Map.of());
+        String bigText = "line-1\n" + "x".repeat(THRESHOLD);
+        ToolCallContext ctx = ctx("s1", "tc-sd", "read_file", bigText);
+
+        HookResult result = hook.afterTool(ctx);
+
+        assertThat(result).isInstanceOf(HookResult.Replace.class);
+        String placeholder = String.valueOf(((HookResult.Replace) result).payload());
+        assertThat(placeholder).contains("句柄：spill://agent/s1/tc-sd");
+        assertThat(placeholder).contains("数据形状：文本（");
+        assertThat(placeholder).contains("mode=\"bytes\"");
+        assertThat(placeholder).contains("字符（约");
+        assertThat(placeholder).contains("token");
+        assertThat(placeholder).contains("mode=\"json\"");
+        assertThat(placeholder).contains("mode=\"page\"");
+        // 显式截断标记（预览 < 全文），永不静默
+        assertThat(placeholder).contains("预览已截断");
+        // 回读拿到真实切片（非编造）
+        String readBack = store.readRange(SpillUri.parse("spill://agent/s1/tc-sd"),
+                RangeReadRequest.bytes(0, 6)).content();
+        assertThat(readBack).startsWith("line-1");
+    }
+
+    @Test
+    void arrayItemOffloadPlaceholderDescribesItemShape() {
+        // 数组 per-item 溢出：占位符描述被溢出 item 的形状（对象字段线索）
+        setup(new DiskSpillStore(rootDir), THRESHOLD, Map.of());
+        String bigJson = "[{\"id\":1,\"note\":\"" + "x".repeat(THRESHOLD) + "\"}]";
+        ToolCallContext ctx = ctx("s1", "tc-sda", "read_file", bigJson);
+
+        HookResult result = hook.afterTool(ctx);
+
+        assertThat(result).isInstanceOf(HookResult.Replace.class);
+        String replaced = String.valueOf(((HookResult.Replace) result).payload());
+        assertThat(replaced).contains("spill://agent/s1/tc-sda-0");
+        assertThat(replaced).contains("JSON 对象（顶层字段：id, note）");
+    }
+
+    @Test
+    void perToolThresholdTokensOverrideBeatsChars() {
+        // T20 token-aware：per-tool 按 token 计（5 token × 4 = 20 字符），优先于默认字符阈值
+        setup(new DiskSpillStore(rootDir), THRESHOLD,
+                Map.of("mcp_big", Map.of("spillThresholdTokens", 5)));
+        ToolCallContext ctx = ctx("s1", "tc-tok", "mcp_big", "y".repeat(30));
+
+        HookResult result = hook.afterTool(ctx);
+
+        assertThat(result).isInstanceOf(HookResult.Replace.class);
+        assertThat(String.valueOf(((HookResult.Replace) result).payload()))
+                .contains("spill://agent/s1/tc-tok");
+        // 低于 token 折算阈值（15 字符 < 20）的不溢出
+        ToolCallContext small = ctx("s1", "tc-tok2", "mcp_big", "y".repeat(15));
+        assertThat(hook.afterTool(small)).isSameAs(HookResult.CONTINUE);
+    }
+
+    @Test
+    void refrainOnFailReplacesDegradedResultWithRefusalNotice() {
+        // T19 on_fail 动词汇：读侧 REFRAIN = 保守拒答替代（不透传可能残缺的原文）
+        registry = new SessionReadOnlyRegistry();
+        SpillService service = new SpillService(new FailingSpillStore(), 64, 3);
+        SpillOffloadHook refrainHook = new SpillOffloadHook(service, registry,
+                uri -> rootDir.resolve("missing"), THRESHOLD, Map.of(),
+                io.github.chyuan_cuihongyuan.buzhou.core.hook.OnFail.REFRAIN);
+        String bigResult = "x".repeat(THRESHOLD + 10);
+        ToolCallContext ctx = ctx("s1", "tc-r", "read_file", bigResult);
+
+        HookResult result = refrainHook.afterTool(ctx);
+
+        assertThat(result).isInstanceOf(HookResult.Replace.class);
+        assertThat(String.valueOf(((HookResult.Replace) result).payload()))
+                .contains("onFail=REFRAIN").contains("拒答");
+        // 事件带 onFail 动词标注
+        assertThat(events).anyMatch(e -> e.type().equals("offload.degraded")
+                && "REFRAIN".equals(e.payload().get("onFail")));
+    }
+
+    @Test
     void aboveThresholdReplacesWithReferenceHandle() {
         DiskSpillStore disk = new DiskSpillStore(rootDir);
         setup(disk, THRESHOLD, Map.of());

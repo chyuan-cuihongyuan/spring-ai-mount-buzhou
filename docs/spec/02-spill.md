@@ -156,6 +156,30 @@ public class SpillOffloadHook implements BuzhouHook {
 
 > 【推演】「持久层 ToolResponseMessage 存的是占位符而非原文」非蓝本明述，由 Hook `REPLACE` 语义直接推得：替换发生在结果出站那一刻，下游（历史构建、持久化、注入视图）所见均为占位符；原文唯一副本在 SpillStore。这使 spill 与微压缩「持久层原文不动、注入视图层替换」形成对照——spill 是一次性物理替换，证据回查链因此必须能穿透到 SpillStore（见「句柄生命周期」保留规则）。
 
+### 自描述占位符与 token-aware 阈值（wayfinder T20 / docs/spec/11）
+
+- **自描述 Reference Handle**：溢出占位符统一含 **句柄（spill:// URI）+ 数据形状/schema 提示**（JSON 数组给项数、JSON 对象给顶层字段线索、文本给行数，各带回读模式建议）**+ 字符/token 大小**（4 字符/token 启发式估算）**+ 精确回读动词与参数**（bytes/json/page 三模示例命令）——取代裸路径（arXiv pointer-offloading + MCP results-widget：裸路径表现最差）。
+- **token-aware 可配阈值**：阈值可配且**按 token 计**——全局 `thresholdTokens`（builder / `buzhou.spill.threshold-tokens`）优先于 `thresholdChars`，内部 ×4 折算字符；per-tool 经 `spillThresholdTokens`（优先）/`spillThresholdChars` 策略键覆盖。
+- **永不静默截断**：预览截断必发显式标记（`（预览已截断，仅前 X/Y 字符，全文请回读）`）；任何截断都伴随回读句柄（Codex 反面教材 + copilot-cli 静默损坏案例）。
+- 数组 per-item 溢出的占位符描述**被溢出 item** 的形状（对象字段线索）。
+
+### hot-tail / cold-storage 两级保留（wayfinder T21 / docs/spec/11）
+
+`HotTailViewProcessor`（`MemoryViewProcessor` 视图级实现，来源 Claude Code microcompaction）：
+
+- **近期 N 条工具结果全量内联**（`SpillGuardModule.Builder.hotTail(n)`，供推理零损失），更旧的 TOOL 消息超阈值时**视图级惰性溢出**至 SpillStore、替换为 T20 自描述占位符——存储层仍 append-only。
+- **大小预算**：`hotTailMaxInlineChars`（>0 启用）——内联 TOOL 内容总量超预算时从最旧开始补溢出（每轮重算总量，占位符可能大于原文）。
+- **与即时 offload 互斥**：启用 hot-tail 应关闭即时 offload（`offloadEnabled(false)`），否则大结果产生时即被替换、hot-tail 无从保留近期全量内联。
+- **组合语义**：`RuntimeConfig.merge` 对多个 viewProcessor 按 merge 顺序**链式组合**（前者的输出是后者的输入）——spill hot-tail（先，替换旧大结果）与 memory 注入视图（后，微压缩/摘要）可叠加。
+- URI agent 段固定 `hot-tail`（视图处理器拿不到 agentName）；回读复用 read_range 三模；降级透传（onFail=FILTER）沿用读侧语义。
+
+### per-tool durable override（wayfinder T22 / docs/spec/11）
+
+工具策略键（`ToolPolicyMatcher`，glob 支持），即时 offload 与 hot-tail 视图均生效：
+
+- `spillNeverOffload: true`——**永不溢出**：声明 durable 的输出（DB schema、整文件等截断敏感内容）保持全量内联，不溢出/不截断（来源 Claude Code `maxResultSizeChars` durable 语义）。
+- `spillThresholdTokens` / `spillThresholdChars`——**超 X 才溢出**按工具覆盖；未声明工具走全局默认阈值。
+
 ### read_range 回读工具
 
 内置原子工具（ticket 12/19），只读无害、**默认注册**，工具策略可关；仅在所在会话启用 spill 时出现在工具清单。只接受 `spill://` URI；evidence-id 回查是 memory 模块的另一工具包装（ticket 08），不在本工具范围。

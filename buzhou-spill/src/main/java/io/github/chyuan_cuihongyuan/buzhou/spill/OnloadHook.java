@@ -62,12 +62,14 @@ public class OnloadHook implements BuzhouHook {
     }
 
     private void emitFailed(ToolCallContext ctx, LongContentParamPair pair, String rawPath, Exception e) {
+        // onFail 动词汇（T19）：写侧失败恒为 EXCEPTION（阻断，不外流残缺产物）——既有语义、词汇化标注
         ctx.emitEvent(new SessionEvent("onload.failed",
                 Map.of("toolName", ctx.toolName(),
                         "toolCallId", ctx.toolCallId(),
                         "pathParam", pair.pathParam(),
                         "path", rawPath,
-                        "reason", String.valueOf(e.getMessage())),
+                        "reason", String.valueOf(e.getMessage()),
+                        "onFail", "EXCEPTION"),
                 Instant.now()));
     }
 
