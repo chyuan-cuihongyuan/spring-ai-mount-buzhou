@@ -1,8 +1,8 @@
 # Spring AI Mount Buzhou（不周山）
 
-> **English** · A runtime harness mounted between **Spring AI** and your business agents — layered *on top of* Spring AI rather than replacing it. Buzhou makes a single agent stable, controllable and explainable in production through nine mechanisms: progressive memory compaction, spill protection, cognitive observability, skills, hot-pluggable MCP, parallel tool calls, atomic tools, hook guardrails, and a pluggable persistence SPI. Requires JDK 21+, Spring Boot 4.x and Spring AI 2.0.0.
+> **English** · A runtime harness mounted between **Spring AI** and your business agents — layered *on top of* Spring AI rather than replacing it. Buzhou is an **experimental framework designed for production scenarios**, aiming to keep a single agent stable, controllable and explainable through nine mechanisms: progressive memory compaction, spill protection, cognitive observability, skills, hot-pluggable MCP, parallel tool calls, atomic tools, hook guardrails, and a pluggable persistence SPI. Requires JDK 21+, Spring Boot 4.x and Spring AI 2.0.0.
 
-> **中文** · 挂载在 **Spring AI** 与业务 Agent 之间的运行时中间层（Harness）——叠加而非替代 Spring AI，让单个 Agent 稳定、可控、可解释地跑在生产里。
+> **中文** · 挂载在 **Spring AI** 与业务 Agent 之间的运行时中间层（Harness）——叠加而非替代 Spring AI。Buzhou 是一个**面向生产场景设计的实验性框架**，旨在让单个 Agent 稳定、可控、可解释地运行。
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.org/)
@@ -14,7 +14,7 @@
 
 ## 为什么需要 Buzhou
 
-Spring AI 解决了「如何把模型、工具、Advisor 链接到一起」的问题，但一个要在生产里长期跑的 Agent，还会持续撞上同一类稳定性与可解释性难题：
+Spring AI 解决了「如何把模型、工具、Advisor 链接到一起」的问题，但一个要在生产场景中长期运行的 Agent，还会持续撞上同一类稳定性与可解释性难题：
 
 - **上下文窗口被工具返回撑爆**——一个大日志/查询结果就把历史顶出窗口，关键信息断崖式丢失。
 - **工具调用慢、并发低**——串行调工具，单工具超时拖垮整轮。
@@ -22,7 +22,7 @@ Spring AI 解决了「如何把模型、工具、Advisor 链接到一起」的�
 - **危险操作无护栏**——删库、发版、改线上配置这类不可逆操作，缺乏框架级人工确认（HITL）。
 - **状态记不住又不可靠**——跨实例续接、悬空调用修复、长产物读写，每家都要自己造一遍。
 
-Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐生产所需的稳定性与可观测性。
+Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐面向生产场景所需的稳定性与可观测性——目前为实验性（alpha），详见[项目状态](#项目状态)。
 
 ## 九大机制
 

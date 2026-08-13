@@ -19,8 +19,9 @@
 
 ## Frontier（可立即领取）
 
-- **01、03、04** — 无 blocker，可立即开工。
+- **01、04** — 无 blocker，可立即开工。
 - ✅ **02 已完成**（`.scratch/` 移出 git 跟踪 + `.gitignore`）。
+- ✅ **03 已完成**（README「生产」措辞降级，与 alpha 对齐）。
 - 05 / 06 — 等 **01** 完成 + 决策票 **T4 / T5** 拍板。
 - 07 — 等决策票 **T6** 拍板。
 - 08 — 等决策票 **T3** 拍板 + **01** 完成。
@@ -31,7 +32,7 @@
 |---|------|-----------|
 | [01](01-ci-green-on-clean-runner.md) | CI 在干净 GitHub runner 上稳定转绿 | 无 |
 | [02](02-untrack-scratch.md) ✅ done | `.scratch/` 移出 git 跟踪 + `.gitignore` | 无 |
-| [03](03-readme-wording-downgrade.md) | README「生产」措辞降级 | 无 |
+| [03](03-readme-wording-downgrade.md) ✅ done | README「生产」措辞降级 | 无 |
 | [04](04-spring-ai-boundary-doc.md) | 撰写「与 Spring AI 原生能力边界」文档 | 无（T2 已闭合）|
 | [05](05-runnable-main-demo.md) | 提供真正可运行的 `src/main` demo | 01 + 决策 T4 |
 | [06](06-real-llm-integration-test.md) | 加入至少一条真实 LLM 行为的集成测试 | 01 + 决策 T5 |
