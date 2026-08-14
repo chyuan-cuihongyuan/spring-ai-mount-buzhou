@@ -14,6 +14,8 @@ import java.util.List;
  */
 public class SynchronousObservabilityPipeline extends BaseSpanRecorder {
 
+    private static final System.Logger LOGGER = System.getLogger(SynchronousObservabilityPipeline.class.getName());
+
     private final ObservabilityStore store;
 
     public SynchronousObservabilityPipeline(ObservabilityStore store, ObservabilityConfig config,
@@ -28,13 +30,24 @@ public class SynchronousObservabilityPipeline extends BaseSpanRecorder {
         this.store = store;
     }
 
+    /**
+     * impl-46：失败语义与 async 管线对齐——吞 + 计数 + WARN，不上抛主链路
+     * （此前同步路径异常直接打断业务调用，两条管线行为不一致）。
+     */
     @Override
     protected void doEnqueue(PendingItem item) {
-        switch (item) {
-            case PendingSpan s -> store.saveSpans(List.of(s.record()));
-            case PendingEvent e -> store.saveEvents(List.of(e.record()));
-            case PendingSnapshot snap -> store.saveInjectionSnapshot(snap.record());
-            case FlushToken t -> t.complete();
+        try {
+            switch (item) {
+                case PendingSpan s -> store.saveSpans(List.of(s.record()));
+                case PendingEvent e -> store.saveEvents(List.of(e.record()));
+                case PendingSnapshot snap -> store.saveInjectionSnapshot(snap.record());
+                case FlushToken t -> t.complete();
+            }
+        } catch (RuntimeException e) {
+            meters.recordPersistError();
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "观测数据落库失败（同步管线，已隔离）：" + e.getClass().getSimpleName()
+                            + ": " + e.getMessage());
         }
     }
 

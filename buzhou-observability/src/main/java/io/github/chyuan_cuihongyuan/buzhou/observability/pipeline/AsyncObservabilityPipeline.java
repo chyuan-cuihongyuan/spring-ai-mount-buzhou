@@ -33,6 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class AsyncObservabilityPipeline extends BaseSpanRecorder implements AutoCloseable {
 
+    private static final System.Logger LOGGER = System.getLogger(AsyncObservabilityPipeline.class.getName());
+
     private final ObservabilityStore store;
     private final ObservabilityConfig config;
     private final BlockingQueue<PendingItem> queue;
@@ -191,7 +193,11 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
         try {
             action.run();
         } catch (RuntimeException e) {
+            // impl-46：观测自身故障必须可见（此前纯吞，生产排障不可诊断）
             meters.recordPersistError();
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "观测数据落库失败（已隔离，不影响主链路）：" + e.getClass().getSimpleName()
+                            + ": " + e.getMessage());
         }
     }
 }

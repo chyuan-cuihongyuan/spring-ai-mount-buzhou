@@ -19,6 +19,9 @@ import java.util.UUID;
  */
 public abstract class BaseSpanRecorder implements SpanRecorder {
 
+    private static final System.Logger LOGGER = System.getLogger(BaseSpanRecorder.class.getName());
+
+
     protected final MicrometerDualWriter meters;
     protected final boolean includeStacktrace;
     private final List<PipelineSink> sinks;
@@ -74,6 +77,7 @@ public abstract class BaseSpanRecorder implements SpanRecorder {
                 Instant.now(),
                 payload == null ? Map.of() : Map.copyOf(payload));
         enqueue(new PendingEvent(record));
+        // Event 类型不直接产 metric（payload 高基数）；保留钩子供指标扩展（impl-46 注记）
         meters.recordEvent(resolved);
     }
 
@@ -103,7 +107,10 @@ public abstract class BaseSpanRecorder implements SpanRecorder {
                     try {
                         sink.onSpan(record);
                     } catch (RuntimeException e) {
-                        // 旁路故障不得污染主链路；吞异常即可（落库仍由 doEnqueue 保证）
+                        // 旁路故障不得污染主链路（落库仍由 doEnqueue 保证），但必须可见（impl-46）
+                        LOGGER.log(System.Logger.Level.WARNING,
+                                "PipelineSink.onSpan 失败（已隔离）：" + sink.getClass().getSimpleName()
+                                        + ": " + e.getMessage());
                     }
                 }
             }
@@ -112,8 +119,10 @@ public abstract class BaseSpanRecorder implements SpanRecorder {
                 for (PipelineSink sink : sinks) {
                     try {
                         sink.onEvent(record);
-                    } catch (RuntimeException ignored) {
-                        // 同上
+                    } catch (RuntimeException sinkError) {
+                        LOGGER.log(System.Logger.Level.WARNING,
+                                "PipelineSink.onEvent 失败（已隔离）：" + sink.getClass().getSimpleName()
+                                        + ": " + sinkError.getMessage());
                     }
                 }
             }

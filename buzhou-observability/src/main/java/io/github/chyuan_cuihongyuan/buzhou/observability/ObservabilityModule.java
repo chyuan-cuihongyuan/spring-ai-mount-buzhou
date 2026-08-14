@@ -49,6 +49,25 @@ public final class ObservabilityModule {
         return configure(stores, config, meterRegistry, modelName, false, sinks);
     }
 
+    /**
+     * 生产配置（外部管理管线，impl-46）：装配层把 {@link AsyncObservabilityPipeline}
+     * 暴露为 bean（destroyMethod=close）后经此复用——管线生命周期随 Spring context，
+     * 不再 per-JVM 孤儿。{@code meterRegistry} 参数保留签名兼容（指标经 core holder 全局安装）。
+     */
+    public static RuntimeConfig configure(BuzhouStores stores, ObservabilityConfig config,
+                                          String modelName, BaseSpanRecorder managedRecorder) {
+        if (!config.enabled()) {
+            return RuntimeConfig.defaults();
+        }
+        TokenEstimator tokenEstimator = new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator();
+        ThinkingChainExtractor thinkingExtractor = new ThinkingChainExtractor(
+                config.thinkingExtraKeys(), config.thinkingMaxChars());
+        return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(), null, List.of(),
+                java.util.Map.of(), List.of(),
+                List.of(new ObservabilityAssemblyCustomizer(
+                        managedRecorder, config, thinkingExtractor, tokenEstimator, modelName)));
+    }
+
     /** 测试配置：同步管线，便于即时断言。 */
     public static RuntimeConfig configureSync(BuzhouStores stores, ObservabilityConfig config,
                                               String modelName) {
@@ -67,7 +86,8 @@ public final class ObservabilityModule {
         if (!config.enabled()) {
             return RuntimeConfig.defaults();
         }
-        MicrometerDualWriter meters = config.micrometerEnabled() && meterRegistry != null
+        // impl-46：指标经 core holder 全局安装（registry 参数保留兼容）；micrometer-enabled=false 走 NOOP
+        MicrometerDualWriter meters = config.micrometerEnabled()
                 ? new MicrometerDualWriter(meterRegistry) : MicrometerDualWriter.NOOP;
         BaseSpanRecorder recorder = synchronous
                 ? new SynchronousObservabilityPipeline(stores.observabilityStore(), config, meters, sinks)

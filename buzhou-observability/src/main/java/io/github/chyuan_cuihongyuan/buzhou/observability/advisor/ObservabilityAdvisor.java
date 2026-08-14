@@ -48,6 +48,13 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ObservabilityAdvisor implements BaseAdvisor {
 
+    /** 微压缩 evidence 占位符：[evidence:abc123...] */
+    private static final java.util.regex.Pattern EVIDENCE_PATTERN =
+            java.util.regex.Pattern.compile("\\[evidence:([A-Za-z0-9_-]{1,128})\\]");
+    /** spill 句柄占位符：[spill:buzhou://...] */
+    private static final java.util.regex.Pattern SPILL_PATTERN =
+            java.util.regex.Pattern.compile("\\[spill:(\\S{1,256})\\]");
+
     private final BaseSpanRecorder recorder;
     private final ObservabilityConfig config;
     private final ThinkingChainExtractor thinkingExtractor;
@@ -124,6 +131,10 @@ public class ObservabilityAdvisor implements BaseAdvisor {
                 .doOnError(e -> {
                     modelCall.error(e);
                     modelCall.close();
+                })
+                .doOnCancel(() -> {
+                    // impl-46：订阅者取消（turn cancel/超时）——终态 CANCELLED，杜绝 RUNNING 孤儿 span
+                    modelCall.close("CANCELLED");
                 })
                 .doOnComplete(() -> {
                     recordStreamOutcome(modelCall, thinkingAccumulator, replyAccumulator,
@@ -277,8 +288,12 @@ public class ObservabilityAdvisor implements BaseAdvisor {
             } else {
                 // 官方 OpenAI（GPT-5/o1/o3）：无推理文本，仅 usage reasoning_tokens —— 固定降级路径
                 // 其他厂商 key 缺失属正常（未开启 thinking 或模型本身无思维链）
-                boolean isOfficialOpenAi = modelName != null
-                        && (modelName.contains("gpt") || modelName.contains("o1") || modelName.contains("o3"));
+                // impl-46：provider 判定可显式配置（config.modelProvider），默认保留启发式
+                String provider = config.modelProvider();
+                boolean isOfficialOpenAi = provider != null
+                        ? "openai".equalsIgnoreCase(provider)
+                        : modelName != null && (modelName.contains("gpt")
+                                || modelName.contains("o1") || modelName.contains("o3"));
                 if (isOfficialOpenAi) {
                     modelCall.attribute("thinking.available", "PROVIDER_NOT_RETURNED");
                 } else {
@@ -296,6 +311,12 @@ public class ObservabilityAdvisor implements BaseAdvisor {
             }
         }
         modelCall.close();
+    }
+
+    /** 正文首个模式匹配（占位符提取）；无匹配返回 null。 */
+    private static String firstMatch(String text, java.util.regex.Pattern pattern) {
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        return matcher.find() ? matcher.group(1) : null;
     }
 
     private void captureInjectionSnapshot(ChatClientRequest request, int turnSeq) {
@@ -326,12 +347,16 @@ public class ObservabilityAdvisor implements BaseAdvisor {
                 default -> {
                 }
             }
-            // 检查是否为占位符/引用句柄（evidence-id / spill URI 从 metadata 提取）
+            // impl-46：占位符/引用句柄提取（最小可用：正文模式匹配，spec 03 快照还原承诺）
+            // 微压缩占位符格式：[evidence:<id>] / [spill:<uri>]（memory/spill 模块回注格式）
             String evidenceId = null;
             String spillUri = null;
             if (m instanceof org.springframework.ai.chat.messages.ToolResponseMessage trm) {
-                // ToolResponseMessage 是工具返回，可能已被微压缩为占位符
-                // 占位符格式：[spill:xxx] 或含 evidence-id；这里简化：正文即可能含占位符
+                String text = m.getText();
+                if (text != null) {
+                    evidenceId = firstMatch(text, EVIDENCE_PATTERN);
+                    spillUri = firstMatch(text, SPILL_PATTERN);
+                }
             }
             messages.add(new io.github.chyuan_cuihongyuan.buzhou.core.spi.SnapshotMessage(
                     role, content, evidenceId, spillUri, Map.of()));
