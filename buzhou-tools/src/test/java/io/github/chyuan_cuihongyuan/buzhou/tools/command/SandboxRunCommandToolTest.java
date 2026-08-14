@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.tools.command;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend;
+import io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend.CommandOutcome;
 import io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -52,7 +53,7 @@ class SandboxRunCommandToolTest {
         String out = tool.call("{\"command\":\"echo hi\"}");
 
         assertThat(backend.commands).containsExactly("echo hi");
-        assertThat(backend.workdirs).containsExactly(root);
+        assertThat(backend.workdirs).containsExactly(lastSandboxRoot);
         assertThat(out).isEqualTo("done");
 
         backend.outcome = new CommandOutcome(3, "so-so", "warn-line", false, true);
@@ -83,7 +84,7 @@ class SandboxRunCommandToolTest {
 
         String ok = tool.call("{\"command\":\"pwd\",\"workdir\":\"sub\"}");
         assertThat(ok).isEqualTo("done");
-        assertThat(backend.workdirs).containsExactly(sub);
+        assertThat(backend.workdirs).containsExactly(lastSandboxRoot.resolve("sub"));
 
         assertThat(tool.call("{\"command\":\"pwd\",\"workdir\":\"../escape\"}")).contains("失败");
         assertThat(tool.call("{\"command\":\"pwd\",\"workdir\":\"a;b\"}")).contains("失败");
@@ -134,7 +135,12 @@ class SandboxRunCommandToolTest {
     }
 
     private SandboxRunCommandTool newTool(Path root, CommandBackend backend) {
-        return new SandboxRunCommandTool(new FileSandbox(root, java.util.List.of()),
-                null, backend, Duration.ofSeconds(60), Duration.ofMinutes(10));
+        FileSandbox sandbox = new FileSandbox(root, java.util.List.of());
+        lastSandboxRoot = sandbox.root();
+        return new SandboxRunCommandTool(sandbox, null, backend, Duration.ofSeconds(60),
+                Duration.ofMinutes(10));
     }
+
+    /** FileSandbox 内部可能 toRealPath（macOS /var→/private/var）：断言以其 root 为准。 */
+    private java.nio.file.Path lastSandboxRoot;
 }

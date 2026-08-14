@@ -29,24 +29,25 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.mcp", name = "enabled", matchIfMissing = true)
+@org.springframework.boot.context.properties.EnableConfigurationProperties(BuzhouMcpProperties.class)
 public class BuzhouMcpAutoConfiguration {
 
     /**
      * impl-50 / spec 14 §F：接线 DB 清单源（ToolSetSpecStore bean 存在时启用轮询源；
-     * 此前装配路径无法接入 store，DB 源只能手工编码）+ 危险工具模式 + 关闭预算。
+     * 此前装配路径无法接入 store，DB 源只能手工编码）+ 危险工具模式 + 关闭预算
+     * （impl-66 / spec 21：散键直读转 {@link BuzhouMcpProperties} 注入）。
      */
     @Bean(destroyMethod = "close")
     public McpModule mcpModule(Environment env,
+                               BuzhouMcpProperties properties,
                                ObjectProvider<SpanRecorder> recorder,
                                ObjectProvider<PolicyConfigProvider> policyProvider,
                                ObjectProvider<ToolSetSpecStore> specStore) {
         McpModule.Builder builder = McpModule.fromYml(ConfigMaps.sub(env, "buzhou.mcp"))
                 .recorder(recorder.getIfAvailable())
                 .policyProvider(policyProvider.getIfAvailable())
-                .dangerousToolPatterns(env.getProperty(
-                        "buzhou.mcp.dangerous-tool-patterns", java.util.List.class, java.util.List.of()))
-                .shutdownBudget(env.getProperty("buzhou.mcp.shutdown-budget",
-                        java.time.Duration.class, java.time.Duration.ofSeconds(35)));
+                .dangerousToolPatterns(properties.dangerousToolPatterns())
+                .shutdownBudget(properties.shutdownBudget());
         ToolSetSpecStore store = specStore.getIfAvailable();
         if (store != null) {
             builder.store(store);

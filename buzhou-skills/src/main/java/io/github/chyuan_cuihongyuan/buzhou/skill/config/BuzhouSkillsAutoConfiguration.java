@@ -26,6 +26,7 @@ import org.springframework.core.env.Environment;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.skills", name = "enabled", matchIfMissing = true)
+@org.springframework.boot.context.properties.EnableConfigurationProperties(BuzhouSkillsProperties.class)
 public class BuzhouSkillsAutoConfiguration {
 
     /**
@@ -36,6 +37,7 @@ public class BuzhouSkillsAutoConfiguration {
      */
     @Bean
     public SkillModule skillModule(Environment env,
+                                   BuzhouSkillsProperties properties,
                                    ObjectProvider<BindingPolicyStore> bindingStore,
                                    ObjectProvider<PolicyConfigProvider> policyProvider,
                                    ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore> skillStore) {
@@ -45,9 +47,8 @@ public class BuzhouSkillsAutoConfiguration {
                         .bindingStore(bindingStore.getIfAvailable())
                         .policyProvider(policyProvider.getIfAvailable());
         if (store != null) {
-            // 显式 store bean = 用户意图启用 DB 动态 Skill（除非显式 db-enabled=false）
-            Boolean explicitOff = env.getProperty("buzhou.skills.db-enabled", Boolean.class, true);
-            builder.dbStore(store).dbEnabled(explicitOff);
+            // 显式 store bean = 用户意图启用 DB 动态 Skill（除非显式 db-enabled=false；impl-66 正规化注入）
+            builder.dbStore(store).dbEnabled(properties.dbEnabled());
         }
         return builder.build();
     }

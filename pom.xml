@@ -319,5 +319,38 @@
         </plugins>
       </build>
     </profile>
+    <!--
+      supply-chain profile（T92 / impl-67）：CycloneDX 聚合 SBOM（json+xml 双出）。
+      构建插件注记：cyclonedx-maven-plugin 非 10K★，但 CycloneDX 为行业标准 SBOM 格式、
+      插件仅构建期生效、不进 runtime classpath（10K★ 政策豁免条款）。日常构建零开销，
+      supply-chain workflow / 人工经 `mvn -Psupply-chain package` 触发。
+    -->
+    <profile>
+      <id>supply-chain</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <version>2.9.1</version>
+            <executions>
+              <execution>
+                <id>make-aggregate-bom</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>makeAggregateBom</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <outputFormat>all</outputFormat>
+              <outputName>bom</outputName>
+              <includeTestScope>false</includeTestScope>
+              <skipProvidedScope>true</skipProvidedScope>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>

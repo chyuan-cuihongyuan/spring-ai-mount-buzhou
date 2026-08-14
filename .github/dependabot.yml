@@ -1,0 +1,23 @@
+# Dependabot（T92 / impl-67）：maven 依赖 + GitHub Actions 周更；小版本聚合、major 单独 PR。
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      buzhou-minor-patch:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      actions-minor-patch:
+        update-types:
+          - minor
+          - patch

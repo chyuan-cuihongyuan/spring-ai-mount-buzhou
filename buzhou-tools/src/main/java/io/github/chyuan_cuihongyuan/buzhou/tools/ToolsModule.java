@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.tools.command.CommandBlacklist;
 import io.github.chyuan_cuihongyuan.buzhou.tools.command.RunCommandTool;
+import io.github.chyuan_cuihongyuan.buzhou.tools.command.SandboxRunCommandTool;
 import io.github.chyuan_cuihongyuan.buzhou.tools.file.ReadFileTool;
 import io.github.chyuan_cuihongyuan.buzhou.tools.file.WriteFileTool;
 import io.github.chyuan_cuihongyuan.buzhou.tools.http.HttpRequestTool;
