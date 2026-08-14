@@ -44,3 +44,14 @@
 - **失败语义非对称** — 读侧 offload 失败降级透传（不阻断），写侧 onload 失败阻断调用（杜绝残缺产物外流）。
 - **HITL 门禁（Dangerous Tool Guard）** — 配置驱动的危险工具拦截：未获真实用户授权，不可逆操作在框架层物理走不通；授权以 state 标记放行。
 - **Hook→state→Attachment 闭环** — 补失忆范式：Hook 确定性采集事实写入会话 state，下一轮注入模型前以 Attachment 渲染进 prompt，不靠 LLM 自觉。
+
+## 韧性与成本（effort #5）
+
+- **熔断（Circuit Breaker）** — 按 modelName 分桶的进程级失败率闸门：CLOSED/OPEN/HALF_OPEN 三态，OPEN 期调用零重试快速失败，冷却后单探测恢复。
+- **备模型降级链（Fallback Chain）** — 主模型终态失败或熔断 OPEN 后，在同一逻辑调用内按序切换备模型；全败上抛主因。
+- **会话预算（Session Budget）** — 会话生命周期累计的 token/成本硬顶（microUsd 整数口径），超限拦截下一次模型调用。
+- **日配额（Daily Quota）** — per-session 的 turns/tool-calls/tokens 每日限额，UTC 自然日窗口重置。
+- **REASK** — 结构化输出解析失败后携带解析错误反馈的重问一次语义（诚实计入轮次预算）。
+- **会话分支（Fork）** — 复制源会话全部历史开新会话；State 不复制（预算重置 = 重试语义）。
+- **事件外发（Webhook Forwarder）** — 会话事件 at-least-once HTTP 投递（HMAC-SHA256 签名 + 事件幂等键）。
+- **工具集漂移（Tools Drift）** — MCP server 端工具列表变更与本地基线的差量（协议 tools/list_changed 订阅）。

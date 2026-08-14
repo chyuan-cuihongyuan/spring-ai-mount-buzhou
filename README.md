@@ -38,7 +38,26 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 8 | **Hook 护栏体系** | 长产物读写护栏、HITL 危险操作人工审核、Hook→state→Attachment 联动闭环（补失忆范式） | `buzhou-guard` |
 | 9 | **持久化 SPI** | 五大存储 SPI（Message / Summary / SessionState / SessionLease / Observability）+ 内存/JDBC/Redis 实现，按需切换 | `buzhou-core` / `buzhou-store-jdbc` / `buzhou-store-redis` |
 
-> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 九份机制详设）。
+> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 机制详设 01–23）。
+
+## 生产级纵深（effort #5 新增）
+
+九大机制之上的运营级能力（详设 spec 15–23）：
+
+| 能力 | 一句话 | 详设 |
+|------|--------|------|
+| **模型熔断 + 备模型降级链** | 失败率跳闸→半开探测恢复；主模型熔断 OPEN 后请求零重试直达备模型 | [spec 15](docs/spec/15-model-resilience.md) |
+| **Token/成本预算** | 会话级 token/成本累计（microUsd 整数口径价目换算）+ 三硬顶预算闸 | [spec 16](docs/spec/16-cost-quota.md) |
+| **per-session 日配额** | turns / tool-calls / tokens 每日每会话限额（UTC 日窗，超限 Block） | [spec 16](docs/spec/16-cost-quota.md) |
+| **结构化输出** | `chatForEntity`——schema 注入 + 解析失败 REASK 一次 + 结构化异常 | [spec 19](docs/spec/19-structured-output.md) |
+| **会话 fork** | 历史完整复制 + 预算重置的重试/探索分支 | [spec 20](docs/spec/20-session-fork-webhook-compact.md) |
+| **事件外发 webhook** | 会话事件 at-least-once 投递（HMAC 签名 + 幂等键 + 退避重试） | spec 20 |
+| **手动压缩 / 摘要导出** | 宿主侧 ManualCompactor（与 compact_now 同管线）+ 类型化/Markdown 导出 | spec 20 |
+| **run_command 沙箱合流** | core CommandBackend SPI：guard 沙箱档（Deno/E2B/Firecracker）可插拔接管命令执行 | [spec 17](docs/spec/17-sandbox-convergence.md) |
+| **MCP 工具集漂移检测** | 协议 `tools/list_changed` 订阅 + 基线差量告警 | [spec 18](docs/spec/18-mcp-drift.md) |
+| **质量与供应链门** | 覆盖率 LINE≥70% 硬门 / SpotBugs High 硬门 / 红队数值化双硬门 / CycloneDX SBOM / Dependabot / 性能哨兵 | [spec 21](docs/spec/21-config-supply-quality.md) / [spec 22](docs/spec/22-redteam-skills.md) |
+
+运维接手见 **[docs/ops-runbook.md](docs/ops-runbook.md)**；公开 API 面见 [docs/api-surface.md](docs/api-surface.md)。
 
 ## 技术基线
 

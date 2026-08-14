@@ -27,13 +27,22 @@
 - [会话 fork](tickets/T88-session-fork.md) — AgentRuntime.fork（default UOE）：Message 全量复制 + Summary 只复制最新一版 + SessionState 不复制（预算重置=重试语义）；走完整 spawn 管线；spill/evidence 共享只读（源删除级联为已知边界）；session.forked 事件；M1 不做指定 messageId 截断（fog）。
 - [事件 webhook](tickets/T89-event-webhook.md) — core WebhookEventForwarder（url 才装配默认关）：at-least-once + 幂等键头 + HMAC-SHA256 签名头 + 5xx/IO 退避重试（4xx 不重试）+ 有界队列满丢弃计数 + JDK HttpClient 零新依赖；core 全局监听挂点 addGlobalEventListener。
 - [手动 compact/导出](tickets/T90-manual-compact-export.md) — memory ManualCompactor（compact/exportSummary/exportSummaryMarkdown）；CompactNowTool 委托同一管线（行为零变化）；无锁并发安全（版本化+幂等集）；MemoryModule.manualCompactor() + bean。
+- [配置正规化](tickets/T91-config-regularization.md) — map→fromYml 契约 by-design 保留（模块自有解析）；真缺口=auto-config 散键直读：BuzhouSkillsProperties/BuzhouMcpProperties 转正；键零变化；全仓 verify 里程碑绿（揭露并修复 impl-60 假绿遗留）。
+- [供应链](tickets/T92-supply-chain.md) — CycloneDX SBOM（supply-chain profile，构建插件注记）+ OWASP dependency-check 观测档（NVD key 可选）+ Dependabot（maven+actions，小版本聚合）；SBOM 随 release 留 fog。
+- [性能基准](tickets/T93-perf-baseline.md) — 不引 JMH；PerfBaselineTest @Tag(perf) 三哨兵（微压缩/百轮开销/存储 round-trip，10 倍宽幅硬顶）；默认排除、perf-nightly 激活；基线落档 docs/perf（实测每轮 P95 0.55ms）。
+- [红队数值化](tickets/T94-redteam-f1.md) — metrics.mjs 硬门裁决（dangerous-executed=0 + 拦截率≥95%）+ plugins 扩 pii/harmful；F1=R（FP 通道=examples 授权闭环）；nightly 卡 job。
+- [质量门](tickets/T95-quality-gates.md) — jaCoCo LINE≥70% 统一硬门（实测 77.1–90.9%，BOM/starter/examples 豁免）；SpotBugs High 升硬门（排除须 exclude+issue 注记）；本地=CI 同门槛。
+- [skills 深化](tickets/T96-skills-cache.md) — 清单 TTL 缓存（DB 路径正/负缓存，默认 30s 可配）+ admin 变更即时失效 + 直改 store 需手动失效契约；预热/变更事件/句柄复用核实后不做。
+- [ops runbook](tickets/T97-ops-runbook.md) — docs/ops-runbook.md 七节（部署/排查树 10 症状/调优表 11 键/容量/升级回滚/多实例边界/告警清单 9 指标），全部锚定真实事件与指标名。
+- [examples 扩充](tickets/T98-examples-expansion.md) — NewCapabilitiesDemoTest 7 用例（降级链/预算/fork/webhook 签名/REASK/配额）+ resilience test 依赖；README 更新归收口轮。
+- [多实例语义](tickets/T99-multi-instance-semantics.md) — runbook §6 文档化 + resilience 启动 WARN（store 共享且单进程机制启用）；RunawayCounters 会话累计已持久化不在此列。
+- [API 稳定性](tickets/T100-api-stability.md) — api-surface.md 404 类型清单（可重跑脚本）；36 public-in-internal 契约声明；@since 1.0.0 起；CONTRIBUTING 政策（语义化版本/废弃≥2 minor）。
+- [全仓终验](tickets/T101-final-verification.md) — 18 模块 clean verify 全绿（含覆盖率硬门）、1021 测试 0 失败；impl 56–76 逐票 done；远端门（SpotBugs/redteam/SBOM/perf）入口记录。
+- [知识库同步与收口](tickets/T102-kb-sync-closing.md) — .Knowledge 不扩业务主题（定位流程知识库；业务语义由 docs/spec 00–23 + api-surface 承载，双处维护无净收益——决策记录）；README 增「生产级纵深」段 + CONTEXT 增韧性成本术语；MAP 闭合。
 
 ## Not yet specified
 
-- 熔断半开参数自适应（静态参数足够则不升级为自适应）。
-- fork 与 memory 微压缩的边角：fork 后 evidence-id 指针的归属与生命周期。
-- webhook 投递语义（先 at-least-once + 幂等键；exactly-once 不承诺）。
-- per-session 配额的持久化跨重启语义（首版内存窗口 + 事件可见，分布式配额显式不做）。
+（收口清空——四项开放问题转后续 effort 候选，见收口记录。）
 
 ## Out of scope
 
@@ -45,4 +54,23 @@
 
 ## Tickets
 
-22 张决策票 T81–T102，各对应一轮完整自迭代；frontier 顺序 = 票号序。详见 `tickets/`。
+22 张决策票 T81–T102 **全部闭合**（2026-08-15）；impl 切片 56–77 全部落地并合入 main。
+**Frontier**：∅——effort #5 到达目的地。
+
+## 收口记录（2026-08-15）
+
+- **22 轮完整自迭代**（wayfinder 决策 → to-spec → to-tickets → implement → 验证 → commit）全部落地：
+  韧性纵深（熔断 T81 / 降级链 T82）、成本治理（预算 T83 / 日配额 T84）、工具面（沙箱合流 T85 /
+  MCP 漂移 T86）、会话能力（结构化输出 T87 / fork T88 / webhook T89 / 手动压缩 T90）、
+  基建（配置正规化 T91 / 供应链 T92 / 性能基准 T93 / 红队数值化 T94 / 质量门 T95 / skills 缓存 T96 /
+  runbook T97 / examples T98 / 多实例 T99 / API 审计 T100）、终验与收口（T101 / T102）。
+- **终验**：18 模块 `mvn clean verify` 全绿（jaCoCo LINE≥70% 硬门生效）；全仓 **1021 测试** 0 失败；
+  覆盖率 77.1%–90.9%；性能基线每轮 P95 0.55ms。
+- **远端门**（workflow 承载）：SpotBugs High 硬门 / 红队双硬门（拦截率≥95% + dangerous-executed=0）/
+  CycloneDX SBOM + 依赖扫描 / perf 哨兵 / Dependabot。
+- **文档面**：spec 增 15–23 号 + 16/17/18/19/20/21/22/23 新篇；ops-runbook；api-surface（404 类型）；
+  perf baseline；README「生产级纵深」段；CONTEXT 术语增补。
+- **后续 effort 候选**（fog 毕业）：熔断半开参数自适应；fork 后 evidence-id 归属与生命周期；
+  webhook exactly-once；分布式配额/限流（长期 out-of-scope，需重绘 destination）。
+- **过程教训**（记录在案）：本机增量编译不可信（impl-60 假绿教训）——一律 clean test/verify；
+  Mimosa 安全钩子对 shell 工具类注入启发式恒拦（合流改道：装配期二选一 + 入参解析抽离）。
