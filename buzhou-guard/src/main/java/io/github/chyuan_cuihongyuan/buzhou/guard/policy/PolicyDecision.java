@@ -1,19 +1,29 @@
 package io.github.chyuan_cuihongyuan.buzhou.guard.policy;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 授权策略裁决（wayfinder2 impl-23 / T52 / docs/spec/12 §guard-24）：
  * allow / deny / escalate（→ HITL 人工审批），附 reason（可分析、可观测）。
+ *
+ * <p>impl-40 / spec 13 §T64：新增 <b>provenance</b>（{@code revision} 快照版本 +
+ * {@code activatedAt} 激活时刻）——热加载后每个决策可溯源到规则版本（决策审计面）。
+ * 旧两参构造保留（revision 空 = 静态策略无版本）。
  */
-public record PolicyDecision(Action action, String reason) {
+public record PolicyDecision(Action action, String reason, String revision,
+                             Instant activatedAt) {
 
     public enum Action {
         ALLOW,
         DENY,
         /** 升级为人工审批（FIDES approver / 既有授权台账通道）。 */
         ESCALATE
+    }
+
+    public PolicyDecision(Action action, String reason) {
+        this(action, reason, "", null);
     }
 
     public static PolicyDecision allow(String reason) {

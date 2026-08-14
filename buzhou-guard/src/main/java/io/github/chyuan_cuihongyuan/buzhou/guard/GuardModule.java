@@ -19,6 +19,8 @@ import io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHook;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.GuardAuthApi;
 import io.github.chyuan_cuihongyuan.buzhou.guard.inject.CanaryGuardHook;
 import io.github.chyuan_cuihongyuan.buzhou.guard.inject.SpotlightHook;
+import io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyEngine;
+import io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyGateHook;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,6 +74,10 @@ public final class GuardModule {
         if (!builder.factDefinitions.isEmpty()) {
             h.add(new FactCollectorHook(builder.factDefinitions, factStore));
         }
+        // impl-40 / spec 13 §T64：策略门（热加载引擎由装配/业务侧注入；默认拒语义见 PolicyGateHook）
+        if (builder.policyEngine != null) {
+            h.add(new PolicyGateHook(builder.policyEngine));
+        }
         this.hooks = List.copyOf(h);
         this.attachmentRenderer = builder.factDefinitions.isEmpty() ? null
                 : new FactAttachmentRenderer(factStore, builder.factDefinitions);
@@ -119,6 +125,8 @@ public final class GuardModule {
         private double canarySimilarityThreshold = 0.6;
         // impl-21 / T49：FIDES 最小 taint 信息流控制（默认关）
         private boolean taintTracking = false;
+        // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
+        private PolicyEngine policyEngine;
 
         private Builder(BuzhouStores stores) {
             this.stores = stores;
@@ -149,6 +157,13 @@ public final class GuardModule {
         /** 开启 FIDES 最小 taint 信息流控制（读侧打标 + 写门：untrusted 上下文写侧调用转 HITL）。 */
         public Builder taintTracking() {
             this.taintTracking = true;
+            return this;
+        }
+
+        /** 挂授权策略门（热加载 {@link io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher}
+         * 或静态 {@link io.github.chyuan_cuihongyuan.buzhou.guard.policy.EmbeddedPolicyEngine}）。 */
+        public Builder policyEngine(PolicyEngine engine) {
+            this.policyEngine = engine;
             return this;
         }
 

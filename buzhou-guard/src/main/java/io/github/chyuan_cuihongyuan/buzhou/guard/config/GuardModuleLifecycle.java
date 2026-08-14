@@ -24,14 +24,21 @@ public class GuardModuleLifecycle implements SmartLifecycle {
     private final AtomicBoolean running = new AtomicBoolean();
     private final AuditChain auditChain;
     private final SigningKeyRing keyRing;
+    private final io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher policyRefresher;
 
     public GuardModuleLifecycle() {
-        this(null, null);
+        this(null, null, null);
     }
 
     public GuardModuleLifecycle(AuditChain auditChain, SigningKeyRing keyRing) {
+        this(auditChain, keyRing, null);
+    }
+
+    public GuardModuleLifecycle(AuditChain auditChain, SigningKeyRing keyRing,
+            io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher policyRefresher) {
         this.auditChain = auditChain;
         this.keyRing = keyRing;
+        this.policyRefresher = policyRefresher;
     }
 
     @Override
@@ -53,6 +60,9 @@ public class GuardModuleLifecycle implements SmartLifecycle {
             } catch (RuntimeException e) {
                 LOG.warn("buzhou-guard 停机自检异常（审计链状态未知）", e);
             }
+        }
+        if (policyRefresher != null) {
+            policyRefresher.close();
         }
         running.set(false);
     }

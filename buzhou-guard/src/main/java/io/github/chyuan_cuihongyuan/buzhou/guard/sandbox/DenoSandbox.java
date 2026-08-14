@@ -40,6 +40,13 @@ public final class DenoSandbox implements CommandSandbox {
     private final List<String> allowEnv;
     private final List<String> allowRun;
     private final SandboxProcessLauncher launcher;
+    // impl-40 / spec 13 §T64：探测缓存（deno --version 每次 run 都探测是多余开销）+ 限额透传
+    private final java.time.Duration probeTtl;
+    private final SandboxLimits limits;
+    private volatile ProbeResult probeCache;
+
+    private record ProbeResult(long probedAtMillis, boolean available) {
+    }
 
     private DenoSandbox(Builder builder) {
         this.denoBinary = builder.denoBinary;
@@ -48,6 +55,8 @@ public final class DenoSandbox implements CommandSandbox {
         this.allowEnv = List.copyOf(builder.allowEnv);
         this.allowRun = List.copyOf(builder.allowRun);
         this.launcher = builder.launcher;
+        this.probeTtl = builder.probeTtl;
+        this.limits = builder.limits;
     }
 
     public static Builder builder(SandboxProcessLauncher launcher) {
@@ -61,9 +70,23 @@ public final class DenoSandbox implements CommandSandbox {
         private final List<String> allowNet = new ArrayList<>();
         private final List<String> allowEnv = new ArrayList<>();
         private final List<String> allowRun = new ArrayList<>();
+        private java.time.Duration probeTtl = java.time.Duration.ofSeconds(60);
+        private SandboxLimits limits = SandboxLimits.NONE;
 
         private Builder(SandboxProcessLauncher launcher) {
             this.launcher = launcher;
+        }
+
+        /** impl-40：探测缓存 TTL（默认 PT60S；{@code Duration.ZERO} = 每次实探）。 */
+        public Builder probeTtl(java.time.Duration ttl) {
+            this.probeTtl = ttl == null ? java.time.Duration.ZERO : ttl;
+            return this;
+        }
+
+        /** impl-40 / spec 13 §T64：资源限额（超时上界 / 输出截断 / 内存透传执行器）。 */
+        public Builder limits(SandboxLimits sandboxLimits) {
+            this.limits = sandboxLimits;
+            return this;
         }
 
         public Builder denoBinary(String binary) {
@@ -95,6 +118,13 @@ public final class DenoSandbox implements CommandSandbox {
         public DenoSandbox build() {
             return new DenoSandbox(this);
         }
+
+        /** impl-40：带限额装饰的档位（limits=NONE 时等价 build()）。 */
+        public CommandSandbox buildLimited() {
+            DenoSandbox sandbox = new DenoSandbox(this);
+            return limits == null || limits.equals(SandboxLimits.NONE)
+                    ? sandbox : new LimitedCommandSandbox(sandbox, limits);
+        }
     }
 
     @Override
@@ -105,12 +135,27 @@ public final class DenoSandbox implements CommandSandbox {
     @Override
     public boolean available() {
         // 探测：deno --version 退出码 0（经注入的 launcher 执行；失败/异常 = 不可用）
+        // impl-40：结果按 TTL 缓存（探测是额外进程开销；失效即重探）
+        ProbeResult cached = probeCache;
+        long now = System.currentTimeMillis();
+        if (cached != null && probeTtl.toMillis() > 0
+                && now - cached.probedAtMillis() < probeTtl.toMillis()) {
+            return cached.available();
+        }
+        boolean available;
         try {
-            return launcher.launch(List.of(denoBinary, "--version"), Map.of(), null,
+            available = launcher.launch(List.of(denoBinary, "--version"), Map.of(), null,
                     Duration.ofSeconds(5)).success();
         } catch (Exception e) {
-            return false;
+            available = false;
         }
+        probeCache = new ProbeResult(now, available);
+        return available;
+    }
+
+    /** 立即失效探测缓存（安装 Deno 后的运维/测试入口）。 */
+    public void invalidateProbeCache() {
+        probeCache = null;
     }
 
     @Override

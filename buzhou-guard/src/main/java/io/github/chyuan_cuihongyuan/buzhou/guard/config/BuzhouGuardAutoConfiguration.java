@@ -13,6 +13,8 @@ import io.github.chyuan_cuihongyuan.buzhou.guard.audit.PemFileKeyProvider;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyProvider;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyRing;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.GuardAuthApi;
+import io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher;
+import io.github.chyuan_cuihongyuan.buzhou.guard.policy.ResourcePolicySource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -47,8 +49,15 @@ public class BuzhouGuardAutoConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(BuzhouGuardAutoConfiguration.class);
 
     @Bean
-    public GuardModule guardModule(BuzhouStores stores, Environment env) {
-        return GuardModule.fromYml(stores, ConfigMaps.sub(env, "buzhou.guard"));
+    public GuardModule guardModule(BuzhouStores stores, Environment env,
+            ObjectProvider<PolicyRefresher> policyRefresher) {
+        PolicyRefresher refresher = policyRefresher.getIfAvailable();
+        GuardModule.Builder builder = GuardModule.builder(stores)
+                .fromYml(ConfigMaps.sub(env, "buzhou.guard"));
+        if (refresher != null) {
+            builder.policyEngine(refresher);
+        }
+        return builder.build();
     }
 
     @Bean
@@ -123,15 +132,30 @@ public class BuzhouGuardAutoConfiguration {
     }
 
     /**
+     * impl-40 / spec 13 §T64：策略门热加载（默认关——deny-by-default 引擎须显式启用）；
+     * source 支持 classpath:/file:/裸路径，refresh-interval<=0 关闭轮询；启动首载失败
+     * fail-fast（启用而来源不可用必须显式暴露，不静默全拒）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "buzhou.guard.policy", name = "enabled",
+            havingValue = "true")
+    public PolicyRefresher policyRefresher(Environment env) {
+        GuardPolicyConfig config = GuardPolicyConfig.fromGuardMap(
+                ConfigMaps.sub(env, "buzhou.guard"));
+        return new PolicyRefresher(new ResourcePolicySource(config.sourceLocation()),
+                config.refreshInterval());
+    }
+
+    /**
      * impl-30 / spec 13 §core-1：guard 停机 lifecycle（phase
      * {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#GUARD}）；
-     * impl-39：审计链停机终局自检（断链 WARN）。
+     * impl-39：审计链停机终局自检（断链 WARN）；impl-40：策略轮询随停机关闭。
      */
     @Bean
     public GuardModuleLifecycle guardModuleLifecycle(ObjectProvider<AuditChain> auditChain,
-            ObjectProvider<SigningKeyRing> keyRing) {
+            ObjectProvider<SigningKeyRing> keyRing, ObjectProvider<PolicyRefresher> refresher) {
         return new GuardModuleLifecycle(auditChain.getIfAvailable(),
-                keyRing.getIfAvailable());
+                keyRing.getIfAvailable(), refresher.getIfAvailable());
     }
 
     private GuardAuditConfig auditConfig(Environment env) {

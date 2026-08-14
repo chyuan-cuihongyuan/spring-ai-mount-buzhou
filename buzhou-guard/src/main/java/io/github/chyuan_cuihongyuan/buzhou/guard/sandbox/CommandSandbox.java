@@ -20,10 +20,30 @@ import java.util.Map;
  */
 public interface CommandSandbox {
 
-    /** 执行结果（exit code / stdout / stderr / 是否超时）。 */
-    record CommandResult(int exitCode, String stdout, String stderr, boolean timedOut) {
+    /**
+     * 执行结果（exit code / stdout / stderr / 是否超时 / 输出截断标记 / 被杀原因）。
+     *
+     * <p>impl-40 / spec 13 §T64：{@code truncated}（stdout/stderr 超出
+     * {@link SandboxLimits#maxOutputBytes()} 被截断）与 {@code killedReason}
+     * （timeout=超时杀 / memory=内存超限杀（部署侧执行器兑现）/ output=输出超限截断 /
+     * manual=外部干预杀）——截断与击杀<b>显式可见</b>，不静默。
+     */
+    record CommandResult(int exitCode, String stdout, String stderr, boolean timedOut,
+                         boolean truncated, KilledReason killedReason) {
+
+        /** impl-25 兼容构造（无截断/击杀信息）。 */
+        public CommandResult(int exitCode, String stdout, String stderr, boolean timedOut) {
+            this(exitCode, stdout, stderr, timedOut, false,
+                    timedOut ? KilledReason.TIMEOUT : null);
+        }
+
         public boolean success() {
             return exitCode == 0 && !timedOut;
+        }
+
+        /** 进程被终止的原因（null = 正常退出或未被限额击杀）。 */
+        public enum KilledReason {
+            TIMEOUT, MEMORY, OUTPUT, MANUAL
         }
     }
 

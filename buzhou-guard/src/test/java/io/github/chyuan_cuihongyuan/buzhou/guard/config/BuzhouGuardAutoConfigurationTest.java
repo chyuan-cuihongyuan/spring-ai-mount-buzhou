@@ -106,6 +106,26 @@ class BuzhouGuardAutoConfigurationTest {
                 });
     }
 
+    /** impl-40 / spec 13 §T64：策略门默认关；显式开启后热加载引擎 + PolicyGateHook 进装配。 */
+    @Test
+    void policyGateDisabledByDefaultAndWiredWhenEnabled() {
+        runner.run(ctx ->
+                assertThat(ctx).doesNotHaveBean(io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher.class));
+
+        runner.withPropertyValues("buzhou.guard.policy.enabled=true").run(ctx -> {
+            assertThat(ctx).hasSingleBean(
+                    io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher.class);
+            GuardModule module = ctx.getBean(GuardModule.class);
+            assertThat(module.configure().hooks())
+                    .anyMatch(h -> h instanceof io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyGateHook);
+            // 测试 classpath 策略生效：deny-others 规则可用（默认拒兜底存在）
+            io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher refresher =
+                    ctx.getBean(io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyRefresher.class);
+            assertThat(refresher.ruleCount()).isEqualTo(2);
+            ctx.stop(); // 关闭轮询线程
+        });
+    }
+
     @Test
     void auditStoreInMemoryForcedEvenWithDataSource() {
         runner.withPropertyValues("buzhou.guard.audit.store=in-memory")

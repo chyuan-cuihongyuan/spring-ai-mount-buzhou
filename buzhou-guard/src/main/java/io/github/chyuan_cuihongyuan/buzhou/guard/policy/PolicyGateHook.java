@@ -48,7 +48,9 @@ public class PolicyGateHook implements BuzhouHook {
                 "sessionId", ctx.sessionId(),
                 "toolName", ctx.toolName(),
                 "action", decision.action().name(),
-                "reason", decision.reason()), Instant.now()));
+                "reason", decision.reason(),
+                // impl-40 / spec 13 §T64：provenance——决策可溯源到规则快照版本
+                "revision", decision.revision() == null ? "" : decision.revision()), Instant.now()));
         return switch (decision.action()) {
             case ALLOW -> HookResult.CONTINUE;
             case DENY -> new HookResult.Block("策略拒绝：" + decision.reason());

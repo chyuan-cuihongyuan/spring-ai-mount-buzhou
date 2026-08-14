@@ -1,0 +1,9 @@
+{
+  "rules": [
+    {"id": "allow-trusted-read", "toolPattern": "read_*",
+     "labels": [{"key": "taint", "op": "eq", "value": "TRUSTED"}],
+     "action": "ALLOW", "reason": "受信上下文读放行"},
+    {"id": "deny-others", "toolPattern": "*",
+     "action": "DENY", "reason": "默认拒"}
+  ]
+}
