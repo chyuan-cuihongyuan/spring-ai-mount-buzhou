@@ -21,6 +21,24 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <!-- impl-51 / spec 14 §G：SkillStore 持久化实现（optional——无 jdbc/redis 运行时零影响；
+         星形拓扑下 store-* 模块只依赖 core，feature SPI 的实现托管在本模块） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <!-- impl-51：RedisSkillStore 的 Instant 序列化 -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- 自装配层（ticket 22）：@AutoConfiguration / @ConditionalOn* -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -37,6 +55,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- impl-51：JdbcSkillStore 契约测试用 H2 内存库 -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
     <!--

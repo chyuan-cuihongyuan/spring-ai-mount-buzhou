@@ -153,10 +153,28 @@ public class SkillAdminApi {
                 .orElse(List.of());
     }
 
-    /** 设绑定：(appId, agentName) → skillName 清单（整体替换；并入 PolicyConfigProvider）。 */
+    /**
+     * 设绑定：(appId, agentName) → skillName 清单（整体替换；并入 PolicyConfigProvider）。
+     * impl-51：skillName 须真实存在（DB 任意状态或 classpath 内置）——此前可绑定不存在的名，
+     * 运行时静默不生效。
+     */
     public void setBinding(String appId, String agentName, List<String> skillNames) {
         if (bindingStore == null) {
             throw new IllegalStateException("未配置 BindingPolicyStore，不支持绑定管理");
+        }
+        List<String> requested = skillNames == null ? List.of() : skillNames;
+        java.util.Set<String> known = new java.util.HashSet<>();
+        if (dbStore != null) {
+            dbStore.findAll().forEach(r -> known.add(r.name()));
+        }
+        if (classpathSkills != null) {
+            known.addAll(classpathSkills.keySet());
+        }
+        for (String name : requested) {
+            if (!known.contains(name)) {
+                throw new IllegalArgumentException(
+                        "绑定失败：skill \"" + name + "\" 不存在（DB 与 classpath 均未找到）");
+            }
         }
         BindingPolicy existing = bindingStore.find(appId, agentName)
                 .orElse(BindingPolicy.empty(appId, agentName));

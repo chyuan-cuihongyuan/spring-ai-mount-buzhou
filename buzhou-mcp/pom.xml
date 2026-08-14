@@ -46,5 +46,16 @@
       注意：不得在此加其他 feature 模块依赖（含 test scope）——09 模块工程档「feature 模块之间
       禁止直接依赖」是依赖白名单；可观测事件经 core 的 SpanRecorder SPI 注入。
     -->
+      <!-- impl-51：JdbcToolSetSpecStore（optional——feature SPI 实现托管本模块，星形拓扑不破） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 </project>

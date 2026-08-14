@@ -24,6 +24,9 @@ import java.util.Optional;
  */
 public class LoadSkillTool implements ToolCallback {
 
+    /** impl-51：技能正文读入上限（512KB 字符）；超限截断 + 指引走资源分片。 */
+    static final int MAX_BODY_CHARS = 512 * 1024;
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final SkillRegistry registry;
@@ -79,7 +82,15 @@ public class LoadSkillTool implements ToolCallback {
     private String formatResult(Skill skill) {
         StringBuilder sb = new StringBuilder();
         if (skill.body() != null && !skill.body().isBlank()) {
-            sb.append(skill.body());
+            // impl-51：正文上限（此前不限长整段入 prompt——超大 SKILL.md 直炸上下文）
+            String body = skill.body();
+            if (body.length() > MAX_BODY_CHARS) {
+                sb.append(body, 0, MAX_BODY_CHARS)
+                        .append("\n\n（技能正文超过 ").append(MAX_BODY_CHARS)
+                        .append(" 字符上限，已截断；完整内容请走资源分片）");
+            } else {
+                sb.append(body);
+            }
         } else {
             sb.append("（技能 ").append(skill.name()).append(" 无正文）");
         }

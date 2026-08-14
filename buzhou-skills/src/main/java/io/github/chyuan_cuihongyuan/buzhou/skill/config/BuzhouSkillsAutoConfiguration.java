@@ -28,14 +28,28 @@ import org.springframework.core.env.Environment;
 @ConditionalOnProperty(prefix = "buzhou.skills", name = "enabled", matchIfMissing = true)
 public class BuzhouSkillsAutoConfiguration {
 
+    /**
+     * impl-51 / spec 14 §G：接线持久化 SkillStore bean（容器内存在
+     * {@link io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore} 实现——如
+     * {@code JdbcSkillStore}/{@code RedisSkillStore} 的 @Bean——即注入模块）。
+     * 此前装配路径无法接入 store，DB 动态 Skill 只能手工编码。
+     */
     @Bean
     public SkillModule skillModule(Environment env,
                                    ObjectProvider<BindingPolicyStore> bindingStore,
-                                   ObjectProvider<PolicyConfigProvider> policyProvider) {
-        return SkillModule.fromYml(ConfigMaps.sub(env, "buzhou.skills"))
-                .bindingStore(bindingStore.getIfAvailable())
-                .policyProvider(policyProvider.getIfAvailable())
-                .build();
+                                   ObjectProvider<PolicyConfigProvider> policyProvider,
+                                   ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore> skillStore) {
+        io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore store = skillStore.getIfAvailable();
+        io.github.chyuan_cuihongyuan.buzhou.skill.SkillModule.Builder builder =
+                SkillModule.fromYml(ConfigMaps.sub(env, "buzhou.skills"))
+                        .bindingStore(bindingStore.getIfAvailable())
+                        .policyProvider(policyProvider.getIfAvailable());
+        if (store != null) {
+            // 显式 store bean = 用户意图启用 DB 动态 Skill（除非显式 db-enabled=false）
+            Boolean explicitOff = env.getProperty("buzhou.skills.db-enabled", Boolean.class, true);
+            builder.dbStore(store).dbEnabled(explicitOff);
+        }
+        return builder.build();
     }
 
     @Bean

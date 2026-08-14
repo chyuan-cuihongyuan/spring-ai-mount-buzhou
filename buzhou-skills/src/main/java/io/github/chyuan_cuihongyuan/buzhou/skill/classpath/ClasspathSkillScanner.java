@@ -24,6 +24,8 @@ import java.util.Map;
  */
 public class ClasspathSkillScanner {
 
+    private static final System.Logger LOGGER = System.getLogger(ClasspathSkillScanner.class.getName());
+
     public static final String DEFAULT_LOCATION = "classpath*:META-INF/skills/";
     private static final String SKILL_MD = "SKILL.md";
 
@@ -56,7 +58,9 @@ public class ClasspathSkillScanner {
                     }
                 }
             } catch (IOException e) {
-                // 扫描失败不阻断启动：classpath 无技能时清单为空
+                // impl-51：扫描失败不阻断启动，但必须可见（此前技能静默消失、排障不可诊断）
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "classpath 技能扫描失败（" + location + "）：" + e.getMessage());
             }
         }
         return Map.copyOf(result);
@@ -116,6 +120,9 @@ public class ClasspathSkillScanner {
                     SkillSource.CLASSPATH);
             return new ClasspathSkillEntry(skill, resourceContents);
         } catch (IOException e) {
+            // impl-51：SKILL.md 读/解析失败记 WARN——技能不再静默消失
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "技能目录解析失败（" + dirName + "）：" + e.getMessage());
             return null;
         }
     }
