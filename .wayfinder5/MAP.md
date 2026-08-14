@@ -24,6 +24,7 @@
 - [沙箱合流](tickets/T85-sandbox-convergence.md) — core 新 SPI `CommandBackend`（自含 CommandOutcome record）；RunCommandTool 可选委托（前置校验留 tools、执行走沙箱，无委托回退 ProcessBuilder）；guard `SandboxCommandBackend` 桥接（@ConditionalOnBean(CommandSandbox)，档位选择归应用）；`buzhou.tools.command.backend=builtin|sandbox`（默认 builtin，sandbox 缺实现 fail-fast，沙箱不可用不静默回退）。
 - [MCP 漂移检测](tickets/T86-mcp-drift.md) — SDK 2.0.0 toolsChangeConsumer 协议订阅（无轮询兜底）；connect(spec, listener) default 方法 + McpConnection.listToolNames() 基线；Entry 基线差量（added/removed，非空发 mcp.tools-drift Event+WARN+指标，基线推进）；M1 仅告警不热替换（回调会话装配期绑定，文档明示）。
 - [结构化输出](tickets/T87-structured-output.md) — AgentSession.chatForEntity(input, Class)（default 抛 UOE）；BeanOutputConverter.getFormat() 注入 schema；解析失败发 structured.reask 事件后 REASK 一次完整 turn（复用 doChat 全管线、诚实计预算）→ 再失败抛 StructuredOutputException（STRUCTURED_OUTPUT_FAILED/NON_RETRYABLE）；流式 M1 不做。
+- [会话 fork](tickets/T88-session-fork.md) — AgentRuntime.fork（default UOE）：Message 全量复制 + Summary 只复制最新一版 + SessionState 不复制（预算重置=重试语义）；走完整 spawn 管线；spill/evidence 共享只读（源删除级联为已知边界）；session.forked 事件；M1 不做指定 messageId 截断（fog）。
 
 ## Not yet specified
 

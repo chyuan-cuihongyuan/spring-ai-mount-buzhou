@@ -573,6 +573,11 @@ public class DefaultAgentSession implements AgentSession {
      * 分发线程异步交付（本方法体内联逻辑即交付回调 {@link #deliverEvent}）；SYNC 默认
      * 模式维持既有内联行为不变。
      */
+    /** 包级分发入口（impl-63：runtime.fork 发 session.forked 用，同管线）。 */
+    void dispatchEventInternal(SessionEvent event) {
+        dispatchEvent(event);
+    }
+
     private void dispatchEvent(SessionEvent event) {
         if (eventDispatchConfig != null && eventDispatchConfig.isBuffered()) {
             BufferedEventDispatcher dispatcher = eventDispatcher;

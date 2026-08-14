@@ -7,6 +7,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult;
@@ -166,6 +167,31 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
     @Override
     public AgentSession spawn(String appId, String agentName, String sessionId) {
         return spawn(appId, agentName, sessionId, SpawnOptions.defaults());
+    }
+
+    /**
+     * 会话 fork（spec 20 / T88 / impl-63）：源校验 → 完整 spawn 管线（容量闸/租约/装配全生效）→
+     * 复制 Message 全量 + Summary 最新一版（State 不复制 = 预算重置）。源会话不动，两分支独立演化。
+     */
+    @Override
+    public AgentSession fork(String sourceSessionId, String appId, String agentName, String newSessionId) {
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage> history =
+                stores.messageStore().load(sourceSessionId);
+        if (history.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "fork 源会话无消息历史（sessionId=" + sourceSessionId + "）：fork 空会话无意义");
+        }
+        AgentSession session = spawn(appId, agentName, newSessionId);
+        stores.messageStore().append(newSessionId, history);
+        stores.summaryStore().latest(sourceSessionId)
+                .ifPresent(summary -> stores.summaryStore().save(newSessionId, summary));
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.session.forks");
+        if (session instanceof DefaultAgentSession concrete) {
+            concrete.dispatchEventInternal(SessionEvent.of(
+                    "session.forked", java.util.Map.of("sourceSessionId", sourceSessionId)));
+        }
+        return session;
     }
 
     @Override
