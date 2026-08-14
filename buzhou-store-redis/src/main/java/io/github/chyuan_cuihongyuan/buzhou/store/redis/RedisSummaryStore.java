@@ -75,4 +75,39 @@ public class RedisSummaryStore implements SummaryStore {
         }
         c.del(keys.summaryVersions(sessionId), keys.summarySeq(sessionId));
     }
+
+    /**
+     * impl-37 / spec 13 §stores-6：旧版本修剪——SCAN 枚举会话（{@code sum:<sid>:seq} 键形状），
+     * 每会话保留最近 keepLatest 版（ZSET 逆序），其余删正文 + 索引项。
+     */
+    @Override
+    public int pruneVersions(int keepLatest) {
+        int keep = Math.max(1, keepLatest);
+        var c = sync.commands();
+        int deleted = 0;
+        List<String> seqKeys = new ArrayList<>();
+        io.lettuce.core.ScanArgs match = io.lettuce.core.ScanArgs.Builder
+                .matches(keys.summarySeqScanPattern()).limit(100);
+        io.lettuce.core.ScanCursor cursor = io.lettuce.core.ScanCursor.INITIAL;
+        do {
+            io.lettuce.core.KeyScanCursor<String> page = c.scan(cursor, match);
+            if (page.getKeys() != null) {
+                seqKeys.addAll(page.getKeys());
+            }
+            cursor = page;
+        } while (!cursor.isFinished());
+        for (String seqKey : seqKeys) {
+            String sessionId = keys.sessionIdFromSummarySeqKey(seqKey);
+            List<String> versions = c.zrevrange(keys.summaryVersions(sessionId), 0, -1); // 新→旧
+            if (versions == null || versions.size() <= keep) {
+                continue;
+            }
+            for (String version : versions.subList(keep, versions.size())) {
+                c.del(keys.summaryVersion(sessionId, Long.parseLong(version)));
+                c.zrem(keys.summaryVersions(sessionId), version);
+                deleted++;
+            }
+        }
+        return deleted;
+    }
 }

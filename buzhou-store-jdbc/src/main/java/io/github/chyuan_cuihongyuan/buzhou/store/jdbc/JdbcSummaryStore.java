@@ -138,4 +138,21 @@ public class JdbcSummaryStore implements SummaryStore {
     public void deleteSession(String sessionId) {
         jdbc.update("DELETE FROM buzhou_summary WHERE session_id = ?", sessionId);
     }
+
+    /** impl-37 / spec 13 §stores-6：旧版本修剪——每会话保留最近 keepLatest 个版本（etcd compaction 语义）。 */
+    @Override
+    public int pruneVersions(int keepLatest) {
+        int keep = Math.max(1, keepLatest);
+        int deleted = 0;
+        for (String sessionId : jdbc.queryForList(
+                "SELECT DISTINCT session_id FROM buzhou_summary", String.class)) {
+            deleted += jdbc.update("""
+                            DELETE FROM buzhou_summary WHERE session_id = ? AND version <= (
+                              SELECT max_version FROM (SELECT MAX(version) - ? AS max_version
+                                FROM buzhou_summary WHERE session_id = ?) AS mv)
+                            """,
+                    sessionId, keep, sessionId);
+        }
+        return deleted;
+    }
 }

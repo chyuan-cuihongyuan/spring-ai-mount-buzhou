@@ -41,6 +41,13 @@ public final class BuzhouLifecyclePhases {
     public static final int MEMORY = 3_000;
 
     /**
+     * 保留清理后台层（impl-37 / spec 13 §stores-6）：RetentionSweeper 周期调度
+     * （会话保留/观测 TTL/摘要修剪/恢复窗口）——core 停机排空后才停（后 stop），
+     * 停机窗口内不再发起清理周期。
+     */
+    public static final int RETENTION = 3_500;
+
+    /**
      * spill 句柄注册表/缓存层。本片诚实边界：spill 侧无可关闭资源
      * （{@code HandleLifecycleRegistry} / {@code SessionReadOnlyRegistry} /
      * {@code SemanticChunkIndex} 均为进程内 ConcurrentHashMap，无 flush 语义），

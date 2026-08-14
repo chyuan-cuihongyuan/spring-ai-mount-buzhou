@@ -9,6 +9,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Optional;
 
 /** 事件溯源工具调用日志 JDBC 实现（wayfinder2 impl-07；append-only、COMPLETED 只记录一次）。 */
@@ -77,5 +78,12 @@ public class JdbcToolCallLog implements ToolCallLog {
     @Override
     public void deleteSession(String sessionId) {
         jdbc.update("DELETE FROM buzhou_tool_call_log WHERE session_id = ?", sessionId);
+    }
+
+    /** impl-37 / spec 13 §stores-6：保留窗口批删（恢复语义只保证窗口内）。 */
+    @Override
+    public int prune(Instant cutoff) {
+        return jdbc.update("DELETE FROM buzhou_tool_call_log WHERE occurred_at < ?",
+                Timestamp.from(cutoff));
     }
 }

@@ -82,4 +82,21 @@ public class InMemorySummaryStore implements SummaryStore {
     int sessionCount() {
         return bySession.size();
     }
+
+    /** impl-37 / spec 13 §stores-6：旧版本修剪——每会话保留最近 keepLatest 个版本。 */
+    @Override
+    public int pruneVersions(int keepLatest) {
+        int keep = Math.max(1, keepLatest);
+        int deleted = 0;
+        for (CopyOnWriteArrayList<StructuredSummary> versions : bySession.values()) {
+            if (versions.size() <= keep) {
+                continue;
+            }
+            versions.sort(Comparator.comparingLong(StructuredSummary::version));
+            int overflow = versions.size() - keep;
+            versions.subList(0, overflow).clear();
+            deleted += overflow;
+        }
+        return deleted;
+    }
 }

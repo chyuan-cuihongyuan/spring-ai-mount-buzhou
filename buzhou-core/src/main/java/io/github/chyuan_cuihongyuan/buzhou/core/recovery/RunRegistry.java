@@ -27,4 +27,13 @@ public interface RunRegistry {
      */
     default void deleteSession(String sessionId) {
     }
+
+    /**
+     * impl-37 / spec 13 §growth-8：COMPLETED 保留窗口批删（默认 PT24H）：删除
+     * {@code cutoff} 之前完结的 COMPLETED 快照（RUNNING/INTERRUPTED 不受影响——
+     * 恢复巡检依赖），返回删除条数。默认 no-op。
+     */
+    default int pruneCompletedBefore(java.time.Instant cutoff) {
+        return 0;
+    }
 }

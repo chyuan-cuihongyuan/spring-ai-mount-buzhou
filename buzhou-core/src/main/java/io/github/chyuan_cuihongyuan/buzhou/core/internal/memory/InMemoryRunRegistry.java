@@ -38,4 +38,14 @@ public class InMemoryRunRegistry implements RunRegistry {
     public void deleteSession(String sessionId) {
         runs.remove(sessionId);
     }
+
+    /** impl-37 / spec 13 §growth-8：COMPLETED 保留窗口批删（在途/中断快照不受影响）。 */
+    @Override
+    public int pruneCompletedBefore(java.time.Instant cutoff) {
+        return (int) runs.values().stream()
+                .filter(s -> s.status() == RunStatus.COMPLETED && s.updatedAt().isBefore(cutoff))
+                .map(s -> runs.remove(s.sessionId()))
+                .filter(java.util.Objects::nonNull)
+                .count();
+    }
 }

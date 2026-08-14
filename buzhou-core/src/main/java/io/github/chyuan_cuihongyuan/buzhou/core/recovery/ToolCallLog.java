@@ -25,4 +25,12 @@ public interface ToolCallLog {
      */
     default void deleteSession(String sessionId) {
     }
+
+    /**
+     * impl-37 / spec 13 §stores-6：保留窗口批删（etcd compaction 语义——恢复语义只保证
+     * 窗口内）：删除 {@code cutoff} 之前发生的日志条目，返回删除条数。默认 no-op。
+     */
+    default int prune(java.time.Instant cutoff) {
+        return 0;
+    }
 }

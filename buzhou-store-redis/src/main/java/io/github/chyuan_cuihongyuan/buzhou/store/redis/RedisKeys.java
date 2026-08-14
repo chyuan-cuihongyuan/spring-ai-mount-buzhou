@@ -116,6 +116,17 @@ final class RedisKeys {
         return pfx + "obs:" + escapeGlob(sessionId) + ":snap:*";
     }
 
+    /** impl-37：会话摘要计数器 SCAN 模式（摘要修剪枚举会话用；计数器键形状 sum:&lt;sid&gt;:seq）。 */
+    String summarySeqScanPattern() {
+        return pfx + "sum:*:seq";
+    }
+
+    /** impl-37：从 {@code sum:<sid>:seq} 键还原 sessionId。 */
+    String sessionIdFromSummarySeqKey(String seqKey) {
+        String rest = seqKey.substring((pfx + "sum:").length());
+        return rest.substring(0, rest.length() - ":seq".length());
+    }
+
     private static String escapeGlob(String s) {
         StringBuilder sb = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {

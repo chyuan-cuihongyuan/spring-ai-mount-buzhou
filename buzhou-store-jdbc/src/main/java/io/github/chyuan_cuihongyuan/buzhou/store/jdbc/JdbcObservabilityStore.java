@@ -1,6 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.store.jdbc;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanKind;
+import io.github.chyuan_cuihongyuan.buzhou.core.retention.ObservabilityTtl;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore;
@@ -12,6 +14,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,6 +67,56 @@ public class JdbcObservabilityStore implements ObservabilityStore {
             jdbc.update("DELETE FROM buzhou_event WHERE session_id = ?", sessionId);
             jdbc.update("DELETE FROM buzhou_injection_snapshot WHERE session_id = ?", sessionId);
             return null;
+        });
+    }
+
+    /**
+     * impl-37 / spec 13 §stores-6：封闭会话枚举——SESSION span 已结束且早于上界，
+     * 按封闭时刻升序（LIMIT 批量限量同源）。活动会话（ended_at IS NULL）永不出现在结果。
+     */
+    @Override
+    public List<ClosedSession> listClosedSessions(Instant closedBefore, int limit) {
+        return jdbc.query("""
+                        SELECT session_id, MAX(ended_at) AS closed_at
+                        FROM buzhou_span
+                        WHERE kind = ? AND ended_at IS NOT NULL AND ended_at < ?
+                        GROUP BY session_id
+                        ORDER BY closed_at
+                        LIMIT ?
+                        """,
+                (rs, n) -> new ClosedSession(
+                        rs.getString("session_id"),
+                        rs.getTimestamp("closed_at").toInstant()),
+                SpanKind.SESSION, Timestamp.from(closedBefore), limit);
+    }
+
+    /**
+     * impl-37 / spec 13 §stores-6：观测 TTL 批删——events 按创建时间、spans 按最后活动
+     * （COALESCE(ended_at, started_at)）过期，以派生表 LIMIT 子查询批删（MySQL 1093 规避：
+     * 派生表包裹后可删本表）；同事务提交。
+     */
+    @Override
+    public int prune(ObservabilityTtl policy) {
+        Instant cutoff = Instant.now().minus(policy.ttl());
+        return JdbcTransactions.inCurrentOrNew(transactionTemplate, () -> {
+            int events = jdbc.update("""
+                            DELETE FROM buzhou_event WHERE event_id IN
+                            (SELECT event_id FROM (SELECT event_id FROM buzhou_event
+                              WHERE created_at < ? LIMIT ?) AS batch)
+                            """,
+                    Timestamp.from(cutoff), policy.batchSize());
+            int spans = jdbc.update("""
+                            DELETE FROM buzhou_span WHERE span_id IN
+                            (SELECT span_id FROM (SELECT span_id FROM buzhou_span
+                              WHERE COALESCE(ended_at, started_at) < ? LIMIT ?) AS batch)
+                            """,
+                    Timestamp.from(cutoff), policy.batchSize());
+            // 快照表低量（每 Turn 一行）无独立单列主键——直删不带 LIMIT（批删限量面向
+            // 高流水 event/span；行值 IN 派生表对三方言兼容性得不偿失）
+            int snapshots = jdbc.update(
+                    "DELETE FROM buzhou_injection_snapshot WHERE created_at < ?",
+                    Timestamp.from(cutoff));
+            return events + spans + snapshots;
         });
     }
 

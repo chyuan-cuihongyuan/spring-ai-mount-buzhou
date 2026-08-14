@@ -41,7 +41,7 @@ import java.util.List;
  * <b>不</b>暴露为 bean，避免被 {@code List<RuntimeConfig>} 自收集（无环）。
  */
 @AutoConfiguration
-@EnableConfigurationProperties(BuzhouCoreProperties.class)
+@EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRetentionProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     @Bean
@@ -107,5 +107,43 @@ public class BuzhouCoreAutoConfiguration {
     @ConditionalOnBean(ChatModel.class)
     public AgentRuntimeLifecycle buzhouAgentRuntimeLifecycle(DefaultAgentRuntime runtime) {
         return new AgentRuntimeLifecycle(runtime, null);
+    }
+
+    /**
+     * impl-37 / spec 13 §stores-6：保留策略族后台执行器（{@code buzhou.retention.*}）。
+     * bean 恒在（{@code enabled=false} 只关自启动调度——各策略仍可手动
+     * {@code RetentionSweeper#sweepOnce()} 触发）。恢复设施（ToolCallLog/RunRegistry）
+     * 作为 bean 声明时并入级联清理与窗口批删；未声明时仅五槽 store 参与保留兑现。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper buzhouRetentionSweeper(
+            BuzhouStores stores,
+            BuzhouRetentionProperties retention,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog> toolCallLog,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry) {
+        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog tcl = toolCallLog.getIfAvailable();
+        io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry registry = runRegistry.getIfAvailable();
+        return new io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper(
+                new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner(stores, registry, tcl),
+                stores.observabilityStore(),
+                stores.summaryStore(),
+                tcl,
+                registry,
+                new io.github.chyuan_cuihongyuan.buzhou.core.retention.SessionHistoryPolicy(
+                        retention.sessionRetention(), retention.sessionNotBefore()),
+                new io.github.chyuan_cuihongyuan.buzhou.core.retention.ObservabilityTtl(
+                        retention.observabilityTtl(), retention.observabilityBatchSize()),
+                retention.summaryKeepVersions(),
+                retention.toolCallLogRetention(),
+                retention.runCompletedRetention(),
+                new io.github.chyuan_cuihongyuan.buzhou.core.retention.MaintenanceTrigger(
+                        retention.trigger().base(), retention.trigger().scaleFactor(),
+                        retention.trigger().cap(), retention.trigger().hardFloor()),
+                retention.sweepInterval(),
+                null,
+                retention.enabled());
     }
 }

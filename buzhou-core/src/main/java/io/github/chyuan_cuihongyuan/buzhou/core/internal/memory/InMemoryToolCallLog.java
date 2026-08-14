@@ -31,6 +31,16 @@ public class InMemoryToolCallLog implements ToolCallLog {
         entries.keySet().removeIf(k -> k.startsWith(prefix));
     }
 
+    /** impl-37 / spec 13 §stores-6：保留窗口批删（cutoff 之前发生的条目）。 */
+    @Override
+    public int prune(java.time.Instant cutoff) {
+        return (int) entries.values().stream()
+                .filter(e -> e.occurredAt().isBefore(cutoff))
+                .map(e -> entries.remove(key(e.sessionId(), e.toolCallId())))
+                .filter(java.util.Objects::nonNull)
+                .count();
+    }
+
     private static String key(String sessionId, String toolCallId) {
         return sessionId + ":" + toolCallId;
     }

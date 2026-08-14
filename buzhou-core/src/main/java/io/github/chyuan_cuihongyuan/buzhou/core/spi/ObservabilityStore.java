@@ -39,4 +39,25 @@ public interface ObservabilityStore {
      */
     default void deleteSession(String sessionId) {
     }
+
+    /**
+     * impl-37 / spec 13 §stores-6：枚举封闭早于 {@code closedBefore} 的会话及其封闭时刻
+     * （锚点 = SESSION span 的 endedAt；活动会话永不出现在结果中）。默认空——
+     * 无 SESSION span 事实源的实现无「封闭」语义可枚举。
+     *
+     * @param closedBefore 封闭时刻上界（含之前）
+     * @param limit        结果上限（批删限量同源）
+     */
+    default java.util.List<ClosedSession> listClosedSessions(java.time.Instant closedBefore, int limit) {
+        return java.util.List.of();
+    }
+
+    /**
+     * impl-37 / spec 13 §stores-6：观测 TTL 批删（ClickHouse 低频兑现语义）——删除过期
+     * events/spans/snapshots（可再生流水，只删记录不删会话），返回删除条数；
+     * 单次批量以 {@code policy.batchSize()} 为限。默认 no-op（返回 0）。
+     */
+    default int prune(io.github.chyuan_cuihongyuan.buzhou.core.retention.ObservabilityTtl policy) {
+        return 0;
+    }
 }

@@ -165,4 +165,44 @@ class BuzhouCoreAutoConfigurationTest {
         return new BuzhouMessage(UUID.randomUUID().toString(), sessionId, 1, 0, Role.USER,
                 "content", List.of(), null, null, null, Map.of(), Instant.now());
     }
+
+    /** impl-37：sweeper 默认装配自启动；enabled=false 只关调度——bean 恒在可手动触发。 */
+    @Test
+    void retentionSweeperAssemblesByDefaultAndCanBeDisabled() {
+        runner.run(ctx -> {
+            assertThat(ctx).hasSingleBean(io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper.class);
+            var sweeper = ctx.getBean(io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper.class);
+            assertThat(sweeper.isAutoStartup()).isTrue(); // SmartLifecycle 自启动
+            assertThat(sweeper.sweepOnce()).isNotNull(); // 手动触发可用
+        });
+        runner.withPropertyValues("buzhou.retention.enabled=false")
+                .run(ctx -> {
+                    assertThat(ctx).hasSingleBean(
+                            io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper.class);
+                    var sweeper = ctx.getBean(
+                            io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper.class);
+                    assertThat(sweeper.isAutoStartup()).isFalse(); // 不排程
+                    assertThat(sweeper.isRunning()).isFalse();
+                    assertThat(sweeper.sweepOnce()).isNotNull(); // 各策略仍可手动触发
+                });
+    }
+
+    /** impl-37：buzhou.retention.* 经 kebab-case 绑定生效。 */
+    @Test
+    void shouldBindRetentionProperties_whenKebabConfigured() {
+        runner.withPropertyValues(
+                        "buzhou.retention.sweep-interval=30m",
+                        "buzhou.retention.session-retention=5h",
+                        "buzhou.retention.observability-ttl=2d",
+                        "buzhou.retention.summary-keep-versions=7",
+                        "buzhou.retention.run-completed-retention=12h")
+                .run(ctx -> {
+                    BuzhouRetentionProperties retention = ctx.getBean(BuzhouRetentionProperties.class);
+                    assertThat(retention.sweepInterval()).isEqualTo(Duration.ofMinutes(30));
+                    assertThat(retention.sessionRetention()).isEqualTo(Duration.ofHours(5));
+                    assertThat(retention.observabilityTtl()).isEqualTo(Duration.ofDays(2));
+                    assertThat(retention.summaryKeepVersions()).isEqualTo(7);
+                    assertThat(retention.runCompletedRetention()).isEqualTo(Duration.ofHours(12));
+                });
+    }
 }

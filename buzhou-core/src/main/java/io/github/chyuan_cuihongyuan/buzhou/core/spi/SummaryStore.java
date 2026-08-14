@@ -17,4 +17,13 @@ public interface SummaryStore {
      */
     default void deleteSession(String sessionId) {
     }
+
+    /**
+     * impl-37 / spec 13 §stores-6：摘要旧版本修剪（etcd compaction 语义）——每会话只保留
+     * 最近 {@code keepLatest} 个版本，返回删除的版本数。幂等；{@code keepLatest}＜1 按 1。
+     * 默认 no-op（返回 0）。
+     */
+    default int pruneVersions(int keepLatest) {
+        return 0;
+    }
 }

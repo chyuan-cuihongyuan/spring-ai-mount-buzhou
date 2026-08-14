@@ -282,4 +282,50 @@ public abstract class AbstractBuzhouStoresContractTest {
         stores.observabilityStore().deleteSession(sessionId);
         assertThat(stores.messageStore().load(sessionId)).isEmpty();
     }
+
+    /**
+     * impl-37 / spec 13 §stores-6：保留策略契约——封闭会话枚举（活动会话永不出现在结果）、
+     * 观测 TTL 批删（只删过期流水）、摘要版本修剪（保留最近 K 版）。
+     */
+    @Test
+    void retentionPruneContract() {
+        String closed = "contract-ret-closed-" + UUID.randomUUID();
+        String active = "contract-ret-active-" + UUID.randomUUID();
+        Instant old = Instant.now().minus(Duration.ofDays(8));
+        // 封闭会话：SESSION span 已结束；活动会话：未结束
+        stores().observabilityStore().saveSpans(List.of(
+                new SpanRecord("sp-sess-" + closed, null, closed, -1, "SESSION", "session",
+                        old.minus(Duration.ofHours(1)), old, "OK", Map.of()),
+                new SpanRecord("sp-turn-" + closed, "sp-sess-" + closed, closed, 1, "TURN",
+                        "turn-1", old, old, "OK", Map.of())));
+        stores().observabilityStore().saveSpans(List.of(new SpanRecord(
+                "sp-sess-" + active, null, active, -1, "SESSION", "session",
+                Instant.now().minus(Duration.ofMinutes(5)), null, "RUNNING", Map.of())));
+
+        // ① 封闭枚举：closed 在列（锚点=endedAt）、active 永不在列
+        List<io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession> closedSessions =
+                stores().observabilityStore().listClosedSessions(Instant.now(), 10);
+        assertThat(closedSessions).extracting(io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession::sessionId)
+                .contains(closed)
+                .doesNotContain(active);
+
+        // ② 观测 TTL（7 天）：8 天前的流水过期批删；活动会话的新 span 保留
+        int pruned = stores().observabilityStore().prune(
+                new io.github.chyuan_cuihongyuan.buzhou.core.retention.ObservabilityTtl(
+                        Duration.ofDays(7), 100));
+        assertThat(pruned).isGreaterThanOrEqualTo(2); // 封闭会话的 SESSION+TURN span（活动 span 未过期）
+        assertThat(stores().observabilityStore().spansOfSession(closed)).isEmpty();
+        assertThat(stores().observabilityStore().spansOfSession(active)).hasSize(1);
+
+        // ③ 摘要版本修剪：5 版 → 保留最近 2 版
+        String summarySession = "contract-ret-sum-" + UUID.randomUUID();
+        for (int i = 0; i < 5; i++) {
+            stores().summaryStore().save(summarySession,
+                    new StructuredSummary(summarySession, 0, Map.of("P0", "v" + i), 1, Instant.now()));
+        }
+        assertThat(stores().summaryStore().pruneVersions(2)).isEqualTo(3);
+        assertThat(stores().summaryStore().history(summarySession, 10)).hasSize(2);
+        assertThat(stores().summaryStore().latest(summarySession)).isPresent()
+                .get().extracting(StructuredSummary::version).isEqualTo(5L);
+    }
 }

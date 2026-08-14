@@ -238,4 +238,100 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
     int sessionCount() {
         return sessionActivity.size();
     }
+
+    /**
+     * impl-37 / spec 13 §stores-6：封闭会话枚举——SESSION span 已结束（endedAt 非空）
+     * 且早于上界的会话（多根 SESSION span 取最晚——与 JDBC 的 MAX(ended_at) 对齐），
+     * 按封闭时刻升序；活动会话（未结束/无 SESSION span）永不出现在结果。
+     */
+    @Override
+    public java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession> listClosedSessions(
+            Instant closedBefore, int limit) {
+        java.util.LinkedHashMap<String, Instant> closedAtBySession = new java.util.LinkedHashMap<>();
+        spans.forEach((sessionId, sessionSpans) -> sessionSpans.forEach(s -> {
+            if (SpanKind.SESSION.equals(s.kind()) && s.endedAt() != null
+                    && s.endedAt().isBefore(closedBefore)) {
+                closedAtBySession.merge(sessionId, s.endedAt(),
+                        (a, b) -> a.isAfter(b) ? a : b);
+            }
+        }));
+        return closedAtBySession.entrySet().stream()
+                .map(e -> new io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession(
+                        e.getKey(), e.getValue()))
+                .sorted(java.util.Comparator.comparing(
+                        io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession::closedAt))
+                .limit(Math.max(0, limit))
+                .toList();
+    }
+
+    /** impl-37 / spec 13 §stores-6：观测 TTL 批删（events/spans/snapshots 各自按时间过期，批量限量）。 */
+    @Override
+    public int prune(io.github.chyuan_cuihongyuan.buzhou.core.retention.ObservabilityTtl policy) {
+        Instant cutoff = Instant.now().minus(policy.ttl());
+        int[] budget = {policy.batchSize()};
+        int deleted = pruneEvents(cutoff, budget) + pruneSpans(cutoff, budget);
+        if (budget[0] > 0) {
+            int before = snapshots.size();
+            snapshots.entrySet().removeIf(e -> {
+                if (budget[0] <= 0) {
+                    return false;
+                }
+                if (e.getValue().createdAt().isBefore(cutoff)) {
+                    budget[0]--;
+                    return true;
+                }
+                return false;
+            });
+            deleted += before - snapshots.size();
+        }
+        return deleted;
+    }
+
+    /** CoW 列表不支持 iterator.remove——removeIf + 预算持有者（批量限量）。 */
+    private int pruneEvents(Instant cutoff, int[] budget) {
+        int before = 0;
+        int after = 0;
+        for (CopyOnWriteArrayList<EventRecord> stream : events.values()) {
+            if (budget[0] <= 0) {
+                break;
+            }
+            before += stream.size();
+            stream.removeIf(e -> {
+                if (budget[0] <= 0) {
+                    return false;
+                }
+                if (e.occurredAt().isBefore(cutoff)) {
+                    budget[0]--;
+                    return true;
+                }
+                return false;
+            });
+            after += stream.size();
+        }
+        return before - after;
+    }
+
+    private int pruneSpans(Instant cutoff, int[] budget) {
+        int before = 0;
+        int after = 0;
+        for (CopyOnWriteArrayList<SpanRecord> sessionSpans : spans.values()) {
+            if (budget[0] <= 0) {
+                break;
+            }
+            before += sessionSpans.size();
+            sessionSpans.removeIf(s -> {
+                if (budget[0] <= 0) {
+                    return false;
+                }
+                Instant activity = s.activityAt() != null ? s.activityAt() : s.startedAt();
+                if (activity != null && activity.isBefore(cutoff)) {
+                    budget[0]--;
+                    return true;
+                }
+                return false;
+            });
+            after += sessionSpans.size();
+        }
+        return before - after;
+    }
 }

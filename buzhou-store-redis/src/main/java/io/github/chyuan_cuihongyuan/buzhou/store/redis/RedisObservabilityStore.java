@@ -1,6 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.store.redis;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanKind;
+import io.github.chyuan_cuihongyuan.buzhou.core.retention.ObservabilityTtl;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore;
@@ -262,5 +264,118 @@ public class RedisObservabilityStore implements ObservabilityStore {
             // best-effort：快照 key 带 TTL 自然回收；SCAN 不可用（如 MULTI 事务内）不阻塞级联
             LOG.warn("注入快照 SCAN 补删跳过（sessionId={}，原因={}）", sessionId, e.toString());
         }
+    }
+
+    /**
+     * impl-37 / spec 13 §stores-6：封闭会话枚举——全局会话活跃索引遍历，逐会话取 SESSION
+     * span 的 endedAt（多根时取最晚——与 JDBC 的 MAX(ended_at) 对齐）；全量收集后按封闭
+     * 时刻升序截取 limit（与 JDBC 的 ORDER BY ... LIMIT 语义一致）。活动会话（无 ended
+     * SESSION span）永不出现在结果。
+     */
+    @Override
+    public List<ClosedSession> listClosedSessions(Instant closedBefore, int limit) {
+        var c = sync.commands();
+        List<String> sessionIds = c.zrange(keys.sessionsIndex(), 0, -1);
+        if (sessionIds == null) {
+            return List.of();
+        }
+        java.util.LinkedHashMap<String, Instant> closedAtBySession = new java.util.LinkedHashMap<>();
+        for (String sessionId : sessionIds) {
+            Instant closedAt = closedAtOf(sessionId);
+            if (closedAt != null && closedAt.isBefore(closedBefore)) {
+                closedAtBySession.merge(sessionId, closedAt, (a, b) -> a.isAfter(b) ? a : b);
+            }
+        }
+        return closedAtBySession.entrySet().stream()
+                .map(e -> new ClosedSession(e.getKey(), e.getValue()))
+                .sorted(java.util.Comparator.comparing(ClosedSession::closedAt))
+                .limit(Math.max(0, limit))
+                .toList();
+    }
+
+    /** SESSION span 的 endedAt（未结束 / 无 SESSION span → null = 活动会话）。 */
+    private Instant closedAtOf(String sessionId) {
+        var c = sync.commands();
+        List<String> spanIds = c.zrange(keys.spansOfSession(sessionId), 0, -1);
+        if (spanIds == null) {
+            return null;
+        }
+        for (String spanId : spanIds) {
+            Map<String, String> fields = c.hgetall(keys.span(sessionId, spanId));
+            if (fields == null || fields.isEmpty() || !SpanKind.SESSION.equals(fields.get("kind"))) {
+                continue;
+            }
+            String endedAt = fields.get("endedAt");
+            if (endedAt != null && !endedAt.isEmpty()) {
+                return Instant.parse(endedAt);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * impl-37 / spec 13 §stores-6：观测 TTL 批删——events 按会话内 ZSET score（occurredAt）
+     * 区间取旧成员、spans 按 startedAt 候选后再核 endedAt（COALESCE 语义），批量以
+     * {@code policy.batchSize()} 为限；注入快照 key 自带 TTL（PEXPIRE）自然回收、不参与批删。
+     */
+    @Override
+    public int prune(ObservabilityTtl policy) {
+        var c = sync.commands();
+        String cutoffMs = String.valueOf(Instant.now().minus(policy.ttl()).toEpochMilli());
+        int budget = policy.batchSize();
+        int deleted = 0;
+        List<String> sessionIds = c.zrange(keys.sessionsIndex(), 0, -1);
+        if (sessionIds == null) {
+            return 0;
+        }
+        for (String sessionId : sessionIds) {
+            if (budget <= 0) {
+                break;
+            }
+            // events：旧成员按 score 区间直取（-inf, cutoff]
+            List<String> oldEventIds = c.zrangebyscore(keys.eventsOfSession(sessionId),
+                    "-inf", cutoffMs, 0, budget);
+            if (oldEventIds != null) {
+                for (String eventId : oldEventIds) {
+                    String json = c.get(keys.event(eventId));
+                    c.del(keys.event(eventId));
+                    c.zrem(keys.eventsOfSession(sessionId), eventId);
+                    if (json != null) {
+                        EventRecord record = RedisJson.read(json, EventRecord.class);
+                        if (record != null && record.spanId() != null) {
+                            c.zrem(keys.eventsOfSpan(record.spanId()), eventId);
+                        }
+                    }
+                    deleted++;
+                    budget--;
+                }
+            }
+            if (budget <= 0) {
+                break;
+            }
+            // spans：startedAt 候选（score 区间）后核 endedAt——长会话早期 span 未结束则保留
+            List<String> oldSpanIds = c.zrangebyscore(keys.spansOfSession(sessionId),
+                    "-inf", cutoffMs, 0, budget);
+            if (oldSpanIds != null) {
+                for (String spanId : oldSpanIds) {
+                    if (budget <= 0) {
+                        break;
+                    }
+                    Map<String, String> fields = c.hgetall(keys.span(sessionId, spanId));
+                    String endedAt = fields == null ? null : fields.get("endedAt");
+                    String startedAt = fields == null ? null : fields.get("startedAt");
+                    Instant activity = endedAt != null && !endedAt.isEmpty()
+                            ? Instant.parse(endedAt)
+                            : startedAt == null || startedAt.isEmpty() ? null : Instant.parse(startedAt);
+                    if (activity != null && activity.toEpochMilli() <= Long.parseLong(cutoffMs)) {
+                        c.del(keys.span(sessionId, spanId));
+                        c.zrem(keys.spansOfSession(sessionId), spanId);
+                        deleted++;
+                        budget--;
+                    }
+                }
+            }
+        }
+        return deleted;
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -78,5 +79,13 @@ public class JdbcRunRegistry implements RunRegistry {
     @Override
     public void deleteSession(String sessionId) {
         jdbc.update("DELETE FROM buzhou_run_registry WHERE session_id = ?", sessionId);
+    }
+
+    /** impl-37 / spec 13 §growth-8：COMPLETED 保留窗口批删（RUNNING/INTERRUPTED 不受影响）。 */
+    @Override
+    public int pruneCompletedBefore(Instant cutoff) {
+        return jdbc.update(
+                "DELETE FROM buzhou_run_registry WHERE status = ? AND updated_at < ?",
+                RunStatus.COMPLETED.name(), Timestamp.from(cutoff));
     }
 }
