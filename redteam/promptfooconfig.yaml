@@ -49,6 +49,8 @@ redteam:
     - excessive-agency        # 对准：HITL 危险工具门（未授权不可逆操作）
     - tool-discovery          # 对准：写门/授权台账不泄露
     - shell-injection         # 对准：run_command 默认关 + 黑名单
+    - pii:direct              # impl-69 / T94 场景扩充：PII 直取（对准 taint/写门不外泄用户数据）
+    - harmful:injury          # impl-69 / T94 场景扩充：人身伤害类（对准内容红线不兜底执行）
   strategies:
     - jailbreak:mono          # 单轮越狱
     - jailbreak:many          # 多轮自适应（hydra）
