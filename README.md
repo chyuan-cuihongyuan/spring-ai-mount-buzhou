@@ -193,8 +193,28 @@ try (AgentSession session = runtime.spawn("app", "agent", "session-1")) {
 | `buzhou.tools.enabled` | `true` | 原子工具 |
 | `buzhou.observe.otel.enabled` | `false` | OpenTelemetry 导出器 |
 | `buzhou.observe.dashboard.enabled` | `false` | 可视化回放后台 |
+| `buzhou.resilience.enabled` | `true` | 模型韧性（重试/退避/错误分类/超时取消/限流） |
+| `buzhou.resilience.max-attempts` | `3` | 最大尝试次数（含首次） |
+| `buzhou.resilience.deadline` | `60s` | 模型调用统一超时（0 = 关，不推荐） |
+| `buzhou.resilience.rate-limit.requests-per-minute` | 不限 | 模型 RPM 桶 |
+| `buzhou.runaway.enabled` | `true` | 失控检测（阈值默认不设 = 不限，safe-by-default） |
+| `buzhou.runaway.per-turn.max-steps` | 不限 | 单轮最大步数（软阈值 80% 提醒，硬顶终止） |
+| `buzhou.runaway.per-turn.max-wall-clock` | 不限 | 单轮墙钟上限 |
+| `buzhou.backpressure.max-concurrent-sessions` | 不限 | 会话并发容量闸 |
+| `buzhou.core.tool-timeout` | `60s` | 单工具执行超时（长任务工具须同步调大） |
+| `buzhou.core.event-dispatch.mode` | `sync` | 事件分发：`sync` / `buffered`（有界队列） |
+| `buzhou.leak.level` | `SIMPLE` | 资源泄漏检测：`DISABLED`/`SIMPLE`/`ADVANCED`/`PARANOID` |
+| `buzhou.lifecycle.timeout-per-shutdown-phase` | `30s` | 优雅停机排空预算 |
+| `buzhou.retention.enabled` | `true` | 保留策略族后台清扫 |
+| `buzhou.store.in-memory.*` | 有界配额 | InMemory 套件容量配额 |
+| `buzhou.observe.dashboard.bind-address` | `127.0.0.1` | 后台绑定地址（非 loopback 必须配 auth-token，否则拒启动） |
+| `buzhou.observe.dashboard.auth-token` | 无 | Bearer 鉴权（支持 `${ENV:}` 占位） |
+| `buzhou.observe.otel.exporter-mode` | `otlp` | `otlp` / `tracer`（后者需容器 Tracer bean） |
+| `buzhou.mcp.dangerous-tool-patterns` | 动词模式集 | 客户端侧危险工具登记（挂 guard HITL） |
+| `buzhou.mcp.shutdown-budget` | `35s` | MCP 关闭总预算 |
 
 > 配置遵循四层覆盖模型：默认 < `application.yml` < 绑定级 < 工具级。详见 [docs/spec/08-session-config-persistence.md](docs/spec/08-session-config-persistence.md)。
+> 全部键在 IDE 有补全与校验（`spring-configuration-metadata.json` 随 jar 发布，impl-52 起）。
 
 ## 文档
 
@@ -202,7 +222,17 @@ try (AgentSession session = runtime.spawn("app", "agent", "session-1")) {
 - [docs/spec/00-overview.md](docs/spec/00-overview.md) — 设计总入口
 - 机制详设：[01 记忆压缩](docs/spec/01-memory-compaction.md) · [02 Spill](docs/spec/02-spill.md) · [03 可观测](docs/spec/03-observability.md) · [04 Skill/MCP](docs/spec/04-skill-mcp.md) · [05 并行工具](docs/spec/05-parallel-tools.md) · [06 原子工具](docs/spec/06-atomic-tools.md) · [07 Hook 护栏](docs/spec/07-hooks.md) · [08 会话/配置/持久化](docs/spec/08-session-config-persistence.md) · [09 模块与工程化](docs/spec/09-modules-engineering.md)
 - [与 Spring AI 2.0 原生能力边界](docs/spec/10-spring-ai-boundary.md) — Buzhou 九机制相对 Spring AI 2.0 的 REPLACES / ADDS / NATIVE 诚实对照（中英）
+- [11 最佳实践采纳](docs/spec/11-best-of-breed-adoption.md) / [12 完美采纳](docs/spec/12-perfect-adoption.md) — 生产级机制采纳路线
+- [13 生产收口](docs/spec/13-production-hardening.md) — core/memory/spill/guard 生产级收口（生命周期/错误分类/泄漏检测/健康指标/配置校验）
+- [14 外围收口](docs/spec/14-perimeter-hardening.md) — 观测三模块安全化 + mcp/skills/tools 收口 + resilience/runaway/容量闸移植 + 配置元数据/红队/CI 基建
+- [15 模型韧性与失控防护](docs/spec/15-model-resilience.md) — 重试/退避/错误分类/限流/失控检测四层硬顶/会话容量闸机制详设
 - [RELEASING.md](RELEASING.md) — 发布到 Maven Central 的流程
+
+## 兼容矩阵
+
+| Buzhou | JDK | Spring Boot | Spring AI | 备注 |
+| --- | --- | --- | --- | --- |
+| 0.1.x | 21 | 4.1.x | 2.0.x | 0.x 语义：minor 可破兼容 |
 
 ## 项目状态
 

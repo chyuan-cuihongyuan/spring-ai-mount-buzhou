@@ -33,11 +33,7 @@
 
 ## Not yet specified
 
-- **resilience 模块移植后的装配细节**（autoconfig 条件、与 core advisor 链 order 关系）——impl 落地时定。
-- **runaway/SpawnGate 与 main 现有 TurnDeadline/事件背压的预算合成语义**（谁先触发、文案归并）——impl 落地时定。
-- **dashboard token 的浏览器可用形态**（查询串 ?token= 是否接受——倾向不接受，反代头转发）——impl 落地时定。
-- **skills 表形状与既有 schema 迁移版本号的衔接**——impl 落地时定。
-- **jaCoCo 报告聚合方式**（单模块 vs aggregate）——impl 落地时定。
+（清空——毕业进 impl 或按注记转后续项。后续项清单：模型熔断/重试预算、MCP 工具快照重发现、run_command 与 guard CommandSandbox 合流、frontmatter 多行/清单缓存、skills/tools 配置正规化进 @ConfigurationProperties、redteam F1 数值化、覆盖率阈值卡线。）
 
 ## Out of scope
 
@@ -50,4 +46,11 @@
 
 ## Tickets
 
-（见 `tickets/`；frontier 按 `README.md` 约定扫描。）
+全部闭合：T69–T79 决策票 + T80 终验票（2026-08-15）；impl 44–55 十二个执行切片全部落地并合入 main。
+**Frontier**：∅（决策图走完；effort #4 到达目的地——全模块生产级收口、全仓 verify 绿、外围 P0 清零）。
+
+## 收口记录（2026-08-15）
+
+- **impl 44–55 十二切片全部落地**（resilience 移植 → runaway/容量闸 → observability → otel → dashboard 安全 → tools → mcp（真协议测试）→ skills 持久化 → 配置元数据基建 → redteam 真实化 → CI 质量工程 → 文档/示例/终验）。
+- **全仓 `mvn clean verify` 绿**；14 模块 jaCoCo 报告；11 模块配置元数据生效。
+- 外围 P0 清零：dashboard 零鉴权绑 0.0.0.0、观测零日志、otel 无界 Map、run_command 孤儿进程、redteam 硬编码文案、死元数据文件——全部修复并有测试护栏。

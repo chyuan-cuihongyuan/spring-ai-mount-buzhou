@@ -1,0 +1,55 @@
+# Spec 15 — 模型韧性与失控防护（mechanism）
+
+> effort #4（impl-44/45）落地；机制内容自 `Future-needs-to-be-supplemented` 分支 spec（10-resilience /
+> 13-backpressure-rate-limit / 14-runaway-detection）修订并入，编号避开 main 既有 10-14。
+> 需求与验收上下文见 [spec 14 §A](14-perimeter-hardening.md)。
+
+## 模型韧性层（buzhou-resilience）
+
+- **ResilienceAdvisor**（advisor 链 order = ToolCallingAdvisor.DEFAULT_ORDER + 700，最内层模型包裹）：
+  单次模型调用错误归一化分类 → 按策略重试。重试不重放外层 advisor（Hook 观察到的是「一次逻辑调用」）。
+- **错误五类**（SRE 统一口径，`ErrorCategory`）：RATE_LIMIT（429，尊重 Retry-After 并钳制到 maxBackoff）/
+  NETWORK（瞬时网络与 5xx）/ SERVER / CONTENT（静默内容拒绝，不重试仅上报）/ AUTH（不重试）/ UNKNOWN。
+  分类 SPI：`ProviderErrorClassifier`（默认实现识别 RestClient 系 HTTP 异常）。
+- **指数退避**：`initial × multiplier^(attempt-1)`，钳制 `maxBackoff`，jitter `[0,1]` 打散惊群。
+- **deadline**：单次模型调用统一超时（默认 60s；0 关闭）。执行经虚拟线程 executor +
+  `Future.get(deadline)`，超时 `cancel(true)` 中断在飞调用；在飞注册 `ModelCallInFlight`，
+  `session.cancel()` 同路径中断。流式：deadline 语义 = 首 token / 帧间空闲超时（`Flux.timeout`）。
+- **onModelError 切面**（core）：终态失败（重试耗尽/不可重试/超时）后 `HookAdvisor` 触发
+  `BuzhouHook.onModelError(ModelCallContext)`——默认放行（异常原语义上抛），
+  `Replace(ChatClientResponse)` 吞错回填兜底、`Block(reason)` 回填文本；失败原因经
+  `ModelCallContext.error()`。
+- **限流**（`RateLimitAdvisor`，order +650 外于韧性层）：RPM 预检扣减 + TPM 预检（事后按 usage 记账）。
+  过载两档 `OverloadPolicy`：QUEUE（有界排队 + 超时，默认）/ FAIL_FAST。自限流拒绝
+  （`ModelRateLimitExceededException`）不进重试分类（防重试放大拥塞），直上 onModelError。
+- **运维面**：`ResilienceStats`（重试/耗尽/限流拒绝/超时/最近分类 + `BuzhouHealth` 委托）、
+  指标族 `buzhou.resilience.*`（core MeterBinder 预注册）、日志基线（重试 WARNING/耗尽 ERROR/
+  限流拒绝 INFO）、配置 fail-fast（deadline < maxBackoff 等矛盾启动失败）。
+- **熔断 / 重试预算**：开放问题，未做。
+
+## 失控检测（core/runaway）
+
+- **RunawayHook**（挂 Hook 链）：单轮行为失控的数值闸门，safe-by-default（阈值默认 null = 不限）。
+- **四层硬顶**：单轮步数（`per-turn.max-steps`）/ 单轮工具调用总数 / 单轮墙钟（与 TurnDeadline 独立，
+  先到先停）/ 会话累计双窗口（steps + tool-calls，SessionStateStore 持久化跨崩溃保留）。
+- **软退出通道**：达硬顶 80% 软阈值时经 `RunawayBudgetRenderer`（AttachmentRenderer）注入
+  剩余预算提醒——模型先自我收敛，而非猝死。
+- **确定性重复检测**：同参数工具调用指纹连续重复即拦（`runaway.repetition` 事件）。
+- 终态语义：硬顶 `HookResult.block`（携带部分结果指针——被终止 ≠ 前功尽弃）；
+  事件 `runaway.soft-threshold / hard-stop / per-tool-exceeded / repetition` 双写
+  （SessionEvent + ObservabilityStore EventRecord，dashboard 可查）。
+
+## 会话容量闸（core/backpressure）
+
+- **SpawnGate**：实例级并发活跃会话上限（`buzhou.backpressure.max-concurrent-sessions`，未配置不限）。
+  裁决在**租约之前**（排队不持租约）；空位由会话 close 归还；steal 接管路径不占新容量。
+- QUEUE 档：信号量公平排队 + `spawn-queue-timeout` 超时拒绝；drain/停机置位时唤醒全部等待者
+  （抛 `SHUTDOWN_INTERRUPTED` 结构化异常，与 main 停机拒新语义同型）。
+- 拒绝事件：`backpressure.spawn-queued / spawn-rejected`（reason：timeout/fail-fast/drain）；
+  指标 `buzhou.backpressure.spawn-rejected`。
+
+## 与既有机制的预算合成
+
+- TurnDeadline（impl-29 绝对时刻）优先硬停；runaway 墙钟/步数先行软退出——两层互补不打架。
+- 模型限流（本 spec）在 advisor 链外层；工具扇出并发/超时归 `HarnessToolCallingManager`
+  （`buzhou.core.tool-timeout` 可配）。

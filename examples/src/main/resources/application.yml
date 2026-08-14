@@ -1,0 +1,38 @@
+# impl-55 / spec 14 §K：starter 接入示例——引 buzhou-spring-boot-starter 后全部机制自装配。
+# 全部键在 IDE 有补全（spring-configuration-metadata.json 随 jar 发布）。
+spring:
+  application:
+    name: buzhou-starter-demo
+  main:
+    web-application-type: none   # 纯运行时示例，不起 Web 容器
+  ai:
+    model:
+      chat: none                 # ChatModel 由本示例的 StubChatModel @Bean 提供（无 API key）
+      embedding: none
+      audio:
+        speech: none
+        transcription: none
+      image: none
+      moderation: none
+
+buzhou:
+  model-name: stub-demo-model
+  store:
+    type: memory                 # 进程内存储（生产换 jdbc/redis）
+  resilience:
+    enabled: true                # 模型韧性：重试/退避/超时取消/限流（引入即生效）
+    max-attempts: 3
+    deadline: 60s
+  runaway:
+    enabled: true                # 失控检测（阈值不设 = 不限，safe-by-default）
+    per-turn:
+      max-steps: 40              # 单轮步数硬顶（演示用较小值；80% 软阈值会先注入预算提醒）
+  backpressure:
+    max-concurrent-sessions: 100 # 会话并发容量闸（超限 QUEUE 排队 30s 后拒绝）
+  core:
+    tool-timeout: 60s
+  observe:
+    dashboard:
+      enabled: false             # 需要时开（默认只绑 127.0.0.1；暴露须配 auth-token）
+    otel:
+      enabled: false             # 需要时开（exporter-mode=otlp 指向 Collector）
