@@ -33,6 +33,9 @@ public final class SpillHealth implements BuzhouHealth {
             return Status.UNKNOWN;
         }
         try {
+            // 首探时建目录（与 DiskSpillStore.store 的 createDirectories 行为一致——
+            // 目录不存在 ≠ 不可写，不误报 DOWN）
+            Files.createDirectories(rootDir);
             Path probe = Files.createTempFile(rootDir, "buzhou-health-", ".probe");
             Files.deleteIfExists(probe);
             return Status.UP;

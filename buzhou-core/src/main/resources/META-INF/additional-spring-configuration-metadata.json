@@ -1,0 +1,69 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.store.type",
+      "type": "java.lang.String",
+      "defaultValue": "memory",
+      "description": "存储形态（封闭枚举，拼错启动即失败）：memory=进程内有界套件（默认）；jdbc=MySQL/PostgreSQL/H2（需 buzhou-store-jdbc）；redis=Redis（需 buzhou-store-redis）。",
+      "hints": {
+        "values": [
+          {"value": "memory", "description": "进程内存储（默认；有界容量配额见 buzhou.store.in-memory.*）"},
+          {"value": "jdbc", "description": "JDBC 存储（需要 buzhou-store-jdbc 依赖与 DataSource）"},
+          {"value": "redis", "description": "Redis 存储（需要 buzhou-store-redis 依赖）"}
+        ]
+      }
+    },
+    {
+      "name": "buzhou.leak.level",
+      "type": "java.lang.String",
+      "defaultValue": "SIMPLE",
+      "description": "impl-41 资源泄漏检测级别：DISABLED=不追踪（零开销）；SIMPLE=1/128 采样（默认）；ADVANCED=1/128 采样+出租栈捕获；PARANOID=全采样+栈捕获（排障用）。",
+      "hints": {
+        "values": [
+          {"value": "DISABLED"},
+          {"value": "SIMPLE"},
+          {"value": "ADVANCED"},
+          {"value": "PARANOID"}
+        ]
+      }
+    },
+    {
+      "name": "buzhou.leak.lease-age-threshold",
+      "type": "java.time.Duration",
+      "defaultValue": "5m",
+      "description": "impl-41 泄漏上报的出租时长阈值：GC 时年龄低于该值的对象视为噪声跳过。"
+    },
+    {
+      "name": "buzhou.core.event-dispatch.capacity",
+      "type": "java.lang.Integer",
+      "defaultValue": 1024,
+      "description": "impl-34 buffered 事件分发队列容量（负值启动即失败）。"
+    },
+    {
+      "name": "buzhou.lifecycle.timeout-per-shutdown-phase",
+      "type": "java.time.Duration",
+      "defaultValue": "30s",
+      "description": "impl-30 单停机 phase 的排空预算：预算内等在途 Turn 收尾，到点硬截断。"
+    },
+    {
+      "name": "buzhou.store.redis.snapshot-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "168h",
+      "description": "impl-42 迁移：Redis 注入快照默认 7 天 TTL（原 ZERO=永生堆积）；显式配 0s 仍表示永不过期。"
+    },
+    {
+      "name": "buzhou.store.jdbc.dialect",
+      "type": "java.lang.String",
+      "defaultValue": "AUTO",
+      "description": "impl-42 迁移：默认 AUTO 按连接 DatabaseMetaData 自动探测（原缺省假定 H2）。",
+      "hints": {
+        "values": [
+          {"value": "AUTO", "description": "按连接元数据自动探测（默认）"},
+          {"value": "H2"},
+          {"value": "MYSQL"},
+          {"value": "POSTGRESQL"}
+        ]
+      }
+    }
+  ]
+}

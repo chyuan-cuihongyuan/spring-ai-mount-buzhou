@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.memory.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "渐进式记忆压缩总开关（关闭时健康面报 UNKNOWN）。"
+    },
+    {
+      "name": "buzhou.memory.embedding-cache-capacity",
+      "type": "java.lang.Integer",
+      "defaultValue": 512,
+      "description": "impl-38 embedding 缓存 LRU 容量（embed once；memory/spill/语义回读三方共享）。"
+    }
+  ]
+}

@@ -266,3 +266,18 @@ sequenceDiagram
 6. **examples 的具体形态**：单模块多 profile 还是 `buzhou-examples` 下再拆子模块（场景示例 / 评测脚本，呼应 16 模块还原口径的备选）？
 7. **GPG key 运维**：私钥过期与轮换流程、多人维护时的 key 归属（个人 key vs 项目专用 key），首次发布前需落进 CONTRIBUTING 或独立 RELEASING.md。
 8. **dashboard 前端构建**：前端工程（node 工具链）如何纳入 `mvn verify`（frontend-maven-plugin vs 预构建静态资源提交），CI 镜像是否需要 node。
+
+
+## 存储运维节（wayfinder3 impl-31/32/35/36/37 / spec 13）
+
+- **Schema 版本化迁移**（impl-31）：`SchemaMigrator` 版本化脚本（`db/migration/<方言>/V<n>__*.sql`）
+  + 版本表；MySQL 二启幂等修复、PG advisory lock；`buzhou.store.jdbc.dialect` 缺省 AUTO
+  （impl-42：按 DatabaseMetaData 探测，原缺省假定 H2）。
+- **事务与写失败**（impl-32）：UnitOfWork 事务接线 + 并发正确性；写失败双策略
+  `buzhou.store.write-failure-policy=FAIL_TURN|DEGRADE`（观测类写降级计数可见）。
+- **级联清理与保留**（impl-35/37）：`deleteSession` 六槽 + spill + 租约级联
+  （SessionCleaner 协调）；保留策略族（closedAt 起算、默认 72h、封闭才计时）+
+  RetentionSweeper 低频后台兑现。
+- **InMemory 有界化**（impl-36）：`buzhou.store.in-memory.*` 容量配额四件套。
+- **默认值安全化**（impl-42）：redis snapshot-ttl 默认 PT168H（原永生）、spill root-dir
+  默认独立临时目录、越界配置启动即拒 + FailureAnalyzer 指引。

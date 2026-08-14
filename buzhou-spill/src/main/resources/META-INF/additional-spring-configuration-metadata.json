@@ -1,0 +1,44 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.spill.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Spill 长内容治理总开关（关闭时健康面报 UNKNOWN）。"
+    },
+    {
+      "name": "buzhou.spill.root-dir",
+      "type": "java.lang.String",
+      "defaultValue": "${java.io.tmpdir}/buzhou-spill",
+      "description": "Spill 落盘根目录。impl-42 迁移：默认独立临时目录（原为当前工作目录，易污染部署目录）；显式配置不受影响。"
+    },
+    {
+      "name": "buzhou.spill.preview-chars",
+      "type": "java.lang.Integer",
+      "defaultValue": 2048,
+      "description": "上下文留存预览字符数（负值/零启动即失败）。"
+    },
+    {
+      "name": "buzhou.spill.threshold-chars",
+      "type": "java.lang.Integer",
+      "defaultValue": 32000,
+      "description": "工具返回超阈值自动落盘。"
+    },
+    {
+      "name": "buzhou.spill.retention-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "24h",
+      "description": "impl-38 未引用（unlinked）spill 的保留 TTL（RetentionSweeper 周期调度清理）。"
+    },
+    {
+      "name": "buzhou.spill.max-total-bytes",
+      "type": "java.lang.Long",
+      "description": "impl-38 全部 spill 数据字节上限（超限拒绝落盘、原文回喂；未配置=不限）。"
+    },
+    {
+      "name": "buzhou.spill.max-files-per-session",
+      "type": "java.lang.Integer",
+      "description": "impl-38 单会话 spill 文件数上限（未配置=不限）。"
+    }
+  ]
+}

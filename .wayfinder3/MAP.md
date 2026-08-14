@@ -50,3 +50,9 @@
 ## Tickets
 
 全部 ticket 已闭合（T55 research 子 agent 闭合；T56–T68 随 spec 13 批准 ratify 闭合，用户常设授权可推翻）。**Frontier**：∅（决策图已走完）。**建造 Spec**：[docs/spec/13-production-hardening.md](../docs/spec/13-production-hardening.md)；执行切片 = `impl/`（`/to-tickets` 切出）。
+
+**落地记录**：impl 28–43 已全部实现并合入 main（impl-28..38 于 2026-08-15 前夜落地；
+impl-39 审计链持久化/密钥环/独立校验、impl-40 policy 热加载/沙箱限额、impl-41 泄漏检测/
+健康/指标、impl-42 启动校验/FailureAnalyzer/默认值安全化、impl-43 配置元数据/韧性矩阵/
+spec 同步/终验 于 2026-08-15 落地）。机制 Spec 同步：00 概览注记、01 增长治理+熔断半开、
+05 停机/Deadline/租约、07 审计/密钥/policy/沙箱限额/健康指标、09 存储运维节。

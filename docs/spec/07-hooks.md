@@ -637,3 +637,20 @@ sequenceDiagram
 5. **onEvent 背压**：同步派发简单但慢监听器会拖住主链路；异步化则引入事件时序与轮次边界的对齐成本——待实现期 benchmark 后定默认。
 6. **待确认请求的跨实例重渲染**：当前设计授权为唯一持久真相、待确认态不持久化；前端刷新/跨实例后如何恢复确认框（重新 resume 触发守卫重放确认事件）体验待验证。
 7. **副本分离对第三方 MCP 工具的适用边界**：MCP 文件类工具的路径命名约定不统一，只读源识别规则（注册表 + 只读根）可能漏判；是否需要工具级「文件参数声明」元数据补充。
+
+
+## 审计链 / 密钥 / policy / 沙箱限额（wayfinder3 impl-39/40 / spec 13 §T64）
+
+- **审计链持久化**（impl-39）：`AuditRecordStore` SPI（JDBC append-only 表 / InMemory 有界环形）
+  随 guard 自动装配（`buzhou.guard.audit.*`）；`SigningKeyRing` 密钥版本化（keyVersion 嵌记录、
+  rotate 原子切换、旧钥只验不签、minVerifyVersion、PKCS#8 PEM 文件加载）；无密钥降级纯哈希链 + WARN；
+  `AuditChainVerifier` 独立重放定位首个断点（VerificationReport）；sessionHash 随 session.closed
+  发布；nightly 重放校验入红队节奏（注记级）。
+- **policy 热加载**（impl-40）：`PolicySource`（classpath/file，etag=sha256 条件拉取）+
+  `PolicyRefresher`（PT30S 轮询可关、快照原子替换、失败沿用旧版绝不部分生效）；
+  provenance（revision+activatedAt）进 PolicyDecision 与 policy.decided 事件；
+  `buzhou.guard.policy.enabled` 默认关（deny-by-default 引擎须显式启用）。
+- **沙箱限额**（impl-40）：`SandboxLimits`（timeout/maxOutputBytes/memory）+
+  CommandResult truncated/killedReason(timeout|memory|output|manual)；Deno 探测 TTL 缓存。
+- **健康与指标**（impl-41）：每机制 BuzhouHealth 三态（DOWN 仅当核心职能不可用；禁用 UNKNOWN）、
+  /actuator/buzhou 只读快照、指标 `buzhou.<mech>.<测量>`（tag 有界、禁 sessionId）。

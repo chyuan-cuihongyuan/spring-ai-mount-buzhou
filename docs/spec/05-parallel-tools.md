@@ -275,3 +275,16 @@ pending 从持久历史推导（assistant 工具调用 × 无应答的差集—�
 （下一轮模型即见）——<b>绝不重放 Turn 前段</b>（无 Turn 重跑、无 LangGraph「resume 所在节点从头
 重执行」缺陷）；多挂起可逐个 resume；幂等（已应答/未知 id 返回 false）。人审通道与既有
 GuardAuthApi 授权台账合流（approve → 模型重发或 resumeWith 注入结果二选一）。
+
+
+## 生产收口：停机 / Deadline / 租约（wayfinder3 impl-28/30/33 / spec 13）
+
+- **Turn Deadline 贯穿**（impl-28）：挂起点四类（模型调用 / 工具执行 / 事件分发 / 事件监听）
+  全部对象化预算——`turnDeadline=min(turn-deadline, loop-timeout)` 经守卫虚拟线程限时等待，
+  超时走 BuzhouException(TIMEOUT) 通道；挂起工具由 `FaultInjectingToolCallback`（core test-jar）
+  的 `hangForever` 档端到端验证。
+- **优雅停机**（impl-30）：SmartLifecycle 分 phase（core→memory→spill→guard→store，见
+  `BuzhouLifecyclePhases`）；预算内排空在途 Turn（`buzhou.lifecycle.timeout-per-shutdown-phase`
+  默认 30s），到点硬截断；在途计数权威（chat 入口增 / finally 减）。
+- **租约与写 fence**（impl-33）：`SessionLeaseGuard` 续租双路径（Turn 轮间 + 后台 TTL/3）+
+  LeaseLost 中止（在飞工具结果不落库）+ 写路径 fence（fencingToken 校验）；双主窗口零写入。

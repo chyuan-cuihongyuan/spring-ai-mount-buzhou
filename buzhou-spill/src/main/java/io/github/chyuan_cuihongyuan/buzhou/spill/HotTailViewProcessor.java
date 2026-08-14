@@ -75,8 +75,9 @@ public class HotTailViewProcessor implements MemoryViewProcessor {
         if (toolIndexes.size() <= keepInlineToolResults && maxInlineChars <= 0) {
             return stored; // 全部属 hot-tail 且无大小预算，零处理
         }
-        // hot-tail = 最近 N 条 TOOL 消息（全量内联）；其余为 cold 候选
-        List<Integer> coldIndexes = toolIndexes.subList(0, toolIndexes.size() - keepInlineToolResults);
+        // hot-tail = 最近 N 条 TOOL 消息（全量内联）；其余为 cold 候选（钳位：条数不足 N 时无 cold）
+        int coldCount = Math.max(0, toolIndexes.size() - keepInlineToolResults);
+        List<Integer> coldIndexes = toolIndexes.subList(0, coldCount);
 
         List<BuzhouMessage> result = new ArrayList<>(stored);
         for (int idx : coldIndexes) {

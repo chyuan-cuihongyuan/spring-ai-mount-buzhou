@@ -1,0 +1,64 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.guard.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "HITL 危险守卫总开关。"
+    },
+    {
+      "name": "buzhou.guard.audit.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "impl-39 审计链（append-only 持久化 + 签名密钥环 + 独立校验）随 guard 默认在线；无签名密钥时降级纯哈希链 + WARN。"
+    },
+    {
+      "name": "buzhou.guard.audit.store",
+      "type": "java.lang.String",
+      "defaultValue": "auto",
+      "description": "impl-39 审计存储形态：auto=有 DataSource bean 即 JDBC append-only，否则 InMemory 有界环形。",
+      "hints": {
+        "values": [
+          {"value": "auto", "description": "有 DataSource 即 jdbc，否则 in-memory（默认）"},
+          {"value": "jdbc"},
+          {"value": "in-memory"}
+        ]
+      }
+    },
+    {
+      "name": "buzhou.guard.audit.in-memory-capacity",
+      "type": "java.lang.Integer",
+      "defaultValue": 4096,
+      "description": "impl-39 InMemory 环形容量（满即逐出最旧、逐出计数可见）。"
+    },
+    {
+      "name": "buzhou.guard.audit.signing.min-verify-version",
+      "type": "java.lang.Integer",
+      "defaultValue": 0,
+      "description": "impl-39 低于该 keyVersion 的签名直接判不可验（密钥窗口收窄；0=不限）。"
+    },
+    {
+      "name": "buzhou.guard.audit.signing.keys",
+      "type": "java.util.List<io.github.chyuan_cuihongyuan.buzhou.guard.config.GuardAuditConfig$KeyFile>",
+      "description": "impl-39 版本化签名密钥文件集（最高版本=active 签名钥，其余只验不签）。每项 {version, private-key-path(PKCS#8 PEM), public-key-path(可选)}。未配置 = 纯哈希链降级。"
+    },
+    {
+      "name": "buzhou.guard.policy.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "impl-40 策略门热加载（deny-by-default 引擎须显式启用；启用后规则来源失败沿用旧快照绝不部分生效）。"
+    },
+    {
+      "name": "buzhou.guard.policy.source",
+      "type": "java.lang.String",
+      "defaultValue": "classpath:buzhou-policy.json",
+      "description": "impl-40 策略规则来源（classpath: / file: / 裸路径；etag=内容 sha256 条件拉取）。"
+    },
+    {
+      "name": "buzhou.guard.policy.refresh-interval",
+      "type": "java.time.Duration",
+      "defaultValue": "30s",
+      "description": "impl-40 策略轮询间隔；配 0s 关闭轮询（仅启动加载）。"
+    }
+  ]
+}

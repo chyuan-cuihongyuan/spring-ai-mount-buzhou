@@ -492,3 +492,13 @@ sequenceDiagram
 5. **合成中断结果的厂商兼容性**：补合成的 tool 结果消息在各厂商 API 的接受度未逐一验证（尤其 Anthropic 对 tool_use/tool_result 配对的严格校验）；元数据标记是否会被某些厂商拒绝未知。
 6. **多次中断叠加**：「续接重放仅 1 次」对同一 tool_call 跨两次崩溃（重放本身再中断）的行为未定义——第二次续接是否允许再重放一次，还是首次重放失败即永久判悬空。
 7. **判官偏差校准**：judge 与被测模型不同源是原则，但判官模型选型、rubric 版本管理、人工抽检 20% 的样本量是否足以检出系统性偏差，待工程期实测调整。
+
+
+## 增长治理与熔断半开（wayfinder3 impl-32/36/38 / spec 13）
+
+- **容量配额**（impl-36/38）：InMemory 套件有界化；事实台账 noeviction、可再生集合可逐出；
+  spill 配额（max-total-bytes / max-files-per-session，超限拒绝落盘原文回喂）；
+  embedding 缓存（`buzhou.memory.embedding-cache-capacity` 默认 512，三方共享 embed once）。
+- **熔断半开**（impl-32）：`SummaryCircuitBreaker` 摘要判官失败熔断——失败窗口
+  （默认 PT10M）过后<b>放行一次</b>试探（半开；探针在途时后续仍拒绝），成功清零、计数随会话清理；
+  熔断期间保底微压缩照常（详见 spec 13 §stores-7）。
