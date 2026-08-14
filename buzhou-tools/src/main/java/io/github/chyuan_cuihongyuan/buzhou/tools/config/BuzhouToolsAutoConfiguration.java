@@ -7,6 +7,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.tools.ToolsModule;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
@@ -25,8 +26,12 @@ import org.springframework.core.env.Environment;
 public class BuzhouToolsAutoConfiguration {
 
     @Bean
-    public ToolsModule toolsModule(BuzhouStores stores, Environment env) {
-        return ToolsModule.fromYml(stores.sessionStateStore(), ConfigMaps.sub(env, "buzhou.tools")).build();
+    public ToolsModule toolsModule(BuzhouStores stores, Environment env,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend> commandBackend) {
+        return ToolsModule.fromYml(stores.sessionStateStore(), ConfigMaps.sub(env, "buzhou.tools"))
+                .commandBackend(commandBackend.getIfAvailable()) // spec 17：有 backend bean 即沙箱委托
+                // 注：backend=sandbox 且无实现时由 ToolsModule 构造 fail-fast（带修法指引）
+                .build();
     }
 
     @Bean

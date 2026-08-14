@@ -51,6 +51,8 @@ public class RunCommandTool implements ToolCallback {
     private final Duration maxTimeout;
     /** impl-49：BASE 之外显式追加透传的环境变量名（大小写敏感，ProcessBuilder 语义）。 */
     private final java.util.Set<String> extraEnvAllowlist;
+    /** impl-60：沙箱委托（spec 17 合流）——非 null 时执行走 backend，null 走内置 ProcessBuilder。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend backend;
 
     public RunCommandTool(FileSandbox sandbox, CommandBlacklist blacklist,
                           Duration defaultTimeout, Duration maxTimeout) {
@@ -60,11 +62,20 @@ public class RunCommandTool implements ToolCallback {
     public RunCommandTool(FileSandbox sandbox, CommandBlacklist blacklist,
                           Duration defaultTimeout, Duration maxTimeout,
                           java.util.Set<String> extraEnvAllowlist) {
+        this(sandbox, blacklist, defaultTimeout, maxTimeout, extraEnvAllowlist, null);
+    }
+
+    /** 沙箱委托构造（spec 17 / impl-60）：黑名单与 workdir 前置校验不变，执行隔离交 backend。 */
+    public RunCommandTool(FileSandbox sandbox, CommandBlacklist blacklist,
+                          Duration defaultTimeout, Duration maxTimeout,
+                          java.util.Set<String> extraEnvAllowlist,
+                          io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend backend) {
         this.sandbox = sandbox;
         this.blacklist = blacklist;
         this.defaultTimeout = defaultTimeout;
         this.maxTimeout = maxTimeout;
         this.extraEnvAllowlist = extraEnvAllowlist == null ? java.util.Set.of() : extraEnvAllowlist;
+        this.backend = backend;
     }
 
     @Override

@@ -70,9 +70,22 @@ public final class ToolsModule {
             dangerous.add("write_file");
         }
         if (builder.runCommandEnabled) {
-            t.add(new RunCommandTool(sandbox,
-                    builder.blacklist == null ? CommandBlacklist.defaults() : builder.blacklist,
-                    builder.runCommandTimeout, builder.runCommandMaxTimeout));
+            if (builder.commandBackend != null) {
+                // spec 17 / impl-60：沙箱委托版（前置校验在 tools，执行隔离归 backend）。
+                t.add(new SandboxRunCommandTool(sandbox,
+                        builder.blacklist == null ? CommandBlacklist.defaults() : builder.blacklist,
+                        builder.commandBackend, builder.runCommandTimeout, builder.runCommandMaxTimeout));
+            } else {
+                if ("sandbox".equals(builder.commandBackendMode)) {
+                    throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                            "buzhou.tools.command.backend=sandbox 但容器内没有 CommandBackend 实现",
+                            "引入 buzhou-guard 并注册 CommandSandbox bean（guard 自动桥接为 CommandBackend），"
+                                    + "或把 backend 改回 builtin");
+                }
+                t.add(new RunCommandTool(sandbox,
+                        builder.blacklist == null ? CommandBlacklist.defaults() : builder.blacklist,
+                        builder.runCommandTimeout, builder.runCommandMaxTimeout));
+            }
             dangerous.add("run_command");
         }
         if (builder.httpRequestEnabled) {
@@ -158,6 +171,10 @@ public final class ToolsModule {
         private Duration runCommandTimeout = Duration.ofSeconds(60);
         private Duration runCommandMaxTimeout = Duration.ofMinutes(10);
         private CommandBlacklist blacklist;
+        /** spec 17 / impl-60：沙箱委托（null = 内置 ProcessBuilder 版）。 */
+        private io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend commandBackend;
+        /** spec 17 / impl-60：backend 档位声明（builtin|sandbox；sandbox 无实现时 fail-fast）。 */
+        private String commandBackendMode = "builtin";
         private Duration httpRequestTimeout = Duration.ofSeconds(30);
         private boolean ssrfBlockPrivateRanges = true;
         private List<String> ssrfAllowlist = List.of();
@@ -219,6 +236,12 @@ public final class ToolsModule {
             return this;
         }
 
+        /** spec 17 / impl-60：注入沙箱委托 backend（null = 内置 ProcessBuilder 版）。 */
+        public Builder commandBackend(io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend backend) {
+            this.commandBackend = backend;
+            return this;
+        }
+
         /** 整体替换命令黑名单（默认条目见 {@link CommandBlacklist#DEFAULT_PATTERNS}）。 */
         public Builder commandBlacklist(CommandBlacklist blacklist) {
             this.blacklist = blacklist;
@@ -267,6 +290,18 @@ public final class ToolsModule {
             if (rc.get("blacklist") instanceof List<?> list) {
                 this.blacklist = new CommandBlacklist(
                         list.stream().map(String::valueOf).toList());
+            }
+
+            // spec 17 / impl-60：command.backend（builtin|sandbox；默认 builtin）。
+            Map<String, Object> cmd = sub(ymlConfig, "command");
+            if (cmd.get("backend") instanceof String mode && !mode.isBlank()) {
+                String normalized = mode.trim().toLowerCase(java.util.Locale.ROOT);
+                if (!normalized.equals("builtin") && !normalized.equals("sandbox")) {
+                    throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                            "buzhou.tools.command.backend（" + mode + "）非法",
+                            "取值只能是 builtin 或 sandbox");
+                }
+                this.commandBackendMode = normalized;
             }
 
             Map<String, Object> hr = sub(ymlConfig, "http-request");

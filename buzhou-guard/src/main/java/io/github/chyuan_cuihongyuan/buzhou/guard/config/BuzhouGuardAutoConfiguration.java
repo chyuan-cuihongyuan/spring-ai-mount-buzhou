@@ -70,6 +70,21 @@ public class BuzhouGuardAutoConfiguration {
         return module.configure();
     }
 
+    /**
+     * spec 17 / impl-60（T85 沙箱合流）：应用注册了 {@code CommandSandbox} bean（Deno/E2B/
+     * Firecracker/Limited 组合，档位选择归应用）即桥接为 core 的 {@code CommandBackend}，
+     * 供 tools 的 run_command 沙箱委托版消费（buzhou.tools.command.backend=sandbox）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+            type = "io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.CommandSandbox")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(
+            type = "io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend")
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend sandboxCommandBackend(
+            io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.CommandSandbox sandbox) {
+        return new io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.SandboxCommandBackend(sandbox);
+    }
+
     @Bean
     @ConditionalOnProperty(prefix = "buzhou.guard.audit", name = "enabled", matchIfMissing = true)
     public AuditRecordStore auditRecordStore(Environment env,
