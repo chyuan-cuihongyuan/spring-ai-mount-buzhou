@@ -40,8 +40,36 @@ public class BuzhouResilienceAutoConfiguration {
     public RuntimeConfig resilienceRuntimeConfig(ResilienceProperties properties, Environment env,
             ResilienceStats stats, Map<String, ChatModel> chatModels) {
         String modelName = env.getProperty("buzhou.model-name", "unknown");
+        warnIfMultiInstanceSemantics(properties, env);
         return ResilienceModule.configure(properties, modelName, stats,
                 resolveFallbacks(properties, chatModels));
+    }
+
+    /**
+     * impl-74 / T99 / spec 23：多实例语义显式化——store.type=jbdc/redis 是多实例部署信号，
+     * 而限流/熔断/日配额是单进程机制（每实例独立额度）。启动 WARN 一次指向 runbook §6；
+     * 不做配置拒绝（粘性路由 + 租约独占是合法部署形态，只是要知情）。
+     */
+    private static void warnIfMultiInstanceSemantics(ResilienceProperties properties, Environment env) {
+        String storeType = env.getProperty("buzhou.store.type", "memory");
+        if ("memory".equals(storeType)) {
+            return; // 单实例信号，无告警必要
+        }
+        boolean rateLimit = properties.rateLimit() != null
+                && (properties.rateLimit().requestsPerMinute() != null
+                        || properties.rateLimit().tokensPerMinute() != null);
+        boolean quota = properties.sessionQuota() != null
+                && io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
+                        .anyDimension(properties.sessionQuota());
+        boolean circuit = properties.circuit() != null && properties.circuit().effectiveEnabled();
+        if (rateLimit || quota || circuit) {
+            System.getLogger(BuzhouResilienceAutoConfiguration.class.getName()).log(
+                    System.Logger.Level.WARNING,
+                    "检测到多实例部署信号（buzhou.store.type=" + storeType + "）且启用单进程机制"
+                            + "（限流/熔断/日配额任一）：这些机制为每实例独立额度（N 实例 = N 倍），"
+                            + "分布式版本 out-of-scope。推荐部署：粘性路由 + 租约独占（steal 接管）。"
+                            + "详见 docs/ops-runbook.md §6。");
+        }
     }
 
     /** 按 bean 名解析备模型链：未命中名 fail-fast（拼写错不静默失效）。 */

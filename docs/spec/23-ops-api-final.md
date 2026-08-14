@@ -10,7 +10,13 @@
 
 ## 多实例语义显式化（T99 / impl-74）
 
-- （待 T99 决议后补）
+- **文档化**：docs/ops-runbook.md §6——单进程组件清单（限流桶 / 熔断器 / 日配额 /
+  InMemory 审计环 / SpawnGate）、多实例实际行为（每实例独立额度）、推荐部署（粘性路由 +
+  租约独占 steal 接管）、分布式 out-of-scope 声明。
+- **启动告警**：resilience auto-config 检测多实例信号（`buzhou.store.type != memory`）
+  且启用任一单进程机制（限流/日配额/熔断）→ 启动 WARN 一次指向 runbook §6；
+  不做配置拒绝（知情即可，粘性+独占是合法形态）。
+- RunawayCounters 会话累计本就持久化在 SessionStateStore（跨实例语义正确），不在告警之列。
 
 ## API 稳定性审计（T100 / impl-75）
 
