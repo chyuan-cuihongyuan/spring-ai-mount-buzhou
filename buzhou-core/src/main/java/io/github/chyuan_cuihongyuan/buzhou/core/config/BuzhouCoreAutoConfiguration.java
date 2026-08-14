@@ -41,8 +41,55 @@ import java.util.List;
  * <b>不</b>暴露为 bean，避免被 {@code List<RuntimeConfig>} 自收集（无环）。
  */
 @AutoConfiguration
-@EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRetentionProperties.class})
+@EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRetentionProperties.class,
+        BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class})
 public class BuzhouCoreAutoConfiguration {
+
+    // ---- 失控检测与容量闸（impl-45 / spec 14 §A，自分支增量移植）----
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "buzhou.runaway", name = "enabled", matchIfMissing = true)
+    public io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters runawayCounters() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters();
+    }
+
+    /**
+     * 失控检测 Hook（{@code buzhou.runaway.enabled} 默认开；阈值默认 null = 不限，
+     * safe-by-default）。注入 {@link BuzhouStores} 的 observabilityStore 使
+     * {@code runaway.*} 事件双重写入（SessionEvent + EventRecord），dashboard 可查。
+     * store 经 {@code ObjectProvider} 惰性取用——store.type 校验失败路径上无 store bean 时
+     * 不抢跑（该路径由 buzhouStoreTypeGuard 以 BuzhouConfigurationException 失败）。
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "runawayHook")
+    @ConditionalOnProperty(prefix = "buzhou.runaway", name = "enabled", matchIfMissing = true)
+    public io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook runawayHook(
+            BuzhouRunawayProperties runawayProperties,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters> counters,
+            ObjectProvider<BuzhouStores> stores) {
+        BuzhouStores available = stores.getIfAvailable();
+        return new io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayHook(
+                runawayProperties, counters.getIfAvailable(
+                        io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters::new),
+                available == null ? null : available.observabilityStore());
+    }
+
+    /**
+     * 软退出提醒渲染器（达软阈值时经既有 Attachment 通道注入「剩余步数预算」信号）。
+     * 被 {@code BuzhouMemoryAutoConfiguration} 自动组合进 CompositeAttachmentRenderer。
+     * 无 {@code per-turn.max-steps} 时不注入（合法长任务不受影响）。
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "runawayBudgetRenderer")
+    @ConditionalOnProperty(prefix = "buzhou.runaway", name = "enabled", matchIfMissing = true)
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer runawayBudgetRenderer(
+            BuzhouRunawayProperties runawayProperties,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters> counters) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayBudgetRenderer(
+                runawayProperties, counters.getIfAvailable(
+                        io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters::new));
+    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -169,6 +216,7 @@ public class BuzhouCoreAutoConfiguration {
     @ConditionalOnMissingBean(AgentRuntime.class)
     public DefaultAgentRuntime buzhouAgentRuntime(ChatModel chatModel, BuzhouStores stores,
                                            BuzhouCoreProperties properties,
+                                           BuzhouBackpressureProperties backpressureProperties,
                                            List<RuntimeConfig> moduleConfigs,
                                            List<BuzhouHook> hooks,
                                            List<ToolCallback> autoTools,
@@ -199,10 +247,22 @@ public class BuzhouCoreAutoConfiguration {
         // impl-34 / spec 13 §core-4：事件分发模式（buzhou.core.event-dispatch.*）流入运行时
         io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatch =
                 properties.core().eventDispatch().toConfig();
+        // impl-45 / spec 14 §A：spawn 容量闸（buzhou.backpressure.max-concurrent-sessions 配置且
+        // 机制启用时构建；未配置 / 关闭 = null 不限，既有行为不变）
+        BuzhouBackpressureProperties bp = backpressureProperties;
+        io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate spawnGate =
+                bp != null && bp.enabled() && bp.maxConcurrentSessions() != null
+                        && bp.maxConcurrentSessions() > 0
+                        ? new io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate(
+                                bp.maxConcurrentSessions(), bp.effectiveSpawnQueueTimeout(),
+                                bp.effectiveSpawnOverloadPolicy(), event -> {
+                                })
+                        : null;
         return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
                 properties.leaseTtl(), properties.effectiveLeaseRenewInterval(),
                 properties.lifecycle().timeoutPerShutdownPhase(),
-                eventDispatch.isBuffered() ? eventDispatch : null);
+                eventDispatch.isBuffered() ? eventDispatch : null,
+                spawnGate);
     }
 
     /**

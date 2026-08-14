@@ -7,9 +7,18 @@
       "description": "存储形态（封闭枚举，拼错启动即失败）：memory=进程内有界套件（默认）；jdbc=MySQL/PostgreSQL/H2（需 buzhou-store-jdbc）；redis=Redis（需 buzhou-store-redis）。",
       "hints": {
         "values": [
-          {"value": "memory", "description": "进程内存储（默认；有界容量配额见 buzhou.store.in-memory.*）"},
-          {"value": "jdbc", "description": "JDBC 存储（需要 buzhou-store-jdbc 依赖与 DataSource）"},
-          {"value": "redis", "description": "Redis 存储（需要 buzhou-store-redis 依赖）"}
+          {
+            "value": "memory",
+            "description": "进程内存储（默认；有界容量配额见 buzhou.store.in-memory.*）"
+          },
+          {
+            "value": "jdbc",
+            "description": "JDBC 存储（需要 buzhou-store-jdbc 依赖与 DataSource）"
+          },
+          {
+            "value": "redis",
+            "description": "Redis 存储（需要 buzhou-store-redis 依赖）"
+          }
         ]
       }
     },
@@ -20,10 +29,18 @@
       "description": "impl-41 资源泄漏检测级别：DISABLED=不追踪（零开销）；SIMPLE=1/128 采样（默认）；ADVANCED=1/128 采样+出租栈捕获；PARANOID=全采样+栈捕获（排障用）。",
       "hints": {
         "values": [
-          {"value": "DISABLED"},
-          {"value": "SIMPLE"},
-          {"value": "ADVANCED"},
-          {"value": "PARANOID"}
+          {
+            "value": "DISABLED"
+          },
+          {
+            "value": "SIMPLE"
+          },
+          {
+            "value": "ADVANCED"
+          },
+          {
+            "value": "PARANOID"
+          }
         ]
       }
     },
@@ -58,12 +75,100 @@
       "description": "impl-42 迁移：默认 AUTO 按连接 DatabaseMetaData 自动探测（原缺省假定 H2）。",
       "hints": {
         "values": [
-          {"value": "AUTO", "description": "按连接元数据自动探测（默认）"},
-          {"value": "H2"},
-          {"value": "MYSQL"},
-          {"value": "POSTGRESQL"}
+          {
+            "value": "AUTO",
+            "description": "按连接元数据自动探测（默认）"
+          },
+          {
+            "value": "H2"
+          },
+          {
+            "value": "MYSQL"
+          },
+          {
+            "value": "POSTGRESQL"
+          }
         ]
       }
+    },
+    {
+      "name": "buzhou.runaway.enabled",
+      "type": "java.lang.Boolean",
+      "description": "失控检测总开关（阈值默认不设 = 不限，safe-by-default）。",
+      "defaultValue": true
+    },
+    {
+      "name": "buzhou.runaway.per-turn.max-steps",
+      "type": "java.lang.Integer",
+      "description": "单轮最大模型步数（软阈值 80% 时注入剩余预算提醒，硬顶终止）。未配置 = 不限。"
+    },
+    {
+      "name": "buzhou.runaway.per-turn.max-tool-calls",
+      "type": "java.lang.Integer",
+      "description": "单轮最大工具调用总数。未配置 = 不限。"
+    },
+    {
+      "name": "buzhou.runaway.per-turn.max-wall-clock",
+      "type": "java.time.Duration",
+      "description": "单轮墙钟上限（与 TurnDeadline 独立；两者先到先停）。未配置 = 不限。"
+    },
+    {
+      "name": "buzhou.runaway.session.max-steps",
+      "type": "java.lang.Integer",
+      "description": "会话累计步数上限（SessionStateStore 持久化，跨崩溃保留）。未配置 = 不限。"
+    },
+    {
+      "name": "buzhou.runaway.session.max-tool-calls",
+      "type": "java.lang.Integer",
+      "description": "会话累计工具调用上限。未配置 = 不限。"
+    },
+    {
+      "name": "buzhou.backpressure.enabled",
+      "type": "java.lang.Boolean",
+      "description": "spawn 容量闸总开关。",
+      "defaultValue": true
+    },
+    {
+      "name": "buzhou.backpressure.max-concurrent-sessions",
+      "type": "java.lang.Integer",
+      "description": "实例级并发活跃会话上限。未配置 = 不限。"
+    },
+    {
+      "name": "buzhou.backpressure.spawn-queue-timeout",
+      "type": "java.time.Duration",
+      "description": "QUEUE 档 spawn 排队超时。",
+      "defaultValue": "30s"
+    },
+    {
+      "name": "buzhou.backpressure.spawn-overload-policy",
+      "type": "java.lang.String",
+      "description": "spawn 过载策略：QUEUE 或 FAIL_FAST。",
+      "defaultValue": "QUEUE"
+    },
+    {
+      "name": "buzhou.backpressure.tool.max-concurrent-per-turn",
+      "type": "java.lang.Integer",
+      "description": "每轮工具并发上限。未配置 = 8。"
+    },
+    {
+      "name": "buzhou.backpressure.tool.tool-timeout",
+      "type": "java.time.Duration",
+      "description": "单工具执行超时。未配置 = 60s。"
+    }
+  ],
+  "hints": [
+    {
+      "name": "buzhou.backpressure.spawn-overload-policy",
+      "values": [
+        {
+          "value": "QUEUE",
+          "description": "有界排队 + 超时"
+        },
+        {
+          "value": "FAIL_FAST",
+          "description": "快速失败"
+        }
+      ]
     }
   ]
 }

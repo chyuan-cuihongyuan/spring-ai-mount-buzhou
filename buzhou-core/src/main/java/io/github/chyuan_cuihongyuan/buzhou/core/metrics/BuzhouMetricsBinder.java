@@ -49,5 +49,8 @@ public final class BuzhouMetricsBinder implements MeterBinder {
         registry.counter("buzhou.resilience.rate-limit-rejected");
         registry.counter("buzhou.resilience.model-timeouts");
         registry.counter("buzhou.resilience.content-refusals");
+        // 失控检测与容量闸（impl-45 / spec 14 §A；reason tag 有界枚举）
+        registry.counter("buzhou.runaway.hard-stops");
+        registry.counter("buzhou.backpressure.spawn-rejected");
     }
 }

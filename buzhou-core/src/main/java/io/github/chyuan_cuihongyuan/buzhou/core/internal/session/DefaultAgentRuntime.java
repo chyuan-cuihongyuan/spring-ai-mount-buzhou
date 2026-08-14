@@ -50,6 +50,9 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
     /** impl-34 / spec 13 §core-4：事件分发模式（null = SYNC 既有内联行为）。 */
     private final io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig;
 
+    /** impl-45 / spec 14 §A：spawn 容量闸（null = 不限）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate spawnGate;
+
     /**
      * impl-35 / spec 13 §stores-6：会话级联清理协调器——五槽 store + RuntimeConfig 贡献者
      * （RecoverySupport 挂接的 run-registry / tool-call-log 等）；会话 delete() 一次清干净。
@@ -117,6 +120,21 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                                Duration shutdownTimeout,
                                io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
                                ToolCallback... tools) {
+        this(chatModel, stores, assembler, config, leaseTtl, leaseRenewInterval,
+                shutdownTimeout, eventDispatchConfig, null, tools);
+    }
+
+    /**
+     * impl-45 / spec 14 §A：完整构造入口 + spawn 容量闸（{@code buzhou.backpressure.spawn-limit}
+     * 配置时装配层构建 {@link SpawnGate} 传入；null = 不限，既有行为不变）。
+     */
+    public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
+                               HarnessAssembler assembler, RuntimeConfig config,
+                               Duration leaseTtl, Duration leaseRenewInterval,
+                               Duration shutdownTimeout,
+                               io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
+                               io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate spawnGate,
+                               ToolCallback... tools) {
         this.chatModel = chatModel;
         this.stores = stores;
         this.assembler = assembler;
@@ -129,6 +147,7 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 || shutdownTimeout.isZero() || shutdownTimeout.isNegative()
                 ? DEFAULT_SHUTDOWN_TIMEOUT : shutdownTimeout;
         this.eventDispatchConfig = eventDispatchConfig;
+        this.spawnGate = spawnGate;
         this.sessionCleaner = io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner.of(
                 stores, this.config.sessionCleanupContributors());
     }
@@ -157,6 +176,22 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
             throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
                     "AgentRuntime 已停机，拒绝创建新会话（sessionId=" + sessionId + "）");
         }
+        // impl-45 / spec 14 §A：spawn 容量闸——租约之前裁决（排队不持租约）；steal 接管路径不占新容量
+        if (spawnGate != null && !options.steal()) {
+            spawnGate.acquireSlotOrThrow(sessionId);
+        }
+        try {
+            return doSpawn(appId, agentName, sessionId, options);
+        } catch (RuntimeException e) {
+            // 装配中途失败（租约冲突等）：归还容量空位，不放走泄漏的许可
+            if (spawnGate != null && !options.steal()) {
+                spawnGate.releaseSlot();
+            }
+            throw e;
+        }
+    }
+
+    private AgentSession doSpawn(String appId, String agentName, String sessionId, SpawnOptions options) {
         LeaseAcquireResult lease = stores.sessionLeaseStore().tryAcquire(sessionId, ownerId, leaseTtl);
         if (!lease.acquired()) {
             if (!options.steal()) {
@@ -197,6 +232,10 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                         // impl-30：会话资源收尾后从活跃注册表注销（无论收尾成败，防泄漏）
                         tracked.markClosed();
                         activeSessions.remove(sessionId);
+                        // impl-45：归还 spawn 容量空位（steal 接管路径未占用，不归还）
+                        if (spawnGate != null && !options.steal()) {
+                            spawnGate.releaseSlot();
+                        }
                     }
                 },
                 config.hooks(), config.disabledHookNames(),
@@ -240,6 +279,10 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         }
         // ① 拒绝新 Turn（spawn + 既有会话的 chat/stream）
         shuttingDown = true;
+        if (spawnGate != null) {
+            // impl-45：唤醒排队中的 spawn 等待者（抛 SHUTDOWN_INTERRUPTED，与停机拒新语义同型）
+            spawnGate.signalDrainStarted();
+        }
         for (TrackedSession tracked : activeSessions.values()) {
             tracked.rejectNewTurns();
         }
