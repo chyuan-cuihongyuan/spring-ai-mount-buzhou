@@ -49,3 +49,32 @@ jobs:
             redteam-results.json
             target-serve.log
           if-no-files-found: ignore
+
+  # impl-53 / spec 14 §I：审计链重放校验（兑现 README 承诺）——
+  # 跑 examples 侧 AuditChain 集成测试（篡改检出/密钥轮换/policy 热更跨片回归）。
+  audit-chain-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Run audit chain verification suite
+        run: |
+          mvn -B -ntp -pl examples -am test -Dtest='ResilienceMatrixEndToEndTest' -Dsurefire.failIfNoSpecifiedTests=false
+
+  # impl-53：确定性护栏行为门（真实回复 + 拦截信号头断言，快、可硬门）
+  guard-signal-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Guard signal smoke (hard gate)
+        run: |
+          mvn -B -ntp -pl examples -am test -Dtest='RedteamTargetSmokeTest' -Dsurefire.failIfNoSpecifiedTests=false

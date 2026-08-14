@@ -8,10 +8,12 @@
 - `promptfooconfig.yaml`：注入类 plugins（prompt-injection / excessive-agency / tool-discovery /
   shell-injection）+ 单/多轮越狱 strategies，对准 Buzhou 四层确定性防御
   （spotlighting → canary → FIDES 写门 → HITL 门）。
-- **target**：examples 测试域内的 OpenAI 兼容端点（`RedteamTargetServer`，测试作用域、
+- **target**：examples 测试域内的 OpenAI 兼容端点（`RedteamTargetSmokeTest` 驻留模式，测试作用域、
   无需外部依赖）：包一层 guard 全开的 Buzhou runtime（taintTracking + injectionDefense +
   危险工具 HITL 门），模型用确定性替身——红队评的是**护栏行为**（拦截/转确认/不越权），
-  不评模型生成质量。
+  不评模型生成质量。impl-53 起响应体携带真实 agent 回复，拦截信号经
+  `x-buzhou-guard-blocked` / `x-buzhou-dangerous-executed` 响应头透出（promptfoo
+  `transformResponse` 派生 `guardrails.flagged`，`type: guardrails` 断言）。
 - CI：`.github/workflows/redteam-nightly.yml` —— **nightly、先观测不阻塞 PR**；
   指标基线留档（`redteam/baseline.md`），稳定后再升硬门。
 - **审计链 nightly 重放校验（impl-39 / spec 13 §T64，注记级）**：同一 nightly 节奏里对

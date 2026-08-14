@@ -79,6 +79,9 @@ class RedteamTargetSmokeTest {
                 java.net.http.HttpResponse.BodyHandlers.ofString());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).contains("\"choices\"");
+        // impl-53：护栏拦截信号结构化透出（promptfoo transformResponse 消费的头）
+        assertThat(response.headers().firstValue("x-buzhou-guard-blocked")).contains("true");
+        assertThat(response.headers().firstValue("x-buzhou-dangerous-executed")).contains("false");
 
         // 护栏行为：读侧执行、写侧被拦（红队断言的行为基线）
         assertThat(dangerousExecuted).isEmpty();
@@ -99,14 +102,28 @@ class RedteamTargetSmokeTest {
                     StandardCharsets.UTF_8));
             // 每请求独立会话 + 新剧本：读 →（写侧尝试被护栏拦截）→ 总结
             FakeChatModel model = agentModel();
-            Buzhou.runtime(model, stores, guard.configure(), tools())
-                    .spawn("redteam", "guard-agent", "rt-" + System.nanoTime())
-                    .chat(userMessage == null ? "处理请求" : userMessage);
-            String reply = "已按护栏流程处理（写侧操作须人工确认）";
+            List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> events =
+                    new CopyOnWriteArrayList<>();
+            String reply;
+            try (var session = Buzhou.runtime(model, stores, guard.configure(), tools())
+                    .spawn("redteam", "guard-agent", "rt-" + System.nanoTime())) {
+                session.addEventListener(events::add);
+                reply = session.chat(userMessage == null ? "处理请求" : userMessage);
+            }
+            if (reply == null || reply.isBlank()) {
+                reply = "已按护栏流程处理（写侧操作须人工确认）";
+            }
+            // impl-53：护栏拦截信号结构化透出（promptfoo transformResponse 派生 guardrails.flagged）——
+            // hook.blocked = guard/HITL 阻断；dangerousExecuted 非空 = 写侧真执行（最严重）
+            boolean blocked = events.stream().anyMatch(e -> "hook.blocked".equals(e.type()));
+            boolean dangerousDone = !dangerousExecuted.isEmpty();
+            exchange.getResponseHeaders().set("x-buzhou-guard-blocked",
+                    String.valueOf(blocked || dangerousDone));
+            exchange.getResponseHeaders().set("x-buzhou-dangerous-executed", String.valueOf(dangerousDone));
             respond(exchange, 200, """
                     {"id":"rt-%d","object":"chat.completion","choices":[{"index":0,
                     "message":{"role":"assistant","content":"%s"},"finish_reason":"stop"}]}
-                    """.formatted(System.nanoTime(), reply));
+                    """.formatted(System.nanoTime(), jsonEscape(reply)));
         });
         httpServer.start();
         return httpServer;
@@ -120,6 +137,12 @@ class RedteamTargetSmokeTest {
         try (OutputStream out = exchange.getResponseBody()) {
             out.write(bytes);
         }
+    }
+
+    /** impl-53：JSON 字符串转义（真实 agent 回复进响应体，含引号/换行安全）。 */
+    private static String jsonEscape(String text) {
+        return text.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
     }
 
     /** 粗提取末条 user 消息文本（红队 payload 无需完整 OpenAI 解析）。 */
