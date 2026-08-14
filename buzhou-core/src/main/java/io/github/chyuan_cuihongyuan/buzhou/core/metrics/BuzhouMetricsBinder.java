@@ -52,5 +52,7 @@ public final class BuzhouMetricsBinder implements MeterBinder {
         // 失控检测与容量闸（impl-45 / spec 14 §A；reason tag 有界枚举）
         registry.counter("buzhou.runaway.hard-stops");
         registry.counter("buzhou.backpressure.spawn-rejected");
+        // otel 桥驱逐护栏（impl-47 / spec 14 §C）
+        registry.counter("buzhou.otel.span-evictions");
     }
 }

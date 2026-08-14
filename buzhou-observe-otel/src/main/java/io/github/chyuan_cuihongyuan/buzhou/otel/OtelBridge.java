@@ -52,10 +52,23 @@ public final class OtelBridge implements AutoCloseable {
         return new OtelBridge(new OtelBridgeSink(tracer, config), provider);
     }
 
-    /** 自建 SDK + OTLP HTTP 导出器 + {@link BatchSpanProcessor}（生产形态）。 */
+    /** 自建 SDK + OTLP HTTP 导出器 + {@link BatchSpanProcessor}（生产形态；既有签名兼容）。 */
     public static OtelBridge otlp(String endpoint, OtelBridgeConfig config) {
+        return otlp(endpoint, config, java.util.Map.of(), java.time.Duration.ofSeconds(10));
+    }
+
+    /**
+     * impl-47：OTLP 生产形态全参——请求头（鉴权 bearer 等）与导出超时可配
+     * （header 值的 {@code ${ENV:}} 占位由 Spring 属性解析先行完成）。
+     */
+    public static OtelBridge otlp(String endpoint, OtelBridgeConfig config,
+                                  java.util.Map<String, String> headers, java.time.Duration timeout) {
         String resolved = (endpoint == null || endpoint.isBlank()) ? DEFAULT_OTLP_ENDPOINT : endpoint;
-        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder().setEndpoint(resolved).build();
+        io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporterBuilder builder = OtlpHttpSpanExporter.builder()
+                .setEndpoint(resolved)
+                .setTimeout(timeout);
+        headers.forEach(builder::addHeader);
+        OtlpHttpSpanExporter exporter = builder.build();
         SdkTracerProvider provider = SdkTracerProvider.builder()
                 .addSpanProcessor(BatchSpanProcessor.builder(exporter).build())
                 .build();

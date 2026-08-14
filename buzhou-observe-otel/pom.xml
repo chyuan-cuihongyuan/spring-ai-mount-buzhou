@@ -64,16 +64,6 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
     <!-- InMemorySpanExporter：hermetic 断言导出的 span 树，无需真实 Collector -->
     <dependency>
       <groupId>io.opentelemetry</groupId>

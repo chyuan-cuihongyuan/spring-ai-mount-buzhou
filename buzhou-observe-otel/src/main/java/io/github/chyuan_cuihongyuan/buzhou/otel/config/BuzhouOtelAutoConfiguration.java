@@ -32,10 +32,16 @@ public class BuzhouOtelAutoConfiguration {
     public OtelBridge otelBridge(OtelProperties props, ObjectProvider<Tracer> tracerProvider) {
         OtelBridgeConfig bridgeConfig = new OtelBridgeConfig(true, props.includeContent());
         Tracer tracer = tracerProvider.getIfAvailable();
-        if ("tracer".equals(props.exporterMode()) && tracer != null) {
+        if ("tracer".equals(props.exporterMode())) {
+            if (tracer == null) {
+                // impl-47 fail-fast：显式 tracer 模式不容静默回退 otlp（此前用户意图被忽略且指向错误端点）
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                        "buzhou.observe.otel.exporter-mode=tracer 但容器内无 Tracer bean",
+                        "引入 OTel SDK 自动装配（如 micrometer-tracing-bridge-otel）或改用 exporter-mode=otlp");
+            }
             return OtelBridge.forTracer(tracer, bridgeConfig);
         }
-        return OtelBridge.otlp(props.endpoint(), bridgeConfig);
+        return OtelBridge.otlp(props.endpoint(), bridgeConfig, props.headers(), props.timeout());
     }
 
     @Bean

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * OTel 导出桥旁路 sink（spec 03「OTel 导出桥」）。
@@ -46,17 +47,39 @@ import java.util.concurrent.TimeUnit;
  */
 final class OtelBridgeSink implements PipelineSink {
 
+    private static final System.Logger LOGGER = System.getLogger(OtelBridgeSink.class.getName());
+
     /** 受 {@code include-content} 门控的内容型 payload key（spec 03 推演 #15：由 THINKING/FINAL_REPLY 泛化到全部内容型字段）。 */
     private static final Set<String> CONTENT_KEYS = Set.of("content", "arguments", "result", "stacktrace");
+
+    /** impl-47：旁路故障限频日志步长（首条 + 每 N 条一条，防异常风暴刷屏）。 */
+    private static final long LOG_EVERY = 100;
 
     private final Tracer tracer;
     private final boolean includeContent;
     private final ConcurrentHashMap<String, Span> openSpans = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, SessionTrace> sessionTrace = new ConcurrentHashMap<>();
+    /** impl-47：未终态 span 上限（防泄漏护栏——正常流全部 span 都有终态回调，超限即上游异常）。 */
+    private final int maxOpenSpans;
+    /** impl-47：会话 trace 派生缓存上限（PipelineSink 无会话结束回调，靠上界防长跑无界增长）。 */
+    private final int maxSessionTraces;
+    private final AtomicLong evictedSpans = new AtomicLong();
+    private final AtomicLong sinkFailures = new AtomicLong();
 
     OtelBridgeSink(Tracer tracer, OtelBridgeConfig config) {
+        this(tracer, config, 10_000, 100_000);
+    }
+
+    OtelBridgeSink(Tracer tracer, OtelBridgeConfig config, int maxOpenSpans, int maxSessionTraces) {
         this.tracer = tracer;
         this.includeContent = config.includeContent();
+        this.maxOpenSpans = Math.max(1, maxOpenSpans);
+        this.maxSessionTraces = Math.max(1, maxSessionTraces);
+    }
+
+    /** impl-47：被驱逐的未终态 span 数（护栏触发即上游 span 泄漏信号，暴露给健康/测试）。 */
+    long evictedSpans() {
+        return evictedSpans.get();
     }
 
     @Override
@@ -67,8 +90,8 @@ final class OtelBridgeSink implements PipelineSink {
             } else {
                 closeSpan(record);
             }
-        } catch (RuntimeException ignored) {
-            // 旁路故障不污染主链路
+        } catch (RuntimeException e) {
+            logSinkFailure("onSpan", e);
         }
     }
 
@@ -84,8 +107,8 @@ final class OtelBridgeSink implements PipelineSink {
             }
             span.addEvent(record.type(), eventAttributes(record.payload()),
                     epochNanos(record.occurredAt()), TimeUnit.NANOSECONDS);
-        } catch (RuntimeException ignored) {
-            // 同上
+        } catch (RuntimeException e) {
+            logSinkFailure("onEvent", e);
         }
     }
 
@@ -96,11 +119,42 @@ final class OtelBridgeSink implements PipelineSink {
         if (leaked != null) {
             leaked.end(); // 防御：同 spanId 重复开启，先结束旧 span 避免泄漏
         }
+        evictIfOverBudget();
         Span span = tracer.spanBuilder(spanName(record))
                 .setParent(resolveParent(record))
                 .setStartTimestamp(record.startedAt())
                 .startSpan();
         openSpans.put(record.spanId(), span);
+    }
+
+    /**
+     * impl-47：未终态 span 超限驱逐（任意一条——护栏而非 LRU；正常流不触发，
+     * 触发即上游存在 span 泄漏，计数 + 指标 + WARN 可见）。驱逐的 span 以 UNSET 终态
+     * end 并标 {@code buzhou.evicted=true}（trace 不悬挂）。
+     */
+    private void evictIfOverBudget() {
+        while (openSpans.size() >= maxOpenSpans && !openSpans.isEmpty()) {
+            var iterator = openSpans.entrySet().iterator();
+            if (!iterator.hasNext()) {
+                return;
+            }
+            var entry = iterator.next();
+            iterator.remove();
+            try {
+                entry.getValue().setAttribute("buzhou.evicted", true);
+                entry.getValue().end();
+            } catch (RuntimeException ignored) {
+                // 驱逐路径尽力而为
+            }
+            long total = evictedSpans.incrementAndGet();
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.otel.span-evictions");
+            if (total == 1 || total % LOG_EVERY == 0) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "otel 桥未终态 span 超上限（" + maxOpenSpans + "），已驱逐 " + total
+                                + " 条——上游疑似 span 泄漏（流取消/异常路径缺终态）");
+            }
+        }
     }
 
     private void closeSpan(SpanRecord record) {
@@ -269,7 +323,28 @@ final class OtelBridgeSink implements PipelineSink {
 
     private SessionTrace sessionTrace(String sessionId) {
         String sid = (sessionId == null || sessionId.isBlank()) ? "unknown" : sessionId;
+        SessionTrace existing = sessionTrace.get(sid);
+        if (existing != null) {
+            return existing;
+        }
+        // impl-47：trace 派生缓存上界（无会话结束回调，靠驱逐防长跑无界；traceId 由 sid 确定性派生，驱逐后重建无损）
+        if (sessionTrace.size() >= maxSessionTraces && sessionTrace.size() > 0) {
+            var iterator = sessionTrace.entrySet().iterator();
+            if (iterator.hasNext()) {
+                iterator.remove();
+            }
+        }
         return sessionTrace.computeIfAbsent(sid, OtelBridgeSink::deriveSessionTrace);
+    }
+
+    /** impl-47：旁路失败限频 WARN（首条 + 每 N 条；此前纯静默，导出链路故障生产不可见）。 */
+    private void logSinkFailure(String operation, RuntimeException e) {
+        long total = sinkFailures.incrementAndGet();
+        if (total == 1 || total % LOG_EVERY == 0) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "otel 桥 " + operation + " 失败（已隔离，第 " + total + " 次）："
+                            + e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
     }
 
     private static SessionTrace deriveSessionTrace(String sessionId) {

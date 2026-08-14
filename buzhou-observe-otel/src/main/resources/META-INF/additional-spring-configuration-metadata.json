@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {"name": "buzhou.observe.otel.enabled", "type": "java.lang.Boolean", "description": "OTel 导出桥总开关（默认关：引入模块后仍需显式开启）。", "defaultValue": false},
+    {"name": "buzhou.observe.otel.include-content", "type": "java.lang.Boolean", "description": "导出属性是否携带思维链/回复正文/工具入参出参原文（隐私立场默认关）。", "defaultValue": false},
+    {"name": "buzhou.observe.otel.exporter-mode", "type": "java.lang.String", "description": "导出形态：otlp（默认，自建 OTLP HTTP 导出）或 tracer（复用容器 Tracer bean；缺 bean 启动失败）。", "defaultValue": "otlp"},
+    {"name": "buzhou.observe.otel.endpoint", "type": "java.lang.String", "description": "OTLP traces 端点。", "defaultValue": "http://localhost:4318/v1/traces"},
+    {"name": "buzhou.observe.otel.headers", "type": "java.util.Map<java.lang.String,java.lang.String>", "description": "OTLP 请求头（如 Authorization bearer；值支持 ${ENV:} 占位）。"},
+    {"name": "buzhou.observe.otel.timeout", "type": "java.time.Duration", "description": "OTLP 导出请求超时。", "defaultValue": "10s"}
+  ],
+  "hints": [
+    {"name": "buzhou.observe.otel.exporter-mode", "values": [
+      {"value": "otlp", "description": "自建 OTLP HTTP 导出器 + BatchSpanProcessor"},
+      {"value": "tracer", "description": "复用容器 Tracer bean（调用方自管 SDK）"}
+    ]}
+  ]
+}

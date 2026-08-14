@@ -1,7 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.otel;
 
 /**
- * OTel 导出桥配置（spec 03 配置项表，前缀 {@code buzhou.observability.otel.*}）。
+ * OTel 导出桥配置（spec 03 配置项表，装配前缀 {@code buzhou.observe.otel.*}（OtelProperties））。
  *
  * <p>本模块缺省关闭（{@code otel.enabled=false}）：模块引入后仍需显式开启才生效；
  * 关闭时装配侧不产出 {@link io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PipelineSink}，
