@@ -43,8 +43,20 @@ import java.util.List;
 @AutoConfiguration
 @EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRetentionProperties.class,
         BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class,
-        BuzhouTokenBudgetProperties.class})
+        BuzhouTokenBudgetProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class})
 public class BuzhouCoreAutoConfiguration {
+
+    /**
+     * 事件外发 webhook（spec 20 / T89 / impl-64）：配置 {@code buzhou.webhook.url} 才装配
+     * （默认关、零开销）。forwarder 经全局监听挂点挂全部会话（见 buzhouAgentRuntime）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "buzhou.webhook", name = "url")
+    public io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder webhookEventForwarder(
+            io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties props) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props);
+    }
 
     // ---- 失控检测与容量闸（impl-45 / spec 14 §A，自分支增量移植）----
 
@@ -241,7 +253,9 @@ public class BuzhouCoreAutoConfiguration {
                                            List<ToolCallback> autoTools,
                                            List<SessionAssemblyCustomizer> assemblyCustomizers,
                                            List<SessionResourceCustomizer> resourceCustomizers,
-                                           ObjectProvider<MemoryViewProcessor> viewProcessor) {
+                                           ObjectProvider<MemoryViewProcessor> viewProcessor,
+                                           ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener>
+                                                   globalEventListeners) {
         List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
         // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
         if (!hooks.isEmpty()) {
@@ -277,12 +291,16 @@ public class BuzhouCoreAutoConfiguration {
                                 bp.effectiveSpawnOverloadPolicy(), event -> {
                                 })
                         : null;
-        return new DefaultAgentRuntime(chatModel, stores,
+        DefaultAgentRuntime runtime = new DefaultAgentRuntime(chatModel, stores,
                 new HarnessAssembler().withToolTimeout(properties.core().toolTimeout()), merged,
                 properties.leaseTtl(), properties.effectiveLeaseRenewInterval(),
                 properties.lifecycle().timeoutPerShutdownPhase(),
                 eventDispatch.isBuffered() ? eventDispatch : null,
                 spawnGate);
+        // spec 20 / T89 / impl-64：全局事件监听 bean（如 WebhookEventForwarder）挂全部会话
+        globalEventListeners.stream()
+                .forEach(runtime::addGlobalEventListener);
+        return runtime;
     }
 
     /**

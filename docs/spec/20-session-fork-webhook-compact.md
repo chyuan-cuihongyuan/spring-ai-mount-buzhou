@@ -20,7 +20,16 @@
 
 ## 事件外发 webhook（T89 / impl-64）
 
-- （待 T89 决议后补）
+- **`core/webhook/WebhookEventForwarder`**（`SessionEventListener`）：配置 `buzhou.webhook.url` 才装配
+  （默认关）。core 增**全局监听挂点**：`DefaultAgentRuntime.addGlobalEventListener`（新会话自动挂 +
+  已活跃补挂）；core auto-config 收集 `SessionEventListener` bean 注入。
+- **投递语义**：at-least-once（幂等键 `eventId`=UUID 每请求 `X-Buzhou-Event-Id`；消费方按需去重，
+  exactly-once 不承诺）；单虚拟线程分发器 + 有界队列（默认 256）**满则丢弃 + 计数**（不阻塞主链）；
+  优雅关闭限时排空。
+- **签名**：`X-Buzhou-Signature: hex(HMAC-SHA256(secret, body))`（配置 secret 才带）。
+- **重试**：IOException/5xx 退避 1s×2^n（默认 3 次）；4xx 不重试；全败丢弃 + 计数。
+- **HTTP**：JDK HttpClient（零新依赖），POST JSON `{eventId, sessionId, type, payload, occurredAt}`，
+  timeout 默认 5s。指标 `buzhou.webhook.delivered / dropped / failures`。
 
 ## 手动压缩 / 摘要导出（T90 / impl-65）
 

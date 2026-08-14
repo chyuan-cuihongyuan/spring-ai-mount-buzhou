@@ -273,11 +273,36 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         }
         activeSessions.put(sessionId, tracked);
         options.listeners().forEach(session::addEventListener);
+        globalListeners.forEach(session::addEventListener);
         // 注册后可能已并发进入停机——即刻补发拒新标记，保证「拒绝新 Turn」无窗口遗漏
         if (shuttingDown) {
             tracked.rejectNewTurns();
         }
         return session;
+    }
+
+    // ---- 全局事件监听挂点（spec 20 / T89 / impl-64：webhook 等旁路 forwarder 挂全部会话） ----
+
+    private final java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener>
+            globalListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    /**
+     * 注册全局会话事件监听器：此后 spawn 的会话自动挂载；当前已活跃会话立即补挂。
+     * 返回本 runtime（链式）。
+     */
+    public DefaultAgentRuntime addGlobalEventListener(
+            io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener listener) {
+        globalListeners.add(listener);
+        for (TrackedSession tracked : activeSessions.values()) {
+            tracked.session().addEventListener(listener);
+        }
+        return this;
+    }
+
+    /** 已注册的全局监听器（只读视图）。 */
+    public java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener>
+            globalEventListeners() {
+        return java.util.List.copyOf(globalListeners);
     }
 
     /**
