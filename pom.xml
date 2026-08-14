@@ -66,6 +66,8 @@
     <java.version>21</java.version>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- impl-68 / spec 21：perf 基准默认排除；nightly workflow 以 -Dsurefire.excluded.groups= -Dgroups=perf 激活 -->
+    <surefire.excluded.groups>perf</surefire.excluded.groups>
     <spring-ai.version>2.0.0</spring-ai.version>
     <spring-boot.version>4.1.0</spring-boot.version>
     <testcontainers.version>1.21.3</testcontainers.version>
@@ -160,6 +162,8 @@
           <configuration>
             <!-- @{argLine} 迟占位：与 jaCoCo prepare-agent 注入的 agent 参数共存（impl-54） -->
             <argLine>-Dfile.encoding=UTF-8 @{argLine}</argLine>
+            <!-- impl-68 / spec 21：perf 基准默认排除（nightly workflow 经 -Dgroups=perf 激活） -->
+            <excludedGroups>${surefire.excluded.groups}</excludedGroups>
           </configuration>
         </plugin>
         <!-- 发布工程化（ticket 20）：以下插件仅在 release profile 激活时执行，版本在此统一锁定 -->

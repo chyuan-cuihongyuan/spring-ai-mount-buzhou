@@ -25,7 +25,15 @@
 
 ## 性能基准（T93 / impl-68）
 
-- （待 T93 决议后补）
+- **形态**：不引 JMH——`examples` 模块 `PerfBaselineTest`（`@Tag("perf")`）自写 mini-harness
+  （warmup + 计时 + P50/P95），目标是**粗粒度回归哨兵**。
+- **CI 分层**：root pom surefire 默认 `excludedGroups=perf`（`surefire.excluded.groups` 属性），
+  日常零开销；`perf-nightly` workflow（weekly + manual）`-Dgroups=perf` 激活并归档报告工件。
+- **场景**：微压缩吞吐（msgs/s）/ 100 轮会话端到端每轮 wall time（零延迟模型度量 harness
+  自身开销）/ 存储 append+load-all round-trip。
+- **阈值**：10 倍宽幅硬顶哨兵（防环境噪声）；首轮基线落档 `docs/perf/baseline.md`
+  （2026-08-15 实测：每轮 P95 0.55ms、微压缩 ~1.8M msgs/s）。
+- **解读规则**：跨机绝对值不可比、只看同机趋势、越顶=人工 profiling 不许调阈值。
 
 ## 红队数值化（T94 / impl-69）
 
