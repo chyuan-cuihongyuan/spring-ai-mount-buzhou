@@ -12,6 +12,7 @@ import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResiliencePropertie
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceStats;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel;
+import io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor;
 
@@ -73,17 +74,34 @@ public final class ResilienceModule {
         }
         validate(properties);
         ProviderErrorClassifier classifier = new DefaultErrorClassifier();
-        // 熔断器（impl-56）：进程级单例——provider 健康是进程级事实，configure 每 context 一次、
-        // 经 customizer 闭包注入全部会话（不能在 customize() 内建，否则退化为每会话分桶）。
+        // 熔断器（impl-56）与限流器（impl-59 修正）：进程级单例——provider 健康与 RPM/TPM 容量都是
+        // 进程级事实，configure 每 context 一次、经 customizer 闭包注入全部会话
+        // （此前限流器在 customize() 内建，N 会话 = N 倍限额）。
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
                 ? new ModelCircuitBreaker(properties.circuit(), stats)
                 : null;
+        ModelRateLimiter limiter = null;
+        ResilienceProperties.RateLimit rl = properties.rateLimit();
+        if (rl != null) {
+            limiter = new ModelRateLimiter(
+                    rl.requestsPerMinute(), rl.tokensPerMinute(), rl.queueTimeout(),
+                    properties.effectiveRateLimitOverloadPolicy(), null);
+            if (!limiter.isEnabled()) {
+                limiter = null;
+            }
+        }
         FallbackChain fallbackChain = fallbacks != null && !fallbacks.isEmpty()
                 ? new FallbackChain(fallbacks, properties.fallback())
                 : null;
-        return RuntimeConfig.assemblyCustomizers(
+        RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,
-                        fallbackChain)));
+                        fallbackChain, limiter)));
+        // per-session 日配额（impl-59）：有任一维度才挂 Hook（无配额零开销）。
+        if (SessionQuotaHook.anyDimension(properties.sessionQuota())) {
+            return RuntimeConfig.merge(assembly,
+                    RuntimeConfig.hooks(List.of(new SessionQuotaHook(properties.sessionQuota(), stats))));
+        }
+        return assembly;
     }
 
     /**
@@ -134,32 +152,26 @@ public final class ResilienceModule {
         private final ResilienceStats stats;
         private final ModelCircuitBreaker circuit;
         private final FallbackChain fallback;
+        private final ModelRateLimiter limiter;
 
         ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
                                      String modelName, ResilienceStats stats, ModelCircuitBreaker circuit,
-                                     FallbackChain fallback) {
+                                     FallbackChain fallback, ModelRateLimiter limiter) {
             this.properties = properties;
             this.classifier = classifier;
             this.modelName = modelName;
             this.stats = stats;
             this.circuit = circuit;
             this.fallback = fallback;
+            this.limiter = limiter;
         }
 
         @Override
         public void customize(SessionAssemblyContext ctx) {
-            // 限流 Advisor（spec 15「背压 · 维度③」）：先于 ResilienceAdvisor 注入（order +650 < +700）
-            ResilienceProperties.RateLimit rl = properties.rateLimit();
-            if (rl != null) {
-                ModelRateLimiter limiter = new ModelRateLimiter(
-                        rl.requestsPerMinute(),
-                        rl.tokensPerMinute(),
-                        rl.queueTimeout(),
-                        properties.effectiveRateLimitOverloadPolicy(),
-                        ctx::emitEvent);
-                if (limiter.isEnabled()) {
-                    ctx.addAdvisor(new RateLimitAdvisor(limiter, modelName, stats));
-                }
+            // 限流 Advisor（spec 15「背压 · 维度③」）：先于 ResilienceAdvisor 注入（order +650 < +700）。
+            // impl-59：limiter 为进程级共享（configure() 创建），本 advisor 每会话持有会话事件通道。
+            if (limiter != null) {
+                ctx.addAdvisor(new RateLimitAdvisor(limiter, modelName, stats, ctx::emitEvent));
             }
             // 虚拟线程执行器：deadline 兜底 + cancel 中断在途模型调用复用同一条路径。
             // 每会话一个，随会话关闭由 ResilienceSessionObserver.shutdownNow()。

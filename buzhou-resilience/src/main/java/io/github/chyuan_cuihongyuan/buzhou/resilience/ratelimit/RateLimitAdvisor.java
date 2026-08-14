@@ -41,21 +41,29 @@ public class RateLimitAdvisor implements BaseAdvisor {
     private final String modelName;
     /** 运维面（impl-44）：null 安全。 */
     private final ResilienceStats stats;
+    /** 会话事件通道（impl-59：限流器进程级共享后，事件走当次调用会话）。 */
+    private final java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> emitter;
 
     public RateLimitAdvisor(ModelRateLimiter limiter, String modelName) {
         this(limiter, modelName, null);
     }
 
     public RateLimitAdvisor(ModelRateLimiter limiter, String modelName, ResilienceStats stats) {
+        this(limiter, modelName, stats, null);
+    }
+
+    public RateLimitAdvisor(ModelRateLimiter limiter, String modelName, ResilienceStats stats,
+                            java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> emitter) {
         this.limiter = limiter;
         this.modelName = modelName == null ? "unknown" : modelName;
         this.stats = stats;
+        this.emitter = emitter;
     }
 
     /** 限流预检 + 拒绝计数/日志（call/stream 共用；拒绝异常原样上抛）。 */
     private void acquireWithStats(String model) {
         try {
-            limiter.acquireOrThrow(model);
+            limiter.acquireOrThrow(model, emitter);
         } catch (ModelRateLimitExceededException e) {
             if (stats != null) {
                 stats.recordRateLimitRejection();
@@ -115,9 +123,9 @@ public class RateLimitAdvisor implements BaseAdvisor {
                 .doOnComplete(() -> {
                     Usage usage = lastUsage.get();
                     if (usage != null) {
-                        limiter.recordUsage(modelName, totalTokens(usage));
+                        limiter.recordUsage(modelName, totalTokens(usage), emitter);
                     } else {
-                        limiter.recordUsage(modelName, 0L);
+                        limiter.recordUsage(modelName, 0L, emitter);
                     }
                 });
     }
@@ -134,11 +142,11 @@ public class RateLimitAdvisor implements BaseAdvisor {
 
     private void recordUsage(ChatClientResponse response) {
         if (response == null || response.chatResponse() == null) {
-            limiter.recordUsage(modelName, 0L);
+            limiter.recordUsage(modelName, 0L, emitter);
             return;
         }
         Usage usage = extractUsage(response.chatResponse());
-        limiter.recordUsage(modelName, usage != null ? totalTokens(usage) : 0L);
+        limiter.recordUsage(modelName, usage != null ? totalTokens(usage) : 0L, emitter);
     }
 
     private static Usage extractUsage(ChatResponse chatResponse) {

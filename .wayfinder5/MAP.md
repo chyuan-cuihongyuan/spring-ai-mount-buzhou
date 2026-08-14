@@ -20,6 +20,7 @@
 - [模型熔断器](tickets/T81-circuit-breaker.md) — 手写 CB（不引 resilience4j）：三态结果计数口径（FAILURE=NETWORK/SERVER/TIMEOUT，RATE_LIMIT/CONTENT/AUTH/UNKNOWN IGNORED）、计数窗口失败率跳闸、冷却后半开单探测、进程级注册表按 modelName 分桶、open 时 fail-fast 异常直上 onModelError、circuit.* 配置默认开 + fail-fast 校验。
 - [备模型降级链](tickets/T82-fallback-model-chain.md) — 降级发生在 ResilienceAdvisor 逻辑调用内部（外层 advisor 不可见）；fallback.models bean 名列表（Spring 按名解析 fail-fast / 编程式 NamedFallbackModel）；触发=终态失败 category（默认 NETWORK/SERVER/TIMEOUT/AUTH）+ 主模型熔断 OPEN 恒触发；无粘性（每调用先主后备，OPEN 时零成本直达备模型）；备模型各一次尝试、独立熔断记账；全败上抛主因；M1 流式不降级。
 - [Token/成本预算](tickets/T83-token-cost-budget.md) — core 新 budget 包 TokenBudgetHook（order 1100）：afterModel 从 usage 累计会话 token/成本进 SessionStateStore（micro-USD long 无浮点）；价目 buzhou.token-budget.pricing.<model>.*（无价=零成本）；硬顶 max-session-prompt/total-tokens/cost-usd（cost 上限无价目 fail-fast），beforeModel 超限 block + 双写事件；safe-by-default null=不限。
+- [per-session 配额](tickets/T84-session-quota.md) — 限流器修正为进程级（configure() 创建）；SessionQuotaHook（order 1150）三维度/UTC 日窗：turns/tool-calls/tokens-per-day，单键 `epochDay:count` 读时重置（免清理），超配额 Block + quota.exceeded 事件；tokens 不复用 T83 键（生命周期累计≠日窗）；分布式配额 out-of-scope。
 
 ## Not yet specified
 

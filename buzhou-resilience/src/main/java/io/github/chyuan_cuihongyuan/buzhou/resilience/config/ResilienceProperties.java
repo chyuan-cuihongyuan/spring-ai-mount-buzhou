@@ -43,15 +43,16 @@ public record ResilienceProperties(
         Duration deadline,
         @Valid RateLimit rateLimit,
         @Valid Circuit circuit,
-        @Valid Fallback fallback) {
+        @Valid Fallback fallback,
+        @Valid SessionQuota sessionQuota) {
 
-    /** 10 参兼容构造（impl-57 之前调用方；fallback = 未配置）。 */
+    /** 11 参兼容构造（impl-59 之前调用方；session-quota = 未配置）。 */
     public ResilienceProperties(
             Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
             Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
-            RateLimit rateLimit, Circuit circuit) {
+            RateLimit rateLimit, Circuit circuit, Fallback fallback) {
         this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
-                retryableCategories, deadline, rateLimit, circuit, null);
+                retryableCategories, deadline, rateLimit, circuit, fallback, null);
     }
 
     /** 9 参兼容构造（impl-56 之前调用方；circuit = 全默认、fallback = 未配置）。 */
@@ -163,6 +164,35 @@ public record ResilienceProperties(
         }
     }
 
+    /**
+     * per-session 日配额组（spec 16「per-session 配额」，T84 / impl-59）。
+     * 前缀 {@code buzhou.resilience.session-quota}。UTC 自然日固定窗口；null = 不限。
+     *
+     * @param turnsPerDay     每会话每日轮次上限
+     * @param toolCallsPerDay 每会话每日工具调用上限
+     * @param tokensPerDay    每会话每日 token 上限（prompt+completion）
+     */
+    public record SessionQuota(
+            Integer turnsPerDay,
+            Integer toolCallsPerDay,
+            Long tokensPerDay) {
+
+        public SessionQuota {
+            if (turnsPerDay != null && turnsPerDay < 1) {
+                throw configError("session-quota.turns-per-day", String.valueOf(turnsPerDay),
+                        "设为正整数，或删除该键（不限）");
+            }
+            if (toolCallsPerDay != null && toolCallsPerDay < 1) {
+                throw configError("session-quota.tool-calls-per-day", String.valueOf(toolCallsPerDay),
+                        "设为正整数，或删除该键（不限）");
+            }
+            if (tokensPerDay != null && tokensPerDay < 1) {
+                throw configError("session-quota.tokens-per-day", String.valueOf(tokensPerDay),
+                        "设为正整数，或删除该键（不限）");
+            }
+        }
+    }
+
     /** 多构造器场景：显式指定规范构造器为绑定构造器（兼容构造不参与绑定）。 */
     @org.springframework.boot.context.properties.bind.ConstructorBinding
     public ResilienceProperties {
@@ -210,7 +240,7 @@ public record ResilienceProperties(
 
     /** 全默认（装配测试 / 兜底用）。 */
     public static ResilienceProperties defaults() {
-        return new ResilienceProperties(null, null, null, null, null, null, null, null, null, null, null);
+        return new ResilienceProperties(null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     /** rate-limit 过载策略生效值（null/空白 = QUEUE；非法值启动即失败——fail-fast，不静默回退）。 */

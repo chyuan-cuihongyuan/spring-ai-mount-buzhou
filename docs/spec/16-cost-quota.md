@@ -34,4 +34,15 @@
 
 ## per-session 配额（impl-59，T84）
 
-- （待 T84 决议后补）
+- **限流器进程级修正**：`ModelRateLimiter` 自 `ResilienceModule.configure()` 创建（进程级、全部会话共享）——
+  RPM/TPM 是进程级容量，此前 customize() 内建导致 N 会话 = N 倍限额。
+- **SessionQuotaHook**（resilience 模块贡献的 BuzhouHook，order 1150）：三维度 / UTC 自然日固定窗口——
+  `buzhou.resilience.session-quota.{turns-per-day, tool-calls-per-day, tokens-per-day}`（null = 不限）。
+- **计数存放**：SessionStateStore 单键单维度 `"<epochDay>:<count>"`（键 `buzhou.quota.turns/tool-calls/
+  tokens`），读时日不符即重置——免过期键清理、跨崩溃持久化。tokens 在 afterModel 自行按日键累计
+  （与 TokenBudgetHook 同源提取 usage，键不交叉：生命周期累计 ≠ 日窗配额）。
+- **拦截点**：beforeTurn（turns）/ beforeTool（tool-calls，reason 回注为工具结果文本）/ beforeModel
+  （tokens，读当日已累计）。超配额 `HookResult.block`（受控终态文本）+ 事件 `quota.exceeded`
+  （dimension/limit/value/day）。
+- **观测**：`ResilienceStats.quotaRejections` + 指标 `buzhou.resilience.quota-rejected`（dimension tag）。
+- **诚实边界**：单进程语义——多实例部署 = 每实例独立配额（分布式配额 out-of-scope，见 spec 23）。

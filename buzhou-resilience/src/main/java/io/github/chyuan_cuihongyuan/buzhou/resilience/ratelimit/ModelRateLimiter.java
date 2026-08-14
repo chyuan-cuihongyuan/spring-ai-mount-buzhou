@@ -79,19 +79,28 @@ public final class ModelRateLimiter {
      * @throws ModelRateLimitExceededException 限流拒绝（FAIL_FAST 立即 / QUEUE 超时）
      */
     public void acquireOrThrow(String modelName) {
+        acquireOrThrow(modelName, null);
+    }
+
+    /**
+     * 带事件通道的预检（impl-59：限流器进程级共享后，事件走当次调用会话的通道——
+     * 构造期 emitter 仅作无调用侧 emitter 时的兜底）。
+     */
+    public void acquireOrThrow(String modelName, Consumer<SessionEvent> callSiteEmitter) {
         if (!isEnabled()) {
             return;
         }
+        Consumer<SessionEvent> sink = callSiteEmitter != null ? callSiteEmitter : emitter;
         Bucket bucket = buckets.computeIfAbsent(modelName, k -> new Bucket(
                 rpm != null && rpm > 0 ? rpm : 0,
                 tpm != null && tpm > 0 ? tpm : 0));
         // TPM 预检（不扣减——实际记账在调用后）
         if (tpm != null && tpm > 0) {
-            bucket.acquireTpm(modelName, policy, queueTimeout, emitter);
+            bucket.acquireTpm(modelName, policy, queueTimeout, sink);
         }
         // RPM 预检 + 扣减
         if (rpm != null && rpm > 0) {
-            bucket.acquireRpm(modelName, policy, queueTimeout, emitter);
+            bucket.acquireRpm(modelName, policy, queueTimeout, sink);
         }
     }
 
@@ -102,14 +111,20 @@ public final class ModelRateLimiter {
      * @param totalTokens   本次调用的总 token 数（prompt + completion）；null/0 时记 0 并留痕
      */
     public void recordUsage(String modelName, Long totalTokens) {
+        recordUsage(modelName, totalTokens, null);
+    }
+
+    /** 带事件通道的 TPM 记账（impl-59：同 {@link #acquireOrThrow(String, Consumer)} 口径）。 */
+    public void recordUsage(String modelName, Long totalTokens, Consumer<SessionEvent> callSiteEmitter) {
         if (tpm == null || tpm <= 0) {
             return;
         }
         long tokens = totalTokens != null ? totalTokens : 0L;
         if (tokens == 0) {
             // provider 不返回 usage：记 0 + 留痕，不伪造估值
-            emitter.accept(new SessionEvent("backpressure.model-usage-missing",
-                    Map.of("modelName", modelName), Instant.now()));
+            (callSiteEmitter != null ? callSiteEmitter : emitter).accept(
+                    new SessionEvent("backpressure.model-usage-missing",
+                            Map.of("modelName", modelName), Instant.now()));
             return;
         }
         Bucket bucket = buckets.computeIfAbsent(modelName, k -> new Bucket(

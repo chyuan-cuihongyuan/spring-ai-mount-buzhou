@@ -147,7 +147,7 @@ class CircuitBreakerEndToEndTest {
 
     private static ResilienceProperties props(ResilienceProperties.Circuit circuit) {
         return new ResilienceProperties(true, 1, Duration.ofMillis(1), Duration.ofMillis(10),
-                2.0, 0.0, null, Duration.ofSeconds(5), null, circuit);
+                2.0, 0.0, null, Duration.ofSeconds(5), null, circuit, null);
     }
 
     private static AgentSession newRuntime(ScriptedChatModel model, ResilienceProperties props) {
