@@ -51,12 +51,13 @@ public final class SkillModule {
                 : (builder.bindingStore != null ? new StoreBackedPolicyProvider(builder.bindingStore) : null);
 
         this.registry = new DefaultSkillRegistry(classpathSkills, dbStore, policyProvider,
-                builder.dbEnabled, builder.catalogMaxEntries);
+                builder.dbEnabled, builder.catalogMaxEntries, builder.catalogCacheTtl);
         this.bindingIndex = new SessionBindingIndex();
         this.catalogRenderer = new SkillCatalogRendererImpl(bindingIndex, registry);
         this.loadSkillTool = new LoadSkillTool(registry, bindingIndex);
         this.resourceResolver = new SkillResourceResolverImpl(registry, bindingIndex);
-        this.adminApi = new SkillAdminApi(dbStore, classpathSkills, builder.bindingStore);
+        this.adminApi = new SkillAdminApi(dbStore, classpathSkills, builder.bindingStore,
+                this.registry::invalidateCatalogCache);
     }
 
     public static Builder builder() {
@@ -108,6 +109,8 @@ public final class SkillModule {
         private boolean enabled = true;
         private boolean dbEnabled = false;
         private int catalogMaxEntries = 64;
+        /** impl-71 / T96：清单 TTL 缓存（DB 覆盖与负缓存；默认 30s；0 = 关闭）。 */
+        private java.time.Duration catalogCacheTtl = java.time.Duration.ofSeconds(30);
         private List<String> scanLocations = List.of(ClasspathSkillScanner.DEFAULT_LOCATION);
         private SkillStore dbStore;
         private PolicyConfigProvider policyProvider;
@@ -125,6 +128,12 @@ public final class SkillModule {
 
         public Builder catalogMaxEntries(int catalogMaxEntries) {
             this.catalogMaxEntries = catalogMaxEntries;
+            return this;
+        }
+
+        /** impl-71 / T96：清单 TTL 缓存（默认 30s；0 = 关闭，每轮直查 DB）。 */
+        public Builder catalogCacheTtl(java.time.Duration catalogCacheTtl) {
+            this.catalogCacheTtl = catalogCacheTtl;
             return this;
         }
 
@@ -167,6 +176,15 @@ public final class SkillModule {
             Object maxVal = ymlConfig.get("catalog-max-entries");
             if (maxVal instanceof Number n) {
                 this.catalogMaxEntries = n.intValue();
+            }
+            // impl-71 / T96：catalog-cache-ttl（ISO-8601 或秒数；默认 30s；0 = 关闭）
+            Object ttlVal = ymlConfig.get("catalog-cache-ttl");
+            if (ttlVal instanceof java.time.Duration d) {
+                this.catalogCacheTtl = d;
+            } else if (ttlVal instanceof Number n) {
+                this.catalogCacheTtl = java.time.Duration.ofSeconds(n.longValue());
+            } else if (ttlVal instanceof String s && !s.isBlank()) {
+                this.catalogCacheTtl = java.time.Duration.parse(s.trim());
             }
             Object locationsVal = ymlConfig.get("scan-locations");
             if (locationsVal instanceof List<?> list) {

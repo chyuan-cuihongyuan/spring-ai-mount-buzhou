@@ -15,6 +15,13 @@ public interface SkillRegistry {
     /** 当前 (appId, agentName) 绑定下可见的清单。 */
     List<SkillMetadata> listFor(String appId, String agentName);
 
+    /**
+     * impl-71 / T96：失效清单 TTL 缓存（admin 变更后立即可见，不等 TTL）。
+     * 默认 no-op（无缓存实现二进制兼容）。
+     */
+    default void invalidateCatalogCache() {
+    }
+
     /** 按名加载全文；先查 DB 动态 Skill（PUBLISHED），未命中再查 classpath 内置。 */
     Optional<Skill> load(String appId, String agentName, String name);
 

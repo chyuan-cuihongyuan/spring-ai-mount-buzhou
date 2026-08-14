@@ -27,13 +27,30 @@ public class SkillAdminApi {
     private final SkillStore dbStore;
     private final Map<String, ClasspathSkillEntry> classpathSkills;
     private final BindingPolicyStore bindingStore;
+    /** impl-71 / T96：变更后失效清单 TTL 缓存（null = 无缓存可失效）。 */
+    private final Runnable catalogCacheInvalidator;
 
     public SkillAdminApi(SkillStore dbStore,
                          Map<String, ClasspathSkillEntry> classpathSkills,
                          BindingPolicyStore bindingStore) {
+        this(dbStore, classpathSkills, bindingStore, null);
+    }
+
+    public SkillAdminApi(SkillStore dbStore,
+                         Map<String, ClasspathSkillEntry> classpathSkills,
+                         BindingPolicyStore bindingStore,
+                         Runnable catalogCacheInvalidator) {
         this.dbStore = dbStore;
         this.classpathSkills = classpathSkills == null ? Map.of() : Map.copyOf(classpathSkills);
         this.bindingStore = bindingStore;
+        this.catalogCacheInvalidator = catalogCacheInvalidator;
+    }
+
+    /** 变更后失效清单缓存（admin 写立即可见，不等 TTL）。 */
+    private void invalidateCatalogCache() {
+        if (catalogCacheInvalidator != null) {
+            catalogCacheInvalidator.run();
+        }
     }
 
     // ---- Skill CRUD ----
@@ -64,7 +81,9 @@ public class SkillAdminApi {
                 allowedTools == null ? existing.allowedTools() : allowedTools,
                 body == null ? existing.body() : body, existing.status(), existing.createdBy(),
                 existing.createdAt(), existing.updatedAt(), existing.version());
-        return dbStore.save(updated);
+        DbSkillRecord saved = dbStore.save(updated);
+        invalidateCatalogCache();
+        return saved;
     }
 
     /**
@@ -94,14 +113,20 @@ public class SkillAdminApi {
     /** 删除 DB Skill（仅 DB；删除后同名内置自动恢复可见）。 */
     public boolean delete(String name) {
         requireDbEnabled();
-        return dbStore.deleteByName(name);
+        boolean deleted = dbStore.deleteByName(name);
+        if (deleted) {
+            invalidateCatalogCache();
+        }
+        return deleted;
     }
 
     private DbSkillRecord transition(DbSkillRecord existing, SkillStatus target) {
         DbSkillRecord updated = new DbSkillRecord(existing.id(), existing.name(),
                 existing.description(), existing.allowedTools(), existing.body(), target,
                 existing.createdBy(), existing.createdAt(), existing.updatedAt(), existing.version());
-        return dbStore.save(updated);
+        DbSkillRecord saved = dbStore.save(updated);
+        invalidateCatalogCache();
+        return saved;
     }
 
     private DbSkillRecord mustFind(String name) {

@@ -17,4 +17,11 @@
 
 ## skills 深化（T96 / impl-71）
 
-- （待 T96 决议后补）
+- **清单 TTL 缓存**：`DefaultSkillRegistry.resolve` 的 DB 路径（覆盖结果 + 未命中负缓存）TTL 缓存
+  ——此前 `listFor` 每轮 N 技能 = N 次 DB 往返（注入视图热路径）。classpath 命中不缓存
+  （本就是 map 查找）。TTL 默认 30s，`buzhou.skills.catalog-cache-ttl` 可配（0 = 直查）。
+- **失效通道**：`SkillAdminApi` 全部变更后自动失效（写立即可见）；
+  `SkillRegistry.invalidateCatalogCache()` default no-op。**契约**：直改 SkillStore 绕过
+  admin = 需手动失效。
+- **核实后不做**：DB 启动预热（TTL 已消稳态开销）、清单变更事件（admin 失效已同步）、
+  read_range 句柄复用（spill 独立完备）。

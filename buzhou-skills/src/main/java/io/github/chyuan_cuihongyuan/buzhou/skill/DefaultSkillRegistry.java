@@ -24,15 +24,36 @@ public class DefaultSkillRegistry implements SkillRegistry {
     private final PolicyConfigProvider policyProvider;
     private final boolean dbEnabled;
     private final int catalogMaxEntries;
+    /** impl-71 / T96：清单 TTL 缓存（DB 覆盖与未命中负缓存；classpath 命中本就是 map 查找不缓存）。 */
+    private final java.time.Duration catalogCacheTtl;
+    private final java.util.concurrent.ConcurrentHashMap<String, CachedResolve> resolveCache =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private record CachedResolve(Optional<Skill> skill, long expiresAtNanos) {
+    }
 
     public DefaultSkillRegistry(Map<String, ClasspathSkillEntry> classpathSkills,
                                 SkillStore dbStore, PolicyConfigProvider policyProvider,
                                 boolean dbEnabled, int catalogMaxEntries) {
+        this(classpathSkills, dbStore, policyProvider, dbEnabled, catalogMaxEntries,
+                java.time.Duration.ofSeconds(30));
+    }
+
+    public DefaultSkillRegistry(Map<String, ClasspathSkillEntry> classpathSkills,
+                                SkillStore dbStore, PolicyConfigProvider policyProvider,
+                                boolean dbEnabled, int catalogMaxEntries,
+                                java.time.Duration catalogCacheTtl) {
         this.classpathSkills = classpathSkills == null ? Map.of() : Map.copyOf(classpathSkills);
         this.dbStore = dbStore;
         this.policyProvider = policyProvider;
         this.dbEnabled = dbEnabled && dbStore != null;
         this.catalogMaxEntries = catalogMaxEntries <= 0 ? 64 : catalogMaxEntries;
+        this.catalogCacheTtl = catalogCacheTtl == null || catalogCacheTtl.isNegative()
+                ? java.time.Duration.ofSeconds(30) : catalogCacheTtl;
+    }
+
+    /** impl-71 / T96：失效清单缓存（admin 变更后调用，写立即可见不等 TTL）。 */
+    public void invalidateCatalogCache() {
+        resolveCache.clear();
     }
 
     @Override
@@ -84,11 +105,24 @@ public class DefaultSkillRegistry implements SkillRegistry {
         if (name == null || name.isBlank()) {
             return Optional.empty();
         }
-        Optional<DbSkillRecord> db = dbOverride(name);
-        if (db.isPresent()) {
-            return Optional.of(toSkill(db.get()));
-        }
+        // impl-71 / T96：classpath 命中零成本直返；DB 路径（覆盖查询 + 未命中）走 TTL 缓存——
+        // 此前 listFor 每轮对每技能都打一次 DB（N 技能 = N 次/轮）。ttl=0 显式关闭缓存。
         ClasspathSkillEntry entry = classpathSkills.get(name);
+        if (dbEnabled) {
+            long now = System.nanoTime();
+            CachedResolve cached = resolveCache.get(name);
+            if (cached != null && cached.expiresAtNanos() > now) {
+                // DB 覆盖优先于 classpath：缓存命中（含负缓存）直接定论
+                return cached.skill();
+            }
+            Optional<Skill> resolved = dbOverride(name).map(this::toSkill);
+            if (resolved.isEmpty() && entry != null) {
+                resolved = Optional.of(entry.skill());
+            }
+            resolveCache.put(name, new CachedResolve(resolved,
+                    now + catalogCacheTtl.toNanos()));
+            return resolved;
+        }
         return entry == null ? Optional.empty() : Optional.of(entry.skill());
     }
 

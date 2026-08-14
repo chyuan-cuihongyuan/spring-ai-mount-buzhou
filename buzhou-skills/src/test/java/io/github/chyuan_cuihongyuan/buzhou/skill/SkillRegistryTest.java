@@ -84,7 +84,10 @@ class SkillRegistryTest {
         db.save(dbSkill("code-review", "DB 版", SkillStatus.PUBLISHED));
         assertThat(registry.load("app", "agent", "code-review").orElseThrow().source()).isEqualTo(SkillSource.DB);
 
+        // impl-71 / T96：直改 store 绕过 admin 失效通道——按缓存一致性契约手动失效
+        // （admin 路径变更自动失效，见 SkillAdminApi.invalidateCatalogCache）。
         db.deleteByName("code-review");
+        registry.invalidateCatalogCache();
         assertThat(registry.load("app", "agent", "code-review").orElseThrow().source())
                 .isEqualTo(SkillSource.CLASSPATH);
     }
