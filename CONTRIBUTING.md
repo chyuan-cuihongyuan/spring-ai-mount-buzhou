@@ -67,3 +67,10 @@ cp settings.xml ~/.m2/settings.xml   # 首次执行一次即可，之后 mvn 直
 ## 行为准则
 
 参与本项目即代表你同意遵守 [行为准则](CODE_OF_CONDUCT.md)。请保持尊重与专业。
+
+## API 稳定性政策（effort #5 / impl-75）
+
+- 公开 API 面以 [docs/api-surface.md](docs/api-surface.md) 清单为准；`*.internal.*` 包与
+  模块 `fromYml(Map)` 私有解析契约不属公开 API。
+- 语义化版本：minor 只加不改，破坏性变更留 major。
+- 废弃类型保留 ≥ 2 个 minor，javadoc `@deprecated` 注明替代；新公开类型标 `@since`。
