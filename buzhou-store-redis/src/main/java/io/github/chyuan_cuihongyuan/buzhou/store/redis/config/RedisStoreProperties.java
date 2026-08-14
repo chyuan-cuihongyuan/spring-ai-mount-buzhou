@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.store.redis.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 
@@ -14,6 +15,7 @@ import java.time.Duration;
  *                    显式配 ZERO 仍表示永不过期）
  * @param poolMaxSize UoW 事务连接池上限（默认 8；spec 13 §stores-7 Redis UoW 连接池化）
  */
+@Validated
 @ConfigurationProperties(prefix = "buzhou.store.redis")
 public record RedisStoreProperties(String uri, String keyPrefix, Duration snapshotTtl, Integer poolMaxSize) {
 

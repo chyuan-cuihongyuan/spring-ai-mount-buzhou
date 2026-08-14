@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config;
 
 import io.github.chyuan_cuihongyuan.buzhou.store.jdbc.WriteFailurePolicy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * store 横切写失败策略属性（spec 13 §stores-7 / ticket 32，前缀 {@code buzhou.store}）。
@@ -13,6 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param writeFailurePolicy {@code FAIL_TURN}（默认，既有外溢语义）/ {@code DEGRADE}
  *                           （观测类写降级 WARN + 计数继续，事实类写仍抛）
  */
+@Validated
 @ConfigurationProperties(prefix = "buzhou.store")
 public record WriteFailurePolicyProperties(WriteFailurePolicy writeFailurePolicy) {
 

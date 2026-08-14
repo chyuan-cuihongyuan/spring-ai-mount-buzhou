@@ -16,14 +16,7 @@
       "name": "buzhou.guard.audit.store",
       "type": "java.lang.String",
       "defaultValue": "auto",
-      "description": "impl-39 审计存储形态：auto=有 DataSource bean 即 JDBC append-only，否则 InMemory 有界环形。",
-      "hints": {
-        "values": [
-          {"value": "auto", "description": "有 DataSource 即 jdbc，否则 in-memory（默认）"},
-          {"value": "jdbc"},
-          {"value": "in-memory"}
-        ]
-      }
+      "description": "impl-39 审计存储形态：auto=有 DataSource bean 即 JDBC append-only，否则 InMemory 有界环形。"
     },
     {
       "name": "buzhou.guard.audit.in-memory-capacity",
@@ -59,6 +52,23 @@
       "type": "java.time.Duration",
       "defaultValue": "30s",
       "description": "impl-40 策略轮询间隔；配 0s 关闭轮询（仅启动加载）。"
+    }
+  ],
+  "hints": [
+    {
+      "name": "buzhou.guard.audit.store",
+      "values": [
+        {
+          "value": "auto",
+          "description": "有 DataSource 即 jdbc，否则 in-memory（默认）"
+        },
+        {
+          "value": "jdbc"
+        },
+        {
+          "value": "in-memory"
+        }
+      ]
     }
   ]
 }

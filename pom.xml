@@ -137,6 +137,20 @@
           <configuration>
             <parameters>true</parameters>
             <encoding>UTF-8</encoding>
+            <!--
+              impl-52 / spec 14 §H：configuration-processor 全模块生效——
+              @ConfigurationProperties 生成 spring-configuration-metadata.json，并与各模块
+              additional-spring-configuration-metadata.json 在编译期合并（此前 additional 文件
+              是死文件：全仓没有 processor，impl/43 手写元数据对 IDE 补全无效）。
+              annotationProcessorPaths 独立于 dependencies 声明，不进消费方 classpath。
+            -->
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-configuration-processor</artifactId>
+                <version>${spring-boot.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
         <plugin>

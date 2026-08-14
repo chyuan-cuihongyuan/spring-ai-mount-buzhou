@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.spill.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 
@@ -27,6 +28,7 @@ import java.time.Duration;
  * @param retentionTtl         impl-38：未引用（unlinked）spill 的保留 TTL（RetentionSweeper
  *                             每周期调度 deleteExpired；默认 PT24H）
  */
+@Validated
 @ConfigurationProperties(prefix = "buzhou.spill")
 public record SpillProperties(
         String rootDir,

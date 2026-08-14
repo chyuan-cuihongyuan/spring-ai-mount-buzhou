@@ -4,45 +4,13 @@
       "name": "buzhou.store.type",
       "type": "java.lang.String",
       "defaultValue": "memory",
-      "description": "存储形态（封闭枚举，拼错启动即失败）：memory=进程内有界套件（默认）；jdbc=MySQL/PostgreSQL/H2（需 buzhou-store-jdbc）；redis=Redis（需 buzhou-store-redis）。",
-      "hints": {
-        "values": [
-          {
-            "value": "memory",
-            "description": "进程内存储（默认；有界容量配额见 buzhou.store.in-memory.*）"
-          },
-          {
-            "value": "jdbc",
-            "description": "JDBC 存储（需要 buzhou-store-jdbc 依赖与 DataSource）"
-          },
-          {
-            "value": "redis",
-            "description": "Redis 存储（需要 buzhou-store-redis 依赖）"
-          }
-        ]
-      }
+      "description": "存储形态（封闭枚举，拼错启动即失败）：memory=进程内有界套件（默认）；jdbc=MySQL/PostgreSQL/H2（需 buzhou-store-jdbc）；redis=Redis（需 buzhou-store-redis）。"
     },
     {
       "name": "buzhou.leak.level",
       "type": "java.lang.String",
       "defaultValue": "SIMPLE",
-      "description": "impl-41 资源泄漏检测级别：DISABLED=不追踪（零开销）；SIMPLE=1/128 采样（默认）；ADVANCED=1/128 采样+出租栈捕获；PARANOID=全采样+栈捕获（排障用）。",
-      "hints": {
-        "values": [
-          {
-            "value": "DISABLED"
-          },
-          {
-            "value": "SIMPLE"
-          },
-          {
-            "value": "ADVANCED"
-          },
-          {
-            "value": "PARANOID"
-          }
-        ]
-      }
+      "description": "impl-41 资源泄漏检测级别：DISABLED=不追踪（零开销）；SIMPLE=1/128 采样（默认）；ADVANCED=1/128 采样+出租栈捕获；PARANOID=全采样+栈捕获（排障用）。"
     },
     {
       "name": "buzhou.leak.lease-age-threshold",
@@ -72,24 +40,7 @@
       "name": "buzhou.store.jdbc.dialect",
       "type": "java.lang.String",
       "defaultValue": "AUTO",
-      "description": "impl-42 迁移：默认 AUTO 按连接 DatabaseMetaData 自动探测（原缺省假定 H2）。",
-      "hints": {
-        "values": [
-          {
-            "value": "AUTO",
-            "description": "按连接元数据自动探测（默认）"
-          },
-          {
-            "value": "H2"
-          },
-          {
-            "value": "MYSQL"
-          },
-          {
-            "value": "POSTGRESQL"
-          }
-        ]
-      }
+      "description": "impl-42 迁移：默认 AUTO 按连接 DatabaseMetaData 自动探测（原缺省假定 H2）。"
     },
     {
       "name": "buzhou.runaway.enabled",
@@ -173,6 +124,58 @@
         {
           "value": "FAIL_FAST",
           "description": "快速失败"
+        }
+      ]
+    },
+    {
+      "name": "buzhou.store.type",
+      "values": [
+        {
+          "value": "memory",
+          "description": "进程内存储（默认；有界容量配额见 buzhou.store.in-memory.*）"
+        },
+        {
+          "value": "jdbc",
+          "description": "JDBC 存储（需要 buzhou-store-jdbc 依赖与 DataSource）"
+        },
+        {
+          "value": "redis",
+          "description": "Redis 存储（需要 buzhou-store-redis 依赖）"
+        }
+      ]
+    },
+    {
+      "name": "buzhou.leak.level",
+      "values": [
+        {
+          "value": "DISABLED"
+        },
+        {
+          "value": "SIMPLE"
+        },
+        {
+          "value": "ADVANCED"
+        },
+        {
+          "value": "PARANOID"
+        }
+      ]
+    },
+    {
+      "name": "buzhou.store.jdbc.dialect",
+      "values": [
+        {
+          "value": "AUTO",
+          "description": "按连接元数据自动探测（默认）"
+        },
+        {
+          "value": "H2"
+        },
+        {
+          "value": "MYSQL"
+        },
+        {
+          "value": "POSTGRESQL"
         }
       ]
     }

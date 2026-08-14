@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * JDBC store 装配属性（spec 08/09 ticket 22 + spec 13 §stores-5 ticket 31，前缀 {@code buzhou.store.jdbc}）。
@@ -11,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param recoveryEnabled 是否装配恢复设施 bean（RunRegistry / ToolCallLog，默认 {@code true}；
  *                        与 {@code BuzhouJdbcStoreAutoConfiguration} 上的同名条件开关一致）
  */
+@Validated
 @ConfigurationProperties(prefix = "buzhou.store.jdbc")
 public record JdbcStoreProperties(String dialect, Boolean recoveryEnabled) {
 

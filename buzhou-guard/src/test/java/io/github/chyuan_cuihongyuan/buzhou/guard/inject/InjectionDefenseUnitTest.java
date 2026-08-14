@@ -177,6 +177,11 @@ class InjectionDefenseUnitTest {
         }
 
         @Override
+        public Throwable error() {
+            return null; // impl-44 新增接口方法（onModelError 切面）：防御注入测试无失败路径
+        }
+
+        @Override
         public void replaceRequest(org.springframework.ai.chat.client.ChatClientRequest newRequest) {
             this.request = newRequest;
         }
