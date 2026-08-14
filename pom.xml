@@ -158,7 +158,8 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.5.3</version>
           <configuration>
-            <argLine>-Dfile.encoding=UTF-8</argLine>
+            <!-- @{argLine} 迟占位：与 jaCoCo prepare-agent 注入的 agent 参数共存（impl-54） -->
+            <argLine>-Dfile.encoding=UTF-8 @{argLine}</argLine>
           </configuration>
         </plugin>
         <!-- 发布工程化（ticket 20）：以下插件仅在 release profile 激活时执行，版本在此统一锁定 -->
@@ -187,10 +188,36 @@
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>3.5.0</version>
         </plugin>
+        <!-- impl-54 / spec 14 §J：jaCoCo 覆盖率（观测期不设线；CI 上传报告） -->
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.8.13</version>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>report</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
 
     <plugins>
+      <!-- impl-54：全模块 jaCoCo（prepare-agent + verify 期 report） -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+      </plugin>
       <!--
         全模块同版本演进校验（ticket 20 验收项）：禁止在同一 POM 内对 io.github.chyuan-cuihongyuan
         的依赖声明不同版本。模块版本本身由父 POM 统一继承、BOM 以 ${project.version} 收口；

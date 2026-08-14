@@ -1,0 +1,29 @@
+name: CodeQL
+
+# impl-54 / spec 14 §J：GitHub 原生静态安全分析（java），PR/main 触发，发现即报告。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 20 * * 1'  # 每周一 UTC 20:00 全量
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: java
+      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/analyze@v3

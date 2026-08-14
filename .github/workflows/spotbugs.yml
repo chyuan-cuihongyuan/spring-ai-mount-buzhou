@@ -1,0 +1,30 @@
+name: spotbugs
+
+# impl-54 / spec 14 §J：SpotBugs 静态分析（观测期——发现项归档为报告，不卡门；
+# 稳定后再按严重度设线）。nightly 跑全仓。
+on:
+  schedule:
+    - cron: '0 21 * * 2'  # 每周二 UTC 21:00
+  workflow_dispatch: {}
+
+jobs:
+  spotbugs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      # effort/threshold 宽松起步；HTML+XML 报告归档
+      - name: SpotBugs analyze (observational)
+        run: mvn -B -ntp com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:spotbugs -DskipTests -Dspotbugs.effort=Default -Dspotbugs.threshold=Medium || true
+      - name: Upload SpotBugs reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-reports
+          path: '**/target/spotbugsXml.xml'
+          if-no-files-found: ignore
