@@ -22,6 +22,7 @@
 - [Token/成本预算](tickets/T83-token-cost-budget.md) — core 新 budget 包 TokenBudgetHook（order 1100）：afterModel 从 usage 累计会话 token/成本进 SessionStateStore（micro-USD long 无浮点）；价目 buzhou.token-budget.pricing.<model>.*（无价=零成本）；硬顶 max-session-prompt/total-tokens/cost-usd（cost 上限无价目 fail-fast），beforeModel 超限 block + 双写事件；safe-by-default null=不限。
 - [per-session 配额](tickets/T84-session-quota.md) — 限流器修正为进程级（configure() 创建）；SessionQuotaHook（order 1150）三维度/UTC 日窗：turns/tool-calls/tokens-per-day，单键 `epochDay:count` 读时重置（免清理），超配额 Block + quota.exceeded 事件；tokens 不复用 T83 键（生命周期累计≠日窗）；分布式配额 out-of-scope。
 - [沙箱合流](tickets/T85-sandbox-convergence.md) — core 新 SPI `CommandBackend`（自含 CommandOutcome record）；RunCommandTool 可选委托（前置校验留 tools、执行走沙箱，无委托回退 ProcessBuilder）；guard `SandboxCommandBackend` 桥接（@ConditionalOnBean(CommandSandbox)，档位选择归应用）；`buzhou.tools.command.backend=builtin|sandbox`（默认 builtin，sandbox 缺实现 fail-fast，沙箱不可用不静默回退）。
+- [MCP 漂移检测](tickets/T86-mcp-drift.md) — SDK 2.0.0 toolsChangeConsumer 协议订阅（无轮询兜底）；connect(spec, listener) default 方法 + McpConnection.listToolNames() 基线；Entry 基线差量（added/removed，非空发 mcp.tools-drift Event+WARN+指标，基线推进）；M1 仅告警不热替换（回调会话装配期绑定，文档明示）。
 
 ## Not yet specified
 

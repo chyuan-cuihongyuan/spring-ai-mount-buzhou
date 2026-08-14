@@ -42,6 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DefaultMcpClientRegistry implements McpClientRegistry {
 
+    private static final System.Logger LOGGER = System.getLogger(DefaultMcpClientRegistry.class.getName());
+
     public enum Status {ACTIVE, DRAINING, CLOSED}
 
     /** 注册表条目（spec 04 内部结构）。 */
@@ -58,11 +60,17 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         private volatile CompletableFuture<Void> closeFuture;
         /** 本条目所属 refresh 的 span context，供异步关闭事件挂靠 */
         private volatile SpanContext spanContext;
+        /** spec 18 / T86：工具名基线集（漂移差量口径；通知到达后推进）。 */
+        private volatile java.util.Set<String> toolNamesBaseline = java.util.Set.of();
 
         Entry(String name, ToolSetSpec spec, McpConnection connection) {
             this.name = name;
             this.spec = spec;
             this.connection = connection;
+        }
+
+        java.util.Set<String> toolNamesBaseline() {
+            return toolNamesBaseline;
         }
 
         public String name() {
@@ -231,7 +239,8 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     private boolean addEntry(ToolSetSpec spec, SpanContext spanCtx) {
         McpConnection connection;
         try {
-            connection = factory.connect(spec);
+            // spec 18 / T86：协议 tools/list_changed 订阅透传到注册表差量处理器。
+            connection = factory.connect(spec, tools -> handleToolsChanged(spec.name(), tools));
         } catch (RuntimeException e) {
             obs.connectFailed(spanCtx, spec.name(), e);
             // impl-50：建连失败计数 + 指标（运维面；此前仅 Span Event、无指标）
@@ -242,9 +251,42 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         }
         Entry entry = new Entry(spec.name(), spec, connection);
         entry.spanContext = spanCtx;
+        entry.toolNamesBaseline = Set.copyOf(connection.listToolNames());
         entries.put(spec.name(), entry);
         obs.added(spanCtx, spec.name(), null);
         return true;
+    }
+
+    /**
+     * spec 18 / T86：server 端工具集变更（tools/list_changed）→ 与基线差量。
+     * 非空差量：mcp.tools-drift Event + WARN 日志 + 指标，基线推进（连续漂移各记各的）；
+     * 空差量静默。M1 仅告警——回调在会话装配期绑定，热替换由运维触发 refresh/重启会话吸收。
+     */
+    private void handleToolsChanged(String serverName, java.util.List<io.modelcontextprotocol.spec.McpSchema.Tool> newTools) {
+        Entry entry = entries.get(serverName);
+        if (entry == null) {
+            return; // 条目已下线：漂移无从归属，丢弃
+        }
+        java.util.Set<String> incoming = newTools == null ? Set.of()
+                : newTools.stream().map(io.modelcontextprotocol.spec.McpSchema.Tool::name)
+                        .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        java.util.List<String> added;
+        java.util.List<String> removed;
+        synchronized (entry.lock) {
+            java.util.Set<String> baseline = entry.toolNamesBaseline();
+            added = incoming.stream().filter(n -> !baseline.contains(n)).sorted().toList();
+            removed = baseline.stream().filter(n -> !incoming.contains(n)).sorted().toList();
+            if (added.isEmpty() && removed.isEmpty()) {
+                return; // 空差量静默（SDK 可能对无实变化的通知重放）
+            }
+            entry.toolNamesBaseline = incoming;
+        }
+        obs.toolsDrift(entry.spanContext, serverName, added, removed);
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.mcp.tools-drift", "server", serverName);
+        LOGGER.log(System.Logger.Level.WARNING,
+                "MCP server 工具集漂移：server=" + serverName + "，added=" + added + "，removed=" + removed
+                        + "——仅告警（回调于会话装配期绑定）；触发配置 refresh 或重启会话以吸收变更");
     }
 
     /** 置 DRAINING（对新调用即刻不可见）并启动关闭等待；inFlight==0 立即关闭。 */

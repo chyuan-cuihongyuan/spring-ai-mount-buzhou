@@ -40,6 +40,13 @@ public class SpringAiMcpConnectionFactory implements McpConnectionFactory {
 
     @Override
     public McpConnection connect(ToolSetSpec spec) {
+        return connect(spec, null);
+    }
+
+    /** spec 18 / T86：挂协议 tools/list_changed 订阅（SDK 2.0.0 toolsChangeConsumer），漂移透传注册表。 */
+    @Override
+    public McpConnection connect(ToolSetSpec spec,
+            java.util.function.Consumer<List<io.modelcontextprotocol.spec.McpSchema.Tool>> toolsChangedListener) {
         McpClientTransport transport = switch (spec.transport()) {
             case STDIO -> stdioTransport(spec);
             case STREAMABLE_HTTP -> httpTransport(spec);
@@ -50,6 +57,9 @@ public class SpringAiMcpConnectionFactory implements McpConnectionFactory {
                         .title(spec.name()).build());
         if (spec.requestTimeout() != null) {
             clientSpec.requestTimeout(spec.requestTimeout());
+        }
+        if (toolsChangedListener != null) {
+            clientSpec.toolsChangeConsumer(toolsChangedListener);
         }
         McpSyncClient client = clientSpec.build();
         List<ToolCallback> callbacks = SyncMcpToolCallbackProvider.syncToolCallbacks(List.of(client));
@@ -83,6 +93,19 @@ public class SpringAiMcpConnectionFactory implements McpConnectionFactory {
         @Override
         public List<ToolCallback> toolCallbacks() {
             return callbacks;
+        }
+
+        /** spec 18：SDK 原始口径基线（与 tools/list_changed 通知同名同源）。 */
+        @Override
+        public List<String> listToolNames() {
+            try {
+                McpSchema.ListToolsResult result = client.listTools();
+                return result == null || result.tools() == null
+                        ? List.of()
+                        : result.tools().stream().map(McpSchema.Tool::name).toList();
+            } catch (RuntimeException e) {
+                return List.of(); // 基线取不到 = 漂移检测退化为「与空基线差量」，不阻断建连
+            }
         }
 
         @Override

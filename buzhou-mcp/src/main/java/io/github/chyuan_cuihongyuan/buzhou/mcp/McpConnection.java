@@ -16,6 +16,14 @@ public interface McpConnection extends AutoCloseable {
     List<ToolCallback> toolCallbacks();
 
     /**
+     * server 端原始工具名列表（spec 18 / T86：漂移检测基线口径；与 tools/list_changed 通知
+     * 的 Tool 名同源）。默认空（伪连接/自定义实现可忽略漂移检测）。
+     */
+    default List<String> listToolNames() {
+        return List.of();
+    }
+
+    /**
      * 关闭底层 client；实现允许阻塞（注册表在独立线程调用并设强杀兜底）。
      *
      * <p>实现 MUST 容忍重复/并发调用：强杀兜底路径会在原 close 线程僵死时于另一线程再次

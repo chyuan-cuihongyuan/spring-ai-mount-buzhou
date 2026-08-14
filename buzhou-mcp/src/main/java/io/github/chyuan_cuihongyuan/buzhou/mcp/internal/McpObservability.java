@@ -25,12 +25,14 @@ public final class McpObservability {
     public static final String MCP_REMOVED = "mcp.removed";
     public static final String MCP_CLOSED = "mcp.closed";
     public static final String MCP_FORCE_CLOSED = "mcp.forceClosed";
+    public static final String MCP_TOOLS_DRIFT = "mcp.tools-drift";
 
     static {
         EventType.of(MCP_ADDED);
         EventType.of(MCP_REMOVED);
         EventType.of(MCP_CLOSED);
         EventType.of(MCP_FORCE_CLOSED);
+        EventType.of(MCP_TOOLS_DRIFT);
     }
 
     private final SpanRecorder recorder;
@@ -57,6 +59,25 @@ public final class McpObservability {
 
     public void closed(SpanContext span, String server, String reason) {
         emit(span, MCP_CLOSED, server, reason);
+    }
+
+    /** 工具集漂移（spec 18 / T86：tools/list_changed 基线差量非空）；payload 有界（名单上限 20）。 */
+    public void toolsDrift(SpanContext span, String server, java.util.List<String> added,
+                           java.util.List<String> removed) {
+        if (recorder == null) {
+            return;
+        }
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("server", server);
+        payload.put("addedCount", added.size());
+        payload.put("removedCount", removed.size());
+        if (!added.isEmpty()) {
+            payload.put("added", added.subList(0, Math.min(added.size(), 20)));
+        }
+        if (!removed.isEmpty()) {
+            payload.put("removed", removed.subList(0, Math.min(removed.size(), 20)));
+        }
+        recorder.emit(span, MCP_TOOLS_DRIFT, payload);
     }
 
     /** 强杀兜底（spec 04：Error Event + Span 标记）——payload 带 error 标记，span 置 ERROR 属性。 */
