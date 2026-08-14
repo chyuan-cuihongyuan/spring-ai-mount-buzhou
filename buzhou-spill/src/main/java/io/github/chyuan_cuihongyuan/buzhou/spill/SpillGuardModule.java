@@ -83,6 +83,10 @@ public final class SpillGuardModule {
                 List.of(), null);
     }
 
+    /** impl-42 / spec 13 §T68 默认值安全化：hot-tail 内联预算 64KiB
+     * （原 0=不限——大结果可无界内联；显式 0/负数 = 恢复不限）。 */
+    public static final long DEFAULT_HOT_TAIL_MAX_INLINE_CHARS = 65536;
+
     public static final class Builder {
 
         private final SpillService spillService;
@@ -91,7 +95,7 @@ public final class SpillGuardModule {
         private int thresholdChars = SpillOffloadHook.DEFAULT_THRESHOLD_CHARS;
         private int thresholdTokens = 0;
         private int hotTailKeepInline = 0;
-        private long hotTailMaxInlineChars = 0;
+        private long hotTailMaxInlineChars = DEFAULT_HOT_TAIL_MAX_INLINE_CHARS;
         private Map<String, Object> toolPolicies = Map.of();
         private final Map<String, List<LongContentParamPair>> longContentParams = new LinkedHashMap<>();
         private final List<Path> readonlyRoots = new ArrayList<>();

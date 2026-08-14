@@ -22,4 +22,31 @@ public enum Dialect {
     public String migrationDirectory() {
         return migrationDirectory;
     }
+
+    /**
+     * 按 {@link java.sql.DatabaseMetaData#getDatabaseProductName()} 自动探测方言
+     * （impl-42 / spec 13 §T68：{@code buzhou.store.jdbc.dialect} 缺省不再假定为 H2——
+     * 连接是什么库就用什么方言）。产品名不认识时抛出带指引的 IllegalStateException。
+     */
+    public static Dialect detect(javax.sql.DataSource dataSource) {
+        String productName;
+        try (java.sql.Connection connection = dataSource.getConnection()) {
+            productName = connection.getMetaData().getDatabaseProductName();
+        } catch (java.sql.SQLException e) {
+            throw new IllegalStateException("方言自动探测失败（连接不可用）——"
+                    + "请显式配置 buzhou.store.jdbc.dialect=H2|MYSQL|POSTGRESQL", e);
+        }
+        String normalized = productName == null ? "" : productName.toLowerCase();
+        if (normalized.contains("h2")) {
+            return H2;
+        }
+        if (normalized.contains("mysql") || normalized.contains("mariadb")) {
+            return MYSQL;
+        }
+        if (normalized.contains("postgres")) {
+            return POSTGRESQL;
+        }
+        throw new IllegalStateException("不支持的数据库（产品名 \"" + productName
+                + "\"）——支持 H2/MYSQL/POSTGRESQL；请检查连接指向或显式配置 dialect");
+    }
 }

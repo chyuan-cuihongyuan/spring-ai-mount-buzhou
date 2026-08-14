@@ -18,6 +18,14 @@ public final class SpillModule {
 
     /** impl-38 / spec 13 §growth-8：带磁盘配额构造（超限拒绝落盘、原文回喂）。 */
     public SpillModule(Path rootDir, int previewChars, int listPreviewItems, SpillQuota quota) {
+        // impl-42 / spec 13 §T68：编程式 API 校验（负数/零预览值在构造期拒绝，不静默吞）
+        if (rootDir == null) {
+            throw new IllegalArgumentException("rootDir 不可为 null");
+        }
+        if (previewChars <= 0 || listPreviewItems <= 0) {
+            throw new IllegalArgumentException("previewChars/listPreviewItems 必须为正（收到 "
+                    + previewChars + "/" + listPreviewItems + "）");
+        }
         this.store = new DiskSpillStore(rootDir, quota);
         this.service = new SpillService(store, previewChars, listPreviewItems);
     }

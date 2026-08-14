@@ -53,6 +53,35 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * impl-42 / spec 13 §T68：{@code buzhou.store.type} 封闭枚举 fail-fast——拼错值
+     * （如 {@code jbdc}）此前会静默落进「无任何 store 装配」的深水区运行时失败；现在
+     * 启动即失败并给出可选值与已装模块指引（经 {@link BuzhouStoreFailureAnalyzer} 翻译）。
+     * 依赖顺序：本 bean 须在无 store 可用时不抢跑——用 {@code @ConditionalOnMissingBean}
+     * + 显式类型校验双管（memory 默认路径自证；jdbc/redis 模块在场时由其 store bean 存在）。
+     */
+    @Bean
+    public Object buzhouStoreTypeGuard(org.springframework.core.env.Environment env,
+            ObjectProvider<BuzhouStores> stores) {
+        String type = env.getProperty("buzhou.store.type", "memory").trim().toLowerCase();
+        if (!java.util.Set.of("memory", "jdbc", "redis").contains(type)) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.store.type=\"" + type + "\" 不是有效存储形态",
+                    "修正为 memory（默认，进程内）/ jdbc（MySQL/PostgreSQL/H2，需 buzhou-store-jdbc）"
+                            + "/ redis（需 buzhou-store-redis）之一；注意大小写与拼写",
+                    null);
+        }
+        if (stores.getIfAvailable() == null) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.store.type=" + type + " 但对应 store 实现未装配",
+                    type.equals("jdbc") ? "引入 buzhou-store-jdbc 依赖（并确认 DataSource bean 存在）"
+                            : type.equals("redis") ? "引入 buzhou-store-redis 依赖（并确认 uri 配置）"
+                            : "检查 buzhou.store.* 配置",
+                    null);
+        }
+        return new Object();
+    }
+
+    /**
      * impl-41 / spec 13 §T66：泄漏检测器（{@code buzhou.leak.level}=
      * DISABLED|SIMPLE|ADVANCED|PARANOID，默认 SIMPLE 1/128 采样；
      * {@code buzhou.leak.lease-age-threshold} 默认 PT5M；LeakListener bean 可注入）。

@@ -41,7 +41,19 @@ public class BuzhouJdbcStoreAutoConfiguration {
     @ConditionalOnMissingBean
     public JdbcBuzhouRecoveryStores jdbcBuzhouRecoveryStores(
             DataSource dataSource, JdbcStoreProperties props, WriteFailurePolicyProperties writePolicy) {
-        return JdbcBuzhouStores.createWithRecovery(dataSource, Dialect.valueOf(props.dialect()),
+        // impl-42 / spec 13 §T68：dialect=AUTO（缺省）按连接元数据探测；拼错值 fail-fast 带指引
+        Dialect dialect;
+        if ("AUTO".equals(props.dialect())) {
+            dialect = Dialect.detect(dataSource);
+        } else {
+            try {
+                dialect = Dialect.valueOf(props.dialect());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException("buzhou.store.jdbc.dialect=["
+                        + props.dialect() + "] 不是有效方言（H2 / MYSQL / POSTGRESQL / AUTO=自动探测）", e);
+            }
+        }
+        return JdbcBuzhouStores.createWithRecovery(dataSource, dialect,
                 writePolicy.writeFailurePolicy());
     }
 

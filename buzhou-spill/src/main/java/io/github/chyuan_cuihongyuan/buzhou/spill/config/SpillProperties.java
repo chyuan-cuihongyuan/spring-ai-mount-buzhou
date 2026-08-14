@@ -9,7 +9,9 @@ import java.time.Duration;
  *
  * <p>布尔字段用 boxed 类型以区分「未配置」（→ 默认开）与「显式关闭」。数值字段未配置时取规范默认。
  *
- * @param rootDir              Spill 落盘根目录（默认当前工作目录）
+ * @param rootDir              Spill 落盘根目录（impl-42 迁移：默认独立临时目录
+ *                             {@code ${java.io.tmpdir}/buzhou-spill}——不再落当前工作目录污染仓库/部署目录；
+ *                             显式配置不受影响）
  * @param previewChars         上下文留存预览字符数（默认 2048）
  * @param listPreviewItems     列表型返回预览条目数（默认 20）
  * @param thresholdChars       工具返回超阈值自动落盘（默认 32000）
@@ -43,19 +45,49 @@ public record SpillProperties(
 
     public SpillProperties {
         String dir = System.getProperty("user.dir");
-        rootDir = (rootDir == null || rootDir.isBlank()) ? dir : rootDir;
+        // impl-42 / spec 13 §T68 默认值安全化：spill 数据落独立临时目录（迁移注记见 Javadoc）
+        String spillDefaultRoot = System.getProperty("java.io.tmpdir") + "/buzhou-spill";
+        rootDir = (rootDir == null || rootDir.isBlank()) ? spillDefaultRoot : rootDir;
         sandboxRoot = (sandboxRoot == null || sandboxRoot.isBlank()) ? dir : sandboxRoot;
-        previewChars = (previewChars == null || previewChars <= 0) ? 2048 : previewChars;
-        listPreviewItems = (listPreviewItems == null || listPreviewItems <= 0) ? 20 : listPreviewItems;
-        thresholdChars = (thresholdChars == null || thresholdChars <= 0) ? 32000 : thresholdChars;
-        thresholdTokens = (thresholdTokens == null || thresholdTokens <= 0) ? null : thresholdTokens;
+        // impl-42 / spec 13 §T68：越界值启动即拒（fail-fast）——负值此前被静默归一（配置错而不觉）；
+        // null → 规范默认（宽容只留给「未配置」）
+        previewChars = positiveOrDefault(previewChars, 2048, "preview-chars");
+        listPreviewItems = positiveOrDefault(listPreviewItems, 20, "list-preview-items");
+        thresholdChars = positiveOrDefault(thresholdChars, 32000, "threshold-chars");
+        thresholdTokens = positiveOrDefault(thresholdTokens, null, "threshold-tokens");
         onloadEnabled = onloadEnabled == null ? true : onloadEnabled;
         copyOnWriteEnabled = copyOnWriteEnabled == null ? true : copyOnWriteEnabled;
         offloadEnabled = offloadEnabled == null ? true : offloadEnabled;
         editingToolsEnabled = editingToolsEnabled == null ? true : editingToolsEnabled;
-        maxTotalBytes = (maxTotalBytes == null || maxTotalBytes < 1) ? null : maxTotalBytes;
-        maxFilesPerSession = (maxFilesPerSession == null || maxFilesPerSession < 1) ? null : maxFilesPerSession;
-        retentionTtl = retentionTtl == null || retentionTtl.isZero() || retentionTtl.isNegative()
+        maxTotalBytes = positiveOrDefault(maxTotalBytes, null, "max-total-bytes");
+        maxFilesPerSession = positiveOrDefault(maxFilesPerSession, null, "max-files-per-session");
+        if (retentionTtl != null && retentionTtl.isNegative()) {
+            throw new IllegalArgumentException("buzhou.spill.retention-ttl 不可为负（收到 "
+                    + retentionTtl + "）");
+        }
+        retentionTtl = retentionTtl == null || retentionTtl.isZero()
                 ? Duration.ofHours(24) : retentionTtl;
+    }
+
+    private static Integer positiveOrDefault(Integer value, Integer defaultValue, String name) {
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value <= 0) {
+            throw new IllegalArgumentException(
+                    "buzhou.spill." + name + " 必须为正整数（收到 " + value + "）");
+        }
+        return value;
+    }
+
+    private static Long positiveOrDefault(Long value, Long defaultValue, String name) {
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value <= 0) {
+            throw new IllegalArgumentException(
+                    "buzhou.spill." + name + " 必须为正数（收到 " + value + "）");
+        }
+        return value;
     }
 }

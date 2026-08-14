@@ -17,9 +17,9 @@ public class BuzhouSpillHealthAutoConfiguration {
     @Bean
     public SpillHealth spillHealth(org.springframework.core.env.Environment env) {
         boolean enabled = env.getProperty("buzhou.spill.enabled", Boolean.class, true);
-        // 与 SpillProperties 同源默认：未配置时 = 当前工作目录
+        // 与 SpillProperties 同源默认（impl-42 迁移）：独立临时目录
         String configured = env.getProperty("buzhou.spill.root-dir", String.class,
-                System.getProperty("user.dir"));
+                System.getProperty("java.io.tmpdir") + "/buzhou-spill");
         return new SpillHealth(enabled, Path.of(configured));
     }
 

@@ -24,6 +24,7 @@ import java.time.Duration;
  * @param core               impl-34 / spec 13 §core-4：core 运行时旋钮
  *                           （{@code buzhou.core.*}，事件分发模式）
  */
+@org.springframework.validation.annotation.Validated
 @ConfigurationProperties(prefix = "buzhou")
 public record BuzhouCoreProperties(String modelName, Store store,
                                    Duration leaseTtl, Duration leaseRenewInterval,
@@ -107,7 +108,12 @@ public record BuzhouCoreProperties(String modelName, Store store,
         public EventDispatch {
             mode = mode == null
                     ? io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.Mode.SYNC : mode;
-            capacity = capacity == null || capacity <= 0
+            if (capacity != null && capacity <= 0) {
+                // impl-42 / spec 13 §T68：越界值启动即拒（负容量此前被静默归一为默认）
+                throw new IllegalArgumentException(
+                        "buzhou.core.event-dispatch.capacity 必须为正整数（收到 " + capacity + "）");
+            }
+            capacity = capacity == null
                     ? io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.DEFAULT_CAPACITY
                     : capacity;
             overflow = overflow == null
