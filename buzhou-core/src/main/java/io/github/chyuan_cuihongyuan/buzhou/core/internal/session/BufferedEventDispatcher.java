@@ -86,6 +86,9 @@ final class BufferedEventDispatcher implements AutoCloseable {
 
     private void countDrop(SessionEvent event, String reason) {
         long total = dropped.incrementAndGet();
+        // impl-41 / spec 13 §T66：丢弃可见性指标（与累计计数同源）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.eventbus.dropped");
         if (event != null && event != POISON
                 && (total == 1 || total % EventDispatchConfig.DROP_SUMMARY_EVERY == 0)) {
             LOGGER.log(System.Logger.Level.WARNING,

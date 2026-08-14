@@ -23,6 +23,22 @@ public class DefaultMicroCompactor implements MicroCompactor {
                                          Function<String, MicroCompactionPolicy> policyByToolName,
                                          int protectRecentTurns,
                                          double evictRatio) {
+        // impl-41 / spec 13 §T66：压缩指标（outcome=ok|failed）
+        try {
+            return compactInternal(history, currentTurnIndex, policyByToolName,
+                    protectRecentTurns, evictRatio);
+        } catch (RuntimeException e) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.compaction", "outcome", "failed");
+            throw e;
+        }
+    }
+
+    private MicroCompactionResult compactInternal(List<BuzhouMessage> history,
+                                         int currentTurnIndex,
+                                         Function<String, MicroCompactionPolicy> policyByToolName,
+                                         int protectRecentTurns,
+                                         double evictRatio) {
         Set<Integer> completedTurns = new HashSet<>();
         for (TurnSpan span : detector.detectTurns(history)) {
             if (span.completed()) {
@@ -62,6 +78,8 @@ public class DefaultMicroCompactor implements MicroCompactor {
                 view.add(message);
             }
         }
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.compaction", "outcome", "ok");
         return new MicroCompactionResult(view, compactedIds, reclaimed);
     }
 

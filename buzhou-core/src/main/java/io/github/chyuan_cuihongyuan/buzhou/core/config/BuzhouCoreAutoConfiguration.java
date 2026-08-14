@@ -53,6 +53,84 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * impl-41 / spec 13 §T66：泄漏检测器（{@code buzhou.leak.level}=
+     * DISABLED|SIMPLE|ADVANCED|PARANOID，默认 SIMPLE 1/128 采样；
+     * {@code buzhou.leak.lease-age-threshold} 默认 PT5M；LeakListener bean 可注入）。
+     * 安装即全局生效（会话/租约/spill 句柄三挂点经 LeakDetectorHolder 取用）。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector resourceLeakDetector(
+            org.springframework.core.env.Environment env,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakListener> listener) {
+        String levelText = env.getProperty("buzhou.leak.level",
+                io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakLevel.SIMPLE.name());
+        io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakLevel level;
+        try {
+            level = io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakLevel
+                    .valueOf(levelText.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("buzhou.leak.level 非法：\"" + levelText
+                    + "\"（须 DISABLED/SIMPLE/ADVANCED/PARANOID）", e);
+        }
+        java.time.Duration threshold = java.time.Duration.parse(env.getProperty(
+                "buzhou.leak.lease-age-threshold", "PT5M"));
+        io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector detector =
+                new io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector(
+                        level, threshold, listener.getIfAvailable());
+        io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder.install(detector);
+        return detector;
+    }
+
+    /**
+     * impl-41 / spec 13 §T66：有 micrometer（MeterRegistry bean）时——安装
+     * MicrometerBuzhouMetrics 到全局 holder + 预注册标准指标集。未装 micrometer：
+     * holder 保持 no-op（零开销）。
+     */
+    @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnClass(
+            io.micrometer.core.instrument.MeterRegistry.class)
+    static class BuzhouMetricsConfiguration {
+
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+                io.micrometer.core.instrument.MeterRegistry.class)
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder buzhouMetricsBinder(
+                io.micrometer.core.instrument.MeterRegistry registry) {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder();
+        }
+
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+                io.micrometer.core.instrument.MeterRegistry.class)
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
+                buzhouMetricsHolderInstaller(io.micrometer.core.instrument.MeterRegistry registry) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.install(
+                    new io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics(
+                            registry));
+            return new io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller();
+        }
+    }
+
+    /**
+     * impl-41 / spec 13 §T66：只读快照端点 {@code /actuator/buzhou}（有 actuator 才装配；
+     * 聚合全部 BuzhouHealth 机制贡献）。
+     */
+    @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnClass(
+            name = "org.springframework.boot.actuate.endpoint.annotation.Endpoint")
+    static class BuzhouEndpointConfiguration {
+
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint buzhouHealthEndpoint(
+                ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> contributors) {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint(
+                    contributors.orderedStream().toList());
+        }
+    }
+
+    /**
      * impl-30 / spec 13 §core-1：显式 {@code destroyMethod = "close"}——不靠推断，且与
      * {@link AgentRuntimeLifecycle#stop} 的双触发由 runtime 停机状态机（幂等）吸收：
      * stop 已跑完则 close 为 no-op；容器未调 stop 直接 destroy 时 close 兜底硬截断收尾。

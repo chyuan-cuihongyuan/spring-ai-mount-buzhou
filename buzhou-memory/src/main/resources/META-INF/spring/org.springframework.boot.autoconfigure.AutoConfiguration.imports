@@ -1,1 +1,2 @@
 io.github.chyuan_cuihongyuan.buzhou.memory.config.BuzhouMemoryAutoConfiguration
+io.github.chyuan_cuihongyuan.buzhou.memory.config.BuzhouMemoryHealthAutoConfiguration

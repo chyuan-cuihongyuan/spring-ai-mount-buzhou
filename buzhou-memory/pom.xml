@@ -33,5 +33,11 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+      <!-- impl-41 / spec 13 §T66：健康面 optional 依赖（Boot 4 Health/HealthIndicator 位于 spring-boot-health） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-health</artifactId>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 </project>

@@ -24,6 +24,11 @@ public class DiskSpillStore implements SpillStore {
     /** impl-38 / spec 13 §growth-8：磁盘配额（默认不限）。 */
     private final SpillQuota quota;
 
+    /** impl-41 / spec 13 §T66：spill 句柄泄漏登记（数据文件路径 → handle；删除路径解除）。 */
+    private final java.util.concurrent.ConcurrentHashMap<Path,
+            io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakHandle> leakHandles =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     public DiskSpillStore(Path rootDir) {
         this(rootDir, SpillQuota.unbounded());
     }
@@ -39,11 +44,16 @@ public class DiskSpillStore implements SpillStore {
         if (Files.exists(dataPath)) {
             throw new IllegalStateException("Spill already exists (one call one spill): " + entry.uri());
         }
+        leakHandles.put(dataPath, io.github.chyuan_cuihongyuan.buzhou.core.leak
+                .LeakDetectorHolder.detector().track("spill:" + entry.uri()));
         enforceQuota(entry);
         try {
             Files.createDirectories(dataPath.getParent());
             writeAtomically(dataPath, entry.content());
             writeAtomically(metaPath(entry.uri()), metaJson(entry, false));
+            // impl-41 / spec 13 §T66：spill 指标（outcome=spilled；degraded/failed 在服务层）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.spill.requests", "outcome", "spilled");
             return new SpillHandle(entry.uri(), entry.sizeChars(),
                     RangeReadEngine.previewOf(entry.content(), previewChars, 20));
         } catch (IOException e) {
@@ -210,8 +220,17 @@ public class DiskSpillStore implements SpillStore {
 
     @Override
     public void delete(SpillUri uri) {
+        closeLeakHandle(dataPath(uri));
         deleteQuietly(dataPath(uri));
         deleteQuietly(metaPath(uri));
+    }
+
+    private void closeLeakHandle(Path dataPath) {
+        io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakHandle handle =
+                leakHandles.remove(dataPath);
+        if (handle != null) {
+            handle.close();
+        }
     }
 
     @Override
@@ -223,6 +242,7 @@ public class DiskSpillStore implements SpillStore {
         int[] count = {0};
         try (Stream<Path> files = Files.list(sessionDir)) {
             files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).forEach(p -> {
+                closeLeakHandle(p);
                 deleteQuietly(p);
                 deleteQuietly(Path.of(p.toString().replace(DATA_SUFFIX, META_SUFFIX)));
                 count[0]++;
@@ -252,6 +272,7 @@ public class DiskSpillStore implements SpillStore {
                 boolean linked = meta.path("linked").asBoolean(false);
                 Instant createdAt = Instant.parse(meta.path("createdAt").asText());
                 if (!linked && createdAt.plus(ttl).isBefore(now)) {
+                    closeLeakHandle(Path.of(metaPath.toString().replace(META_SUFFIX, DATA_SUFFIX)));
                     deleteQuietly(metaPath);
                     deleteQuietly(Path.of(metaPath.toString().replace(META_SUFFIX, DATA_SUFFIX)));
                     count++;

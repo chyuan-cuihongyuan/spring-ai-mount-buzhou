@@ -39,6 +39,7 @@ public final class SessionLeaseGuard {
     private final AtomicBoolean lost = new AtomicBoolean();
     private final AtomicInteger renewals = new AtomicInteger();
     private volatile Instant expiresAt;
+    private final io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakHandle leakHandle;
 
     public SessionLeaseGuard(SessionLeaseStore store, String sessionId, String ownerId,
                              long fencingToken, Duration ttl, Duration renewThreshold) {
@@ -49,6 +50,9 @@ public final class SessionLeaseGuard {
         this.ttl = ttl;
         this.renewThreshold = renewThreshold;
         this.expiresAt = Instant.now().plus(ttl);
+        // impl-41 / spec 13 §T66：租约挂点——未释放（markLost/close）即被 GC = 泄漏嫌疑
+        this.leakHandle = io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder
+                .detector().track("lease:" + sessionId);
     }
 
     /**
@@ -90,6 +94,7 @@ public final class SessionLeaseGuard {
             return true;
         }
         lost.set(true);
+        leakHandle.close();
         return false;
     }
 
@@ -111,6 +116,12 @@ public final class SessionLeaseGuard {
     /** 显式标记租约已丢失（会话层捕获 LeaseLost 后回写，保证后续调用即刻拒绝）。 */
     public void markLost() {
         lost.set(true);
+        leakHandle.close(); // 租约生命周期结束（丢失也是结束——不再泄漏嫌疑）
+    }
+
+    /** impl-41：会话正常收尾释放（幂等；泄漏登记解除）。 */
+    public void close() {
+        leakHandle.close();
     }
 
     public boolean isLost() {
@@ -145,6 +156,7 @@ public final class SessionLeaseGuard {
 
     private LeaseLostException markLostAndThrow() {
         lost.set(true);
+        leakHandle.close();
         return new LeaseLostException(sessionId);
     }
 

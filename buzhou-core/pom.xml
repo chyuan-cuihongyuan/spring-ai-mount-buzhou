@@ -40,6 +40,23 @@
       <artifactId>spring-boot-test</artifactId>
       <scope>test</scope>
     </dependency>
+      <!-- impl-41 / spec 13 §T66：可观测 optional 面——未装时 no-op/不装配，库不强依赖 -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-actuator</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <!-- Boot 4 拆分：Health/HealthIndicator 位于 spring-boot-health（Endpoint 仍在 actuator） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-health</artifactId>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 
   <build>

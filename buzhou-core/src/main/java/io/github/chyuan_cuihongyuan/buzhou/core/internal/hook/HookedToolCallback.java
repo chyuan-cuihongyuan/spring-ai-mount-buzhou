@@ -68,6 +68,9 @@ public class HookedToolCallback implements ToolCallback {
                     "执行失败：" + e.getMessage());
         }
         ctx.markExecuted(result, error);
+        // impl-41 / spec 13 §T66：工具调用指标（全部机制的工具都经本回调执行）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.tool.calls", "outcome", error == null ? "ok" : "failed");
 
         HookResult after = chain.afterTool(ctx);
         if (after instanceof HookResult.Block) {

@@ -108,6 +108,9 @@ public class DegradingObservabilityStore implements ObservabilityStore {
             return write.get();
         } catch (RuntimeException e) {
             long count = degradedWrites.incrementAndGet();
+            // impl-41 / spec 13 §T66：存储写失败可见性（policy tag = 采取的策略）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.store.write.failures", "policy", "degrade");
             LOG.warn("观测类写降级继续(sessionId={}, operation={}, degradedWrites={}, 原因={})",
                     sessionId, operation, count, e.toString(), e);
             return null;

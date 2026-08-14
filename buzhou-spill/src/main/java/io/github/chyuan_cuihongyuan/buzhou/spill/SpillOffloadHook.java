@@ -150,6 +150,9 @@ public class SpillOffloadHook implements BuzhouHook {
     }
 
     private void emitDegraded(ToolCallContext ctx, String toolCallId, SpillUri uri) {
+        // impl-41 / spec 13 §T66：spill 指标（outcome=degraded——原文回喂）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.spill.requests", "outcome", "degraded");
         ctx.emitEvent(new SessionEvent("offload.degraded",
                 Map.of("toolName", ctx.toolName(),
                         "toolCallId", toolCallId,

@@ -73,6 +73,7 @@ public class DefaultAgentSession implements AgentSession {
     private final Duration turnBudget;
     /** impl-33 / spec 13 §core-3：会话租约哨兵；null = 无租约语义路径（Buzhou.enhance 等既有行为）。 */
     private final SessionLeaseGuard leaseGuard;
+    private final io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakHandle leakHandle;
     /**
      * impl-30 / spec 13 §core-1：在途 Turn 权威计数（chat 入口增/finally 减；stream 入口增/
      * doFinally 减）——停机排空等待的裁决源，覆盖正常/异常/取消全部终结路径。
@@ -179,6 +180,9 @@ public class DefaultAgentSession implements AgentSession {
         this.observers = new CopyOnWriteArrayList<>(observers);
         this.turnBudget = turnBudget;
         this.leaseGuard = leaseGuard;
+        // impl-41 / spec 13 §T66：会话挂点——未 close 即被 GC = 资源泄漏嫌疑
+        this.leakHandle = io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder
+                .detector().track("session:" + sessionId);
         this.eventDispatchConfig = eventDispatchConfig;
         this.sessionCleaner = sessionCleaner;
         this.hookEnv.bindEventPublisher(this::dispatchEvent);
@@ -220,6 +224,7 @@ public class DefaultAgentSession implements AgentSession {
 
     private String doChat(String input) {
         int turnSeq = hookEnv.nextTurn();
+        long turnStartNanos = System.nanoTime(); // impl-41 / spec 13 §T66：turn.duration
         observers.forEach(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
         HookResult before = hookChain.beforeTurn(turnCtx);
@@ -239,12 +244,25 @@ public class DefaultAgentSession implements AgentSession {
             verifyLeaseAtCommit();
         } catch (LeaseLostException e) {
             abortTurnAsLeaseLost(turnSeq, e);
+            recordTurnDuration(turnStartNanos, "failed");
+            throw e;
+        } catch (RuntimeException e) {
+            recordTurnDuration(turnStartNanos, "failed");
             throw e;
         }
         turnCtx.markResponded(response);
         hookChain.afterTurn(turnCtx);
         observers.forEach(o -> o.onTurnEnd(turnSeq, response));
+        recordTurnDuration(turnStartNanos, "ok");
         return turnCtx.response();
+    }
+
+    /** impl-41 / spec 13 §T66：Turn 时长（outcome=ok|failed；tag 无 sessionId）。 */
+    private void recordTurnDuration(long startNanos, String outcome) {
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .timer("buzhou.turn.duration",
+                        java.time.Duration.ofNanos(System.nanoTime() - startNanos),
+                        "outcome", outcome);
     }
 
     /** impl-30 / spec 13 §core-1：在途 Turn 数（0 = 无在途，停机排空安定条件之一）。 */
@@ -410,6 +428,10 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
+            leakHandle.close();
+            if (leaseGuard != null) {
+                leaseGuard.close();
+            }
             List<RuntimeException> failures = new ArrayList<>();
             for (SessionObserver observer : observers) {
                 try {

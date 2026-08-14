@@ -1,1 +1,2 @@
 io.github.chyuan_cuihongyuan.buzhou.guard.config.BuzhouGuardAutoConfiguration
+io.github.chyuan_cuihongyuan.buzhou.guard.config.BuzhouGuardHealthAutoConfiguration
