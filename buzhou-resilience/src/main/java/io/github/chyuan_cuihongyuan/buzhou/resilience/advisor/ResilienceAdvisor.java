@@ -76,6 +76,10 @@ public class ResilienceAdvisor implements BaseAdvisor {
     private final Duration deadline;
     /** 运维面（impl-44）：null 安全——编程式路径未传时静默。 */
     private final ResilienceStats stats;
+    /** 熔断器（impl-56）：null = 未启用。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit;
+    /** 分桶键（与限流器同口径，buzhou.model-name）。 */
+    private final String modelName;
 
     public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
                              Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
@@ -86,6 +90,14 @@ public class ResilienceAdvisor implements BaseAdvisor {
     public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
                              Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
                              ModelCallInFlight inFlight, ResilienceStats stats) {
+        this(config, classifier, emitter, deadlineExecutor, inFlight, stats, null, null);
+    }
+
+    public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
+                             Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
+                             ModelCallInFlight inFlight, ResilienceStats stats,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit,
+                             String modelName) {
         this.config = config;
         this.classifier = classifier;
         this.emitter = emitter == null ? event -> {
@@ -97,6 +109,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
         this.inFlight = inFlight;
         this.deadline = config.deadline();
         this.stats = stats;
+        this.circuit = circuit;
+        this.modelName = modelName == null ? "unknown" : modelName;
     }
 
     @Override
@@ -112,6 +126,34 @@ public class ResilienceAdvisor implements BaseAdvisor {
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain callChain) {
+        if (circuit == null) {
+            return doAdviseCall(request, callChain);
+        }
+        // 熔断前置闸 + 逻辑调用级三态结果记录（impl-56）：重试 attempt 不重复记；
+        // OPEN 拒绝异常不进重试分类（跳闸后重试只会继续锤故障 provider），直上 onModelError。
+        circuit.beforeCall(modelName, emitter);
+        boolean success = false;
+        String terminal = null;
+        try {
+            ChatClientResponse response = doAdviseCall(request, callChain);
+            success = true;
+            return response;
+        } catch (ModelCallTimeoutException e) {
+            terminal = "TIMEOUT"; // 超时非 ErrorCategory 枚举值，熔断口径单列（默认计入失败）
+            throw e;
+        } catch (RuntimeException e) {
+            terminal = classifier.classify(e, null).category().name();
+            throw e;
+        } finally {
+            if (success) {
+                circuit.recordSuccess(modelName, emitter);
+            } else {
+                circuit.recordTerminal(modelName, terminal, emitter);
+            }
+        }
+    }
+
+    private ChatClientResponse doAdviseCall(ChatClientRequest request, CallAdvisorChain callChain) {
         // 直接拿到链最内层的模型调用终端（Spring AI 的 ChatModelCallAdvisor，order=Integer.MAX_VALUE，
         // 其 adviseCall 直接 chatModel.call(prompt)、不回调链）。每次尝试都直接调用它——
         // 这样重试不会重新跑外层 advisor（Memory / HookAdvisor），保证 beforeModel/afterModel
@@ -298,6 +340,34 @@ public class ResilienceAdvisor implements BaseAdvisor {
 
     @Override
     public Flux<ChatClientResponse> adviseStream(ChatClientRequest request, StreamAdvisorChain streamChain) {
+        if (circuit == null) {
+            return doAdviseStream(request, streamChain);
+        }
+        // 熔断前置闸（impl-56）：流式入口 fail-fast——已发 token 不可回收，更不能对着故障 provider 开流。
+        try {
+            circuit.beforeCall(modelName, emitter);
+        } catch (io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException e) {
+            return Flux.error(e);
+        }
+        java.util.concurrent.atomic.AtomicBoolean recorded = new java.util.concurrent.atomic.AtomicBoolean();
+        return doAdviseStream(request, streamChain)
+                .doOnComplete(() -> {
+                    if (recorded.compareAndSet(false, true)) {
+                        circuit.recordSuccess(modelName, emitter);
+                    }
+                })
+                .doOnError(e -> {
+                    if (recorded.compareAndSet(false, true)) {
+                        String category = e instanceof ModelCallTimeoutException
+                                ? "TIMEOUT"
+                                : classifier.classify((e instanceof RuntimeException re) ? re
+                                        : new RuntimeException(e), null).category().name();
+                        circuit.recordTerminal(modelName, category, emitter);
+                    }
+                });
+    }
+
+    private Flux<ChatClientResponse> doAdviseStream(ChatClientRequest request, StreamAdvisorChain streamChain) {
         Flux<ChatClientResponse> stream = streamChain.nextStream(request);
         if (deadline != null && !deadline.isZero()) {
             // deadline 作为「首 token / 帧间空闲」超时：active 流式每帧重置计时，挂住的流在 deadline 内终止。

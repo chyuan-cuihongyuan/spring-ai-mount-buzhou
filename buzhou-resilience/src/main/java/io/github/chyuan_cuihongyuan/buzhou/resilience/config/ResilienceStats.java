@@ -21,7 +21,11 @@ public final class ResilienceStats implements BuzhouHealth {
     private final AtomicLong rateLimitRejections = new AtomicLong();
     private final AtomicLong modelTimeouts = new AtomicLong();
     private final AtomicLong contentRefusals = new AtomicLong();
+    private final AtomicLong circuitRejections = new AtomicLong();
+    private final AtomicLong circuitTrips = new AtomicLong();
     private final AtomicReference<String> lastErrorCategory = new AtomicReference<>();
+    /** 各模型熔断态（有界：模型名实际有限集）。 */
+    private final Map<String, String> circuitStates = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Override
     public String mechanism() {
@@ -42,6 +46,11 @@ public final class ResilienceStats implements BuzhouHealth {
         details.put("rateLimitRejections", rateLimitRejections.get());
         details.put("modelTimeouts", modelTimeouts.get());
         details.put("contentRefusals", contentRefusals.get());
+        details.put("circuitRejections", circuitRejections.get());
+        details.put("circuitTrips", circuitTrips.get());
+        if (!circuitStates.isEmpty()) {
+            details.put("circuitStates", new LinkedHashMap<>(circuitStates));
+        }
         String category = lastErrorCategory.get();
         if (category != null) {
             details.put("lastErrorCategory", category);
@@ -71,6 +80,21 @@ public final class ResilienceStats implements BuzhouHealth {
 
     public void recordErrorCategory(String category) {
         lastErrorCategory.set(category);
+    }
+
+    /** 熔断器 OPEN/HALF_OPEN 占位期调用被拒（impl-56）。 */
+    public void recordCircuitRejected() {
+        circuitRejections.incrementAndGet();
+    }
+
+    /** 熔断器跳闸一次（CLOSED→OPEN 或 HALF_OPEN→OPEN）。 */
+    public void recordCircuitTrip(String modelName) {
+        circuitTrips.incrementAndGet();
+    }
+
+    /** 模型熔断态快照更新（有界枚举值字符串）。 */
+    public void updateCircuitState(String modelName, Object state) {
+        circuitStates.put(modelName, String.valueOf(state));
     }
 
     public long retryAttempts() {

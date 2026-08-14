@@ -25,7 +25,21 @@
 - **运维面**：`ResilienceStats`（重试/耗尽/限流拒绝/超时/最近分类 + `BuzhouHealth` 委托）、
   指标族 `buzhou.resilience.*`（core MeterBinder 预注册）、日志基线（重试 WARNING/耗尽 ERROR/
   限流拒绝 INFO）、配置 fail-fast（deadline < maxBackoff 等矛盾启动失败）。
-- **熔断 / 重试预算**：开放问题，未做。
+- **熔断器（T81 / impl-56）**：手写 CB（不引 resilience4j），`ModelCircuitBreaker` 进程级注册表按
+  modelName 分桶（`ResilienceModule.configure()` 创建一次、customizer 闭包注入全部会话）。
+  **三态结果计数**（对齐 resilience4j 语义）：FAILURE = 终态失败且 category ∈ `circuit.failure-categories`
+  （默认 `[NETWORK, SERVER, TIMEOUT]`）；RATE_LIMIT（背压归限流器）/ CONTENT（内容治理）/ AUTH（配置错误
+  不遮蔽）/ UNKNOWN（不明不盲跳）为 IGNORED 不进窗口；成功为 SUCCESS。**状态机**：计数窗口
+  （`window-size` 默认 20）失败率 ≥ `failure-rate-threshold`（默认 0.5）且样本 ≥ `min-calls`（默认 5）→
+  OPEN；OPEN 期调用抛 `ModelCircuitOpenException`（不进重试分类，直上 onModelError，与自限流拒绝同语义）；
+  冷却 `open-cooldown`（默认 30s）后放行**单探测**（probeInFlight 原子占位，并发拒绝）进 HALF_OPEN——
+  探测 FAILURE 回 OPEN（重计冷却），SUCCESS/IGNORED 回 CLOSED（窗口重置）。每次**逻辑调用**记一次结果
+  （重试 attempt 不重复记）；流式入口检查 + 终态记录。事件 `circuit.state-changed` / `circuit.call-rejected`
+  走当次调用会话通道；指标 `buzhou.resilience.circuit-rejected` / `circuit-tripped` / `circuit-open`(gauge)；
+  ResilienceStats 计数 + details states（有界）；机制健康恒 UP（宕的是 provider 不是机制，严格 DOWN 语义
+  不误报）。配置 `buzhou.resilience.circuit.*` 默认启用，fail-fast 校验（window≥2、1≤min-calls≤window、
+  0<threshold≤1、cooldown>0）。
+- **重试预算**：开放问题，未做（熔断已覆盖「持续故障停止锤 provider」；重试风暴防放大归限流器邻域）。
 
 ## 失控检测（core/runaway）
 

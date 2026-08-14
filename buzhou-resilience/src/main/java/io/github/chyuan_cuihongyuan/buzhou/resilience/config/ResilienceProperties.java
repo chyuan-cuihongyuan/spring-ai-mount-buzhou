@@ -28,6 +28,7 @@ import java.util.List;
  *                            覆盖默认可重试表，如把 {@code UNKNOWN} 配为重试）
  * @param deadline            模型调用统一超时（默认 60s；超时取消在途调用并作为终态失败。
  *                            显式设为 0 关闭超时——不推荐生产关闭）
+ * @param circuit             熔断器参数组（默认启用、保守阈值；null = 全默认）
  */
 @ConfigurationProperties(prefix = "buzhou.resilience")
 @Validated
@@ -40,7 +41,17 @@ public record ResilienceProperties(
         @DecimalMin(value = "0.0") @DecimalMax(value = "1.0", message = "jitter 取值 [0,1]") Double jitter,
         List<String> retryableCategories,
         Duration deadline,
-        @Valid RateLimit rateLimit) {
+        @Valid RateLimit rateLimit,
+        @Valid Circuit circuit) {
+
+    /** 9 参兼容构造（impl-56 之前调用方；circuit = 全默认）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, null);
+    }
 
     /**
      * 模型 RPM+TPM 双桶限流参数组（spec 15「背压 · 维度③」）。
@@ -59,6 +70,59 @@ public record ResilienceProperties(
             String overloadPolicy) {
     }
 
+    /**
+     * 熔断器参数组（spec 15「熔断器」，T81 / impl-56）。前缀 {@code buzhou.resilience.circuit}。
+     * 默认启用、保守阈值（真实 provider 故障才跳闸）。
+     *
+     * @param enabled              熔断开关（null = 开）
+     * @param windowSize           计数窗口样本数（默认 20；ring buffer，满窗移出最老）
+     * @param minCalls             跳闸最小样本数（默认 5；不足样本不判失败率，防小样本误跳）
+     * @param failureRateThreshold 跳闸失败率阈值（默认 0.5；≥ 该值且样本 ≥ min-calls 即跳闸）
+     * @param openCooldown         OPEN 冷却时长（默认 30s；期满放行单探测进 HALF_OPEN）
+     * @param failureCategories    计入失败的类别（默认 {@code [NETWORK, SERVER, TIMEOUT]}；
+     *                             RATE_LIMIT/CONTENT/AUTH/UNKNOWN 为 IGNORED 不进窗口）
+     */
+    public record Circuit(
+            Boolean enabled,
+            Integer windowSize,
+            Integer minCalls,
+            Double failureRateThreshold,
+            Duration openCooldown,
+            List<String> failureCategories) {
+
+        public Circuit {
+            enabled = enabled == null ? true : enabled;
+            windowSize = windowSize == null ? 20 : windowSize;
+            minCalls = minCalls == null ? 5 : minCalls;
+            failureRateThreshold = failureRateThreshold == null ? 0.5 : failureRateThreshold;
+            openCooldown = openCooldown == null ? Duration.ofSeconds(30) : openCooldown;
+            failureCategories = failureCategories == null || failureCategories.isEmpty()
+                    ? List.of("NETWORK", "SERVER", "TIMEOUT")
+                    : failureCategories.stream().map(c -> c.toUpperCase(java.util.Locale.ROOT)).toList();
+            if (windowSize < 2) {
+                throw configError("circuit.window-size", String.valueOf(windowSize), "设为 >= 2 的整数");
+            }
+            if (minCalls < 1 || minCalls > windowSize) {
+                throw configError("circuit.min-calls", String.valueOf(minCalls),
+                        "设为 [1, window-size] 内的整数（不足样本不判失败率）");
+            }
+            if (failureRateThreshold <= 0 || failureRateThreshold > 1) {
+                throw configError("circuit.failure-rate-threshold", String.valueOf(failureRateThreshold),
+                        "设为 (0, 1]（默认 0.5）");
+            }
+            if (openCooldown.isZero() || openCooldown.isNegative()) {
+                throw configError("circuit.open-cooldown", openCooldown.toString(), "设为正时长，如 30s");
+            }
+        }
+
+        /** 生效开关（compact ctor 已归一，恒非 null）。 */
+        public boolean effectiveEnabled() {
+            return enabled;
+        }
+    }
+
+    /** 多构造器场景：显式指定规范构造器为绑定构造器（9 参兼容构造不参与绑定）。 */
+    @org.springframework.boot.context.properties.bind.ConstructorBinding
     public ResilienceProperties {
         enabled = enabled == null ? true : enabled;
         // Duration 无标准 JSR-303 约束（HV 不支持），fail-fast 在此显式做：非法值抛 BuzhouConfigurationException
@@ -94,6 +158,7 @@ public record ResilienceProperties(
                 ? List.of("RATE_LIMIT", "NETWORK") : List.copyOf(retryableCategories);
         deadline = deadline == null ? Duration.ofSeconds(60) : deadline;
         // rateLimit 保持 null = 未配置（不限），由模块层判定
+        circuit = circuit == null ? new Circuit(null, null, null, null, null, null) : circuit;
     }
 
     private static BuzhouConfigurationException configError(String key, String value, String action) {
@@ -103,7 +168,7 @@ public record ResilienceProperties(
 
     /** 全默认（装配测试 / 兜底用）。 */
     public static ResilienceProperties defaults() {
-        return new ResilienceProperties(null, null, null, null, null, null, null, null, null);
+        return new ResilienceProperties(null, null, null, null, null, null, null, null, null, null);
     }
 
     /** rate-limit 过载策略生效值（null/空白 = QUEUE；非法值启动即失败——fail-fast，不静默回退）。 */

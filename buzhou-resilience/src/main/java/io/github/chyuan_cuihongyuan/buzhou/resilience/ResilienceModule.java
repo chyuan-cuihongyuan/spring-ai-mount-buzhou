@@ -7,6 +7,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomize
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCallInFlight;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver;
+import io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceStats;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter;
@@ -59,8 +60,13 @@ public final class ResilienceModule {
         }
         validate(properties);
         ProviderErrorClassifier classifier = new DefaultErrorClassifier();
+        // 熔断器（impl-56）：进程级单例——provider 健康是进程级事实，configure 每 context 一次、
+        // 经 customizer 闭包注入全部会话（不能在 customize() 内建，否则退化为每会话分桶）。
+        ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
+                ? new ModelCircuitBreaker(properties.circuit(), stats)
+                : null;
         return RuntimeConfig.assemblyCustomizers(
-                List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats)));
+                List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit)));
     }
 
     /**
@@ -109,13 +115,15 @@ public final class ResilienceModule {
         private final ProviderErrorClassifier classifier;
         private final String modelName;
         private final ResilienceStats stats;
+        private final ModelCircuitBreaker circuit;
 
         ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
-                                     String modelName, ResilienceStats stats) {
+                                     String modelName, ResilienceStats stats, ModelCircuitBreaker circuit) {
             this.properties = properties;
             this.classifier = classifier;
             this.modelName = modelName;
             this.stats = stats;
+            this.circuit = circuit;
         }
 
         @Override
@@ -138,7 +146,7 @@ public final class ResilienceModule {
             ExecutorService deadlineExecutor = Executors.newVirtualThreadPerTaskExecutor();
             ModelCallInFlight inFlight = new ModelCallInFlight();
             ResilienceAdvisor advisor = new ResilienceAdvisor(
-                    properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats);
+                    properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName);
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));
