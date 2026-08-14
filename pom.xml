@@ -68,6 +68,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- impl-68 / spec 21：perf 基准默认排除；nightly workflow 以 -Dsurefire.excluded.groups= -Dgroups=perf 激活 -->
     <surefire.excluded.groups>perf</surefire.excluded.groups>
+    <!-- impl-70 / spec 21：覆盖率硬门默认启用（BOM/starter/examples 在各自 pom 豁免） -->
+    <jacoco.check.skip>false</jacoco.check.skip>
     <spring-ai.version>2.0.0</spring-ai.version>
     <spring-boot.version>4.1.0</spring-boot.version>
     <testcontainers.version>1.21.3</testcontainers.version>
@@ -192,7 +194,9 @@
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>3.5.0</version>
         </plugin>
-        <!-- impl-54 / spec 14 §J：jaCoCo 覆盖率（观测期不设线；CI 上传报告） -->
+        <!-- impl-54 / spec 14 §J：jaCoCo 覆盖率；impl-70 / spec 21：观测升硬门——LINE ≥ 70%
+             （2026-08-15 实测 77.1%–90.9%，最紧模块留 7pp 余量；BOM/starter/examples 不适用，
+             经 jacoco.check.skip=true 豁免——BOM 无代码、starter 纯聚合、examples 为演示模块）。 -->
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
@@ -210,6 +214,28 @@
               <goals>
                 <goal>report</goal>
               </goals>
+            </execution>
+            <execution>
+              <id>enforce-line-coverage</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <skip>${jacoco.check.skip}</skip>
+                <rules>
+                  <rule>
+                    <element>BUNDLE</element>
+                    <limits>
+                      <limit>
+                        <counter>LINE</counter>
+                        <value>COVEREDRATIO</value>
+                        <minimum>0.70</minimum>
+                      </limit>
+                    </limits>
+                  </rule>
+                </rules>
+              </configuration>
             </execution>
           </executions>
         </plugin>

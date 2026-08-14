@@ -13,6 +13,8 @@
 
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
+    <!-- impl-70 / spec 21：演示模块豁免覆盖率硬门（机制模块统一 70% 线） -->
+    <jacoco.check.skip>true</jacoco.check.skip>
   </properties>
 
   <dependencyManagement>

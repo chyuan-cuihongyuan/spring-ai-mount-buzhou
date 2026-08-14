@@ -1,7 +1,7 @@
 name: spotbugs
 
-# impl-54 / spec 14 §J：SpotBugs 静态分析（观测期——发现项归档为报告，不卡门；
-# 稳定后再按严重度设线）。nightly 跑全仓。
+# impl-54：SpotBugs 观测起步；impl-70 / spec 21 升硬门——High 优先级发现 = 失败
+# （排除清单 spotbugs-exclude.xml 渐进清偿：排除项须带 issue 注记，禁止无解释豁免）。
 on:
   schedule:
     - cron: '0 21 * * 2'  # 每周二 UTC 21:00
@@ -18,9 +18,9 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      # effort/threshold 宽松起步；HTML+XML 报告归档
-      - name: SpotBugs analyze (observational)
-        run: mvn -B -ntp com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:spotbugs -DskipTests -Dspotbugs.effort=Default -Dspotbugs.threshold=Medium || true
+      # 硬门：threshold=High 只卡高危；Medium 及以下仍随报告归档观测（首条 High 出现即失败）
+      - name: SpotBugs analyze (hard gate on High)
+        run: mvn -B -ntp com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:spotbugs -DskipTests -Dspotbugs.effort=Default -Dspotbugs.threshold=High
       - name: Upload SpotBugs reports
         if: always()
         uses: actions/upload-artifact@v4

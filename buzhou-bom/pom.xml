@@ -95,4 +95,8 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+  <properties>
+    <jacoco.check.skip>true</jacoco.check.skip>
+  </properties>
+
 </project>

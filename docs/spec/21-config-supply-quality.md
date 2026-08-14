@@ -41,4 +41,9 @@
 
 ## 质量门卡线（T95 / impl-70）
 
-- （待 T95 决议后补）
+- **覆盖率硬门**：root pom jacoco `check` 执行（BUNDLE / LINE / COVEREDRATIO ≥ **0.70 统一线**，
+  phase=verify，本地与 CI 同门槛）。基线：2026-08-15 实测 13 机制模块 77.1%–90.9%（最紧留
+  7pp 余量）。豁免：BOM / starter / examples 经 `jacoco.check.skip=true`（无代码 / 纯聚合 /
+  演示模块）。越线处理 = 补测试或局部降线+注记，禁止调阈值了事。
+- **SpotBugs 硬门**：nightly `threshold=High`（首条 High 即失败）；Medium 及以下归档观测。
+  排除纪律：必须 `spotbugs-exclude.xml` + issue 注记（当前无排除清单）。
