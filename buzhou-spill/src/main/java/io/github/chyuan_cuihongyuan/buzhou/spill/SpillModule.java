@@ -13,7 +13,12 @@ public final class SpillModule {
     private SkillResourceResolver skillResourceResolver;
 
     public SpillModule(Path rootDir, int previewChars, int listPreviewItems) {
-        this.store = new DiskSpillStore(rootDir);
+        this(rootDir, previewChars, listPreviewItems, SpillQuota.unbounded());
+    }
+
+    /** impl-38 / spec 13 §growth-8：带磁盘配额构造（超限拒绝落盘、原文回喂）。 */
+    public SpillModule(Path rootDir, int previewChars, int listPreviewItems, SpillQuota quota) {
+        this.store = new DiskSpillStore(rootDir, quota);
         this.service = new SpillService(store, previewChars, listPreviewItems);
     }
 
@@ -31,6 +36,23 @@ public final class SpillModule {
         this.skillResourceResolver = resolver;
         return this;
     }
+
+    /**
+     * impl-38 / spec 13 §growth-8：注入 EmbeddingProvider（语义回读切片的向量源）——
+     * 传入 {@code CachedEmbeddingProvider} 实例即与 memory 侧共享同一份 embed-once 缓存
+     * （三消费方共用，见 spec §growth-8）；不注入时 {@link #semanticChunkIndex()} 为空。
+     */
+    public SpillModule embeddingProvider(io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider provider) {
+        this.semanticChunkIndex = provider == null ? null : new SemanticChunkIndex(provider);
+        return this;
+    }
+
+    /** impl-38：语义切片索引（未注入 provider 时为 null；已注入则经共享缓存装饰）。 */
+    public SemanticChunkIndex semanticChunkIndex() {
+        return semanticChunkIndex;
+    }
+
+    private SemanticChunkIndex semanticChunkIndex;
 
     /**
      * impl-35 / spec 13 §stores-6：spill 文件按会话清理的 SessionCleaner 贡献者——
@@ -62,6 +84,11 @@ public final class SpillModule {
     }
 
     private String sanitize(String component) {
+        return sanitizeComponent(component);
+    }
+
+    /** impl-38：路径成分 sanitize 公共口径（孤儿扫描比对 live 会话与落盘目录名用）。 */
+    public static String sanitizeComponent(String component) {
         return component.replaceAll("[^A-Za-z0-9._-]", "_");
     }
 }

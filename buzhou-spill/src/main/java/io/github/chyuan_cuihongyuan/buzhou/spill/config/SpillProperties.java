@@ -2,6 +2,8 @@ package io.github.chyuan_cuihongyuan.buzhou.spill.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
+
 /**
  * Spill 长内容治理装配属性（spec 02 / 09 / ticket 22，前缀 {@code buzhou.spill}）。
  *
@@ -17,6 +19,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param copyOnWriteEnabled   写时复制只读护栏（默认开）
  * @param offloadEnabled       读侧 Offload（默认开）
  * @param editingToolsEnabled  str_replace / copy_file 编辑工具（默认开）
+ * @param maxTotalBytes        impl-38 / spec 13 §growth-8：全部 spill 数据字节上限
+ *                             （超限拒绝落盘、原文回喂；null/非正 = 不限）
+ * @param maxFilesPerSession   impl-38：单会话 spill 文件数上限（null/非正 = 不限）
+ * @param retentionTtl         impl-38：未引用（unlinked）spill 的保留 TTL（RetentionSweeper
+ *                             每周期调度 deleteExpired；默认 PT24H）
  */
 @ConfigurationProperties(prefix = "buzhou.spill")
 public record SpillProperties(
@@ -29,7 +36,10 @@ public record SpillProperties(
         Boolean onloadEnabled,
         Boolean copyOnWriteEnabled,
         Boolean offloadEnabled,
-        Boolean editingToolsEnabled) {
+        Boolean editingToolsEnabled,
+        Long maxTotalBytes,
+        Integer maxFilesPerSession,
+        Duration retentionTtl) {
 
     public SpillProperties {
         String dir = System.getProperty("user.dir");
@@ -43,5 +53,9 @@ public record SpillProperties(
         copyOnWriteEnabled = copyOnWriteEnabled == null ? true : copyOnWriteEnabled;
         offloadEnabled = offloadEnabled == null ? true : offloadEnabled;
         editingToolsEnabled = editingToolsEnabled == null ? true : editingToolsEnabled;
+        maxTotalBytes = (maxTotalBytes == null || maxTotalBytes < 1) ? null : maxTotalBytes;
+        maxFilesPerSession = (maxFilesPerSession == null || maxFilesPerSession < 1) ? null : maxFilesPerSession;
+        retentionTtl = retentionTtl == null || retentionTtl.isZero() || retentionTtl.isNegative()
+                ? Duration.ofHours(24) : retentionTtl;
     }
 }

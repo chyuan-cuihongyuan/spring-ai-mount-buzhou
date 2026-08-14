@@ -29,7 +29,9 @@ public class BuzhouSpillAutoConfiguration {
 
     @Bean
     public SpillModule spillModule(SpillProperties props, ObjectProvider<SkillResourceResolver> resolver) {
-        return new SpillModule(Path.of(props.rootDir()), props.previewChars(), props.listPreviewItems())
+        return new SpillModule(Path.of(props.rootDir()), props.previewChars(), props.listPreviewItems(),
+                        new io.github.chyuan_cuihongyuan.buzhou.spill.SpillQuota(
+                                props.maxTotalBytes(), props.maxFilesPerSession()))
                 .skillResourceResolver(resolver.getIfAvailable());
     }
 
@@ -53,13 +55,39 @@ public class BuzhouSpillAutoConfiguration {
     }
 
     /**
-     * impl-30 / spec 13 §core-1：spill 停机 lifecycle（phase
-     * {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#SPILL}）。
-     * 本片为 phase 声明与占位（spill 无可关闭资源，诚实边界见
-     * {@link SpillModuleLifecycle} Javadoc）。
+     * impl-30 / spec 13 §core-1 + impl-38 / spec 13 §growth-8：spill 生命周期
+     * （phase {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#SPILL}）。
+     * start 时执行启动孤儿扫描（引用会话不存在的文件：报告 + 清理，幂等——live 会话集
+     * 来自观测 store 的会话汇总）；并把 spill TTL（deleteExpired）挂进 RetentionSweeper
+     * 周期调度（默认 PT1H）。
      */
     @Bean
-    public SpillModuleLifecycle spillModuleLifecycle() {
-        return new SpillModuleLifecycle();
+    public SpillModuleLifecycle spillModuleLifecycle(SpillModule module, SpillProperties props,
+                                                     ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> stores,
+                                                     ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper> sweeper) {
+        return new SpillModuleLifecycle(module.store(), props.retentionTtl(),
+                liveSessionsSupplier(stores.getIfAvailable()), sweeper.getIfAvailable());
+    }
+
+    /** live 会话集合（观测 store 分页拉全量；无观测数据源时空集——孤儿扫描按无 live 会话执行）。 */
+    private static java.util.function.Supplier<java.util.Set<String>> liveSessionsSupplier(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores) {
+        return () -> {
+            java.util.Set<String> live = new java.util.HashSet<>();
+            if (stores == null) {
+                return live;
+            }
+            String cursor = null;
+            for (int i = 0; i < 100; i++) {
+                var page = stores.observabilityStore().listSessionSummaries(cursor, 500);
+                if (page.isEmpty()) {
+                    break;
+                }
+                page.forEach(s -> live.add(io.github.chyuan_cuihongyuan.buzhou.spill.SpillModule
+                        .sanitizeComponent(s.sessionId())));
+                cursor = String.valueOf(live.size());
+            }
+            return live;
+        };
     }
 }

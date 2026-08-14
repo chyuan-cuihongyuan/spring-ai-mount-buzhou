@@ -21,8 +21,16 @@ public class DiskSpillStore implements SpillStore {
 
     private final Path rootDir;
 
+    /** impl-38 / spec 13 §growth-8：磁盘配额（默认不限）。 */
+    private final SpillQuota quota;
+
     public DiskSpillStore(Path rootDir) {
+        this(rootDir, SpillQuota.unbounded());
+    }
+
+    public DiskSpillStore(Path rootDir, SpillQuota quota) {
         this.rootDir = rootDir;
+        this.quota = quota == null ? SpillQuota.unbounded() : quota;
     }
 
     @Override
@@ -31,6 +39,7 @@ public class DiskSpillStore implements SpillStore {
         if (Files.exists(dataPath)) {
             throw new IllegalStateException("Spill already exists (one call one spill): " + entry.uri());
         }
+        enforceQuota(entry);
         try {
             Files.createDirectories(dataPath.getParent());
             writeAtomically(dataPath, entry.content());
@@ -40,6 +49,100 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new UncheckedIOException("Spill store failed: " + entry.uri(), e);
         }
+    }
+
+    /**
+     * impl-38 / spec 13 §growth-8：配额守卫（拒绝落盘，原文回喂——由
+     * {@code SpillService.tryOffload} 的 degraded 路径透传并提示模型走显式分页）。
+     * 计量口径：数据文件字符数 × UTF-8 近似 1 字节（配额是护栏不是计费）。
+     */
+    private void enforceQuota(SpillEntry entry) {
+        if (quota.maxFilesPerSession() != null) {
+            Path sessionDir = dataPath(entry.uri()).getParent();
+            int existing = countSpillFiles(sessionDir);
+            if (existing >= quota.maxFilesPerSession()) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.error.QuotaExceededException(
+                        ("spill 单会话文件数已达上限 maxFilesPerSession=%d（sessionId=%s，现有 %d）："
+                                + "拒绝落盘，原文回喂——请用 read_range 显式分页读取")
+                                .formatted(quota.maxFilesPerSession(), entry.uri().sessionId(), existing));
+            }
+        }
+        if (quota.maxTotalBytes() != null) {
+            long current = totalSpillBytes();
+            if (current + entry.sizeChars() > quota.maxTotalBytes()) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.error.QuotaExceededException(
+                        ("spill 总量将超上限 maxTotalBytes=%d（当前 %d，拟写入 %d）："
+                                + "拒绝落盘，原文回喂——请用 read_range 显式分页读取")
+                                .formatted(quota.maxTotalBytes(), current, entry.sizeChars()));
+            }
+        }
+    }
+
+    private int countSpillFiles(Path sessionDir) {
+        if (sessionDir == null || !Files.isDirectory(sessionDir)) {
+            return 0;
+        }
+        try (Stream<Path> files = Files.list(sessionDir)) {
+            return (int) files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).count();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private long totalSpillBytes() {
+        if (!Files.isDirectory(rootDir)) {
+            return 0;
+        }
+        try (Stream<Path> walk = Files.walk(rootDir)) {
+            return walk.filter(p -> p.toString().endsWith(DATA_SUFFIX))
+                    .mapToLong(p -> {
+                        try {
+                            return Files.size(p);
+                        } catch (IOException e) {
+                            return 0;
+                        }
+                    })
+                    .sum();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * impl-38 / spec 13 §growth-8：启动孤儿扫描——引用会话不存在的 spill 目录
+     * （会话数据已被级联删除/保留策略清理，磁盘文件残留）整目录清理，返回删除的
+     * spill 文件数。幂等（重复扫描无孤儿可删即返回 0）。
+     *
+     * @param liveSessionIds 仍存在的会话集合（目录名匹配）
+     */
+    public int sweepOrphans(java.util.Set<String> liveSessionIds) {
+        if (!Files.isDirectory(rootDir)) {
+            return 0;
+        }
+        java.util.Set<String> live = liveSessionIds == null ? java.util.Set.of() : liveSessionIds;
+        int deleted = 0;
+        try (Stream<Path> agents = Files.list(rootDir)) {
+            for (Path agentDir : agents.filter(Files::isDirectory).toList()) {
+                try (Stream<Path> sessions = Files.list(agentDir)) {
+                    for (Path sessionDir : sessions.filter(Files::isDirectory).toList()) {
+                        if (live.contains(sessionDir.getFileName().toString())) {
+                            continue;
+                        }
+                        try (Stream<Path> files = Files.list(sessionDir)) {
+                            for (Path file : files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).toList()) {
+                                deleteQuietly(file);
+                                deleteQuietly(Path.of(file.toString().replace(DATA_SUFFIX, META_SUFFIX)));
+                                deleted++;
+                            }
+                        }
+                        deleteQuietly(sessionDir);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return deleted;
     }
 
     /**

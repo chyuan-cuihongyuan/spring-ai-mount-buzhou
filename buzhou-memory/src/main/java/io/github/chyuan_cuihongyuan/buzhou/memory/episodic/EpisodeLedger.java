@@ -31,21 +31,24 @@ public final class EpisodeLedger {
 
     private final SessionStateStore stateStore;
     private final EmbeddingProvider provider;
-    private int sequence = 0;
 
     public EpisodeLedger(SessionStateStore stateStore, EmbeddingProvider provider) {
         this.stateStore = stateStore;
         this.provider = provider;
     }
 
-    /** 记录一次成功经验（任务成功判定后调用；或 sleep-time 整理器蒸馏）。 */
+    /**
+     * 记录一次成功经验（任务成功判定后调用；或 sleep-time 整理器蒸馏）。
+     * impl-38 / spec 13 §growth-8：序号从持久状态恢复——每次记录从该会话既有
+     * {@code episode.<n>} 键推导下一序号（重启不归零、不覆盖既有情景）。
+     */
     public synchronized void record(String sessionId, String goal, String toolTraceDigest,
                                      String outcome) {
         if (provider == null || goal == null || goal.isBlank()) {
             return;
         }
         try {
-            sequence++;
+            int sequence = nextSequence(sessionId);
             String payload = MAPPER.writeValueAsString(Map.of(
                     "goal", goal,
                     "toolTraceDigest", toolTraceDigest == null ? "" : toolTraceDigest,
@@ -55,6 +58,21 @@ public final class EpisodeLedger {
         } catch (Exception ignored) {
             // 情景记忆是增益非主链路：持久化失败不外溢
         }
+    }
+
+    /** 既有 episode 键的最大序号 + 1（持久状态恢复；坏键跳过不拖垮记录）。 */
+    private int nextSequence(String sessionId) {
+        int max = 0;
+        for (String key : stateStore.getAll(sessionId).keySet()) {
+            if (key.startsWith(KEY_PREFIX)) {
+                try {
+                    max = Math.max(max, Integer.parseInt(key.substring(KEY_PREFIX.length())));
+                } catch (NumberFormatException ignored) {
+                    // 非 .<n> 形状的键跳过
+                }
+            }
+        }
+        return max + 1;
     }
 
     /** 按新任务 goal 召回 top-k 过往成功示例（余弦）。 */

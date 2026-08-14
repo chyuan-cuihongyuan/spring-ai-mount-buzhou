@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.retention;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * impl-37 / spec 13 §stores-6：一次保留清理周期的报告（清理动作可观测——监听者收到本报告；
@@ -13,6 +14,7 @@ import java.util.List;
  * @param summaryVersionsPruned 摘要旧版本修剪条数
  * @param toolCallLogPruned     工具调用日志窗口外删除条数
  * @param completedRunsPruned   COMPLETED run 窗口外删除条数
+ * @param extraSteps            impl-38：外部挂接步骤名 → 清理条数（如 spill TTL 调度）
  * @param failures              失败步骤描述（WARN 已记，不中断周期）
  */
 public record RetentionSweepReport(
@@ -22,9 +24,11 @@ public record RetentionSweepReport(
         int summaryVersionsPruned,
         int toolCallLogPruned,
         int completedRunsPruned,
+        Map<String, Integer> extraSteps,
         List<String> failures) {
 
     public RetentionSweepReport {
+        extraSteps = extraSteps == null ? Map.of() : Map.copyOf(extraSteps);
         failures = failures == null ? List.of() : List.copyOf(failures);
     }
 

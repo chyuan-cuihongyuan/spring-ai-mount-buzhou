@@ -139,9 +139,12 @@ public final class MemoryModule {
             tools.add(new io.github.chyuan_cuihongyuan.buzhou.memory.tool.RecallSearchTool(
                     messageStore, embeddingProvider(ymlConfig)));
         }
-        return new RuntimeConfig(sleepTimeHooks(ymlConfig, stores, summaryModel, moduleOwnedResources),
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionResourceCustomizer>
+                sessionCustomizers = new java.util.ArrayList<>();
+        return new RuntimeConfig(
+                sleepTimeHooks(ymlConfig, stores, summaryModel, moduleOwnedResources, sessionCustomizers),
                 java.util.Set.of(), java.util.Set.of(),
-                processor, tools);
+                processor, tools, java.util.Map.of(), sessionCustomizers);
     }
 
     /**
@@ -149,11 +152,15 @@ public final class MemoryModule {
      * 串行；热路径零阻塞）。无 stores/摘要模型时不注册。
      *
      * <p>impl-30 / spec 13 §core-1：调度器登记进 {@code moduleOwnedResources}（非 null 时）——
-     * 此前内联创建从不关闭，本片接线进 memory SmartLifecycle 的 stop（深度治理属切片 38）。
+     * 此前内联创建从不关闭，本片接线进 memory SmartLifecycle 的 stop。
+     *
+     * <p>impl-38 / spec 13 §growth-8：会话结束摘除——注册 sessionCustomizer，会话 close 经
+     * 资源注册表移除该会话的 pending 队列（防长跑进程 per-session 表泄漏）。
      */
     private static java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook> sleepTimeHooks(
             Map<String, Object> ymlConfig, BuzhouStores stores, ChatModel summaryModel,
-            List<AutoCloseable> moduleOwnedResources) {
+            List<AutoCloseable> moduleOwnedResources,
+            List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionResourceCustomizer> customizersOut) {
         if (stores == null || summaryModel == null || !sleepTimeEnabled(ymlConfig)) {
             return List.of();
         }
@@ -161,6 +168,10 @@ public final class MemoryModule {
                 new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeScheduler();
         if (moduleOwnedResources != null) {
             moduleOwnedResources.add(scheduler);
+        }
+        if (customizersOut != null) {
+            customizersOut.add((registry, appId, agentName, sessionId) ->
+                    registry.register("sleep-time-queue", () -> scheduler.removeSession(sessionId)));
         }
         io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidator consolidator =
                 new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidator(
@@ -236,6 +247,10 @@ public final class MemoryModule {
     /**
      * impl-15 / T41：EmbeddingProvider 解析——{@code memory.embedding-provider} 配置为
      * 实现类全名（部署侧注入真模型；测试用确定性词包）。缺省 null（embedding/hybrid 降级）。
+     *
+     * <p>impl-38 / spec 13 §growth-8：解析结果统一包 {@code CachedEmbeddingProvider}
+     * （内容 hash 键、LRU 容量 {@code memory.embedding-cache-capacity} 默认 512）——
+     * recall_search / EpisodeLedger / SemanticChunkIndex 经模块解析共享同一份 embed-once 缓存。
      */
     private static io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider embeddingProvider(
             Map<String, Object> ymlConfig) {
@@ -244,8 +259,11 @@ public final class MemoryModule {
             Object value = ((Map<?, ?>) memory).get("embedding-provider");
             if (value instanceof String className && !className.isBlank()) {
                 try {
-                    return (io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider)
-                            Class.forName(className).getDeclaredConstructor().newInstance();
+                    io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider resolved =
+                            (io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider)
+                                    Class.forName(className).getDeclaredConstructor().newInstance();
+                    return new io.github.chyuan_cuihongyuan.buzhou.core.spi.CachedEmbeddingProvider(
+                            resolved, embeddingCacheCapacity(ymlConfig));
                 } catch (Exception e) {
                     System.getLogger(MemoryModule.class.getName()).log(System.Logger.Level.WARNING,
                             "embedding-provider 实例化失败（按未注入降级）：{0}", className);
@@ -253,6 +271,18 @@ public final class MemoryModule {
             }
         }
         return null;
+    }
+
+    /** impl-38：{@code memory.embedding-cache-capacity}（默认 512；非正回落默认）。 */
+    private static int embeddingCacheCapacity(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        if (memory instanceof Map) {
+            Object value = ((Map<?, ?>) memory).get("embedding-cache-capacity");
+            if (value instanceof Number number && number.intValue() > 0) {
+                return number.intValue();
+            }
+        }
+        return io.github.chyuan_cuihongyuan.buzhou.core.spi.CachedEmbeddingProvider.DEFAULT_CAPACITY;
     }
 
     /** T25 开关：{@code memory.fact-reconciliation}（默认开）。 */

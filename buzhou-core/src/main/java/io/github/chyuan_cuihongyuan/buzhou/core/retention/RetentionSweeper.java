@@ -130,6 +130,23 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
         }
     }
 
+    /**
+     * impl-38 / spec 13 §growth-8：外部清理步骤挂接（如 spill 的 deleteExpired 由
+     * sweeper 调度）——每周期随核心策略执行，逐项隔离失败、计入报告 extraSteps。
+     *
+     * @param name 步骤名（进报告与失败定位）
+     * @param step 执行并返回清理条数
+     */
+    public void addSweepStep(String name, java.util.function.IntSupplier step) {
+        if (name != null && step != null) {
+            extraSteps.put(name, step);
+        }
+    }
+
+    /** impl-38：外部步骤注册表（名称 → 步骤；ConcurrentHashMap 保证装配期并发注册安全）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.function.IntSupplier> extraSteps =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     /** 单周期执行（手动触发入口——调度关闭时各策略仍可兑现）。 */
     public RetentionSweepReport sweepOnce() {
         Instant now = clock.instant();
@@ -144,8 +161,18 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
         int completedRunsPruned = runStep("run-completed-window",
                 () -> runRegistry == null ? 0 : runRegistry.pruneCompletedBefore(now.minus(runCompletedRetention)),
                 failures);
+        java.util.Map<String, Integer> extraStepResults = new java.util.LinkedHashMap<>();
+        extraSteps.forEach((name, step) -> {
+            try {
+                extraStepResults.put(name, step.getAsInt());
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "外部保留清理步骤失败（不中断周期）：step=" + name, e);
+                failures.add(name + ":" + e);
+            }
+        });
         RetentionSweepReport report = new RetentionSweepReport(now, sessionsDeleted, observabilityPruned,
-                summaryVersionsPruned, toolCallLogPruned, completedRunsPruned, failures);
+                summaryVersionsPruned, toolCallLogPruned, completedRunsPruned, extraStepResults, failures);
         listeners.forEach(l -> {
             try {
                 l.accept(report);
