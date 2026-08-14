@@ -69,6 +69,11 @@
     </dependency>
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-resilience</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
       <artifactId>buzhou-observe-dashboard</artifactId>
       <scope>test</scope>
     </dependency>
