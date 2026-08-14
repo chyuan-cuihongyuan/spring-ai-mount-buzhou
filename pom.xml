@@ -54,6 +54,7 @@
     <module>buzhou-skills</module>
     <module>buzhou-mcp</module>
     <module>buzhou-guard</module>
+      <module>buzhou-resilience</module>
     <module>buzhou-tools</module>
     <module>buzhou-store-jdbc</module>
     <module>buzhou-store-redis</module>

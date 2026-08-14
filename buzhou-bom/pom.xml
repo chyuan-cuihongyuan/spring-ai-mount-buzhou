@@ -79,6 +79,20 @@
         <artifactId>buzhou-spring-boot-starter</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.github.chyuan-cuihongyuan</groupId>
+        <artifactId>buzhou-resilience</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- impl-52：core test-jar（FakeChatModel/ScriptedChatModel/契约测试基类）随 BOM 发布，
+           外部使用者 import BOM 后可按同一范式写集成测试 -->
+      <dependency>
+        <groupId>io.github.chyuan-cuihongyuan</groupId>
+        <artifactId>buzhou-core</artifactId>
+        <version>${project.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 </project>

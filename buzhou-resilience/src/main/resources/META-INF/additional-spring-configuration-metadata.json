@@ -1,0 +1,94 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.resilience.enabled",
+      "type": "java.lang.Boolean",
+      "description": "模型韧性层总开关（重试/超时/限流）。",
+      "defaultValue": true
+    },
+    {
+      "name": "buzhou.resilience.max-attempts",
+      "type": "java.lang.Integer",
+      "description": "最大尝试次数（含首次；3 = 首调 + 最多 2 次重试）。",
+      "defaultValue": 3
+    },
+    {
+      "name": "buzhou.resilience.initial-backoff",
+      "type": "java.time.Duration",
+      "description": "首次重试退避基数。",
+      "defaultValue": "500ms"
+    },
+    {
+      "name": "buzhou.resilience.max-backoff",
+      "type": "java.time.Duration",
+      "description": "退避上限（Retry-After 与指数增长都钳制到此值）。必须 <= deadline。",
+      "defaultValue": "10s"
+    },
+    {
+      "name": "buzhou.resilience.multiplier",
+      "type": "java.lang.Double",
+      "description": "指数退避乘子（1.0 = 恒定退避）。",
+      "defaultValue": 2.0
+    },
+    {
+      "name": "buzhou.resilience.jitter",
+      "type": "java.lang.Double",
+      "description": "退避抖动因子 [0,1]（多实例打散惊群；0 = 关闭）。",
+      "defaultValue": 0.5
+    },
+    {
+      "name": "buzhou.resilience.retryable-categories",
+      "type": "java.util.List<java.lang.String>",
+      "description": "可重试错误类别（大小写无关）。",
+      "defaultValue": ["RATE_LIMIT", "NETWORK"]
+    },
+    {
+      "name": "buzhou.resilience.deadline",
+      "type": "java.time.Duration",
+      "description": "模型调用统一超时（超时取消在途调用并作为终态失败；0 = 关闭，不推荐）。",
+      "defaultValue": "60s"
+    },
+    {
+      "name": "buzhou.resilience.rate-limit.requests-per-minute",
+      "type": "java.lang.Integer",
+      "description": "模型每分钟请求数上限（未配置 = 不限）."
+    },
+    {
+      "name": "buzhou.resilience.rate-limit.tokens-per-minute",
+      "type": "java.lang.Integer",
+      "description": "模型每分钟 token 数上限（TPM 事后记账 + 下次预检；未配置 = 不限）。"
+    },
+    {
+      "name": "buzhou.resilience.rate-limit.queue-timeout",
+      "type": "java.time.Duration",
+      "description": "QUEUE 档排队超时。",
+      "defaultValue": "30s"
+    },
+    {
+      "name": "buzhou.resilience.rate-limit.overload-policy",
+      "type": "java.lang.String",
+      "description": "过载策略：QUEUE（有界排队）或 FAIL_FAST（立即拒绝）。",
+      "defaultValue": "QUEUE"
+    }
+  ],
+  "hints": [
+    {
+      "name": "buzhou.resilience.retryable-categories",
+      "values": [
+        { "value": "RATE_LIMIT", "description": "429/限流（尊重 Retry-After）" },
+        { "value": "NETWORK", "description": "瞬时网络错误" },
+        { "value": "SERVER", "description": "5xx 服务端错误" },
+        { "value": "CONTENT", "description": "内容拒绝（默认不可重试）" },
+        { "value": "AUTH", "description": "认证/授权失败（不可重试）" },
+        { "value": "UNKNOWN", "description": "未归类（默认不可重试）" }
+      ]
+    },
+    {
+      "name": "buzhou.resilience.rate-limit.overload-policy",
+      "values": [
+        { "value": "QUEUE", "description": "有界排队 + 超时" },
+        { "value": "FAIL_FAST", "description": "快速失败" }
+      ]
+    }
+  ]
+}

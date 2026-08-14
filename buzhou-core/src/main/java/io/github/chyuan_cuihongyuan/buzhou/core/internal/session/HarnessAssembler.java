@@ -155,7 +155,7 @@ public class HarnessAssembler {
                 executor, DEFAULT_MAX_CONCURRENCY_PER_TURN, DEFAULT_TOOL_TIMEOUT,
                 serialGroups, spanContextCarrier, sessionId);
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
-                appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager);
+                appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager, env::emit);
         assemblyCtx.wrapToolCallbacks(t -> (ToolCallback) new HookedToolCallback(t, chain, env));
         // 机制模块（buzhou-observability）经 customizer 注入 advisor + 工具包装 + observer
         if (assemblyCustomizers != null) {

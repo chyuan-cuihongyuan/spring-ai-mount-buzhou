@@ -42,5 +42,12 @@ public final class BuzhouMetricsBinder implements MeterBinder {
                 registry.counter("buzhou.guard.checks", "outcome", outcome));
         STORE_WRITE_POLICIES.forEach(policy ->
                 registry.counter("buzhou.store.write.failures", "policy", policy));
+        // 韧性族（impl-44 / spec 14 §A）：重试 / 耗尽 / 限流拒绝 / 模型超时 / 内容拒绝
+        // （category tag 五类有界；model tag 由记录侧截断，此处预注册无 tag 基型）
+        registry.counter("buzhou.resilience.retries");
+        registry.counter("buzhou.resilience.retry-exhausted");
+        registry.counter("buzhou.resilience.rate-limit-rejected");
+        registry.counter("buzhou.resilience.model-timeouts");
+        registry.counter("buzhou.resilience.content-refusals");
     }
 }

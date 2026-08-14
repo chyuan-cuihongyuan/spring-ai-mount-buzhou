@@ -60,6 +60,20 @@ public interface SessionAssemblyContext {
     void addObserver(SessionObserver observer);
 
     /**
+     * 向本会话既有事件通道（与 Hook 事件同炉的 {@link SessionEvent} 流）发射一条事件。
+     *
+     * <p>实现侧（{@code DefaultSessionAssemblyContext}）复用 {@code HookEnvironment} 的事件发布者：
+     * customizer 注入的 advisor（如 ResilienceAdvisor）在 {@code chat()} 期间发射的事件会进到
+     * {@code SessionEventListener} 与 Hook 链——不新增 SPI、不新增存储通道。
+     *
+     * <p>默认 no-op，保证既有实现源码/二进制兼容。
+     *
+     * @param event 待发射事件；不应为 {@code null}
+     */
+    default void emitEvent(SessionEvent event) {
+    }
+
+    /**
      * 本会话的 Harness 工具调用管理器（wayfinder2 impl-06/07：恢复/审计类机制模块
      * 经此挂接事件日志等；core 装配恒非空，其他实现默认 null 保持兼容）。
      */

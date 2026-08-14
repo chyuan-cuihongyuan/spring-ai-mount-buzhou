@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyContext;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
@@ -9,6 +10,7 @@ import org.springframework.ai.tool.ToolCallback;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
@@ -24,6 +26,8 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
     private final List<ToolCallback> extraTools = new ArrayList<>();
     private final List<SessionObserver> observers = new ArrayList<>();
     private final io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager;
+    /** 事件发射器（null-safe）：装配定制器注入的 advisor 经 {@link #emitEvent} 发射会话级事件。 */
+    private final Consumer<SessionEvent> eventEmitter;
 
     public DefaultSessionAssemblyContext(String appId, String agentName, String sessionId,
                                          BuzhouStores stores, SessionResourceRegistry registry,
@@ -35,6 +39,14 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
                                          BuzhouStores stores, SessionResourceRegistry registry,
                                          SpanContextCarrier spanContextCarrier,
                                          io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager) {
+        this(appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager, null);
+    }
+
+    public DefaultSessionAssemblyContext(String appId, String agentName, String sessionId,
+                                         BuzhouStores stores, SessionResourceRegistry registry,
+                                         SpanContextCarrier spanContextCarrier,
+                                         io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager toolManager,
+                                         Consumer<SessionEvent> eventEmitter) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
@@ -42,6 +54,8 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
         this.registry = registry;
         this.spanContextCarrier = spanContextCarrier;
         this.toolManager = toolManager;
+        this.eventEmitter = eventEmitter == null ? event -> {
+        } : eventEmitter;
     }
 
     @Override
@@ -117,5 +131,10 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
 
     public List<SessionObserver> observers() {
         return observers;
+    }
+
+    @Override
+    public void emitEvent(SessionEvent event) {
+        eventEmitter.accept(event);
     }
 }
