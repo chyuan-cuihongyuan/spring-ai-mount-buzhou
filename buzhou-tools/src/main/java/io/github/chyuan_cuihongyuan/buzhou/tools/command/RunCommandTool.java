@@ -41,17 +41,30 @@ public class RunCommandTool implements ToolCallback {
     /** 主进程存活 / 宽限期内复检输出管道的轮询间隔。 */
     private static final long POLL_MILLIS = 10;
 
+    /** impl-49：子进程环境变量白名单基线——父进程其余环境（DB 密码/API key 等）不透传给模型驱动的 shell。 */
+    static final java.util.Set<String> BASE_ENV_ALLOWLIST = java.util.Set.of(
+            "PATH", "HOME", "LANG", "LC_ALL", "TZ", "TERM");
+
     private final FileSandbox sandbox;
     private final CommandBlacklist blacklist;
     private final Duration defaultTimeout;
     private final Duration maxTimeout;
+    /** impl-49：BASE 之外显式追加透传的环境变量名（大小写敏感，ProcessBuilder 语义）。 */
+    private final java.util.Set<String> extraEnvAllowlist;
 
     public RunCommandTool(FileSandbox sandbox, CommandBlacklist blacklist,
                           Duration defaultTimeout, Duration maxTimeout) {
+        this(sandbox, blacklist, defaultTimeout, maxTimeout, java.util.Set.of());
+    }
+
+    public RunCommandTool(FileSandbox sandbox, CommandBlacklist blacklist,
+                          Duration defaultTimeout, Duration maxTimeout,
+                          java.util.Set<String> extraEnvAllowlist) {
         this.sandbox = sandbox;
         this.blacklist = blacklist;
         this.defaultTimeout = defaultTimeout;
         this.maxTimeout = maxTimeout;
+        this.extraEnvAllowlist = extraEnvAllowlist == null ? java.util.Set.of() : extraEnvAllowlist;
     }
 
     @Override
@@ -97,17 +110,26 @@ public class RunCommandTool implements ToolCallback {
 
     private String execute(String command, Path workdir, long timeoutSeconds)
             throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("/bin/sh", "-c", command)
+        ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", command)
                 .directory(workdir.toFile())
-                .redirectErrorStream(true)
-                .start();
+                .redirectErrorStream(true);
+        applyEnvAllowlist(builder);
+        Process process = builder.start();
         // 异步排空输出防管道缓冲区满死锁；读线程用虚拟线程，不占公共 ForkJoinPool。
         // readBounded 自终止（主进程死后宽限即返回），故即便分离子进程（reparent 到 init）
         // 仍持有管道、永不产生 EOF，主进程已产出的输出也不会丢失、读线程也不会悬挂。
         CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(
                 () -> readBounded(process.getInputStream(), process),
                 r -> Thread.ofVirtual().start(r));
-        boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+        boolean finished;
+        try {
+            finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+        } catch (InterruptedException interrupted) {
+            // impl-49：取消/中断与超时同一收口——杀整棵进程树后恢复中断标记并告知
+            killProcessTree(process);
+            Thread.currentThread().interrupt();
+            return "run_command 已取消（进程树已终止）\n" + drainOutputQuietly(outputFuture);
+        }
         if (!finished) {
             // 超时：先 best-effort 杀整棵进程树（destroyForcibly 仅杀 sh，直接子进程需 descendants 兜底）
             killProcessTree(process);
@@ -117,6 +139,37 @@ public class RunCommandTool implements ToolCallback {
         String output = drainOutput(outputFuture);
         int exit = process.exitValue();
         return (exit == 0 ? "" : "exit=" + exit + "\n") + output;
+    }
+
+    /**
+     * impl-49：环境变量白名单——子进程只看到 BASE_ENV_ALLOWLIST ∩ 父环境 + 显式追加项。
+     * 此前 ProcessBuilder 默认继承父进程全部环境变量（含数据库密码/API key），机密面直接暴露给模型驱动的 shell。
+     */
+    private void applyEnvAllowlist(ProcessBuilder builder) {
+        java.util.Map<String, String> env = builder.environment();
+        java.util.Map<String, String> parent = new java.util.HashMap<>(env);
+        env.clear();
+        for (String name : BASE_ENV_ALLOWLIST) {
+            String value = parent.get(name);
+            if (value != null) {
+                env.put(name, value);
+            }
+        }
+        for (String name : extraEnvAllowlist) {
+            String value = parent.get(name);
+            if (value != null) {
+                env.put(name, value);
+            }
+        }
+    }
+
+    /** 取消路径的输出回收（不抛中断叠加：中断标记已恢复，这里只尽力取已有内容）。 */
+    private static String drainOutputQuietly(CompletableFuture<String> outputFuture) {
+        try {
+            return outputFuture.get(OUTPUT_DRAIN_GRACE_MILLIS, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /** 取回 readBounded 已捕获的输出。readBounded 自终止，此处仅设安全上限兜底（防异常时悬挂调用线程）。 */

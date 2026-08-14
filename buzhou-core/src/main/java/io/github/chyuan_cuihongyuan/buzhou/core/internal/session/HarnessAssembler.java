@@ -41,6 +41,17 @@ public class HarnessAssembler {
     /** impl-28：单工具派发默认超时（既有硬编码收敛为命名常量；与 Deadline 取 min 后生效）。 */
     private static final Duration DEFAULT_TOOL_TIMEOUT = Duration.ofSeconds(60);
 
+    /** impl-49：单工具执行超时（原硬编码 60s；buzhou.core.tool-timeout 可配）。 */
+    private Duration toolTimeout = DEFAULT_TOOL_TIMEOUT;
+
+    /** impl-49：流式设超时（builder 风格）。 */
+    public HarnessAssembler withToolTimeout(Duration timeout) {
+        if (timeout != null && !timeout.isZero() && !timeout.isNegative()) {
+            this.toolTimeout = timeout;
+        }
+        return this;
+    }
+
     public AgentSession assemble(String appId, String agentName, String sessionId,
                                  ChatModel chatModel, BuzhouStores stores,
                                  SessionResourceRegistry registry,
@@ -152,7 +163,7 @@ public class HarnessAssembler {
         // impl-06/07：manager 先于 customizer 构造——恢复/审计类机制模块经装配上下文挂接事件日志
         HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
                 org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
-                executor, DEFAULT_MAX_CONCURRENCY_PER_TURN, DEFAULT_TOOL_TIMEOUT,
+                executor, DEFAULT_MAX_CONCURRENCY_PER_TURN, toolTimeout,
                 serialGroups, spanContextCarrier, sessionId);
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
                 appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager, env::emit);

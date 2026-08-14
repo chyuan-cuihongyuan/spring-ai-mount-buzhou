@@ -1,9 +1,9 @@
 package io.github.chyuan_cuihongyuan.buzhou.tools.config;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration;
-import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import io.github.chyuan_cuihongyuan.buzhou.tools.ToolsModule;
+import io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoAttachmentRenderer;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -22,8 +22,9 @@ class BuzhouToolsAutoConfigurationTest {
     void enabledByDefault() {
         runner.run(ctx -> {
             assertThat(ctx).hasSingleBean(ToolsModule.class);
-            // todo 默认开 → TodoAttachmentRenderer 注册为 AttachmentRenderer
-            assertThat(ctx).hasSingleBean(AttachmentRenderer.class);
+            // todo 默认开 → TodoAttachmentRenderer 注册（AttachmentRenderer 可能还有其他模块贡献
+            // （如 impl-45 runawayBudgetRenderer），多 renderer 经 CompositeAttachmentRenderer 组合）
+            assertThat(ctx).hasSingleBean(TodoAttachmentRenderer.class);
         });
     }
 
@@ -36,6 +37,10 @@ class BuzhouToolsAutoConfigurationTest {
     @Test
     void todoRendererAbsentWhenTodoDisabled() {
         runner.withPropertyValues("buzhou.tools.todo.enabled=false")
-                .run(ctx -> assertThat(ctx).doesNotHaveBean(AttachmentRenderer.class));
+                .run(ctx -> {
+                    assertThat(ctx).doesNotHaveBean(TodoAttachmentRenderer.class);
+                    // 非 tools 模块贡献的 renderer（如 runawayBudgetRenderer）不受本开关影响
+                    assertThat(ctx).hasBean("runawayBudgetRenderer");
+                });
     }
 }

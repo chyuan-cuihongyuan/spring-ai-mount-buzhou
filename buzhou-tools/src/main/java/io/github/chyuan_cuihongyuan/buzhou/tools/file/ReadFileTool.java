@@ -21,6 +21,8 @@ import java.nio.file.Path;
 public class ReadFileTool implements ToolCallback {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    /** impl-49：单文件读入上限（8MB）；超限走分段/spill，不整读进堆。 */
+    static final long MAX_READ_BYTES = 8L * 1024 * 1024;
 
     private final FileSandbox sandbox;
 
@@ -49,6 +51,12 @@ public class ReadFileTool implements ToolCallback {
             Path path = sandbox.resolve(raw);
             if (!Files.isRegularFile(path)) {
                 return "read_file 失败：文件不存在：" + raw;
+            }
+            // impl-49：读入上限预检——超限返回可读错误而非整读进堆（OOM 向量）
+            long size = Files.size(path);
+            if (size > MAX_READ_BYTES) {
+                return "read_file 失败：文件 " + size + " 字节超过读入上限 " + MAX_READ_BYTES
+                        + " 字节；请用 read_range 语义分段读取";
             }
             return Files.readString(path, StandardCharsets.UTF_8);
         } catch (Exception e) {

@@ -258,7 +258,8 @@ public class BuzhouCoreAutoConfiguration {
                                 bp.effectiveSpawnOverloadPolicy(), event -> {
                                 })
                         : null;
-        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
+        return new DefaultAgentRuntime(chatModel, stores,
+                new HarnessAssembler().withToolTimeout(properties.core().toolTimeout()), merged,
                 properties.leaseTtl(), properties.effectiveLeaseRenewInterval(),
                 properties.lifecycle().timeoutPerShutdownPhase(),
                 eventDispatch.isBuffered() ? eventDispatch : null,

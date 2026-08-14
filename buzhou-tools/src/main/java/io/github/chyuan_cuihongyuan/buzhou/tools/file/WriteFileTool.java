@@ -61,11 +61,24 @@ public class WriteFileTool implements ToolCallback {
             if (content == null) {
                 return "write_file 失败：缺少 content 参数（或经 contentPath 由框架加载）";
             }
+            // impl-49：写入上限（与读入上限同口径 8MB，防巨型 content 打爆磁盘/内存）
+            if (content.length() > 8L * 1024 * 1024) {
+                return "write_file 失败：content " + content.length() + " 字符超过写入上限 8MB；请分段写入";
+            }
             Path target = sandbox.resolveForWrite(raw);
             if (target.getParent() != null) {
                 Files.createDirectories(target.getParent());
             }
-            Files.writeString(target, content, StandardCharsets.UTF_8);
+            // impl-49：temp + 原子替换（此前直接覆盖：写一半崩溃会留下截断文件）
+            Path tmp = target.resolveSibling("." + target.getFileName() + ".buzhou-tmp");
+            Files.writeString(tmp, content, StandardCharsets.UTF_8);
+            try {
+                Files.move(tmp, target,
+                        java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (java.nio.file.AtomicMoveNotSupportedException atomicUnsupported) {
+                Files.move(tmp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
             return "已写入：" + target + "（" + content.length() + " 字符）";
         } catch (Exception e) {
             return "write_file 失败：" + e.getMessage();

@@ -4,10 +4,16 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] killProcessTree 在 InterruptedException/finally 统一收口；e2e：spawn 长 sleep → cancel turn → join 断言进程死
 - [ ] env 白名单（PATH/HOME/LANG/LC_ALL/TZ/TERM + envAllowlist）；测试断言子进程看不到未列入变量
 - [ ] read_file Files.size 预检 8MB；http_request Content-Length+流式截断；write_file content 上限+temp+ATOMIC_MOVE
 - [ ] http_request timeoutSeconds ≤300 校验；头黑名单（Host/Content-Length/Transfer-Encoding/Connection）；fe80::/10
 - [ ] buzhou.core.tool-timeout 可配（默认 60s）+ 元数据 + README 注记
+
+
+## Done
+
+commit: 见 git log（impl/49）。验证：tools 46/46（+3 hardening）绿；core 248/248 绿。
+落地：run_command 取消/中断路径与超时统一 killProcessTree 收口（InterruptedException 杀树+恢复中断+告知文案，不再产孤儿进程）+ 环境变量白名单（PATH/HOME/LANG/LC_ALL/TZ/TERM + envAllowlist 追加，父进程机密不再透传给 shell）；read_file Files.size 预检 8MB；write_file content 上限 + temp+ATOMIC_MOVE 原子写；http_request timeoutSeconds 上限 300 + 连接级头黑名单（Host/Content-Length/Transfer-Encoding/Connection）+ 响应体 Content-Length 预检 + 流式 8MB 截断；SsrfGuard 补 fe80::/10；buzhou.core.tool-timeout 可配（HarnessAssembler.withToolTimeout，默认 60s 不变）+ Core @ConstructorBinding（修绑定静默跳过）+ 元数据；tools autoconfig 测试适配多 renderer 组合语义。

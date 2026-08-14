@@ -83,11 +83,22 @@ public record BuzhouCoreProperties(String modelName, Store store,
      * impl-34 / spec 13 §core-4：core 运行时旋钮（{@code buzhou.core.*}）。
      *
      * @param eventDispatch 事件分发（{@code buzhou.core.event-dispatch.*}；默认 SYNC 内联）
+     * @param toolTimeout   单工具执行超时（impl-49：此前硬编码 60s；run_command 等长任务工具
+     *                      的模块级 maxTimeout 大于本值时须同步调大本值，否则 harness 层先掐断）
      */
-    public record Core(EventDispatch eventDispatch) {
+    public record Core(EventDispatch eventDispatch, java.time.Duration toolTimeout) {
+        /** 多构造器场景下显式指定绑定构造器（1 参兼容构造仅供编程式使用）。 */
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public Core {
             eventDispatch = eventDispatch == null ? new EventDispatch(null, null, null, null)
                     : eventDispatch;
+            toolTimeout = toolTimeout == null || toolTimeout.isZero() || toolTimeout.isNegative()
+                    ? java.time.Duration.ofSeconds(60) : toolTimeout;
+        }
+
+        /** 既有 1 参构造兼容。 */
+        public Core(EventDispatch eventDispatch) {
+            this(eventDispatch, null);
         }
     }
 

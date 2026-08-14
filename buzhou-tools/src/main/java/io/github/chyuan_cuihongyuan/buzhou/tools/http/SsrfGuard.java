@@ -11,7 +11,7 @@ import java.util.List;
  *
  * <p>拦截清单：{@code 127.0.0.0/8}、{@code 10.0.0.0/8}、{@code 172.16.0.0/12}、
  * {@code 192.168.0.0/16}、{@code 169.254.0.0/16}（含云元数据 169.254.169.254）、
- * {@code 0.0.0.0/8}、{@code ::1} 与 {@code fc00::/7}；DNS 解析后对目标 IP 校验
+ * {@code 0.0.0.0/8}、{@code ::1}、{@code fc00::/7} 与 {@code fe80::/10}（链路本地）；DNS 解析后对目标 IP 校验
  * （重定向逐跳校验与 DNS rebinding 防护属开放问题，当前承诺解析后校验一跳）。
  */
 public class SsrfGuard {
@@ -64,7 +64,7 @@ public class SsrfGuard {
 
     private static final List<String> DEFAULT_BLOCKED = List.of(
             "127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
-            "169.254.0.0/16", "0.0.0.0/8", "::1/128", "fc00::/7");
+            "169.254.0.0/16", "0.0.0.0/8", "::1/128", "fc00::/7", "fe80::/10");
 
     private final List<Cidr> blocked;
     private final List<Cidr> allowlist;

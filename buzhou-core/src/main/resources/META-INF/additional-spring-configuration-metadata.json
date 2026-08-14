@@ -154,6 +154,12 @@
       "name": "buzhou.backpressure.tool.tool-timeout",
       "type": "java.time.Duration",
       "description": "单工具执行超时。未配置 = 60s。"
+    },
+    {
+      "name": "buzhou.core.tool-timeout",
+      "type": "java.time.Duration",
+      "description": "单工具执行超时（harness 派发层硬顶）。长任务工具（如 run_command maxTimeout）大于 60s 时须同步调大本值。",
+      "defaultValue": "60s"
     }
   ],
   "hints": [
