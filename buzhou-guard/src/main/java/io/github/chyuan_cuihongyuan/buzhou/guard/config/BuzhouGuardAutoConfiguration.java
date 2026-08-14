@@ -4,11 +4,25 @@ import io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.guard.GuardModule;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditChain;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditRecordStore;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditTrailCollector;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.InMemoryAuditRecordStore;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.JdbcAuditRecordStore;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.PemFileKeyProvider;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyProvider;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyRing;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.GuardAuthApi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+
+import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * HITL 危险守卫自装配（spec 07 / 09 / ticket 22）。
@@ -17,6 +31,11 @@ import org.springframework.core.env.Environment;
  * 另暴露 {@link GuardAuthApi}（业务侧 REST 授权写回用）。dangerous-tools 清单经
  * {@code buzhou.guard.dangerous-tools} 配置驱动（config-driven，保持模块解耦、不自动耦合 tools）。
  *
+ * <p>impl-39 / spec 13 §T64：审计链默认在线——{@code buzhou.guard.audit.*} 驱动
+ * AuditRecordStore（auto=有 DataSource 即 JDBC append-only，否则 InMemory 有界环形）、
+ * SigningKeyRing（PEM 文件密钥版本化；缺失降级纯哈希链 + WARN 不阻断）、
+ * AuditChain（从持久化记录续链，跨重启不断）与 AuditTrailCollector（会话监听入口）。
+ *
  * <p>事实采集器（{@code FactCollectorHook}）属程序化进阶能力，本装配不自动接线；需要时由业务侧
  * 经 {@link GuardModule.Builder#factDefinition} 构建，FactAttachmentRenderer 经 AttachmentRenderer
  * SPI 由 memory 组合（同 todo 渲染器路径）。
@@ -24,6 +43,8 @@ import org.springframework.core.env.Environment;
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.guard", name = "enabled", matchIfMissing = true)
 public class BuzhouGuardAutoConfiguration {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BuzhouGuardAutoConfiguration.class);
 
     @Bean
     public GuardModule guardModule(BuzhouStores stores, Environment env) {
@@ -40,14 +61,80 @@ public class BuzhouGuardAutoConfiguration {
         return module.configure();
     }
 
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.guard.audit", name = "enabled", matchIfMissing = true)
+    public AuditRecordStore auditRecordStore(Environment env,
+            ObjectProvider<DataSource> dataSource) {
+        GuardAuditConfig config = auditConfig(env);
+        boolean jdbcAvailable = dataSource.getIfAvailable() != null;
+        if (GuardAuditConfig.STORE_JDBC.equals(config.store())
+                || (GuardAuditConfig.STORE_AUTO.equals(config.store()) && jdbcAvailable)) {
+            if (!jdbcAvailable) {
+                LOG.warn("buzhou.guard.audit.store=jdbc 但无 DataSource bean——回退 InMemory 有界环形");
+                return new InMemoryAuditRecordStore(config.inMemoryCapacity());
+            }
+            return new JdbcAuditRecordStore(
+                    new org.springframework.jdbc.core.JdbcTemplate(dataSource.getObject()));
+        }
+        return new InMemoryAuditRecordStore(config.inMemoryCapacity());
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.guard.audit", name = "enabled", matchIfMissing = true)
+    public SigningKeyRing signingKeyRing(Environment env) {
+        GuardAuditConfig config = auditConfig(env);
+        List<SigningKeyProvider.VersionedSigningKey> keys = List.of();
+        if (!config.keyFiles().isEmpty()) {
+            keys = new PemFileKeyProvider(config.keyFiles().stream()
+                    .map(keyFile -> new PemFileKeyProvider.Entry(keyFile.version(),
+                            keyFile.privateKeyPath(), keyFile.publicKeyPath()))
+                    .toList()).load();
+        }
+        SigningKeyRing ring = new SigningKeyRing(config.minVerifyVersion(), keys);
+        if (!ring.hasSigningKey()) {
+            LOG.warn("buzhou.guard.audit 无签名密钥（signing.keys 未配置/为空）——"
+                    + "审计链降级为纯哈希链（完整性仍可验，不可否认性弱）；"
+                    + "配置 PKCS#8 PEM 路径即可启用签名");
+        } else {
+            LOG.info("buzhou-guard 审计签名就绪（activeVersion={}，可验版本={}，minVerifyVersion={}）",
+                    ring.activeVersion(), ring.registeredVersions(), ring.minVerifyVersion());
+        }
+        return ring;
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.guard.audit", name = "enabled", matchIfMissing = true)
+    public AuditChain auditChain(Environment env, SigningKeyRing keyRing,
+            AuditRecordStore store) {
+        AuditChain chain = new AuditChain("buzhou-guard", null, keyRing);
+        List<io.github.chyuan_cuihongyuan.buzhou.guard.audit.AgentAuditRecord> persisted =
+                store.loadAll();
+        if (!persisted.isEmpty()) {
+            chain.resume(persisted);
+            LOG.info("审计链从持久化续接（既有记录 {} 条）", persisted.size());
+        }
+        return chain;
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.guard.audit", name = "enabled", matchIfMissing = true)
+    public AuditTrailCollector auditTrailCollector(AuditChain chain, AuditRecordStore store) {
+        return new AuditTrailCollector(chain, store);
+    }
+
     /**
      * impl-30 / spec 13 §core-1：guard 停机 lifecycle（phase
-     * {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#GUARD}）。
-     * 本片为 phase 声明与占位（审计链未在装配面接线、无挂起 flush，诚实边界见
-     * {@link GuardModuleLifecycle} Javadoc；flush 钩子属切片 39）。
+     * {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#GUARD}）；
+     * impl-39：审计链停机终局自检（断链 WARN）。
      */
     @Bean
-    public GuardModuleLifecycle guardModuleLifecycle() {
-        return new GuardModuleLifecycle();
+    public GuardModuleLifecycle guardModuleLifecycle(ObjectProvider<AuditChain> auditChain,
+            ObjectProvider<SigningKeyRing> keyRing) {
+        return new GuardModuleLifecycle(auditChain.getIfAvailable(),
+                keyRing.getIfAvailable());
+    }
+
+    private GuardAuditConfig auditConfig(Environment env) {
+        return GuardAuditConfig.fromGuardMap(ConfigMaps.sub(env, "buzhou.guard"));
     }
 }

@@ -14,6 +14,11 @@
   不评模型生成质量。
 - CI：`.github/workflows/redteam-nightly.yml` —— **nightly、先观测不阻塞 PR**；
   指标基线留档（`redteam/baseline.md`），稳定后再升硬门。
+- **审计链 nightly 重放校验（impl-39 / spec 13 §T64，注记级）**：同一 nightly 节奏里对
+  审计持久化（`buzhou_audit_record` 表 / InMemory 环形）做独立重放——
+  `AuditChainVerifier.verify(AuditRecordStore.loadAll(), signingKeyRing)` 输出
+  `VerificationReport`（verifiedCount / firstBreakIndex / brokenRecordId / keyVersionStats），
+  断链即告警定位首个断点；与 promptfoo 红队互不依赖、可并行段。
 
 ## 本地运行
 

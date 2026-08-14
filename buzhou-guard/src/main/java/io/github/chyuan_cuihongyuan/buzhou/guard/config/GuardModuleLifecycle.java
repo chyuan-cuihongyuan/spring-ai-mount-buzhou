@@ -1,6 +1,10 @@
 package io.github.chyuan_cuihongyuan.buzhou.guard.config;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditChain;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyRing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -9,15 +13,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * guard 生命周期（impl-30 / spec 13 §core-1）：phase =
  * {@link BuzhouLifecyclePhases#GUARD}（core/memory/spill 之后、store 之前停）。
  *
- * <p><b>诚实边界（本片占位）</b>：审计链（{@code AuditChain}）由应用经
- * {@code SpawnOptions.withListeners(AuditTrailCollector)} 自持、装配面未接线，且为进程内
- * 链——<b>无可 flush 的挂起状态</b>；{@code GuardModule} 产出的 hooks 均无后台任务。
- * 故本 lifecycle 只做 phase 声明与停机占位；审计链 flush 钩子随切片 39
- * （AuditRecordStore 持久化）落地时在此接线。
+ * <p>impl-39 / spec 13 §T64：审计链已随装配面接线（每条记录即时 append-only 落库，
+ * 无挂起缓冲）；停机钩子做<b>终局完整性自检</b>——重放验证当前链，断链即 WARN
+ * （审计不可用应在停机日志里可见，而非静默）。无审计链（audit 关闭）时保持占位行为。
  */
 public class GuardModuleLifecycle implements SmartLifecycle {
 
+    private static final Logger LOG = LoggerFactory.getLogger(GuardModuleLifecycle.class);
+
     private final AtomicBoolean running = new AtomicBoolean();
+    private final AuditChain auditChain;
+    private final SigningKeyRing keyRing;
+
+    public GuardModuleLifecycle() {
+        this(null, null);
+    }
+
+    public GuardModuleLifecycle(AuditChain auditChain, SigningKeyRing keyRing) {
+        this.auditChain = auditChain;
+        this.keyRing = keyRing;
+    }
 
     @Override
     public void start() {
@@ -26,7 +41,19 @@ public class GuardModuleLifecycle implements SmartLifecycle {
 
     @Override
     public void stop() {
-        // 占位：本片无可关闭资源/挂起 flush（见类 Javadoc 诚实边界）；切片 39 的审计 flush 落位于此
+        if (auditChain != null) {
+            try {
+                if (!auditChain.verify(keyRing)) {
+                    LOG.warn("buzhou-guard 停机自检：审计链验证失败（记录数={}）——需人工重放校验",
+                            auditChain.records().size());
+                } else {
+                    LOG.info("buzhou-guard 停机自检：审计链完整（记录数={}）",
+                            auditChain.records().size());
+                }
+            } catch (RuntimeException e) {
+                LOG.warn("buzhou-guard 停机自检异常（审计链状态未知）", e);
+            }
+        }
         running.set(false);
     }
 

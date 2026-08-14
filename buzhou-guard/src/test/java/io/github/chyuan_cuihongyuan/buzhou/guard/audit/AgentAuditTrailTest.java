@@ -36,7 +36,7 @@ class AgentAuditTrailTest {
         chain.append("s1", "guard.tool.blocked", "{\"tool\":\"delete\"}", "BLOCKED");
         chain.append("s1", "guard.auth.granted", "{\"tool\":\"delete\"}", "ALLOWED");
         chain.append("s1", "session.cancelled", "{}", "RECORDED");
-        assertThat(chain.verify(null)).isTrue();
+        assertThat(chain.verify((java.security.PublicKey) null)).isTrue();
         assertThat(chain.records()).hasSize(3);
         // prev_hash 首条 = sha256("")
         assertThat(chain.records().getFirst().prevHash())
@@ -133,7 +133,7 @@ class AgentAuditTrailTest {
         assertThat(chain.records().getFirst().sessionId()).isEqualTo("s9");
         assertThat(chain.records().getFirst().outcome()).isEqualTo("BLOCKED");
         assertThat(chain.records().get(1).outcome()).isEqualTo("ALLOWED");
-        assertThat(chain.verify(null)).isTrue();
+        assertThat(chain.verify((java.security.PublicKey) null)).isTrue();
         seq.incrementAndGet();
     }
 }

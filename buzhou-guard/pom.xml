@@ -26,6 +26,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
     </dependency>
+    <!-- impl-39 / spec 13 §T64：审计 JDBC append-only 持久化（与 store-jdbc 同一 JdbcTemplate 风格） -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+    </dependency>
     <!-- 复用 core 测试工具（ScriptedChatModel 风格） -->
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
@@ -43,6 +48,12 @@
     <dependency>
       <groupId>io.github.chyuan-cuihongyuan</groupId>
       <artifactId>buzhou-memory</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- impl-39：JDBC 审计持久化测试（与 store-jdbc 同款嵌入式库） -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -15,7 +15,7 @@
 | 36 | stores · InMemory 有界化 + 容量配额 | 29, 35 | done |
 | 37 | 横切 · 保留策略族 + RetentionSweeper + 触发公式 | 35, 36 | done |
 | 38 | memory+spill · 增长治理 + embedding 缓存 + 后台任务治理 | 37, 29 | done |
-| 39 | guard · 审计链持久化 + 密钥版本化轮换 + 独立校验 | 29 | ready |
+| 39 | guard · 审计链持久化 + 密钥版本化轮换 + 独立校验 | 29 | done |
 | 40 | guard · policy 热加载 + 沙箱限额 | 39 | ready |
 | 41 | 横切 · 泄漏检测 + 健康检查 + 指标 | 29, 34, 40 | ready |
 | 42 | 横切 · 配置全参数化 + 启动校验 + FailureAnalyzer + 默认值安全化 | 41 | ready |

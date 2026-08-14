@@ -8,6 +8,9 @@ import java.util.Map;
  * 11 必填字段 + prev_hash 哈希链（{@code prev_hash(N) = SHA-256(JCS(record(N-1)))}），
  * 可选 ECDSA P-256 签名（IEEE P1363 r||s 64 字节 Base64url，非 JWS DER）。
  *
+ * <p>impl-39 / spec 13 §T64：新增 {@code keyVersion}（签名密钥版本，0 = 无签名纯哈希链），
+ * 参与签名与哈希链（防版本号本身被篡改）；无签名记录保持 impl-22 的 JCS 形态不变。
+ *
  * <p><b>数值约束</b>：本实现 JCS 子集仅接受整数（时间戳 epoch 毫秒、序号）——审计面
  * 不出现浮点数，规避 RFC 8785 的 ECMAScript number 规范化复杂度（诚实子集，非法数值即拒）。
  */
@@ -23,9 +26,19 @@ public record AgentAuditRecord(
         String trustLevel,
         String parentRecordId,
         String prevHash,
-        String signature) {
+        String signature,
+        int keyVersion) {
 
-    /** 无签名的字段视图（JCS 序列化/签名对象——去 signature 字段）。 */
+    /** impl-22 兼容构造（无 keyVersion —— 纯哈希链模式）。 */
+    public AgentAuditRecord(
+            String recordId, long timestamp, String agentId, String agentVersion,
+            String sessionId, String actionType, String actionDetail, String outcome,
+            String trustLevel, String parentRecordId, String prevHash, String signature) {
+        this(recordId, timestamp, agentId, agentVersion, sessionId, actionType,
+                actionDetail, outcome, trustLevel, parentRecordId, prevHash, signature, 0);
+    }
+
+    /** 无签名的字段视图（JCS 序列化/签名对象——去 signature 字段；keyVersion>0 时随内容入链）。 */
     Map<String, Object> unsignedMap() {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("record_id", recordId);
@@ -39,10 +52,13 @@ public record AgentAuditRecord(
         map.put("trust_level", trustLevel == null ? "" : trustLevel);
         map.put("parent_record_id", parentRecordId == null ? "" : parentRecordId);
         map.put("prev_hash", prevHash == null ? "" : prevHash);
+        if (keyVersion > 0) {
+            map.put("key_version", keyVersion);
+        }
         return map;
     }
 
-    /** 含签名的完整视图（导出/留档）。 */
+    /** 含签名的完整视图（导出/留档/持久化）。 */
     public Map<String, Object> toMap() {
         Map<String, Object> map = new LinkedHashMap<>(unsignedMap());
         if (signature != null) {
@@ -53,6 +69,7 @@ public record AgentAuditRecord(
 
     public AgentAuditRecord withSignature(String signature) {
         return new AgentAuditRecord(recordId, timestamp, agentId, agentVersion, sessionId,
-                actionType, actionDetail, outcome, trustLevel, parentRecordId, prevHash, signature);
+                actionType, actionDetail, outcome, trustLevel, parentRecordId, prevHash,
+                signature, keyVersion);
     }
 }

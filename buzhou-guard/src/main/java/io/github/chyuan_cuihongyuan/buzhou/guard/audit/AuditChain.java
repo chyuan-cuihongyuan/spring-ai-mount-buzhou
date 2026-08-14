@@ -26,6 +26,11 @@ import java.util.UUID;
  *   <li><b>验证</b>：{@link #verify} 重算链与签名——篡改任一记录即失败（不可否认证据）。</li>
  * </ul>
  *
+ * <p>impl-39 / spec 13 §T64 增强：<b>版本化密钥环</b>（{@link SigningKeyRing}——keyVersion
+ * 嵌记录、rotate 后旧钥只验不签）与<b>续链</b>（{@link #resume}——从持久化记录续接，
+ * 跨重启链不断）；验证可经 {@link #verify(SigningKeyRing)} 委托
+ * {@link AuditChainVerifier}（定位首个断点）。
+ *
  * <p>纯本地、零新依赖（JDK 内置 SHA256withECDSA）；无签名模式（仅哈希链）同样可用。
  */
 public final class AuditChain {
@@ -35,17 +40,29 @@ public final class AuditChain {
     private final String agentVersion;
     private final PrivateKey privateKey;
     private final PublicKey publicKey;
+    private final SigningKeyRing keyRing;
 
     public AuditChain(String agentId, String agentVersion) {
-        this(agentId, agentVersion, null, null);
+        this(agentId, agentVersion, null, null, null);
     }
 
     public AuditChain(String agentId, String agentVersion, PrivateKey privateKey,
                       PublicKey publicKey) {
+        this(agentId, agentVersion, privateKey, publicKey, null);
+    }
+
+    /** 密钥环模式（版本化签名 + 旧钥可验；keyRing 无 active 钥时为纯哈希链降级）。 */
+    public AuditChain(String agentId, String agentVersion, SigningKeyRing keyRing) {
+        this(agentId, agentVersion, null, null, keyRing);
+    }
+
+    private AuditChain(String agentId, String agentVersion, PrivateKey privateKey,
+                       PublicKey publicKey, SigningKeyRing keyRing) {
         this.agentId = agentId;
         this.agentVersion = agentVersion;
         this.privateKey = privateKey;
         this.publicKey = publicKey;
+        this.keyRing = keyRing;
     }
 
     /** 生成 P-256 密钥对（业务侧持久保管私钥；公钥随审计报告分发验证）。 */
@@ -59,23 +76,38 @@ public final class AuditChain {
         }
     }
 
-    /** 追加审计记录（自动携带链上前缀哈希；可选签名）。 */
+    /** 追加审计记录（自动携带链上前缀哈希；可选签名——密钥环 active 版本或构造私钥）。 */
     public synchronized AgentAuditRecord append(String sessionId, String actionType,
                                                 String actionDetail, String outcome) {
         String prevHash = records.isEmpty()
                 ? sha256Hex("")
                 : sha256Hex(Jcs.canonicalize(records.get(records.size() - 1).unsignedMap()));
+        int keyVersion = 0;
+        PrivateKey signingKey = null;
+        if (keyRing != null && keyRing.hasSigningKey()) {
+            keyVersion = keyRing.activeVersion();
+            signingKey = keyRing.activePrivateKey();
+        } else if (privateKey != null) {
+            signingKey = privateKey;
+        }
         AgentAuditRecord record = new AgentAuditRecord(
                 UUID.randomUUID().toString(), System.currentTimeMillis(),
                 agentId, agentVersion == null ? "" : agentVersion, sessionId,
                 actionType, actionDetail, outcome, "default",
                 records.isEmpty() ? "" : records.get(records.size() - 1).recordId(),
-                prevHash, null);
-        if (privateKey != null) {
-            record = record.withSignature(sign(record));
+                prevHash, null, keyVersion);
+        if (signingKey != null) {
+            record = record.withSignature(sign(record, signingKey));
         }
         records.add(record);
         return record;
+    }
+
+    /** 从持久化记录续链（跨重启）：seed 尾部成为新记录的 prev 源；seed 本身不重签。 */
+    public synchronized void resume(List<AgentAuditRecord> seedRecords) {
+        for (AgentAuditRecord record : seedRecords) {
+            records.add(record);
+        }
     }
 
     /** 会话收尾摘要（全部 prev_hash 拼接再哈希）。 */
@@ -87,37 +119,36 @@ public final class AuditChain {
         return sha256Hex(joined.toString());
     }
 
+    /** 单会话收尾摘要（该会话全部记录的 prev_hash 拼接再哈希；随 session.closed 发布）。 */
+    public synchronized String sessionHash(String sessionId) {
+        StringBuilder joined = new StringBuilder();
+        for (AgentAuditRecord record : records) {
+            if (record.sessionId().equals(sessionId)) {
+                joined.append(record.prevHash());
+            }
+        }
+        return sha256Hex(joined.toString());
+    }
+
     public synchronized List<AgentAuditRecord> records() {
         return List.copyOf(records);
     }
 
-    /** 全链验证：prev_hash 链一致 + （有公钥时）每条签名可验。 */
+    /** 全链验证（单钥模式，impl-22 兼容）：prev_hash 链一致 + 每条签名可验。 */
     public synchronized boolean verify(PublicKey verifyKey) {
-        String expectedPrev = sha256Hex("");
-        AgentAuditRecord previous = null;
-        for (AgentAuditRecord record : records) {
-            if (!record.prevHash().equals(expectedPrev)) {
-                return false;
-            }
-            if (previous != null && !java.util.Objects.equals(record.parentRecordId(),
-                    previous.recordId())) {
-                return false;
-            }
-            if (verifyKey != null && record.signature() != null
-                    && !verifySignature(record, verifyKey)) {
-                return false;
-            }
-            expectedPrev = sha256Hex(Jcs.canonicalize(record.unsignedMap()));
-            previous = record;
-        }
-        return true;
+        return AuditChainVerifier.verify(records, verifyKey).intact();
+    }
+
+    /** 密钥环全链验证（按记录 keyVersion 取公钥；低于 minVerifyVersion 判不可验）。 */
+    public synchronized boolean verify(SigningKeyRing ring) {
+        return AuditChainVerifier.verify(records, ring).intact();
     }
 
     /** 对记录（去 signature）签名：SHA256withECDSA → DER 转 P1363 r||s（64 字节）→ Base64url。 */
-    private String sign(AgentAuditRecord record) {
+    private String sign(AgentAuditRecord record, PrivateKey key) {
         try {
             Signature signer = Signature.getInstance("SHA256withECDSA");
-            signer.initSign(privateKey);
+            signer.initSign(key);
             signer.update(Jcs.canonicalize(record.unsignedMap())
                     .getBytes(StandardCharsets.UTF_8));
             return Base64Url.encode(derToP1363(signer.sign()));
