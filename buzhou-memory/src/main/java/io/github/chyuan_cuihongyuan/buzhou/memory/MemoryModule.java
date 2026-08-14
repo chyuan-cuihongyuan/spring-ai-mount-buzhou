@@ -305,6 +305,27 @@ public final class MemoryModule {
         return true;
     }
 
+    /**
+     * spec 20 / T90 / impl-65：宿主侧手动压缩器（与 compact_now 工具共用同一条管线；
+     * summaryModel 为 null 时返回 null——无摘要模型不可用，调用方按缺省处理）。
+     */
+    public static io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor manualCompactor(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores,
+            org.springframework.ai.chat.model.ChatModel summaryModel,
+            Map<String, Object> ymlConfig) {
+        if (summaryModel == null) {
+            return null;
+        }
+        boolean reconcile = factReconciliation(ymlConfig);
+        return new io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor(
+                stores.messageStore(), new SummaryStoreBridge(stores.summaryStore()),
+                new DefaultSummaryGenerator(), summaryModel, keepRecentTurns(ymlConfig),
+                reconcile ? new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryFactReconciler() : null,
+                reconcile ? new io.github.chyuan_cuihongyuan.buzhou.memory.summary.BiTemporalFactLedger(
+                        stores.sessionStateStore()) : null,
+                null);
+    }
+
     /** impl-12 开关：{@code memory.revise-section-tool}（默认开；自愈记忆 + 防投毒）。 */
     private static boolean reviseSectionTool(Map<String, Object> ymlConfig) {
         Object memory = ymlConfig.get("memory");

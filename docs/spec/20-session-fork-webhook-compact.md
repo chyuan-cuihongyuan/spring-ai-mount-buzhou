@@ -33,4 +33,12 @@
 
 ## 手动压缩 / 摘要导出（T90 / impl-65）
 
-- （待 T90 决议后补）
+- **宿主侧 `memory` 模块 `ManualCompactor`**（`compact(sessionId)` / `exportSummary(sessionId)` /
+  `exportSummaryMarkdown(sessionId)`）：压缩机制归 memory（core 不持 memory 组件）；模型侧
+  CompactNowTool 重构为**委托同一条管线**（行为零变化）。
+- **幂等**：alreadyCovered / summarizedMessageIds 跳过已折入；无待折返回 skipped（CompactResult
+  携带统计：折入数/代际/估算 token）。
+- **并发边界**：不做锁——SummaryStore 版本化追加 + 幂等集与在途轮消息追加天然并发安全；
+  建议轮间隙调用（轮中调用安全但摘要可能少折最后一轮）。
+- **导出**：类型化 `Optional<NineSectionSummary>` 或渲染 Markdown；无摘要 = empty。
+- 装配：`MemoryModule.manualCompactor()`（配置摘要模型才可用）+ auto-config bean。

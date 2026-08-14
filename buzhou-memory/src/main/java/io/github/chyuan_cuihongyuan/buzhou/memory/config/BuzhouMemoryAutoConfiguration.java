@@ -63,6 +63,23 @@ public class BuzhouMemoryAutoConfiguration {
         return lifecycle.runtimeConfig();
     }
 
+    /**
+     * spec 20 / T90 / impl-65：宿主侧手动压缩与摘要导出（配置摘要模型才可用——无摘要模型时
+     * 主动压缩无意义，token 阈值兜底自动压缩不受影响）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+            type = "org.springframework.ai.chat.model.ChatModel")
+    public io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor manualCompactor(
+            BuzhouStores stores, Environment env,
+            @org.springframework.beans.factory.annotation.Qualifier("buzhouSummaryChatModel")
+            ObjectProvider<ChatModel> summaryModel) {
+        ChatModel summary = summaryModel.getIfAvailable();
+        return io.github.chyuan_cuihongyuan.buzhou.memory.MemoryModule.manualCompactor(
+                stores, summary, io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps.sub(env, "buzhou"));
+    }
+
     private static AttachmentRenderer compose(List<AttachmentRenderer> renderers) {
         if (renderers == null || renderers.isEmpty()) {
             return null;
