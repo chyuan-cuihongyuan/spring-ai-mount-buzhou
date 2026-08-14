@@ -13,6 +13,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.exec;
  */
 public final class ToolErrorFeedback {
 
+    /** 反馈文案标记前缀（结构化标记单一事实源在 {@link ToolFeedbackType}；词汇不变）。 */
+    public static final String MARKER = ToolFeedbackType.EXECUTION_FAILURE.marker();
+
     private ToolErrorFeedback() {
     }
 
@@ -25,11 +28,16 @@ public final class ToolErrorFeedback {
      */
     public static String format(String toolName, String arguments, String reason) {
         String args = arguments == null || arguments.isBlank() ? "{}" : arguments;
-        return "[工具执行失败]（错误即反馈，本轮不中断）\n"
+        return MARKER + "（错误即反馈，本轮不中断）\n"
                 + "工具：" + toolName + "\n"
                 + "入参：" + args + "\n"
                 + "原因：" + reason + "\n"
                 + "建议：请依据「原因」修正入参或改用其他途径继续完成任务；请勿不做任何修改地原样重试。";
+    }
+
+    /** 判断一段工具响应文案是否为本通道的执行失败反馈（走结构化标记，兼容既有文案）。 */
+    public static boolean isErrorFeedback(String content) {
+        return ToolFeedbackType.EXECUTION_FAILURE.matches(content);
     }
 
     /** 工具缺失的失败原因文案（保留既有「未知工具：」前缀语义）。 */

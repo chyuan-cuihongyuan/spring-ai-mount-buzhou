@@ -24,6 +24,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public abstract class AbstractBuzhouStoresContractTest {
 
+    /** 租约自然过期用例的短 TTL：需足够宽，避免并行构建负载下两次 tryAcquire 间隔超过 TTL 造成偶发失败。 */
+    private static final Duration LEASE_EXPIRY_TEST_TTL = Duration.ofMillis(500);
+    /** 过期等待时长：须大于 {@link #LEASE_EXPIRY_TEST_TTL}，并留出调度抖动余量。 */
+    private static final long LEASE_EXPIRY_AWAIT_MS = 1_200L;
+
     protected abstract BuzhouStores stores();
 
     protected abstract void cleanUp();
@@ -118,7 +123,7 @@ public abstract class AbstractBuzhouStoresContractTest {
     @Test
     void leaseExpiresNaturally() {
         String sessionId = "contract-lease-exp-" + UUID.randomUUID();
-        stores().sessionLeaseStore().tryAcquire(sessionId, "owner-A", Duration.ofMillis(50));
+        stores().sessionLeaseStore().tryAcquire(sessionId, "owner-A", LEASE_EXPIRY_TEST_TTL);
         assertThat(stores().sessionLeaseStore()
                 .tryAcquire(sessionId, "owner-B", Duration.ofSeconds(90)).acquired()).isFalse();
         awaitExpiry();
@@ -128,7 +133,7 @@ public abstract class AbstractBuzhouStoresContractTest {
 
     protected void awaitExpiry() {
         try {
-            Thread.sleep(150);
+            Thread.sleep(LEASE_EXPIRY_AWAIT_MS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

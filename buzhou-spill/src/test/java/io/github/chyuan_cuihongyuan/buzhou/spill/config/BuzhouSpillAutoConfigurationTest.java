@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.spill.config;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration;
+import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import io.github.chyuan_cuihongyuan.buzhou.spill.SpillModule;
@@ -41,5 +42,22 @@ class BuzhouSpillAutoConfigurationTest {
     void disabledWhenSwitchedOff() {
         runner().withPropertyValues("buzhou.spill.enabled=false")
                 .run(ctx -> assertThat(ctx).doesNotHaveBean(SpillModule.class));
+    }
+
+    /**
+     * impl-30 / spec 13 §core-1：spill lifecycle 装配——phase 声明（core/memory 之后、
+     * guard/store 之前停）；本片为占位（spill 无可关闭资源，诚实边界见
+     * {@link SpillModuleLifecycle} Javadoc），上下文 stop 触发后 isRunning 翻 false。
+     */
+    @Test
+    void shouldRegisterSpillLifecyclePlaceholder_whenEnabled() {
+        runner().run(ctx -> {
+            assertThat(ctx).hasSingleBean(SpillModuleLifecycle.class);
+            SpillModuleLifecycle lifecycle = ctx.getBean(SpillModuleLifecycle.class);
+            assertThat(lifecycle.getPhase()).isEqualTo(BuzhouLifecyclePhases.SPILL);
+            assertThat(lifecycle.getPhase()).isLessThan(BuzhouLifecyclePhases.MEMORY);
+            assertThat(lifecycle.getPhase()).isGreaterThan(BuzhouLifecyclePhases.GUARD);
+            assertThat(lifecycle.isRunning()).isTrue();
+        });
     }
 }

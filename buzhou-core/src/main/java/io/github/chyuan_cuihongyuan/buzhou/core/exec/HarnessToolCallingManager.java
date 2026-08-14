@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class HarnessToolCallingManager implements ToolCallingManager {
 
@@ -48,8 +49,16 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private final Map<String, String> serialGroups;
     private final SpanContextCarrier spanContextCarrier;
     private final String sessionId;
-    private final ConcurrentHashMap<String, Object> groupLocks = new ConcurrentHashMap<>();
+    /**
+     * impl-28 / spec 13 §core-2：串行组互斥从 {@code synchronized} 改为 {@link ReentrantLock}——
+     * 可限时获取（tryLock(剩余)）也可响应中断（lockInterruptibly），挂起的持锁同伴不再连带
+     * 后续等待者永久阻塞。键为组名；无组工具每次新建无竞争锁（与既有 {@code new Object()} 等价）。
+     */
+    private final ConcurrentHashMap<String, ReentrantLock> groupLocks = new ConcurrentHashMap<>();
     private final List<Future<?>> inFlight = new CopyOnWriteArrayList<>();
+    /** impl-28：本 Turn 硬 Deadline（none 哨兵 = 不设界，保持既有无限等待行为）。 */
+    private volatile io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline turnDeadline =
+            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none();
     /** impl-04 / T30：入参 schema 校验开关（默认开）。 */
     private volatile boolean argsValidation = true;
     /** impl-04 / T30：本 Turn 累计校验反馈次数（BoundedToolCallingAdvisor 在 Turn 开始时复位）。 */
@@ -79,6 +88,22 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** impl-10 / T35：设置批回喂策略（经 SessionAssemblyContext.toolManager() 注入）。 */
     public void setBatchFeedbackPolicy(BatchFeedbackPolicy policy) {
         this.batchFeedbackPolicy = policy == null ? BatchFeedbackPolicy.ALL : policy;
+    }
+
+    /**
+     * impl-28 / spec 13 §core-2：Turn 开始设定硬 Deadline（由 {@code BoundedToolCallingAdvisor}
+     * 在每次工具递归循环初始化时调用，预算 = min(turnDeadline, loopTimeout)）；
+     * {@code null} 或哨兵 = 不设界（既有无限等待行为）。剩余时间在派发/组锁/许可/join
+     * 各等待点统一按本对象递减，嵌套不重新计时。
+     */
+    public void beginTurn(io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline) {
+        this.turnDeadline = deadline == null
+                ? io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none() : deadline;
+    }
+
+    /** 当前生效的 Turn Deadline（测试与诊断用；无则哨兵）。 */
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline turnDeadline() {
+        return turnDeadline;
     }
 
     public HarnessToolCallingManager(DefaultToolCallingManager delegate,
@@ -221,7 +246,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             AssistantMessage.ToolCall toolCall = toolCalls.get(i);
             ToolResponseMessage.ToolResponse response;
             try {
-                response = futures.get(i).get();
+                response = awaitCompletion(futures.get(i), toolCall);
             } catch (Exception e) {
                 // 兜底：任何漏网的执行异常也降级为错误反馈，保证每个 tool_call 恒有一个
                 // ToolResponse（协议要求）且 Turn 不死，而非上抛终结整轮。
@@ -244,6 +269,53 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 .build();
     }
 
+    /**
+     * impl-28 / spec 13 §core-2：外层 join 限时化（挂起点①）。无 Deadline 时保持既有
+     * {@code get()} 无限等待（兼容默认行为）；配置 Deadline 后以剩余时间为限，超时
+     * 取消该 future + 中断同批在飞工具，并按 TIMEOUT outcome 回喂（词汇与单工具超时一致，
+     * 复用 {@link ToolErrorFeedback} 通道）——不响应中断的挂死工具最多残留一个守护虚拟线程，
+     * 会话绝不因此僵死。诚实边界：worker 若恰在取消后落盘 COMPLETED/FAILED 结局，事件日志
+     * 会追加两条（先 TIMEOUT 后终局），与既有 {@code cancelInFlight} 语义一致。
+     */
+    private ToolResponseMessage.ToolResponse awaitCompletion(
+            Future<ToolResponseMessage.ToolResponse> future,
+            AssistantMessage.ToolCall toolCall) throws Exception {
+        io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline = this.turnDeadline;
+        if (deadline.isNone()) {
+            return future.get();
+        }
+        long remainingMillis = deadline.remainingMillis();
+        if (remainingMillis > 0) {
+            try {
+                return future.get(remainingMillis, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException expectedOnDeadlineExhausted) {
+                // 剩余耗尽：落入下方统一 TIMEOUT 回喂
+            }
+        }
+        future.cancel(true);
+        cancelInFlight();
+        return timeoutResponse(toolCall, "Turn 剩余预算耗尽，已取消");
+    }
+
+    /** impl-28：TIMEOUT 语义回喂（单一定语点：组锁/许可/派发/join 四处共用同一词汇）。 */
+    private ToolResponseMessage.ToolResponse timeoutResponse(
+            AssistantMessage.ToolCall toolCall, String detail) {
+        String result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                "执行超时（" + detail + "）");
+        recordOutcome(toolCall,
+                io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.TIMEOUT, result);
+        return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), result);
+    }
+
+    /** impl-28：中断回喂（复用既有「执行被中断」词汇与 CANCELLED 结局）。 */
+    private ToolResponseMessage.ToolResponse interruptedResponse(AssistantMessage.ToolCall toolCall) {
+        Thread.currentThread().interrupt();
+        String interrupted = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行被中断");
+        recordOutcome(toolCall,
+                io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.CANCELLED, interrupted);
+        return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), interrupted);
+    }
+
     /** impl-10 / T35：按策略整备回喂内容（FAILED_ONLY=同伴失败时成功者以占位提示替代）。 */
     private List<ToolResponseMessage.ToolResponse> responsesForModel(
             List<ToolResponseMessage.ToolResponse> responses) {
@@ -264,9 +336,9 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         }).toList();
     }
 
+    /** ticket 29：错误反馈识别走结构化标记（{@link ToolFeedbackType}），不再散落字符串前缀判断。 */
     private static boolean isErrorFeedback(String content) {
-        return content != null && (content.startsWith("[工具执行失败]")
-                || content.startsWith("[工具参数校验失败]"));
+        return ToolFeedbackType.isErrorFeedback(content);
     }
 
     public void cancelInFlight() {
@@ -298,51 +370,133 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), feedback);
             }
         }
-        Object lock = groupLock(toolCall.name());
-        synchronized (lock) {
-            String result;
+        io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline = this.turnDeadline;
+        if (deadline.isExpired()) {
+            // impl-28：预算已耗尽——不占组锁/许可，直接 TIMEOUT 回喂（免无谓排队）
+            return timeoutResponse(toolCall, "Turn 剩余预算已耗尽，未派发");
+        }
+        ReentrantLock lock = groupLock(toolCall.name());
+        boolean locked;
+        try {
+            locked = tryAcquireGroupLock(lock, deadline);
+        } catch (InterruptedException e) {
+            return interruptedResponse(toolCall);
+        }
+        if (!locked) {
+            return timeoutResponse(toolCall, "等待串行组「" + serialGroups.get(toolCall.name())
+                    + "」执行权超时");
+        }
+        try {
+            boolean permitted;
             try {
-                turnPermits.acquire();
+                permitted = tryAcquirePermit(deadline);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                String interrupted = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行被中断");
-                recordOutcome(toolCall,
-                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.CANCELLED, interrupted);
-                return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), interrupted);
+                return interruptedResponse(toolCall);
             }
-            Future<String> task = executor.submit(() -> callback.call(toolCall.arguments(), toolContext));
-            inFlight.add(task);
-            try {
-                result = task.get(toolTimeout.toMillis(), TimeUnit.MILLISECONDS);
-                recordOutcome(toolCall,
-                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.COMPLETED, result);
-            } catch (java.util.concurrent.CancellationException e) {
-                result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行已取消");
-                recordOutcome(toolCall,
-                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.CANCELLED, result);
-            } catch (TimeoutException e) {
-                task.cancel(true);
-                result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
-                        "执行超时（" + toolTimeout.toSeconds() + "s）");
-                recordOutcome(toolCall,
-                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.TIMEOUT, result);
-            } catch (Exception e) {
-                Throwable cause = e.getCause() == null ? e : e.getCause();
-                result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
-                        "执行失败：" + cause);
-                recordOutcome(toolCall,
-                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.FAILED, result);
-            } finally {
-                inFlight.remove(task);
-                turnPermits.release();
+            if (!permitted) {
+                return timeoutResponse(toolCall, "等待本 Turn 并发许可超时");
             }
-            return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), result);
+            return dispatchTool(toolCall, callback, toolContext, deadline);
+        } finally {
+            lock.unlock();
         }
     }
 
-    private Object groupLock(String toolName) {
+    /**
+     * impl-28 / spec 13 §core-2：组锁限时获取（挂起点②）。无 Deadline 时
+     * {@code lockInterruptibly()}（互斥语义与既有 {@code synchronized} 等价，但可响应取消/
+     * 中断）；配置 Deadline 后 {@code tryLock(剩余)}——组内同伴挂死至多消耗本 Turn 剩余时间。
+     */
+    private boolean tryAcquireGroupLock(ReentrantLock lock,
+            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline)
+            throws InterruptedException {
+        if (deadline.isNone()) {
+            lock.lockInterruptibly();
+            return true;
+        }
+        long remainingMillis = deadline.remainingMillis();
+        return remainingMillis > 0 && lock.tryLock(remainingMillis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * impl-28 / spec 13 §core-2：并发许可限时获取（挂起点③）。无 Deadline 时保持既有
+     * {@code acquire()} 阻塞语义；配置 Deadline 后 {@code tryAcquire(剩余)}——许可等待
+     * 超时按 TIMEOUT 回喂（许可只是并发闸门，等待超时本质是 Turn 预算耗尽，故与超时同
+     * 词汇而非配额拒绝语义）。
+     */
+    private boolean tryAcquirePermit(
+            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline)
+            throws InterruptedException {
+        if (deadline.isNone()) {
+            turnPermits.acquire();
+            return true;
+        }
+        long remainingMillis = deadline.remainingMillis();
+        return remainingMillis > 0 && turnPermits.tryAcquire(remainingMillis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * impl-28：单次工具派发时限 = min(单工具超时, Deadline 剩余)——嵌套/子调用传递剩余时间
+     * 而非重新计时。本方法约定「已持有一枚许可」，任何路径返回前都会归还。
+     */
+    private ToolResponseMessage.ToolResponse dispatchTool(
+            AssistantMessage.ToolCall toolCall,
+            ToolCallback callback,
+            ToolContext toolContext,
+            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline) {
+        long timeoutMillis = effectiveToolTimeoutMillis(deadline);
+        if (timeoutMillis <= 0) {
+            turnPermits.release();
+            return timeoutResponse(toolCall, "Turn 剩余预算已耗尽，未派发");
+        }
+        Future<String> task = executor.submit(() -> callback.call(toolCall.arguments(), toolContext));
+        inFlight.add(task);
+        String result;
+        try {
+            result = task.get(timeoutMillis, TimeUnit.MILLISECONDS);
+            recordOutcome(toolCall,
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.COMPLETED, result);
+        } catch (java.util.concurrent.CancellationException e) {
+            result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(), "执行已取消");
+            recordOutcome(toolCall,
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.CANCELLED, result);
+        } catch (TimeoutException e) {
+            task.cancel(true);
+            result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                    "执行超时（" + formatTimeout(timeoutMillis) + "）");
+            recordOutcome(toolCall,
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.TIMEOUT, result);
+        } catch (Exception e) {
+            Throwable cause = e.getCause() == null ? e : e.getCause();
+            result = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                    "执行失败：" + cause);
+            recordOutcome(toolCall,
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.FAILED, result);
+        } finally {
+            inFlight.remove(task);
+            turnPermits.release();
+        }
+        return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), result);
+    }
+
+    /** impl-28：单次派发时限 = min(单工具超时, Deadline 剩余)；无 Deadline 即单工具超时。 */
+    private long effectiveToolTimeoutMillis(
+            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline) {
+        if (deadline.isNone()) {
+            return toolTimeout.toMillis();
+        }
+        return Math.min(toolTimeout.toMillis(), deadline.remainingMillis());
+    }
+
+    /** impl-28：超时时长文案（≥1s 用秒、否则毫秒；无 Deadline 时与既有「60s」格式一致）。 */
+    private static String formatTimeout(long timeoutMillis) {
+        return timeoutMillis >= 1000 ? timeoutMillis / 1000 + "s" : timeoutMillis + "ms";
+    }
+
+    private ReentrantLock groupLock(String toolName) {
         String group = serialGroups.get(toolName);
-        return group == null ? new Object() : groupLocks.computeIfAbsent(group, k -> new Object());
+        return group == null ? new ReentrantLock()
+                : groupLocks.computeIfAbsent(group, k -> new ReentrantLock());
     }
 
     private boolean isReturnDirect(ToolCallback callback) {

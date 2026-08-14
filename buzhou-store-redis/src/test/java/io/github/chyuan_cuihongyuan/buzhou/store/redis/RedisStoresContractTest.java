@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Redis 契约套件（hermetic：进程内 jedis-mock，H2 之于 JDBC 的等价物）。
  * 继承 {@link AbstractBuzhouStoresContractTest} 跑全量 SPI 契约；额外补 unit-of-work 原子提交/回滚。
+ * ticket 32：经 {@link RedisBuzhouStores#createPooled} 装配（UoW 事务连接池化路径）。
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RedisStoresContractTest extends AbstractBuzhouStoresContractTest {
@@ -40,7 +42,8 @@ class RedisStoresContractTest extends AbstractBuzhouStoresContractTest {
         server = new RedisServer(0);
         server.start();
         client = RedisClient.create("redis://" + server.getHost() + ":" + server.getBindPort());
-        stores = RedisBuzhouStores.create(client, "buzhou:");
+        stores = RedisBuzhouStores.createPooled(client, "buzhou:", Duration.ZERO,
+                RedisBuzhouStores.DEFAULT_POOL_MAX_SIZE, null);
         adminConn = client.connect();
         admin = adminConn.sync();
     }

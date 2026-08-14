@@ -1,5 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException;
+import io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode;
 import io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain;
@@ -9,6 +11,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.LeaseLostException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
@@ -16,12 +19,41 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.SignalType;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public class DefaultAgentSession implements AgentSession {
+
+    private static final System.Logger LOGGER =
+            System.getLogger(DefaultAgentSession.class.getName());
+
+    /**
+     * impl-28 / spec 13 §core-2：模型调用守卫线程池（虚拟线程：每次守卫一线程，随用随建）。
+     * Spring AI ChatClient 无 per-call 超时面，兜底只能把整个调用（含 Advisor 链内的工具
+     * 递归循环）搬到守卫线程上、以剩余时间封顶等待——守卫线程被中断即尽力中止底层调用。
+     */
+    private static final ExecutorService MODEL_CALL_GUARD_EXECUTOR =
+            Executors.newVirtualThreadPerTaskExecutor();
+    /**
+     * impl-28：Deadline 耗尽后的收尾宽限——工具级 Deadline 在预算点截断并回喂，宽限给模型
+     * 最后一次组织最终回复的机会（预算内优雅收尾优先）；宽限耗尽仍无终局（模型自身挂死）
+     * 则硬截断上抛 TIMEOUT。硬上界 = 预算 + 本宽限。
+     */
+    private static final Duration MODEL_FINALIZE_GRACE = Duration.ofSeconds(5);
 
     private final String appId;
     private final String agentName;
@@ -36,6 +68,19 @@ public class DefaultAgentSession implements AgentSession {
     private final List<SessionObserver> observers;
     private final List<SessionEventListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean closed = new AtomicBoolean();
+    /** impl-28：有效 Turn 预算（min(turnDeadline, loopTimeout)）；null = 不设（既有直调行为）。 */
+    private final Duration turnBudget;
+    /** impl-33 / spec 13 §core-3：会话租约哨兵；null = 无租约语义路径（Buzhou.enhance 等既有行为）。 */
+    private final SessionLeaseGuard leaseGuard;
+    /**
+     * impl-30 / spec 13 §core-1：在途 Turn 权威计数（chat 入口增/finally 减；stream 入口增/
+     * doFinally 减）——停机排空等待的裁决源，覆盖正常/异常/取消全部终结路径。
+     * 诚实边界：stream() 返回后从未订阅的流不产生终结信号，计数残留 +1，由会话 close 的
+     * closed 标记兜底安定（与既有 onTurnStart 预先通知的泄漏面一致）。
+     */
+    private final AtomicInteger inFlightTurns = new AtomicInteger();
+    /** impl-30 / spec 13 §core-1：停机拒新标记（运行时 shutdown 序列置位；chat/stream 即刻拒绝）。 */
+    private volatile boolean rejectingNewTurns;
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
@@ -51,6 +96,29 @@ public class DefaultAgentSession implements AgentSession {
                                HarnessToolCallingManager toolManager,
                                SpanContextCarrier spanContextCarrier,
                                List<SessionObserver> observers) {
+        this(appId, agentName, sessionId, chatClient, registry, onClose, hookChain, hookEnv,
+                toolManager, spanContextCarrier, observers, null);
+    }
+
+    public DefaultAgentSession(String appId, String agentName, String sessionId,
+                               ChatClient chatClient, SessionResourceRegistry registry,
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
+                               HarnessToolCallingManager toolManager,
+                               SpanContextCarrier spanContextCarrier,
+                               List<SessionObserver> observers,
+                               Duration turnBudget) {
+        this(appId, agentName, sessionId, chatClient, registry, onClose, hookChain, hookEnv,
+                toolManager, spanContextCarrier, observers, turnBudget, null);
+    }
+
+    public DefaultAgentSession(String appId, String agentName, String sessionId,
+                               ChatClient chatClient, SessionResourceRegistry registry,
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
+                               HarnessToolCallingManager toolManager,
+                               SpanContextCarrier spanContextCarrier,
+                               List<SessionObserver> observers,
+                               Duration turnBudget,
+                               SessionLeaseGuard leaseGuard) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
@@ -62,6 +130,8 @@ public class DefaultAgentSession implements AgentSession {
         this.toolManager = toolManager;
         this.spanContextCarrier = spanContextCarrier;
         this.observers = new CopyOnWriteArrayList<>(observers);
+        this.turnBudget = turnBudget;
+        this.leaseGuard = leaseGuard;
         this.hookEnv.bindEventPublisher(this::dispatchEvent);
         observers.forEach(SessionObserver::onOpen);
     }
@@ -88,6 +158,18 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public String chat(String input) {
         ensureOpen();
+        ensureLeaseHeld();
+        ensureNotShuttingDown();
+        // impl-30：在途计数（finally 减——任何终结路径均收口，停机排空的裁决源）
+        inFlightTurns.incrementAndGet();
+        try {
+            return doChat(input);
+        } finally {
+            inFlightTurns.decrementAndGet();
+        }
+    }
+
+    private String doChat(String input) {
         int turnSeq = hookEnv.nextTurn();
         observers.forEach(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
@@ -95,46 +177,160 @@ public class DefaultAgentSession implements AgentSession {
         if (before instanceof HookResult.Block block) {
             return block.reason();
         }
-        String response = chatClient.prompt()
-                .user(turnCtx.input())
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
-                .call()
-                .content();
+        String response;
+        try {
+            response = callModelWithinBudget(turnSeq, () -> chatClient.prompt()
+                    .user(turnCtx.input())
+                    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
+                    .call()
+                    .content());
+            // impl-33 / spec 13 §core-3：Turn 收尾提交点 fence——history 的逐条写入发生在
+            // 顾问链内（轮间 fence 已守），此处校验通过后 Completed-Turn 的收尾写入
+            // （afterTurn 钩子的 run-state 快照、onTurnEnd 观察者的 span 收口）才发生
+            verifyLeaseAtCommit();
+        } catch (LeaseLostException e) {
+            abortTurnAsLeaseLost(turnSeq, e);
+            throw e;
+        }
         turnCtx.markResponded(response);
         hookChain.afterTurn(turnCtx);
         observers.forEach(o -> o.onTurnEnd(turnSeq, response));
         return turnCtx.response();
     }
 
+    /** impl-30 / spec 13 §core-1：在途 Turn 数（0 = 无在途，停机排空安定条件之一）。 */
+    public int inFlightTurns() {
+        return inFlightTurns.get();
+    }
+
+    /**
+     * impl-28 / spec 13 §core-2：模型调用兜底（挂起点④）。配置了 turnDeadline/loopTimeout 时，
+     * 整个 ChatClient 调用（含 Advisor 链内的工具递归循环）不得超过 预算 + {@link #MODEL_FINALIZE_GRACE}。
+     * 实现方式：CompletableFuture 在守卫虚拟线程上执行调用、主线程限时等待——Spring AI
+     * ChatClient 无 per-call 超时面（观察 {@code .call()} 即返回阻塞 content），故不尝试改
+     * Spring AI 依赖，也不给 ChatModel 套装饰器（无法区分「本轮模型调用」与「工具后再次调用」
+     * 的归属）。超时走既有错误路径：上抛 {@link BuzhouException}(TIMEOUT) 并通知
+     * {@code onTurnError}；模型侧原生异常原样还原类型上抛（与工具侧通道正交、互不吞没）。
+     * 未配置预算时保持既有直调行为（默认保守不限）。
+     *
+     * <p>诚实边界：超时后 {@code cancel(true)} 中断守卫线程——可中断阻塞（sleep/IO 多数）
+     * 即刻中止；个别不可中断的系统调用会残留一个守护虚拟线程（不占平台线程、随进程结束），
+     * 会话调用方不再被拖住，这是「最坏情况单点泄漏而非整会话僵死」的取舍。
+     */
+    private String callModelWithinBudget(int turnSeq, Supplier<String> modelCall) {
+        Duration budget = turnBudget;
+        if (budget == null) {
+            return modelCall.get();
+        }
+        Duration hardBound = budget.plus(MODEL_FINALIZE_GRACE);
+        CompletableFuture<String> guarded =
+                CompletableFuture.supplyAsync(modelCall, MODEL_CALL_GUARD_EXECUTOR);
+        try {
+            return guarded.get(hardBound.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            guarded.cancel(true);
+            BuzhouException timeout = new BuzhouException(ErrorCode.TIMEOUT,
+                    "模型调用超时：Turn 预算 " + budget.toMillis() + "ms（含 "
+                            + MODEL_FINALIZE_GRACE.toSeconds() + "s 收尾宽限）已耗尽", e);
+            observers.forEach(o -> o.onTurnError(turnSeq, timeout));
+            throw timeout;
+        } catch (ExecutionException e) {
+            // 还原底层异常类型：模型侧异常照常按原类型暴露（既有错误路径不变）
+            Throwable cause = e.getCause() == null ? e : e.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            throw new IllegalStateException("模型调用失败", cause);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED, "模型调用等待被中断", e);
+        }
+    }
+
     @Override
     public Flux<ChatResponse> stream(String input) {
         ensureOpen();
+        ensureLeaseHeld();
+        ensureNotShuttingDown();
+        // impl-30：在途计数在订阅终结（doFinally）时递减——与 onTurnStart 的预先通知时点对齐
+        inFlightTurns.incrementAndGet();
         int turnSeq = hookEnv.nextTurn();
         observers.forEach(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
         HookResult before = hookChain.beforeTurn(turnCtx);
         if (before instanceof HookResult.Block block) {
+            inFlightTurns.decrementAndGet(); // 未返回 Flux 前即终结，同步收口计数
             return Flux.error(new IllegalStateException(block.reason()));
         }
         StringBuilder replyAccumulator = new StringBuilder();
-        return chatClient.prompt()
+        Flux<ChatResponse> stream = chatClient.prompt()
                 .user(turnCtx.input())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                 .stream()
-                .chatResponse()
+                .chatResponse();
+        if (turnBudget != null) {
+            // impl-28：流式兜底——相邻信号间隔不得超过 预算+收尾宽限（挂死/断流的模型调用被
+            // TimeoutException 截断，走既有 doOnError→onTurnError 路径）。诚实边界：流式 timeout
+            // 为「相邻信号间隔」语义，持续慢滴流的流不被累计截断（流式固有语义）。
+            stream = stream.timeout(turnBudget.plus(MODEL_FINALIZE_GRACE));
+        }
+        // impl-30 / spec 13 §core-1：轮次终结一次性守卫——complete/error/cancel/timeout 四路
+        // 终结信号共用（正常完成与异常收尾语义均只执行一次，幂等）
+        AtomicBoolean finalized = new AtomicBoolean();
+        return stream
                 .doOnNext(resp -> {
                     if (resp != null && resp.getResult() != null && resp.getResult().getOutput() != null
                             && resp.getResult().getOutput().getText() != null) {
                         replyAccumulator.append(resp.getResult().getOutput().getText());
                     }
                 })
-                .doOnComplete(() -> {
-                    // 与 chat() 对齐的轮次收尾：afterTurn 钩子 + onTurnEnd（TURN span 关闭防泄漏）
-                    turnCtx.markResponded(replyAccumulator.toString());
-                    hookChain.afterTurn(turnCtx);
-                    observers.forEach(o -> o.onTurnEnd(turnSeq, turnCtx.response()));
-                })
-                .doOnError(e -> observers.forEach(o -> o.onTurnError(turnSeq, e)));
+                .doOnComplete(() -> completeStreamTurnOnce(finalized, turnSeq, turnCtx, replyAccumulator))
+                .doOnError(e -> failTurnOnce(finalized, turnSeq, e))
+                // impl-30 / spec 13 §core-1：doFinally 收尾——订阅者 cancel 与正常完成同路执行
+                // span 关闭、turn 记账（onTurnError 终结在途 Turn）；在途计数在此递减
+                .doFinally(signal -> {
+                    inFlightTurns.decrementAndGet();
+                    if (signal == SignalType.CANCEL) {
+                        failTurnOnce(finalized, turnSeq,
+                                new CancellationException("流式订阅被取消，Turn 终止"));
+                    }
+                });
+    }
+
+    /**
+     * impl-30：流式正常完成收尾（一次性）——与 chat() 对齐的轮次收尾：提交点 fence +
+     * afterTurn 钩子 + onTurnEnd（TURN span 关闭防泄漏）；fence 失败按 LeaseLost 语义中止
+     * （不入 Completed-Turn；doOnComplete 内抛出 → 订阅者以 onError 看到 LeaseLost，
+     * 后续 doOnError 经 finalized 守卫不再重复通知）。
+     */
+    private void completeStreamTurnOnce(AtomicBoolean finalized, int turnSeq,
+                                        DefaultTurnContext turnCtx, StringBuilder replyAccumulator) {
+        if (!finalized.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            verifyLeaseAtCommit();
+            turnCtx.markResponded(replyAccumulator.toString());
+            hookChain.afterTurn(turnCtx);
+            observers.forEach(o -> o.onTurnEnd(turnSeq, turnCtx.response()));
+        } catch (LeaseLostException e) {
+            abortTurnAsLeaseLost(turnSeq, e);
+            throw e;
+        }
+    }
+
+    /**
+     * impl-30：轮次异常终结收尾（一次性）——onTurnError 收口在途 Turn span/记账；
+     * timeout/模型错误/订阅取消三路共用，finalized 守卫保证与正常完成互斥且不重复。
+     */
+    private void failTurnOnce(AtomicBoolean finalized, int turnSeq, Throwable error) {
+        if (!finalized.compareAndSet(false, true)) {
+            return;
+        }
+        observers.forEach(o -> o.onTurnError(turnSeq, error));
     }
 
     /** 取消在途轮次：中断全部在途工具调用；会话不谢幕，可继续 chat。 */
@@ -156,14 +352,40 @@ public class DefaultAgentSession implements AgentSession {
                 java.util.Map.of("cancelMode", effective.name())));
     }
 
+    /**
+     * impl-30 / spec 13 §core-1：关闭收尾全程「清理优先、异常收集」——逐 observer 隔离
+     * onClose、隔离 onClose.run()（资源注册表逆序关闭），<b>无论谁失败</b>都继续执行
+     * 事件分发、{@code listeners.clear()} 与 span 清理（既有实现里 observer/listener 异常
+     * 会跳过 listeners.clear()——本片补齐）；全部清理完毕后首个失败上抛、其余 suppressed。
+     */
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
-            observers.forEach(SessionObserver::onClose);
-            onClose.run();
+            List<RuntimeException> failures = new ArrayList<>();
+            for (SessionObserver observer : observers) {
+                try {
+                    observer.onClose();
+                } catch (RuntimeException e) {
+                    LOGGER.log(System.Logger.Level.ERROR,
+                            "会话关闭通知 observer 失败（不跳过后续清理）：sessionId=" + sessionId, e);
+                    failures.add(e);
+                }
+            }
+            try {
+                onClose.run();
+            } catch (RuntimeException e) {
+                failures.add(e);
+            }
             dispatchEvent(SessionEvent.of("session.closed"));
             listeners.clear();
             spanContextCarrier.clear();
+            if (!failures.isEmpty()) {
+                RuntimeException first = failures.getFirst();
+                for (int i = 1; i < failures.size(); i++) {
+                    first.addSuppressed(failures.get(i));
+                }
+                throw first;
+            }
         }
     }
 
@@ -177,14 +399,84 @@ public class DefaultAgentSession implements AgentSession {
         listeners.remove(listener);
     }
 
+    /**
+     * impl-30 / spec 13 §core-1：事件分发逐 listener 隔离——hook 链与每个
+     * {@link SessionEventListener} 各自 try/catch（ERROR 日志），单个异常不阻断其余
+     * listener 的分发，也绝不向上传播跳过 close() 的后续清理步骤（listeners.clear 等）。
+     */
     private void dispatchEvent(SessionEvent event) {
-        hookChain.fireEvent(new DefaultSessionEventContext(hookEnv, event));
-        listeners.forEach(listener -> listener.onEvent(event));
+        try {
+            hookChain.fireEvent(new DefaultSessionEventContext(hookEnv, event));
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.ERROR,
+                    "事件 hook 链分发失败（已隔离，继续 listener 分发）：sessionId=" + sessionId
+                            + ", event=" + event.type(), e);
+        }
+        for (SessionEventListener listener : listeners) {
+            try {
+                listener.onEvent(event);
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.ERROR,
+                        "事件 listener 异常已隔离（不跳过其余 listener）：sessionId=" + sessionId
+                                + ", event=" + event.type(), e);
+            }
+        }
     }
 
     private void ensureOpen() {
         if (closed.get()) {
             throw new IllegalStateException("Session already closed: " + sessionId);
         }
+    }
+
+    /**
+     * impl-30 / spec 13 §core-1：停机期拒绝新 Turn——结构化
+     * {@link BuzhouException}(SHUTDOWN_INTERRUPTED，RETRYABLE)：停机窗口结束后可重新发起。
+     */
+    private void ensureNotShuttingDown() {
+        if (rejectingNewTurns) {
+            throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
+                    "运行时停机中，拒绝新 Turn（sessionId=" + sessionId + "）");
+        }
+    }
+
+    /** impl-30：运行时停机序列置位（{@code DefaultAgentRuntime} 调用；chat/stream 即刻拒绝）。 */
+    void beginShutdown() {
+        rejectingNewTurns = true;
+    }
+
+    /**
+     * impl-33 / spec 13 §core-3：租约已丢失（本会话曾经历 LeaseLost 中止 / 后台续租发现被
+     * steal）后的 chat/stream 调用即刻拒绝——既定错误通道为结构化
+     * {@link LeaseLostException}（ErrorCode.LEASE_LOST，NON_RETRYABLE），不静默复活会话。
+     */
+    private void ensureLeaseHeld() {
+        if (leaseGuard != null && leaseGuard.isLost()) {
+            throw new LeaseLostException(sessionId);
+        }
+    }
+
+    /** impl-33：Turn 收尾提交点 fence（history/快照写入前的最后校验）。 */
+    private void verifyLeaseAtCommit() {
+        if (leaseGuard != null) {
+            leaseGuard.checkFence();
+        }
+    }
+
+    /**
+     * impl-33 / spec 13 §core-3：LeaseLost 中止语义——在飞工具结果已在顾问链轮缝被丢弃
+     * （不入 history）、Turn 不入 Completed-Turn（不 markResponded、不 afterTurn、不
+     * onTurnEnd，快照类写入不发生）；会话标记 leaseLost（后续调用明确拒绝）；以
+     * {@code session.lease.lost} 事件可观测、{@code onTurnError} 收口在途 Turn span
+     * （防泄漏，与 TIMEOUT 兜底路径同型）。
+     */
+    private void abortTurnAsLeaseLost(int turnSeq, LeaseLostException e) {
+        if (leaseGuard != null) {
+            leaseGuard.markLost();
+        }
+        dispatchEvent(SessionEvent.of("session.lease.lost", java.util.Map.of(
+                "sessionId", sessionId,
+                "turnSeq", turnSeq)));
+        observers.forEach(o -> o.onTurnError(turnSeq, e));
     }
 }

@@ -6,7 +6,6 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.CompositeAttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillCatalogRenderer;
-import io.github.chyuan_cuihongyuan.buzhou.memory.MemoryModule;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,19 +37,30 @@ import java.util.Map;
 @ConditionalOnProperty(prefix = "buzhou.memory", name = "enabled", matchIfMissing = true)
 public class BuzhouMemoryAutoConfiguration {
 
+    /**
+     * impl-30 / spec 13 §core-1：memory 生命周期 bean——构建装配产出的同时收集模块自有
+     * 后台资源（sleep-time 调度器），stop（phase
+     * {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#MEMORY}，
+     * core 停机会话之后）时关闭。
+     */
     @Bean
-    public RuntimeConfig memoryRuntimeConfig(BuzhouStores stores, Environment env,
-                                             List<AttachmentRenderer> attachmentRenderers,
-                                             ObjectProvider<SkillCatalogRenderer> catalogRenderer,
-                                             ObjectProvider<ChatModel> chatModel,
-                                             @Qualifier("buzhouSummaryChatModel")
-                                             ObjectProvider<ChatModel> summaryModel) {
+    public MemoryModuleLifecycle memoryModuleLifecycle(BuzhouStores stores, Environment env,
+                                                       List<AttachmentRenderer> attachmentRenderers,
+                                                       ObjectProvider<SkillCatalogRenderer> catalogRenderer,
+                                                       ObjectProvider<ChatModel> chatModel,
+                                                       @Qualifier("buzhouSummaryChatModel")
+                                                       ObjectProvider<ChatModel> summaryModel) {
         Map<String, Object> map = ConfigMaps.sub(env, "buzhou");
         AttachmentRenderer renderer = compose(attachmentRenderers);
         ChatModel main = chatModel.getIfAvailable();
         ChatModel summary = summaryModel.getIfAvailable();
-        return MemoryModule.configure(map, stores, main, summary != null ? summary : main,
+        return new MemoryModuleLifecycle(map, stores, main, summary != null ? summary : main,
                 renderer, catalogRenderer.getIfAvailable());
+    }
+
+    @Bean
+    public RuntimeConfig memoryRuntimeConfig(MemoryModuleLifecycle lifecycle) {
+        return lifecycle.runtimeConfig();
     }
 
     private static AttachmentRenderer compose(List<AttachmentRenderer> renderers) {

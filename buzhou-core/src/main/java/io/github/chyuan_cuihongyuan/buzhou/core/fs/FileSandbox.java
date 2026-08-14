@@ -1,5 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.fs;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +21,8 @@ import java.util.List;
  */
 public class FileSandbox {
 
+    private static final Logger LOG = LoggerFactory.getLogger(FileSandbox.class);
+
     private final Path root;
     private final List<Path> allowedRoots;
 
@@ -35,7 +40,7 @@ public class FileSandbox {
         Path candidate = absolutize(raw);
         Path check = Files.exists(candidate) ? realpath(candidate) : candidate;
         if (!contains(check)) {
-            throw new SandboxViolationException("路径越出沙箱：" + raw);
+            throw violation("路径越出沙箱：" + raw);
         }
         return check;
     }
@@ -44,12 +49,12 @@ public class FileSandbox {
         Path candidate = absolutize(raw);
         Path parent = candidate.getParent();
         if (parent == null) {
-            throw new SandboxViolationException("路径越出沙箱：" + raw);
+            throw violation("路径越出沙箱：" + raw);
         }
         Path realParent = Files.exists(parent) ? realpath(parent) : parent;
         Path resolved = realParent.resolve(candidate.getFileName().toString());
         if (!contains(resolved)) {
-            throw new SandboxViolationException("路径越出沙箱：" + raw);
+            throw violation("路径越出沙箱：" + raw);
         }
         return resolved;
     }
@@ -64,7 +69,7 @@ public class FileSandbox {
 
     private Path absolutize(String raw) {
         if (raw == null || raw.isBlank()) {
-            throw new SandboxViolationException("路径为空");
+            throw violation("路径为空");
         }
         Path path = Path.of(raw);
         if (!path.isAbsolute()) {
@@ -73,11 +78,17 @@ public class FileSandbox {
         return path.normalize();
     }
 
+    /** ticket 29 日志基线：沙箱拒绝统一经此告警（spec 13 §cross-11）后抛出，拒绝可观测。 */
+    private static SandboxViolationException violation(String message) {
+        LOG.warn("沙箱拒绝：{}", message);
+        return new SandboxViolationException(message);
+    }
+
     private static Path realpath(Path path) {
         try {
             return path.toRealPath();
         } catch (IOException e) {
-            throw new SandboxViolationException("路径解析失败：" + path);
+            throw violation("路径解析失败：" + path);
         }
     }
 

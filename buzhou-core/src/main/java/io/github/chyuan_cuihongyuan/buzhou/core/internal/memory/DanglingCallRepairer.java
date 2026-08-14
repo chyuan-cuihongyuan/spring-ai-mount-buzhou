@@ -3,6 +3,8 @@ package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.time.Instant;
@@ -15,6 +17,8 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class DanglingCallRepairer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DanglingCallRepairer.class);
 
     public static final String INTERRUPTED_RESULT = "执行被中断，结果未知";
 
@@ -138,6 +142,8 @@ public class DanglingCallRepairer {
                     call.id(), null, null, Map.of("toolName", call.name(), "replayed", true),
                     Instant.now());
         } catch (RuntimeException e) {
+            // ticket 29 日志基线：回放失败不再静默——告警后改走合成中断结果（结果未知语义）
+            LOG.warn("幂等工具重放失败，改走合成中断结果：sessionId={} tool={}", sessionId, call.name(), e);
             return null;
         }
     }

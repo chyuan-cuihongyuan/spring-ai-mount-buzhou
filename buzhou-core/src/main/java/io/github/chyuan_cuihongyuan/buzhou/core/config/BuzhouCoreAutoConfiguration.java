@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.config;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.AgentRuntimeLifecycle;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.HarnessAssembler;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
@@ -50,10 +51,16 @@ public class BuzhouCoreAutoConfiguration {
         return Buzhou.inMemoryStores();
     }
 
-    @Bean
+    /**
+     * impl-30 / spec 13 §core-1：显式 {@code destroyMethod = "close"}——不靠推断，且与
+     * {@link AgentRuntimeLifecycle#stop} 的双触发由 runtime 停机状态机（幂等）吸收：
+     * stop 已跑完则 close 为 no-op；容器未调 stop 直接 destroy 时 close 兜底硬截断收尾。
+     */
+    @Bean(destroyMethod = "close")
     @ConditionalOnBean(ChatModel.class)
-    @ConditionalOnMissingBean
-    public AgentRuntime buzhouAgentRuntime(ChatModel chatModel, BuzhouStores stores,
+    @ConditionalOnMissingBean(AgentRuntime.class)
+    public DefaultAgentRuntime buzhouAgentRuntime(ChatModel chatModel, BuzhouStores stores,
+                                           BuzhouCoreProperties properties,
                                            List<RuntimeConfig> moduleConfigs,
                                            List<BuzhouHook> hooks,
                                            List<ToolCallback> autoTools,
@@ -79,6 +86,21 @@ public class BuzhouCoreAutoConfiguration {
             all.add(RuntimeConfig.viewProcessor(mvp));
         }
         RuntimeConfig merged = RuntimeConfig.merge(all.toArray(new RuntimeConfig[0]));
-        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged);
+        // impl-33 / spec 13 §core-3：租约参数（buzhou.lease-ttl / buzhou.lease-renew-interval）流入运行时；
+        // impl-30：停机排空预算（buzhou.lifecycle.timeout-per-shutdown-phase）流入运行时
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
+                properties.leaseTtl(), properties.effectiveLeaseRenewInterval(),
+                properties.lifecycle().timeoutPerShutdownPhase());
+    }
+
+    /**
+     * impl-30 / spec 13 §core-1：core 优雅停机 lifecycle（phase =
+     * {@link BuzhouLifecyclePhases#CORE}，最先 stop——拒绝新 Turn → 在途 AFTER_CURRENT_TURN
+     * 取消 → 排空 → 超时硬截断）。
+     */
+    @Bean
+    @ConditionalOnBean(ChatModel.class)
+    public AgentRuntimeLifecycle buzhouAgentRuntimeLifecycle(DefaultAgentRuntime runtime) {
+        return new AgentRuntimeLifecycle(runtime, null);
     }
 }

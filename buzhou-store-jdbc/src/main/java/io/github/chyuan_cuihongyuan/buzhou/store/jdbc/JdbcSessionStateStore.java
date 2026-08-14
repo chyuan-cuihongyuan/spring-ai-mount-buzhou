@@ -4,6 +4,8 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.util.LinkedHashMap;
@@ -14,6 +16,10 @@ public class JdbcSessionStateStore implements SessionStateStore {
 
     private final JdbcTemplate jdbc;
 
+    /** 共享事务模板（spec 13 §stores-7 / ticket 32）：null = 兼容旧自动提交路径。 */
+    @Nullable
+    private final TransactionTemplate transactionTemplate;
+
     private static final RowMapper<StateEntry> MAPPER = (rs, n) -> new StateEntry(
             rs.getString("state_key"),
             rs.getString("state_value"),
@@ -23,19 +29,28 @@ public class JdbcSessionStateStore implements SessionStateStore {
             rs.getTimestamp("updated_at").toInstant());
 
     public JdbcSessionStateStore(JdbcTemplate jdbc) {
+        this(jdbc, null);
+    }
+
+    public JdbcSessionStateStore(JdbcTemplate jdbc, @Nullable TransactionTemplate transactionTemplate) {
         this.jdbc = jdbc;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
     public void put(String sessionId, StateEntry entry) {
-        delete(sessionId, entry.key());
-        jdbc.update("""
-                        INSERT INTO buzhou_session_state
-                        (session_id, state_key, state_value, producer, created_turn, ttl_turns, updated_at)
-                        VALUES (?,?,?,?,?,?,?)
-                        """,
-                sessionId, entry.key(), entry.value(), entry.producer(),
-                entry.createdTurn(), entry.ttlTurns(), Timestamp.from(entry.updatedAt()));
+        // ticket 32：先删后插整段进同一事务（有 UoW 复用、无则自开短事务）
+        JdbcTransactions.inCurrentOrNew(transactionTemplate, () -> {
+            delete(sessionId, entry.key());
+            jdbc.update("""
+                            INSERT INTO buzhou_session_state
+                            (session_id, state_key, state_value, producer, created_turn, ttl_turns, updated_at)
+                            VALUES (?,?,?,?,?,?,?)
+                            """,
+                    sessionId, entry.key(), entry.value(), entry.producer(),
+                    entry.createdTurn(), entry.ttlTurns(), Timestamp.from(entry.updatedAt()));
+            return null;
+        });
     }
 
     @Override

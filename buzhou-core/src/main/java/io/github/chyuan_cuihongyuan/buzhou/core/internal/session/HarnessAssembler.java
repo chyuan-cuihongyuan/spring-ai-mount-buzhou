@@ -36,6 +36,11 @@ import java.util.concurrent.ExecutorService;
 
 public class HarnessAssembler {
 
+    /** impl-28：单 Turn 并发许可默认值（既有硬编码收敛为命名常量；后续切片可提升为可配）。 */
+    private static final int DEFAULT_MAX_CONCURRENCY_PER_TURN = 8;
+    /** impl-28：单工具派发默认超时（既有硬编码收敛为命名常量；与 Deadline 取 min 后生效）。 */
+    private static final Duration DEFAULT_TOOL_TIMEOUT = Duration.ofSeconds(60);
+
     public AgentSession assemble(String appId, String agentName, String sessionId,
                                  ChatModel chatModel, BuzhouStores stores,
                                  SessionResourceRegistry registry,
@@ -65,6 +70,31 @@ public class HarnessAssembler {
                                  List<SessionAssemblyCustomizer> assemblyCustomizers,
                                  TurnLoopPolicy turnLoopPolicy,
                                  ToolCallback... tools) {
+        return assemble(appId, agentName, sessionId, chatModel, stores, registry, onClose,
+                hooks, disabledHookNames, idempotentToolNames, viewProcessor, executor, serialGroups,
+                assemblyCustomizers, turnLoopPolicy, null, tools);
+    }
+
+    /**
+     * impl-33 / spec 13 §core-3：完整装配入口——{@code leaseGuard} 贯穿两处：
+     * {@link BoundedToolCallingAdvisor}（Turn 轮间续租 + fence，在飞工具结果落库前截断）与
+     * {@link DefaultAgentSession}（Turn 提交点 fence + LeaseLost 中止语义）。null = 无租约语义
+     * （{@code Buzhou.enhance} 等非会话路径既有行为不变）。
+     */
+    public AgentSession assemble(String appId, String agentName, String sessionId,
+                                 ChatModel chatModel, BuzhouStores stores,
+                                 SessionResourceRegistry registry,
+                                 Runnable onClose,
+                                 Collection<BuzhouHook> hooks,
+                                 Set<String> disabledHookNames,
+                                 Set<String> idempotentToolNames,
+                                 MemoryViewProcessor viewProcessor,
+                                 ExecutorService executor,
+                                 Map<String, String> serialGroups,
+                                 List<SessionAssemblyCustomizer> assemblyCustomizers,
+                                 TurnLoopPolicy turnLoopPolicy,
+                                 SessionLeaseGuard leaseGuard,
+                                 ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, agentName, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
 
@@ -72,7 +102,8 @@ public class HarnessAssembler {
         // impl-06/07：manager 先于 customizer 构造——恢复/审计类机制模块经装配上下文挂接事件日志
         HarnessToolCallingManager toolManager = new HarnessToolCallingManager(
                 org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
-                executor, 8, Duration.ofSeconds(60), serialGroups, spanContextCarrier, sessionId);
+                executor, DEFAULT_MAX_CONCURRENCY_PER_TURN, DEFAULT_TOOL_TIMEOUT,
+                serialGroups, spanContextCarrier, sessionId);
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
                 appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager);
         assemblyCtx.wrapToolCallbacks(t -> (ToolCallback) new HookedToolCallback(t, chain, env));
@@ -107,8 +138,11 @@ public class HarnessAssembler {
         List<Advisor> advisors = new ArrayList<>();
         // 有界 Turn（T17）：默认策略给 think→tool 递归上硬上界；policy=null 时用框架默认（40 轮）
         advisors.add(new BoundedToolCallingAdvisor(toolManager, turnLoopPolicy, sessionId, agentName,
-                event -> env.emit(event)));
-        advisors.add(new BuzhouMemoryAdvisor(memory));
+                event -> env.emit(event), leaseGuard));
+        // impl-33：写路径 fence——history 每次落库前校验 fencingToken（leaseGuard 为 null 时为
+        // 无租约路径 no-op）；方法引用而非直接传 guard，避免 memory 包反向依赖 session 包内部类
+        advisors.add(new BuzhouMemoryAdvisor(memory,
+                leaseGuard == null ? null : leaseGuard::checkFence));
         advisors.add(new HookAdvisor(chain, env));
         // 机制模块注入的 advisor（如 ObservabilityAdvisor）
         advisors.addAll(assemblyCtx.advisors());
@@ -116,8 +150,12 @@ public class HarnessAssembler {
         if (allTools.length > 0) {
             builder.defaultToolCallbacks(Arrays.asList(allTools));
         }
+        // impl-28 / spec 13 §core-2：有效 Turn 预算（min(turnDeadline, loopTimeout)）交给会话层
+        // 做模型调用兜底；未配置为 null（既有直调不设限行为）
+        Duration turnBudget = turnLoopPolicy == null ? null : turnLoopPolicy.effectiveTurnBudget();
         return new DefaultAgentSession(appId, agentName, sessionId, builder.build(), registry, onClose,
-                chain, env, toolManager, spanContextCarrier, assemblyCtx.observers());
+                chain, env, toolManager, spanContextCarrier, assemblyCtx.observers(), turnBudget,
+                leaseGuard);
     }
 
     public ChatClient.Builder enhance(ChatClient.Builder builder, BuzhouStores stores) {

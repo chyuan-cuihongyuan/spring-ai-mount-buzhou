@@ -5,6 +5,8 @@ import io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunStateSnapshot;
 import io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.util.Comparator;
@@ -26,23 +28,36 @@ public class JdbcRunRegistry implements RunRegistry {
 
     private final JdbcTemplate jdbc;
 
+    /** 共享事务模板（spec 13 §stores-7 / ticket 32）：null = 兼容旧自动提交路径。 */
+    @Nullable
+    private final TransactionTemplate transactionTemplate;
+
     public JdbcRunRegistry(JdbcTemplate jdbc) {
+        this(jdbc, null);
+    }
+
+    public JdbcRunRegistry(JdbcTemplate jdbc, @Nullable TransactionTemplate transactionTemplate) {
         this.jdbc = jdbc;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
     public void save(RunStateSnapshot snapshot) {
-        // 方言无关 upsert：先删后插（与 JdbcSessionStateStore.put 同惯例）
-        jdbc.update("DELETE FROM buzhou_run_registry WHERE session_id = ?", snapshot.sessionId());
-        jdbc.update("""
-                        INSERT INTO buzhou_run_registry
-                        (session_id, app_id, agent_name, status, current_turn,
-                         last_completed_turn, owner_id, updated_at)
-                        VALUES (?,?,?,?,?,?,?,?)
-                        """,
-                snapshot.sessionId(), snapshot.appId(), snapshot.agentName(),
-                snapshot.status().name(), snapshot.currentTurn(), snapshot.lastCompletedTurn(),
-                snapshot.ownerId(), Timestamp.from(snapshot.updatedAt()));
+        // ticket 32：方言无关 upsert（先删后插）整段进同一事务（有 UoW 复用、无则自开短事务），
+        // 与 JdbcSessionStateStore.put 同惯例
+        JdbcTransactions.inCurrentOrNew(transactionTemplate, () -> {
+            jdbc.update("DELETE FROM buzhou_run_registry WHERE session_id = ?", snapshot.sessionId());
+            jdbc.update("""
+                            INSERT INTO buzhou_run_registry
+                            (session_id, app_id, agent_name, status, current_turn,
+                             last_completed_turn, owner_id, updated_at)
+                            VALUES (?,?,?,?,?,?,?,?)
+                            """,
+                    snapshot.sessionId(), snapshot.appId(), snapshot.agentName(),
+                    snapshot.status().name(), snapshot.currentTurn(), snapshot.lastCompletedTurn(),
+                    snapshot.ownerId(), Timestamp.from(snapshot.updatedAt()));
+            return null;
+        });
     }
 
     @Override

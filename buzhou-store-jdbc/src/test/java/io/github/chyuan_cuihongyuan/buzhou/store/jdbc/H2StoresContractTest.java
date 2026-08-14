@@ -22,7 +22,7 @@ class H2StoresContractTest extends AbstractBuzhouStoresContractTest {
     H2StoresContractTest() {
         JdbcDataSource dataSource = new JdbcDataSource();
         dataSource.setURL("jdbc:h2:mem:contract-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
-        stores = JdbcBuzhouStores.create(dataSource, Dialect.H2);
+        stores = JdbcBuzhouStores.createWithRecovery(dataSource, Dialect.H2).stores();
     }
 
     @Override

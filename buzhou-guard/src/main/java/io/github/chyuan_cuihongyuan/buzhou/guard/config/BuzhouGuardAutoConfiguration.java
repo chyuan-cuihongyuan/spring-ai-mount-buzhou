@@ -39,4 +39,15 @@ public class BuzhouGuardAutoConfiguration {
     public RuntimeConfig guardRuntimeConfig(GuardModule module) {
         return module.configure();
     }
+
+    /**
+     * impl-30 / spec 13 §core-1：guard 停机 lifecycle（phase
+     * {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#GUARD}）。
+     * 本片为 phase 声明与占位（审计链未在装配面接线、无挂起 flush，诚实边界见
+     * {@link GuardModuleLifecycle} Javadoc；flush 钩子属切片 39）。
+     */
+    @Bean
+    public GuardModuleLifecycle guardModuleLifecycle() {
+        return new GuardModuleLifecycle();
+    }
 }

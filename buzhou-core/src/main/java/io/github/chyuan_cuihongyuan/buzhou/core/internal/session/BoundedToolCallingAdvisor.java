@@ -39,6 +39,8 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
     private final String agentName;
     private final Consumer<SessionEvent> eventSink;
     private final ToolCallingManager toolCallingManager;
+    /** impl-33：租约哨兵（null = 无租约语义路径，如 Buzhou.enhance）。 */
+    private final SessionLeaseGuard leaseGuard;
     private final AtomicInteger executedToolRounds = new AtomicInteger();
     private final AtomicReference<Instant> loopStartedAt = new AtomicReference<>();
 
@@ -47,6 +49,15 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
                                      String sessionId,
                                      String agentName,
                                      Consumer<SessionEvent> eventSink) {
+        this(toolCallingManager, policy, sessionId, agentName, eventSink, null);
+    }
+
+    public BoundedToolCallingAdvisor(ToolCallingManager toolCallingManager,
+                                     TurnLoopPolicy policy,
+                                     String sessionId,
+                                     String agentName,
+                                     Consumer<SessionEvent> eventSink,
+                                     SessionLeaseGuard leaseGuard) {
         // 与 ToolCallingAdvisor.builder().toolCallingManager(tm).build() 的默认保持一致：
         // 默认 eligibility checker、默认 order（最外层）、内部会话历史启用。
         super(toolCallingManager, DEFAULT_TOOL_EXECUTION_ELIGIBILITY_CHECKER, DEFAULT_ORDER, true);
@@ -55,6 +66,7 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         this.agentName = agentName;
         this.eventSink = eventSink;
         this.toolCallingManager = toolCallingManager;
+        this.leaseGuard = leaseGuard;
     }
 
     @Override
@@ -63,6 +75,7 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         loopStartedAt.set(Instant.now());
         resetValidationBudget();
         clearPendingCancel();
+        beginTurnDeadline();
         return super.doInitializeLoop(request, chain);
     }
 
@@ -72,7 +85,46 @@ public class BoundedToolCallingAdvisor extends ToolCallingAdvisor {
         loopStartedAt.set(Instant.now());
         resetValidationBudget();
         clearPendingCancel();
+        beginTurnDeadline();
         return super.doInitializeLoopStream(request, chain);
+    }
+
+    /**
+     * impl-33 / spec 13 §core-3：Turn 循环<b>每轮开始</b>（工具结果落库前、本轮模型调用前）的
+     * 租约裁决——先 fence（{@code inspect} 校验 fencingToken 仍持有：双主窗口零写入，上一轮
+     * 在飞工具结果在此被丢弃、不入 history），剩余租期 &lt; TTL/3 时续租；租约已被 steal /
+     * 过期不可再取即抛 {@code LeaseLostException}（经模型调用链上抛，由会话层按 LeaseLost
+     * 语义中止 Turn）。此缝位于 Spring AI 内部工具循环（adviseCall/adviseStream 每轮
+     * {@code doBeforeCall/doBeforeStream}），是唯一先于 {@code BuzhouMemoryAdvisor} 落库的
+     * 轮间挂点——会话层只见整次模型调用，无轮可见性。
+     */
+    @Override
+    protected ChatClientRequest doBeforeCall(ChatClientRequest request, CallAdvisorChain chain) {
+        renewLeaseBeforeRound();
+        return super.doBeforeCall(request, chain);
+    }
+
+    @Override
+    protected ChatClientRequest doBeforeStream(ChatClientRequest request, StreamAdvisorChain chain) {
+        renewLeaseBeforeRound();
+        return super.doBeforeStream(request, chain);
+    }
+
+    private void renewLeaseBeforeRound() {
+        if (leaseGuard != null) {
+            leaseGuard.beforeRound();
+        }
+    }
+
+    /**
+     * impl-28 / spec 13 §core-2：Turn 开始把有效 Deadline（min(turnDeadline, loopTimeout)，
+     * 以本时刻为起点）交给工具管理器——派发/组锁/许可/外层 join 各等待点按剩余时间限时化，
+     * 不响应中断的挂死工具无法拖死会话。未配置预算时置 none 哨兵（既有无限等待行为）。
+     */
+    private void beginTurnDeadline() {
+        if (toolCallingManager instanceof io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager harness) {
+            harness.beginTurn(policy.effectiveTurnDeadline());
+        }
     }
 
     @Override

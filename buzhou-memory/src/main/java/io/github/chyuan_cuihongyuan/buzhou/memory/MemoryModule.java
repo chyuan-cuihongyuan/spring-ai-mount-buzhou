@@ -16,6 +16,8 @@ import io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge;
 import io.github.chyuan_cuihongyuan.buzhou.memory.tool.EvidenceLookupTool;
 import org.springframework.ai.chat.model.ChatModel;
 
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -53,11 +55,36 @@ public final class MemoryModule {
                 attachmentRenderer, skillCatalogRenderer);
     }
 
+    /**
+     * impl-30 / spec 13 §core-1：带模块自有资源收集器的重载——模块内联创建的后台设施
+     * （如 sleep-time 调度器）登记进 {@code moduleOwnedResources}，由 memory 的
+     * SmartLifecycle 在停机时关闭（既有重载不收集，行为不变）。
+     */
+    public static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
+                                          ChatModel mainModel, ChatModel summaryModel,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillCatalogRenderer skillCatalogRenderer,
+                                          List<AutoCloseable> moduleOwnedResources) {
+        return configure(ymlConfig, stores, stores.messageStore(),
+                mainModel, summaryModel == null ? mainModel : summaryModel,
+                attachmentRenderer, skillCatalogRenderer, moduleOwnedResources);
+    }
+
     private static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
                                            MessageStore messageStore,
                                            ChatModel mainModel, ChatModel summaryModel,
                                            io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer,
                                            io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillCatalogRenderer skillCatalogRenderer) {
+        return configure(ymlConfig, stores, messageStore, mainModel, summaryModel,
+                attachmentRenderer, skillCatalogRenderer, null);
+    }
+
+    private static RuntimeConfig configure(Map<String, Object> ymlConfig, BuzhouStores stores,
+                                           MessageStore messageStore,
+                                           ChatModel mainModel, ChatModel summaryModel,
+                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer attachmentRenderer,
+                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillCatalogRenderer skillCatalogRenderer,
+                                           List<AutoCloseable> moduleOwnedResources) {
         DefaultMicroCompactor compactor = new DefaultMicroCompactor(new DefaultCompletedTurnDetector());
         Function<String, MicroCompactionPolicy> policyFn = policyFn(ymlConfig);
         int protectRecentTurns = protectRecentTurns(ymlConfig);
@@ -79,7 +106,7 @@ public final class MemoryModule {
             SummaryStoreBridge summaryBridge = new SummaryStoreBridge(stores.summaryStore());
             InjectionViewProcessor ivp = new InjectionViewProcessor(compactor, policyFn, protectRecentTurns,
                     budgetCalculator, summaryBridge,
-                    new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3), summaryModel,
+                    new DefaultSummaryGenerator(), summaryCircuitBreaker(ymlConfig), summaryModel,
                     modelName(ymlConfig), keepRecentTurns(ymlConfig), extraInstruction(ymlConfig),
                     maxInjectChars(ymlConfig));
             ivp.setAttachmentRenderer(attachmentRenderer);
@@ -112,7 +139,7 @@ public final class MemoryModule {
             tools.add(new io.github.chyuan_cuihongyuan.buzhou.memory.tool.RecallSearchTool(
                     messageStore, embeddingProvider(ymlConfig)));
         }
-        return new RuntimeConfig(sleepTimeHooks(ymlConfig, stores, summaryModel),
+        return new RuntimeConfig(sleepTimeHooks(ymlConfig, stores, summaryModel, moduleOwnedResources),
                 java.util.Set.of(), java.util.Set.of(),
                 processor, tools);
     }
@@ -120,20 +147,62 @@ public final class MemoryModule {
     /**
      * impl-11 / T37：sleep-time 后台整理钩子（默认开、每 5 Turn 一次；虚拟线程 + 每 session
      * 串行；热路径零阻塞）。无 stores/摘要模型时不注册。
+     *
+     * <p>impl-30 / spec 13 §core-1：调度器登记进 {@code moduleOwnedResources}（非 null 时）——
+     * 此前内联创建从不关闭，本片接线进 memory SmartLifecycle 的 stop（深度治理属切片 38）。
      */
     private static java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook> sleepTimeHooks(
-            Map<String, Object> ymlConfig, BuzhouStores stores, ChatModel summaryModel) {
+            Map<String, Object> ymlConfig, BuzhouStores stores, ChatModel summaryModel,
+            List<AutoCloseable> moduleOwnedResources) {
         if (stores == null || summaryModel == null || !sleepTimeEnabled(ymlConfig)) {
             return List.of();
         }
         io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeScheduler scheduler =
                 new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeScheduler();
+        if (moduleOwnedResources != null) {
+            moduleOwnedResources.add(scheduler);
+        }
         io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidator consolidator =
                 new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidator(
                         new SummaryStoreBridge(stores.summaryStore()), summaryModel,
                         stores.sessionStateStore(), null);
         return List.of(new io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeConsolidationHook(
                 scheduler, consolidator, sleepTimeEveryTurns(ymlConfig)));
+    }
+
+    /**
+     * spec 13 §stores-7 / ticket 32：摘要熔断器配置——
+     * {@code memory.summary-circuit-breaker.failure-threshold}（默认 3）与
+     * {@code memory.summary-circuit-breaker.failure-window}（ISO-8601 或秒数，默认 PT10M）。
+     * 窗口过后半开试探、成功清零、失败重计重新关窗（详见 {@link SummaryCircuitBreaker}）。
+     */
+    private static SummaryCircuitBreaker summaryCircuitBreaker(Map<String, Object> ymlConfig) {
+        Object memory = ymlConfig.get("memory");
+        Map<?, ?> breaker = memory instanceof Map<?, ?> memoryMap
+                && ((Map<?, ?>) memoryMap).get("summary-circuit-breaker") instanceof Map<?, ?> cb
+                ? cb : Map.of();
+        int threshold = integer(breaker.get("failure-threshold"),
+                SummaryCircuitBreaker.DEFAULT_FAILURE_THRESHOLD);
+        Duration window = failureWindow(breaker.get("failure-window"));
+        return new SummaryCircuitBreaker(threshold, window);
+    }
+
+    /** 窗口解析：ISO-8601（如 {@code PT10M}）或秒数（如 {@code 600}）。 */
+    private static Duration failureWindow(Object value) {
+        if (value instanceof Number n && n.longValue() > 0L) {
+            return Duration.ofSeconds(n.longValue());
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            try {
+                Duration parsed = Duration.parse(s);
+                if (!parsed.isNegative() && !parsed.isZero()) {
+                    return parsed;
+                }
+            } catch (DateTimeParseException ignored) {
+                // 非法格式按默认窗口降级（启动不炸；配置校验属 cross-12 范畴）
+            }
+        }
+        return SummaryCircuitBreaker.DEFAULT_FAILURE_WINDOW;
     }
 
     /** impl-11 开关：{@code memory.sleep-time.enabled}（默认开）。 */

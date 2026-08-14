@@ -51,4 +51,15 @@ public class BuzhouSpillAutoConfiguration {
         }
         return builder.build().configure();
     }
+
+    /**
+     * impl-30 / spec 13 §core-1：spill 停机 lifecycle（phase
+     * {@link io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases#SPILL}）。
+     * 本片为 phase 声明与占位（spill 无可关闭资源，诚实边界见
+     * {@link SpillModuleLifecycle} Javadoc）。
+     */
+    @Bean
+    public SpillModuleLifecycle spillModuleLifecycle() {
+        return new SpillModuleLifecycle();
+    }
 }

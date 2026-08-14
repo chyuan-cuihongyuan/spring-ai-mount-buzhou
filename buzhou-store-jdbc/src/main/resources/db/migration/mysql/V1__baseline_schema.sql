@@ -1,3 +1,7 @@
+-- V1 基线（MySQL）：全量 schema（原 db/schema-mysql.sql 迁入版本化轨道）。
+-- 索引幂等化：MySQL 8 不支持 CREATE INDEX IF NOT EXISTS，故每条索引 DDL 先查
+-- information_schema.STATISTICS 再经 PREPARE/EXECUTE 按需执行——脚本重跑安全
+-- （版本机制保证只跑一次 + 基线判定兜底，此处再叠加自身幂等以覆盖「脚本中途失败后重试」）。
 CREATE TABLE IF NOT EXISTS buzhou_message (
     id                VARCHAR(64)  PRIMARY KEY,
     session_id        VARCHAR(128) NOT NULL,
@@ -12,7 +16,14 @@ CREATE TABLE IF NOT EXISTS buzhou_message (
     metadata          LONGTEXT,
     created_at        TIMESTAMP    NOT NULL
 );
-CREATE UNIQUE INDEX idx_msg_session_order ON buzhou_message (session_id, turn_seq, seq_in_turn);
+SET @buzhou_index_count = (SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'buzhou_message' AND INDEX_NAME = 'idx_msg_session_order');
+SET @buzhou_index_ddl = IF(@buzhou_index_count = 0,
+    'CREATE UNIQUE INDEX idx_msg_session_order ON buzhou_message (session_id, turn_seq, seq_in_turn)',
+    'SELECT 1');
+PREPARE buzhou_index_stmt FROM @buzhou_index_ddl;
+EXECUTE buzhou_index_stmt;
+DEALLOCATE PREPARE buzhou_index_stmt;
 
 CREATE TABLE IF NOT EXISTS buzhou_summary (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -22,7 +33,14 @@ CREATE TABLE IF NOT EXISTS buzhou_summary (
     token_estimate    INT          NOT NULL,
     created_at        TIMESTAMP    NOT NULL
 );
-CREATE UNIQUE INDEX idx_summary_session_version ON buzhou_summary (session_id, version);
+SET @buzhou_index_count = (SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'buzhou_summary' AND INDEX_NAME = 'idx_summary_session_version');
+SET @buzhou_index_ddl = IF(@buzhou_index_count = 0,
+    'CREATE UNIQUE INDEX idx_summary_session_version ON buzhou_summary (session_id, version)',
+    'SELECT 1');
+PREPARE buzhou_index_stmt FROM @buzhou_index_ddl;
+EXECUTE buzhou_index_stmt;
+DEALLOCATE PREPARE buzhou_index_stmt;
 
 CREATE TABLE IF NOT EXISTS buzhou_session_state (
     session_id        VARCHAR(128) NOT NULL,
@@ -55,7 +73,14 @@ CREATE TABLE IF NOT EXISTS buzhou_span (
     status            VARCHAR(16)  NOT NULL,
     attributes        LONGTEXT
 );
-CREATE INDEX idx_span_session ON buzhou_span (session_id, turn_seq);
+SET @buzhou_index_count = (SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'buzhou_span' AND INDEX_NAME = 'idx_span_session');
+SET @buzhou_index_ddl = IF(@buzhou_index_count = 0,
+    'CREATE INDEX idx_span_session ON buzhou_span (session_id, turn_seq)',
+    'SELECT 1');
+PREPARE buzhou_index_stmt FROM @buzhou_index_ddl;
+EXECUTE buzhou_index_stmt;
+DEALLOCATE PREPARE buzhou_index_stmt;
 
 CREATE TABLE IF NOT EXISTS buzhou_event (
     event_id          VARCHAR(64)  PRIMARY KEY,
@@ -65,7 +90,14 @@ CREATE TABLE IF NOT EXISTS buzhou_event (
     payload           LONGTEXT,
     created_at        TIMESTAMP    NOT NULL
 );
-CREATE INDEX idx_event_session ON buzhou_event (session_id, created_at);
+SET @buzhou_index_count = (SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'buzhou_event' AND INDEX_NAME = 'idx_event_session');
+SET @buzhou_index_ddl = IF(@buzhou_index_count = 0,
+    'CREATE INDEX idx_event_session ON buzhou_event (session_id, created_at)',
+    'SELECT 1');
+PREPARE buzhou_index_stmt FROM @buzhou_index_ddl;
+EXECUTE buzhou_index_stmt;
+DEALLOCATE PREPARE buzhou_index_stmt;
 
 CREATE TABLE IF NOT EXISTS buzhou_injection_snapshot (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -75,7 +107,14 @@ CREATE TABLE IF NOT EXISTS buzhou_injection_snapshot (
     budget_detail     LONGTEXT,
     created_at        TIMESTAMP    NOT NULL
 );
-CREATE UNIQUE INDEX idx_snapshot_session_turn ON buzhou_injection_snapshot (session_id, turn_seq);
+SET @buzhou_index_count = (SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'buzhou_injection_snapshot' AND INDEX_NAME = 'idx_snapshot_session_turn');
+SET @buzhou_index_ddl = IF(@buzhou_index_count = 0,
+    'CREATE UNIQUE INDEX idx_snapshot_session_turn ON buzhou_injection_snapshot (session_id, turn_seq)',
+    'SELECT 1');
+PREPARE buzhou_index_stmt FROM @buzhou_index_ddl;
+EXECUTE buzhou_index_stmt;
+DEALLOCATE PREPARE buzhou_index_stmt;
 
 CREATE TABLE IF NOT EXISTS buzhou_run_registry (
     session_id           VARCHAR(128) PRIMARY KEY,

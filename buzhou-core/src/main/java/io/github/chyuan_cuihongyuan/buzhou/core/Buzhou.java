@@ -47,6 +47,37 @@ public final class Buzhou {
         return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), config, tools);
     }
 
+    /**
+     * impl-33 / spec 13 §core-3：带租约参数的编程式入口（Spring 装配等价物 =
+     * {@code buzhou.lease-ttl} / {@code buzhou.lease-renew-interval}）。
+     *
+     * @param leaseTtl           租约 TTL；null = 默认 90s
+     * @param leaseRenewInterval 后台续租间隔；null = TTL/3
+     */
+    public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores,
+                                       io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig config,
+                                       java.time.Duration leaseTtl, java.time.Duration leaseRenewInterval,
+                                       ToolCallback... tools) {
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), config,
+                leaseTtl, leaseRenewInterval, tools);
+    }
+
+    /**
+     * impl-30 / spec 13 §core-1：带租约 + 停机排空预算的编程式入口（Spring 装配等价物 =
+     * {@code buzhou.lease-ttl} / {@code buzhou.lease-renew-interval} /
+     * {@code buzhou.lifecycle.timeout-per-shutdown-phase}）。
+     *
+     * @param shutdownTimeout 停机排空预算；null = 默认 30s
+     */
+    public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores,
+                                       io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig config,
+                                       java.time.Duration leaseTtl, java.time.Duration leaseRenewInterval,
+                                       java.time.Duration shutdownTimeout,
+                                       ToolCallback... tools) {
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), config,
+                leaseTtl, leaseRenewInterval, shutdownTimeout, tools);
+    }
+
     public static ChatClient.Builder enhance(ChatClient.Builder builder) {
         return enhance(builder, inMemoryStores());
     }

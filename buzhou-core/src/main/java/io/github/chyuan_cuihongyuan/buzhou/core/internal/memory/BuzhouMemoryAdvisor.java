@@ -23,10 +23,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BuzhouMemoryAdvisor implements BaseAdvisor {
 
     private final BuzhouChatMemory memory;
+    /**
+     * impl-33 / spec 13 §core-3：写路径 fence——history 落库<b>前</b>校验租约 fencingToken
+     * 仍持有（null = 无租约语义路径，如 {@code Buzhou.enhance}，行为不变）。任一写入点
+     * （用户消息/工具结果/assistant 消息）校验失败即抛 LeaseLostException，双主窗口零写入。
+     */
+    private final Runnable writeFence;
     private final Map<String, Set<Message>> seenByConversation = new ConcurrentHashMap<>();
 
     public BuzhouMemoryAdvisor(BuzhouChatMemory memory) {
+        this(memory, null);
+    }
+
+    public BuzhouMemoryAdvisor(BuzhouChatMemory memory, Runnable writeFence) {
         this.memory = memory;
+        this.writeFence = writeFence;
     }
 
     @Override
@@ -53,6 +64,7 @@ public class BuzhouMemoryAdvisor implements BaseAdvisor {
                 .filter(m -> m instanceof UserMessage || m instanceof ToolResponseMessage)
                 .toList();
         if (!newMessages.isEmpty()) {
+            guardBeforeWrite();
             memory.add(conversationId, newMessages);
             seen.addAll(newMessages);
         }
@@ -75,10 +87,17 @@ public class BuzhouMemoryAdvisor implements BaseAdvisor {
                 .filter(m -> m instanceof AssistantMessage)
                 .toList();
         if (!assistantMessages.isEmpty()) {
+            guardBeforeWrite();
             memory.add(conversationId, assistantMessages);
             seenSet(conversationId).addAll(assistantMessages);
         }
         return response;
+    }
+
+    private void guardBeforeWrite() {
+        if (writeFence != null) {
+            writeFence.run();
+        }
     }
 
     private Set<Message> seenSet(String conversationId) {

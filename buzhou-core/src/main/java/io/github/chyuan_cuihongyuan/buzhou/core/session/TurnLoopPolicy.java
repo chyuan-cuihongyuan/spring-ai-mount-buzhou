@@ -18,6 +18,12 @@ import java.util.function.Predicate;
  * （与轮数上界独立扣减）——工具入参未过 schema 回喂校验反馈（REASK）累计超过预算时，
  * 循环优雅收尾（REASK_FAILED），防模型无限重提坏参数。
  *
+ * <p>impl-28 / spec 13 §core-2 增 <b>{@code turnDeadline}</b>：整 Turn 硬预算（模型调用 +
+ * 全部工具轮次），与 {@code loopTimeout} 打通——两者都配置时取<b>更紧者</b>作为有效
+ * {@link TurnDeadline} 贯穿工具派发与外层 join（轮间停止条件裁决之外补上「轮内」截断，
+ * 不响应中断的挂死工具也无法拖死会话）。仅配置 {@code loopTimeout} 时其语义同时升级为
+ * 硬 Deadline（轮间停止条件保留不变）。
+ *
  * <p>来源：Vercel {@code stopWhen} / OpenAI {@code max_turns} / AutoGen 可组合终止条件 +
  * Pydantic AI {@code retries}（默认 1）的 best-of-breed 思想。与工具侧「错误即反馈」
  * （{@code ToolErrorFeedback}）正交：那是单工具失败的恢复通道，这是整轮递归的成本护栏。
@@ -29,13 +35,17 @@ import java.util.function.Predicate;
  * @param retryBudget       每 Turn 参数校验失败重试预算（Pydantic AI 默认 retries=1~2 取 2）；
  *                          {@code null} = 框架默认 {@link #DEFAULT_RETRY_BUDGET}；由
  *                          {@code BoundedToolCallingAdvisor} 结合校验失败计数裁决
+ * @param turnDeadline      impl-28：整 Turn 硬预算（含模型调用与全部工具轮次）；
+ *                          {@code null} = 不设（与 {@code loopTimeout} 都为 null 时保持
+ *                          既有无限等待行为）
  */
 public record TurnLoopPolicy(
         Integer maxToolRounds,
         Duration loopTimeout,
         List<Predicate<TurnLoopContext>> stopConditions,
         Function<TurnLoopContext, String> gracefulFinalizer,
-        Integer retryBudget) {
+        Integer retryBudget,
+        Duration turnDeadline) {
 
     /** 框架默认上界（业界保守值）：单 Turn 最多 40 个工具执行轮，防御 runaway 死循环。 */
     public static final int DEFAULT_MAX_TOOL_ROUNDS = 40;
@@ -47,11 +57,19 @@ public record TurnLoopPolicy(
         stopConditions = stopConditions == null ? List.of() : List.copyOf(stopConditions);
     }
 
-    /** 兼容 4 参构造（retryBudget 取框架默认）。 */
+    /** 兼容 4 参构造（retryBudget 取框架默认、turnDeadline 不设）。 */
     public TurnLoopPolicy(Integer maxToolRounds, Duration loopTimeout,
                           List<Predicate<TurnLoopContext>> stopConditions,
                           Function<TurnLoopContext, String> gracefulFinalizer) {
-        this(maxToolRounds, loopTimeout, stopConditions, gracefulFinalizer, null);
+        this(maxToolRounds, loopTimeout, stopConditions, gracefulFinalizer, null, null);
+    }
+
+    /** 兼容 5 参构造（impl-28 前的规范构造签名；turnDeadline 不设）。 */
+    public TurnLoopPolicy(Integer maxToolRounds, Duration loopTimeout,
+                          List<Predicate<TurnLoopContext>> stopConditions,
+                          Function<TurnLoopContext, String> gracefulFinalizer,
+                          Integer retryBudget) {
+        this(maxToolRounds, loopTimeout, stopConditions, gracefulFinalizer, retryBudget, null);
     }
 
     /** 仅设轮数上界（最常用）。 */
@@ -77,6 +95,33 @@ public record TurnLoopPolicy(
     /** 生效的校验重试预算（null 归一为默认）。 */
     public int effectiveRetryBudget() {
         return retryBudget == null ? DEFAULT_RETRY_BUDGET : retryBudget;
+    }
+
+    /** 拷贝并设置整 Turn 硬预算（fluent 便捷入口，其余字段不变）。 */
+    public TurnLoopPolicy withTurnDeadline(Duration budget) {
+        return new TurnLoopPolicy(maxToolRounds, loopTimeout, stopConditions,
+                gracefulFinalizer, retryBudget, budget);
+    }
+
+    /**
+     * impl-28：有效 Turn 预算——{@code turnDeadline} 与 {@code loopTimeout} 都配置时取
+     * <b>更紧者</b>（打通两者语义）；仅其一配置则用之；都为 null 返回 {@code null}
+     * （不设界，保持既有无限等待行为）。
+     */
+    public Duration effectiveTurnBudget() {
+        if (turnDeadline != null && loopTimeout != null) {
+            return loopTimeout.compareTo(turnDeadline) <= 0 ? loopTimeout : turnDeadline;
+        }
+        return turnDeadline != null ? turnDeadline : loopTimeout;
+    }
+
+    /**
+     * impl-28：有效 Turn Deadline 对象（{@link #effectiveTurnBudget()} 的对象化形式）；
+     * 未配置预算时返回 {@link TurnDeadline#none()} 哨兵（等待方据此保持既有无限等行为）。
+     */
+    public TurnDeadline effectiveTurnDeadline() {
+        Duration budget = effectiveTurnBudget();
+        return budget == null ? TurnDeadline.none() : TurnDeadline.in(budget);
     }
 
     /** 内置停止条件：轮数预算。 */

@@ -16,6 +16,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * <p>本机无 Docker 时自动跳过（{@code disabledWithoutDocker=true}，与 jdbc 模块 Postgres/MySQL 同口径）；
  * CI 环境跑全量契约 + unit-of-work 原子提交/回滚，确认与 {@link RedisStoresContractTest}（jedis-mock）
- * 在真实 Redis 语义上一致。
+ * 在真实 Redis 语义上一致。ticket 32：经 {@link RedisBuzhouStores#createPooled} 装配（池化 UoW 路径）。
  */
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -46,7 +47,8 @@ class RedisStoresTestcontainersTest extends AbstractBuzhouStoresContractTest {
     void setUp() {
         // REDIS 已由 @Container 启动
         client = RedisClient.create("redis://" + REDIS.getHost() + ":" + REDIS.getMappedPort(6379));
-        stores = RedisBuzhouStores.create(client, "buzhou:");
+        stores = RedisBuzhouStores.createPooled(client, "buzhou:", Duration.ZERO,
+                RedisBuzhouStores.DEFAULT_POOL_MAX_SIZE, null);
         adminConn = client.connect();
         admin = adminConn.sync();
     }

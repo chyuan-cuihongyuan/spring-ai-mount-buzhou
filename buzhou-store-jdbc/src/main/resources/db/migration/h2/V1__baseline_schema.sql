@@ -1,3 +1,4 @@
+-- V1 基线（H2）：全量 schema（原 db/schema-h2.sql 迁入版本化轨道，H2 原生支持 IF NOT EXISTS）
 CREATE TABLE IF NOT EXISTS buzhou_message (
     id                VARCHAR(64)  PRIMARY KEY,
     session_id        VARCHAR(128) NOT NULL,

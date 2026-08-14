@@ -29,6 +29,11 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <!-- 日志基线（ticket 29 / spec 13 §cross-11）：仅依赖 API，绑定由接入方提供；版本随 Boot BOM -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
     <!-- 装配测试用 ApplicationContextRunner（随 test-jar 发布供各模块复用） -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

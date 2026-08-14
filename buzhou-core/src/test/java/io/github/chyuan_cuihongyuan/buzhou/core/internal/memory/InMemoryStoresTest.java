@@ -80,6 +80,37 @@ class InMemoryStoresTest {
     }
 
     @Test
+    void shouldPhysicallyRemoveExpiredLease_whenLazyInspectRuns() {
+        InMemorySessionLeaseStore store = new InMemorySessionLeaseStore();
+        store.tryAcquire("s1", "owner-A", Duration.ofMillis(1));
+        assertThat(store.leaseCount()).isEqualTo(1);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        assertThat(store.inspect("s1")).isEmpty();
+        assertThat(store.leaseCount())
+                .as("过期租约在惰性判定时被物理移除（非仅判定失效）")
+                .isZero();
+    }
+
+    @Test
+    void shouldFailRenewAndPhysicallyRemove_whenLeaseExpired() {
+        InMemorySessionLeaseStore store = new InMemorySessionLeaseStore();
+        store.tryAcquire("s1", "owner-A", Duration.ofMillis(1));
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        assertThat(store.renew("s1", "owner-A", 1, Duration.ofSeconds(90)))
+                .as("过期租约不可再取（renew 不复活已过期租约）")
+                .isFalse();
+        assertThat(store.leaseCount()).isZero();
+    }
+
+    @Test
     void observabilityStoreRoundTripsSpansEventsAndSnapshots() {
         InMemoryObservabilityStore store = new InMemoryObservabilityStore();
         SpanRecord span = new SpanRecord("sp1", null, "s1", 1, "Turn", "turn-1",

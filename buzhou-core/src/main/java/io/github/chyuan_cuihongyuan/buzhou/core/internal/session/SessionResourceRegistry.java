@@ -19,6 +19,12 @@ public class SessionResourceRegistry {
         entries.add(new Entry(name, resource));
     }
 
+    /**
+     * 逆序（LIFO）关闭全部已注册资源。
+     *
+     * <p>ticket 29 日志基线：单个资源 close 失败<b>不跳过其余清理</b>——全部尝试完毕后抛出
+     * 首个失败，其余失败以 suppressed 附加（绝不静默吞）。
+     */
     public void closeAll() {
         if (!closed.compareAndSet(false, true)) {
             return;
@@ -29,8 +35,12 @@ public class SessionResourceRegistry {
             try {
                 entry.resource().close();
             } catch (Exception e) {
+                RuntimeException failure =
+                        new RuntimeException("Failed to close session resource: " + entry.name(), e);
                 if (first == null) {
-                    first = new RuntimeException("Failed to close session resource: " + entry.name(), e);
+                    first = failure;
+                } else {
+                    first.addSuppressed(failure);
                 }
             }
         }

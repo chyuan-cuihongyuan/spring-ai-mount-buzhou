@@ -6,6 +6,8 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -21,6 +23,8 @@ import java.util.Optional;
  * key 命名空间 {@code fact.{producer}.{name}}；ttl 轮次过滤 {@code currentTurn - createdTurn < ttl}。
  */
 public class DefaultFactStore implements FactStore {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultFactStore.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String FACT_KEY_PREFIX = "fact.";
@@ -45,7 +49,8 @@ public class DefaultFactStore implements FactStore {
             stateStore.put(sessionId, new StateEntry(key, json, fact.producer(),
                     fact.createdTurn(), fact.ttl(), Instant.now()));
         } catch (Exception e) {
-            // 退化：存 String.valueOf
+            // ticket 29 日志基线：序列化失败静默退化改为可见告警（退化仅影响该条事实的结构化字段）
+            LOG.warn("事实序列化失败，降级存原始字符串：sessionId={} key={}", sessionId, key, e);
             stateStore.put(sessionId, new StateEntry(key, String.valueOf(fact.value()), fact.producer(),
                     fact.createdTurn(), fact.ttl(), Instant.now()));
         }
@@ -89,7 +94,8 @@ public class DefaultFactStore implements FactStore {
                     : (entry.ttlTurns() == null ? 1 : entry.ttlTurns());
             return new Fact(entry.key(), value, producer, createdTurn, ttl);
         } catch (Exception e) {
-            // 退化：把 value 当原始字符串
+            // ticket 29 日志基线：信封解析失败静默退化改为可见告警（value 按原始字符串退化读取）
+            LOG.warn("事实信封反序列化失败，按原始字符串退化读取：key={}", entry.key(), e);
             int ttl = entry.ttlTurns() == null ? 1 : entry.ttlTurns();
             return new Fact(entry.key(), entry.value(), entry.producer(), entry.createdTurn(), ttl);
         }

@@ -13,8 +13,8 @@ package io.github.chyuan_cuihongyuan.buzhou.core.exec;
  */
 public final class ToolValidationFeedback {
 
-    /** 反馈文案标记前缀（供停止条件统计校验失败次数）。 */
-    public static final String MARKER = "[工具参数校验失败]";
+    /** 反馈文案标记前缀（结构化标记单一事实源在 {@link ToolFeedbackType}；词汇不变）。 */
+    public static final String MARKER = ToolFeedbackType.VALIDATION_FAILURE.marker();
 
     private ToolValidationFeedback() {
     }
@@ -35,8 +35,8 @@ public final class ToolValidationFeedback {
                 + "建议：请按工具 schema 修正入参后重试；请勿不做任何修改地原样重试。";
     }
 
-    /** 判断一段工具响应文案是否为校验反馈（供每 Turn 重试预算计数）。 */
+    /** 判断一段工具响应文案是否为校验反馈（走结构化标记，兼容既有文案；供每 Turn 重试预算计数）。 */
     public static boolean isValidationFeedback(String content) {
-        return content != null && content.startsWith(MARKER);
+        return ToolFeedbackType.VALIDATION_FAILURE.matches(content);
     }
 }
