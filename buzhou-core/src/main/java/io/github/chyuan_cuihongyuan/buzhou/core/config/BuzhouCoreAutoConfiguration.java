@@ -42,7 +42,8 @@ import java.util.List;
  */
 @AutoConfiguration
 @EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRetentionProperties.class,
-        BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class})
+        BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class,
+        BuzhouTokenBudgetProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     // ---- 失控检测与容量闸（impl-45 / spec 14 §A，自分支增量移植）----
@@ -72,6 +73,24 @@ public class BuzhouCoreAutoConfiguration {
         return new io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayHook(
                 runawayProperties, counters.getIfAvailable(
                         io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters::new),
+                available == null ? null : available.observabilityStore());
+    }
+
+    /**
+     * Token/成本预算 Hook（spec 16 / T83 / impl-58；{@code buzhou.token-budget.enabled} 默认开、
+     * 阈值 null = 不限，safe-by-default）。模型名回退键取 {@code buzhou.model-name}（默认 unknown，
+     * 与 resilience/observability 同口径）；{@code budget.*} 事件双写（SessionEvent + EventRecord）。
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "tokenBudgetHook")
+    @ConditionalOnProperty(prefix = "buzhou.token-budget", name = "enabled", matchIfMissing = true)
+    public BuzhouHook tokenBudgetHook(
+            BuzhouTokenBudgetProperties tokenBudgetProperties,
+            ObjectProvider<BuzhouStores> stores,
+            org.springframework.core.env.Environment env) {
+        BuzhouStores available = stores.getIfAvailable();
+        return new io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook(
+                tokenBudgetProperties, env.getProperty("buzhou.model-name", "unknown"),
                 available == null ? null : available.observabilityStore());
     }
 
