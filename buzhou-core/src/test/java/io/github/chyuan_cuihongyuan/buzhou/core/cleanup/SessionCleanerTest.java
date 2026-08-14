@@ -79,7 +79,8 @@ class SessionCleanerTest {
         assertThat(result.fullyCleaned()).isTrue();
         assertThat(result.cleaned()).containsExactly(
                 "message-store", "summary-store", "session-state-store", "session-lease-store",
-                "observability-store", "run-registry", "tool-call-log", "spill-files");
+                "observability-store", "unit-of-work", "run-registry", "tool-call-log",
+                "spill-files");
         assertThat(messages.load(sessionId)).isEmpty();
         assertThat(messages.load(otherSession)).hasSize(1); // 其他会话不受影响
         assertThat(summaries.latest(sessionId)).isEmpty();

@@ -10,6 +10,13 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * 会话租约内存实现。
+ *
+ * <p>impl-36 / spec 13 §growth-8 边界说明：租约随 release / steal 覆盖 / 过期惰性判定
+ * <b>物理移除</b>（impl-33），活跃租约数天然受会话生命周期约束——不另设容量上限；
+ * {@link #deleteSession} 移除终结后残条。
+ */
 public class InMemorySessionLeaseStore implements SessionLeaseStore {
 
     private final ConcurrentHashMap<String, LeaseInfo> leases = new ConcurrentHashMap<>();

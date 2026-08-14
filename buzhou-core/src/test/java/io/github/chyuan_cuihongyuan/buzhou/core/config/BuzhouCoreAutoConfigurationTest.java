@@ -1,17 +1,25 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.config;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException;
+import io.github.chyuan_cuihongyuan.buzhou.core.error.QuotaExceededException;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.AgentRuntimeLifecycle;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime;
+import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
+import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,6 +98,49 @@ class BuzhouCoreAutoConfigurationTest {
                 });
     }
 
+    /**
+     * impl-36 / spec 13 §growth-8：buzhou.store.in-memory.* 经 kebab-case 绑定生效；
+     * 默认值 = max-sessions 1000 / per-session 消息 5000 / 观测会话 1000 / 单会话记录 10000。
+     */
+    @Test
+    void shouldBindInMemoryBounds_whenStoreInMemoryConfigured() {
+        runner.withPropertyValues(
+                        "buzhou.store.in-memory.max-sessions=3",
+                        "buzhou.store.in-memory.max-messages-per-session=4",
+                        "buzhou.store.in-memory.max-observability-sessions=5",
+                        "buzhou.store.in-memory.max-observability-records-per-session=6")
+                .run(ctx -> {
+                    BuzhouCoreProperties properties = ctx.getBean(BuzhouCoreProperties.class);
+                    var inMemory = properties.store().inMemory();
+                    assertThat(inMemory.maxSessions()).isEqualTo(3);
+                    assertThat(inMemory.maxMessagesPerSession()).isEqualTo(4);
+                    assertThat(inMemory.maxObservabilitySessions()).isEqualTo(5);
+                    assertThat(inMemory.maxObservabilityRecordsPerSession()).isEqualTo(6);
+                    // 装配链路：配置真实流入内存套件（填满 3 个会话后，第 4 个的消息写入即被拒）
+                    BuzhouStores stores = ctx.getBean(BuzhouStores.class);
+                    for (int i = 1; i <= 3; i++) {
+                        stores.messageStore().append("quota-s-" + i, List.of(msg("quota-s-" + i)));
+                    }
+                    assertThatThrownBy(() -> stores.messageStore().append(
+                            "quota-s-4", List.of(msg("quota-s-4"))))
+                            .isInstanceOf(QuotaExceededException.class)
+                            .hasMessageContaining("maxSessions=3");
+                });
+    }
+
+    /** impl-36：未配置时内存套件容量配额取默认值。 */
+    @Test
+    void shouldApplyInMemoryDefaults_whenStoreInMemoryAbsent() {
+        runner.run(ctx -> {
+            BuzhouCoreProperties properties = ctx.getBean(BuzhouCoreProperties.class);
+            var inMemory = properties.store().inMemory().toConfig();
+            assertThat(inMemory.maxSessions())
+                    .isEqualTo(InMemoryStoreConfig.DEFAULT_MAX_SESSIONS);
+            assertThat(inMemory.maxMessagesPerSession())
+                    .isEqualTo(InMemoryStoreConfig.DEFAULT_MAX_MESSAGES_PER_SESSION);
+        });
+    }
+
     /** impl-30：core lifecycle 装配（phase 最大）且上下文 stop 触发停机序列（回调后拒绝 spawn）。 */
     @Test
     void shouldRegisterCoreLifecycleAndRejectSpawn_whenContextStops() {
@@ -108,5 +159,10 @@ class BuzhouCoreAutoConfigurationTest {
         assertThatThrownBy(() -> runtime.spawn("app", "agent", "after-stop"))
                 .isInstanceOf(BuzhouException.class)
                 .hasMessageContaining("拒绝创建新会话");
+    }
+
+    private static BuzhouMessage msg(String sessionId) {
+        return new BuzhouMessage(UUID.randomUUID().toString(), sessionId, 1, 0, Role.USER,
+                "content", List.of(), null, null, null, Map.of(), Instant.now());
     }
 }

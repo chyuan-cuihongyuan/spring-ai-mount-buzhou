@@ -34,7 +34,7 @@ public record BuzhouCoreProperties(String modelName, Store store,
 
     public BuzhouCoreProperties {
         modelName = (modelName == null || modelName.isBlank()) ? "unknown" : modelName;
-        store = store == null ? new Store(null) : store;
+        store = store == null ? new Store(null, null) : store;
         leaseTtl = (leaseTtl == null || leaseTtl.isZero() || leaseTtl.isNegative())
                 ? DEFAULT_LEASE_TTL : leaseTtl;
         leaseRenewInterval = (leaseRenewInterval == null
@@ -49,9 +49,32 @@ public record BuzhouCoreProperties(String modelName, Store store,
         return leaseRenewInterval != null ? leaseRenewInterval : leaseTtl.dividedBy(3);
     }
 
-    public record Store(String type) {
+    public record Store(String type, InMemory inMemory) {
         public Store {
             type = (type == null || type.isBlank()) ? "memory" : type;
+            inMemory = inMemory == null ? new InMemory(null, null, null, null) : inMemory;
+        }
+
+        /**
+         * impl-36 / spec 13 §growth-8：内存套件容量配额（{@code buzhou.store.in-memory.*}）。
+         *
+         * @param maxSessions                      事实台账最大会话数；默认 1,000
+         * @param maxMessagesPerSession            单会话消息上限；默认 5,000
+         * @param maxObservabilitySessions         观测（可再生）最大会话数；默认 1,000
+         * @param maxObservabilityRecordsPerSession 单会话观测记录上限（spans/events 各自丢最旧）；默认 10,000
+         */
+        public record InMemory(
+                Integer maxSessions,
+                Integer maxMessagesPerSession,
+                Integer maxObservabilitySessions,
+                Integer maxObservabilityRecordsPerSession) {
+
+            /** 装配用：映射为内存套件配置对象（归一化在目标形状内完成）。 */
+            public io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig toConfig() {
+                return new io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig(
+                        maxSessions, maxMessagesPerSession,
+                        maxObservabilitySessions, maxObservabilityRecordsPerSession);
+            }
         }
     }
 

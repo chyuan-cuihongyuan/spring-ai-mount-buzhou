@@ -47,8 +47,9 @@ public class BuzhouCoreAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "buzhou.store", name = "type", havingValue = "memory", matchIfMissing = true)
-    public BuzhouStores buzhouStores() {
-        return Buzhou.inMemoryStores();
+    public BuzhouStores buzhouStores(BuzhouCoreProperties properties) {
+        // impl-36 / spec 13 §growth-8：buzhou.store.in-memory.* 容量配额流入内存套件
+        return Buzhou.inMemoryStores(properties.store().inMemory().toConfig());
     }
 
     /**

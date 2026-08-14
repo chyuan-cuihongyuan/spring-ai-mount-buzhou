@@ -80,6 +80,9 @@ public final class SessionCleaner {
                     () -> stores.sessionLeaseStore().deleteSession(sessionId), stores.sessionLeaseStore() != null);
             runTarget("observability-store", cleaned, failures,
                     () -> stores.observabilityStore().deleteSession(sessionId), stores.observabilityStore() != null);
+            // impl-36 / spec 13 §growth-8：工作单元的 per-session 状态（InMemory 锁对象）随会话移除
+            runTarget("unit-of-work", cleaned, failures,
+                    () -> stores.unitOfWork().deleteSession(sessionId), stores.unitOfWork() != null);
         }
         runTarget("run-registry", cleaned, failures,
                 () -> runRegistry.deleteSession(sessionId), runRegistry != null);

@@ -12,7 +12,7 @@
 | 33 | core · 租约续租 + LeaseLost + 写路径 fence | 28, 29 | done |
 | 34 | core · 事件背压 + 线程卫生 | 29 | done |
 | 35 | 横切 · deleteSession 级联清理 + SessionCleaner | 31 | done |
-| 36 | stores · InMemory 有界化 + 容量配额 | 29, 35 | ready |
+| 36 | stores · InMemory 有界化 + 容量配额 | 29, 35 | done |
 | 37 | 横切 · 保留策略族 + RetentionSweeper + 触发公式 | 35, 36 | ready |
 | 38 | memory+spill · 增长治理 + embedding 缓存 + 后台任务治理 | 37, 29 | ready |
 | 39 | guard · 审计链持久化 + 密钥版本化轮换 + 独立校验 | 29 | ready |

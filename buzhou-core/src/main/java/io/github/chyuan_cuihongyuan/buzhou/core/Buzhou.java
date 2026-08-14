@@ -24,12 +24,26 @@ public final class Buzhou {
     }
 
     public static BuzhouStores inMemoryStores() {
+        return inMemoryStores(io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig.defaults());
+    }
+
+    /**
+     * impl-36 / spec 13 §growth-8：带容量配额的内存套件——事实台账（消息/摘要/状态）
+     * 超额抛 {@link io.github.chyuan_cuihongyuan.buzhou.core.error.QuotaExceededException}，
+     * 观测（可再生）采样逐出。Spring 装配等价物 = {@code buzhou.store.in-memory.*}。
+     */
+    public static BuzhouStores inMemoryStores(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig config) {
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig effective =
+                config == null
+                        ? io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig.defaults()
+                        : config;
         return new BuzhouStores(
-                new InMemoryMessageStore(),
-                new InMemorySummaryStore(),
-                new InMemorySessionStateStore(),
+                new InMemoryMessageStore(effective),
+                new InMemorySummaryStore(effective),
+                new InMemorySessionStateStore(effective),
                 new InMemorySessionLeaseStore(),
-                new InMemoryObservabilityStore(),
+                new InMemoryObservabilityStore(effective),
                 new InMemoryUnitOfWork());
     }
 
