@@ -22,8 +22,10 @@ public class DbPolicyConfigProvider implements PolicyConfigProvider, AutoCloseab
 
     private static final Logger LOG = LoggerFactory.getLogger(DbPolicyConfigProvider.class);
 
-    /** 连续轮询失败达到该次数后，日志由 WARN 升级为 ERROR（简单退避：不改轮询节奏本身）。 */
+    /** 连续轮询失败达到该次数后，日志由 WARN 升级为 ERROR（告警事件）。 */
     private static final int POLL_FAILURE_ERROR_THRESHOLD = 3;
+    /** impl-34：指数退避上限（pollInterval × 2^6，防故障期忙轮询打爆下游）。 */
+    private static final int BACKOFF_CAP_POWER = 6;
 
     private final BindingPolicyStore store;
     private final Duration pollInterval;
@@ -31,9 +33,10 @@ public class DbPolicyConfigProvider implements PolicyConfigProvider, AutoCloseab
     private final Map<String, Long> knownVersions = new ConcurrentHashMap<>();
     private final Map<String, WatchedKey> watched = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler =
-            Executors.newSingleThreadScheduledExecutor(Thread.ofVirtual().factory());
+            Executors.newSingleThreadScheduledExecutor(
+                    io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory.virtual("policy-poll"));
     private final AtomicBoolean started = new AtomicBoolean();
-    /** ticket 29 日志基线：连续失败计数（成功一次即清零；只影响日志级别，不影响轮询节奏）。 */
+    /** impl-34 / spec 13 §core-4：连续失败计数（成功一次即清零；驱动指数退避与告警级别）。 */
     private final AtomicInteger consecutivePollFailures = new AtomicInteger();
 
     private record WatchedKey(String appId, String agentName) {
@@ -60,9 +63,19 @@ public class DbPolicyConfigProvider implements PolicyConfigProvider, AutoCloseab
         knownVersions.put(BindingPolicy.key(appId, agentName),
                 getBindingPolicy(appId, agentName).version());
         if (started.compareAndSet(false, true)) {
-            scheduler.scheduleWithFixedDelay(this::pollSafely,
-                    pollInterval.toMillis(), pollInterval.toMillis(), TimeUnit.MILLISECONDS);
+            // impl-34：固定节奏 scheduleWithFixedDelay 改自排程——失败时指数退避（重试风暴防线）
+            scheduler.schedule(this::pollSafely, pollInterval.toMillis(), TimeUnit.MILLISECONDS);
         }
+    }
+
+    /** 成功 → 节奏回归 pollInterval；失败 → pollInterval × 2^min(failures, 6) 退避。 */
+    private void scheduleNext(int failures) {
+        long delayMillis = pollInterval.toMillis();
+        if (failures > 0) {
+            long factor = 1L << Math.min(failures, BACKOFF_CAP_POWER);
+            delayMillis = pollInterval.toMillis() * factor;
+        }
+        scheduler.schedule(this::pollSafely, delayMillis, TimeUnit.MILLISECONDS);
     }
 
     private void pollSafely() {
@@ -77,18 +90,24 @@ public class DbPolicyConfigProvider implements PolicyConfigProvider, AutoCloseab
                 }
             });
             consecutivePollFailures.set(0);
+            scheduleNext(0);
         } catch (RuntimeException e) {
-            // ticket 29 日志基线：轮询异常不再静默吞——WARN 起报，连续失败达阈值升级 ERROR
-            //（简单退避只作用于日志级别，轮询节奏仍由 pollInterval 决定）。
+            // ticket 29 日志基线 + impl-34 指数退避：WARN 起报，连续失败达阈值升级 ERROR；
+            // 下一轮延迟 = pollInterval × 2^min(failures, 6)（重试风暴防线，成功即清零）
             int failures = consecutivePollFailures.incrementAndGet();
             if (failures >= POLL_FAILURE_ERROR_THRESHOLD) {
-                LOG.error("策略配置轮询连续失败 {} 次（已达阈值 {}），策略热更新可能停摆，请检查 BindingPolicyStore 可用性",
-                        failures, POLL_FAILURE_ERROR_THRESHOLD, e);
+                LOG.error("策略配置轮询连续失败 {} 次（已达阈值 {}），退避 {}ms 后重试；策略热更新可能停摆，请检查 BindingPolicyStore 可用性",
+                        failures, POLL_FAILURE_ERROR_THRESHOLD, backoffMillis(failures), e);
             } else {
-                LOG.warn("策略配置轮询失败（连续第 {} 次，达 {} 次升级 ERROR）", failures,
-                        POLL_FAILURE_ERROR_THRESHOLD, e);
+                LOG.warn("策略配置轮询失败（连续第 {} 次，退避 {}ms 后重试）", failures,
+                        backoffMillis(failures), e);
             }
+            scheduleNext(failures);
         }
+    }
+
+    private long backoffMillis(int failures) {
+        return pollInterval.toMillis() * (1L << Math.min(failures, BACKOFF_CAP_POWER));
     }
 
     @Override

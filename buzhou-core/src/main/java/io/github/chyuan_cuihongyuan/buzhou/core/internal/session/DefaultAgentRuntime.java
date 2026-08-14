@@ -43,8 +43,12 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
     private final Duration leaseTtl;
     private final Duration leaseRenewInterval;
 
-    /** impl-30 / spec 13 §core-1：停机排空预算（{@code buzhou.lifecycle.timeout-per-shutdown-phase}）。 */
+    /**
+     * impl-30 / spec 13 §core-1：停机排空预算（{@code buzhou.lifecycle.timeout-per-shutdown-phase}）。 */
     private final Duration shutdownTimeout;
+
+    /** impl-34 / spec 13 §core-4：事件分发模式（null = SYNC 既有内联行为）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig;
 
     /** impl-33：活跃会话的租约哨兵（后台续租遍历对象；close 注销防泄漏）。 */
     private final ConcurrentHashMap<String, SessionLeaseGuard> activeLeases = new ConcurrentHashMap<>();
@@ -93,6 +97,20 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                                Duration leaseTtl, Duration leaseRenewInterval,
                                Duration shutdownTimeout,
                                ToolCallback... tools) {
+        this(chatModel, stores, assembler, config, leaseTtl, leaseRenewInterval,
+                shutdownTimeout, null, tools);
+    }
+
+    /**
+     * impl-34 / spec 13 §core-4：完整构造入口——{@code eventDispatchConfig}（null = SYNC）
+     * 贯穿装配层流入会话（Spring 装配等价物 = {@code buzhou.core.event-dispatch.*}）。
+     */
+    public DefaultAgentRuntime(ChatModel chatModel, BuzhouStores stores,
+                               HarnessAssembler assembler, RuntimeConfig config,
+                               Duration leaseTtl, Duration leaseRenewInterval,
+                               Duration shutdownTimeout,
+                               io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
+                               ToolCallback... tools) {
         this.chatModel = chatModel;
         this.stores = stores;
         this.assembler = assembler;
@@ -104,6 +122,7 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         this.shutdownTimeout = shutdownTimeout == null
                 || shutdownTimeout.isZero() || shutdownTimeout.isNegative()
                 ? DEFAULT_SHUTDOWN_TIMEOUT : shutdownTimeout;
+        this.eventDispatchConfig = eventDispatchConfig;
     }
 
     private static Duration resolveRenewInterval(Duration configured, Duration ttl) {
@@ -146,7 +165,9 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         activeLeases.put(sessionId, leaseGuard);
         registry.register("session-lease",
                 () -> stores.sessionLeaseStore().release(sessionId, ownerId, fencingToken));
-        ExecutorService executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
+        // impl-34 / spec 13 §core-4：会话 executor 线程具名（buzhou-turn-executor-<seq> + 未捕获异常 ERROR 日志）
+        ExecutorService executor = java.util.concurrent.Executors.newThreadPerTaskExecutor(
+                io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory.virtual("turn-executor"));
         // impl-30 / spec 13 §core-1：executor 优雅关闭——shutdown() + awaitTermination(预算)，
         // 到点 shutdownNow（既有行为是直接 shutdownNow；改优雅排空防在飞工具任务被硬丢弃）
         registry.register("session-executor", () -> closeExecutorGracefully(executor));
@@ -173,7 +194,7 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 config.hooks(), config.disabledHookNames(),
                 config.idempotentToolNames(), config.viewProcessor(), executor,
                 config.serialGroups(), config.assemblyCustomizers(), config.turnLoopPolicy(),
-                leaseGuard, allTools);
+                leaseGuard, eventDispatchConfig, allTools);
         if (session instanceof DefaultAgentSession defaultSession) {
             tracked.bind(defaultSession);
         }

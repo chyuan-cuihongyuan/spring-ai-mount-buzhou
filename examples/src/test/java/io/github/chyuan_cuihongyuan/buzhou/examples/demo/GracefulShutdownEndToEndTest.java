@@ -151,6 +151,11 @@ class GracefulShutdownEndToEndTest {
             }
 
             @Override
+            public String call(String toolInput) {
+                return call(toolInput, null);
+            }
+
+            @Override
             public String call(String toolInput, org.springframework.ai.chat.model.ToolContext toolContext) {
                 started.countDown();
                 try {

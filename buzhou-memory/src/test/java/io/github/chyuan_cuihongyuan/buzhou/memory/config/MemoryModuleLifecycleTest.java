@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class MemoryModuleLifecycleTest {
 
     @Test
-    void shouldCollectSleepTimeSchedulerIntoModuleResources_whenConfiguredWithCollector() {
+    void shouldCollectSleepTimeSchedulerIntoModuleResources_whenConfiguredWithCollector() throws Exception {
         List<AutoCloseable> owned = new ArrayList<>();
         MemoryModule.configure(memoryConfig(Map.of("enabled", true)),
                 Buzhou.inMemoryStores(), summaryModel(), summaryModel(), null, null, owned);

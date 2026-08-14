@@ -50,7 +50,7 @@ class BuzhouCoreAutoConfigurationTest {
     /** impl-33 / spec 13 §core-3：租约参数默认值（TTL 90s、续租间隔 TTL/3=30s）。 */
     @Test
     void shouldApplyLeaseDefaults_whenPropertiesAbsent() {
-        BuzhouCoreProperties properties = new BuzhouCoreProperties(null, null, null, null, null);
+        BuzhouCoreProperties properties = new BuzhouCoreProperties(null, null, null, null, null, null);
         assertThat(properties.leaseTtl()).isEqualTo(BuzhouCoreProperties.DEFAULT_LEASE_TTL);
         assertThat(properties.effectiveLeaseRenewInterval())
                 .isEqualTo(java.time.Duration.ofSeconds(30));
@@ -58,6 +58,11 @@ class BuzhouCoreAutoConfigurationTest {
         assertThat(properties.lifecycle().timeoutPerShutdownPhase())
                 .isEqualTo(BuzhouCoreProperties.Lifecycle.DEFAULT_TIMEOUT_PER_SHUTDOWN_PHASE)
                 .isEqualTo(Duration.ofSeconds(30));
+        // impl-34：事件分发默认 SYNC（既有内联行为不变）
+        assertThat(properties.core().eventDispatch().mode())
+                .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.Mode.SYNC);
+        assertThat(properties.core().eventDispatch().capacity())
+                .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.DEFAULT_CAPACITY);
     }
 
     /** impl-33：buzhou.lease-ttl / buzhou.lease-renew-interval 经 kebab-case 绑定生效。 */

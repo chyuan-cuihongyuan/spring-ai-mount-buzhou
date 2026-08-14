@@ -47,7 +47,8 @@ public class DefaultAgentSession implements AgentSession {
      * 递归循环）搬到守卫线程上、以剩余时间封顶等待——守卫线程被中断即尽力中止底层调用。
      */
     private static final ExecutorService MODEL_CALL_GUARD_EXECUTOR =
-            Executors.newVirtualThreadPerTaskExecutor();
+            Executors.newThreadPerTaskExecutor(
+                    io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory.virtual("model-guard"));
     /**
      * impl-28：Deadline 耗尽后的收尾宽限——工具级 Deadline 在预算点截断并回喂，宽限给模型
      * 最后一次组织最终回复的机会（预算内优雅收尾优先）；宽限耗尽仍无终局（模型自身挂死）
@@ -81,6 +82,13 @@ public class DefaultAgentSession implements AgentSession {
     private final AtomicInteger inFlightTurns = new AtomicInteger();
     /** impl-30 / spec 13 §core-1：停机拒新标记（运行时 shutdown 序列置位；chat/stream 即刻拒绝）。 */
     private volatile boolean rejectingNewTurns;
+
+    /**
+     * impl-34 / spec 13 §core-4：事件分发模式（null = SYNC 既有内联行为）；
+     * BUFFERED 时懒创建 {@link BufferedEventDispatcher}（首个事件到达才起分发线程）。
+     */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig;
+    private BufferedEventDispatcher eventDispatcher;
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
@@ -119,6 +127,23 @@ public class DefaultAgentSession implements AgentSession {
                                List<SessionObserver> observers,
                                Duration turnBudget,
                                SessionLeaseGuard leaseGuard) {
+        this(appId, agentName, sessionId, chatClient, registry, onClose, hookChain, hookEnv,
+                toolManager, spanContextCarrier, observers, turnBudget, leaseGuard, null);
+    }
+
+    /**
+     * impl-34 / spec 13 §core-4：完整构造入口——{@code eventDispatchConfig} 为 BUFFERED 时
+     * 事件经有界队列异步分发（慢监听器不拖慢 Turn 主链路；溢出按策略处理、丢弃计数可见）。
+     */
+    public DefaultAgentSession(String appId, String agentName, String sessionId,
+                               ChatClient chatClient, SessionResourceRegistry registry,
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
+                               HarnessToolCallingManager toolManager,
+                               SpanContextCarrier spanContextCarrier,
+                               List<SessionObserver> observers,
+                               Duration turnBudget,
+                               SessionLeaseGuard leaseGuard,
+                               io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
@@ -132,6 +157,7 @@ public class DefaultAgentSession implements AgentSession {
         this.observers = new CopyOnWriteArrayList<>(observers);
         this.turnBudget = turnBudget;
         this.leaseGuard = leaseGuard;
+        this.eventDispatchConfig = eventDispatchConfig;
         this.hookEnv.bindEventPublisher(this::dispatchEvent);
         observers.forEach(SessionObserver::onOpen);
     }
@@ -399,12 +425,45 @@ public class DefaultAgentSession implements AgentSession {
         listeners.remove(listener);
     }
 
+    /** impl-34 / spec 13 §core-4：buffered 模式的事件总线统计（丢弃可见）；SYNC 无队列返回空。 */
+    @Override
+    public java.util.Optional<io.github.chyuan_cuihongyuan.buzhou.core.session.EventBusStats> eventBusStats() {
+        BufferedEventDispatcher dispatcher = eventDispatcher;
+        return dispatcher == null
+                ? java.util.Optional.empty()
+                : java.util.Optional.of(dispatcher.stats());
+    }
+
     /**
      * impl-30 / spec 13 §core-1：事件分发逐 listener 隔离——hook 链与每个
      * {@link SessionEventListener} 各自 try/catch（ERROR 日志），单个异常不阻断其余
      * listener 的分发，也绝不向上传播跳过 close() 的后续清理步骤（listeners.clear 等）。
+     *
+     * <p>impl-34 / spec 13 §core-4：{@code buffered} 模式（opt-in）下事件入有界队列由
+     * 分发线程异步交付（本方法体内联逻辑即交付回调 {@link #deliverEvent}）；SYNC 默认
+     * 模式维持既有内联行为不变。
      */
     private void dispatchEvent(SessionEvent event) {
+        if (eventDispatchConfig != null && eventDispatchConfig.isBuffered()) {
+            BufferedEventDispatcher dispatcher = eventDispatcher;
+            if (dispatcher == null) {
+                synchronized (this) {
+                    if (eventDispatcher == null) {
+                        // 懒创建：首个事件到达才起分发线程；关闭挂进会话资源注册表（LIFO 排空）
+                        eventDispatcher = new BufferedEventDispatcher(
+                                sessionId, eventDispatchConfig, this::deliverEvent);
+                        registry.register("event-dispatcher", () -> eventDispatcher.close());
+                    }
+                    dispatcher = eventDispatcher;
+                }
+            }
+            dispatcher.enqueue(event);
+            return;
+        }
+        deliverEvent(event);
+    }
+
+    private void deliverEvent(SessionEvent event) {
         try {
             hookChain.fireEvent(new DefaultSessionEventContext(hookEnv, event));
         } catch (RuntimeException e) {

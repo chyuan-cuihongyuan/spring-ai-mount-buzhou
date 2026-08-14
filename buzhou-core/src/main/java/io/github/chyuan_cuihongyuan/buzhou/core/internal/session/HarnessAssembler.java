@@ -95,6 +95,30 @@ public class HarnessAssembler {
                                  TurnLoopPolicy turnLoopPolicy,
                                  SessionLeaseGuard leaseGuard,
                                  ToolCallback... tools) {
+        return assemble(appId, agentName, sessionId, chatModel, stores, registry, onClose,
+                hooks, disabledHookNames, idempotentToolNames, viewProcessor, executor, serialGroups,
+                assemblyCustomizers, turnLoopPolicy, leaseGuard, null, tools);
+    }
+
+    /**
+     * impl-34 / spec 13 §core-4：完整装配入口——{@code eventDispatchConfig}（null = SYNC
+     * 既有内联分发）流入会话层；BUFFERED 时事件经有界队列异步分发。
+     */
+    public AgentSession assemble(String appId, String agentName, String sessionId,
+                                 ChatModel chatModel, BuzhouStores stores,
+                                 SessionResourceRegistry registry,
+                                 Runnable onClose,
+                                 Collection<BuzhouHook> hooks,
+                                 Set<String> disabledHookNames,
+                                 Set<String> idempotentToolNames,
+                                 MemoryViewProcessor viewProcessor,
+                                 ExecutorService executor,
+                                 Map<String, String> serialGroups,
+                                 List<SessionAssemblyCustomizer> assemblyCustomizers,
+                                 TurnLoopPolicy turnLoopPolicy,
+                                 SessionLeaseGuard leaseGuard,
+                                 io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
+                                 ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, agentName, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
 
@@ -155,7 +179,7 @@ public class HarnessAssembler {
         Duration turnBudget = turnLoopPolicy == null ? null : turnLoopPolicy.effectiveTurnBudget();
         return new DefaultAgentSession(appId, agentName, sessionId, builder.build(), registry, onClose,
                 chain, env, toolManager, spanContextCarrier, assemblyCtx.observers(), turnBudget,
-                leaseGuard);
+                leaseGuard, eventDispatchConfig);
     }
 
     public ChatClient.Builder enhance(ChatClient.Builder builder, BuzhouStores stores) {

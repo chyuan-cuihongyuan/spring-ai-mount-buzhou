@@ -21,24 +21,27 @@ import java.time.Duration;
  *                           （如测试用短间隔驱动真实时序）
  * @param lifecycle          impl-30 / spec 13 §core-1：停机排空预算
  *                           （{@code buzhou.lifecycle.timeout-per-shutdown-phase}，默认 30s）
+ * @param core               impl-34 / spec 13 §core-4：core 运行时旋钮
+ *                           （{@code buzhou.core.*}，事件分发模式）
  */
 @ConfigurationProperties(prefix = "buzhou")
 public record BuzhouCoreProperties(String modelName, Store store,
                                    Duration leaseTtl, Duration leaseRenewInterval,
-                                   Lifecycle lifecycle) {
+                                   Lifecycle lifecycle, Core core) {
 
     /** impl-33：租约 TTL 默认值（既有硬编码语义收敛）。 */
     public static final Duration DEFAULT_LEASE_TTL = Duration.ofSeconds(90);
 
     public BuzhouCoreProperties {
         modelName = (modelName == null || modelName.isBlank()) ? "unknown" : modelName;
-        store = (store == null) ? new Store(null) : store;
+        store = store == null ? new Store(null) : store;
         leaseTtl = (leaseTtl == null || leaseTtl.isZero() || leaseTtl.isNegative())
                 ? DEFAULT_LEASE_TTL : leaseTtl;
         leaseRenewInterval = (leaseRenewInterval == null
                 || leaseRenewInterval.isZero() || leaseRenewInterval.isNegative())
                 ? null : leaseRenewInterval;
         lifecycle = lifecycle == null ? new Lifecycle(null) : lifecycle;
+        core = core == null ? new Core(null) : core;
     }
 
     /** 生效的后台续租间隔：未显式配置时取 TTL/3（HikariCP maxLifetime 防同步抖动节奏）。 */
@@ -49,6 +52,53 @@ public record BuzhouCoreProperties(String modelName, Store store,
     public record Store(String type) {
         public Store {
             type = (type == null || type.isBlank()) ? "memory" : type;
+        }
+    }
+
+    /**
+     * impl-34 / spec 13 §core-4：core 运行时旋钮（{@code buzhou.core.*}）。
+     *
+     * @param eventDispatch 事件分发（{@code buzhou.core.event-dispatch.*}；默认 SYNC 内联）
+     */
+    public record Core(EventDispatch eventDispatch) {
+        public Core {
+            eventDispatch = eventDispatch == null ? new EventDispatch(null, null, null, null)
+                    : eventDispatch;
+        }
+    }
+
+    /**
+     * impl-34 / spec 13 §core-4：会话事件分发模式（{@code buzhou.core.event-dispatch.*}）。
+     *
+     * @param mode        {@code sync}（默认，内联）| {@code buffered}（有界队列异步）
+     * @param capacity    队列容量（默认 1024）
+     * @param overflow    {@code drop-oldest}（默认）| {@code block}
+     * @param pushTimeout block 策略入队限时（默认 2s）
+     */
+    public record EventDispatch(
+            io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.Mode mode,
+            Integer capacity,
+            io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.OverflowPolicy overflow,
+            Duration pushTimeout) {
+
+        public EventDispatch {
+            mode = mode == null
+                    ? io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.Mode.SYNC : mode;
+            capacity = capacity == null || capacity <= 0
+                    ? io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.DEFAULT_CAPACITY
+                    : capacity;
+            overflow = overflow == null
+                    ? io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.OverflowPolicy.DROP_OLDEST
+                    : overflow;
+            pushTimeout = pushTimeout == null || pushTimeout.isZero() || pushTimeout.isNegative()
+                    ? io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.DEFAULT_PUSH_TIMEOUT
+                    : pushTimeout;
+        }
+
+        /** 装配用：映射为会话层配置对象。 */
+        public io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig toConfig() {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig(
+                    mode, capacity, overflow, pushTimeout);
         }
     }
 

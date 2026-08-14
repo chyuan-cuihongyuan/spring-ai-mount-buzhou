@@ -87,10 +87,14 @@ public class BuzhouCoreAutoConfiguration {
         }
         RuntimeConfig merged = RuntimeConfig.merge(all.toArray(new RuntimeConfig[0]));
         // impl-33 / spec 13 §core-3：租约参数（buzhou.lease-ttl / buzhou.lease-renew-interval）流入运行时；
-        // impl-30：停机排空预算（buzhou.lifecycle.timeout-per-shutdown-phase）流入运行时
+        // impl-30：停机排空预算（buzhou.lifecycle.timeout-per-shutdown-phase）流入运行时；
+        // impl-34 / spec 13 §core-4：事件分发模式（buzhou.core.event-dispatch.*）流入运行时
+        io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatch =
+                properties.core().eventDispatch().toConfig();
         return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), merged,
                 properties.leaseTtl(), properties.effectiveLeaseRenewInterval(),
-                properties.lifecycle().timeoutPerShutdownPhase());
+                properties.lifecycle().timeoutPerShutdownPhase(),
+                eventDispatch.isBuffered() ? eventDispatch : null);
     }
 
     /**

@@ -18,7 +18,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class SleepTimeScheduler implements AutoCloseable {
 
-    private final ExecutorService virtualExecutor = Executors.newVirtualThreadPerTaskExecutor();
+    // impl-34 / spec 13 §core-4：线程具名（buzhou-sleep-time-<seq>，thread dump 可归属）
+    private final ExecutorService virtualExecutor = Executors.newThreadPerTaskExecutor(
+            io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory.virtual("sleep-time"));
     private final Map<String, SerialQueue> perSession = new ConcurrentHashMap<>();
 
     private static final class SerialQueue {

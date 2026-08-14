@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.tools.command;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -10,11 +11,20 @@ import java.nio.file.Path;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * run_command 安全边界（ticket 16 验收：黑名单命令被拦）+ workdir 沙箱 + 超时。
+ * 命令经 {@code /bin/sh -c} 执行（跨平台约束见 RunCommandTool 类注）：无 POSIX shell 的
+ * 平台（如裸 Windows，无 WSL/Git Bash 提供 /bin/sh）整类跳过——命令执行语义由 Linux CI 背书。
  */
 class RunCommandToolTest {
+
+    @BeforeAll
+    static void requirePosixShell() {
+        assumeTrue(Files.exists(Path.of("/bin/sh")),
+                "/bin/sh 不可用（非 POSIX 平台），跳过命令执行语义测试");
+    }
 
     @TempDir
     Path base;

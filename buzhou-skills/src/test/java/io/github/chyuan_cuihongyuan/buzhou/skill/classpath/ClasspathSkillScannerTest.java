@@ -30,17 +30,18 @@ class ClasspathSkillScannerTest {
         assertThat(skill.allowedTools()).containsExactly("read_file", "read_range", "run_command");
         assertThat(skill.body()).contains("# Code Review Skill", "严重度分级");
 
-        // 资源元数据 + 内容
+        // 资源元数据 + 内容（行尾归一化比对：Windows checkout autocrlf 下资源为 CRLF，Java 文本块恒 LF）
         assertThat(skill.resources()).anyMatch(r -> r.relativePath().equals("checklists/security.md"));
-        assertThat(codeReview.resourceContents())
-                .containsEntry("checklists/security.md", """
-                        # 安全核查清单
+        String checklist = codeReview.resourceContents().get("checklists/security.md");
+        assertThat(checklist).isNotNull();
+        assertThat(checklist.replace("\r\n", "\n")).isEqualTo("""
+                # 安全核查清单
 
-                        - [ ] 输入是否经校验/转义（防注入）
-                        - [ ] 鉴权是否覆盖该路径
-                        - [ ] 敏感信息是否避免落日志
-                        - [ ] 依赖是否有已知 CVE
-                        """);
+                - [ ] 输入是否经校验/转义（防注入）
+                - [ ] 鉴权是否覆盖该路径
+                - [ ] 敏感信息是否避免落日志
+                - [ ] 依赖是否有已知 CVE
+                """);
     }
 
     @Test

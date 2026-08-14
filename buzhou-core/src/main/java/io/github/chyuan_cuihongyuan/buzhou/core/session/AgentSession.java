@@ -31,4 +31,12 @@ public interface AgentSession extends AutoCloseable {
     void addEventListener(SessionEventListener listener);
 
     void removeEventListener(SessionEventListener listener);
+
+    /**
+     * impl-34 / spec 13 §core-4：事件总线运行时统计（overflow 丢弃可见）。仅
+     * {@code buffered} 分发模式适用（有队列、有丢弃）；SYNC 内联分发（默认）返回空。
+     */
+    default java.util.Optional<EventBusStats> eventBusStats() {
+        return java.util.Optional.empty();
+    }
 }

@@ -76,6 +76,10 @@ class GuardAndHitlDemoTest {
 
     @Test
     void authorizationPersistsAcrossInstances() {
+        // run_command 经 /bin/sh -c 执行（跨平台约束见 RunCommandTool 类注）：无 POSIX shell 平台跳过
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                java.nio.file.Files.exists(java.nio.file.Path.of("/bin/sh")),
+                "/bin/sh 不可用（非 POSIX 平台），跳过真实命令执行断言");
         ScriptedChatModel model = new ScriptedChatModel();
         BuzhouStores stores = Buzhou.inMemoryStores();
 

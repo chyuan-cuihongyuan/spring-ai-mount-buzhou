@@ -78,6 +78,22 @@ public final class Buzhou {
                 leaseTtl, leaseRenewInterval, shutdownTimeout, tools);
     }
 
+    /**
+     * impl-34 / spec 13 §core-4：完整参数入口（Spring 装配等价物 =
+     * {@code buzhou.core.event-dispatch.*}）。
+     *
+     * @param eventDispatchConfig 事件分发模式；null = SYNC（既有内联行为）
+     */
+    public static AgentRuntime runtime(ChatModel chatModel, BuzhouStores stores,
+                                       io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig config,
+                                       java.time.Duration leaseTtl, java.time.Duration leaseRenewInterval,
+                                       java.time.Duration shutdownTimeout,
+                                       io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
+                                       ToolCallback... tools) {
+        return new DefaultAgentRuntime(chatModel, stores, new HarnessAssembler(), config,
+                leaseTtl, leaseRenewInterval, shutdownTimeout, eventDispatchConfig, tools);
+    }
+
     public static ChatClient.Builder enhance(ChatClient.Builder builder) {
         return enhance(builder, inMemoryStores());
     }
