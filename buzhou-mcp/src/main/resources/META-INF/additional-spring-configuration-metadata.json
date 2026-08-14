@@ -1,0 +1,45 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.mcp.enabled",
+      "type": "java.lang.Boolean",
+      "description": "MCP 热插拔总开关。",
+      "defaultValue": true
+    },
+    {
+      "name": "buzhou.mcp.dangerous-tool-patterns",
+      "type": "java.util.List<java.lang.String>",
+      "description": "客户端侧危险工具名模式（glob，如 *.delete*）；命中者经 McpClientRegistry.dangerousToolNames() 暴露给装配侧挂 guard HITL。不信任 server 自报元数据。",
+      "defaultValue": [
+        "*.delete*",
+        "*.drop*",
+        "*.remove*",
+        "*.exec*"
+      ]
+    },
+    {
+      "name": "buzhou.mcp.shutdown-budget",
+      "type": "java.time.Duration",
+      "description": "模块 close() 总预算（超出放弃等待，条目强杀由注册表兜底）。",
+      "defaultValue": "35s"
+    },
+    {
+      "name": "buzhou.mcp.grace-period",
+      "type": "java.time.Duration",
+      "description": "连接 DRAINING 宽限期。",
+      "defaultValue": "30s"
+    },
+    {
+      "name": "buzhou.mcp.force-close-timeout",
+      "type": "java.time.Duration",
+      "description": "强杀兜底。",
+      "defaultValue": "5m"
+    },
+    {
+      "name": "buzhou.mcp.poll-interval",
+      "type": "java.time.Duration",
+      "description": "DB 清单源轮询间隔。",
+      "defaultValue": "5s"
+    }
+  ]
+}

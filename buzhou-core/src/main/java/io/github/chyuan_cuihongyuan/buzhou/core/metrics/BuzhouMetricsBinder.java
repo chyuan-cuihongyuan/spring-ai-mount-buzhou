@@ -54,5 +54,7 @@ public final class BuzhouMetricsBinder implements MeterBinder {
         registry.counter("buzhou.backpressure.spawn-rejected");
         // otel 桥驱逐护栏（impl-47 / spec 14 §C）
         registry.counter("buzhou.otel.span-evictions");
+        // mcp 连接失败（impl-50 / spec 14 §F；server tag 由记录侧截断）
+        registry.counter("buzhou.mcp.connect.failures");
     }
 }

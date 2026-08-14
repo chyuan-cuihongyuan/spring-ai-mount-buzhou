@@ -29,9 +29,12 @@ public final class McpModule implements AutoCloseable {
     private final boolean enabled;
     private final McpClientRegistry registry;
     private final ToolSetProvider provider;
+    /** impl-50：close() 总预算。 */
+    private final Duration shutdownBudget;
 
     private McpModule(Builder builder) {
         this.enabled = builder.enabled;
+        this.shutdownBudget = builder.shutdownBudget;
         if (!enabled) {
             this.registry = null;
             this.provider = null;
@@ -48,7 +51,7 @@ public final class McpModule implements AutoCloseable {
         this.provider = p;
         DefaultMcpClientRegistry reg = new DefaultMcpClientRegistry(
                 builder.factory, builder.gracePeriod, builder.forceCloseTimeout, builder.recorder,
-                builder.policyProvider);
+                builder.policyProvider, builder.dangerousToolPatterns);
         this.registry = reg;
         // 变更推送：配置源回调 → 差量刷新；坏配置（如重名）拒绝生效、注册表保持旧清单，
         // 记 ERROR Event（phase=refresh）——改配失败必须运维可见（spec 04：全部内部动作进可观测层）
@@ -89,7 +92,19 @@ public final class McpModule implements AutoCloseable {
     @Override
     public void close() {
         if (registry != null) {
-            registry.shutdown();
+            // impl-50：总预算上限——Spring destroy 回调不被 grace(30s)+force(5min) 拖穿停机窗口
+            Thread shutdownThread = Thread.ofVirtual().name("buzhou-mcp-shutdown")
+                    .start(registry::shutdown);
+            try {
+                shutdownThread.join(shutdownBudget.toMillis());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                if (shutdownThread.isAlive()) {
+                    System.getLogger(McpModule.class.getName()).log(System.Logger.Level.WARNING,
+                            "mcp shutdown 超出总预算 " + shutdownBudget + "：放弃等待（条目强杀由注册表兜底）");
+                }
+            }
         }
         if (provider instanceof DbToolSetProvider db) {
             db.close();
@@ -108,6 +123,10 @@ public final class McpModule implements AutoCloseable {
         private PolicyConfigProvider policyProvider;
         private McpConnectionFactory factory = new SpringAiMcpConnectionFactory();
         private SpanRecorder recorder;
+        /** impl-50：客户端侧危险工具模式（装配侧挂 guard HITL 用）。 */
+        private java.util.List<String> dangerousToolPatterns = java.util.List.of();
+        /** impl-50：close() 总预算（默认 35s≈grace+5s；超出放弃等待仅强杀日志留痕）。 */
+        private Duration shutdownBudget = Duration.ofSeconds(35);
 
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
@@ -168,6 +187,20 @@ public final class McpModule implements AutoCloseable {
         /** 可观测采集器；空则热更事件静默（模块独立可用）。 */
         public Builder recorder(SpanRecorder recorder) {
             this.recorder = recorder;
+            return this;
+        }
+
+        /** impl-50：危险工具模式（glob，如 {@code *.delete*}）；经 registry.dangerousToolNames() 暴露。 */
+        public Builder dangerousToolPatterns(java.util.List<String> patterns) {
+            this.dangerousToolPatterns = patterns == null ? java.util.List.of() : patterns;
+            return this;
+        }
+
+        /** impl-50：close() 总预算。 */
+        public Builder shutdownBudget(Duration budget) {
+            if (budget != null && !budget.isZero() && !budget.isNegative()) {
+                this.shutdownBudget = budget;
+            }
             return this;
         }
 

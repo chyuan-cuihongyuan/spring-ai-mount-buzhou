@@ -55,7 +55,16 @@ public class PropertiesToolSetProvider implements ToolSetProvider {
     }
 
     private static ToolSetSpec parseSpec(String name, Map<String, Object> map) {
-        Transport transport = Transport.valueOf(strVal(map, "transport", "STREAMABLE_HTTP"));
+        // impl-50 fail-fast：transport 拼错此前抛裸 Enum.valueOf 异常（无键名指引）
+        String transportText = strVal(map, "transport", "STREAMABLE_HTTP");
+        Transport transport;
+        try {
+            transport = Transport.valueOf(transportText.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                    "buzhou.mcp.servers." + name + ".transport（" + transportText + "）非法",
+                    "取值只能是 STREAMABLE_HTTP 或 STDIO");
+        }
         String endpoint = strVal(map, "endpoint", null);
         Map<String, String> env = new LinkedHashMap<>();
         if (map.get("env") instanceof Map<?, ?> envMap) {

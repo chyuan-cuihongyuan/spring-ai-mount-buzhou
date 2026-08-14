@@ -88,24 +88,40 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     private final Duration forceCloseTimeout;
     private final McpObservability obs;
     private final PolicyConfigProvider policyProvider;   // 可空：绑定级清单裁剪视图
+    /** impl-50：客户端侧危险工具名模式（glob，如 *.delete*）；空 = 不登记。 */
+    private final java.util.List<java.util.regex.Pattern> dangerousToolPatterns;
+    /** impl-50：最近一次建连失败计数（健康面）。 */
+    private final java.util.concurrent.atomic.AtomicLong connectFailures = new java.util.concurrent.atomic.AtomicLong();
     private final ConcurrentHashMap<String, Entry> entries = new ConcurrentHashMap<>();
     private final Object refreshLock = new Object();
     private final ScheduledExecutorService scheduler;
     private volatile boolean shutdown;
 
+    /** 既有 4 参构造兼容（policyProvider=null）。 */
     public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
                                     Duration forceCloseTimeout, SpanRecorder recorder) {
-        this(factory, gracePeriod, forceCloseTimeout, recorder, null);
+        this(factory, gracePeriod, forceCloseTimeout, recorder, null, java.util.List.of());
     }
 
+    /** 既有 5 参构造兼容（危险模式空表）。 */
     public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
                                     Duration forceCloseTimeout, SpanRecorder recorder,
                                     PolicyConfigProvider policyProvider) {
+        this(factory, gracePeriod, forceCloseTimeout, recorder, policyProvider, java.util.List.of());
+    }
+
+    /** impl-50 全参：额外接收危险工具模式列表。 */
+    public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
+                                    Duration forceCloseTimeout, SpanRecorder recorder,
+                                    PolicyConfigProvider policyProvider,
+                                    java.util.List<String> dangerousToolPatterns) {
         this.factory = factory;
         this.gracePeriod = gracePeriod;
         this.forceCloseTimeout = forceCloseTimeout;
         this.obs = new McpObservability(recorder);
         this.policyProvider = policyProvider;
+        this.dangerousToolPatterns = dangerousToolPatterns == null ? java.util.List.of()
+                : dangerousToolPatterns.stream().map(DefaultMcpClientRegistry::globToRegex).toList();
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "buzhou-mcp-registry-scheduler");
             t.setDaemon(true);
@@ -218,6 +234,10 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             connection = factory.connect(spec);
         } catch (RuntimeException e) {
             obs.connectFailed(spanCtx, spec.name(), e);
+            // impl-50：建连失败计数 + 指标（运维面；此前仅 Span Event、无指标）
+            connectFailures.incrementAndGet();
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.mcp.connect.failures", "server", spec.name());
             return false;
         }
         Entry entry = new Entry(spec.name(), spec, connection);
@@ -372,5 +392,75 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     public int inFlightOf(String name) {
         Entry e = entries.get(name);
         return e == null ? -1 : e.inFlight();
+    }
+
+    /** impl-50：glob（*.delete*）→ 正则。 */
+    static java.util.regex.Pattern globToRegex(String glob) {
+        StringBuilder regex = new StringBuilder();
+        for (char c : glob.toCharArray()) {
+            switch (c) {
+                case '*' -> regex.append(".*");
+                case '?' -> regex.append('.');
+                case '.' -> regex.append("\\.");
+                default -> {
+                    if (!Character.isLetterOrDigit(c) && !Character.isJavaIdentifierPart(c)) {
+                        regex.append('\\');
+                    }
+                    regex.append(c);
+                }
+            }
+        }
+        return java.util.regex.Pattern.compile(regex.toString(),
+                java.util.regex.Pattern.CASE_INSENSITIVE);
+    }
+
+    @Override
+    public int activeConnections() {
+        int count = 0;
+        for (Entry e : entries.values()) {
+            if (e.status == Status.ACTIVE) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    public int drainingConnections() {
+        int count = 0;
+        for (Entry e : entries.values()) {
+            if (e.status == Status.DRAINING) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    public java.util.Set<String> dangerousToolNames() {
+        if (dangerousToolPatterns.isEmpty()) {
+            return java.util.Set.of();
+        }
+        java.util.Set<String> out = new java.util.LinkedHashSet<>();
+        for (Entry e : entries.values()) {
+            if (e.status != Status.ACTIVE) {
+                continue;
+            }
+            for (ToolCallback cb : e.connection.toolCallbacks()) {
+                String name = cb.getToolDefinition().name();
+                for (java.util.regex.Pattern pattern : dangerousToolPatterns) {
+                    if (pattern.matcher(name).matches()) {
+                        out.add(name);
+                        break;
+                    }
+                }
+            }
+        }
+        return java.util.Set.copyOf(out);
+    }
+
+    /** impl-50：建连失败计数（connectFailure 路径自增；健康面只读）。 */
+    long connectFailures() {
+        return connectFailures.get();
     }
 }

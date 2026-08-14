@@ -1,1 +1,2 @@
 io.github.chyuan_cuihongyuan.buzhou.mcp.config.BuzhouMcpAutoConfiguration
+io.github.chyuan_cuihongyuan.buzhou.mcp.config.BuzhouMcpHealthAutoConfiguration

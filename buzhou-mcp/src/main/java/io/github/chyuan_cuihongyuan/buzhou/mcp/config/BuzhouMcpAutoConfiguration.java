@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpClientRegistry;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpModule;
+import io.github.chyuan_cuihongyuan.buzhou.mcp.ToolSetSpecStore;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -30,14 +31,27 @@ import java.util.List;
 @ConditionalOnProperty(prefix = "buzhou.mcp", name = "enabled", matchIfMissing = true)
 public class BuzhouMcpAutoConfiguration {
 
+    /**
+     * impl-50 / spec 14 §F：接线 DB 清单源（ToolSetSpecStore bean 存在时启用轮询源；
+     * 此前装配路径无法接入 store，DB 源只能手工编码）+ 危险工具模式 + 关闭预算。
+     */
     @Bean(destroyMethod = "close")
     public McpModule mcpModule(Environment env,
                                ObjectProvider<SpanRecorder> recorder,
-                               ObjectProvider<PolicyConfigProvider> policyProvider) {
-        return McpModule.fromYml(ConfigMaps.sub(env, "buzhou.mcp"))
+                               ObjectProvider<PolicyConfigProvider> policyProvider,
+                               ObjectProvider<ToolSetSpecStore> specStore) {
+        McpModule.Builder builder = McpModule.fromYml(ConfigMaps.sub(env, "buzhou.mcp"))
                 .recorder(recorder.getIfAvailable())
                 .policyProvider(policyProvider.getIfAvailable())
-                .build();
+                .dangerousToolPatterns(env.getProperty(
+                        "buzhou.mcp.dangerous-tool-patterns", java.util.List.class, java.util.List.of()))
+                .shutdownBudget(env.getProperty("buzhou.mcp.shutdown-budget",
+                        java.time.Duration.class, java.time.Duration.ofSeconds(35)));
+        ToolSetSpecStore store = specStore.getIfAvailable();
+        if (store != null) {
+            builder.store(store);
+        }
+        return builder.build();
     }
 
     @Bean
