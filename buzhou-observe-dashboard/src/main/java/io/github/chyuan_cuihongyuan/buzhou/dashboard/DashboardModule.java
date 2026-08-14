@@ -29,7 +29,7 @@ public class DashboardModule implements AutoCloseable {
         try {
             this.server = new io.github.chyuan_cuihongyuan.buzhou.dashboard.internal
                     .DashboardHttpServer(queries, builder.skillAdmin, builder.pathPrefix,
-                    builder.port);
+                    builder.port, builder.bindAddress, builder.authToken);
         } catch (IOException e) {
             throw new UncheckedIOException("dashboard 内嵌服务器初始化失败", e);
         }
@@ -69,6 +69,9 @@ public class DashboardModule implements AutoCloseable {
         private SkillAdminPort skillAdmin;
         private int port;
         private String pathPrefix = "/buzhou";
+        /** impl-48：默认只绑 loopback；非 loopback 绑定应配 authToken（装配层强制）。 */
+        private String bindAddress = "127.0.0.1";
+        private String authToken;
 
         private Builder(ObservabilityStore store) {
             if (store == null) {
@@ -92,6 +95,18 @@ public class DashboardModule implements AutoCloseable {
         /** 静态资源与 API 前缀，默认 {@code /buzhou}。 */
         public Builder pathPrefix(String pathPrefix) {
             this.pathPrefix = pathPrefix;
+            return this;
+        }
+
+        /** impl-48：绑定地址，默认 127.0.0.1（对齐 Actuator「管理面默认仅本机」立场）。 */
+        public Builder bindAddress(String bindAddress) {
+            this.bindAddress = bindAddress;
+            return this;
+        }
+
+        /** impl-48：Bearer 鉴权 token（设置后全部端点要求 Authorization 头）。 */
+        public Builder authToken(String authToken) {
+            this.authToken = authToken;
             return this;
         }
 

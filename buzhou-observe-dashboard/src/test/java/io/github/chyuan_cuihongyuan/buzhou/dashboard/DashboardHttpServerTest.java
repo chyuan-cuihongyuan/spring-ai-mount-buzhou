@@ -2,7 +2,6 @@ package io.github.chyuan_cuihongyuan.buzhou.dashboard;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemoryObservabilityStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +28,7 @@ class DashboardHttpServerTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private InMemoryObservabilityStore store;
+    private io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore store;
     private FakeSkillAdminPort skillAdmin;
     private DashboardModule dashboard;
     private HttpClient client;
@@ -37,7 +36,7 @@ class DashboardHttpServerTest {
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryObservabilityStore();
+        store = io.github.chyuan_cuihongyuan.buzhou.core.Buzhou.inMemoryStores().observabilityStore();
         seed();
         skillAdmin = new FakeSkillAdminPort();
         dashboard = DashboardModule.builder(store)

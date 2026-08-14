@@ -40,33 +40,60 @@ import java.util.concurrent.Executors;
  */
 public class DashboardHttpServer {
 
+    private static final System.Logger LOGGER = System.getLogger(DashboardHttpServer.class.getName());
+
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+    /** impl-48：请求体上限 1MB（防大 body DoS 内存向量）。 */
+    private static final int MAX_BODY_BYTES = 1024 * 1024;
+    /** impl-48：分页 size 上界（下界 1）。 */
+    private static final int MAX_PAGE_SIZE = 200;
 
     private final DashboardQueryService queries;
     private final SkillAdminPort skillAdmin; // nullable
     private final String prefix;
     private final HttpServer server;
+    private final java.util.concurrent.ExecutorService executor;
     private final byte[] indexHtml;
+    /** impl-48：Bearer 鉴权 token（null = 未启用鉴权——仅 loopback 绑定下由装配层保证）。 */
+    private final String authToken;
 
     public DashboardHttpServer(DashboardQueryService queries, SkillAdminPort skillAdmin,
                                String pathPrefix, int port) throws IOException {
+        this(queries, skillAdmin, pathPrefix, port, "127.0.0.1", null);
+    }
+
+    /** impl-48 全参构造：绑定地址 + Bearer 鉴权 token。 */
+    public DashboardHttpServer(DashboardQueryService queries, SkillAdminPort skillAdmin,
+                               String pathPrefix, int port, String bindAddress, String authToken)
+            throws IOException {
         this.queries = queries;
         this.skillAdmin = skillAdmin;
         this.prefix = normalizePrefix(pathPrefix);
-        this.server = HttpServer.create(new InetSocketAddress(port), 0);
-        this.server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+        this.authToken = (authToken == null || authToken.isBlank()) ? null : authToken;
+        java.net.InetAddress address = java.net.InetAddress.getByName(
+                bindAddress == null || bindAddress.isBlank() ? "127.0.0.1" : bindAddress.trim());
+        this.server = HttpServer.create(new InetSocketAddress(address, port), 0);
+        this.executor = Executors.newVirtualThreadPerTaskExecutor();
+        this.server.setExecutor(executor);
         this.server.createContext(prefix, this::route);
         this.indexHtml = readIndexHtml();
     }
 
     public void start() {
         server.start();
+        LOGGER.log(System.Logger.Level.INFO,
+                "buzhou dashboard 已启动：http://" + server.getAddress().getAddress().getHostAddress()
+                        + ":" + server.getAddress().getPort() + prefix
+                        + "（鉴权：" + (authToken != null ? "Bearer token" : "关闭（仅限 loopback 绑定）") + "）");
     }
 
     public void stop() {
         server.stop(0);
+        // impl-48：executor 一并关闭（此前仅停 server，虚拟线程 executor 句柄泄漏）
+        executor.shutdown();
     }
 
     public int actualPort() {
@@ -82,7 +109,13 @@ public class DashboardHttpServer {
         if (!p.startsWith("/")) {
             p = "/" + p;
         }
-        return p.endsWith("/") ? p.substring(0, p.length() - 1) : p;
+        String normalized = p.endsWith("/") ? p.substring(0, p.length() - 1) : p;
+        // impl-48：前缀与内部 /api 路由自噬防护
+        if ("/api".equals(normalized) || normalized.startsWith("/api/")) {
+            throw new IllegalArgumentException(
+                    "pathPrefix 不得为 /api 或其子路径（会自噬内部 API 路由）：" + normalized);
+        }
+        return normalized;
     }
 
     private static byte[] readIndexHtml() throws IOException {
@@ -99,8 +132,17 @@ public class DashboardHttpServer {
 
     private void route(HttpExchange exchange) throws IOException {
         try {
+            if (!authorized(exchange)) {
+                // impl-48：401 不带细节（不泄露「为何拒绝」给未认证客户端）
+                writeJson(exchange, 401, Map.of("error", "unauthorized"));
+                return;
+            }
             dispatch(exchange);
+        } catch (BodyTooLargeException e) {
+            writeJson(exchange, 413, Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "dashboard 400：" + exchange.getRequestURI() + "：" + e.getMessage());
             writeJson(exchange, 400, Map.of("error", e.getMessage()));
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             writeJson(exchange, 400, Map.of("error", "请求体不是合法 JSON"));
@@ -109,10 +151,29 @@ public class DashboardHttpServer {
         } catch (NotFoundException e) {
             writeJson(exchange, 404, Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            writeJson(exchange, 500, Map.of("error", String.valueOf(e.getMessage())));
+            // impl-48：500 不回显内部异常细节（信息泄露），完整栈进服务端日志
+            LOGGER.log(System.Logger.Level.ERROR,
+                    "dashboard 内部错误：" + exchange.getRequestMethod() + " " + exchange.getRequestURI(), e);
+            writeJson(exchange, 500, Map.of("error", "internal_error"));
         } finally {
             exchange.close();
         }
+    }
+
+    /** impl-48：Bearer 鉴权——token 配置后全部请求（含静态页）须带 {@code Authorization: Bearer <token>}。 */
+    private boolean authorized(HttpExchange exchange) {
+        if (authToken == null) {
+            return true;
+        }
+        List<String> header = exchange.getRequestHeaders().get("Authorization");
+        if (header == null || header.size() != 1) {
+            return false;
+        }
+        String expected = "Bearer " + authToken;
+        // 常量时间比较（防时序侧信道逐字节探测）
+        return java.security.MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.UTF_8),
+                header.get(0).getBytes(StandardCharsets.UTF_8));
     }
 
     private void dispatch(HttpExchange exchange) throws IOException {
@@ -152,7 +213,7 @@ public class DashboardHttpServer {
             throws IOException {
         requireGet(method);
         if (seg.length == 1) {
-            int size = parseInt(query.get("size"), 50);
+            int size = clampPageSize(parseInt(query.get("size"), 50));
             return queries.listSessions(query.get("cursor"), size);
         }
         String sid = seg[1];
@@ -251,7 +312,11 @@ public class DashboardHttpServer {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Object> readBody(HttpExchange exchange) throws IOException {
-        byte[] raw = exchange.getRequestBody().readAllBytes();
+        byte[] raw = exchange.getRequestBody().readNBytes(MAX_BODY_BYTES + 1);
+        if (raw.length > MAX_BODY_BYTES) {
+            // impl-48：请求体上限（此前 readAllBytes 无界——DoS 内存向量）
+            throw new BodyTooLargeException();
+        }
         if (raw.length == 0) {
             return Map.of();
         }
@@ -270,6 +335,11 @@ public class DashboardHttpServer {
             return ((List<Object>) list).stream().map(String::valueOf).toList();
         }
         return null;
+    }
+
+    /** impl-48：分页 size clamp 到 [1,200]（此前无上限，10^9 会向 store 要巨型页）。 */
+    private static int clampPageSize(int size) {
+        return Math.max(1, Math.min(MAX_PAGE_SIZE, size));
     }
 
     private static int parseInt(String raw, int fallback) {
@@ -307,6 +377,13 @@ public class DashboardHttpServer {
     private static final class NotFoundException extends RuntimeException {
         NotFoundException(String message) {
             super(message);
+        }
+    }
+
+    /** impl-48：请求体超限 → 413。 */
+    static final class BodyTooLargeException extends RuntimeException {
+        BodyTooLargeException() {
+            super("请求体超过上限 " + MAX_BODY_BYTES + " 字节");
         }
     }
 }

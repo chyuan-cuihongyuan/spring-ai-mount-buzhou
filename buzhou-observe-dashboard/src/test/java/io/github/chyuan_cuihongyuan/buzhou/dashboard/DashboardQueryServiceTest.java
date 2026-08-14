@@ -1,6 +1,5 @@
 package io.github.chyuan_cuihongyuan.buzhou.dashboard;
 
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemoryObservabilityStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
@@ -21,12 +20,12 @@ class DashboardQueryServiceTest {
 
     private static final Instant T0 = Instant.parse("2026-08-08T10:00:00Z");
 
-    private InMemoryObservabilityStore store;
+    private io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore store;
     private DashboardQueryService service;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryObservabilityStore();
+        store = io.github.chyuan_cuihongyuan.buzhou.core.Buzhou.inMemoryStores().observabilityStore();
         service = new DashboardQueryService(store);
         seedSession("sess-1");
     }

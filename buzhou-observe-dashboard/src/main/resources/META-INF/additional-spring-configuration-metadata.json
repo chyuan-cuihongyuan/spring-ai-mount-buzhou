@@ -1,0 +1,33 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.observe.dashboard.enabled",
+      "type": "java.lang.Boolean",
+      "description": "可视化后台总开关（默认关）。",
+      "defaultValue": false
+    },
+    {
+      "name": "buzhou.observe.dashboard.port",
+      "type": "java.lang.Integer",
+      "description": "独立端口；0 = 随机。",
+      "defaultValue": 0
+    },
+    {
+      "name": "buzhou.observe.dashboard.path-prefix",
+      "type": "java.lang.String",
+      "description": "静态资源与 API 前缀（不得为 /api 或其子路径）。",
+      "defaultValue": "/buzhou"
+    },
+    {
+      "name": "buzhou.observe.dashboard.bind-address",
+      "type": "java.lang.String",
+      "description": "绑定地址（默认 127.0.0.1；非 loopback 必须配 auth-token，否则启动失败）。",
+      "defaultValue": "127.0.0.1"
+    },
+    {
+      "name": "buzhou.observe.dashboard.auth-token",
+      "type": "java.lang.String",
+      "description": "Bearer 鉴权 token（设置后全部端点要求 Authorization 头；支持 ${ENV:} 占位）。"
+    }
+  ]
+}
