@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultSessionEventContext;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.StructuredOutputException;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultTurnContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
@@ -220,6 +221,65 @@ public class DefaultAgentSession implements AgentSession {
         } finally {
             inFlightTurns.decrementAndGet();
         }
+    }
+
+    /**
+     * 结构化输出（spec 19 / T87 / impl-62）：BeanOutputConverter 注入 schema；解析失败发
+     * {@code structured.reask} 事件后追加一次完整 turn（复用 doChat 全管线——hook/预算/失控
+     * 检测对 REASK 轮全部生效、诚实计入预算）；再失败抛 {@link StructuredOutputException}。
+     */
+    @Override
+    public <T> T chatForEntity(String input, Class<T> type) {
+        ensureOpen();
+        ensureLeaseHeld();
+        ensureNotShuttingDown();
+        inFlightTurns.incrementAndGet();
+        try {
+            org.springframework.ai.converter.BeanOutputConverter<T> converter =
+                    new org.springframework.ai.converter.BeanOutputConverter<>(type);
+            String first = doChat(input + "\n" + converter.getFormat());
+            String firstError = parseError(first, converter);
+            if (firstError == null) {
+                return converter.convert(first);
+            }
+            dispatchEvent(SessionEvent.of("structured.reask"));
+            String second = doChat(input + "\n" + converter.getFormat()
+                    + "\n[系统反馈] 你上一次的输出无法解析（" + firstError
+                    + "）。请只输出一个符合上述格式的 JSON，不要包含任何其他文本或代码块标记。");
+            String secondError = parseError(second, converter);
+            if (secondError == null) {
+                return converter.convert(second);
+            }
+            throw new StructuredOutputException("结构化输出解析失败（REASK 一次后仍不合规）：首次="
+                    + summarize(first) + "，重问=" + summarize(second)
+                    + "；解析错误=" + secondError, null);
+        } finally {
+            inFlightTurns.decrementAndGet();
+        }
+    }
+
+    /** 解析失败返回错误摘要（成功返回 null）；convert 抛异常 / 返回 null 均视为失败。 */
+    private <T> String parseError(String response, org.springframework.ai.converter.BeanOutputConverter<T> converter) {
+        if (response == null || response.isBlank()) {
+            return "输出为空";
+        }
+        try {
+            if (converter.convert(response) == null) {
+                return "解析结果为 null";
+            }
+            return null;
+        } catch (RuntimeException e) {
+            String message = e.getMessage();
+            return message == null ? e.getClass().getSimpleName()
+                    : message.length() > 200 ? message.substring(0, 200) : message;
+        }
+    }
+
+    private static String summarize(String response) {
+        if (response == null) {
+            return "(null)";
+        }
+        return response.length() <= 120 ? response : response.substring(0, 120) + "…";
     }
 
     private String doChat(String input) {

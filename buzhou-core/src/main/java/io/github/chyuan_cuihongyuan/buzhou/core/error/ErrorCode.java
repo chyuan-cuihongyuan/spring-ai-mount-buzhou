@@ -45,6 +45,9 @@ public enum ErrorCode {
     /** 参数校验失败（schema 校验未过；原样重试必再失败，需修正入参）。 */
     ARGS_VALIDATION_FAILED(RetryCategory.NON_RETRYABLE, "参数校验失败"),
 
+    /** 结构化输出解析失败（REASK 一次后仍不合规；spec 19 / impl-62）。 */
+    STRUCTURED_OUTPUT_FAILED(RetryCategory.NON_RETRYABLE, "结构化输出解析失败"),
+
     // ---- FATAL：环境或数据根因，需人工介入 ----
 
     /** 数据损坏（单条记录无法解析 / 链校验断点；跳过计数并告警，需人工修复）。 */

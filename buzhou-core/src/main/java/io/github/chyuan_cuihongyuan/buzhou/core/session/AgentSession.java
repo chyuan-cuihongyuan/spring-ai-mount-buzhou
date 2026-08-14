@@ -13,6 +13,16 @@ public interface AgentSession extends AutoCloseable {
 
     String chat(String input);
 
+    /**
+     * 结构化输出（spec 19 / T87 / impl-62）：要求模型按 {@code type} 的 JSON schema 输出并解析为
+     * 实例。解析失败自动 REASK 一次（携带解析错误反馈的完整轮次，诚实计入预算）；再失败抛
+     * {@link StructuredOutputException}。流式不支持（JSON 增量解析语义不明）。
+     */
+    default <T> T chatForEntity(String input, Class<T> type) {
+        throw new UnsupportedOperationException(
+                "本 AgentSession 实现不支持结构化输出（chatForEntity）");
+    }
+
     Flux<ChatResponse> stream(String input);
 
     /** 取消在途轮次（impl-05）：立即中断在飞工具、丢弃在飞结果；会话不谢幕，可继续 chat。 */
