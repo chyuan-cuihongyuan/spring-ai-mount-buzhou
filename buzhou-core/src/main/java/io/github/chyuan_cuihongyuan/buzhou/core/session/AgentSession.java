@@ -28,6 +28,18 @@ public interface AgentSession extends AutoCloseable {
     @Override
     void close();
 
+    /**
+     * impl-35 / spec 13 §stores-6：删除会话 = 一次调用清干净——先 {@link #close()}
+     * （资源注册表清空：spill 文件 / 租约释放 / executor 排空），再经 SessionCleaner
+     * 级联删除全部存储（messages / summaries / state / lease / spans / events /
+     * snapshots / tool_call_log / run_registry + 配置挂接的贡献者）。清理失败逐目标隔离、
+     * 聚合上抛（首个失败 + suppressed，与 impl-30 close 语义对齐）；对已 close 的会话仍执行
+     * 存储级联（close 幂等）。未接线 SessionCleaner 的实现退化为 close()。
+     */
+    default void delete() {
+        close();
+    }
+
     void addEventListener(SessionEventListener listener);
 
     void removeEventListener(SessionEventListener listener);

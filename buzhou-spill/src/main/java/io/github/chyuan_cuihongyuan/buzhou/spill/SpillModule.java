@@ -32,6 +32,18 @@ public final class SpillModule {
         return this;
     }
 
+    /**
+     * impl-35 / spec 13 §stores-6：spill 文件按会话清理的 SessionCleaner 贡献者——
+     * 会话经资源注册表 close 即删（既有路径）；本贡献者供独立 SessionCleaner /
+     * {@code RuntimeConfig.cleanupContributors(...)} 离线级联（会话已 close 后补删）用。
+     */
+    public io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor cleanupContributor(
+            String agentName) {
+        return io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor.of(
+                "spill-files",
+                sessionId -> store.deleteBySession(sanitize(agentName), sanitize(sessionId)));
+    }
+
     public SpillService service() {
         return service;
     }

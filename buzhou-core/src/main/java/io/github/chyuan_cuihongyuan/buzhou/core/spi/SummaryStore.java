@@ -10,4 +10,11 @@ public interface SummaryStore {
     Optional<StructuredSummary> latest(String sessionId);
 
     List<StructuredSummary> history(String sessionId, int limit);
+
+    /**
+     * impl-35 / spec 13 §stores-6：删除该会话的全部摘要版本（含版本计数器）。幂等——
+     * 会话不存在时无操作。默认 no-op（既有实现二进制兼容，由各实现补齐语义）。
+     */
+    default void deleteSession(String sessionId) {
+    }
 }

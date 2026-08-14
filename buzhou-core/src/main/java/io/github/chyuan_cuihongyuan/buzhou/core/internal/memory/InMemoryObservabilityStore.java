@@ -107,4 +107,13 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
                 .sorted(Comparator.comparing(EventRecord::occurredAt))
                 .toList();
     }
+
+    /** impl-35 / spec 13 §stores-6：移除该会话全部 spans/events/注入快照（幂等；快照按键前缀清除）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        spans.remove(sessionId);
+        events.remove(sessionId);
+        String prefix = sessionId + ":";
+        snapshots.keySet().removeIf(k -> k.startsWith(prefix));
+    }
 }

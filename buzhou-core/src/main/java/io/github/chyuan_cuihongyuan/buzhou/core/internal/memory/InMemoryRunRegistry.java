@@ -32,4 +32,10 @@ public class InMemoryRunRegistry implements RunRegistry {
                 .sorted(Comparator.comparing(RunStateSnapshot::updatedAt))
                 .toList();
     }
+
+    /** impl-35 / spec 13 §stores-6：移除该会话的 run 快照（幂等）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        runs.remove(sessionId);
+    }
 }

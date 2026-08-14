@@ -26,6 +26,16 @@ public class JdbcSessionLeaseStore implements SessionLeaseStore {
         this.jdbc = jdbc;
     }
 
+    /**
+     * impl-35 / spec 13 §stores-6：删除会话租约（幂等；单语句自原子）。诚实边界：JDBC 的
+     * fencing token 是租约行内列（tryAcquire 首插恒为 1），删行即重置 token 空间——
+     * 不具备 InMemory/Redis 的跨删除 token 单调语义；fence 正确性依赖行级 owner+token 校验。
+     */
+    @Override
+    public void deleteSession(String sessionId) {
+        jdbc.update("DELETE FROM buzhou_session_lease WHERE session_id = ?", sessionId);
+    }
+
     @Override
     public LeaseAcquireResult tryAcquire(String sessionId, String ownerId, Duration ttl) {
         Instant now = Instant.now();

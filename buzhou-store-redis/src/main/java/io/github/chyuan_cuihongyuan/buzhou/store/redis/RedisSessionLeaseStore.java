@@ -114,4 +114,15 @@ public class RedisSessionLeaseStore implements SessionLeaseStore {
                 Instant.parse(fields.get("acquiredAt")),
                 Instant.parse(fields.get("expiresAt"))));
     }
+
+    /**
+     * impl-35 / spec 13 §stores-6：删租约本体（幂等）。fencing 计数器<b>保留</b>——
+     * {@code lease:<sid>:seq} 无 TTL 的存在意义即「token 不复用」（与 InMemory 全局计数器
+     * 不复位同语义）：会话删除后重建，新租约的 token 仍单调递增，旧持有者的写 fence 不因
+     * token 重叠而误放行。
+     */
+    @Override
+    public void deleteSession(String sessionId) {
+        sync.commands().del(keys.lease(sessionId));
+    }
 }

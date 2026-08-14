@@ -1,5 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.session;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor;
 import org.springframework.ai.tool.ToolCallback;
@@ -17,7 +18,8 @@ public record RuntimeConfig(
         Map<String, String> serialGroups,
         List<SessionResourceCustomizer> sessionCustomizers,
         List<SessionAssemblyCustomizer> assemblyCustomizers,
-        TurnLoopPolicy turnLoopPolicy) {
+        TurnLoopPolicy turnLoopPolicy,
+        List<SessionCleanupContributor> sessionCleanupContributors) {
 
     public RuntimeConfig {
         hooks = hooks == null ? List.of() : List.copyOf(hooks);
@@ -27,13 +29,26 @@ public record RuntimeConfig(
         serialGroups = serialGroups == null ? Map.of() : Map.copyOf(serialGroups);
         sessionCustomizers = sessionCustomizers == null ? List.of() : List.copyOf(sessionCustomizers);
         assemblyCustomizers = assemblyCustomizers == null ? List.of() : List.copyOf(assemblyCustomizers);
+        sessionCleanupContributors = sessionCleanupContributors == null
+                ? List.of() : List.copyOf(sessionCleanupContributors);
+    }
+
+    /** impl-35 前的 9 槽形状（无清理贡献者）——保留委托，源 / 二进制兼容。 */
+    public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
+                         Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
+                         List<ToolCallback> autoTools, Map<String, String> serialGroups,
+                         List<SessionResourceCustomizer> sessionCustomizers,
+                         List<SessionAssemblyCustomizer> assemblyCustomizers,
+                         TurnLoopPolicy turnLoopPolicy) {
+        this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
+                sessionCustomizers, assemblyCustomizers, turnLoopPolicy, List.of());
     }
 
     public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
                          Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
                          List<ToolCallback> autoTools) {
         this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, Map.of(),
-                List.of(), List.of(), null);
+                List.of(), List.of(), null, List.of());
     }
 
     public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
@@ -41,7 +56,7 @@ public record RuntimeConfig(
                          List<ToolCallback> autoTools, Map<String, String> serialGroups,
                          List<SessionResourceCustomizer> sessionCustomizers) {
         this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
-                sessionCustomizers, List.of(), null);
+                sessionCustomizers, List.of(), null, List.of());
     }
 
     public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
@@ -50,7 +65,7 @@ public record RuntimeConfig(
                          List<SessionResourceCustomizer> sessionCustomizers,
                          List<SessionAssemblyCustomizer> assemblyCustomizers) {
         this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
-                sessionCustomizers, assemblyCustomizers, null);
+                sessionCustomizers, assemblyCustomizers, null, List.of());
     }
 
     public static RuntimeConfig defaults() {
@@ -90,6 +105,12 @@ public record RuntimeConfig(
                 turnLoopPolicy);
     }
 
+    /** 仅含级联清理贡献者（impl-35 / spec 13 §stores-6——store 外会话数据并入一次级联）。 */
+    public static RuntimeConfig cleanupContributors(List<SessionCleanupContributor> contributors) {
+        return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of(), Map.of(), List.of(),
+                List.of(), null, contributors);
+    }
+
     public static RuntimeConfig merge(RuntimeConfig... configs) {
         List<BuzhouHook> hooks = new java.util.ArrayList<>();
         Set<String> disabled = new java.util.HashSet<>();
@@ -99,6 +120,7 @@ public record RuntimeConfig(
         Map<String, String> serialGroups = new java.util.HashMap<>();
         List<SessionResourceCustomizer> customizers = new java.util.ArrayList<>();
         List<SessionAssemblyCustomizer> assemblyCustomizers = new java.util.ArrayList<>();
+        List<SessionCleanupContributor> cleanupContributors = new java.util.ArrayList<>();
         TurnLoopPolicy turnLoopPolicy = null;
         for (RuntimeConfig config : configs) {
             if (config == null) {
@@ -114,12 +136,13 @@ public record RuntimeConfig(
             serialGroups.putAll(config.serialGroups());
             customizers.addAll(config.sessionCustomizers());
             assemblyCustomizers.addAll(config.assemblyCustomizers());
+            cleanupContributors.addAll(config.sessionCleanupContributors());
             if (config.turnLoopPolicy() != null) {
                 turnLoopPolicy = config.turnLoopPolicy();
             }
         }
         return new RuntimeConfig(hooks, disabled, idempotent, compose(viewProcessors), autoTools,
-                serialGroups, customizers, assemblyCustomizers, turnLoopPolicy);
+                serialGroups, customizers, assemblyCustomizers, turnLoopPolicy, cleanupContributors);
     }
 
     /**

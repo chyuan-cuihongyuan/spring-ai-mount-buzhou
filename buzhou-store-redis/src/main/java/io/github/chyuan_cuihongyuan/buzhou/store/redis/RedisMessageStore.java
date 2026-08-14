@@ -70,6 +70,34 @@ public class RedisMessageStore implements MessageStore {
         return parseEntry("n/a(messageId=" + messageId + ")", 0, json);
     }
 
+    /**
+     * impl-35 / spec 13 §stores-6：按会话键集删——LIST 正文里的 id 逐个删按 id 索引，
+     * 再删 LIST 本体。坏 JSON 条目跳过 id 索引删除（与 load 的隔离口径一致；其索引键
+     * 随运维清理，不阻塞级联）。幂等。
+     */
+    @Override
+    public void deleteSession(String sessionId) {
+        var c = sync.commands();
+        String listKey = keys.messageList(sessionId);
+        List<String> raw = c.lrange(listKey, 0, -1);
+        if (raw != null) {
+            for (String json : raw) {
+                if (json == null || json.isBlank()) {
+                    continue;
+                }
+                try {
+                    BuzhouMessage m = RedisJson.read(json, BuzhouMessage.class);
+                    if (m != null) {
+                        c.del(keys.messageById(m.id()));
+                    }
+                } catch (RuntimeException ignored) {
+                    // 坏 JSON：跳过该条 id 索引删除（load 路径已 WARN + 计数，此处不重复降噪）
+                }
+            }
+        }
+        c.del(listKey);
+    }
+
     /** 单条解析（坏 JSON → WARN + 损坏计数 + 跳过）。 */
     private Optional<BuzhouMessage> parseEntry(String sessionId, int listIndex, String json) {
         if (json == null || json.isBlank()) {

@@ -36,4 +36,10 @@ public class InMemoryMessageStore implements MessageStore {
                 .filter(m -> m.id().equals(messageId))
                 .findFirst();
     }
+
+    /** impl-35 / spec 13 §stores-6：移除该会话全部消息（幂等）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        bySession.remove(sessionId);
+    }
 }

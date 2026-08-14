@@ -223,4 +223,63 @@ public abstract class AbstractBuzhouStoresContractTest {
             throw new IllegalStateException("boom");
         })).isInstanceOf(IllegalStateException.class);
     }
+
+    /**
+     * impl-35 / spec 13 §stores-6：deleteSession 契约——五槽 store 各自 deleteSession 后
+     * 全 store 无该会话残留（消息含按 id 索引 / 摘要全部版本 / state / 租约 / 观测
+     * spans+events+注入快照+单 span event 索引+会话活跃索引项），且幂等（再删无异常）。
+     */
+    @Test
+    void deleteSessionLeavesNoResidueAcrossStores() {
+        String sessionId = "contract-del-" + UUID.randomUUID();
+        BuzhouStores stores = stores();
+        BuzhouMessage message = msg(sessionId, 1, 0, Role.USER);
+        stores.messageStore().append(sessionId, List.of(message));
+        stores.summaryStore().save(sessionId,
+                new StructuredSummary(sessionId, 0, Map.of("P0", "a"), 10, Instant.now()));
+        stores.sessionStateStore().put(sessionId,
+                new StateEntry("fact.a", "v1", "hook", 1, null, Instant.now()));
+        stores.sessionLeaseStore().tryAcquire(sessionId, "owner-del", Duration.ofSeconds(90));
+        SpanRecord span = new SpanRecord("sp-del-" + UUID.randomUUID(), null, sessionId, 1, "TURN",
+                "turn-1", Instant.now(), null, "RUNNING", Map.of());
+        stores.observabilityStore().saveSpans(List.of(span));
+        stores.observabilityStore().saveEvents(List.of(new EventRecord(
+                "ev-del-" + UUID.randomUUID(), span.spanId(), sessionId, "Thinking",
+                Instant.now(), Map.of())));
+        stores.observabilityStore().saveInjectionSnapshot(
+                new InjectionSnapshot(sessionId, 1, List.of("m1"), Map.of("budget", 1), Instant.now()));
+        assertThat(stores.messageStore().findById(message.id())).isPresent(); // 铺底成立
+
+        stores.messageStore().deleteSession(sessionId);
+        stores.summaryStore().deleteSession(sessionId);
+        stores.sessionStateStore().deleteSession(sessionId);
+        stores.sessionLeaseStore().deleteSession(sessionId);
+        stores.observabilityStore().deleteSession(sessionId);
+
+        assertThat(stores.messageStore().load(sessionId)).isEmpty();
+        assertThat(stores.messageStore().findById(message.id())).isEmpty();
+        assertThat(stores.summaryStore().latest(sessionId)).isEmpty();
+        assertThat(stores.summaryStore().history(sessionId, 10)).isEmpty();
+        assertThat(stores.sessionStateStore().getAll(sessionId)).isEmpty();
+        assertThat(stores.sessionLeaseStore().inspect(sessionId)).isEmpty();
+        assertThat(stores.observabilityStore().spansOfSession(sessionId)).isEmpty();
+        assertThat(stores.observabilityStore().eventsOfSession(sessionId)).isEmpty();
+        assertThat(stores.observabilityStore().injectionSnapshot(sessionId, 1)).isEmpty();
+        assertThat(stores.observabilityStore().eventsOfSpan(span.spanId())).isEmpty();
+        List<SessionSummary> all = new ArrayList<>();
+        String cursor = null;
+        for (int i = 0; i < 200; i++) {
+            List<SessionSummary> page = stores.observabilityStore().listSessionSummaries(cursor, 3);
+            if (page.isEmpty()) {
+                break;
+            }
+            all.addAll(page);
+            cursor = String.valueOf(all.size());
+        }
+        assertThat(all).extracting(SessionSummary::sessionId).doesNotContain(sessionId);
+        // 幂等：重复删除无异常、无残留变化
+        stores.messageStore().deleteSession(sessionId);
+        stores.observabilityStore().deleteSession(sessionId);
+        assertThat(stores.messageStore().load(sessionId)).isEmpty();
+    }
 }

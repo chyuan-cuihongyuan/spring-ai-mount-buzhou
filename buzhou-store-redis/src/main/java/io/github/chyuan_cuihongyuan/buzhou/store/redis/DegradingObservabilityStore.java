@@ -88,6 +88,18 @@ public class DegradingObservabilityStore implements ObservabilityStore {
         return delegate.eventsOfSpan(spanId);
     }
 
+    /**
+     * impl-35 / spec 13 §stores-6：级联删走同款降级口径——观测类数据可再生，DEGRADE 下
+     * 删除失败 WARN + 计数继续（SessionCleaner 的失败聚合因此不会因观测清理失败而中断级联）。
+     */
+    @Override
+    public void deleteSession(String sessionId) {
+        runDegradable(sessionId, "deleteSession", () -> {
+            delegate.deleteSession(sessionId);
+            return null;
+        });
+    }
+
     /** DEGRADE 时吞掉观测类写失败并计数；FAIL_TURN 原样抛。 */
     private <T> T runDegradable(String sessionId, String operation, Supplier<T> write) {
         if (policy != WriteFailurePolicy.DEGRADE) {

@@ -55,4 +55,10 @@ public class InMemorySessionStateStore implements SessionStateStore {
         });
         return removed[0];
     }
+
+    /** impl-35 / spec 13 §stores-6：移除该会话全部 state 条目（幂等）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        bySession.remove(sessionId);
+    }
 }

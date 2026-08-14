@@ -42,4 +42,11 @@ public class InMemorySummaryStore implements SummaryStore {
                 .limit(limit)
                 .toList();
     }
+
+    /** impl-35 / spec 13 §stores-6：移除该会话全部摘要版本与版本计数器（幂等）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        bySession.remove(sessionId);
+        versions.remove(sessionId);
+    }
 }

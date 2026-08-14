@@ -134,4 +134,18 @@ class SpillStoreTest {
             assertThat(store.exists(new SpillUri("agent", "s1", "tc-" + i))).isTrue();
         }
     }
+
+    /** impl-35 / spec 13 §stores-6：cleanupContributor 按 sessionId 级联删 spill 文件（其他会话不动）。 */
+    @Test
+    void cleanupContributorDeletesSessionSpillFiles() {
+        SpillModule module = SpillModule.withDefaults(rootDir);
+        module.store().store(SpillEntry.of(new SpillUri("agent", "s1", "tc-1"), "data-1"), 2048);
+        module.store().store(SpillEntry.of(new SpillUri("agent", "s2", "tc-1"), "data-2"), 2048);
+        assertThat(module.store().exists(new SpillUri("agent", "s1", "tc-1"))).isTrue();
+
+        module.cleanupContributor("agent").deletion().accept("s1");
+
+        assertThat(module.store().exists(new SpillUri("agent", "s1", "tc-1"))).isFalse();
+        assertThat(module.store().exists(new SpillUri("agent", "s2", "tc-1"))).isTrue();
+    }
 }

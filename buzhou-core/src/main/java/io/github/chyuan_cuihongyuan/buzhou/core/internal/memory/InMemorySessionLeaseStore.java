@@ -92,4 +92,10 @@ public class InMemorySessionLeaseStore implements SessionLeaseStore {
                 current != null && current.expiresAt().isBefore(Instant.now()) ? null : current);
         return Optional.ofNullable(info);
     }
+
+    /** impl-35 / spec 13 §stores-6：移除该会话租约（幂等；全局 fencing 计数器不复位——token 不复用语义）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        leases.remove(sessionId);
+    }
 }

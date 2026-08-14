@@ -24,6 +24,13 @@ public class InMemoryToolCallLog implements ToolCallLog {
         return Optional.ofNullable(entries.get(key(sessionId, toolCallId)));
     }
 
+    /** impl-35 / spec 13 §stores-6：移除该会话全部工具调用日志（复合键按前缀清除，幂等）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        String prefix = sessionId + ":";
+        entries.keySet().removeIf(k -> k.startsWith(prefix));
+    }
+
     private static String key(String sessionId, String toolCallId) {
         return sessionId + ":" + toolCallId;
     }

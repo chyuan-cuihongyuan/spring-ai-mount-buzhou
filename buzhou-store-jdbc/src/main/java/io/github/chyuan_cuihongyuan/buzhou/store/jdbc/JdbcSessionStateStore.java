@@ -37,6 +37,12 @@ public class JdbcSessionStateStore implements SessionStateStore {
         this.transactionTemplate = transactionTemplate;
     }
 
+    /** impl-35 / spec 13 §stores-6：单表批量删（幂等；单语句自原子）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        jdbc.update("DELETE FROM buzhou_session_state WHERE session_id = ?", sessionId);
+    }
+
     @Override
     public void put(String sessionId, StateEntry entry) {
         // ticket 32：先删后插整段进同一事务（有 UoW 复用、无则自开短事务）

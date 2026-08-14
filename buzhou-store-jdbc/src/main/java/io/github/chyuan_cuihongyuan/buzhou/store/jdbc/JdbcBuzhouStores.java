@@ -52,7 +52,8 @@ public final class JdbcBuzhouStores {
         SchemaMigrator.migrate(dataSource, dialect);
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         TransactionTemplate tx = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
-        ObservabilityStore observability = new JdbcObservabilityStore(jdbc);
+        // impl-35：观测三表级联删同事务（有 UoW 复用、无则自开短事务）
+        ObservabilityStore observability = new JdbcObservabilityStore(jdbc, tx);
         if (writeFailurePolicy == WriteFailurePolicy.DEGRADE) {
             // DEGRADE 才装饰（观测类写 WARN + 计数继续）；FAIL_TURN 保持既有原样抛语义
             observability = new DegradingObservabilityStore(observability, writeFailurePolicy);

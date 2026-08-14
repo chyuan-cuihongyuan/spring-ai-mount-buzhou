@@ -119,6 +119,32 @@ public class HarnessAssembler {
                                  SessionLeaseGuard leaseGuard,
                                  io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
                                  ToolCallback... tools) {
+        return assemble(appId, agentName, sessionId, chatModel, stores, registry, onClose,
+                hooks, disabledHookNames, idempotentToolNames, viewProcessor, executor, serialGroups,
+                assemblyCustomizers, turnLoopPolicy, leaseGuard, eventDispatchConfig, null, tools);
+    }
+
+    /**
+     * impl-35 / spec 13 §stores-6：完整装配入口 + 级联清理协调器——
+     * {@code sessionCleaner} 非 null 时会话 {@code delete()} 先 close 再一次级联删存储；
+     * null 时退化为 close()（既有装配路径行为不变）。
+     */
+    public AgentSession assemble(String appId, String agentName, String sessionId,
+                                 ChatModel chatModel, BuzhouStores stores,
+                                 SessionResourceRegistry registry,
+                                 Runnable onClose,
+                                 Collection<BuzhouHook> hooks,
+                                 Set<String> disabledHookNames,
+                                 Set<String> idempotentToolNames,
+                                 MemoryViewProcessor viewProcessor,
+                                 ExecutorService executor,
+                                 Map<String, String> serialGroups,
+                                 List<SessionAssemblyCustomizer> assemblyCustomizers,
+                                 TurnLoopPolicy turnLoopPolicy,
+                                 SessionLeaseGuard leaseGuard,
+                                 io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
+                                 io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner sessionCleaner,
+                                 ToolCallback... tools) {
         HookEnvironment env = new HookEnvironment(sessionId, agentName, stores.sessionStateStore());
         HookChain chain = new HookChain(hooks, disabledHookNames);
 
@@ -179,7 +205,7 @@ public class HarnessAssembler {
         Duration turnBudget = turnLoopPolicy == null ? null : turnLoopPolicy.effectiveTurnBudget();
         return new DefaultAgentSession(appId, agentName, sessionId, builder.build(), registry, onClose,
                 chain, env, toolManager, spanContextCarrier, assemblyCtx.observers(), turnBudget,
-                leaseGuard, eventDispatchConfig);
+                leaseGuard, eventDispatchConfig, sessionCleaner);
     }
 
     public ChatClient.Builder enhance(ChatClient.Builder builder, BuzhouStores stores) {

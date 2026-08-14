@@ -18,4 +18,11 @@ public interface ToolCallLog {
     void append(ToolCallLogEntry entry);
 
     Optional<ToolCallLogEntry> find(String sessionId, String toolCallId);
+
+    /**
+     * impl-35 / spec 13 §stores-6：删除该会话的全部工具调用日志。幂等——
+     * 会话不存在时无操作。默认 no-op（既有实现二进制兼容，由各实现补齐语义）。
+     */
+    default void deleteSession(String sessionId) {
+    }
 }

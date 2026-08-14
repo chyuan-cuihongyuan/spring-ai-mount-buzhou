@@ -89,6 +89,8 @@ public class DefaultAgentSession implements AgentSession {
      */
     private final io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig;
     private BufferedEventDispatcher eventDispatcher;
+    /** impl-35 / spec 13 §stores-6：级联清理协调器；null = delete() 退化为 close()（既有构造兼容）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner sessionCleaner;
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
@@ -144,6 +146,26 @@ public class DefaultAgentSession implements AgentSession {
                                Duration turnBudget,
                                SessionLeaseGuard leaseGuard,
                                io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig) {
+        this(appId, agentName, sessionId, chatClient, registry, onClose, hookChain, hookEnv,
+                toolManager, spanContextCarrier, observers, turnBudget, leaseGuard,
+                eventDispatchConfig, null);
+    }
+
+    /**
+     * impl-35 / spec 13 §stores-6：完整构造入口 + 级联清理协调器——
+     * {@code sessionCleaner} 非 null 时 {@link #delete()} 先 close 再一次级联删存储；
+     * null 时 delete() 退化为 close()。
+     */
+    public DefaultAgentSession(String appId, String agentName, String sessionId,
+                               ChatClient chatClient, SessionResourceRegistry registry,
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
+                               HarnessToolCallingManager toolManager,
+                               SpanContextCarrier spanContextCarrier,
+                               List<SessionObserver> observers,
+                               Duration turnBudget,
+                               SessionLeaseGuard leaseGuard,
+                               io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
+                               io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner sessionCleaner) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
@@ -158,6 +180,7 @@ public class DefaultAgentSession implements AgentSession {
         this.turnBudget = turnBudget;
         this.leaseGuard = leaseGuard;
         this.eventDispatchConfig = eventDispatchConfig;
+        this.sessionCleaner = sessionCleaner;
         this.hookEnv.bindEventPublisher(this::dispatchEvent);
         observers.forEach(SessionObserver::onOpen);
     }
@@ -405,13 +428,38 @@ public class DefaultAgentSession implements AgentSession {
             dispatchEvent(SessionEvent.of("session.closed"));
             listeners.clear();
             spanContextCarrier.clear();
-            if (!failures.isEmpty()) {
-                RuntimeException first = failures.getFirst();
-                for (int i = 1; i < failures.size(); i++) {
-                    first.addSuppressed(failures.get(i));
-                }
-                throw first;
+            throwAggregated(failures);
+        }
+    }
+
+    /**
+     * impl-35 / spec 13 §stores-6：删除会话 = 一次调用清干净。先 close()（资源注册表清空、
+     * 租约释放、executor 排空；已 close 时幂等跳过），再 SessionCleaner 一次级联删存储。
+     * 两侧失败各自收集、互不跳过——全部尝试完毕后首个失败上抛、其余 suppressed
+     * （与 impl-30 close 的「清理优先、异常聚合」语义对齐）。
+     */
+    @Override
+    public void delete() {
+        List<RuntimeException> failures = new ArrayList<>();
+        try {
+            close();
+        } catch (RuntimeException e) {
+            failures.add(e);
+        }
+        if (sessionCleaner != null) {
+            failures.addAll(sessionCleaner.deleteSession(sessionId).failures().values());
+        }
+        throwAggregated(failures);
+    }
+
+    /** 首个失败上抛、其余 suppressed（impl-30 close 与 impl-35 delete 共用的聚合收口）。 */
+    private static void throwAggregated(List<RuntimeException> failures) {
+        if (!failures.isEmpty()) {
+            RuntimeException first = failures.getFirst();
+            for (int i = 1; i < failures.size(); i++) {
+                first.addSuppressed(failures.get(i));
             }
+            throw first;
         }
     }
 

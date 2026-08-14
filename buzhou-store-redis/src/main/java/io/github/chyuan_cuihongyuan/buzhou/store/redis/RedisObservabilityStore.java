@@ -29,6 +29,9 @@ import java.util.Optional;
  */
 public class RedisObservabilityStore implements ObservabilityStore {
 
+    private static final org.slf4j.Logger LOG =
+            org.slf4j.LoggerFactory.getLogger(RedisObservabilityStore.class);
+
     private final RedisSync sync;
     private final RedisKeys keys;
     private final Duration snapshotTtl;
@@ -206,5 +209,58 @@ public class RedisObservabilityStore implements ObservabilityStore {
                 (endedAt == null || endedAt.isEmpty()) ? null : Instant.parse(endedAt),
                 f.get("status"),
                 RedisJson.readMap(f.get("attributes")));
+    }
+
+    /**
+     * impl-35 / spec 13 §stores-6：按会话键集删——spans ZSET 枚举删 span 正文与
+     * per-span event 索引（obs:spev:&lt;spanId&gt;）、events ZSET 枚举删 event 正文、
+     * ZREM 全局会话活跃索引、DEL 两个会话内索引；注入快照无索引（key 带 TTL），
+     * 按会话桶 SCAN 模式补删（best-effort：SCAN 不入 MULTI，事务内调用时跳过并 WARN，
+     * 残留快照由 TTL 自然回收）。幂等。
+     */
+    @Override
+    public void deleteSession(String sessionId) {
+        var c = sync.commands();
+        // spans：会话内 span 正文 + per-span event 索引
+        List<String> spanIds = c.zrange(keys.spansOfSession(sessionId), 0, -1);
+        if (spanIds != null && !spanIds.isEmpty()) {
+            List<String> spanScoped = new ArrayList<>(spanIds.size() * 2);
+            for (String spanId : spanIds) {
+                spanScoped.add(keys.span(sessionId, spanId));
+                spanScoped.add(keys.eventsOfSpan(spanId));
+            }
+            c.del(spanScoped.toArray(new String[0]));
+        }
+        // events：会话内 event 正文
+        List<String> eventIds = c.zrange(keys.eventsOfSession(sessionId), 0, -1);
+        if (eventIds != null && !eventIds.isEmpty()) {
+            String[] eventKeys = eventIds.stream().map(keys::event).toArray(String[]::new);
+            c.del(eventKeys);
+        }
+        // 会话内两个索引 + 全局会话活跃索引项
+        c.del(keys.spansOfSession(sessionId), keys.eventsOfSession(sessionId));
+        c.zrem(keys.sessionsIndex(), sessionId);
+        // 注入快照：SCAN 会话桶补删
+        deleteSnapshotKeys(sessionId);
+    }
+
+    private void deleteSnapshotKeys(String sessionId) {
+        try {
+            var c = sync.commands();
+            io.lettuce.core.ScanArgs match = io.lettuce.core.ScanArgs.Builder
+                    .matches(keys.snapshotScanPattern(sessionId)).limit(100);
+            io.lettuce.core.ScanCursor cursor = io.lettuce.core.ScanCursor.INITIAL;
+            do {
+                io.lettuce.core.KeyScanCursor<String> page = c.scan(cursor, match);
+                List<String> scanned = page.getKeys();
+                if (scanned != null && !scanned.isEmpty()) {
+                    c.del(scanned.toArray(new String[0]));
+                }
+                cursor = page;
+            } while (!cursor.isFinished());
+        } catch (RuntimeException e) {
+            // best-effort：快照 key 带 TTL 自然回收；SCAN 不可用（如 MULTI 事务内）不阻塞级联
+            LOG.warn("注入快照 SCAN 补删跳过（sessionId={}，原因={}）", sessionId, e.toString());
+        }
     }
 }

@@ -8,6 +8,8 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -17,6 +19,10 @@ import java.util.Optional;
 public class JdbcObservabilityStore implements ObservabilityStore {
 
     private final JdbcTemplate jdbc;
+
+    /** 共享事务模板（impl-35 / spec 13 §stores-6：三表级联删同事务）：null = 兼容旧自动提交路径。 */
+    @Nullable
+    private final TransactionTemplate transactionTemplate;
 
     private static final RowMapper<SpanRecord> SPAN_MAPPER = (rs, n) -> new SpanRecord(
             rs.getString("span_id"),
@@ -39,7 +45,26 @@ public class JdbcObservabilityStore implements ObservabilityStore {
             JdbcJson.readMap(rs.getString("payload")));
 
     public JdbcObservabilityStore(JdbcTemplate jdbc) {
+        this(jdbc, null);
+    }
+
+    public JdbcObservabilityStore(JdbcTemplate jdbc, @Nullable TransactionTemplate transactionTemplate) {
         this.jdbc = jdbc;
+        this.transactionTemplate = transactionTemplate;
+    }
+
+    /**
+     * impl-35 / spec 13 §stores-6：三表（span / event / injection_snapshot）级联删
+     * 进同一事务（有 UoW 复用、无则自开短事务）——崩溃窗口不留下「删一半」的观测残留。幂等。
+     */
+    @Override
+    public void deleteSession(String sessionId) {
+        JdbcTransactions.inCurrentOrNew(transactionTemplate, () -> {
+            jdbc.update("DELETE FROM buzhou_span WHERE session_id = ?", sessionId);
+            jdbc.update("DELETE FROM buzhou_event WHERE session_id = ?", sessionId);
+            jdbc.update("DELETE FROM buzhou_injection_snapshot WHERE session_id = ?", sessionId);
+            return null;
+        });
     }
 
     @Override

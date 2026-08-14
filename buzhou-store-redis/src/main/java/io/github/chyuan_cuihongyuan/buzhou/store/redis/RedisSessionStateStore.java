@@ -89,6 +89,20 @@ public class RedisSessionStateStore implements SessionStateStore {
         return hit != null && hit == 1L;
     }
 
+    /** impl-35 / spec 13 §stores-6：按会话键集删——SET 索引枚举删各 HASH，再删索引。幂等。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        var c = sync.commands();
+        Set<String> keySet = c.smembers(keys.stateKeys(sessionId));
+        if (keySet != null && !keySet.isEmpty()) {
+            String[] entryKeys = keySet.stream()
+                    .map(k -> keys.stateEntry(sessionId, k))
+                    .toArray(String[]::new);
+            c.del(entryKeys);
+        }
+        c.del(keys.stateKeys(sessionId));
+    }
+
     private static StateEntry fromHash(Map<String, String> fields) {
         if (fields == null || fields.isEmpty()) {
             return null;

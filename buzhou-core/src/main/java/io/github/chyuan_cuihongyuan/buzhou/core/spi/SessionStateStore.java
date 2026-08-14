@@ -20,4 +20,11 @@ public interface SessionStateStore {
      * JDBC 用带 value 条件的 DELETE（影响行数判定），Redis 用 Lua 比价后 DEL，内存用 CAS。
      */
     boolean deleteIfValueMatches(String sessionId, String key, String expectedValue);
+
+    /**
+     * impl-35 / spec 13 §stores-6：删除该会话的全部 state 条目（含键集合索引）。幂等——
+     * 会话不存在时无操作。默认 no-op（既有实现二进制兼容，由各实现补齐语义）。
+     */
+    default void deleteSession(String sessionId) {
+    }
 }

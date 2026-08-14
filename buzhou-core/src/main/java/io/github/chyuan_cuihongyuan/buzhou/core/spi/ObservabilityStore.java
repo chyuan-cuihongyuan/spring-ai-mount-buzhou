@@ -31,4 +31,12 @@ public interface ObservabilityStore {
 
     /** 单 span 的 Event 流（spec 03 findEventsBySpan 的实现定名，ticket 17 补回）。 */
     List<EventRecord> eventsOfSpan(String spanId);
+
+    /**
+     * impl-35 / spec 13 §stores-6：删除该会话的全部观测数据（spans / events /
+     * 注入快照 / 会话活跃索引项）。幂等——会话不存在时无操作。默认 no-op
+     * （既有实现二进制兼容，由各实现补齐语义）。
+     */
+    default void deleteSession(String sessionId) {
+    }
 }

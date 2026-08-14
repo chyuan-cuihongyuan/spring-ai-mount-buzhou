@@ -50,6 +50,12 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
     /** impl-34 / spec 13 §core-4：事件分发模式（null = SYNC 既有内联行为）。 */
     private final io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig;
 
+    /**
+     * impl-35 / spec 13 §stores-6：会话级联清理协调器——五槽 store + RuntimeConfig 贡献者
+     * （RecoverySupport 挂接的 run-registry / tool-call-log 等）；会话 delete() 一次清干净。
+     */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner sessionCleaner;
+
     /** impl-33：活跃会话的租约哨兵（后台续租遍历对象；close 注销防泄漏）。 */
     private final ConcurrentHashMap<String, SessionLeaseGuard> activeLeases = new ConcurrentHashMap<>();
     private final Object renewLoopLock = new Object();
@@ -123,6 +129,8 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 || shutdownTimeout.isZero() || shutdownTimeout.isNegative()
                 ? DEFAULT_SHUTDOWN_TIMEOUT : shutdownTimeout;
         this.eventDispatchConfig = eventDispatchConfig;
+        this.sessionCleaner = io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner.of(
+                stores, this.config.sessionCleanupContributors());
     }
 
     private static Duration resolveRenewInterval(Duration configured, Duration ttl) {
@@ -194,7 +202,7 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 config.hooks(), config.disabledHookNames(),
                 config.idempotentToolNames(), config.viewProcessor(), executor,
                 config.serialGroups(), config.assemblyCustomizers(), config.turnLoopPolicy(),
-                leaseGuard, eventDispatchConfig, allTools);
+                leaseGuard, eventDispatchConfig, sessionCleaner, allTools);
         if (session instanceof DefaultAgentSession defaultSession) {
             tracked.bind(defaultSession);
         }

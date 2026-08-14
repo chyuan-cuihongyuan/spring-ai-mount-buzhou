@@ -61,4 +61,18 @@ public class RedisSummaryStore implements SummaryStore {
         return Optional.ofNullable(RedisJson.read(
                 sync.commands().get(keys.summaryVersion(sessionId, version)), StructuredSummary.class));
     }
+
+    /** impl-35 / spec 13 §stores-6：按会话键集删——ZSET 枚举版本删正文，再删索引与计数器。幂等。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        var c = sync.commands();
+        List<String> versions = c.zrange(keys.summaryVersions(sessionId), 0, -1);
+        if (versions != null && !versions.isEmpty()) {
+            String[] versionKeys = versions.stream()
+                    .map(v -> keys.summaryVersion(sessionId, Long.parseLong(v)))
+                    .toArray(String[]::new);
+            c.del(versionKeys);
+        }
+        c.del(keys.summaryVersions(sessionId), keys.summarySeq(sessionId));
+    }
 }

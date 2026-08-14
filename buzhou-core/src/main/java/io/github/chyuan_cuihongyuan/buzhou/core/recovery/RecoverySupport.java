@@ -43,9 +43,17 @@ public final class RecoverySupport {
         List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer> customizers =
                 new ArrayList<>(base.assemblyCustomizers());
         customizers.add(bindToolCallLog(toolCallLog, registry));
+        // impl-35 / spec 13 §stores-6：恢复设施并入级联清理（run-registry / tool-call-log
+        // 两目标经 RuntimeConfig 贡献者汇入 SessionCleaner，会话 delete() 一次清干净）
+        List<io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor> cleanupContributors =
+                new ArrayList<>(base.sessionCleanupContributors());
+        cleanupContributors.add(io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor.of(
+                "run-registry", registry::deleteSession));
+        cleanupContributors.add(io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor.of(
+                "tool-call-log", toolCallLog::deleteSession));
         return new RuntimeConfig(hooks, base.disabledHookNames(), base.idempotentToolNames(),
                 base.viewProcessor(), base.autoTools(), base.serialGroups(),
-                base.sessionCustomizers(), customizers, base.turnLoopPolicy());
+                base.sessionCustomizers(), customizers, base.turnLoopPolicy(), cleanupContributors);
     }
 
     private static SessionAssemblyCustomizer bindToolCallLog(ToolCallLog toolCallLog,

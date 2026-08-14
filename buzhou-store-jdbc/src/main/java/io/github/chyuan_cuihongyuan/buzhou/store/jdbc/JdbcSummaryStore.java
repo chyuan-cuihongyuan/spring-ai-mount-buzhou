@@ -132,4 +132,10 @@ public class JdbcSummaryStore implements SummaryStore {
                         ORDER BY version DESC LIMIT ?
                         """, MAPPER, sessionId, limit);
     }
+
+    /** impl-35 / spec 13 §stores-6：单表批量删（幂等；单语句自原子）。 */
+    @Override
+    public void deleteSession(String sessionId) {
+        jdbc.update("DELETE FROM buzhou_summary WHERE session_id = ?", sessionId);
+    }
 }

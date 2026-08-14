@@ -20,4 +20,11 @@ public interface RunRegistry {
 
     /** 按状态枚举（恢复服务巡检 RUNNING 疑似崩溃者）。 */
     List<RunStateSnapshot> list(RunStatus status);
+
+    /**
+     * impl-35 / spec 13 §stores-6：删除该会话的 run 快照。幂等——
+     * 会话不存在时无操作。默认 no-op（既有实现二进制兼容，由各实现补齐语义）。
+     */
+    default void deleteSession(String sessionId) {
+    }
 }
