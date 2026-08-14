@@ -42,15 +42,25 @@ public record ResilienceProperties(
         List<String> retryableCategories,
         Duration deadline,
         @Valid RateLimit rateLimit,
-        @Valid Circuit circuit) {
+        @Valid Circuit circuit,
+        @Valid Fallback fallback) {
 
-    /** 9 参兼容构造（impl-56 之前调用方；circuit = 全默认）。 */
+    /** 10 参兼容构造（impl-57 之前调用方；fallback = 未配置）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, null);
+    }
+
+    /** 9 参兼容构造（impl-56 之前调用方；circuit = 全默认、fallback = 未配置）。 */
     public ResilienceProperties(
             Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
             Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
             RateLimit rateLimit) {
         this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
-                retryableCategories, deadline, rateLimit, null);
+                retryableCategories, deadline, rateLimit, null, null);
     }
 
     /**
@@ -121,7 +131,39 @@ public record ResilienceProperties(
         }
     }
 
-    /** 多构造器场景：显式指定规范构造器为绑定构造器（9 参兼容构造不参与绑定）。 */
+    /**
+     * 备模型降级链参数组（spec 15「备模型降级链」，T82 / impl-57）。
+     * 前缀 {@code buzhou.resilience.fallback}。未配置 models = 不降级。
+     *
+     * @param models            备模型 bean 名有序列表（Spring 路径按名解析，未命中启动失败；空 = 不降级）
+     * @param triggerCategories 触发降级的主模型终态失败类别（默认 {@code [NETWORK, SERVER, TIMEOUT, AUTH]}；
+     *                          CONTENT 不触发防策略跳舱；熔断 OPEN 恒触发不受此表控制）
+     */
+    public record Fallback(
+            List<String> models,
+            List<String> triggerCategories) {
+
+        public Fallback {
+            triggerCategories = triggerCategories == null || triggerCategories.isEmpty()
+                    ? List.of("NETWORK", "SERVER", "TIMEOUT", "AUTH")
+                    : triggerCategories.stream().map(c -> c.toUpperCase(java.util.Locale.ROOT)).toList();
+            if (models != null && models.isEmpty()) {
+                models = null; // 空列表视同未配置
+            }
+        }
+
+        /** 是否配置了备模型。 */
+        public boolean enabled() {
+            return models != null && !models.isEmpty();
+        }
+
+        /** 类别是否触发降级。 */
+        public boolean triggers(String category) {
+            return category != null && triggerCategories.contains(category.toUpperCase(java.util.Locale.ROOT));
+        }
+    }
+
+    /** 多构造器场景：显式指定规范构造器为绑定构造器（兼容构造不参与绑定）。 */
     @org.springframework.boot.context.properties.bind.ConstructorBinding
     public ResilienceProperties {
         enabled = enabled == null ? true : enabled;
@@ -168,7 +210,7 @@ public record ResilienceProperties(
 
     /** 全默认（装配测试 / 兜底用）。 */
     public static ResilienceProperties defaults() {
-        return new ResilienceProperties(null, null, null, null, null, null, null, null, null, null);
+        return new ResilienceProperties(null, null, null, null, null, null, null, null, null, null, null);
     }
 
     /** rate-limit 过载策略生效值（null/空白 = QUEUE；非法值启动即失败——fail-fast，不静默回退）。 */

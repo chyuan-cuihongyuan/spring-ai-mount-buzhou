@@ -18,6 +18,7 @@
 ## Decisions so far
 
 - [模型熔断器](tickets/T81-circuit-breaker.md) — 手写 CB（不引 resilience4j）：三态结果计数口径（FAILURE=NETWORK/SERVER/TIMEOUT，RATE_LIMIT/CONTENT/AUTH/UNKNOWN IGNORED）、计数窗口失败率跳闸、冷却后半开单探测、进程级注册表按 modelName 分桶、open 时 fail-fast 异常直上 onModelError、circuit.* 配置默认开 + fail-fast 校验。
+- [备模型降级链](tickets/T82-fallback-model-chain.md) — 降级发生在 ResilienceAdvisor 逻辑调用内部（外层 advisor 不可见）；fallback.models bean 名列表（Spring 按名解析 fail-fast / 编程式 NamedFallbackModel）；触发=终态失败 category（默认 NETWORK/SERVER/TIMEOUT/AUTH）+ 主模型熔断 OPEN 恒触发；无粘性（每调用先主后备，OPEN 时零成本直达备模型）；备模型各一次尝试、独立熔断记账；全败上抛主因；M1 流式不降级。
 
 ## Not yet specified
 

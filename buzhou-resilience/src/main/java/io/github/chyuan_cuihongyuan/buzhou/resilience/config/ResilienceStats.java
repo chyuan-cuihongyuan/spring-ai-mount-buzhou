@@ -23,6 +23,8 @@ public final class ResilienceStats implements BuzhouHealth {
     private final AtomicLong contentRefusals = new AtomicLong();
     private final AtomicLong circuitRejections = new AtomicLong();
     private final AtomicLong circuitTrips = new AtomicLong();
+    private final AtomicLong fallbackSwitches = new AtomicLong();
+    private final AtomicLong fallbackExhausted = new AtomicLong();
     private final AtomicReference<String> lastErrorCategory = new AtomicReference<>();
     /** 各模型熔断态（有界：模型名实际有限集）。 */
     private final Map<String, String> circuitStates = new java.util.concurrent.ConcurrentHashMap<>();
@@ -48,6 +50,8 @@ public final class ResilienceStats implements BuzhouHealth {
         details.put("contentRefusals", contentRefusals.get());
         details.put("circuitRejections", circuitRejections.get());
         details.put("circuitTrips", circuitTrips.get());
+        details.put("fallbackSwitches", fallbackSwitches.get());
+        details.put("fallbackExhausted", fallbackExhausted.get());
         if (!circuitStates.isEmpty()) {
             details.put("circuitStates", new LinkedHashMap<>(circuitStates));
         }
@@ -95,6 +99,16 @@ public final class ResilienceStats implements BuzhouHealth {
     /** 模型熔断态快照更新（有界枚举值字符串）。 */
     public void updateCircuitState(String modelName, Object state) {
         circuitStates.put(modelName, String.valueOf(state));
+    }
+
+    /** 降级切换成功一次（impl-57）。 */
+    public void recordFallbackSwitch() {
+        fallbackSwitches.incrementAndGet();
+    }
+
+    /** 备模型链全部耗尽一次（impl-57）。 */
+    public void recordFallbackExhausted() {
+        fallbackExhausted.incrementAndGet();
     }
 
     public long retryAttempts() {

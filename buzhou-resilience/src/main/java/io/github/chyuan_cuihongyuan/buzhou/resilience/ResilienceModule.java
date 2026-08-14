@@ -10,6 +10,8 @@ import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionO
 import io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceStats;
+import io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain;
+import io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor;
 
@@ -55,6 +57,17 @@ public final class ResilienceModule {
      * @param stats 运维计数器（null = 编程式路径不统计）
      */
     public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats) {
+        return configure(properties, modelName, stats, null);
+    }
+
+    /**
+     * 带备模型降级链的完整入口（impl-57 / spec 15「备模型降级链」）。
+     *
+     * @param fallbacks 备模型有序列表（null / 空 = 不降级）；触发类别读
+     *                  {@code buzhou.resilience.fallback.trigger-categories}
+     */
+    public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
+                                          List<NamedFallbackModel> fallbacks) {
         if (!properties.enabled()) {
             return RuntimeConfig.defaults();
         }
@@ -65,8 +78,12 @@ public final class ResilienceModule {
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
                 ? new ModelCircuitBreaker(properties.circuit(), stats)
                 : null;
+        FallbackChain fallbackChain = fallbacks != null && !fallbacks.isEmpty()
+                ? new FallbackChain(fallbacks, properties.fallback())
+                : null;
         return RuntimeConfig.assemblyCustomizers(
-                List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit)));
+                List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,
+                        fallbackChain)));
     }
 
     /**
@@ -116,14 +133,17 @@ public final class ResilienceModule {
         private final String modelName;
         private final ResilienceStats stats;
         private final ModelCircuitBreaker circuit;
+        private final FallbackChain fallback;
 
         ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
-                                     String modelName, ResilienceStats stats, ModelCircuitBreaker circuit) {
+                                     String modelName, ResilienceStats stats, ModelCircuitBreaker circuit,
+                                     FallbackChain fallback) {
             this.properties = properties;
             this.classifier = classifier;
             this.modelName = modelName;
             this.stats = stats;
             this.circuit = circuit;
+            this.fallback = fallback;
         }
 
         @Override
@@ -146,7 +166,8 @@ public final class ResilienceModule {
             ExecutorService deadlineExecutor = Executors.newVirtualThreadPerTaskExecutor();
             ModelCallInFlight inFlight = new ModelCallInFlight();
             ResilienceAdvisor advisor = new ResilienceAdvisor(
-                    properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName);
+                    properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName,
+                    fallback);
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

@@ -39,6 +39,16 @@
   ResilienceStats 计数 + details states（有界）；机制健康恒 UP（宕的是 provider 不是机制，严格 DOWN 语义
   不误报）。配置 `buzhou.resilience.circuit.*` 默认启用，fail-fast 校验（window≥2、1≤min-calls≤window、
   0<threshold≤1、cooldown>0）。
+- **备模型降级链（T82 / impl-57）**：主模型终态失败后在**同一逻辑调用**内降级（ResilienceAdvisor 最内层，
+  外层 Hook/Memory 观察到一次成功调用——降级仅事件可见）。配置 `buzhou.resilience.fallback.models`
+  （备模型 bean 名有序列表，Spring 按名解析、未命中 fail-fast；编程式 `NamedFallbackModel` 列表）。
+  **触发**：主模型终态失败且 category ∈ `fallback.trigger-categories`（默认 `[NETWORK, SERVER, TIMEOUT,
+  AUTH]`；CONTENT 不触发防策略跳舱）或**主模型熔断 OPEN 恒触发**（CB+降级：主断路打开后请求零重试直达
+  备模型）。**无粘性**：每逻辑调用先主后备（OPEN 时 fail-fast 成本≈0），主模型半开探测成功自动回归。
+  备模型各一次尝试（重预算已在主模型耗尽）、复用 deadline、熔断独立分桶记账（备 OPEN 则跳过该级）；
+  全败**上抛主模型原始错误**（根因不遮蔽）。事件 `fallback.switched / fallback.exhausted`；指标
+  `buzhou.resilience.fallback-switches / fallback-exhausted`；ResilienceStats 两计数。
+  **流式边界**：M1 流式不降级（同「不做中途重试」边界），仍走 onModelError 静态兜底。
 - **重试预算**：开放问题，未做（熔断已覆盖「持续故障停止锤 provider」；重试风暴防放大归限流器邻域）。
 
 ## 失控检测（core/runaway）

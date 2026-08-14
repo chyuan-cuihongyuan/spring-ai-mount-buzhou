@@ -80,6 +80,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit;
     /** 分桶键（与限流器同口径，buzhou.model-name）。 */
     private final String modelName;
+    /** 备模型降级链（impl-57）：null = 未配置。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback;
 
     public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
                              Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
@@ -98,6 +100,15 @@ public class ResilienceAdvisor implements BaseAdvisor {
                              ModelCallInFlight inFlight, ResilienceStats stats,
                              io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit,
                              String modelName) {
+        this(config, classifier, emitter, deadlineExecutor, inFlight, stats, circuit, modelName, null);
+    }
+
+    public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
+                             Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
+                             ModelCallInFlight inFlight, ResilienceStats stats,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit,
+                             String modelName,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback) {
         this.config = config;
         this.classifier = classifier;
         this.emitter = emitter == null ? event -> {
@@ -111,6 +122,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
         this.stats = stats;
         this.circuit = circuit;
         this.modelName = modelName == null ? "unknown" : modelName;
+        this.fallback = fallback;
     }
 
     @Override
@@ -126,31 +138,95 @@ public class ResilienceAdvisor implements BaseAdvisor {
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain callChain) {
-        if (circuit == null) {
+        if (circuit == null && (fallback == null || fallback.isEmpty())) {
             return doAdviseCall(request, callChain);
         }
-        // 熔断前置闸 + 逻辑调用级三态结果记录（impl-56）：重试 attempt 不重复记；
-        // OPEN 拒绝异常不进重试分类（跳闸后重试只会继续锤故障 provider），直上 onModelError。
-        circuit.beforeCall(modelName, emitter);
-        boolean success = false;
-        String terminal = null;
-        try {
-            ChatClientResponse response = doAdviseCall(request, callChain);
-            success = true;
-            return response;
-        } catch (ModelCallTimeoutException e) {
-            terminal = "TIMEOUT"; // 超时非 ErrorCategory 枚举值，熔断口径单列（默认计入失败）
-            throw e;
-        } catch (RuntimeException e) {
-            terminal = classifier.classify(e, null).category().name();
-            throw e;
-        } finally {
-            if (success) {
-                circuit.recordSuccess(modelName, emitter);
-            } else {
-                circuit.recordTerminal(modelName, terminal, emitter);
+        if (circuit != null) {
+            try {
+                // 熔断前置闸（impl-56）+ 逻辑调用级三态结果记录：重试 attempt 不重复记；
+                // OPEN 拒绝异常不进重试分类（跳闸后重试只会继续锤故障 provider）。
+                circuit.beforeCall(modelName, emitter);
+            } catch (io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException open) {
+                // 熔断 OPEN 恒触发降级（impl-57）：主断路打开后请求零重试直达备模型；无备模型原样上抛。
+                return fallbackOrRethrow(request, "CIRCUIT_OPEN", open);
             }
         }
+        try {
+            ChatClientResponse response = doAdviseCall(request, callChain);
+            if (circuit != null) {
+                circuit.recordSuccess(modelName, emitter);
+            }
+            return response;
+        } catch (ModelCallTimeoutException e) {
+            if (circuit != null) {
+                circuit.recordTerminal(modelName, "TIMEOUT", emitter);
+            }
+            return fallbackOrRethrow(request, "TIMEOUT", e);
+        } catch (RuntimeException e) {
+            String category = classifier.classify(e, null).category().name();
+            if (circuit != null) {
+                circuit.recordTerminal(modelName, category, emitter);
+            }
+            return fallbackOrRethrow(request, category, e);
+        }
+    }
+
+    /**
+     * 备模型降级（impl-57 / spec 15）：触发条件命中后按序逐个尝试备模型——各自熔断前置闸
+     * （备模型 OPEN 跳过该级）、单次带 deadline 调用、终态独立记账；任一成功即返回（外层 advisor
+     * 观察到一次成功逻辑调用）；全败上抛<b>主模型原始错误</b>（根因不遮蔽）。CIRCUIT_OPEN 恒触发。
+     */
+    private ChatClientResponse fallbackOrRethrow(ChatClientRequest request, String category,
+                                                 RuntimeException primaryError) {
+        if (fallback == null || fallback.isEmpty()
+                || (!"CIRCUIT_OPEN".equals(category) && !fallback.triggers(category))) {
+            throw primaryError;
+        }
+        for (io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel fb : fallback.models()) {
+            if (circuit != null) {
+                try {
+                    circuit.beforeCall(fb.name(), emitter);
+                } catch (io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException skip) {
+                    LOGGER.log(System.Logger.Level.WARNING, "备模型自身熔断 OPEN，跳过：fallback=" + fb.name());
+                    continue;
+                }
+            }
+            try {
+                ChatClientResponse response = callWithDeadline(
+                        () -> new ChatClientResponse(fb.model().call(request.prompt()), request.context()));
+                if (circuit != null) {
+                    circuit.recordSuccess(fb.name(), emitter);
+                }
+                if (stats != null) {
+                    stats.recordFallbackSwitch();
+                }
+                metrics().counter("buzhou.resilience.fallback-switches", "from", modelName, "to", fb.name());
+                emit(new SessionEvent(io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_SWITCHED,
+                        Map.of("from", modelName, "to", fb.name(), "category", category), Instant.now()));
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "模型降级切换：primary=" + modelName + " → fallback=" + fb.name()
+                                + "（category=" + category + "）");
+                return response;
+            } catch (RuntimeException e) {
+                String fbCategory = e instanceof ModelCallTimeoutException
+                        ? "TIMEOUT" : classifier.classify(e, null).category().name();
+                if (circuit != null) {
+                    circuit.recordTerminal(fb.name(), fbCategory, emitter);
+                }
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "备模型失败，尝试下一级：fallback=" + fb.name() + "，category=" + fbCategory
+                                + "，error=" + e.getMessage());
+            }
+        }
+        if (stats != null) {
+            stats.recordFallbackExhausted();
+        }
+        metrics().counter("buzhou.resilience.fallback-exhausted", "model", modelName);
+        emit(new SessionEvent(io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_EXHAUSTED,
+                Map.of("from", modelName, "category", category), Instant.now()));
+        LOGGER.log(System.Logger.Level.ERROR,
+                "备模型链全部耗尽（category=" + category + "）：上抛主模型原始错误");
+        throw primaryError;
     }
 
     private ChatClientResponse doAdviseCall(ChatClientRequest request, CallAdvisorChain callChain) {
@@ -166,7 +242,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
         while (true) {
             attempt++;
             try {
-                ChatClientResponse response = callWithDeadline(modelTerminal, request, callChain);
+                ChatClientResponse response = callWithDeadline(
+                        () -> modelTerminal.adviseCall(request, callChain));
                 // 成功返回：但仍可能是内容拒绝（静默通道，不抛异常）——分类响应元数据。
                 Classification content = classifier.classify(null, response);
                 if (content.category() == ErrorCategory.CONTENT) {
@@ -241,17 +318,16 @@ public class ResilienceAdvisor implements BaseAdvisor {
     }
 
     /**
-     * 把单次模型调用终端包进 deadline：提交到虚拟线程执行器、{@code Future.get(deadline)} 兜底，超时则
+     * 把单次模型调用包进 deadline：提交到虚拟线程执行器、{@code Future.get(deadline)} 兜底，超时则
      * {@code cancel(true)} 把中断传播进在途模型调用（对齐执行脊柱 {@code HarnessToolCallingManager} 的超时手法）。
      * 该 Future 同时注册进 {@link ModelCallInFlight}，供 {@code session.cancel()} 中断。
+     * impl-57 起泛化为 supplier——主链终端与备模型直调共用同一条 deadline/cancel 路径。
      */
-    private ChatClientResponse callWithDeadline(CallAdvisor terminal, ChatClientRequest request,
-                                                CallAdvisorChain chain) {
+    private ChatClientResponse callWithDeadline(java.util.function.Supplier<ChatClientResponse> call) {
         if (deadline == null || deadline.isZero()) {
-            return terminal.adviseCall(request, chain); // 未启用 deadline：直连
+            return call.get(); // 未启用 deadline：直连
         }
-        Future<ChatClientResponse> future = deadlineExecutor.submit(
-                () -> terminal.adviseCall(request, chain));
+        Future<ChatClientResponse> future = deadlineExecutor.submit(call::get);
         inFlight.register(future);
         try {
             return future.get(deadline.toMillis(), TimeUnit.MILLISECONDS);
