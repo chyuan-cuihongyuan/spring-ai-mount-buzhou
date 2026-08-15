@@ -59,3 +59,12 @@
 - skills：新建元数据文件（enabled / db-enabled / catalog-max-entries 默认 64（spec 35 §B）/
   catalog-cache-ttl 默认 30s）。
 - IDE 提示/默认值/废弃告警三面齐备（additional-spring-configuration-metadata）。
+
+
+## effort #7 增补：新能力装配面（T124 / impl-99）
+
+- `Effort6CapabilitiesAutoConfigurationTest`（ApplicationContextRunner）四断言：
+  ①默认无 webhook url → forwarder 不装配（零开销）+ 限幅器默认档（20K + read_range 豁免）；
+  ②webhook url → forwarder 装配；③result-limit 属性 → Holder 生效（覆盖 + 豁免叠加）；
+  ④SessionIndexStore 用户 bean → 与 auto-config 共存（runtime 接线由 buzhouAgentRuntime 消费）。
+- `ToolResultLimiter.limitFor` 转 public（生效上限查询面——观测/测试共用）。

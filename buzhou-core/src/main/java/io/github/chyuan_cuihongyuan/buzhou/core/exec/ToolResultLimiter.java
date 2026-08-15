@@ -59,8 +59,8 @@ public final class ToolResultLimiter {
         return new ToolResponseMessage.ToolResponse(response.id(), response.name(), truncated);
     }
 
-    /** per-tool 生效上限：glob 覆盖优先（首个命中），否则默认；-1 = 不限。 */
-    int limitFor(String toolName) {
+    /** per-tool 生效上限（观测/测试查询面）：glob 覆盖优先（首个命中），否则默认；-1 = 不限。 */
+    public int limitFor(String toolName) {
         if (defaultLimit < 0 && overrides.isEmpty()) {
             return -1;
         }
