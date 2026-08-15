@@ -37,6 +37,7 @@
 - [T172 MDC 会话轮次关联](tickets/T172-mdc-correlation.md) — chat 路径调用线程 MDC 两键（try/finally 必清）；stream 路径实现期裁定不做（信号切线程致清错线程，结构性限制入档）；spec 47 §A。
 - [T173 turn 反馈捕获 API](tickets/T173-turn-feedback.md) — rateTurn 三型校验 + state store 持久化（feedback 键前缀可 scan）+ turn.feedback 事件外发；spec 47 §B。
 - [T174 反馈导出与评估衔接](tickets/T174-feedback-export.md) — FeedbackExporter（core.feedback 段 + negative 极性 + negativeTurnSeqs 汇总；空段缺席）；往返保真；spec 48 §A。
+- [T175 加权金丝雀降级链](tickets/T175-weighted-canary.md) — canary-enabled + weights 会话稳定哈希加权分流（同会话粘住）；目标失败按链序回退含原主模型；默认关零变化；spec 48 §B。
 
 ## Not yet specified
 

@@ -72,10 +72,9 @@ T173 落地的反馈只在 state store 里——会话导出文档不含反馈�
 
 ### Implementation Decisions
 
-- `NamedFallbackModel` 增第三分量 `weight`（Integer，null/≤0 归一 1；兼容双参构造保留）。
-- `ResilienceProperties.Fallback` 增 `canaryEnabled`（默认 false）与 `weights`
-  （Map<modelName, weight>，按名套用到链条目——配置态而非构建态，避免 NamedFallbackModel
-  构造面膨胀）。
+- `ResilienceProperties.Fallback` 增 `canary-enabled`（默认 false）与 `weights`
+  （Map<modelName, weight>，按名套用到候选池——配置态而非构建态，NamedFallbackModel 构造面
+  不动；未列名默认权重 1）。
 - 选择算法：候选池 = [primary(weight 1 或 weights 配置) + fallbacks]；累计权重区间上取
   `hash(sessionId) % total`（String.hashCode，稳定；文档钉住不换算法——换算法 = 存量会话
   全体漂移一次）；选择结果按会话缓存（advisor 内 per-session 首选记忆，会话终结随会话对象

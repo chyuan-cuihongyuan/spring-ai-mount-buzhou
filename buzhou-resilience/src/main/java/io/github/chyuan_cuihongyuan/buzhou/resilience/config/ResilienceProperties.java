@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 模型韧性层装配属性（spec 15 / 09，前缀 {@code buzhou.resilience}；impl-44 补 fail-fast）。
@@ -169,16 +170,22 @@ public record ResilienceProperties(
     }
 
     /**
-     * 备模型降级链参数组（spec 15「备模型降级链」，T82 / impl-57）。
+     * 备模型降级链参数组（spec 15「备模型降级链」，T82 / impl-57；spec 48 §B / T175 金丝雀）。
      * 前缀 {@code buzhou.resilience.fallback}。未配置 models = 不降级。
      *
      * @param models            备模型 bean 名有序列表（Spring 路径按名解析，未命中启动失败；空 = 不降级）
      * @param triggerCategories 触发降级的主模型终态失败类别（默认 {@code [NETWORK, SERVER, TIMEOUT, AUTH]}；
      *                          CONTENT 不触发防策略跳舱；熔断 OPEN 恒触发不受此表控制）
+     * @param canaryEnabled     spec 48 §B：金丝雀开关（默认 false）——启用时首次模型调用按
+     *                          会话稳定哈希在候选池（主+备）加权抽取初始目标
+     * @param weights           spec 48 §B：候选权重（modelName → 权重；未列名默认 1；
+     *                          LiteLLM Router simple-shuffle 语义收窄为会话稳定）
      */
     public record Fallback(
             List<String> models,
-            List<String> triggerCategories) {
+            List<String> triggerCategories,
+            Boolean canaryEnabled,
+            Map<String, Integer> weights) {
 
         public Fallback {
             triggerCategories = triggerCategories == null || triggerCategories.isEmpty()
@@ -187,6 +194,12 @@ public record ResilienceProperties(
             if (models != null && models.isEmpty()) {
                 models = null; // 空列表视同未配置
             }
+            weights = weights == null ? Map.of() : Map.copyOf(weights);
+        }
+
+        /** 既有 2 参构造兼容（金丝雀关、无权重）。 */
+        public Fallback(List<String> models, List<String> triggerCategories) {
+            this(models, triggerCategories, null, null);
         }
 
         /** 是否配置了备模型。 */

@@ -141,6 +141,12 @@ public class ResilienceAdvisor implements BaseAdvisor {
         if (circuit == null && (fallback == null || fallback.isEmpty())) {
             return doAdviseCall(request, callChain);
         }
+        // spec 48 §B / T175：金丝雀启用时首次调用按会话稳定哈希选初始目标（每会话粘住）；
+        // 选中备模型 → 金丝雀路径；选中主模型 → 既有主路径（逐字节不变）。
+        String initialTarget = resolveCanaryChoice(request);
+        if (!modelName.equals(initialTarget)) {
+            return adviseCallCanary(request, callChain, initialTarget);
+        }
         if (circuit != null) {
             try {
                 // 熔断前置闸（impl-56）+ 逻辑调用级三态结果记录：重试 attempt 不重复记；
@@ -169,6 +175,126 @@ public class ResilienceAdvisor implements BaseAdvisor {
             }
             return fallbackOrRethrow(request, category, e);
         }
+    }
+
+    /** 会话级金丝雀首选记忆（advisor 每会话构造，随会话消亡——零泄漏面）。 */
+    private String canaryChoice;
+    private boolean canaryNotified;
+
+    /** spec 48 §B / T175：解析（并粘住）本会话的初始目标；canary.selected 事件每会话一次。 */
+    private String resolveCanaryChoice(ChatClientRequest request) {
+        if (fallback == null || fallback.isEmpty() || !fallback.canaryEnabled()) {
+            return modelName;
+        }
+        if (canaryChoice == null) {
+            Object conversationId = request.context().get(
+                    org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID);
+            String sessionId = conversationId instanceof String s ? s : null;
+            canaryChoice = fallback.selectInitialTarget(modelName, sessionId);
+            if (!canaryNotified) {
+                canaryNotified = true;
+                emit(new SessionEvent(
+                        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_CANARY_SELECTED,
+                        Map.of("model", canaryChoice, "primary", modelName), Instant.now()));
+            }
+        }
+        return canaryChoice;
+    }
+
+    /**
+     * spec 48 §B / T175：金丝雀选中备模型的初始路径——目标自身熔断闸 + 单次 deadline 调用 +
+     * 终态独立记账；终态失败按链序回退剩余候选（主模型在链首位、跳过已试目标），全败上抛
+     * 所选目标的原始错误（金丝雀语境下的「主因」）。
+     */
+    private ChatClientResponse adviseCallCanary(ChatClientRequest request, CallAdvisorChain callChain,
+                                                String targetName) {
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel target =
+                fallback.byName(targetName);
+        if (target == null) {
+            return doAdviseCall(request, callChain); // 配置竞态防御：目标已不在链上走主路径
+        }
+        if (circuit != null) {
+            try {
+                circuit.beforeCall(targetName, emitter);
+            } catch (io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException open) {
+                return degradeFromCanary(request, callChain, targetName, "CIRCUIT_OPEN", open);
+            }
+        }
+        try {
+            ChatClientResponse response = callWithDeadline(
+                    () -> new ChatClientResponse(target.model().call(request.prompt()), request.context()));
+            if (circuit != null) {
+                circuit.recordSuccess(targetName, emitter);
+            }
+            return response;
+        } catch (RuntimeException e) {
+            String category = e instanceof ModelCallTimeoutException
+                    ? "TIMEOUT" : classifier.classify(e, null).category().name();
+            if (circuit != null) {
+                circuit.recordTerminal(targetName, category, emitter);
+            }
+            return degradeFromCanary(request, callChain, targetName, category, e);
+        }
+    }
+
+    /** 金丝雀目标终态失败后的链序回退：候选 = [主模型 + 备模型链] 跳过已试目标，单次尝试。 */
+    private ChatClientResponse degradeFromCanary(ChatClientRequest request, CallAdvisorChain callChain,
+                                                 String targetName, String category,
+                                                 RuntimeException targetError) {
+        record Candidate(String name, java.util.function.Supplier<ChatClientResponse> call) {
+        }
+        List<Candidate> candidates = new java.util.ArrayList<>();
+        candidates.add(new Candidate(modelName,
+                () -> modelTerminal(callChain).adviseCall(request, callChain)));
+        for (io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel fb : fallback.models()) {
+            if (fb.name().equals(targetName)) {
+                continue;
+            }
+            candidates.add(new Candidate(fb.name(),
+                    () -> new ChatClientResponse(fb.model().call(request.prompt()), request.context())));
+        }
+        for (Candidate candidate : candidates) {
+            if (circuit != null) {
+                try {
+                    circuit.beforeCall(candidate.name(), emitter);
+                } catch (io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException skip) {
+                    LOGGER.log(System.Logger.Level.WARNING,
+                            "回退候选熔断 OPEN，跳过：candidate=" + candidate.name());
+                    continue;
+                }
+            }
+            try {
+                ChatClientResponse response = callWithDeadline(candidate.call());
+                if (circuit != null) {
+                    circuit.recordSuccess(candidate.name(), emitter);
+                }
+                if (stats != null) {
+                    stats.recordFallbackSwitch();
+                }
+                metrics().counter("buzhou.resilience.fallback-switches",
+                        "from", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(targetName),
+                        "to", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(candidate.name()));
+                emit(new SessionEvent(io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_SWITCHED,
+                        Map.of("from", targetName, "to", candidate.name(), "category", category), Instant.now()));
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "金丝雀目标失败回退：" + targetName + " → " + candidate.name()
+                                + "（category=" + category + "）");
+                return response;
+            } catch (RuntimeException e) {
+                String cCategory = e instanceof ModelCallTimeoutException
+                        ? "TIMEOUT" : classifier.classify(e, null).category().name();
+                if (circuit != null) {
+                    circuit.recordTerminal(candidate.name(), cCategory, emitter);
+                }
+            }
+        }
+        if (stats != null) {
+            stats.recordFallbackExhausted();
+        }
+        metrics().counter("buzhou.resilience.fallback-exhausted", "model", targetName);
+        emit(new SessionEvent(io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_EXHAUSTED,
+                Map.of("from", targetName, "category", category), Instant.now()));
+        throw targetError;
     }
 
     /**
