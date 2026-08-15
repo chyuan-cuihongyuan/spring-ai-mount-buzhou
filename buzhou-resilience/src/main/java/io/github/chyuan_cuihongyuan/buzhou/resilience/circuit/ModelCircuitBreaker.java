@@ -127,7 +127,9 @@ public final class ModelCircuitBreaker {
         private CircuitState state = CircuitState.CLOSED;
         private Instant openedAt;
         private Instant halfOpenSince;
-        private boolean probeInFlight;
+        private int probesInFlight;
+        /** spec 35 §A / T118：半开已连续成功探测数（达 halfOpenSuccessThreshold 才 CLOSE）。 */
+        private int halfOpenSuccesses;
         /** 连续跳闸次数（探测成功回 CLOSED 复位为 0；spec 25 / T104）。 */
         private int consecutiveTrips;
         /** 本次跳闸的生效冷却（base × 退避倍数；CLOSED 复位为 base）。 */
@@ -152,19 +154,25 @@ public final class ModelCircuitBreaker {
                 case OPEN:
                     if (elapsedSince(openedAt).toMillis() >= effectiveCooldownMs) {
                         transition(CircuitState.HALF_OPEN, emitter);
-                        probeInFlight = true;
+                        halfOpenSuccesses = 0;
+                        probesInFlight = 1;
                         halfOpenSince = Instant.now();
                         return Admission.admit();
                     }
                     long remaining = Math.max(0, effectiveCooldownMs - elapsedSince(openedAt).toMillis());
                     return Admission.reject(CircuitState.OPEN, remaining);
                 case HALF_OPEN:
-                    if (probeInFlight && elapsedSince(halfOpenSince).compareTo(probeEscapeAfter()) < 0) {
-                        // 探测占位中：并发调用拒绝（只放一个探测，防半开打爆刚恢复的 provider）。
+                    // 探测槽位 = 阈值总数；已成功数永久占用一槽，在飞占一槽——满员即拒
+                    //（防半开打爆刚恢复的 provider；逃生窗口外重置槽位重放行）。
+                    if (probesInFlight + halfOpenSuccesses >= config.halfOpenSuccessThreshold()
+                            && elapsedSince(halfOpenSince).compareTo(probeEscapeAfter()) < 0) {
                         return Admission.reject(CircuitState.HALF_OPEN, effectiveCooldownMs);
                     }
                     // 探测超时逃生：上次探测调用卡死（未走到终态记录），重置占位重放行。
-                    probeInFlight = true;
+                    if (elapsedSince(halfOpenSince).compareTo(probeEscapeAfter()) >= 0) {
+                        probesInFlight = 0;
+                    }
+                    probesInFlight++;
                     halfOpenSince = Instant.now();
                     return Admission.admit();
                 case CLOSED:
@@ -176,8 +184,15 @@ public final class ModelCircuitBreaker {
         /** 逻辑调用终态入账：HALF_OPEN 解探测；CLOSED 入窗口（IGNORED 不入）；OPEN 丢弃旧世代样本。 */
         synchronized void record(Outcome outcome, Consumer<SessionEvent> emitter) {
             if (state == CircuitState.HALF_OPEN) {
-                probeInFlight = false;
-                transition(outcome == Outcome.FAILURE ? CircuitState.OPEN : CircuitState.CLOSED, emitter);
+                probesInFlight = Math.max(0, probesInFlight - 1);
+                if (outcome == Outcome.FAILURE) {
+                    transition(CircuitState.OPEN, emitter); // 任一探测失败即回 OPEN 重计退避
+                    return;
+                }
+                halfOpenSuccesses++;
+                if (halfOpenSuccesses >= config.halfOpenSuccessThreshold()) {
+                    transition(CircuitState.CLOSED, emitter); // 连续 N 次成功才恢复
+                }
                 return;
             }
             if (state == CircuitState.OPEN) {
@@ -218,7 +233,7 @@ public final class ModelCircuitBreaker {
                 long multiplier = config.backoffMultiplier(consecutiveTrips);
                 effectiveCooldownMs = config.openCooldown().toMillis() * multiplier;
                 openedAt = Instant.now();
-                probeInFlight = false;
+                probesInFlight = 0;
                 if (stats != null) {
                     stats.recordCircuitTrip(modelName);
                     stats.updateCircuitBackoff(modelName, multiplier);
@@ -265,6 +280,11 @@ public final class ModelCircuitBreaker {
 
         private Duration probeEscapeAfter() {
             return Duration.ofMillis(effectiveCooldownMs * 2);
+        }
+
+        /** 观测/测试：半开已连续成功探测数。 */
+        synchronized int halfOpenSuccesses() {
+            return halfOpenSuccesses;
         }
 
         private Duration elapsedSince(Instant since) {

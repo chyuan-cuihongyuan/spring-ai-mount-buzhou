@@ -18,6 +18,7 @@
 - [T115 memory 压缩事件化](tickets/T115-compaction-events.md) — ivp.setCompactionListener（空折入零通知、lenient）+ MemoryModule 观测双写 memory.compacted（compactedCount/reclaimedChars）；spec 34 §A。
 - [T116 黄金轨迹扩充 A](tickets/T116-golden-effort6-a.md) — GoldenTrajectoryEffort6Test 三轨迹（evidence 引用生命周期/outbox 跨重启补投/压缩事件观测）；spec 34 §B。
 - [T117 黄金轨迹扩充 B](tickets/T117-golden-effort6-b.md) — GoldenTrajectoryEffort6BTest 三轨迹（导出导入往返续用/结果限幅模型侧标记/索引全生命周期含 DELETED）；spec 34 §C。
+- [T118 熔断半开多探测](tickets/T118-halfopen-probes.md) — halfOpenSuccessThreshold（默认 1 零变化；>1 连续 N 成功才恢复）；槽位不变量（在飞+已成功≥阈值）；失败立即回 OPEN；spec 35 §A。
 
 ## Not yet specified
 

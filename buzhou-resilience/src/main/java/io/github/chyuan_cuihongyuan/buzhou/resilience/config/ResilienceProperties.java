@@ -94,6 +94,8 @@ public record ResilienceProperties(
      *                             RATE_LIMIT/CONTENT/AUTH/UNKNOWN 为 IGNORED 不进窗口）
      * @param backoffCap           连续跳闸冷却退避倍数上限（默认 8；冷却 = open-cooldown ×
      *                             min(2^(trips-1), cap)，探测成功即复位——spec 25 / T104）
+     * @param halfOpenSuccessThreshold 半开连续成功探测数（默认 1 = 单探测即恢复的既有行为；
+     *                             >1 时抖动 provider 需连续 N 次探测成功才 CLOSE——spec 35 §A / T118）
      */
     public record Circuit(
             Boolean enabled,
@@ -102,12 +104,22 @@ public record ResilienceProperties(
             Double failureRateThreshold,
             Duration openCooldown,
             List<String> failureCategories,
-            Integer backoffCap) {
+            Integer backoffCap,
+            Integer halfOpenSuccessThreshold) {
 
-        /** 既有 6 参便捷构造（backoffCap 默认，二进制/源码兼容既有调用点）。 */
+        /** 既有 6 参便捷构造（backoffCap/halfOpen 默认，二进制/源码兼容既有调用点）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories) {
-            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories, null);
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
+                    null, null);
+        }
+
+        /** 7 参便捷构造（halfOpenSuccessThreshold 默认）。 */
+        public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
+                Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
+                Integer backoffCap) {
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
+                    backoffCap, null);
         }
 
         public Circuit {
@@ -136,6 +148,11 @@ public record ResilienceProperties(
             backoffCap = backoffCap == null ? 8 : backoffCap;
             if (backoffCap < 1) {
                 throw configError("circuit.backoff-cap", String.valueOf(backoffCap), "设为 >= 1 的整数");
+            }
+            halfOpenSuccessThreshold = halfOpenSuccessThreshold == null ? 1 : halfOpenSuccessThreshold;
+            if (halfOpenSuccessThreshold < 1) {
+                throw configError("circuit.half-open-success-threshold",
+                        String.valueOf(halfOpenSuccessThreshold), "设为 >= 1 的整数（1 = 单探测即恢复）");
             }
         }
 

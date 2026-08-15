@@ -58,6 +58,65 @@ class ModelCircuitBreakerTest {
         }
     }
 
+    // ---- 半开多探测（spec 35 §A / T118 / impl-93） ----
+
+    /** 阈值 2：首次探测成功仍 HALF_OPEN，第二次成功才 CLOSE；期间并发调用被拒。 */
+    @Test
+    void halfOpenRequiresConsecutiveSuccessesWhenThresholdTwo() throws Exception {
+        ModelCircuitBreaker breaker = new ModelCircuitBreaker(new ResilienceProperties.Circuit(
+                null, 10, 3, 0.5, Duration.ofMillis(100), null, null, 2), null);
+
+        tripMin3(breaker);
+        Thread.sleep(120);
+        breaker.beforeCall("m", SINK); // 探测 1
+        breaker.recordSuccess("m", SINK);
+        assertThat(breaker.state("m")).isEqualTo(CircuitState.HALF_OPEN); // 未达阈值不恢复
+
+        breaker.beforeCall("m", SINK); // 探测 2（成功后探测位已释放，放行）
+        assertThatThrownBy(() -> breaker.beforeCall("m", SINK)) // 在飞探测已达阈值数，占位拒绝
+                .isInstanceOf(ModelCircuitOpenException.class);
+        breaker.recordSuccess("m", SINK);
+        assertThat(breaker.state("m")).isEqualTo(CircuitState.CLOSED); // 连续两次成功才恢复
+    }
+
+    /** 阈值 2：中途失败立即回 OPEN（连续性打断 + 退避 trips 递增）。 */
+    @Test
+    void halfOpenFailureMidwayReopensImmediately() throws Exception {
+        java.util.List<SessionEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        Consumer<SessionEvent> capture = events::add;
+        ModelCircuitBreaker breaker = new ModelCircuitBreaker(new ResilienceProperties.Circuit(
+                null, 10, 3, 0.5, Duration.ofMillis(100), null, null, 2), null);
+
+        tripMin3(breaker);
+        Thread.sleep(120);
+        breaker.beforeCall("m", capture); // 探测 1 成功
+        breaker.recordSuccess("m", capture);
+        assertThat(breaker.state("m")).isEqualTo(CircuitState.HALF_OPEN);
+
+        breaker.beforeCall("m", capture); // 探测 2 失败 → 立即回 OPEN
+        breaker.recordTerminal("m", "NETWORK", capture);
+        assertThat(breaker.state("m")).isEqualTo(CircuitState.OPEN);
+
+        SessionEvent lastOpen = events.stream()
+                .filter(e -> ModelCircuitBreaker.EVENT_STATE_CHANGED.equals(e.type()))
+                .filter(e -> "OPEN".equals(e.payload().get("to")))
+                .reduce((a, b) -> b).orElseThrow();
+        assertThat(lastOpen.payload().get("consecutiveTrips")).isEqualTo(2); // trips 递增（退避生效）
+    }
+
+    /** 阈值 1 回归：单探测成功即 CLOSE（既有行为零变化）。 */
+    @Test
+    void halfOpenThresholdOneKeepsLegacySingleProbeBehavior() throws Exception {
+        ModelCircuitBreaker breaker = new ModelCircuitBreaker(new ResilienceProperties.Circuit(
+                null, 10, 3, 0.5, Duration.ofMillis(100), null, null, 1), null);
+
+        tripMin3(breaker);
+        Thread.sleep(120);
+        breaker.beforeCall("m", SINK);
+        breaker.recordSuccess("m", SINK);
+        assertThat(breaker.state("m")).isEqualTo(CircuitState.CLOSED);
+    }
+
     // ---- 冷却自适应（spec 25 / T104 / impl-79） ----
 
     /** 连续探测失败：第二次跳闸冷却翻倍（base 100ms → 200ms），事件 payload 携带 trips/生效时长。 */
