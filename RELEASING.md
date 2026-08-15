@@ -78,3 +78,10 @@ ls buzhou-core/target/*.asc
 - **签名校验失败（key not found）**：公钥未发布到 Portal 信任的 keyserver，回第 1 节第 2 项。
 - **POM 元数据校验失败**：Central 硬性要求 name/description/url/license/scm/developers/issueManagement，已在父 POM 声明并被全模块继承。
 - **已发布 POM 干净（无 repositories）**：阿里云镜像在仓库根 `settings.xml`（不进 POM），已发布 POM 不含 `<repositories>`，Central 不会因镜像拒收。
+
+
+## SBOM 附着（T128 / impl-103）
+
+release workflow 在 deploy 后自动跑 `mvn -Psupply-chain package` 生成 CycloneDX 聚合 BOM
+（json+xml），并经 softprops/action-gh-release 附着到 GitHub Release——发布物供应链可审计面。
+人工核对：Release 页面附件含 `bom.json` / `bom.xml`。

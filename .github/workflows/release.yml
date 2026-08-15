@@ -53,3 +53,15 @@ jobs:
           CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: mvn -B -Prelease deploy
+
+      # T92 遗留 fog / T128 / impl-103：SBOM 随 release 留档——CycloneDX 聚合 BOM（json+xml）
+      # 构建后上传为 GitHub Release 附件（supply 链可审计面；RELEASING.md 检查单同步）。
+      - name: Generate CycloneDX SBOM
+        run: mvn -B -Psupply-chain package -DskipTests
+
+      - name: Attach SBOM artifacts to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/bom.json
+            target/bom.xml
