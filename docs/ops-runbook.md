@@ -63,6 +63,10 @@
 - **灰粒度**：机制级开关（`buzhou.<mod>.enabled`）可独立关闭回退底座行为（如 resilience=false
   回退 Spring AI 原生重试语义）。
 
+**存储一致性对账（spec 29）**：怀疑存储泄漏/孤儿数据时，跑 `StoreFsck.run(stores)`
+只读报告（四检测项：孤儿摘要/残留 state/泄漏租约/悬挂观测；全集 = 观测留痕 + extras
+补充）——先看报告再决定是否 `repair`（按检测项可选，观测永不自动清）。
+
 ## 6. 多实例边界（诚实声明）
 
 单进程组件：限流桶 / 熔断器 / 日配额计数 / InMemory 审计环 / SpawnGate 容量闸——**多实例 =

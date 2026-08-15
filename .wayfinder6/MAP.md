@@ -26,6 +26,7 @@
 - [T105 fork 证据归属与生命周期](tickets/T105-fork-evidence-lifecycle.md) — 引用计数共享：fork 登记引用（持久账本 .evidence-refs.json）、源删除被引用证据保留、最后引用者关闭物理删、TTL/孤儿扫描门控、悬垂读 EVIDENCE_GONE；core forkListeners 第 11 槽；spec 26。
 - [T106 多模态输入透传](tickets/T106-multimodal-input.md) — MediaRef(mimeType, URI) 三入口（chat/stream/chatForEntity，default UOE）；mediaRefs 落 metadata 持久化；重发只随最新带媒体消息（旧轮降级标记）；token 每媒体固定 320；spec 27。
 - [T107 会话可移植导出/导入](tickets/T107-session-export-import.md) — SessionExport 单 JSON 文档（messages+summary+state，epoch-millis DTO）；导入默认 Id 重映射/keepIds 冲突 fail-fast；spill 引用清单派生；导入会话可 spawn 续用；spec 28。
+- [T108 store fsck 一致性校验](tickets/T108-store-fsck.md) — StoreFsck.run 只读对账（四检测项：孤儿摘要/残留 state/泄漏租约/悬挂观测，全集=观测留痕+extras）+ repair 按项可选清除（观测永不自动清）；spec 29 + runbook 引用。
 
 ## Not yet specified
 
