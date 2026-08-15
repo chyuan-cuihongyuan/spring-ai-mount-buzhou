@@ -27,6 +27,7 @@
 - [T124 新能力装配面断言](tickets/T124-starter-assembly-tests.md) — ApplicationContextRunner 四断言（默认零装配/webhook 触发/限幅属性/索引 bean 共存）；limitFor 转公共查询面；spec 21 增补。
 - [T125 新能力 perf 哨兵](tickets/T125-perf-sentinels.md) — outbox 批扫/索引过滤/导出往返三哨兵（首轮实测落档 baseline.md）；WebhookOutboxPerfAccess test-jar 桥。
 - [T126 新能力演示](tickets/T126-examples-effort6-demo.md) — Effort6CapabilitiesDemoTest 五用例（摄取闭环/备份恢复/fsck/dashboard 过滤/facts 迁移）；口径注记（摘要注入需 memory 模块）。
+- [T127 runbook 新能力条目](tickets/T127-runbook-effort6.md) — 排查两症状（死信/索引降级）+ 调优六键 + 备份恢复步骤 + V3 注记 + result-truncated 告警。
 
 ## Not yet specified
 
