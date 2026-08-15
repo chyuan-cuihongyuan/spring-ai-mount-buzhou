@@ -514,3 +514,26 @@
 
 - `AbstractSessionIndexContractTest`（契约矩阵基类）；`WebhookOutboxPerfAccess`（outbox 直驱桥）；
   `EventSequenceAssert` 既有（effort #6）
+
+## effort #8 新增公共面（spec 37–39 / impl-105–118，@since 1.0.0）
+
+**buzhou-core**
+
+- `SkillSearchTool`（skills 模块，ToolCallback 直实现）+ `SkillRegistry.listAllFor` default（不截断全集）
+- `WebhookEventForwarder.replayDeadLetters()`；`WebhookOutboxHealth`（forwarder 装配时注册）
+- `SessionIndexStore.purgeOlderThan(cutoff, limit)` default（三实现覆写）+
+  `SessionIndexObserver.configureRetention`；`BuzhouCoreProperties.Core.indexClosedRetention`
+  （buzhou.index.closed-retention，默认 30d）
+- `SessionMigrator.migrate(source, target, sessionId, keepIds)` 静态工具
+- `CompactionListener`（memory；onCompacted(sessionId, result, evictRatio)——替代 T115 BiConsumer）
+- `SessionIndexHealth`（SessionIndexStore bean 存在时注册）
+- **破坏性变更（pre-1.0）**：`InjectionViewProcessor.setCompactionListener` 签名改
+  `CompactionListener`（三参演化）；`ObservabilityConfig`/`RuntimeConfig` 无变化
+
+**buzhou-memory / buzhou-spill**
+
+- `FactsExporter`（既有）；`MediaIntake`（既有）——@since 补齐
+
+**测试面（core test-jar）**
+
+- `WebhookOutboxPerfAccess` 增 `requeueDead(limit)` + `SESSION_ID` 常量

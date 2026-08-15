@@ -317,6 +317,9 @@ public class BuzhouCoreAutoConfiguration {
         io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore indexStore =
                 indexStoreProvider.getIfAvailable();
         if (indexStore != null) {
+            // spec 37 §C / T134：保留期（buzhou.index.closed-retention；默认 30d，-1/0 永久）
+            io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexObserver
+                    .configureRetention(properties.core().indexClosedRetention());
             all.add(RuntimeConfig.assemblyCustomizers(java.util.List.of(
                     io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexObserver
                             .wiring(indexStore))));

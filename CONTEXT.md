@@ -76,3 +76,12 @@
 - **导出扩展段（Export Extension）** — SessionExport.extensions 模块自定义段（如 memory.facts）；导入回放最终一致。
 - **DELETED 索引态** — 会话删除级联把索引行置 DELETED（审计留存；默认列表排除，显式过滤可查）。
 - **前缀扫描（scanByPrefix）** — state store 键前缀查询面（JDBC/Redis 下推；outbox 消全量读放大）。
+
+## 能力补全与对抗面（effort #8）
+
+- **技能检索（skill_search）** — 目录截断外的运行时子串检索（不截断全集 listAllFor；命中后 load_skill 加载）。
+- **死信重放（replayDeadLetters）** — 死信一键迁回 outbox（attempts 清零重投；at-least-once 契约内可能再死信）。
+- **索引保留（closed-retention）** — CLOSED/DELETED 行过期惰性清扫（1/64 概率 ≤256 条；ACTIVE 永不扫；-1 永久）。
+- **梯子级事件（evictRatio）** — 压缩梯子每级折入都通知，payload 携带当前级比例（级可区分）。
+- **跨 store 迁移（SessionMigrator）** — 会话级搬迁复用 export/import 管线（重映射/keepIds）。
+- **阻塞背压（观测管线）** — 满队阻塞而非丢弃（at-least-once 不丢；queue.wait Timer 可观测）。
