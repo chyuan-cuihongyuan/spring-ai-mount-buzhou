@@ -13,6 +13,7 @@
 ## Decisions so far
 
 - [T112 index 契约测试矩阵](tickets/T112-index-contract-matrix.md) — AbstractSessionIndexContractTest 五契约随 test-jar 发布，内存/JDBC/Redis 三实现接入（后两者附重启持久用例）；spec 33 §A。
+- [T113 索引 DELETED 联动 + fsck 索引源](tickets/T113-index-delete-fsck.md) — delete() 级联置 DELETED（审计留存；默认列表排除 DELETED，三实现+契约统一）；fsck 全集索引优先/观测回退；spec 33 §B。
 
 ## Not yet specified
 

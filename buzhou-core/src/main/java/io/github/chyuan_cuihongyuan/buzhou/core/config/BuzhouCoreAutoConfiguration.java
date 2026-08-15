@@ -302,6 +302,16 @@ public class BuzhouCoreAutoConfiguration {
             all.add(RuntimeConfig.assemblyCustomizers(java.util.List.of(
                     io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexObserver
                             .wiring(indexStore))));
+            // spec 33 §B / T113：会话删除级联置 DELETED（审计留存；物理删由运维按保留策略）
+            all.add(RuntimeConfig.cleanupContributors(java.util.List.of(
+                    io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor.of(
+                            "session-index",
+                            sessionId -> indexStore.get(sessionId).ifPresent(info ->
+                                    indexStore.upsert(new io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo(
+                                            info.sessionId(), info.appId(), info.agentName(),
+                                            io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo.STATUS_DELETED,
+                                            info.createdAtEpochMs(), info.lastActiveAtEpochMs(),
+                                            info.turnCount(), info.tags())))))));
         }
         if (!resourceCustomizers.isEmpty()) {
             all.add(RuntimeConfig.sessionCustomizers(resourceCustomizers));

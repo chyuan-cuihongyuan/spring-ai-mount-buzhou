@@ -35,7 +35,27 @@ public final class StoreFsck {
 
     /** 只读校验（观测全集 + 调用方补充的 sessionIds）。 */
     public static StoreIntegrityReport run(BuzhouStores stores, Set<String> extraSessionIds) {
-        Set<String> universe = sessionUniverse(stores, extraSessionIds);
+        return run(stores, null, extraSessionIds);
+    }
+
+    /**
+     * 只读校验（索引优先全集）：索引存在时全集走 SessionIndexStore（完整性高于观测留痕，
+     * spec 33 §B / T113）；索引为 null 或行数低于观测留痕时回退观测源（诚实降级——
+     * 索引最终一致可能滞后）。
+     */
+    public static StoreIntegrityReport run(BuzhouStores stores,
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore index,
+            Set<String> extraSessionIds) {
+        Set<String> universe = universeFromIndex(index);
+        Set<String> observed = sessionUniverse(stores, Set.of());
+        if (universe.isEmpty() || observed.size() > universe.size()) {
+            universe = observed; // 索引滞后/未装配：回退观测留痕
+        }
+        if (extraSessionIds != null) {
+            Set<String> merged = new LinkedHashSet<>(universe);
+            merged.addAll(extraSessionIds);
+            universe = merged;
+        }
         List<StoreIntegrityReport.Finding> findings = new ArrayList<>();
         for (String sessionId : universe) {
             boolean hasMessages = !stores.messageStore().load(sessionId).isEmpty();
@@ -109,6 +129,24 @@ public final class StoreFsck {
             repaired.put(StoreIntegrityReport.DANGLING_LEASE, n);
         }
         return repaired;
+    }
+
+    /** 索引源全集（全状态分页拉取；空索引返回空集触发回退）。 */
+    private static Set<String> universeFromIndex(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore index) {
+        Set<String> ids = new LinkedHashSet<>();
+        if (index == null) {
+            return ids;
+        }
+        for (int offset = 0; offset < 100_000; offset += 200) {
+            var page = index.list(new io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery(
+                    null, null, null, null, null, offset, 200));
+            page.forEach(i -> ids.add(i.sessionId()));
+            if (page.size() < 200) {
+                break;
+            }
+        }
+        return ids;
     }
 
     /** 观测 store 数字游标分页（内存/JDBC/Redis 实现共同约定：offset 字符串）。 */

@@ -93,6 +93,8 @@ public class JdbcSessionIndexStore implements SessionIndexStore {
         if (query.status() != null) {
             where.append(" AND status = ?");
             args.put("status", query.status());
+        } else {
+            where.append(" AND status <> 'DELETED'"); // 默认排除审计行（spec 33 §B）
         }
         if (query.tagKey() != null) {
             // tags 为 JSON 列：标签匹配走 JSON 文本 LIKE（索引量级下可接受；精确等值解析在内存侧收口）

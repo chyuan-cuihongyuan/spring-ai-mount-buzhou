@@ -59,8 +59,9 @@ public class InMemorySessionIndexStore implements SessionIndexStore {
         if (q.agentName() != null && !q.agentName().equals(info.agentName())) {
             return false;
         }
-        if (q.status() != null && !q.status().equals(info.status())) {
-            return false;
+        if (q.status() == null ? SessionInfo.STATUS_DELETED.equals(info.status())
+                : !q.status().equals(info.status())) {
+            return false; // 默认排除 DELETED（审计行仅显式过滤可见——spec 33 §B）
         }
         if (q.tagKey() != null && !q.tagValue().equals(info.tags().get(q.tagKey()))) {
             return false;

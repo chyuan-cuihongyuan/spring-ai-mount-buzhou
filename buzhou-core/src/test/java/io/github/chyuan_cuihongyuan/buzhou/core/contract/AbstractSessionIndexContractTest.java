@@ -100,4 +100,18 @@ public abstract class AbstractSessionIndexContractTest {
     public void emptyIndexListsNothing() {
         assertThat(index().list(SessionIndexQuery.defaults())).isEmpty();
     }
+
+    /** 默认排除 DELETED（审计行仅显式 status 过滤可见——spec 33 §B）。 */
+    @Test
+    public void deletedRowsHiddenFromDefaultListing() {
+        SessionIndexStore index = index();
+        index.upsert(info("x-live", "app", "ag", SessionInfo.STATUS_ACTIVE, 1_000L, Map.of()));
+        index.upsert(info("x-gone", "app", "ag", SessionInfo.STATUS_DELETED, 2_000L, Map.of()));
+
+        assertThat(index.list(SessionIndexQuery.defaults()))
+                .singleElement().extracting(SessionInfo::sessionId).isEqualTo("x-live");
+        assertThat(index.list(new SessionIndexQuery(
+                null, null, SessionInfo.STATUS_DELETED, null, null, 0, 10)))
+                .singleElement().extracting(SessionInfo::sessionId).isEqualTo("x-gone");
+    }
 }
