@@ -491,3 +491,26 @@
 **测试面（core test-jar，非运行时 API）**
 
 - `public final class EventSequenceAssert`（testsupport；attach/attachGlobal + 序列断言族）
+
+## effort #7 新增公共面（spec 33–36 / impl-87–104，@since 1.0.0）
+
+**buzhou-core**
+
+- `SessionStateStore.scanByPrefix(sessionId, prefix)` default 方法（JDBC/Redis 覆写下推）
+- `AgentRuntime` 无新签名；`DefaultAgentRuntime.setExportExtensions(List<SessionExportExtension>)`（internal 装配面）
+- `SessionExportExtension` 接口 + `SessionExport` 第 9 槽 `extensions`（8 参构造兼容）
+- `ToolResultLimiter.limitFor` 转公共（生效上限查询面）；`ToolResultLimiterHolder`
+- `StoreFsck.run(stores, SessionIndexStore, extras)` 三参重载
+- **破坏性变更（pre-1.0）**：`DashboardQueryService` 增双参构造（单参保留）；
+  `SkillRegistry.listForPage` default 方法 + `CatalogPage`；`SessionCleaner` 无变化（贡献者经 auto-config 挂接）
+
+**buzhou-memory / buzhou-spill / buzhou-observe-dashboard**
+
+- `FactsExporter implements SessionExportExtension`（memory.facts 段）
+- `MediaIntake`（intake/readBack 二进制无损 + intakeText/readBackText）
+- `DashboardQueryService.listSessionsFiltered` + `IndexedSessionPage` + `Builder.sessionIndex`
+
+**测试面（core test-jar，非运行时 API）**
+
+- `AbstractSessionIndexContractTest`（契约矩阵基类）；`WebhookOutboxPerfAccess`（outbox 直驱桥）；
+  `EventSequenceAssert` 既有（effort #6）

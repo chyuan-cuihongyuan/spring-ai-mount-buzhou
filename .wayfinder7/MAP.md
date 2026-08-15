@@ -42,6 +42,11 @@
 
 ## Tickets
 
+20 张 T112–T131 **全部闭合**（2026-08-15）；impl 切片 87–104 全部落地并合入 main。
+**Frontier**：∅——effort #7 到达目的地（fog 毕业候选见收口记录）。
+
+<details><summary>初始票清单（历史）</summary>
+
 初始 20 张（T112–T131，均含 AFK 决议，按轮逐张闭合）：
 
 - [T112 index 契约测试矩阵](tickets/T112-index-contract-matrix.md)
@@ -64,3 +69,27 @@
 - [T129 文档快速上手面](tickets/T129-docs-polish.md)
 - [T130 里程碑全仓 verify](tickets/T130-milestone-verify.md)（blocked-by T112–T129）
 - [T131 effort#7 收口](tickets/T131-effort7-closing.md)（blocked-by T130）
+
+</details>
+
+## 收口记录（2026-08-15）
+
+- **20 轮完整自迭代**（图表轮 + 18 实现轮 + 里程碑轮 + 收口轮；wayfinder 解票 → to-spec →
+  to-tickets → implement → 验证 → commit）：索引防线（契约矩阵 T112 / DELETED 联动+fsck 索引源
+  T113 / scanByPrefix T114）、观测与回归（压缩事件化 T115 / 黄金轨迹 A·B T116–117）、
+  韧性（半开多探测 T118）、输入与供给（目录预算 T119 / MediaIntake T120）、可移植
+  （导出扩展槽 T121）、查询面（dashboard 索引 T122）、工程面（配置元数据 T123 / 装配断言
+  T124 / perf 哨兵 T125 / 演示 T126 / runbook T127 / SBOM 附着 T128 / 文档 T129）、
+  里程碑 T130 与收口 T131。
+- **里程碑终验**：全仓 `mvn clean verify` exit=0——18 模块全 SUCCESS；
+  **1117 测试 0 失败 0 错误**（49 skipped = docker/真实 LLM 门控）。
+- **文档面**：spec 新增 33–36 四篇 + 21/22/00/34 增补；api-surface effort#7 面；
+  CONTEXT 术语两节；runbook 四处增补；RELEASING V3+SBOM；CONTRIBUTING 黄金集指引；
+  docs/perf 增三哨兵基线。
+- **累计口径**：effort #5（22 轮）+ #6（9 轮）+ #7（20 轮）= **51 轮完整流程自迭代**；
+  票号 T1–T131、impl 切片 1–104 全局连续。
+- **fog 毕业候选**（后续 effort）：skill_search 检索工具；LLM 响应缓存（语义边界）；
+  dashboard 前端消费过滤列表；outbox 状态 store 前缀扫描的进一步下推（Redis 服务端 SCAN）；
+  索引 CLOSED 行保留策略；memory 压缩梯子事件化（当前只发首轮）。
+- **过程教训**：探测槽位语义需不变量表达（在飞+已成功≥阈值，非简单计数）；
+  JSON 字符串包装使工具结果尺寸 ±引号（断言用关键标记）。

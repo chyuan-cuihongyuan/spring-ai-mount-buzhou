@@ -67,3 +67,12 @@
 - **会话索引（SessionIndex）** — 五 store 之外的枚举/过滤查询面（生命周期维护、最终一致；未装配零影响）。
 - **工具结果限幅（Result Limit）** — 工具结果入模型上下文前的字符上限（默认 20K + 提示尾 + per-tool 豁免）。
 - **黄金轨迹（Golden Trajectory）** — 机制行为的「脚本化输入 → 事件序列断言」回归集（与红队/perf 互补）。
+
+## 工程闭合与防线加密（effort #7）
+
+- **探测槽位不变量** — 熔断半开「在飞探测数 + 已成功数 ≥ 阈值」即占位满员（每成功永久占一槽；连续 N 成功才恢复）。
+- **目录注入预算** — skills 清单注入上限（默认 64）+ 溢出提示（「另有 N 个未列出」）。
+- **媒体摄取（MediaIntake）** — 字节 → spill 落盘 → MediaRef URI 的闭环（Latin-1 双向无损）。
+- **导出扩展段（Export Extension）** — SessionExport.extensions 模块自定义段（如 memory.facts）；导入回放最终一致。
+- **DELETED 索引态** — 会话删除级联把索引行置 DELETED（审计留存；默认列表排除，显式过滤可查）。
+- **前缀扫描（scanByPrefix）** — state store 键前缀查询面（JDBC/Redis 下推；outbox 消全量读放大）。
