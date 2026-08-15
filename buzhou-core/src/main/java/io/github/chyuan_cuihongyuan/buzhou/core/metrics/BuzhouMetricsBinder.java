@@ -56,5 +56,8 @@ public final class BuzhouMetricsBinder implements MeterBinder {
         registry.counter("buzhou.otel.span-evictions");
         // mcp 连接失败（impl-50 / spec 14 §F；server tag 由记录侧截断）
         registry.counter("buzhou.mcp.connect.failures");
+        // 流式体验指标（spec 46 §A / T170；model tag 由记录侧截断）
+        io.micrometer.core.instrument.Timer.builder("buzhou.model.ttft").register(registry);
+        io.micrometer.core.instrument.Timer.builder("buzhou.model.tpot").register(registry);
     }
 }

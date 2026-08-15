@@ -68,6 +68,24 @@ public class MicrometerDualWriter {
                 "kind", bounded(kind, 16), "model.name", bounded(modelName == null ? "unknown" : modelName, 64));
     }
 
+    /** spec 46 §A / T170：流式首内容信号时延（TTFT）；非正时长不记（口径纯净）。 */
+    public void recordTtft(String modelName, Duration ttft) {
+        if (disabled || ttft == null || ttft.isNegative() || ttft.isZero()) {
+            return;
+        }
+        BuzhouMetricsHolder.metrics().timer("buzhou.model.ttft", ttft,
+                "model.name", bounded(modelName == null ? "unknown" : modelName, 64));
+    }
+
+    /** spec 46 §A / T170：每输出 token 均摊耗时（TPOT）；非正时长不记。 */
+    public void recordTpot(String modelName, Duration tpot) {
+        if (disabled || tpot == null || tpot.isNegative() || tpot.isZero()) {
+            return;
+        }
+        BuzhouMetricsHolder.metrics().timer("buzhou.model.tpot", tpot,
+                "model.name", bounded(modelName == null ? "unknown" : modelName, 64));
+    }
+
     /** 入队背压等待时长（采集方自观测）。 */
     public void recordQueueWait(long millis) {
         if (disabled) {

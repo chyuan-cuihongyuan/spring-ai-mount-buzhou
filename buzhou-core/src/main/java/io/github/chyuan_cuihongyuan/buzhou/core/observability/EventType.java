@@ -21,6 +21,8 @@ public final class EventType {
     public static final String HITL_REQUEST = "HITL_REQUEST";
     public static final String HITL_DECISION = "HITL_DECISION";
     public static final String GUARD_ACTION = "GUARD_ACTION";
+    // spec 46 §A / T170：流式首内容信号（TTFT 口径；payload 携带 ttft.ms）
+    public static final String STREAM_FIRST_TOKEN = "STREAM_FIRST_TOKEN";
 
     private static final ConcurrentHashMap<String, String> REGISTRY = new ConcurrentHashMap<>();
 
@@ -34,6 +36,7 @@ public final class EventType {
         REGISTRY.put(HITL_REQUEST, HITL_REQUEST);
         REGISTRY.put(HITL_DECISION, HITL_DECISION);
         REGISTRY.put(GUARD_ACTION, GUARD_ACTION);
+        REGISTRY.put(STREAM_FIRST_TOKEN, STREAM_FIRST_TOKEN);
     }
 
     /**

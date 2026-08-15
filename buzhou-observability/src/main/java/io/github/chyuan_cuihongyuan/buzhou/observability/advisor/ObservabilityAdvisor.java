@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -120,12 +121,19 @@ public class ObservabilityAdvisor implements BaseAdvisor {
         AtomicReference<Usage> lastUsage = new AtomicReference<>();
         AtomicReference<String> lastFinishReason = new AtomicReference<>();
         AtomicReference<Boolean> sawToolCalls = new AtomicReference<>(false);
+        // spec 46 §A / T170：TTFT——订阅建立计时，首个「内容」信号（正文/思维链累计器空→非空，
+        // 或工具调用 delta 信号）打点；usage-only / role-only 空块不触发（口径：首内容到达时刻）
+        AtomicLong subscribedAtNs = new AtomicLong();
+        AtomicLong ttftNs = new AtomicLong();
         return streamChain.nextStream(request)
+                .doOnSubscribe(s -> subscribedAtNs.set(System.nanoTime()))
                 .doOnEach(signal -> {
                     ChatClientResponse resp = signal.get();
                     if (resp != null && resp.chatResponse() != null) {
                         accumulateStreamChunk(resp.chatResponse(), thinkingAccumulator, replyAccumulator,
                                 lastUsage, lastFinishReason, sawToolCalls);
+                        markFirstTokenIfNeeded(modelCall, thinkingAccumulator, replyAccumulator,
+                                sawToolCalls.get(), subscribedAtNs, ttftNs);
                     }
                 })
                 .doOnError(e -> {
@@ -137,9 +145,53 @@ public class ObservabilityAdvisor implements BaseAdvisor {
                     modelCall.close("CANCELLED");
                 })
                 .doOnComplete(() -> {
+                    recordTpotIfNeeded(modelCall, lastUsage.get(), subscribedAtNs, ttftNs);
                     recordStreamOutcome(modelCall, thinkingAccumulator, replyAccumulator,
                             lastUsage.get(), lastFinishReason.get(), sawToolCalls.get());
                 });
+    }
+
+    /**
+     * spec 46 §A / T170：首内容信号打点（幂等——仅首次生效）。
+     * TTFT 记 MODEL_CALL span 属性、STREAM_FIRST_TOKEN 事件与 buzhou.model.ttft timer。
+     */
+    private void markFirstTokenIfNeeded(SpanHandle modelCall, StringBuilder thinkingAccumulator,
+                                        StringBuilder replyAccumulator, boolean sawToolCalls,
+                                        AtomicLong subscribedAtNs, AtomicLong ttftNs) {
+        boolean hasContent = replyAccumulator.length() > 0 || thinkingAccumulator.length() > 0 || sawToolCalls;
+        if (!hasContent || subscribedAtNs.get() == 0) {
+            return;
+        }
+        long elapsed = System.nanoTime() - subscribedAtNs.get();
+        if (!ttftNs.compareAndSet(0, elapsed)) {
+            return; // 已打点（首信号幂等）
+        }
+        long ttftMs = elapsed / 1_000_000;
+        modelCall.attribute("ttft.ms", ttftMs);
+        recorder.emit(modelCall.context(), EventType.STREAM_FIRST_TOKEN,
+                Map.of("ttft.ms", ttftMs, "model.name", modelName == null ? "unknown" : modelName));
+        meters.recordTtft(modelName, java.time.Duration.ofNanos(elapsed));
+    }
+
+    /**
+     * spec 46 §A / T170：TPOT =（总时长 − TTFT）/（completionTokens − 1）。
+     * 仅在有 TTFT 且 completionTokens &gt; 1 时定义（单 token 流无均摊意义）。
+     */
+    private void recordTpotIfNeeded(SpanHandle modelCall, Usage usage,
+                                    AtomicLong subscribedAtNs, AtomicLong ttftNs) {
+        long ttft = ttftNs.get();
+        long subscribedAt = subscribedAtNs.get();
+        if (ttft <= 0 || subscribedAt == 0 || usage == null || usage.getCompletionTokens() == null
+                || usage.getCompletionTokens() <= 1) {
+            return;
+        }
+        long totalNs = System.nanoTime() - subscribedAt;
+        long perTokenNs = (totalNs - ttft) / (usage.getCompletionTokens() - 1);
+        if (perTokenNs <= 0) {
+            return;
+        }
+        modelCall.attribute("tpot.ms", perTokenNs / 1_000_000);
+        meters.recordTpot(modelName, java.time.Duration.ofNanos(perTokenNs));
     }
 
     @Override

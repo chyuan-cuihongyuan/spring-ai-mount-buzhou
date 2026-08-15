@@ -32,7 +32,7 @@
 
 ## Decisions so far
 
-（待逐轮补全）
+- [T170 TTFT/TPOT 流式指标](tickets/T170-ttft-tpot-metrics.md) — 首内容信号打点（空块不触发）：span 属性 + STREAM_FIRST_TOKEN 事件 + buzhou.model.ttft/tpot timer（预注册；model tag 截断）；非流式零变化；spec 46 §A。
 
 ## Not yet specified
 
