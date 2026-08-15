@@ -32,10 +32,11 @@ public final class SigningKeyRing {
     private volatile ActiveKey active;
     private final Map<Integer, PublicKey> verifyKeys = new ConcurrentHashMap<>();
     private final int minVerifyVersion;
+    private final SigningKeyPersister persister;
 
     /** 空环（纯哈希链降级模式；minVerifyVersion = 0）。 */
     public SigningKeyRing() {
-        this(0, List.of());
+        this(0, List.of(), null);
     }
 
     /**
@@ -43,6 +44,16 @@ public final class SigningKeyRing {
      * （私钥即刻丢弃，仅留公钥）。
      */
     public SigningKeyRing(int minVerifyVersion, List<SigningKeyProvider.VersionedSigningKey> keys) {
+        this(minVerifyVersion, keys, null);
+    }
+
+    /**
+     * spec 41 §A / T153 / impl-124：带轮换持久化钩子构造——rotate() 在切换 active 之前先经
+     * persister 落盘新钥（写而后切）；持久化失败轮换整体失败、active 不变。persister 可空。
+     */
+    public SigningKeyRing(int minVerifyVersion, List<SigningKeyProvider.VersionedSigningKey> keys,
+            SigningKeyPersister persister) {
+        this.persister = persister;
         this.minVerifyVersion = minVerifyVersion;
         List<SigningKeyProvider.VersionedSigningKey> sorted = new ArrayList<>(keys);
         sorted.sort(Comparator.comparingInt(SigningKeyProvider.VersionedSigningKey::version).reversed());
@@ -63,7 +74,10 @@ public final class SigningKeyRing {
         }
     }
 
-    /** 原子轮换：新钥即刻生效为唯一签名钥，旧钥私钥丢弃、公钥保留可验。 */
+    /**
+     * 原子轮换：新钥即刻生效为唯一签名钥，旧钥私钥丢弃、公钥保留可验。
+     * spec 41 §A / T153：配置了 persister 时「写而后切」——落盘失败则轮换失败、active 不变。
+     */
     public synchronized void rotate(int version, KeyPair newKey) {
         if (version <= 0) {
             throw new IllegalArgumentException("keyVersion 必须为正整数（收到 " + version + "）");
@@ -75,6 +89,9 @@ public final class SigningKeyRing {
         if (previous != null && version <= previous.version()) {
             throw new IllegalArgumentException(
                     "轮换版本必须递增（active=" + previous.version() + "，收到 " + version + "）");
+        }
+        if (persister != null) {
+            persister.persist(version, newKey); // 先落盘，后切换——失败即中止
         }
         this.active = new ActiveKey(version, newKey.getPrivate(), newKey.getPublic());
         verifyKeys.put(version, newKey.getPublic());

@@ -9,7 +9,9 @@ import io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditRecordStore;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditTrailCollector;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.InMemoryAuditRecordStore;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.JdbcAuditRecordStore;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.PemFileKeyPersister;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.PemFileKeyProvider;
+import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyPersister;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyProvider;
 import io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyRing;
 import io.github.chyuan_cuihongyuan.buzhou.guard.hook.GuardAuthApi;
@@ -107,21 +109,30 @@ public class BuzhouGuardAutoConfiguration {
     @ConditionalOnProperty(prefix = "buzhou.guard.audit", name = "enabled", matchIfMissing = true)
     public SigningKeyRing signingKeyRing(Environment env) {
         GuardAuditConfig config = auditConfig(env);
-        List<SigningKeyProvider.VersionedSigningKey> keys = List.of();
+        List<SigningKeyProvider.VersionedSigningKey> keys = new java.util.ArrayList<>();
         if (!config.keyFiles().isEmpty()) {
-            keys = new PemFileKeyProvider(config.keyFiles().stream()
+            keys.addAll(new PemFileKeyProvider(config.keyFiles().stream()
                     .map(keyFile -> new PemFileKeyProvider.Entry(keyFile.version(),
                             keyFile.privateKeyPath(), keyFile.publicKeyPath()))
-                    .toList()).load();
+                    .toList()).load());
         }
-        SigningKeyRing ring = new SigningKeyRing(config.minVerifyVersion(), keys);
+        // spec 41 §A / T153：key-dir 目录扫描（v<version>.pem 约定命名）——运行期轮换写入的
+        // 新钥重启后自动入环；非空时同时给环挂轮换持久化器（写而后切）
+        SigningKeyPersister persister = null;
+        if (config.keyDir() != null) {
+            keys.addAll(PemFileKeyProvider.scanDirectory(config.keyDir()).load());
+            persister = new PemFileKeyPersister(config.keyDir());
+        }
+        SigningKeyRing ring = new SigningKeyRing(config.minVerifyVersion(), keys, persister);
         if (!ring.hasSigningKey()) {
             LOG.warn("buzhou.guard.audit 无签名密钥（signing.keys 未配置/为空）——"
                     + "审计链降级为纯哈希链（完整性仍可验，不可否认性弱）；"
                     + "配置 PKCS#8 PEM 路径即可启用签名");
         } else {
-            LOG.info("buzhou-guard 审计签名就绪（activeVersion={}，可验版本={}，minVerifyVersion={}）",
-                    ring.activeVersion(), ring.registeredVersions(), ring.minVerifyVersion());
+            LOG.info("buzhou-guard 审计签名就绪（activeVersion={}，可验版本={}，minVerifyVersion={}，"
+                            + "轮换持久化={}）",
+                    ring.activeVersion(), ring.registeredVersions(), ring.minVerifyVersion(),
+                    persister != null ? "key-dir=" + config.keyDir() : "off");
         }
         return ring;
     }

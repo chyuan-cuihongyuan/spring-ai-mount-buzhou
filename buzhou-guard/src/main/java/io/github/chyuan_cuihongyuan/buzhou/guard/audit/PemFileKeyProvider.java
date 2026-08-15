@@ -42,6 +42,37 @@ public final class PemFileKeyProvider implements SigningKeyProvider {
         this.entries = List.copyOf(entries);
     }
 
+    /**
+     * spec 41 §A / T153 / impl-124：目录扫描构建——按 {@code v<version>.pem}（私钥）+
+     * {@code v<version>.pub.pem}（公钥，可缺省）约定命名发现全部版本（与
+     * {@link PemFileKeyPersister} 同一约定闭环：运行期轮换写入的新钥重启后自动入环）。
+     * 目录不存在/无匹配文件返回空 provider（纯哈希链降级）。
+     */
+    public static PemFileKeyProvider scanDirectory(Path dir) {
+        List<Entry> entries = new ArrayList<>();
+        if (Files.isDirectory(dir)) {
+            try (var stream = Files.list(dir)) {
+                for (Path file : stream.sorted().toList()) {
+                    String name = file.getFileName().toString();
+                    if (!name.startsWith("v") || !name.endsWith(".pem") || name.endsWith(".pub.pem")) {
+                        continue;
+                    }
+                    try {
+                        int version = Integer.parseInt(name.substring(1, name.length() - 4));
+                        entries.add(new Entry(version, file,
+                                Files.exists(file.resolveSibling("v" + version + ".pub.pem"))
+                                        ? file.resolveSibling("v" + version + ".pub.pem") : null));
+                    } catch (NumberFormatException ignored) {
+                        // 非 v<version>.pem 命名的文件不属密钥环（目录共享场景宽容跳过）
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("审计签名密钥目录扫描失败：" + dir, e);
+            }
+        }
+        return new PemFileKeyProvider(entries);
+    }
+
     @Override
     public List<VersionedSigningKey> load() {
         List<VersionedSigningKey> keys = new ArrayList<>();

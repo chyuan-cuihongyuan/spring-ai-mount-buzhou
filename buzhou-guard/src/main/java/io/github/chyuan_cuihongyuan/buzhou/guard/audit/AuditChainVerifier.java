@@ -26,13 +26,31 @@ public final class AuditChainVerifier {
 
     /** 密钥环模式：按记录 keyVersion 验签（keyRing 为 null 时仅校验哈希链，遇签名即断）。 */
     public static VerificationReport verify(List<AgentAuditRecord> records, SigningKeyRing keyRing) {
-        return verify(records, (version, record) -> {
+        return verify(records, keyRing, null);
+    }
+
+    /**
+     * spec 41 §A / T153 / impl-124：带链外锚点校验——expectedHeadAnchor 为运维在链外
+     * （保险库/配置/异地）保存的期望链头哈希；链内部一致但链头与锚点不符 →
+     * {@code anchorMatched=false}（删尾或整链重写可检测——纯内部一致性校验的盲区）。
+     */
+    public static VerificationReport verify(List<AgentAuditRecord> records, SigningKeyRing keyRing,
+            String expectedHeadAnchor) {
+        VerificationReport report = verify(records, (version, record) -> {
             if (record.signature() == null) {
                 return true;
             }
             java.security.PublicKey key = keyRing == null ? null : keyRing.verifyKey(version);
             return key != null && SignatureOps.verify(record, key);
         });
+        if (expectedHeadAnchor == null || expectedHeadAnchor.isBlank()) {
+            return report;
+        }
+        boolean matched = report.headHash() != null
+                && report.headHash().equalsIgnoreCase(expectedHeadAnchor.trim());
+        return new VerificationReport(report.verifiedCount(), report.firstBreakIndex(),
+                report.brokenRecordId(), report.breakReason(), report.keyVersionStats(),
+                report.headHash(), matched);
     }
 
     /** 单钥模式（impl-22 兼容：全部签名用同一公钥验）。 */
@@ -83,8 +101,10 @@ public final class AuditChainVerifier {
             expectedPrev = AuditChain.sha256Hex(Jcs.canonicalize(record.unsignedMap()));
             previous = record;
         }
+        // spec 41 §A / T153：链头哈希 = 已重放前缀末条记录的 JCS 哈希（空链 null）
+        String headHash = verified > 0 ? expectedPrev : null;
         return new VerificationReport(verified, firstBreakIndex, brokenRecordId, breakReason,
-                keyVersionStats);
+                keyVersionStats, headHash, null);
     }
 
     /** 签名原语（P1363 验证，与 AuditChain 共享实现）。 */
