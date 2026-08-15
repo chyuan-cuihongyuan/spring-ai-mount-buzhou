@@ -51,7 +51,9 @@ public class TodoStore {
             stateStore.put(sessionId, new StateEntry(KEY, json, PRODUCER, currentTurn, null,
                     Instant.now()));
         } catch (Exception e) {
-            throw new IllegalStateException("todo 序列化失败", e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.DATA_CORRUPTION,
+                    "todo 序列化失败", e);
         }
     }
 

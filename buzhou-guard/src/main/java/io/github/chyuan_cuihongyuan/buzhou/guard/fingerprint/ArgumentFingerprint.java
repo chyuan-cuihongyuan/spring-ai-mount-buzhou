@@ -62,7 +62,9 @@ public final class ArgumentFingerprint {
             }
             return hex.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available", e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.CONFIG_INVALID,
+                    "运行环境缺少 SHA-256（JVM 安全提供者异常）", e);
         }
     }
 

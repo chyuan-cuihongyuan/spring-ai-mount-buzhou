@@ -27,7 +27,9 @@ public final class ReadIntegrity {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(content.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
-            throw new IllegalStateException("SHA-256 unavailable", e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.CONFIG_INVALID,
+                    "运行环境缺少 SHA-256（JVM 安全提供者异常）", e);
         }
     }
 

@@ -71,7 +71,9 @@ public class DiskSpillStore implements SpillStore {
             return new SpillHandle(entry.uri(), entry.sizeChars(),
                     RangeReadEngine.previewOf(entry.content(), previewChars, 20));
         } catch (IOException e) {
-            throw new UncheckedIOException("Spill store failed: " + entry.uri(), e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "Spill store failed: " + entry.uri(), e);
         }
     }
 
@@ -109,7 +111,9 @@ public class DiskSpillStore implements SpillStore {
         try (Stream<Path> files = Files.list(sessionDir)) {
             return (int) files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).count();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
     }
 
@@ -128,7 +132,9 @@ public class DiskSpillStore implements SpillStore {
                     })
                     .sum();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
     }
 
@@ -171,7 +177,9 @@ public class DiskSpillStore implements SpillStore {
                 }
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
         return deleted;
     }
@@ -209,7 +217,9 @@ public class DiskSpillStore implements SpillStore {
             String raw = Files.readString(path);
             return Optional.of(cipher == null ? raw : cipher.decryptIfEncrypted(raw));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
     }
 
@@ -246,7 +256,9 @@ public class DiskSpillStore implements SpillStore {
             meta.put("linked", true);
             writeAtomically(metaPath, MAPPER.writeValueAsString(meta));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
     }
 
@@ -309,7 +321,9 @@ public class DiskSpillStore implements SpillStore {
                         "spill 会话删除保留 " + retained + " 个仍被引用的证据文件（fork 存活）：" + sessionDir);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
         return count;
     }
@@ -330,7 +344,9 @@ public class DiskSpillStore implements SpillStore {
         try (Stream<Path> walk = Files.walk(rootDir)) {
             metas = walk.filter(p -> p.toString().endsWith(META_SUFFIX)).toList();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
         int count = 0;
         for (Path metaPath : metas) {
@@ -385,7 +401,9 @@ public class DiskSpillStore implements SpillStore {
                 }
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
         }
         return acquired;
     }

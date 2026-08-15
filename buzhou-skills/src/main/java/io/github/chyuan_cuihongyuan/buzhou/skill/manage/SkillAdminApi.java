@@ -94,7 +94,9 @@ public class SkillAdminApi {
         requireDbEnabled();
         DbSkillRecord existing = mustFind(name);
         if (existing.status() == SkillStatus.PUBLISHED) {
-            throw new IllegalStateException("Skill 已是上架状态：" + name);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SKILL_OPERATION_INVALID,
+                    "Skill 已是上架状态：" + name);
         }
         return transition(existing, SkillStatus.PUBLISHED);
     }
@@ -104,7 +106,8 @@ public class SkillAdminApi {
         requireDbEnabled();
         DbSkillRecord existing = mustFind(name);
         if (existing.status() != SkillStatus.PUBLISHED) {
-            throw new IllegalStateException(
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SKILL_OPERATION_INVALID,
                     "仅上架状态可下架（当前 " + existing.status() + "）：" + name);
         }
         return transition(existing, SkillStatus.DISABLED);
@@ -185,7 +188,9 @@ public class SkillAdminApi {
      */
     public void setBinding(String appId, String agentName, List<String> skillNames) {
         if (bindingStore == null) {
-            throw new IllegalStateException("未配置 BindingPolicyStore，不支持绑定管理");
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.CONFIG_INVALID,
+                    "未配置 BindingPolicyStore，不支持绑定管理");
         }
         List<String> requested = skillNames == null ? List.of() : skillNames;
         java.util.Set<String> known = new java.util.HashSet<>();
@@ -211,7 +216,9 @@ public class SkillAdminApi {
 
     private void requireDbEnabled() {
         if (dbStore == null) {
-            throw new IllegalStateException("未配置 DB SkillStore，DB 动态 Skill 不可用（buzhou.skill.db-enabled）");
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.CONFIG_INVALID,
+                    "未配置 DB SkillStore，DB 动态 Skill 不可用（buzhou.skill.db-enabled）");
         }
     }
 }

@@ -25,6 +25,12 @@ public enum ErrorCode {
     /** 工具执行失败（「错误即反馈」通道语义：模型修正后可重试）。 */
     TOOL_EXECUTION_FAILED(RetryCategory.RETRYABLE, "工具执行失败"),
 
+    /** 溢出存储读写失败（spec 50 §A / T178：磁盘 IO 瞬态故障，重试可能成功）。 */
+    SPILL_IO_FAILED(RetryCategory.RETRYABLE, "溢出存储读写失败"),
+
+    /** 存储读取失败（spec 50 §A / T178：读取路径瞬态故障；读降级策略前的原始错误面）。 */
+    STORE_READ_FAILED(RetryCategory.RETRYABLE, "存储读取失败"),
+
     // ---- NON_RETRYABLE：输入或状态被拒，重试必然再失败 ----
 
     /** 会话租约丢失（被他方 steal / 过期；本地须立即中止写入防双主脏写）。 */
@@ -50,6 +56,9 @@ public enum ErrorCode {
 
     /** 会话单飞闸拒绝（同会话已有在途轮次；spec 40 §B / impl-123——并发轮次由「未定义」转「确定拒绝」）。 */
     TURN_IN_FLIGHT(RetryCategory.NON_RETRYABLE, "会话已有在途轮次"),
+
+    /** 技能管理操作非法（状态冲突 / 依赖未装配；spec 50 §A / T178）。 */
+    SKILL_OPERATION_INVALID(RetryCategory.NON_RETRYABLE, "技能管理操作非法"),
 
     // ---- FATAL：环境或数据根因，需人工介入 ----
 

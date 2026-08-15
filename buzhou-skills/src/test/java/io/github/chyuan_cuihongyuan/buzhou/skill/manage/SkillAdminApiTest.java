@@ -160,8 +160,10 @@ class SkillAdminApiTest {
         api.create("code-review", "DB 覆盖", "正文", List.of(), "ops");
         api.publish("code-review");
         assertThatThrownBy(() -> api.publish("code-review"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("已是上架状态");
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException.class)
+                .hasMessageContaining("已是上架状态")
+                .extracting("errorCode")
+                .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SKILL_OPERATION_INVALID);
     }
 
     @Test
@@ -169,8 +171,10 @@ class SkillAdminApiTest {
         SkillAdminApi api = api(new InMemorySkillStore(), null);
         api.create("code-review", "DB 覆盖", "正文", List.of(), "ops");
         assertThatThrownBy(() -> api.disable("code-review"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("仅上架状态可下架");
+                .isInstanceOf(io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException.class)
+                .hasMessageContaining("仅上架状态可下架")
+                .extracting("errorCode")
+                .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SKILL_OPERATION_INVALID);
     }
 
     @Test
