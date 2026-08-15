@@ -38,16 +38,18 @@ class SchemaMigrationH2Test {
         JdbcDataSource dataSource = newDataSource();
         int version = SchemaMigrator.migrate(dataSource, Dialect.H2);
 
-        assertThat(version).isEqualTo(2);
+        assertThat(version).isEqualTo(3);
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        assertThat(appliedVersions(jdbc)).containsExactly(1, 2);
-        // 全量业务表就位（含 V2 演示列——空库由 V1 基线直接带上）
+        assertThat(appliedVersions(jdbc)).containsExactly(1, 2, 3);
+        // 全量业务表就位（含 V2 演示列 + V3 会话索引表——空库由 V1 基线直接带上）
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(reasoning_signature) FROM buzhou_message", Integer.class)).isZero();
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM buzhou_tool_call_log", Integer.class)).isZero();
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM buzhou_run_registry", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM buzhou_session_index", Integer.class)).isZero();
     }
 
     @Test
@@ -58,7 +60,7 @@ class SchemaMigrationH2Test {
         // 第二次启动（幂等回归）：不抛异常、版本行不重复
         assertThatCode(() -> SchemaMigrator.migrate(dataSource, Dialect.H2))
                 .doesNotThrowAnyException();
-        assertThat(appliedVersions(new JdbcTemplate(dataSource))).containsExactly(1, 2);
+        assertThat(appliedVersions(new JdbcTemplate(dataSource))).containsExactly(1, 2, 3);
     }
 
     @Test
@@ -69,10 +71,10 @@ class SchemaMigrationH2Test {
 
         int version = SchemaMigrator.migrate(dataSource, Dialect.H2);
 
-        assertThat(version).isEqualTo(2);
+        assertThat(version).isEqualTo(3);
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        assertThat(appliedVersions(jdbc)).containsExactly(1, 2);
-        // V1 行为基线采纳（不重跑建表），V2 行为真实执行——旧数据保留 + 新列生效
+        assertThat(appliedVersions(jdbc)).containsExactly(1, 2, 3);
+        // V1 行为基线采纳（不重跑建表），V2/V3 行为真实执行——旧数据保留 + 新列/新表生效
         assertThat(jdbc.queryForObject(
                 "SELECT description FROM buzhou_schema_version WHERE version = 1", String.class))
                 .contains("baseline");

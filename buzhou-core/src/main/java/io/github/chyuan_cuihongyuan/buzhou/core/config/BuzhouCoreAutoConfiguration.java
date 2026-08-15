@@ -260,7 +260,9 @@ public class BuzhouCoreAutoConfiguration {
                                            List<SessionResourceCustomizer> resourceCustomizers,
                                            ObjectProvider<MemoryViewProcessor> viewProcessor,
                                            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener>
-                                                   globalEventListeners) {
+                                                   globalEventListeners,
+                                           org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore>
+                                                   indexStoreProvider) {
         List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
         // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
         if (!hooks.isEmpty()) {
@@ -271,6 +273,15 @@ public class BuzhouCoreAutoConfiguration {
         }
         if (!assemblyCustomizers.isEmpty()) {
             all.add(RuntimeConfig.assemblyCustomizers(assemblyCustomizers));
+        }
+        // spec 30 / T109 / impl-84：会话索引接线（store 模块提供 SessionIndexStore bean 才启用；
+        // 无 bean = 无枚举能力，会话功能零影响——最终一致索引）
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore indexStore =
+                indexStoreProvider.getIfAvailable();
+        if (indexStore != null) {
+            all.add(RuntimeConfig.assemblyCustomizers(java.util.List.of(
+                    io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexObserver
+                            .wiring(indexStore))));
         }
         if (!resourceCustomizers.isEmpty()) {
             all.add(RuntimeConfig.sessionCustomizers(resourceCustomizers));

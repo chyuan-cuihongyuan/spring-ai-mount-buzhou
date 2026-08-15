@@ -19,6 +19,17 @@ final class RedisKeys {
         this.pfx = (prefix == null || prefix.isBlank()) ? "buzhou:" : prefix;
     }
 
+    // ---- session index（spec 30 / T109 / impl-84） ----
+    /** 会话索引 ZSET（member=sessionId，score=lastActiveAtEpochMs，倒序面）。 */
+    String sessionIndexZset() {
+        return pfx + "idx:sessions";
+    }
+
+    /** 会话索引行（STRING of SessionInfo JSON）。 */
+    String sessionIndexInfo(String sessionId) {
+        return pfx + "idx:info:" + sessionId;
+    }
+
     // ---- message ----
     /** 会话消息列表（LIST of JSON，按 turnSeq,seqInTurn 排序在 load 时做）。 */
     String messageList(String sessionId) {

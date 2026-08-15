@@ -44,6 +44,15 @@ public class BuzhouRedisStoreAutoConfiguration {
         return RedisBuzhouStores.newConnectionPool(client, props.poolMaxSize());
     }
 
+    /** 会话索引（spec 30 / T109 / impl-84）：ZSET+STRING；独立连接（写频低，不占事务池）。 */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore buzhouSessionIndexStore(
+            RedisClient client, RedisStoreProperties props) {
+        return io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisSessionIndexStore.create(
+                client, props.keyPrefix());
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public BuzhouStores buzhouStores(RedisClient client, RedisStoreProperties props,

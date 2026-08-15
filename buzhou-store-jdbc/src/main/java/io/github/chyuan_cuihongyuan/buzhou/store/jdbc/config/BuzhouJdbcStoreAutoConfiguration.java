@@ -57,6 +57,15 @@ public class BuzhouJdbcStoreAutoConfiguration {
                 writePolicy.writeFailurePolicy());
     }
 
+    /** 会话索引（spec 30 / T109 / impl-84）：V3 迁移表；最终一致查询优化面。 */
+    @Bean
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore buzhouSessionIndexStore(
+            DataSource dataSource) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.jdbc.JdbcSessionIndexStore(
+                new org.springframework.jdbc.core.JdbcTemplate(dataSource));
+    }
+
     /** core 六槽视图（由完整组合派生，保持既有 bean 形状兼容）。 */
     @Bean
     @ConditionalOnMissingBean
