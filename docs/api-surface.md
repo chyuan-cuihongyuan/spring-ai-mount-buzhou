@@ -465,3 +465,29 @@
 - **@since 标注**：新公开类型自 1.0.0 起标（当前 0.1.0-SNAPSHOT 预发布期不追溯补标）。
 - **deprecation**：废弃保留 ≥ 2 个 minor，javadoc `@deprecated` 指明替代。
 - **internal 包 / core ConfigMaps 模块私有 map 契约**：不受上述政策约束。
+
+## effort #6 新增公共面（spec 24–32 / impl-78–86，@since 1.0.0）
+
+**buzhou-core**
+
+- `public record MediaRef`（session）+ `AgentSession.chat/stream/chatForEntity` 媒体重载（default UOE）
+- `public record SessionExport`（session）+ `AgentRuntime.exportSession/importSession`（default UOE）
+- `public class SessionImportException`（session）
+- `public interface SessionForkListener`（session）+ `RuntimeConfig` 第 11 槽 forkListeners（10 参构造保留）
+- `public class StoreFsck` / `public final class StoreIntegrityReport`（cleanup；含 Finding/Severity）
+- `public record SessionInfo` / `public record SessionIndexQuery` / `public interface SessionIndexStore`（spi）
+- `public final class ToolResultLimiter` / `public final class ToolResultLimiterHolder`（exec）
+- `public record WebhookDeadLetter`（webhook）；`WebhookOutbox` 为包私有（非公开面）
+- **破坏性变更（pre-1.0）**：`WebhookEventForwarder` 构造改双参（props, SessionStateStore）；
+  `BuzhouWebhookProperties` 增 `outboxCapacity`（6 参）；`queueCapacity` 废弃 no-op；
+  `ResilienceProperties.Circuit` 增 `backoffCap`（6 参便捷构造保留）；
+  `BuzhouMessage.metadata` 新键约定 `mediaRefs`（非 schema 变更）。
+
+**buzhou-store-jdbc / buzhou-store-redis**
+
+- `public class JdbcSessionIndexStore` / `public class RedisSessionIndexStore`（含 `create` 工厂；
+  auto-config 于 store.type=jdbc/redis 时装配 `SessionIndexStore` bean）
+
+**测试面（core test-jar，非运行时 API）**
+
+- `public final class EventSequenceAssert`（testsupport；attach/attachGlobal + 序列断言族）
