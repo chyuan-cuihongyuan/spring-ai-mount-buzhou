@@ -29,6 +29,10 @@
 | **下游反馈 webhook 事件缺失** | `buzhou.webhook.dead-letter` 指标 + `WebhookOutboxHealth` details（pending/deadLetters） | 端点修复后 `replayDeadLetters()` 一键重放（attempts 清零重投；4xx 死信先查消费端契约）；频繁超限看 outbox-capacity |
 | **会话列表/过滤查询缺失或降级** | dashboard `IndexedSessionPage.fromIndex=false` | SessionIndexStore 未装配——jdbc/redis store.type 自动配；内存部署需显式定义 bean（spec 30 降级语义） |
 | 会话跨实例接管冲突 | `SESSION_ALREADY_ACTIVE` / 租约日志 | 用 steal 语义接管；确认部署是粘性路由（见 §6） |
+| **chat 报「会话已有在途轮次（单飞闸）」** | `TURN_IN_FLIGHT`（NON_RETRYABLE） | 误用暴露而非故障：同会话轮次不并发——等在途终结或改新会话；前端防双击/网关防重放即可根除 |
+| **spill 读报「解密失败（密钥不匹配或文件损坏）」** | 换钥重启读旧密文文件（spec 40 §A） | 用写入时的 encryption-key 读（密钥历史保留）；确认没把不同环境密钥混用 |
+| **启动失败「检测到未来 schema 版本」** | SchemaMigrator 守卫（spec 42 §A） | 旧构建对上新库被拒——升构建到库版本；不要绕过（防旧 schema 写坏新库） |
+| **启动失败「已应用迁移脚本被改动」** | 版本表 checksum 锚（spec 42 §A） | 已应用脚本不可变——恢复脚本原文；新变更用新版本号脚本 |
 | 启动失败「store.type=jdbc 但对应 store 实现未装配」 | store 类型守卫 | 引 buzhou-store-jdbc + 确认 DataSource bean |
 
 ## 3. 配置调优表（高频项）
@@ -52,6 +56,10 @@
 | `buzhou.tools.result-limit-chars` | 20000 | 工具结果入上下文护栏；频繁截断（`result-truncated` 指标）→ 优化该工具或 per-tool 覆盖 |
 | `buzhou.skills.catalog-max-entries` | 64 | 目录注入体积护栏（截断附「另有 N 个未列出」提示） |
 | `buzhou.index.closed-retention` | 30d | 索引 CLOSED/DELETED 行保留期（-1 永久）；过期惰性清扫（1/64 概率 ≤256 条） |
+| `buzhou.spill.encryption-key` | 关 | spill 落盘 AES-256-GCM 加密（Base64 32B；推荐环境变量注入）；开启后旧明文文件兼容读 |
+| `buzhou.store.read-degrade` | off | `empty` = 消息读失败降级空历史续聊（WARN + `buzhou.stores.read-degraded` 计数可感；模型看不到历史是已知代价） |
+| `buzhou.webhook.close-drain-timeout` | 5s | 停机排空已到期 webhook 记录的预算（与容器终止宽限期对齐） |
+| `buzhou.tools.run-command.max-output-bytes` | 5MB | run_command 输出内存兜底上限（低内存容器收紧；截断带标记可见） |
 
 ## 4. 容量规划
 
@@ -83,7 +91,20 @@ keepIds 需目标空闲）；演练见 examples Effort8CapabilitiesDemoTest。
 （messages+summary+state+扩展段，如 memory.facts）；恢复 = `importSession(json, false)`
 新 Id 重映射后以该 Id spawn 续用（灾难恢复演示见 examples Effort6CapabilitiesDemoTest）。
 JDBC 部署升级至 V3（会话索引表）由 SchemaMigrator 版本化自动执行（旧库基线判定后追加，
-无破坏性变更）。
+无破坏性变更）。迁移器防护（effort #9 / spec 42 §A）：**未来版本拒绝**（旧构建对新高版本库启动
+即拒——升级顺序先升构建）与**脚本 checksum 锚定**（已应用脚本事后被改启动即拒；存量行首次升级
+自动回填锚定）。
+
+**spill 加密密钥管理（effort #9 / spec 40 §A）**：`buzhou.spill.encryption-key`（Base64 32B，
+推荐 `BUZHOU_SPILL_ENCRYPTIONKEY` 类环境变量注入）开启即密文落盘；轮换 = 换新值重启（**旧密文
+文件需旧钥读**——保留密钥历史或接受旧 spill 过期清扫）；磁盘全明文时代文件升级后兼容可读。
+DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本键。
+
+**审计签名密钥轮换（effort #9 / spec 41 §A）**：`buzhou.guard.audit.signing.key-dir` 指目录即启用
+约定命名（`v<version>.pem` PKCS#8 + `v<version>.pub.pem` 可选）；运行期 `rotate(N, keyPair)` 写而后切
+（落盘失败轮换中止）；重启按目录扫描自动入环（active=最高版本）。**链外锚点**：定期取
+`AuditChainVerifier.verify(...).headHash()` 存入保险库/异地，校验时传锚点比对——删尾/整链重写可检
+（纯内部校验盲区）。
 
 ## 6. 多实例边界（诚实声明）
 
