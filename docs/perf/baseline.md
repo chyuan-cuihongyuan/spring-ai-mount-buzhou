@@ -38,3 +38,12 @@
 | skill_search | classpath 全集子串匹配 | ~1ms | 100ms |
 | 死信重放存储面 | 百条 dead 迁回 outbox | ~5ms | 500ms |
 | 迁移单会话 | 2 消息跨 runtime 往返 | ~3ms | 300ms |
+
+
+## effort #9 增补哨兵（T163 / impl-134；2026-08-16 首轮实测）
+
+| 哨兵 | 场景 | 首轮 P95 | 硬顶 |
+|------|------|---------|------|
+| spill 加密往返 | 64KB 载荷 AES-GCM store+load 单次 | ~8ms | 150ms |
+| 单飞闸开销 | 串行轮次进出闸（CAS 占位/释放） | <1ms | 5ms |
+| 读降级路径 | EMPTY 策略读失败→空历史 | <1ms | 10ms |

@@ -32,3 +32,11 @@ NewSurfaceAdversarialTest 口径，先观察不进硬门）：
 ### Out of Scope
 
 - 转 nightly 硬门（先观察，稳定后按 baseline 定门——沿用 #8 节奏）。
+
+## §C perf 哨兵第三批（T163 / impl-134）
+
+三哨兵（10 倍宽幅硬顶，nightly -Dgroups=perf 激活；首轮实测入档 baseline.md）：
+
+1. **spill 加密往返**：64KB 载荷 store+load（AES-GCM）单次 P95 硬顶 150ms（首轮 ~8ms）。
+2. **单飞闸开销**：串行多轮记忆读写（闸为 CAS，无可感成本）P95 硬顶 5ms。
+3. **读降级路径**：EMPTY 策略读失败→空历史 P95 硬顶 10ms。
