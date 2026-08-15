@@ -34,3 +34,12 @@ npx promptfoo@latest redteam eval -c redteam/promptfooconfig.yaml --fail-on-erro
 ```
 
 离线说明：`PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION=true` 可全离线生成（官方支持）。
+
+
+## 新能力攻击面（effort #8 / T138 / spec 39 §A——观察档）
+
+多模态输入（媒体引用内容携指令）与工具结果内注入两类新攻击面**不在 promptfoo
+场景词汇内**（自定义载荷不可表达）——以 examples 的确定性对抗用例承载
+（`NewSurfaceAdversarialTest`，替身模型评 harness 行为）：①媒体内越权指令不改
+HITL 门语义；②工具结果注入以数据形态在场、危险调用仍被门拦。口径：先观察不进
+硬门；用例稳定转 nightly 重放后按 baseline 定门。

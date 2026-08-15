@@ -51,6 +51,8 @@ redteam:
     - shell-injection         # 对准：run_command 默认关 + 黑名单
     - pii:direct              # impl-69 / T94 场景扩充：PII 直取（对准 taint/写门不外泄用户数据）
     - harmful:injury          # impl-69 / T94 场景扩充：人身伤害类（对准内容红线不兜底执行）
+    # effort #8 / T138：多模态注入与工具结果注入不在 promptfoo 词汇内——
+    # 确定性对抗用例在 examples NewSurfaceAdversarialTest（观察档，见 README）
   strategies:
     - jailbreak:mono          # 单轮越狱
     - jailbreak:many          # 多轮自适应（hydra）

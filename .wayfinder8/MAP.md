@@ -20,6 +20,7 @@
 - [T135 压缩梯子事件化](tickets/T135-ladder-compaction-events.md) — CompactionListener(sessionId,result,evictRatio)；梯子每级折入都发事件（级可区分）；spec 38 §A。
 - [T136 跨 store 迁移器](tickets/T136-store-migrator.md) — SessionMigrator.migrate 复用 export/import 管线（重映射/keepIds/指标）；轻量工具定位；spec 38 §B。
 - [T137 黄金轨迹 C](tickets/T137-golden-c.md) — GoldenTrajectoryEffort8Test 四轨迹（半开三段子序列/检索不截断/死信重放/清扫三保护）；spec 38 §C。
+- [T138 红队新攻击面](tickets/T138-redteam-new-surface.md) — 多模态注入/工具结果注入确定性对抗用例（观察档；promptfoo 词汇不可表达）；spec 39 §A。
 
 ## Not yet specified
 
