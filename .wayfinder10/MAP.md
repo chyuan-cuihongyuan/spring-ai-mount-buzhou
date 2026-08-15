@@ -34,6 +34,7 @@
 
 - [T170 TTFT/TPOT 流式指标](tickets/T170-ttft-tpot-metrics.md) — 首内容信号打点（空块不触发）：span 属性 + STREAM_FIRST_TOKEN 事件 + buzhou.model.ttft/tpot timer（预注册；model tag 截断）；非流式零变化；spec 46 §A。
 - [T171 流取消分类与慢滴流上限](tickets/T171-stream-cancel-cumcap.md) — buzhou.stream.cancelled{client|deadline|guard} 三路分类 + stream-total-timeout 累计上限（缺省 10m、≤0 关；takeUntilOther 标记异常终结）；spec 46 §B。
+- [T172 MDC 会话轮次关联](tickets/T172-mdc-correlation.md) — chat 路径调用线程 MDC 两键（try/finally 必清）；stream 路径实现期裁定不做（信号切线程致清错线程，结构性限制入档）；spec 47 §A。
 
 ## Not yet specified
 

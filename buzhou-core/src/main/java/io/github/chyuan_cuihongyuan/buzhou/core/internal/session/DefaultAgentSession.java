@@ -103,6 +103,10 @@ public class DefaultAgentSession implements AgentSession {
     /** spec 46 §B：流累计上限框架默认（10 分钟——远超正常流式回复，只拦慢性挂死）。 */
     static final Duration DEFAULT_STREAM_TOTAL_TIMEOUT = Duration.ofMinutes(10);
 
+    /** spec 47 §A / T172 / impl-141：MDC 键（buzhou.* 命名空间，宿主 %X 直接引用）。 */
+    static final String MDC_SESSION_ID = "buzhou.sessionId";
+    static final String MDC_TURN_SEQ = "buzhou.turnSeq";
+
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
                                Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
@@ -342,6 +346,18 @@ public class DefaultAgentSession implements AgentSession {
 
     private String doChat(String input, java.util.List<MediaRef> media) {
         int turnSeq = hookEnv.nextTurn();
+        // spec 47 §A / T172 / impl-141：轮次调用线程 MDC 关联（终结必清；命名空间 buzhou.*）
+        org.slf4j.MDC.put(MDC_SESSION_ID, sessionId);
+        org.slf4j.MDC.put(MDC_TURN_SEQ, String.valueOf(turnSeq));
+        try {
+            return doChatTurn(turnSeq, input, media);
+        } finally {
+            org.slf4j.MDC.remove(MDC_SESSION_ID);
+            org.slf4j.MDC.remove(MDC_TURN_SEQ);
+        }
+    }
+
+    private String doChatTurn(int turnSeq, String input, java.util.List<MediaRef> media) {
         long turnStartNanos = System.nanoTime(); // impl-41 / spec 13 §T66：turn.duration
         observers.forEach(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
