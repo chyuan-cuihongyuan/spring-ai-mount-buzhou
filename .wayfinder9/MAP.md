@@ -76,3 +76,25 @@
 - [T167 配置元数据第三批](tickets/T167-metadata-3.md)（blocked-by T151/T156/T158/T159）
 - [T168 里程碑 verify](tickets/T168-milestone-verify.md)（blocked-by T151–T167）
 - [T169 收口](tickets/T169-effort9-closing.md)（blocked-by T168）
+
+## 收口记录（2026-08-16）
+
+- **19 轮完整自迭代**（图表轮 + 17 实现轮 + 里程碑轮 + 收口轮）：静态安全（spill 加密 T151 /
+  单飞闸 T152 / 审计轮换外锚 T153）、运行时确定性（时钟注入 T154 / 迁移防护 T155 / 读降级 T156 /
+  命令限额 T157）、纪律收口（配置校验 T158 / 停机排空 T159 / 观测纪律 T160）、防线（黄金 E T161 /
+  红队三面 T162 / perf 三哨兵 T163 / 演示 T164）、文档（runbook T165 / CONTEXT·api-surface T166 /
+  元数据 T167）、里程碑 T168 与收口 T169。
+- **里程碑终验**：全仓 `mvn clean verify -T 1C` exit=0——18 模块全 SUCCESS；
+  **1178 测试 0 失败 0 错误**（50 skipped = docker/真实 LLM 门控）。
+- **实现期纠偏（诚实记录）**：T168 首验揪出 MCP 漂移迟到通知竞态——条目异步摘除窗口内
+  `handleToolsChanged` 只查 map 不查状态致误报漂移；补 `status != ACTIVE` 丢弃闸修复后复验全绿。
+- **文档面**：spec 新增 40–45 六篇；CONTEXT「静态安全与运行时确定性」术语节（19 条）；
+  api-surface effort#9 面（含 webhook 静默回退改显式拒绝等四处破坏性变更入档）；runbook 第五轮；
+  redteam 观察档第三批；perf baseline 第三批三哨兵；examples 演示第三批；配置元数据第三批五键。
+- **累计口径**：effort #5（22）+ #6（9）+ #7（20）+ #8（20）+ #9（19）= **90 轮完整流程自迭代**；
+  票号 T1–T169、impl 切片 1–138 全局连续。
+- **fog 候选**（后续 effort）：流式可观测（TTFT/TPOT/取消语义——LiteLLM 26K★、vLLM 45K★ 双源）；
+  turn 级截止时间传播（gRPC 42K★ deadline 范式）；turn 级反馈闭环（Langfuse 31K★ score API）；
+  模型流量治理增量（LiteLLM Router 加权/池配额/shadow-fork）；GenAI OTel semconv 对齐（映射层 + 默认关）；
+  日志文案 i18n（卫生项）。长期沿用：LLM 响应缓存、skill 语义排序、outbox Redis SCAN 下推、
+  观测 OLAP/多实例分布式、store 静态加密。

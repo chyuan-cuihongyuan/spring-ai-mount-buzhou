@@ -264,8 +264,10 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
      */
     private void handleToolsChanged(String serverName, java.util.List<io.modelcontextprotocol.spec.McpSchema.Tool> newTools) {
         Entry entry = entries.get(serverName);
-        if (entry == null) {
-            return; // 条目已下线：漂移无从归属，丢弃
+        // 条目摘除是异步的（close 完成后才移出 map），只查 map 会放过 DRAINING/CLOSED 窗口
+        // 内到达的迟到通知，误报漂移——非 ACTIVE 即丢弃。
+        if (entry == null || entry.status != Status.ACTIVE) {
+            return; // 条目已下线/下线中：漂移无从归属，丢弃
         }
         java.util.Set<String> incoming = newTools == null ? Set.of()
                 : newTools.stream().map(io.modelcontextprotocol.spec.McpSchema.Tool::name)
