@@ -17,6 +17,8 @@ import java.util.Optional;
  * 会话索引 JDBC 实现（spec 30 / T109 / impl-84）：表 buzhou_session_index（V3 迁移）。
  * upsert = UPDATE-then-INSERT（跨方言可移植；最终一致口径下罕见并发竞态由后者覆盖收敛）。
  * tags 以 JSON 列存储。查询按 last_active_at 倒序 + 动态过滤 + LIMIT/OFFSET。
+ *
+ * @since 1.0.0
  */
 public class JdbcSessionIndexStore implements SessionIndexStore {
 

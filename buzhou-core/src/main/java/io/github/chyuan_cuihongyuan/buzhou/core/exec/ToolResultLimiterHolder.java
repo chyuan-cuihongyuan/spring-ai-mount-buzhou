@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * 模式）：装配层（auto-config 据配置）启动期设定；会话装配时经
  * {@code ctx.toolManager().setResultLimiter(...)} 可 per-session 覆盖。
  * 默认 {@link ToolResultLimiter#withDefaults()}（20K 字符 + read_range 豁免）。
+ *
+ * @since 1.0.0
  */
 public final class ToolResultLimiterHolder {
 

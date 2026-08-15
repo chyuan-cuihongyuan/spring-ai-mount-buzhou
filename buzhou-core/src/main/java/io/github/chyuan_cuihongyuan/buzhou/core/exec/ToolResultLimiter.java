@@ -16,6 +16,8 @@ import java.util.Map;
  *
  * <p><b>不自动转 spill</b>：截断结果自含提示（模型可细化查询/分页重读）；自动 spill
  * 需工具结果与调用关联落盘，复杂度不抵收益（fog）。
+ *
+ * @since 1.0.0
  */
 public final class ToolResultLimiter {
 

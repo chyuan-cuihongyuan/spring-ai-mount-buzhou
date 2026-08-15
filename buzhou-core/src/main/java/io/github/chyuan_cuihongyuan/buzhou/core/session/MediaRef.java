@@ -14,6 +14,8 @@ import java.util.Map;
  *
  * @param mimeType MIME 类型（如 {@code image/png}、{@code application/pdf}）
  * @param uri      媒体地址（https/data 等模型可达 URI）
+ *
+ * @since 1.0.0
  */
 public record MediaRef(String mimeType, URI uri) {
 

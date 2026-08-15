@@ -13,6 +13,8 @@ import java.util.function.Predicate;
  *
  * <p>用法：{@code EventSequenceAssert events = EventSequenceAssert.attach(session);}
  * 驱动会话后 {@code events.assertContainsInOrder("circuit.state-changed", "fallback.switched")}。
+ *
+ * @since 1.0.0
  */
 public final class EventSequenceAssert {
 

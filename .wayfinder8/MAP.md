@@ -24,6 +24,7 @@
 - [T139 观测背压审计](tickets/T139-observability-backpressure-audit.md) — 满队=阻塞背压而非丢弃（测试钉住+零丢失）；javadoc/runbook 告警两注记；spec 39 §B。
 - [T140 health 新维度](tickets/T140-health-new-dimensions.md) — WebhookOutboxHealth（水位四键）+ SessionIndexHealth（wired/采样）条件装配；恒 UP 语义（旁路/优化面不 DOWN）；spec 39 §C。
 - [T141 社区文件](tickets/T141-community-files.md) — bug_report 结构化（模块/store/证据/披露提示）+ config.yml（security 私密引导）；既有三模板勘察纠偏后不动。
+- [T142 javadoc @since 审计](tickets/T142-javadoc-since-audit.md) — 脚本审计 24 类型全缺 → 批量注入 @since 1.0.0；编译绿。
 
 ## Not yet specified
 

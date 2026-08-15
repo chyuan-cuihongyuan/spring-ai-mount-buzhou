@@ -7,6 +7,8 @@ package io.github.chyuan_cuihongyuan.buzhou.core.session;
  *
  * <p>导出：非空段才入 extensions；导入：按新 sessionId 回放，异常只 WARN 不阻断
  * （扩展段失败不回滚已完成的三槽导入——最终一致口径）。
+ *
+ * @since 1.0.0
  */
 public interface SessionExportExtension {
 

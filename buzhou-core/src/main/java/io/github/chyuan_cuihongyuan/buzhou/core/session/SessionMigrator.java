@@ -9,6 +9,8 @@ import io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder;
  *
  * <p>语义：默认新 sessionId 重映射（跨环境 Id 撞车防护）；keepIds=true 沿用
  * importSession 的冲突 fail-fast。指标 {@code buzhou.session.migrations}。
+ *
+ * @since 1.0.0
  */
 public final class SessionMigrator {
 

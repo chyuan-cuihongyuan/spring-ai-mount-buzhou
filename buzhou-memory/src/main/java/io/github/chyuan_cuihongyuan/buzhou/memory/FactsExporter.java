@@ -16,6 +16,8 @@ import java.util.Map;
  * {@code fact.*} 命名空间（spec 07 事实模型）——导出 = {@code scanByPrefix("fact.")}
  * 的 StateEntry 原样 JSON 段；导入 = 按新 sessionId 逐条 put 回（键值无损往返，
  * producer/createdTurn/ttlTurns 语义字段全保留）。
+ *
+ * @since 1.0.0
  */
 public final class FactsExporter implements SessionExportExtension {
 

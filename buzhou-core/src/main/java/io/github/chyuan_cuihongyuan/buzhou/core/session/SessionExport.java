@@ -25,6 +25,8 @@ import java.util.Map;
  * 证据内容由 spill 侧另行导出（运维操作，见 runbook）；悬垂引用读路径由 spec 26
  * EVIDENCE_GONE 容错。facts 属 memory 模块内部存储，不在 core 导出面（fog）。
  * appId/agentName 尽力携带（消息存储不含时为 null，导入不依赖）。
+ *
+ * @since 1.0.0
  */
 public record SessionExport(
         String format,

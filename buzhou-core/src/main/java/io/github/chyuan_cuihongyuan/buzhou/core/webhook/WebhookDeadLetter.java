@@ -11,6 +11,8 @@ import java.time.Instant;
  * @param type      事件类型
  * @param attempts  总尝试次数（含首试；损坏记录隔离为 -1）
  * @param createdAt 入队时间
+ *
+ * @since 1.0.0
  */
 public record WebhookDeadLetter(String eventId, String type, int attempts, Instant createdAt) {
 }

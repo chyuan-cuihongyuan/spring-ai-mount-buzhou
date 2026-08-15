@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
  * <p>检测项（v1）:{@value #ORPHAN_SUMMARY} / {@value #STATE_RESIDUE} /
  * {@value #DANGLING_LEASE} / {@value #DANGLING_OBSERVABILITY}——语义见
  * {@link StoreFsck}。
+ *
+ * @since 1.0.0
  */
 public final class StoreIntegrityReport {
 

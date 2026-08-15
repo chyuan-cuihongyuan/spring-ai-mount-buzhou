@@ -11,6 +11,8 @@ import java.util.Map;
  * 会话索引健康面（spec 39 §C / T140 / impl-113）：装配态 + 首页采样行数
  * （list 无精确 count——首页 size 为近似水位）。索引未装配时本类不应注册
  * （auto-config 条件装配）；恒 UP（索引是查询优化面，故障不构成核心职能失效）。
+ *
+ * @since 1.0.0
  */
 public final class SessionIndexHealth implements BuzhouHealth {
 

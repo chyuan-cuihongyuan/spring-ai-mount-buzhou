@@ -17,6 +17,8 @@ import java.util.Map;
  * @param lastActiveAtEpochMs 最近活动时刻（onTurnEnd 刷新）
  * @param turnCount          已完成轮数（观察者进程内计数，重启后从 0 续——近似值）
  * @param tags               业务自定义检索键（可空）
+ *
+ * @since 1.0.0
  */
 public record SessionInfo(
         String sessionId,

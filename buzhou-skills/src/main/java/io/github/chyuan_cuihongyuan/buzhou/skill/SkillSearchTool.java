@@ -15,6 +15,8 @@ import org.springframework.ai.tool.ToolCallback;
  * <p>检索语义：名称与 description 不分大小写子串匹配；返回上限 20 条
  * （name + description + 命中字段）；绑定可见性沿用 {@link BindingVisibility}
  * （会话不可见的技能不出现在结果中）。
+ *
+ * @since 1.0.0
  */
 public class SkillSearchTool implements ToolCallback {
 

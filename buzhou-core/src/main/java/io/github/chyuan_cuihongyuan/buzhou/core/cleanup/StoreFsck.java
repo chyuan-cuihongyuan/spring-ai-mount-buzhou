@@ -19,6 +19,8 @@ import java.util.Set;
  * <p><b>修复策略</b>：{@link #run} 只读报告；{@link #repair} 按检测项选择清除
  * （默认全 false 不动）；悬挂观测<b>永不自动清</b>（审计保留价值）。
  * spill 侧孤儿由 spill 自有机制治理（spec 26 引用账本 + sweepOrphans），不在本工具面。
+ *
+ * @since 1.0.0
  */
 public final class StoreFsck {
 

@@ -13,6 +13,8 @@ import java.util.Optional;
  *
  * <p>实现：内存（进程内，重启重建）/ JDBC（表 buzhou_session_index，V3 迁移）/
  * Redis（ZSET lastActive + HASH 元数据）。测试契约口径与五 store 同源（真实现、无 mock）。
+ *
+ * @since 1.0.0
  */
 public interface SessionIndexStore {
 

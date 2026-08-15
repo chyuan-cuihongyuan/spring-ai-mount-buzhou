@@ -12,6 +12,8 @@ import java.util.Optional;
  * 会话索引 Redis 实现（spec 30 / T109 / impl-84）：ZSET（score=lastActiveAt 倒序面）+
  * STRING（sessionId → SessionInfo JSON）。查询 = ZREVRANGEBYSCORE 全量翻页后内存过滤
  * （索引量级 = 活跃会话数，翻页可接受；精确优化记 fog）。
+ *
+ * @since 1.0.0
  */
 public class RedisSessionIndexStore implements SessionIndexStore, AutoCloseable {
 

@@ -12,6 +12,8 @@ import java.util.UUID;
  *
  * <p><b>生命周期</b>：证据属主 = sessionId（会话删除级联清理）；fork 引用计数语义兼容
  * （spec 26——fork 时 acquireSessionReferences 登记引用）。
+ *
+ * @since 1.0.0
  */
 public final class MediaIntake {
 

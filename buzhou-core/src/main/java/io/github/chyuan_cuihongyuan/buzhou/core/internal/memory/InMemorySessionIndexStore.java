@@ -15,6 +15,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * 会话索引内存实现（spec 30 / T109 / impl-84）：进程内 ConcurrentHashMap，
  * 查询时快照排序——索引量级（活跃会话数）下无热点。重启后索引为空、随会话活动重建
  * （最终一致口径，spec 30）。
+ *
+ * @since 1.0.0
  */
 public class InMemorySessionIndexStore implements SessionIndexStore {
 

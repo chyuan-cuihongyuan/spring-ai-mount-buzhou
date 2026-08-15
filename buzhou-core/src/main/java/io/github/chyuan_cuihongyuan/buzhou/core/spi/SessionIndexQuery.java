@@ -10,6 +10,8 @@ package io.github.chyuan_cuihongyuan.buzhou.core.spi;
  * @param tagValue   标签值
  * @param offset     分页偏移
  * @param limit      页大小（≤200）
+ *
+ * @since 1.0.0
  */
 public record SessionIndexQuery(
         String appId,
