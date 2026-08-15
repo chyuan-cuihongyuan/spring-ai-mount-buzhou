@@ -61,6 +61,18 @@ public class DefaultSkillRegistry implements SkillRegistry {
         return listForPage(appId, agentName).entries();
     }
 
+    /** spec 37 §A / T132：不截断全集（检索源——不受 catalog-max-entries 限制）。 */
+    @Override
+    public List<SkillMetadata> listAllFor(String appId, String agentName) {
+        List<SkillMetadata> catalog = new ArrayList<>();
+        for (String name : candidatesFor(appId, agentName)) {
+            resolve(name).ifPresent(skill ->
+                    catalog.add(new SkillMetadata(skill.name(), skill.description(),
+                            skill.allowedTools(), skill.source())));
+        }
+        return List.copyOf(catalog);
+    }
+
     /** spec 35 §B / T119：截断 + 溢出计数（渲染器据此提示「另有 N 个未列出」）。 */
     @Override
     public CatalogPage listForPage(String appId, String agentName) {

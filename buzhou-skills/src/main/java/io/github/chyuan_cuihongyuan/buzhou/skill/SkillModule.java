@@ -36,6 +36,7 @@ public final class SkillModule {
     private final SkillRegistry registry;
     private final SkillCatalogRenderer catalogRenderer;
     private final LoadSkillTool loadSkillTool;
+    private final SkillSearchTool skillSearchTool;
     private final SkillResourceResolver resourceResolver;
     private final SkillAdminApi adminApi;
     private final SessionBindingIndex bindingIndex;
@@ -55,6 +56,7 @@ public final class SkillModule {
         this.bindingIndex = new SessionBindingIndex();
         this.catalogRenderer = new SkillCatalogRendererImpl(bindingIndex, registry);
         this.loadSkillTool = new LoadSkillTool(registry, bindingIndex);
+        this.skillSearchTool = new SkillSearchTool(registry, bindingIndex);
         this.resourceResolver = new SkillResourceResolverImpl(registry, bindingIndex);
         this.adminApi = new SkillAdminApi(dbStore, classpathSkills, builder.bindingStore,
                 this.registry::invalidateCatalogCache);
@@ -73,7 +75,7 @@ public final class SkillModule {
         if (!enabled) {
             return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of());
         }
-        List<ToolCallback> tools = List.of(loadSkillTool);
+        List<ToolCallback> tools = List.of(loadSkillTool, skillSearchTool);
         // spawn 时登记 sessionId → (appId, agentName)，供清单渲染器反查；会话关闭时清理防泄漏
         return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, tools, Map.of(),
                 List.of((reg, appId, agentName, sessionId) -> {

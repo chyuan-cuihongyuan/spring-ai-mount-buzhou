@@ -28,6 +28,14 @@ public interface SkillRegistry {
     }
 
     /**
+     * spec 37 §A / T132：**不截断**的可见全集清单（检索数据源——skill_search 用；
+     * 与注入预算无关）。默认 = listFor（无截断实现语义等同）。
+     */
+    default List<SkillMetadata> listAllFor(String appId, String agentName) {
+        return listFor(appId, agentName);
+    }
+
+    /**
      * impl-71 / T96：失效清单 TTL 缓存（admin 变更后立即可见，不等 TTL）。
      * 默认 no-op（无缓存实现二进制兼容）。
      */
