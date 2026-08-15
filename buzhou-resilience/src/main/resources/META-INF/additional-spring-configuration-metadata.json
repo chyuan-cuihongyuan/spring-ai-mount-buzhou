@@ -40,7 +40,10 @@
       "name": "buzhou.resilience.retryable-categories",
       "type": "java.util.List<java.lang.String>",
       "description": "可重试错误类别（大小写无关）。",
-      "defaultValue": ["RATE_LIMIT", "NETWORK"]
+      "defaultValue": [
+        "RATE_LIMIT",
+        "NETWORK"
+      ]
     },
     {
       "name": "buzhou.resilience.deadline",
@@ -69,25 +72,61 @@
       "type": "java.lang.String",
       "description": "过载策略：QUEUE（有界排队）或 FAIL_FAST（立即拒绝）。",
       "defaultValue": "QUEUE"
+    },
+    {
+      "name": "buzhou.resilience.circuit.backoff-cap",
+      "type": "java.lang.Integer",
+      "defaultValue": 8,
+      "description": "连续跳闸冷却退避倍数上限（spec 25）：冷却 = open-cooldown × min(2^(trips-1), cap)。"
+    },
+    {
+      "name": "buzhou.resilience.circuit.half-open-success-threshold",
+      "type": "java.lang.Integer",
+      "defaultValue": 1,
+      "description": "半开连续成功探测数（spec 35 §A）：默认 1 = 单探测即恢复；>1 抖动 provider 需连续 N 次成功。"
     }
   ],
   "hints": [
     {
       "name": "buzhou.resilience.retryable-categories",
       "values": [
-        { "value": "RATE_LIMIT", "description": "429/限流（尊重 Retry-After）" },
-        { "value": "NETWORK", "description": "瞬时网络错误" },
-        { "value": "SERVER", "description": "5xx 服务端错误" },
-        { "value": "CONTENT", "description": "内容拒绝（默认不可重试）" },
-        { "value": "AUTH", "description": "认证/授权失败（不可重试）" },
-        { "value": "UNKNOWN", "description": "未归类（默认不可重试）" }
+        {
+          "value": "RATE_LIMIT",
+          "description": "429/限流（尊重 Retry-After）"
+        },
+        {
+          "value": "NETWORK",
+          "description": "瞬时网络错误"
+        },
+        {
+          "value": "SERVER",
+          "description": "5xx 服务端错误"
+        },
+        {
+          "value": "CONTENT",
+          "description": "内容拒绝（默认不可重试）"
+        },
+        {
+          "value": "AUTH",
+          "description": "认证/授权失败（不可重试）"
+        },
+        {
+          "value": "UNKNOWN",
+          "description": "未归类（默认不可重试）"
+        }
       ]
     },
     {
       "name": "buzhou.resilience.rate-limit.overload-policy",
       "values": [
-        { "value": "QUEUE", "description": "有界排队 + 超时" },
-        { "value": "FAIL_FAST", "description": "快速失败" }
+        {
+          "value": "QUEUE",
+          "description": "有界排队 + 超时"
+        },
+        {
+          "value": "FAIL_FAST",
+          "description": "快速失败"
+        }
       ]
     }
   ]

@@ -111,6 +111,34 @@
       "type": "java.time.Duration",
       "description": "单工具执行超时（harness 派发层硬顶）。长任务工具（如 run_command maxTimeout）大于 60s 时须同步调大本值。",
       "defaultValue": "60s"
+    },
+    {
+      "name": "buzhou.webhook.outbox-capacity",
+      "type": "java.lang.Integer",
+      "defaultValue": 10000,
+      "description": "持久化 outbox 未决记录容量（spec 24）：满则新事件拒入 + dropped 计数（不阻塞会话主链）。"
+    },
+    {
+      "name": "buzhou.tools.result-limit-chars",
+      "type": "java.lang.Integer",
+      "defaultValue": 20000,
+      "description": "工具结果入模型上下文的字符上限（spec 31）：超限截断+提示尾；-1 不限。"
+    },
+    {
+      "name": "buzhou.tools.result-limit-overrides",
+      "type": "java.util.Map<java.lang.String,java.lang.Integer>",
+      "description": "per-tool 限幅覆盖（glob 键→字符数/-1 豁免；spec 31）：追加式叠加默认 read_range 豁免。"
+    },
+    {
+      "name": "buzhou.webhook.queue-capacity",
+      "type": "java.lang.Integer",
+      "defaultValue": 256,
+      "description": "已废弃 no-op（spec 24 起投递暂存持久化 outbox 化）——请改用 buzhou.webhook.outbox-capacity。",
+      "deprecation": {
+        "level": "warning",
+        "reason": "outbox 持久化取代内存队列（spec 24 / T103）。",
+        "replacement": "buzhou.webhook.outbox-capacity"
+      }
     }
   ],
   "hints": [

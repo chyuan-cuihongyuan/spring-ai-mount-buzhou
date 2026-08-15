@@ -47,3 +47,15 @@
   演示模块）。越线处理 = 补测试或局部降线+注记，禁止调阈值了事。
 - **SpotBugs 硬门**：nightly `threshold=High`（首条 High 即失败）；Medium 及以下归档观测。
   排除纪律：必须 `spotbugs-exclude.xml` + issue 注记（当前无排除清单）。
+
+
+## effort #7 增补：配置元数据补全（T123 / impl-98）
+
+- core：`buzhou.webhook.outbox-capacity`（默认 10_000）、`buzhou.tools.result-limit-chars`
+  （默认 20_000）与 `result-limit-overrides`（Map）；`buzhou.webhook.queue-capacity`
+  标记 **deprecated**（warning 级，replacement=outbox-capacity——spec 24 语义）。
+- resilience：`circuit.backoff-cap`（默认 8，spec 25）、
+  `circuit.half-open-success-threshold`（默认 1，spec 35 §A）。
+- skills：新建元数据文件（enabled / db-enabled / catalog-max-entries 默认 64（spec 35 §B）/
+  catalog-cache-ttl 默认 30s）。
+- IDE 提示/默认值/废弃告警三面齐备（additional-spring-configuration-metadata）。

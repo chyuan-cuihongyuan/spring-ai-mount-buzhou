@@ -1,0 +1,28 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.skills.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "技能机制总开关。"
+    },
+    {
+      "name": "buzhou.skills.db-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "DB 动态技能源开关（同名 DB 覆盖 classpath 内置）。"
+    },
+    {
+      "name": "buzhou.skills.catalog-max-entries",
+      "type": "java.lang.Integer",
+      "defaultValue": 64,
+      "description": "目录注入上限（spec 35 §B）：超出截断并附「另有 N 个未列出」提示。"
+    },
+    {
+      "name": "buzhou.skills.catalog-cache-ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "30s",
+      "description": "清单 TTL 缓存（spec 21 / T96）：admin 变更即时失效。"
+    }
+  ]
+}
