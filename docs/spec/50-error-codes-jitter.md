@@ -67,3 +67,35 @@ policy 轮询失败退避是纯指数——多实例同相位重试形成雷鸣�
 ### Out of Scope
 
 - 全局限流重试的 jitter（限流器无重试回路）。
+
+## §C 未订阅流计数残留修复（T180 / impl-149）
+
+### Problem Statement
+
+`stream()` 返回后从未订阅的流不产生终结信号——在途轮次计数残留 +1 直到会话 close
+（DefaultAgentSession 字段注释自认的诚实边界）：残留期间单飞闸拒绝同会话一切后续轮次，
+调用方「拿错/弃用」一个流即锁死会话。
+
+### Solution
+
+流式轮次占用惰性化（`Flux.defer`）：会话级校验（open/lease/shutdown）保持调用时 fail-fast，
+槽位获取与轮次开启（onTurnStart/beforeTurn/计数）移入订阅时。未订阅 = 零占用。
+
+### Implementation Decisions
+
+- 语义钉住：同一 Flux 订阅终结后再订阅 = defer 体重放 = 重新开一轮（新 turnSeq）；
+  在途期间的并发订阅按单飞闸确定拒绝（TURN_IN_FLIGHT，既有语义）。
+- guard 拦截路径随 defer 移入订阅时（Flux.error 语义不变，只是时点后移）；取消分类计数
+  （T171）不变。
+- 类字段注释的旧诚实边界同步改写（边界已消除）。
+
+### Testing Decisions
+
+- 未订阅不占闸：stream() 返回弃用后 chat 照常（既往 TURN_IN_FLIGHT）。
+- 顺序复订阅 = 重新开轮（脚本两轮各自消费）。
+- 在途流仍占闸：慢流挂住期间 chat 被单飞闸拒绝（语义回归）。
+- 全仓 verify（惰性化影响 observability/resilience/examples 的流式测试面）。
+
+### Out of Scope
+
+- 订阅超时自动回收（未订阅流本就不占资源，无回收必要）。

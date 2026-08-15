@@ -77,10 +77,10 @@ public class DefaultAgentSession implements AgentSession {
     private final SessionLeaseGuard leaseGuard;
     private final io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakHandle leakHandle;
     /**
-     * impl-30 / spec 13 §core-1：在途 Turn 权威计数（chat 入口增/finally 减；stream 入口增/
+     * impl-30 / spec 13 §core-1：在途 Turn 权威计数（chat 入口增/finally 减；stream 订阅增/
      * doFinally 减）——停机排空等待的裁决源，覆盖正常/异常/取消全部终结路径。
-     * 诚实边界：stream() 返回后从未订阅的流不产生终结信号，计数残留 +1，由会话 close 的
-     * closed 标记兜底安定（与既有 onTurnStart 预先通知的泄漏面一致）。
+     * spec 50 §B / T180 / impl-149：stream 轮次占用已惰性化（Flux.defer）——未订阅的流
+     * 不再占用计数（既往「返回后从未订阅残留 +1 至 close」的诚实边界已修复）。
      */
     private final AtomicInteger inFlightTurns = new AtomicInteger();
     /** impl-30 / spec 13 §core-1：停机拒新标记（运行时 shutdown 序列置位；chat/stream 即刻拒绝）。 */
@@ -482,6 +482,14 @@ public class DefaultAgentSession implements AgentSession {
         ensureOpen();
         ensureLeaseHeld();
         ensureNotShuttingDown();
+        // spec 50 §B / T180 / impl-149：轮次占用惰性化——校验保持调用时 fail-fast，但槽位获取
+        // 与轮次开启（onTurnStart/beforeTurn）移入订阅时（Flux.defer）。修复既往诚实边界：
+        // 「stream() 返回后从未订阅 → 在途计数残留 +1 至会话 close」（DefaultAgentSession 自认）。
+        // 副作用钉住：同一 Flux 重复订阅 = 重复开轮（单飞闸拒绝第二次，TURN_IN_FLIGHT error）。
+        return Flux.defer(() -> doStream(input, media));
+    }
+
+    private Flux<ChatResponse> doStream(String input, java.util.List<MediaRef> media) {
         // impl-30：在途计数在订阅终结（doFinally）时递减——与 onTurnStart 的预先通知时点对齐
         acquireTurnSlot();
         int turnSeq = hookEnv.nextTurn();
