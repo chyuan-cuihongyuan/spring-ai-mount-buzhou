@@ -25,6 +25,7 @@
 - [T104 熔断冷却自适应退避](tickets/T104-adaptive-half-open.md) — 连续跳闸驱动冷却指数退避（×2^(trips-1) 封顶 backoff-cap 默认 8），探测成功即复位；生效冷却贯穿 admit/占位/逃生；事件 payload + gauge + stats 快照；首跳行为零变化；spec 25。
 - [T105 fork 证据归属与生命周期](tickets/T105-fork-evidence-lifecycle.md) — 引用计数共享：fork 登记引用（持久账本 .evidence-refs.json）、源删除被引用证据保留、最后引用者关闭物理删、TTL/孤儿扫描门控、悬垂读 EVIDENCE_GONE；core forkListeners 第 11 槽；spec 26。
 - [T106 多模态输入透传](tickets/T106-multimodal-input.md) — MediaRef(mimeType, URI) 三入口（chat/stream/chatForEntity，default UOE）；mediaRefs 落 metadata 持久化；重发只随最新带媒体消息（旧轮降级标记）；token 每媒体固定 320；spec 27。
+- [T107 会话可移植导出/导入](tickets/T107-session-export-import.md) — SessionExport 单 JSON 文档（messages+summary+state，epoch-millis DTO）；导入默认 Id 重映射/keepIds 冲突 fail-fast；spill 引用清单派生；导入会话可 spawn 续用；spec 28。
 
 ## Not yet specified
 

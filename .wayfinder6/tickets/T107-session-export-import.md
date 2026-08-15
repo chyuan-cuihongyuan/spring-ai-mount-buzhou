@@ -1,6 +1,6 @@
 ---
 Type: task
-Status: open
+Status: closed
 ---
 ## Question
 
@@ -14,3 +14,10 @@ AFK 自决（授权同 effort #5，可推翻）：
 2. **导入语义：默认新 sessionId 重映射**（UUID 重生成，防跨环境 Id 撞车；引用内 sessionId/evidenceId 一致重写）+ `keepIds` 选项（true 时原 Id 冲突即 fail-fast 报 `SessionImportConflict`）。
 3. **spill 证据不内嵌**：引用清单形式；证据内容走 spill 侧另行导出（运维操作，runbook 记载）；导入后悬垂引用读路径已由 T105 容错（EVIDENCE_GONE）——两票互为依赖，T105 先行。
 4. **API 位置：`AgentRuntime.exportSession(sessionId)` / `importSession(SessionExport)`**（会话级生命周期操作归 runtime，非单会话内动作）；返回导入后的新 sessionId。JSON 序列化用 Jackson（core 已依赖 Spring AI 传递 Jackson，零新依赖）。
+
+### 闭合细化（实现期定稿）
+
+- 序列化用 DTO + epoch millis（不假定 jackson-jsr310 在 classpath）；SessionExport 记录组件 JVM 内直用、toJson/fromJson 为可移植边界。
+- appId/agentName 尽力携带（活跃会话可查、历史会话 null，导入不依赖）。
+- keepIds 冲突检测 = 目标 messageStore 非空即 fail-fast（SessionImportException）。
+- spec 28 落档。

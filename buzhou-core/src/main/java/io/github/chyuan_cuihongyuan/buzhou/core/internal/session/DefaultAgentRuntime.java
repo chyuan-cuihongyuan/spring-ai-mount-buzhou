@@ -206,6 +206,80 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         return session;
     }
 
+    /** 会话导出（spec 28 / T107 / impl-82）：core 三槽全量 + spill 引用随消息 metadata。 */
+    @Override
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport exportSession(String sessionId) {
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage> messages =
+                stores.messageStore().load(sessionId);
+        if (messages.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "导出源会话无消息历史（sessionId=" + sessionId + "）：空会话无可移植内容");
+        }
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary summary =
+                stores.summaryStore().latest(sessionId).orElse(null);
+        java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry> state =
+                stores.sessionStateStore().getAll(sessionId);
+        return io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport.of(
+                sessionId, appIdOf(sessionId), agentNameOf(sessionId), messages, summary, state);
+    }
+
+    /**
+     * 会话导入（spec 28）：默认新 Id 重映射（消息 sessionId + state 键空间一致重写）；
+     * keepIds 冲突 fail-fast；数据恢复语义（不建租约——后续以该 Id spawn 续用）。
+     */
+    @Override
+    public String importSession(io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport export,
+            boolean keepIds) {
+        if (export == null || export.messages().isEmpty()) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionImportException(
+                    "导入文档为空（无消息）：拒绝空导入");
+        }
+        String targetId = keepIds ? export.sessionId()
+                : java.util.UUID.randomUUID().toString();
+        if (!stores.messageStore().load(targetId).isEmpty()) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionImportException(
+                    "目标会话已存在消息（sessionId=" + targetId + "）：keepIds 冲突 fail-fast，"
+                            + "绝不静默覆盖——请用默认重映射导入");
+        }
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage> remapped =
+                export.messages().stream()
+                        .map(m -> new io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage(
+                                m.id(), targetId, m.turnSeq(), m.seqInTurn(), m.role(),
+                                m.content(), m.toolCalls(), m.toolCallId(), m.reasoningContent(),
+                                m.reasoningSignature(), m.metadata(), m.createdAt()))
+                        .toList();
+        stores.messageStore().append(targetId, remapped);
+        if (export.summary() != null) {
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary remappedSummary =
+                    new io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary(
+                            targetId, export.summary().version(), export.summary().sections(),
+                            export.summary().tokenEstimate(), export.summary().createdAt());
+            stores.summaryStore().save(targetId, remappedSummary);
+        }
+        export.state().forEach((key, entry) -> stores.sessionStateStore().put(targetId, entry));
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.session.imports");
+        LOGGER.log(System.Logger.Level.INFO,
+                "会话导入完成（source=" + export.sessionId() + " → target=" + targetId
+                        + "，messages=" + remapped.size() + "，keepIds=" + keepIds + "）");
+        return targetId;
+    }
+
+    /** appId/agentName 尽力携带（活跃会话可查；已 close 的历史会话为 null——导出不依赖）。 */
+    private String appIdOf(String sessionId) {
+        TrackedSession tracked = activeSessions.get(sessionId);
+        io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession session =
+                tracked == null ? null : tracked.session;
+        return session == null ? null : session.appId();
+    }
+
+    private String agentNameOf(String sessionId) {
+        TrackedSession tracked = activeSessions.get(sessionId);
+        io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession session =
+                tracked == null ? null : tracked.session;
+        return session == null ? null : session.agentName();
+    }
+
     @Override
     public AgentSession spawn(String appId, String agentName, String sessionId, SpawnOptions options) {
         // impl-30 / spec 13 §core-1：停机期拒绝新会话（结构化 SHUTDOWN_INTERRUPTED，
