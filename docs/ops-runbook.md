@@ -26,7 +26,7 @@
 | run_command 回复「命令沙箱不可用」 | 沙箱探测失败（deno 缺失等） | 按 unavailableHint 装依赖；或 `buzhou.tools.command.backend=builtin` 回退内置档（接受较弱隔离） |
 | 日志刷「MCP server 工具集漂移」 | `mcp.tools-drift` 事件 | server 端工具变更——触发配置 refresh 或重启会话吸收；回调绑定在装配期，热替换不支持 |
 | 事件外发 webhook 全败日志 | `buzhou.webhook.failures` 指标 | 查端点/签名密钥一致性（4xx 不重试=配置错）；队列溢出看 `buzhou.webhook.dropped` |
-| **下游反馈 webhook 事件缺失** | `buzhou.webhook.dead-letter` 指标 + `WebhookEventForwarder.deadLetters()`（eventId/attempts） | 死信=重试耗尽或 4xx——按 eventId 在消费端补录；4xx 死信查消费端契约；频繁超限看 outbox-capacity 是否过小 |
+| **下游反馈 webhook 事件缺失** | `buzhou.webhook.dead-letter` 指标 + `WebhookOutboxHealth` details（pending/deadLetters） | 端点修复后 `replayDeadLetters()` 一键重放（attempts 清零重投；4xx 死信先查消费端契约）；频繁超限看 outbox-capacity |
 | **会话列表/过滤查询缺失或降级** | dashboard `IndexedSessionPage.fromIndex=false` | SessionIndexStore 未装配——jdbc/redis store.type 自动配；内存部署需显式定义 bean（spec 30 降级语义） |
 | 会话跨实例接管冲突 | `SESSION_ALREADY_ACTIVE` / 租约日志 | 用 steal 语义接管；确认部署是粘性路由（见 §6） |
 | 启动失败「store.type=jdbc 但对应 store 实现未装配」 | store 类型守卫 | 引 buzhou-store-jdbc + 确认 DataSource bean |
@@ -51,6 +51,7 @@
 | `buzhou.webhook.outbox-capacity` | 10000 | 下游长期不可用时的未决积压上限（满则拒入+计数） |
 | `buzhou.tools.result-limit-chars` | 20000 | 工具结果入上下文护栏；频繁截断（`result-truncated` 指标）→ 优化该工具或 per-tool 覆盖 |
 | `buzhou.skills.catalog-max-entries` | 64 | 目录注入体积护栏（截断附「另有 N 个未列出」提示） |
+| `buzhou.index.closed-retention` | 30d | 索引 CLOSED/DELETED 行保留期（-1 永久）；过期惰性清扫（1/64 概率 ≤256 条） |
 
 ## 4. 容量规划
 
@@ -74,6 +75,10 @@
 只读报告（四检测项：孤儿摘要/残留 state/泄漏租约/悬挂观测；全集 = 观测留痕 + extras
 补充）——先看报告再决定是否 `repair`（按检测项可选，观测永不自动清）。
 
+**跨 store 迁移（effort #8）**：store 切换（JDBC↔Redis/缩容下线）逐会话
+`SessionMigrator.migrate(source, target, sessionId, keepIds)`（默认新 Id 重映射；
+keepIds 需目标空闲）；演练见 examples Effort8CapabilitiesDemoTest。
+
 **会话级备份恢复（effort #6/#7）**：关键会话定期 `exportSession(id).toJson()` 落档
 （messages+summary+state+扩展段，如 memory.facts）；恢复 = `importSession(json, false)`
 新 Id 重映射后以该 Id spawn 续用（灾难恢复演示见 examples Effort6CapabilitiesDemoTest）。
@@ -89,6 +94,10 @@ JDBC 部署升级至 V3（会话索引表）由 SchemaMigrator 版本化自动�
 **webhook outbox（spec 24）**：outbox 落共享 state store（JDBC/Redis）时事件跨重启不丢，
 但多实例分发器可能**双投递**——at-least-once 契约内，消费端以 `X-Buzhou-Event-Id` 幂等
 去重是契约责任；内存 store 部署等价旧进程内暂存（重启丢在途）。
+
+**健康端点新维度（effort #8）**：`webhook-outbox`（pending/deadLetters/delivered/dropped
+水位——恒 UP，告警走指标面）与 `session-index`（wired/hasRows 采样探测——未装配时该面
+不注册，属预期降级非故障）。
 
 ## 7. 告警项清单（指标 → 阈值 → 动作）
 
