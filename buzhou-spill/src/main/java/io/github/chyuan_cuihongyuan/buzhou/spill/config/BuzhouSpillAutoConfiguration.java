@@ -29,9 +29,13 @@ public class BuzhouSpillAutoConfiguration {
 
     @Bean
     public SpillModule spillModule(SpillProperties props, ObjectProvider<SkillResourceResolver> resolver) {
+        // spec 40 §A：加密密钥配置即开（SpillProperties 构造期已 fail-fast 校验合法性）
+        io.github.chyuan_cuihongyuan.buzhou.spill.SpillCipher cipher = props.encryptionKey() == null
+                ? null
+                : io.github.chyuan_cuihongyuan.buzhou.spill.SpillCipher.fromBase64Key(props.encryptionKey());
         return new SpillModule(Path.of(props.rootDir()), props.previewChars(), props.listPreviewItems(),
                         new io.github.chyuan_cuihongyuan.buzhou.spill.SpillQuota(
-                                props.maxTotalBytes(), props.maxFilesPerSession()))
+                                props.maxTotalBytes(), props.maxFilesPerSession()), cipher)
                 .skillResourceResolver(resolver.getIfAvailable());
     }
 

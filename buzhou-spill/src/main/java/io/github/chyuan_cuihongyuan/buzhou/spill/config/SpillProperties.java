@@ -27,6 +27,8 @@ import java.time.Duration;
  * @param maxFilesPerSession   impl-38：单会话 spill 文件数上限（null/非正 = 不限）
  * @param retentionTtl         impl-38：未引用（unlinked）spill 的保留 TTL（RetentionSweeper
  *                             每周期调度 deleteExpired；默认 PT24H）
+ * @param encryptionKey        spec 40 §A / T151：落盘静态加密密钥（Base64 编码 32 字节 AES-256；
+ *                             null/空 = 不加密，零行为变化；推荐经环境变量注入）
  */
 @Validated
 @ConfigurationProperties(prefix = "buzhou.spill")
@@ -43,7 +45,9 @@ public record SpillProperties(
         Boolean editingToolsEnabled,
         Long maxTotalBytes,
         Integer maxFilesPerSession,
-        Duration retentionTtl) {
+        Duration retentionTtl,
+        String encryptionKey) {
+
 
     public SpillProperties {
         String dir = System.getProperty("user.dir");
@@ -69,6 +73,11 @@ public record SpillProperties(
         }
         retentionTtl = retentionTtl == null || retentionTtl.isZero()
                 ? Duration.ofHours(24) : retentionTtl;
+        // spec 40 §A：密钥配了就必须合法（fail-fast，不静默关加密）
+        if (encryptionKey != null && !encryptionKey.isBlank()) {
+            io.github.chyuan_cuihongyuan.buzhou.spill.SpillCipher.fromBase64Key(encryptionKey);
+        }
+        encryptionKey = encryptionKey == null || encryptionKey.isBlank() ? null : encryptionKey.trim();
     }
 
     private static Integer positiveOrDefault(Integer value, Integer defaultValue, String name) {

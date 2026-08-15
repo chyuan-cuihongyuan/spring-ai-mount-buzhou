@@ -17,27 +17,27 @@ class BuzhouDefaultsMigrationTest {
     @Test
     void spillRootDefaultsToIndependentTempDirectory() {
         SpillProperties properties = new SpillProperties(null, null, null, null, null, null,
-                null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null);
         assertThat(properties.rootDir())
                 .isEqualTo(System.getProperty("java.io.tmpdir") + "/buzhou-spill");
         // 显式配置不受迁移影响
         assertThat(new SpillProperties("/data/spill", null, null, null, null, null, null,
-                null, null, null, null, null, null).rootDir()).isEqualTo("/data/spill");
+                null, null, null, null, null, null, null).rootDir()).isEqualTo("/data/spill");
     }
 
     @Test
     void negativeSpillValuesRejectedAtBinding() {
         // 负值不再被静默归一为默认——启动即拒（配置错而能立刻发现）
         assertThatThrownBy(() -> new SpillProperties(null, -5, null, null, null, null, null,
-                null, null, null, null, null, null))
+                null, null, null, null, null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("preview-chars").hasMessageContaining("-5");
         assertThatThrownBy(() -> new SpillProperties(null, null, null, null, null, null, null,
-                null, null, null, -100L, null, null))
+                null, null, null, -100L, null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("max-total-bytes");
         assertThatThrownBy(() -> new SpillProperties(null, null, null, null, null, null, null,
-                null, null, null, null, null, Duration.ofMinutes(-1)))
+                null, null, null, null, null, Duration.ofMinutes(-1), null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("retention-ttl");
     }

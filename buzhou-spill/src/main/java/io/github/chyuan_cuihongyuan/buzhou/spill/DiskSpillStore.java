@@ -33,13 +33,22 @@ public class DiskSpillStore implements SpillStore {
     /** spec 26 / T105 / impl-80：证据引用账本（fork 引用计数共享——最后引用者关闭）。 */
     private final EvidenceRefLedger refLedger;
 
+    /** spec 40 §A / T151 / impl-122：落盘静态加密（null = 直通，零行为变化）。 */
+    private final SpillCipher cipher;
+
     public DiskSpillStore(Path rootDir) {
         this(rootDir, SpillQuota.unbounded());
     }
 
     public DiskSpillStore(Path rootDir, SpillQuota quota) {
+        this(rootDir, quota, null);
+    }
+
+    /** spec 40 §A：带静态加密构造——仅 `.spill` 数据文件加密，meta 保持明文（sha256 明文锚点）。 */
+    public DiskSpillStore(Path rootDir, SpillQuota quota, SpillCipher cipher) {
         this.rootDir = rootDir;
         this.quota = quota == null ? SpillQuota.unbounded() : quota;
+        this.cipher = cipher;
         this.refLedger = new EvidenceRefLedger(rootDir);
     }
 
@@ -54,7 +63,7 @@ public class DiskSpillStore implements SpillStore {
         enforceQuota(entry);
         try {
             Files.createDirectories(dataPath.getParent());
-            writeAtomically(dataPath, entry.content());
+            writeAtomically(dataPath, cipher == null ? entry.content() : cipher.encrypt(entry.content()));
             writeAtomically(metaPath(entry.uri()), metaJson(entry, false));
             // impl-41 / spec 13 §T66：spill 指标（outcome=spilled；degraded/failed 在服务层）
             io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
@@ -193,7 +202,12 @@ public class DiskSpillStore implements SpillStore {
     public Optional<String> load(SpillUri uri) {
         try {
             Path path = dataPath(uri);
-            return Files.exists(path) ? Optional.of(Files.readString(path)) : Optional.empty();
+            if (!Files.exists(path)) {
+                return Optional.empty();
+            }
+            // spec 40 §A：加密文件解密（魔法探测），旧明文直通——调用方拿到的恒为明文
+            String raw = Files.readString(path);
+            return Optional.of(cipher == null ? raw : cipher.decryptIfEncrypted(raw));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

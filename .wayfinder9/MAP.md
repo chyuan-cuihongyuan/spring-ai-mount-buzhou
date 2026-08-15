@@ -21,6 +21,8 @@
 
 ## Decisions so far
 
+- [T151 spill 落盘静态加密](tickets/T151-spill-encryption.md) — SpillCipher（JDK AES-256-GCM 信封、魔法前缀、随机 IV）+ encryption-key 配置即开、缺省关零变化；旧明文兼容读；密钥错配快速失败；spec 40 §A。
+
 ## Not yet specified
 
 - LLM 响应缓存（语义边界未清，长期 fog；沿用 #8）。

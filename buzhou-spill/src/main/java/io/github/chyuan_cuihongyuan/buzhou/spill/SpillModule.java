@@ -18,6 +18,12 @@ public final class SpillModule {
 
     /** impl-38 / spec 13 §growth-8：带磁盘配额构造（超限拒绝落盘、原文回喂）。 */
     public SpillModule(Path rootDir, int previewChars, int listPreviewItems, SpillQuota quota) {
+        this(rootDir, previewChars, listPreviewItems, quota, null);
+    }
+
+    /** spec 40 §A / impl-122：带静态加密构造（cipher null = 直通，零行为变化）。 */
+    public SpillModule(Path rootDir, int previewChars, int listPreviewItems, SpillQuota quota,
+                       SpillCipher cipher) {
         // impl-42 / spec 13 §T68：编程式 API 校验（负数/零预览值在构造期拒绝，不静默吞）
         if (rootDir == null) {
             throw new IllegalArgumentException("rootDir 不可为 null");
@@ -26,7 +32,7 @@ public final class SpillModule {
             throw new IllegalArgumentException("previewChars/listPreviewItems 必须为正（收到 "
                     + previewChars + "/" + listPreviewItems + "）");
         }
-        this.store = new DiskSpillStore(rootDir, quota);
+        this.store = new DiskSpillStore(rootDir, quota, cipher);
         this.service = new SpillService(store, previewChars, listPreviewItems);
     }
 
