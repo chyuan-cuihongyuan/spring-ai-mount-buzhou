@@ -58,17 +58,23 @@ public class DefaultSkillRegistry implements SkillRegistry {
 
     @Override
     public List<SkillMetadata> listFor(String appId, String agentName) {
+        return listForPage(appId, agentName).entries();
+    }
+
+    /** spec 35 §B / T119：截断 + 溢出计数（渲染器据此提示「另有 N 个未列出」）。 */
+    @Override
+    public CatalogPage listForPage(String appId, String agentName) {
         List<String> candidates = candidatesFor(appId, agentName);
         List<SkillMetadata> catalog = new ArrayList<>();
         for (String name : candidates) {
+            if (catalog.size() >= catalogMaxEntries) {
+                break; // 先判后加：溢出计数以 candidates 全量为准
+            }
             resolve(name).ifPresent(skill ->
                     catalog.add(new SkillMetadata(skill.name(), skill.description(),
                             skill.allowedTools(), skill.source())));
-            if (catalog.size() >= catalogMaxEntries) {
-                break;
-            }
         }
-        return List.copyOf(catalog);
+        return new CatalogPage(List.copyOf(catalog), candidates.size());
     }
 
     @Override

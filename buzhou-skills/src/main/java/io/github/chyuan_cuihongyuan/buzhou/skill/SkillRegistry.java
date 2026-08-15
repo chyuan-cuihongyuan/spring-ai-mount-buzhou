@@ -15,6 +15,18 @@ public interface SkillRegistry {
     /** 当前 (appId, agentName) 绑定下可见的清单。 */
     List<SkillMetadata> listFor(String appId, String agentName);
 
+    /** 清单页（entries 截断后条目 + total 全量数——溢出提示用，spec 35 §B / T119）。 */
+    record CatalogPage(List<SkillMetadata> entries, int total) {
+    }
+
+    /**
+     * spec 35 §B / T119：带溢出计数的清单页（默认 = listFor 全量无溢出——截断实现覆写）。
+     */
+    default CatalogPage listForPage(String appId, String agentName) {
+        List<SkillMetadata> entries = listFor(appId, agentName);
+        return new CatalogPage(entries, entries.size());
+    }
+
     /**
      * impl-71 / T96：失效清单 TTL 缓存（admin 变更后立即可见，不等 TTL）。
      * 默认 no-op（无缓存实现二进制兼容）。

@@ -27,7 +27,8 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
         if (binding == null) {
             return Optional.empty();
         }
-        List<SkillMetadata> catalog = registry.listFor(binding.appId(), binding.agentName());
+        SkillRegistry.CatalogPage page = registry.listForPage(binding.appId(), binding.agentName());
+        List<SkillMetadata> catalog = page.entries();
         if (catalog.isEmpty()) {
             return Optional.empty();
         }
@@ -40,6 +41,12 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
                 sb.append(": ").append(meta.description());
             }
             sb.append('\n');
+        }
+        int overflow = page.total() - catalog.size();
+        if (overflow > 0) {
+            sb.append("（另有 ").append(overflow)
+                    .append(" 个技能因目录注入上限未列出——如需加载其正文，")
+                    .append("请运维调整绑定关系或提高 buzhou.skills.catalog-max-entries）\n");
         }
         return Optional.of(sb.toString().strip());
     }

@@ -19,6 +19,7 @@
 - [T116 黄金轨迹扩充 A](tickets/T116-golden-effort6-a.md) — GoldenTrajectoryEffort6Test 三轨迹（evidence 引用生命周期/outbox 跨重启补投/压缩事件观测）；spec 34 §B。
 - [T117 黄金轨迹扩充 B](tickets/T117-golden-effort6-b.md) — GoldenTrajectoryEffort6BTest 三轨迹（导出导入往返续用/结果限幅模型侧标记/索引全生命周期含 DELETED）；spec 34 §C。
 - [T118 熔断半开多探测](tickets/T118-halfopen-probes.md) — halfOpenSuccessThreshold（默认 1 零变化；>1 连续 N 成功才恢复）；槽位不变量（在飞+已成功≥阈值）；失败立即回 OPEN；spec 35 §A。
+- [T119 skills 目录注入预算](tickets/T119-skills-catalog-budget.md) — listForPage（entries+total）+ 渲染器溢出提示（另有 N 个未列出 + catalog-max-entries 指引）；评分/skill_search 记 fog；spec 35 §B。
 
 ## Not yet specified
 

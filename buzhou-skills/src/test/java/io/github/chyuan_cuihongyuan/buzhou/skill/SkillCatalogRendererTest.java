@@ -43,6 +43,26 @@ class SkillCatalogRendererTest {
         assertThat(catalog.get()).contains("code-review", "sql-tuning");
     }
 
+    /** spec 35 §B / T119：目录注入上限截断 + 溢出提示（模型可感知还有未列出技能）。 */
+    @Test
+    void overflowNoticeWhenCatalogExceedsInjectionBudget() {
+        SkillRegistry registry = new DefaultSkillRegistry(cast(new ClasspathSkillScanner().scan()),
+                null, null, false, 1); // catalog-max-entries=1
+        SessionBindingIndex index = new SessionBindingIndex();
+        index.register("sess", "app", "agent");
+
+        Optional<String> catalog = new SkillCatalogRendererImpl(index, registry).renderCatalog("sess");
+
+        assertThat(catalog).isPresent();
+        assertThat(catalog.get()).contains("另有").contains("个技能因目录注入上限未列出")
+                .contains("catalog-max-entries");
+        // 上限内只渲染一个技能（classpath 全量 > 1）
+        assertThat(catalog.get().lines().filter(l -> l.startsWith("- ")).count()).isEqualTo(1);
+        // 溢出计数走 listForPage（entries 截断 + total 全量）
+        SkillRegistry.CatalogPage page = registry.listForPage("app", "agent");
+        assertThat(page.total()).isGreaterThan(page.entries().size());
+    }
+
     @Test
     void emptyCatalogWhenBindingCropsToNothing() {
         BindingPolicyStore store = new InMemoryBindingPolicyStore();
