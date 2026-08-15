@@ -25,6 +25,7 @@
 - [T152 会话单飞闸](tickets/T152-singleflight-gate.md) — 在途计数升级 CAS 0→1 单飞闸（三入口同闸）；并发第二轮次 TURN_IN_FLIGHT（NON_RETRYABLE 新码）确定拒绝；终结释放、默认开无开关；跨进程仍归租约门；spec 40 §B。
 - [T153 审计轮换持久化与外锚](tickets/T153-audit-rotation-anchor.md) — rotate 写而后切（PemFileKeyPersister + scanDirectory 重启入环 + signing.key-dir）；VerificationReport headHash/anchorMatched 外锚比对（删尾/重写可检测）；spec 41 §A。
 - [T154 时钟注入面](tickets/T154-clock-injection.md) — 熔断六处 + 配额 todayKey 注入 Clock（三参构造缺省 systemUTC 零变化）；RateLimiter/Advisor 退避/Outbox.due 显式不注入（诚实边界）；spec 41 §B。
+- [T155 迁移器防护](tickets/T155-migrator-guards.md) — 未来版本拒绝（Flyway validateOnMigrate 等价）+ 版本表 checksum 列（存量幂等补列/NULL 回填锚定/篡改拒绝）；spec 42 §A。
 
 ## Not yet specified
 

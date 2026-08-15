@@ -16,6 +16,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -117,6 +119,27 @@ public final class SchemaMigrator {
         try (Statement statement = connection.createStatement()) {
             statement.execute(versionTableDdl());
         }
+        // spec 42 §A / T155：存量版本表补 checksum 列（缺列才 ALTER——幂等）
+        if (!checksumColumnExists(connection)) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE " + VERSION_TABLE + " ADD COLUMN checksum VARCHAR(64)");
+            }
+        }
+    }
+
+    private boolean checksumColumnExists(Connection connection) throws SQLException {
+        // H2 将未加引号标识符存为大写、PG/MySQL 小写——两种形态都探测（与 tableExists 同款）
+        for (String table : new String[] {VERSION_TABLE, VERSION_TABLE.toUpperCase()}) {
+            for (String column : new String[] {"checksum", "CHECKSUM"}) {
+                try (ResultSet columns = connection.getMetaData().getColumns(
+                        null, null, table, column)) {
+                    if (columns.next()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private String versionTableDdl() {
@@ -127,13 +150,15 @@ public final class SchemaMigrator {
                         version      INT          NOT NULL,
                         description  VARCHAR(256) NOT NULL,
                         applied_at   TIMESTAMP    NOT NULL,
+                        checksum     VARCHAR(64),
                         PRIMARY KEY (version)
                     )""".formatted(VERSION_TABLE);
             case H2, POSTGRESQL -> """
                     CREATE TABLE IF NOT EXISTS %s (
                         version      INT          PRIMARY KEY,
                         description  VARCHAR(256) NOT NULL,
-                        applied_at   TIMESTAMP    NOT NULL
+                        applied_at   TIMESTAMP    NOT NULL,
+                        checksum     VARCHAR(64)
                     )""".formatted(VERSION_TABLE);
         };
     }
@@ -147,12 +172,15 @@ public final class SchemaMigrator {
         }
     }
 
-    private void insertVersion(Connection connection, int version, String description) throws SQLException {
+    private void insertVersion(Connection connection, int version, String description,
+            String checksum) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO %s (version, description, applied_at) VALUES (?,?,?)".formatted(VERSION_TABLE))) {
+                "INSERT INTO %s (version, description, applied_at, checksum) VALUES (?,?,?,?)"
+                        .formatted(VERSION_TABLE))) {
             ps.setInt(1, version);
             ps.setString(2, description);
             ps.setTimestamp(3, Timestamp.from(Instant.now()));
+            ps.setString(4, checksum);
             ps.executeUpdate();
         }
     }
@@ -165,9 +193,20 @@ public final class SchemaMigrator {
             // 基线判定：业务表已在而版本行全无 → 旧库（由老版 schema-*.sql 建成）。
             // 采纳首个脚本版本为基线行，不重跑建表脚本；其后的增量脚本（如 V2）照常升级。
             Migration baseline = migrations.getFirst();
-            insertVersion(connection, baseline.version(), BASELINE_DESCRIPTION);
+            insertVersion(connection, baseline.version(), BASELINE_DESCRIPTION,
+                    scriptChecksum(baseline));
             maxApplied = baseline.version();
         }
+        // spec 42 §A / T155：未来版本拒绝（Flyway validateOnMigrate 等价物）——
+        // 旧构建对上新库（maxApplied > 本构建最新脚本）静默通过会以旧 schema 写新库，必须拒绝
+        int latestScript = migrations.getLast().version();
+        if (maxApplied > latestScript) {
+            throw new IllegalStateException(
+                    ("Buzhou 检测到未来 schema 版本：库中已应用 V%d > 本构建最新脚本 V%d"
+                            + "（dialect=%s）——旧构建不可对新高版本库运行，请先升级构建").formatted(
+                            maxApplied, latestScript, dialect));
+        }
+        validateChecksums(connection, migrations);
         int latest = maxApplied;
         for (Migration migration : migrations) {
             if (migration.version() > maxApplied) {
@@ -178,12 +217,64 @@ public final class SchemaMigrator {
         return latest;
     }
 
+    /**
+     * spec 42 §A / T155：已应用脚本 checksum 校验——记录行与脚本文件不符 = 已应用脚本被事后
+     * 改动，拒绝迁移（防「改脚本不改版本号」的静默漂移）。存量行为 NULL 的行回填当前脚本
+     * checksum（首次升级即锚定，其后漂移可检）。
+     */
+    private void validateChecksums(Connection connection, List<Migration> migrations) throws SQLException {
+        Map<Integer, String> recorded = new HashMap<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(
+                     "SELECT version, checksum FROM " + VERSION_TABLE)) {
+            while (rs.next()) {
+                recorded.put(rs.getInt(1), rs.getString(2));
+            }
+        }
+        for (Migration migration : migrations) {
+            if (!recorded.containsKey(migration.version())) {
+                continue; // 无版本行 = 未应用的脚本，不在校验范围
+            }
+            String checksum = recorded.get(migration.version());
+            String expected = scriptChecksum(migration);
+            if (checksum == null || checksum.isBlank()) {
+                backfillChecksum(connection, migration.version(), expected); // 存量 NULL 行回填锚定
+            } else if (!checksum.equals(expected)) {
+                throw new IllegalStateException(
+                        ("Buzhou 已应用迁移脚本被改动：V%d（dialect=%s）记录 checksum=%s，"
+                                + "当前脚本=%s——迁移脚本一经应用不可修改（新增变更请用新版本号）")
+                                .formatted(migration.version(), dialect, checksum, expected));
+            }
+        }
+    }
+
+    private void backfillChecksum(Connection connection, int version, String checksum) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "UPDATE %s SET checksum=? WHERE version=?".formatted(VERSION_TABLE))) {
+            ps.setString(1, checksum);
+            ps.setInt(2, version);
+            ps.executeUpdate();
+        }
+    }
+
+    /** 脚本内容 sha256（64 hex）——已应用脚本的事后改动指纹。 */
+    private static String scriptChecksum(Migration migration) {
+        try (var in = migration.script().getInputStream()) {
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(in.readAllBytes());
+            return java.util.HexFormat.of().formatHex(digest);
+        } catch (Exception e) {
+            throw new IllegalStateException("迁移脚本不可读（checksum 计算）: " + migration, e);
+        }
+    }
+
     private void apply(Connection connection, Migration migration) throws SQLException {
         boolean previousAutoCommit = connection.getAutoCommit();
         connection.setAutoCommit(false);
         try {
             ScriptUtils.executeSqlScript(connection, migration.script());
-            insertVersion(connection, migration.version(), migration.description());
+            insertVersion(connection, migration.version(), migration.description(),
+                    scriptChecksum(migration));
             connection.commit();
         } catch (SQLException | RuntimeException e) {
             connection.rollback();
