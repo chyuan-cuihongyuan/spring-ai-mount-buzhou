@@ -206,6 +206,17 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         return session;
     }
 
+    /** spec 36 §A / T121 / impl-96：导出扩展（模块自有段；auto-config 注入，可空）。 */
+    private volatile java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension>
+            exportExtensions = java.util.List.of();
+
+    /** 注册导出扩展（装配期一次性；空清单 = 无扩展段，既有行为零变化）。 */
+    public DefaultAgentRuntime setExportExtensions(
+            java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension> extensions) {
+        this.exportExtensions = extensions == null ? java.util.List.of() : java.util.List.copyOf(extensions);
+        return this;
+    }
+
     /** 会话导出（spec 28 / T107 / impl-82）：core 三槽全量 + spill 引用随消息 metadata。 */
     @Override
     public io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport exportSession(String sessionId) {
@@ -219,8 +230,22 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 stores.summaryStore().latest(sessionId).orElse(null);
         java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry> state =
                 stores.sessionStateStore().getAll(sessionId);
+        java.util.Map<String, String> segments = new java.util.LinkedHashMap<>();
+        for (io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension extension
+                : exportExtensions) {
+            try {
+                String segment = extension.exportSegment(sessionId);
+                if (segment != null && !segment.isBlank()) {
+                    segments.put(extension.name(), segment);
+                }
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "导出扩展段失败（extension=" + extension.name() + "，跳过该段）：" + e.getMessage());
+            }
+        }
         return io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport.of(
-                sessionId, appIdOf(sessionId), agentNameOf(sessionId), messages, summary, state);
+                sessionId, appIdOf(sessionId), agentNameOf(sessionId), messages, summary, state,
+                segments);
     }
 
     /**
@@ -257,6 +282,23 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
             stores.summaryStore().save(targetId, remappedSummary);
         }
         export.state().forEach((key, entry) -> stores.sessionStateStore().put(targetId, entry));
+        // spec 36 §A / T121：扩展段回放（失败只 WARN 不回滚三槽——最终一致口径）
+        export.extensions().forEach((name, json) -> {
+            for (io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension extension
+                    : exportExtensions) {
+                if (extension.name().equals(name)) {
+                    try {
+                        extension.importSegment(targetId, json);
+                    } catch (RuntimeException e) {
+                        LOGGER.log(System.Logger.Level.WARNING,
+                                "导入扩展段失败（extension=" + name + "，跳过该段）：" + e.getMessage());
+                    }
+                    return;
+                }
+            }
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "导入文档含未知扩展段（" + name + "）：无对应处理器，跳过");
+        });
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.session.imports");
         LOGGER.log(System.Logger.Level.INFO,

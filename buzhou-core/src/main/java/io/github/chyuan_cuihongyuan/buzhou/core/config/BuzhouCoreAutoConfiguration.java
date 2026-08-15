@@ -282,7 +282,9 @@ public class BuzhouCoreAutoConfiguration {
                                            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener>
                                                    globalEventListeners,
                                            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore>
-                                                   indexStoreProvider) {
+                                                   indexStoreProvider,
+                                           org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension>
+                                                   exportExtensionsProvider) {
         List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
         // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
         if (!hooks.isEmpty()) {
@@ -346,6 +348,8 @@ public class BuzhouCoreAutoConfiguration {
         // spec 20 / T89 / impl-64：全局事件监听 bean（如 WebhookEventForwarder）挂全部会话
         globalEventListeners.stream()
                 .forEach(runtime::addGlobalEventListener);
+        // spec 36 §A / T121：导出扩展 bean（模块自有段进 SessionExport.extensions）
+        runtime.setExportExtensions(exportExtensionsProvider.orderedStream().toList());
         return runtime;
     }
 

@@ -35,7 +35,8 @@ public record SessionExport(
         long exportedAtEpochMs,
         List<BuzhouMessage> messages,
         StructuredSummary summary,
-        Map<String, StateEntry> state) {
+        Map<String, StateEntry> state,
+        Map<String, String> extensions) {
 
     public static final String FORMAT = "buzhou.session-export";
     public static final int CURRENT_VERSION = 1;
@@ -52,13 +53,30 @@ public record SessionExport(
         }
         messages = messages == null ? List.of() : List.copyOf(messages);
         state = state == null ? Map.of() : Map.copyOf(state);
+        extensions = extensions == null ? Map.of() : Map.copyOf(extensions);
+    }
+
+    /** impl-96 前的 8 槽形状（无扩展段）——保留委托，源 / 二进制兼容。 */
+    public SessionExport(String format, int version, String sessionId, String appId,
+            String agentName, long exportedAtEpochMs, List<BuzhouMessage> messages,
+            StructuredSummary summary, Map<String, StateEntry> state) {
+        this(format, version, sessionId, appId, agentName, exportedAtEpochMs, messages, summary,
+                state, Map.of());
     }
 
     /** 便捷构造（format/version/exportedAt 自动填充）。 */
     public static SessionExport of(String sessionId, String appId, String agentName,
             List<BuzhouMessage> messages, StructuredSummary summary, Map<String, StateEntry> state) {
         return new SessionExport(FORMAT, CURRENT_VERSION, sessionId, appId, agentName,
-                System.currentTimeMillis(), messages, summary, state);
+                System.currentTimeMillis(), messages, summary, state, Map.of());
+    }
+
+    /** 带扩展段便捷构造（spec 36 §A / T121：模块自有数据段）。 */
+    public static SessionExport of(String sessionId, String appId, String agentName,
+            List<BuzhouMessage> messages, StructuredSummary summary, Map<String, StateEntry> state,
+            Map<String, String> extensions) {
+        return new SessionExport(FORMAT, CURRENT_VERSION, sessionId, appId, agentName,
+                System.currentTimeMillis(), messages, summary, state, extensions);
     }
 
     /** spill 引用清单（evidenceId=消息 id + metadata 中的 spillUri；供消费方感知证据面）。 */
@@ -88,6 +106,7 @@ public record SessionExport(
             doc.put("state", state.entrySet().stream()
                     .map(e -> Map.of("key", e.getKey(), "entry", entryDto(e.getValue())))
                     .toList());
+            doc.put("extensions", extensions);
             return MAPPER.writeValueAsString(doc);
         } catch (Exception e) {
             throw new IllegalStateException("会话导出序列化失败（sessionId=" + sessionId + "）", e);
@@ -128,7 +147,8 @@ public record SessionExport(
                 }
             }
             return new SessionExport(doc.format, doc.version, doc.sessionId, doc.appId,
-                    doc.agentName, doc.exportedAtEpochMs, messages, summary, state);
+                    doc.agentName, doc.exportedAtEpochMs, messages, summary, state,
+                    doc.extensions == null ? Map.of() : doc.extensions);
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
@@ -187,6 +207,7 @@ public record SessionExport(
         public List<MessageDto> messages;
         public SummaryDto summary;
         public List<StateDto> state;
+        public Map<String, String> extensions;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

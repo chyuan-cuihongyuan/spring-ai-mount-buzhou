@@ -108,6 +108,62 @@ class SessionPortabilityTest {
                 .hasMessageContaining("非本格式");
     }
 
+    /** 导出扩展段（spec 36 §A / T121）：模块段往返 + 未知段/失败段不阻断。 */
+    @Test
+    void exportExtensionsRoundTripAndTolerateFailures() {
+        ScriptedChatModel model = new ScriptedChatModel();
+        model.enqueueText("a1");
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        AgentRuntime runtime = Buzhou.runtime(model, stores, RuntimeConfig.defaults());
+        java.util.List<String> importedSegments = new java.util.concurrent.CopyOnWriteArrayList<>();
+        ((io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime) runtime)
+                .setExportExtensions(java.util.List.of(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension() {
+                            @Override
+                            public String name() {
+                                return "test.segment";
+                            }
+
+                            @Override
+                            public String exportSegment(String sessionId) {
+                                return "{\"hello\":\"" + sessionId + "\"}";
+                            }
+
+                            @Override
+                            public void importSegment(String targetSessionId, String json) {
+                                importedSegments.add(targetSessionId + ":" + json);
+                            }
+                        },
+                        new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension() {
+                            @Override
+                            public String name() {
+                                return "test.broken";
+                            }
+
+                            @Override
+                            public String exportSegment(String sessionId) {
+                                throw new IllegalStateException("导出炸了");
+                            }
+
+                            @Override
+                            public void importSegment(String targetSessionId, String json) {
+                                throw new IllegalStateException("导入炸了");
+                            }
+                        }));
+        AgentSession source = runtime.spawn("app", "agent", "ext-src");
+        source.chat("q");
+        source.close();
+
+        String json = runtime.exportSession("ext-src").toJson();
+        // 失败段被跳过、正常段随文档走
+        assertThat(json).contains("test.segment").doesNotContain("test.broken");
+
+        String importedId = runtime.importSession(io.github.chyuan_cuihongyuan.buzhou.core.session
+                .SessionExport.fromJson(json), false);
+        assertThat(importedSegments).singleElement().asString()
+                .contains("hello").contains(importedId);
+    }
+
     /** spill 引用清单：metadata 带 spillUri 的消息进入清单（消费方感知证据面）。 */
     @Test
     void spillRefsDerivedFromMessageMetadata() {
