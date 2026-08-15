@@ -19,3 +19,13 @@
   - **G8 outbox 跨重启**：第一代恒 500（事件滞留）→ close → 第二代（共享 store）补投递
     成功、零死信。
   - **G9 压缩事件**：大历史折叠 → memory.compacted 入观测库（计数/回收为正）。
+
+## §C 黄金轨迹扩充 B（T117 / impl-92）
+
+- `GoldenTrajectoryEffort6BTest` 三条轨迹：
+  - **G10 导出/导入**：导出→JSON→导入（新 Id，三槽重映射）→ 以导入 Id spawn 续聊
+    （历史注入断言）。
+  - **G11 工具结果限幅**：100K 结果工具 → 回喂模型的结果含截断标记与上限提示
+    （断言关键标记——FunctionToolCallback 结果经 JSON 字符串包装，尺寸 ±引号）。
+  - **G12 索引生命周期**：ACTIVE→turnCount 累计→CLOSED→delete() 级联 DELETED；
+    默认列表排除审计行、显式 status=DELETED 可查。

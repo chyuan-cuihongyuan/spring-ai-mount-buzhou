@@ -17,6 +17,7 @@
 - [T114 outbox 前缀扫描](tickets/T114-outbox-prefix-scan.md) — SessionStateStore.scanByPrefix SPI（JDBC LIKE 下推/Redis 键集合过滤）；WebhookOutbox 四路径改走前缀扫描消全量读放大；spec 33 §C。
 - [T115 memory 压缩事件化](tickets/T115-compaction-events.md) — ivp.setCompactionListener（空折入零通知、lenient）+ MemoryModule 观测双写 memory.compacted（compactedCount/reclaimedChars）；spec 34 §A。
 - [T116 黄金轨迹扩充 A](tickets/T116-golden-effort6-a.md) — GoldenTrajectoryEffort6Test 三轨迹（evidence 引用生命周期/outbox 跨重启补投/压缩事件观测）；spec 34 §B。
+- [T117 黄金轨迹扩充 B](tickets/T117-golden-effort6-b.md) — GoldenTrajectoryEffort6BTest 三轨迹（导出导入往返续用/结果限幅模型侧标记/索引全生命周期含 DELETED）；spec 34 §C。
 
 ## Not yet specified
 
