@@ -36,6 +36,7 @@
 - [T163 perf 哨兵第三批](tickets/T163-perf-3.md) — 加密往返/单飞闸/读降级三哨兵（10 倍宽幅硬顶）+ baseline 落档；spec 45 §C。
 - [T164 examples 演示第三批](tickets/T164-demo-3.md) — 加密开关对照/单飞快速失败/读降级续聊三演示。
 - [T165 runbook 第五轮](tickets/T165-runbook-5.md) — 四症状/四键/升级三段（密钥管理、迁移防护、审计轮换与外锚）。
+- [T166 CONTEXT/api-surface 增补](tickets/T166-context-api-9.md) — 术语节 8 条 + effort#9 公共面（含四处破坏性变更入档）。
 
 ## Not yet specified
 

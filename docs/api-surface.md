@@ -537,3 +537,58 @@
 **测试面（core test-jar）**
 
 - `WebhookOutboxPerfAccess` 增 `requeueDead(limit)` + `SESSION_ID` 常量
+
+
+## effort #9 新增公共面（spec 40–45 / impl-122–135，@since 1.0.0）
+
+**buzhou-spill**
+
+- `SpillCipher`（fromBase64Key/encrypt/decryptIfEncrypted/isEncrypted；MAGIC 常量）
+- `DiskSpillStore` 三参构造（rootDir, quota, cipher；cipher null = 直通）
+- `SpillModule` 五参构造（带 cipher）
+- `SpillProperties.encryptionKey`（第 14 组件；非法密钥构造期 fail-fast）
+
+**buzhou-core**
+
+- `ErrorCode.TURN_IN_FLIGHT`（NON_RETRYABLE）——单飞闸确定拒绝
+- `ReadDegradePolicy`（OFF/EMPTY）+ `ReadDegradeHolder`（全局默认；spi 包）
+- `BuzhouCoreProperties.Store.readDegrade`（第 3 组件）+ `readDegradePolicy()`；
+  auto-config 增 `buzhouReadDegradePolicy` 初始化 bean
+- `BuzhouWebhookProperties.closeDrainTimeout`（第 7 组件）+ `effectiveCloseDrainTimeout()`
+- `BuzhouRunawayProperties`/`BuzhouBackpressureProperties` 全键构造期 fail-fast（null=不限语义保留）
+- **破坏性变更（pre-1.0）**：webhook `maxAttempts`/`outboxCapacity` 非法值由静默回退默认改
+  `BuzhouConfigurationException`；`VerificationReport` 增第 6/7 组件（headHash/anchorMatched，
+  5 参兼容构造保留）
+
+**buzhou-guard**
+
+- `SigningKeyPersister` 接口 + `PemFileKeyPersister`（privateKeyFile/publicKeyFile 工厂）
+- `SigningKeyRing` 三参构造（带 persister；rotate 写而后切）
+- `PemFileKeyProvider.scanDirectory(Path)` 静态工厂
+- `AuditChainVerifier.verify(records, ring, expectedHeadAnchor)` 三参重载；
+  `VerificationReport.anchored()`
+- `GuardAuditConfig.keyDir`（第 6 组件）
+
+**buzhou-resilience**
+
+- `ModelCircuitBreaker`/`SessionQuotaHook` 三参构造（可注入 Clock；缺省 systemUTC）
+- `MetricTags.bound(String)`（指标 tag 32 字符截断纪律公用）
+
+**buzhou-store-jdbc**
+
+- SchemaMigrator：版本表 checksum 列 + 未来版本拒绝 + `validateChecksums`（无公开 API 变更；
+  行为契约入 spec 42 §A）
+
+**buzhou-tools**
+
+- `RunCommandTool` 七参构造（maxOutputBytes）+ `DEFAULT_MAX_OUTPUT_BYTES`（5MB 公开常量）
+- `ToolsModule`：`run-command.max-output-bytes` yml 键（非正 fail-fast）
+
+**buzhou-memory**
+
+- `SleepTimeScheduler` 四参构造（closeGrace；close 优雅排空→硬截断）
+
+**构建面**
+
+- enforcer 第二执行段：dependencyConvergence + banDuplicatePomDependencyVersions；
+  `com.networknt:json-schema-validator` 钉 3.0.1（Spring AI 双路传递分歧收口）

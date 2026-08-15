@@ -85,3 +85,22 @@
 - **梯子级事件（evictRatio）** — 压缩梯子每级折入都通知，payload 携带当前级比例（级可区分）。
 - **跨 store 迁移（SessionMigrator）** — 会话级搬迁复用 export/import 管线（重映射/keepIds）。
 - **阻塞背压（观测管线）** — 满队阻塞而非丢弃（at-least-once 不丢；queue.wait Timer 可观测）。
+
+## 静态安全与运行时确定性（effort #9）
+
+- **落盘加密（SpillCipher）** — spill 数据文件 AES-256-GCM 信封加密（魔法前缀 wire 格式、随机 IV）；
+  encryption-key 配置即开、缺省关；旧明文文件兼容读，密钥错配快速失败。
+- **会话单飞闸（Single-flight Gate）** — 同会话在途轮次未终结时，第二个轮次入口确定拒绝
+  （TURN_IN_FLIGHT / NON_RETRYABLE）；终结释放；跨进程仍归租约门。
+- **轮换持久化（写而后切）** — 审计签名密钥 rotate 先落盘后切换（失败中止 active 不变）；
+  key-dir 约定命名（v<version>.pem）目录扫描重启自动入环。
+- **链外锚定（Chain Anchor）** — 校验报告给出链头哈希，运维链外保存期望锚点；链内部一致但
+  链头与锚点不符 = 删尾/整链重写可检（纯内部校验盲区的补检面）。
+- **时钟注入（Clock Injection）** — 熔断冷却与配额 UTC 日窗的时间行为经可注入 Clock 驱动
+  （缺省 systemUTC 零变化）；时间行为测试零真实等待。
+- **迁移防护（Migrator Guards）** — 未来版本拒绝（旧构建对新高版本库启动即拒）+ 已应用脚本
+  checksum 锚定（事后改动可检；存量行首升回填）。
+- **读失败降级（Read Degrade）** — 消息历史读失败可配降级空历史续聊（read-degrade=empty；
+  WARN + 计数可感不静默）；缺省 off 上抛不变。
+- **输出兜底上限（Output Cap）** — run_command 输出内存兜底可配（max-output-bytes，缺省 5MB；
+  截断标记可见）——OOM 防护层，与 Spill offload 的上下文治理层互不替代。
