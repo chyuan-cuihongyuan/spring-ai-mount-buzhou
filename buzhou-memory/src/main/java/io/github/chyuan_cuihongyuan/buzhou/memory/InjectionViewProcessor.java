@@ -51,8 +51,8 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     // impl-02 / T36：部分逐出比例（默认 0.7，Letta「evict only ~70%」）+ 10% 步进梯子
     private double evictRatio = DEFAULT_EVICT_RATIO;
     private java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink;
-    /** spec 34 §A / T115：压缩结果监听器（sessionId + 结果；MemoryModule 接观测双写）。 */
-    private java.util.function.BiConsumer<String, io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult> compactionListener;
+    /** spec 34 §A / spec 38 §A：压缩结果监听器（sessionId + 结果 + 当前逐出比例；MemoryModule 接观测双写）。 */
+    private io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener compactionListener;
 
     /** impl-02：默认逐出比例（保留 30% 最新候选原文内联续接）。 */
     public static final double DEFAULT_EVICT_RATIO = 0.7d;
@@ -138,17 +138,18 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     }
 
     /** 对账事件出口（T25 四态裁决可观测；未注入则仅日志）。 */
-    public void setCompactionListener(java.util.function.BiConsumer<String,
-            io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult> listener) {
+    public void setCompactionListener(
+            io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener listener) {
         this.compactionListener = listener;
     }
 
-    /** spec 34 §A：有实际折入才通知（空压缩零噪音）。 */
+    /** spec 34 §A / spec 38 §A：有实际折入才通知（空压缩零噪音；ratio 随级携带）。 */
     private void notifyCompaction(String sessionId,
-            io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult result) {
+            io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult result,
+            double evictRatio) {
         if (compactionListener != null && result != null && !result.compactedMessageIds().isEmpty()) {
             try {
-                compactionListener.accept(sessionId, result);
+                compactionListener.onCompacted(sessionId, result, evictRatio);
             } catch (RuntimeException ignored) {
                 // 观测双写失败不影响视图主链（lenient）
             }
@@ -176,7 +177,7 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult compaction =
                 compactor.compact(stored, currentTurn, policyFn, protectRecentTurns, evictRatio);
         List<BuzhouMessage> compacted = compaction.compactedView();
-        notifyCompaction(sessionId, compaction);
+        notifyCompaction(sessionId, compaction, evictRatio);
         // 先渲染事实块（maxInjectChars 截断 + 指针），供预算入账与注入共用（spec 07：先渲染后评估；
         // system-reminder 块与摘要 Current State 追加两通道共享同一文本，不重复超额）
         String factsBlock = renderFacts(sessionId, currentTurn);
@@ -203,9 +204,11 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         double ladderRatio = evictRatio;
         while (budget.compactionNeeded() && ladderRatio < 1.0d) {
             ladderRatio = Math.min(1.0d, ladderRatio + EVICT_RATIO_LADDER_STEP);
-            compacted = compactor
-                    .compact(stored, currentTurn, policyFn, protectRecentTurns, ladderRatio)
-                    .compactedView();
+            // spec 38 §A / T135：梯子每级实际折入都通知（payload 携带当前级 evictRatio）
+            io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult ladderResult =
+                    compactor.compact(stored, currentTurn, policyFn, protectRecentTurns, ladderRatio);
+            compacted = ladderResult.compactedView();
+            notifyCompaction(sessionId, ladderResult, ladderRatio);
             budget = evaluateBudget(compacted, previous, factsBlock, catalogBlock);
         }
         // T23：摘要 token 预算（动态拆解为每段字符预算页脚渲染给模型）

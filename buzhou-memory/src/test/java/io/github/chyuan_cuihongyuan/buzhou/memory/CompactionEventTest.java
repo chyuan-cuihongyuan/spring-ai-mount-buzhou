@@ -43,11 +43,12 @@ class CompactionEventTest {
         BuzhouStores stores = Buzhou.inMemoryStores();
         String sessionId = "evt-" + UUID.randomUUID();
         InjectionViewProcessor ivp = processor(stores);
-        ivp.setCompactionListener((sid, result) -> stores.observabilityStore().saveEvents(
+        ivp.setCompactionListener((sid, result, ratio) -> stores.observabilityStore().saveEvents(
                 List.of(new EventRecord(UUID.randomUUID().toString(), null, sid,
                         "memory.compacted", Instant.now(),
                         Map.of("compactedCount", result.compactedMessageIds().size(),
-                                "reclaimedChars", result.reclaimedChars())))));
+                                "reclaimedChars", result.reclaimedChars(),
+                                "evictRatio", ratio)))));
 
         List<BuzhouMessage> folded = ivp.process(sessionId, bigHistory(sessionId, 30), 31);
 
@@ -58,6 +59,7 @@ class CompactionEventTest {
                 .filter(e -> "memory.compacted".equals(e.type())).findFirst().orElseThrow();
         assertThat(((Number) event.payload().get("compactedCount")).intValue()).isPositive();
         assertThat(((Number) event.payload().get("reclaimedChars")).intValue()).isPositive();
+        assertThat(event.payload()).containsKey("evictRatio"); // spec 38 §A：梯子级可区分
     }
 
     /** 无折叠（小历史）→ 零事件。 */
@@ -66,7 +68,7 @@ class CompactionEventTest {
         BuzhouStores stores = Buzhou.inMemoryStores();
         String sessionId = "quiet-" + UUID.randomUUID();
         InjectionViewProcessor ivp = processor(stores);
-        ivp.setCompactionListener((sid, result) -> stores.observabilityStore().saveEvents(
+        ivp.setCompactionListener((sid, result, ratio) -> stores.observabilityStore().saveEvents(
                 List.of(new EventRecord(UUID.randomUUID().toString(), null, sid,
                         "memory.compacted", Instant.now(), Map.of()))));
 
@@ -82,7 +84,7 @@ class CompactionEventTest {
         BuzhouStores stores = Buzhou.inMemoryStores();
         String sessionId = "broken-" + UUID.randomUUID();
         InjectionViewProcessor ivp = processor(stores);
-        ivp.setCompactionListener((sid, result) -> {
+        ivp.setCompactionListener((sid, result, ratio) -> {
             throw new IllegalStateException("观测后端不可用");
         });
 

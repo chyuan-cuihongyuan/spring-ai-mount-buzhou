@@ -117,13 +117,15 @@ public final class MemoryModule {
                     stores.sessionStateStore()));
             // spec 34 §A / T115 / impl-90：压缩事件观测双写（memory.compacted——视图读路径无
             // 会话事件通道，走 ObservabilityStore 侧写，RunawayCounters 同款通道）
-            ivp.setCompactionListener((sessionId, result) -> stores.observabilityStore().saveEvents(
+            ivp.setCompactionListener((sessionId, result, ratio) ->
+                    stores.observabilityStore().saveEvents(
                     java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
                             java.util.UUID.randomUUID().toString(), null, sessionId,
                             "memory.compacted", java.time.Instant.now(),
                             java.util.Map.of(
                                     "compactedCount", result.compactedMessageIds().size(),
-                                    "reclaimedChars", result.reclaimedChars())))));
+                                    "reclaimedChars", result.reclaimedChars(),
+                                    "evictRatio", ratio)))));
             // T25/T26：事实对账 + 双时序台账（会话状态；对账默认开、韧性 NOOP）
             ivp.setSessionStateStore(stores.sessionStateStore());
             ivp.setFactReconciliation(factReconciliation(ymlConfig));

@@ -151,11 +151,12 @@ class GoldenTrajectoryEffort6Test {
                 "tiny", 2, null, 4000);
         ivp.setSessionStateStore(stores.sessionStateStore());
         ivp.setCheckpoints(new CompactionCheckpoints(stores.sessionStateStore()));
-        ivp.setCompactionListener((sid, result) -> stores.observabilityStore().saveEvents(
+        ivp.setCompactionListener((sid, result, ratio) -> stores.observabilityStore().saveEvents(
                 List.of(new EventRecord(UUID.randomUUID().toString(), null, sid,
                         "memory.compacted", Instant.now(),
                         Map.of("compactedCount", result.compactedMessageIds().size(),
-                                "reclaimedChars", result.reclaimedChars())))));
+                                "reclaimedChars", result.reclaimedChars(),
+                                "evictRatio", ratio)))));
         return ivp;
     }
 
