@@ -85,3 +85,10 @@ ls buzhou-core/target/*.asc
 release workflow 在 deploy 后自动跑 `mvn -Psupply-chain package` 生成 CycloneDX 聚合 BOM
 （json+xml），并经 softprops/action-gh-release 附着到 GitHub Release——发布物供应链可审计面。
 人工核对：Release 页面附件含 `bom.json` / `bom.xml`。
+
+
+## 数据库迁移注记（V3，T129 / impl-104）
+
+V3（会话索引表 `buzhou_session_index`）由 SchemaMigrator 版本化自动执行：既有 V1/V2 库
+启动即追加（无破坏性变更、UPDATE-then-INSERT 跨方言 upsert）；发布前后无需人工 DDL。
+回滚到无 V3 版本：索引表留存无害（旧版不读）。

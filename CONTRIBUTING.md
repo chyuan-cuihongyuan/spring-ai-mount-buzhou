@@ -50,7 +50,8 @@ cp settings.xml ~/.m2/settings.xml   # 首次执行一次即可，之后 mvn 直
 ## 测试约定
 
 - **行为变更必须带测试**：新功能先写测试再实现，修 bug 先写能复现的测试再改到通过。
-- **持久化 SPI 契约测试**：`buzhou-core` 发布 test-jar，内含 `AbstractBuzhouStoresContractTest`；store 实现模块（jdbc / redis）依赖该 test-jar 并继承契约测试类，保证所有存储实现语义一致。新增 store 实现时复用此模式。
+- **持久化 SPI 契约测试**：`buzhou-core` 发布 test-jar，内含 `AbstractBuzhouStoresContractTest`；store 实现模块（jdbc / redis）依赖该 test-jar 并继承契约测试类，保证所有存储实现语义一致。新增 store 实现时复用此模式（索引契约同款：`AbstractSessionIndexContractTest`）。
+- **黄金轨迹回归集**（spec 32/34）：机制行为改动须跑 examples `golden/` 包——`EventSequenceAssert`（testsupport）收集会话/全局事件流，断言类型子序列、间隔约束（neverAfter）、计数与 payload；`attach(session)` 会话面、`attachGlobal(runtime)` 全局面（forked 等发往分支通道的事件）。新机制落地时补一条确定性轨迹（脚本化输入→序列断言）。
 
 ## 提交约定
 

@@ -141,6 +141,19 @@ HITL 确认往返、Onload 写侧拦截、MCP 差量刷新等专项时序见各�
 | 07 | [Hook 护栏体系](07-hooks.md) | Hook 链框架 + 读写护栏 + HITL + 闭环 | 六切面；密封三态；狗粮原则；读降级写阻断；阻断+state+续跑重放 |
 | 08 | [会话、配置与持久化](08-session-config-persistence.md) | 双层 API + 四层配置 + 五 SPI | spawn/enhance；PolicyConfigProvider；unit-of-work；全保真消息模型+ChatMemory 适配器 |
 | 09 | [模块与工程化](09-modules-engineering.md) | 16 模块 + 发布工程 | 星形依赖无环；buzhou-* 前缀；Central Portal；模块自装配 |
+| 24 | [Webhook 持久化 Outbox](24-webhook-outbox.md) | 投递可靠性 | state store 合成会话；记录级退避；死信隔离；at-least-once + 幂等键 |
+| 25 | [熔断冷却自适应](25-adaptive-circuit-backoff.md) | 韧性纵深 | ×2^(trips-1) 封顶 backoff-cap；探测成功复位 |
+| 26 | [fork 证据引用计数](26-evidence-refcount.md) | 数据生命周期 | 最后引用者关闭；TTL/孤儿扫描门控；EVIDENCE_GONE |
+| 27 | [多模态输入](27-multimodal-input.md) | 输入面 | MediaRef URI-only；最近重发策略；每媒体 320 token |
+| 28 | [会话导出/导入](28-session-export-import.md) | 可移植 | 单 JSON 文档；Id 重映射；keepIds 冲突 fail-fast |
+| 29 | [Store fsck](29-store-fsck.md) | 运维对账 | 四检测项只读报告；按项修复；观测永不自动清 |
+| 30 | [会话索引](30-session-index.md) | 枚举查询面 | 生命周期维护最终一致；内存/JDBC/Redis；未装配零影响 |
+| 31 | [工具结果限幅](31-tool-result-limit.md) | 上下文护栏 | 20K 截断+提示尾；glob per-tool 豁免 |
+| 32 | [黄金轨迹](32-golden-trajectories.md) | 行为回归 | 脚本化输入→事件序列断言（EventSequenceAssert） |
+| 33 | [索引工程闭合](33-index-hardening.md) | 契约/联动/扫描 | 三实现契约矩阵；DELETED 联动；fsck 索引源；scanByPrefix |
+| 34 | [压缩事件与黄金扩充](34-golden-and-compaction-events.md) | 观测/回归 | memory.compacted 观测双写；effort#6 轨迹 A/B |
+| 35 | [韧性/目录/摄取增补](35-resilience-skills-input.md) | 半开多探测等 | half-open-success-threshold；目录溢出提示；MediaIntake |
+| 36 | [导出扩展与 dashboard](36-export-extensions-dashboard.md) | 模块段/查询 | SessionExportExtension + FactsExporter；过滤列表索引优先 |
 
 ## 推演清单
 
