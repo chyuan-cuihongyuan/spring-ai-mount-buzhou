@@ -22,6 +22,7 @@
 - [T137 黄金轨迹 C](tickets/T137-golden-c.md) — GoldenTrajectoryEffort8Test 四轨迹（半开三段子序列/检索不截断/死信重放/清扫三保护）；spec 38 §C。
 - [T138 红队新攻击面](tickets/T138-redteam-new-surface.md) — 多模态注入/工具结果注入确定性对抗用例（观察档；promptfoo 词汇不可表达）；spec 39 §A。
 - [T139 观测背压审计](tickets/T139-observability-backpressure-audit.md) — 满队=阻塞背压而非丢弃（测试钉住+零丢失）；javadoc/runbook 告警两注记；spec 39 §B。
+- [T140 health 新维度](tickets/T140-health-new-dimensions.md) — WebhookOutboxHealth（水位四键）+ SessionIndexHealth（wired/采样）条件装配；恒 UP 语义（旁路/优化面不 DOWN）；spec 39 §C。
 
 ## Not yet specified
 

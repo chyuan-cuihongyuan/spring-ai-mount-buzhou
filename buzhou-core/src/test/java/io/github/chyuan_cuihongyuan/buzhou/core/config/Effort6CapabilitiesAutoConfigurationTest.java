@@ -35,11 +35,20 @@ class Effort6CapabilitiesAutoConfigurationTest {
         });
     }
 
-    /** webhook url 配置 → forwarder 装配（outbox 走容器 store）。 */
+    /** webhook url 配置 → forwarder 装配（outbox 走容器 store）+ outbox 水位健康面。 */
     @Test
     void webhookUrlAssemblesForwarder() {
         runner.withPropertyValues("buzhou.webhook.url=http://127.0.0.1:9/hook")
-                .run(context -> assertThat(context).hasSingleBean(WebhookEventForwarder.class));
+                .run(context -> {
+                    assertThat(context).hasSingleBean(WebhookEventForwarder.class);
+                    assertThat(context).hasSingleBean(
+                            io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth.class);
+                    var health = context.getBean(
+                            io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth.class);
+                    assertThat(health.status()).isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core
+                            .health.BuzhouHealth.Status.UP);
+                    assertThat(health.details()).containsKeys("pending", "deadLetters");
+                });
     }
 
     /** 限幅属性 → Holder 生效（覆盖默认档 + 豁免叠加）。 */
@@ -56,11 +65,18 @@ class Effort6CapabilitiesAutoConfigurationTest {
                 });
     }
 
-    /** SessionIndexStore bean → 与 runtime 共存（索引接线由 buzhouAgentRuntime 消费）。 */
+    /** SessionIndexStore bean → 与 runtime 共存 + 索引装配态健康面。 */
     @Test
     void indexStoreBeanCoexists() {
         runner.withUserConfiguration(IndexProvidedConfig.class)
-                .run(context -> assertThat(context).hasSingleBean(SessionIndexStore.class));
+                .run(context -> {
+                    assertThat(context).hasSingleBean(SessionIndexStore.class);
+                    assertThat(context).hasSingleBean(
+                            io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexHealth.class);
+                    var health = context.getBean(
+                            io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexHealth.class);
+                    assertThat(health.details()).containsEntry("wired", true);
+                });
     }
 
     @Configuration(proxyBeanMethods = false)

@@ -22,3 +22,11 @@
 - **新事件源核对**：memory.compacted 直写 `observabilityStore().saveEvents` 与
   RunawayCounters 同款（T66 双写先例）——写入失败 lenient 已有
   （CompactionEventTest.listenerFailureNeverBreaksView）。
+
+## §C health 新维度（T140 / impl-113）
+
+- `WebhookOutboxHealth`（forwarder 装配时注册）：恒 UP + details
+  {pending, deadLetters, delivered, dropped}——水位可观测（告警归 runbook 指标，不 DOWN）。
+- `SessionIndexHealth`（SessionIndexStore bean 存在时注册）：恒 UP + details
+  {wired, hasRows}（首页采样探测，免全量 count；探测故障可见不 DOWN）。
+- 装配断言进 Effort6CapabilitiesAutoConfigurationTest（条件注册 + details 键）。

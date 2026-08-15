@@ -53,6 +53,22 @@ public class BuzhouCoreAutoConfiguration {
      * {@code buzhou.webhook.url} 才装配（默认关、零开销）。事件经持久化 outbox 投递
      * （stateStore 合成会话，重启恢复）；forwarder 经全局监听挂点挂全部会话（见 buzhouAgentRuntime）。
      */
+    /** spec 39 §C / T140：outbox 水位健康面（forwarder 装配时随之）。 */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.webhook", name = "url")
+    public io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth webhookOutboxHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder forwarder) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth(forwarder);
+    }
+
+    /** spec 39 §C / T140：索引装配态健康面（SessionIndexStore bean 存在时）。 */
+    @Bean
+    @ConditionalOnBean(io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexHealth sessionIndexHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore indexStore) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.internal.session.SessionIndexHealth(indexStore);
+    }
+
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(prefix = "buzhou.webhook", name = "url")
     public io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder webhookEventForwarder(
