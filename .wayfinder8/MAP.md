@@ -18,6 +18,7 @@
 - [T133 死信重放 API](tickets/T133-deadletter-replay.md) — replayDeadLetters() 一键迁回 outbox（attempts 清零/容量满部分重放/损坏丢弃）；spec 37 §B。
 - [T134 索引 CLOSED 行保留](tickets/T134-index-retention.md) — purgeOlderThan（三实现覆写，ACTIVE 永不扫）+ 观察者 1/64 惰性清扫 + closed-retention 可配；spec 37 §C。
 - [T135 压缩梯子事件化](tickets/T135-ladder-compaction-events.md) — CompactionListener(sessionId,result,evictRatio)；梯子每级折入都发事件（级可区分）；spec 38 §A。
+- [T136 跨 store 迁移器](tickets/T136-store-migrator.md) — SessionMigrator.migrate 复用 export/import 管线（重映射/keepIds/指标）；轻量工具定位；spec 38 §B。
 
 ## Not yet specified
 
