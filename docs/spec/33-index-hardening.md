@@ -19,3 +19,14 @@
   三实现与契约统一）；显式 `status=DELETED` 过滤可查审计行。
 - **fsck 索引源**：`StoreFsck.run(stores, index, extras)` 重载——索引存在且行数 ≥ 观测
   留痕时全集走索引（完整性更高）；索引滞后/未装配回退观测源（诚实降级）。
+
+## §C outbox 前缀扫描（T114 / impl-89）
+
+- **SPI**：`SessionStateStore.scanByPrefix(sessionId, prefix)` default = getAll 过滤（正确）；
+  JDBC 覆写为 `state_key LIKE prefix%` 下推（走键索引）；Redis 覆写为键集合（SSET）
+  侧前缀过滤后按需 hgetall（免全量条目读）。prefix 为内部常量（无 LIKE 元字符）约定。
+- **消费方**：`WebhookOutbox` 的 seq 续起 / due 到期扫描 / deadLetters / pendingCount
+  全部改走 scanByPrefix——spec 24 性能注记的全量读放大消除（故障积压万条级时每次批扫
+  只读 outbox./dead. 键空间）。
+- **契约**：scanByPrefix ⊆ getAll 按 prefix 过滤（三实现行为等价，既有 webhook 用例回归
+  背书 + store 契约套件默认实现同源）。

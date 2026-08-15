@@ -74,6 +74,16 @@ public class JdbcSessionStateStore implements SessionStateStore {
         return result;
     }
 
+    /** spec 33 §C / T114：前缀下推扫描（键条件走索引；prefix 为内部常量无 LIKE 元字符）。 */
+    @Override
+    public Map<String, StateEntry> scanByPrefix(String sessionId, String prefix) {
+        Map<String, StateEntry> result = new LinkedHashMap<>();
+        jdbc.query("SELECT * FROM buzhou_session_state WHERE session_id = ? AND state_key LIKE ?",
+                MAPPER, sessionId, prefix + "%")
+                .forEach(entry -> result.put(entry.key(), entry));
+        return result;
+    }
+
     @Override
     public void delete(String sessionId, String key) {
         jdbc.update("DELETE FROM buzhou_session_state WHERE session_id = ? AND state_key = ?",

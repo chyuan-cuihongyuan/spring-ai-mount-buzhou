@@ -57,6 +57,23 @@ public class RedisSessionStateStore implements SessionStateStore {
         return Optional.ofNullable(fromHash(fields));
     }
 
+    /** spec 33 §C / T114：键集合侧前缀过滤后按需 hgetall（免全量条目读）。 */
+    @Override
+    public Map<String, StateEntry> scanByPrefix(String sessionId, String prefix) {
+        Map<String, StateEntry> result = new java.util.LinkedHashMap<>();
+        var c = sync.commands();
+        for (String k : c.smembers(keys.stateKeys(sessionId))) {
+            if (k.startsWith(prefix)) {
+                Map<String, String> fields = c.hgetall(keys.stateEntry(sessionId, k));
+                StateEntry entry = fromHash(fields);
+                if (entry != null) {
+                    result.put(k, entry);
+                }
+            }
+        }
+        return result;
+    }
+
     @Override
     public Map<String, StateEntry> getAll(String sessionId) {
         var c = sync.commands();

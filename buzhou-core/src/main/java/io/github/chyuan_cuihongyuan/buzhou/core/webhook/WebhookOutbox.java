@@ -51,7 +51,7 @@ final class WebhookOutbox {
 
     /** 死信查询（遍历序，上限 limit）。 */
     List<WebhookDeadLetter> deadLetters(int limit) {
-        return store.getAll(SESSION_ID).entrySet().stream()
+        return store.scanByPrefix(SESSION_ID, DEAD_PREFIX).entrySet().stream()
                 .filter(e -> e.getKey().startsWith(DEAD_PREFIX))
                 .map(e -> parse(e.getValue().value()))
                 .filter(Objects::nonNull)
@@ -65,9 +65,9 @@ final class WebhookOutbox {
         this.store = Objects.requireNonNull(store, "store");
         this.capacity = capacity;
         long maxSeq = 0;
-        for (Map.Entry<String, StateEntry> e : store.getAll(SESSION_ID).entrySet()) {
-            if (e.getKey().startsWith(OUTBOX_PREFIX) || e.getKey().startsWith(DEAD_PREFIX)) {
-                OutboxRecord r = parse(e.getValue().value());
+        for (String prefix : new String[]{OUTBOX_PREFIX, DEAD_PREFIX}) {
+            for (StateEntry entry : store.scanByPrefix(SESSION_ID, prefix).values()) {
+                OutboxRecord r = parse(entry.value());
                 if (r != null) {
                     maxSeq = Math.max(maxSeq, r.seq());
                 }
@@ -91,8 +91,7 @@ final class WebhookOutbox {
 
     /** 到期记录（nextAttemptAt <= now，按 seq 升序，limit 截断）。损坏记录就地隔离为死信。 */
     List<OutboxRecord> due(Instant now, int limit) {
-        return store.getAll(SESSION_ID).entrySet().stream()
-                .filter(e -> e.getKey().startsWith(OUTBOX_PREFIX))
+        return store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).entrySet().stream()
                 .map(e -> Map.entry(e.getKey(), parse(e.getValue().value())))
                 .filter(e -> {
                     if (e.getValue() == null) {
@@ -125,9 +124,7 @@ final class WebhookOutbox {
     }
 
     int pendingCount() {
-        return (int) store.getAll(SESSION_ID).keySet().stream()
-                .filter(k -> k.startsWith(OUTBOX_PREFIX))
-                .count();
+        return store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).size();
     }
 
     private StateEntry entry(OutboxRecord record) {
