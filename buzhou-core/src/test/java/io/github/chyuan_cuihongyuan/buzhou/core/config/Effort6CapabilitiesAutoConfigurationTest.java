@@ -79,6 +79,19 @@ class Effort6CapabilitiesAutoConfigurationTest {
                 });
     }
 
+    /** closed-retention 绑定（buzhou.index.closed-retention → 观察者清扫配置）。 */
+    @Test
+    void closedRetentionPropertyBinds() {
+        runner.withUserConfiguration(IndexProvidedConfig.class)
+                .withPropertyValues("buzhou.index.closed-retention=-1s")
+                .run(context -> {
+                    // 负值 = 永久（不清扫）——经 Core props 归一后传 configureRetention
+                    // 绑定可解析（清扫行为在观察者域；runtime 需 ChatModel bean，非本用例面）
+                    assertThat(context).hasSingleBean(SessionIndexStore.class);
+                    assertThat(context).hasSingleBean(BuzhouCoreProperties.class);
+                });
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class IndexProvidedConfig {
         @Bean

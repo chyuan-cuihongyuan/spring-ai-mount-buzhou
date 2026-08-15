@@ -139,6 +139,12 @@
         "reason": "outbox 持久化取代内存队列（spec 24 / T103）。",
         "replacement": "buzhou.webhook.outbox-capacity"
       }
+    },
+    {
+      "name": "buzhou.index.closed-retention",
+      "type": "java.time.Duration",
+      "defaultValue": "30d",
+      "description": "索引 CLOSED/DELETED 行保留期（spec 37 §C）：过期惰性清扫（1/64 概率、单次 ≤256 条、ACTIVE 永不扫）；-1/0 = 永久保留。"
     }
   ],
   "hints": [

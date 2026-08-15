@@ -30,6 +30,7 @@
 - [T145 examples 演示第二批](tickets/T145-examples-demo-2.md) — 检索两步发现/死信运维重放/迁移演练三用例（ToolResponse 断言口径注记）。
 - [T146 runbook 第四轮](tickets/T146-runbook-4.md) — 死信一键化/保留期调优/迁移步骤/health 两面解读。
 - [T147 CONTEXT/api-surface 增补](tickets/T147-context-api-addendum.md) — 术语节 6 条 + effort#8 公共面（含 closed-retention 属性绑定补遗：Core 第 3 参 + 兼容构造）。
+- [T148 配置元数据增补](tickets/T148-config-metadata-2.md) — buzhou.index.closed-retention 入档 + 绑定验证用例。
 
 ## Not yet specified
 
