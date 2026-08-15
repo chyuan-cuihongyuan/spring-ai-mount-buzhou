@@ -145,6 +145,18 @@
       "type": "java.time.Duration",
       "defaultValue": "30d",
       "description": "索引 CLOSED/DELETED 行保留期（spec 37 §C）：过期惰性清扫（1/64 概率、单次 ≤256 条、ACTIVE 永不扫）；-1/0 = 永久保留。"
+    },
+    {
+      "name": "buzhou.store.read-degrade",
+      "type": "java.lang.String",
+      "defaultValue": "off",
+      "description": "spec 40 §B（T156）：消息历史读失败策略——off=原样上抛（默认，Turn 失败）；empty=降级空历史续聊（WARN + buzhou.stores.read-degraded 计数可感；模型看不到历史是已知代价）。非法值启动即拒。"
+    },
+    {
+      "name": "buzhou.webhook.close-drain-timeout",
+      "type": "java.time.Duration",
+      "defaultValue": "5s",
+      "description": "spec 44 §A（T159）：webhook 停机排空已到期记录的预算（与容器终止宽限期对齐）；非正值启动即拒。"
     }
   ],
   "hints": [

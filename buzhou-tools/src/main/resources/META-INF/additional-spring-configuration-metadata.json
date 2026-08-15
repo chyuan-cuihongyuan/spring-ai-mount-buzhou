@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "buzhou.tools.run-command.max-output-bytes",
+      "type": "java.lang.Long",
+      "defaultValue": 5242880,
+      "description": "spec 43 §A（T157）：run_command 输出内存兜底上限（OOM 防护层；截断带标记可见）。缺省 5MB；非正值启动即拒。上下文治理归 spill offload，两层互不替代。"
+    }
+  ]
+}

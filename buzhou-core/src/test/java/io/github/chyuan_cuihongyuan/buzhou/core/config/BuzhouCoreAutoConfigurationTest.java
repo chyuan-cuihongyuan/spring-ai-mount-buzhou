@@ -73,6 +73,24 @@ class BuzhouCoreAutoConfigurationTest {
                 .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig.DEFAULT_CAPACITY);
     }
 
+    /** spec 40 §B / T167：buzhou.store.read-degrade 经 kebab-case 绑定 + Holder 下发 + 非法值 fail-fast。 */
+    @Test
+    void shouldBindReadDegradePolicy_whenPropertyConfigured() {
+        runner.withPropertyValues("buzhou.store.read-degrade=empty")
+                .run(ctx -> {
+                    BuzhouCoreProperties properties = ctx.getBean(BuzhouCoreProperties.class);
+                    assertThat(properties.store().readDegradePolicy())
+                            .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy.EMPTY);
+                    // 初始化 bean 已把策略写入全局 Holder
+                    assertThat(io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder.get())
+                            .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy.EMPTY);
+                    io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder
+                            .set(io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy.OFF);
+                });
+        runner.withPropertyValues("buzhou.store.read-degrade=maybe")
+                .run(ctx -> assertThat(ctx).hasFailed());
+    }
+
     /** impl-33：buzhou.lease-ttl / buzhou.lease-renew-interval 经 kebab-case 绑定生效。 */
     @Test
     void shouldBindLeaseParameters_whenKebabPropertiesConfigured() {

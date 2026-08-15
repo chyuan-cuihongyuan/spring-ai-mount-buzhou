@@ -52,6 +52,11 @@
       "type": "java.time.Duration",
       "defaultValue": "30s",
       "description": "impl-40 策略轮询间隔；配 0s 关闭轮询（仅启动加载）。"
+    },
+    {
+      "name": "buzhou.guard.audit.signing.key-dir",
+      "type": "java.lang.String",
+      "description": "spec 41 §A（T153）：审计签名密钥目录（v<version>.pem 约定命名扫描；运行期轮换新钥重启自动入环；非空即启用轮换持久化——写而后切）。"
     }
   ],
   "hints": [

@@ -37,6 +37,7 @@
 - [T164 examples 演示第三批](tickets/T164-demo-3.md) — 加密开关对照/单飞快速失败/读降级续聊三演示。
 - [T165 runbook 第五轮](tickets/T165-runbook-5.md) — 四症状/四键/升级三段（密钥管理、迁移防护、审计轮换与外锚）。
 - [T166 CONTEXT/api-surface 增补](tickets/T166-context-api-9.md) — 术语节 8 条 + effort#9 公共面（含四处破坏性变更入档）。
+- [T167 配置元数据第三批](tickets/T167-metadata-3.md) — 五键入档（含 tools 新建元数据）+ read-degrade 绑定验证。
 
 ## Not yet specified
 
