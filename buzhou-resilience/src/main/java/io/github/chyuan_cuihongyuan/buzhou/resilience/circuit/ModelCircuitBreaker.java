@@ -31,6 +31,12 @@ import java.util.stream.Collectors;
  * 调用抛 {@link ModelCircuitOpenException}；冷却后放行单探测进 HALF_OPEN——探测 FAILURE 回 OPEN
  * （重计冷却），SUCCESS/IGNORED 回 CLOSED（窗口重置）。半开探测带超时逃生（探测调用卡死不锁死熔断器）。
  *
+ * <p><b>冷却自适应（spec 25 / T104 / impl-79）</b>：连续跳闸（探测失败回 OPEN 不复位）驱动冷却
+ * 指数退避——冷却 = {@code open-cooldown × min(2^(trips-1), backoff-cap)}（cap 默认 8）；
+ * 半开探测成功回 CLOSED 即 trips=0 复位。反复跳闸场景下避免「冷却→探测→立刻再跳」的无效循环
+ * 放大故障传导。跳闸事件 payload 携带 {@code consecutiveTrips} 与生效 {@code openDurationMs}；
+ * 指标 {@code buzhou.resilience.circuit-backoff-multiplier}（按 model 分桶 gauge）。
+ *
  * <p>线程安全：每模型一把监视器锁（模型调用频率下无争用热点；正确性优先）。
  */
 public final class ModelCircuitBreaker {
@@ -122,6 +128,10 @@ public final class ModelCircuitBreaker {
         private Instant openedAt;
         private Instant halfOpenSince;
         private boolean probeInFlight;
+        /** 连续跳闸次数（探测成功回 CLOSED 复位为 0；spec 25 / T104）。 */
+        private int consecutiveTrips;
+        /** 本次跳闸的生效冷却（base × 退避倍数；CLOSED 复位为 base）。 */
+        private long effectiveCooldownMs;
         /** 计数窗口：true=失败样本（ring buffer，满窗移出最老）。 */
         private boolean[] window;
         private int samples;
@@ -130,26 +140,28 @@ public final class ModelCircuitBreaker {
         ModelCircuit(String modelName) {
             this.modelName = modelName;
             this.window = new boolean[config.windowSize()];
+            this.effectiveCooldownMs = config.openCooldown().toMillis();
             metrics().gauge("buzhou.resilience.circuit-open",
                     () -> snapshotState() == CircuitState.OPEN ? 1 : 0, "model", modelName);
+            metrics().gauge("buzhou.resilience.circuit-backoff-multiplier",
+                    this::backoffMultiplier, "model", modelName);
         }
 
         synchronized Admission admit(Consumer<SessionEvent> emitter) {
             switch (state) {
                 case OPEN:
-                    if (elapsedSince(openedAt).compareTo(config.openCooldown()) >= 0) {
+                    if (elapsedSince(openedAt).toMillis() >= effectiveCooldownMs) {
                         transition(CircuitState.HALF_OPEN, emitter);
                         probeInFlight = true;
                         halfOpenSince = Instant.now();
                         return Admission.admit();
                     }
-                    long remaining = Math.max(0,
-                            config.openCooldown().toMillis() - elapsedSince(openedAt).toMillis());
+                    long remaining = Math.max(0, effectiveCooldownMs - elapsedSince(openedAt).toMillis());
                     return Admission.reject(CircuitState.OPEN, remaining);
                 case HALF_OPEN:
                     if (probeInFlight && elapsedSince(halfOpenSince).compareTo(probeEscapeAfter()) < 0) {
                         // 探测占位中：并发调用拒绝（只放一个探测，防半开打爆刚恢复的 provider）。
-                        return Admission.reject(CircuitState.HALF_OPEN, config.openCooldown().toMillis());
+                        return Admission.reject(CircuitState.HALF_OPEN, effectiveCooldownMs);
                     }
                     // 探测超时逃生：上次探测调用卡死（未走到终态记录），重置占位重放行。
                     probeInFlight = true;
@@ -202,26 +214,47 @@ public final class ModelCircuitBreaker {
             state = to;
             resetWindow();
             if (to == CircuitState.OPEN) {
+                consecutiveTrips++;
+                long multiplier = config.backoffMultiplier(consecutiveTrips);
+                effectiveCooldownMs = config.openCooldown().toMillis() * multiplier;
                 openedAt = Instant.now();
                 probeInFlight = false;
                 if (stats != null) {
                     stats.recordCircuitTrip(modelName);
+                    stats.updateCircuitBackoff(modelName, multiplier);
                 }
                 metrics().counter("buzhou.resilience.circuit-tripped", "model", modelName);
                 LOGGER.log(System.Logger.Level.WARNING,
                         "模型熔断器跳闸：model=" + modelName + "，" + from + " → OPEN（冷却 "
-                                + config.openCooldown().toMillis() + "ms）");
-            } else if (to == CircuitState.CLOSED && from != CircuitState.CLOSED) {
-                LOGGER.log(System.Logger.Level.INFO,
-                        "模型熔断器恢复：model=" + modelName + "，" + from + " → CLOSED");
+                                + effectiveCooldownMs + "ms，连续第 " + consecutiveTrips
+                                + " 次，退避 ×" + multiplier + "）");
+            } else if (to == CircuitState.CLOSED) {
+                consecutiveTrips = 0;
+                effectiveCooldownMs = config.openCooldown().toMillis();
+                if (from != CircuitState.CLOSED) {
+                    LOGGER.log(System.Logger.Level.INFO,
+                            "模型熔断器恢复：model=" + modelName + "，" + from + " → CLOSED");
+                }
             }
             if (stats != null) {
                 stats.updateCircuitState(modelName, to);
             }
             if (emitter != null && from != to) {
-                emitter.accept(new SessionEvent(EVENT_STATE_CHANGED,
-                        Map.of("modelName", modelName, "from", from.name(), "to", to.name()), Instant.now()));
+                Map<String, Object> payload = new java.util.LinkedHashMap<>();
+                payload.put("modelName", modelName);
+                payload.put("from", from.name());
+                payload.put("to", to.name());
+                if (to == CircuitState.OPEN) {
+                    payload.put("consecutiveTrips", consecutiveTrips);
+                    payload.put("openDurationMs", effectiveCooldownMs);
+                }
+                emitter.accept(new SessionEvent(EVENT_STATE_CHANGED, payload, Instant.now()));
             }
+        }
+
+        /** 当前退避倍数（观测/指标用；CLOSED 复位后为 1）。 */
+        synchronized long backoffMultiplier() {
+            return config.backoffMultiplier(Math.max(1, consecutiveTrips));
         }
 
         private void resetWindow() {
@@ -231,7 +264,7 @@ public final class ModelCircuitBreaker {
         }
 
         private Duration probeEscapeAfter() {
-            return config.openCooldown().multipliedBy(2);
+            return Duration.ofMillis(effectiveCooldownMs * 2);
         }
 
         private Duration elapsedSince(Instant since) {

@@ -1,6 +1,6 @@
 ---
 Type: task
-Status: open
+Status: closed
 ---
 ## Question
 
@@ -15,3 +15,9 @@ AFK 自决（授权同 effort #5，可推翻）：
 3. **半开成功率阈值：不做二级自适应**——保持 T81 单探测口径（一次探测成功即 CLOSE）；恢复置信度多探测是 resilience4j halfOpenAdmitted... 的复杂度档，本仓单 Agent 场景收益不抵状态机复杂度。文档记录为 fog（若未来多探测，在此之上加）。
 4. **指标/事件**：跳闸事件 payload 增 `consecutiveTrips`、`openDurationMs`（实际生效值）；`ResilienceStats` 增 `circuitBackoffMultiplier`（gauge，按 model 分桶）。
 5. **与降级链交互**：自适应冷却完全局部于各 model 的熔断器实例（主备各自退避），T82「主模型 OPEN 恒触发降级」语义不变——无需跨熔断器协调。
+
+### 闭合细化（实现期定稿）
+
+- trips 计数在「进入 OPEN」时统一递增（CLOSED→OPEN 首跳=1，HALF_OPEN 探测失败→OPEN 续计），复位仅在回 CLOSED。
+- 生效冷却贯穿 admit/占位拒绝/探测逃生窗口；`Circuit` record 保留 6 参便捷构造（既有调用点零改动）。
+- spec 25 落档；fog 记录「半开多探测/失败率驱动动态阈值」为未来候选。

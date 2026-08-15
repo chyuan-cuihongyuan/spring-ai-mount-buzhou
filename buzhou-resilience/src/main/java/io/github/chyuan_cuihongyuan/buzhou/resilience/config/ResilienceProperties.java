@@ -92,6 +92,8 @@ public record ResilienceProperties(
      * @param openCooldown         OPEN 冷却时长（默认 30s；期满放行单探测进 HALF_OPEN）
      * @param failureCategories    计入失败的类别（默认 {@code [NETWORK, SERVER, TIMEOUT]}；
      *                             RATE_LIMIT/CONTENT/AUTH/UNKNOWN 为 IGNORED 不进窗口）
+     * @param backoffCap           连续跳闸冷却退避倍数上限（默认 8；冷却 = open-cooldown ×
+     *                             min(2^(trips-1), cap)，探测成功即复位——spec 25 / T104）
      */
     public record Circuit(
             Boolean enabled,
@@ -99,7 +101,14 @@ public record ResilienceProperties(
             Integer minCalls,
             Double failureRateThreshold,
             Duration openCooldown,
-            List<String> failureCategories) {
+            List<String> failureCategories,
+            Integer backoffCap) {
+
+        /** 既有 6 参便捷构造（backoffCap 默认，二进制/源码兼容既有调用点）。 */
+        public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
+                Double failureRateThreshold, Duration openCooldown, List<String> failureCategories) {
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories, null);
+        }
 
         public Circuit {
             enabled = enabled == null ? true : enabled;
@@ -124,6 +133,16 @@ public record ResilienceProperties(
             if (openCooldown.isZero() || openCooldown.isNegative()) {
                 throw configError("circuit.open-cooldown", openCooldown.toString(), "设为正时长，如 30s");
             }
+            backoffCap = backoffCap == null ? 8 : backoffCap;
+            if (backoffCap < 1) {
+                throw configError("circuit.backoff-cap", String.valueOf(backoffCap), "设为 >= 1 的整数");
+            }
+        }
+
+        /** 连续跳闸自适应冷却倍数（trips 含本次跳闸；cap 封顶）。 */
+        public long backoffMultiplier(int consecutiveTrips) {
+            long shift = Math.max(0, Math.min(consecutiveTrips - 1, 30));
+            return Math.min(1L << shift, backoffCap);
         }
 
         /** 生效开关（compact ctor 已归一，恒非 null）。 */

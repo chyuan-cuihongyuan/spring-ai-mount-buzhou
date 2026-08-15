@@ -29,6 +29,8 @@ public final class ResilienceStats implements BuzhouHealth {
     private final AtomicReference<String> lastErrorCategory = new AtomicReference<>();
     /** 各模型熔断态（有界：模型名实际有限集）。 */
     private final Map<String, String> circuitStates = new java.util.concurrent.ConcurrentHashMap<>();
+    /** 各模型当前冷却退避倍数（spec 25 / T104；CLOSED 复位后为 1）。 */
+    private final Map<String, Long> circuitBackoff = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Override
     public String mechanism() {
@@ -56,6 +58,9 @@ public final class ResilienceStats implements BuzhouHealth {
         details.put("quotaRejections", quotaRejections.get());
         if (!circuitStates.isEmpty()) {
             details.put("circuitStates", new LinkedHashMap<>(circuitStates));
+        }
+        if (!circuitBackoff.isEmpty()) {
+            details.put("circuitBackoff", new LinkedHashMap<>(circuitBackoff));
         }
         String category = lastErrorCategory.get();
         if (category != null) {
@@ -101,6 +106,11 @@ public final class ResilienceStats implements BuzhouHealth {
     /** 模型熔断态快照更新（有界枚举值字符串）。 */
     public void updateCircuitState(String modelName, Object state) {
         circuitStates.put(modelName, String.valueOf(state));
+    }
+
+    /** 冷却退避倍数快照更新（spec 25 / T104 / impl-79）。 */
+    public void updateCircuitBackoff(String modelName, long multiplier) {
+        circuitBackoff.put(modelName, multiplier);
     }
 
     /** 降级切换成功一次（impl-57）。 */

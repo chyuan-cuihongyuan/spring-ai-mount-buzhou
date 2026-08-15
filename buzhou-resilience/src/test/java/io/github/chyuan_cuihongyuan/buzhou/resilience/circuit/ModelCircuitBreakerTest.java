@@ -26,6 +26,96 @@ class ModelCircuitBreakerTest {
                 Duration.ofMillis(cooldownMs), null);
     }
 
+    private static ResilienceProperties.Circuit circuit(int window, int minCalls, double threshold,
+            long cooldownMs, int backoffCap) {
+        return new ResilienceProperties.Circuit(null, window, minCalls, threshold,
+                Duration.ofMillis(cooldownMs), null, backoffCap);
+    }
+
+    /** 首次跳闸冷却 = base（倍数 1，既有行为不变）。 */
+    private static long firstTripRemainingMs(ModelCircuitBreaker breaker) {
+        try {
+            breaker.beforeCall("m", SINK);
+            return 0;
+        } catch (ModelCircuitOpenException e) {
+            return e.retryIn().toMillis();
+        }
+    }
+
+    /** min-calls=3 配置的跳闸 helper（3 次失败样本）。 */
+    private static void tripMin3(ModelCircuitBreaker breaker) {
+        breaker.recordTerminal("m", "NETWORK", SINK);
+        breaker.recordTerminal("m", "NETWORK", SINK);
+        breaker.recordTerminal("m", "NETWORK", SINK);
+    }
+
+    private static long remainingMs(ModelCircuitBreaker breaker) {
+        try {
+            breaker.beforeCall("m", SINK);
+            return 0;
+        } catch (ModelCircuitOpenException e) {
+            return e.retryIn() == null ? -1 : e.retryIn().toMillis();
+        }
+    }
+
+    // ---- 冷却自适应（spec 25 / T104 / impl-79） ----
+
+    /** 连续探测失败：第二次跳闸冷却翻倍（base 100ms → 200ms），事件 payload 携带 trips/生效时长。 */
+    @Test
+    void repeatedProbeFailureDoublesCooldown() throws Exception {
+        java.util.List<SessionEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        Consumer<SessionEvent> capture = events::add;
+        ModelCircuitBreaker breaker = new ModelCircuitBreaker(circuit(10, 3, 0.5, 100, 8), null);
+
+        tripMin3(breaker); // trips=1 → 冷却 100ms
+        assertThat(breaker.state("m")).isEqualTo(CircuitState.OPEN);
+        Thread.sleep(120);
+        breaker.beforeCall("m", capture); // 冷却过半 → HALF_OPEN 探测
+        breaker.recordTerminal("m", "NETWORK", capture); // 探测失败 → trips=2 → 冷却 200ms
+
+        long remaining = remainingMs(breaker);
+        assertThat(remaining).isBetween(150L, 200L);
+
+        SessionEvent openEvent = events.stream()
+                .filter(e -> e.type().equals(ModelCircuitBreaker.EVENT_STATE_CHANGED))
+                .filter(e -> "OPEN".equals(e.payload().get("to")))
+                .reduce((a, b) -> b).orElseThrow();
+        assertThat(openEvent.payload().get("consecutiveTrips")).isEqualTo(2);
+        assertThat(openEvent.payload().get("openDurationMs")).isEqualTo(200L);
+    }
+
+    /** 半开探测成功回 CLOSED：trips 复位，再跳闸冷却回 base。 */
+    @Test
+    void probeSuccessResetsBackoff() throws Exception {
+        ModelCircuitBreaker breaker = new ModelCircuitBreaker(circuit(10, 3, 0.5, 100, 8), null);
+
+        tripMin3(breaker);
+        Thread.sleep(120);
+        breaker.beforeCall("m", SINK);
+        breaker.recordSuccess("m", SINK); // 探测成功 → CLOSED，trips=0
+        assertThat(breaker.state("m")).isEqualTo(CircuitState.CLOSED);
+
+        tripMin3(breaker); // trips=1 → 冷却回 base 100ms
+        assertThat(firstTripRemainingMs(breaker)).isBetween(50L, 100L);
+    }
+
+    /** backoff-cap 封顶：cap=2 时第三次跳闸冷却仍 ×2（不 ×4）。 */
+    @Test
+    void backoffCapLimitsMultiplier() throws Exception {
+        ModelCircuitBreaker breaker = new ModelCircuitBreaker(circuit(10, 3, 0.5, 100, 2), null);
+
+        tripMin3(breaker); // trips=1 → 100ms
+        Thread.sleep(120);
+        breaker.beforeCall("m", SINK);
+        breaker.recordTerminal("m", "NETWORK", SINK); // trips=2 → 200ms（min(2, cap=2)）
+        Thread.sleep(210);
+        breaker.beforeCall("m", SINK);
+        breaker.recordTerminal("m", "NETWORK", SINK); // trips=3 → min(4, 2)=2 → 200ms
+
+        assertThat(remainingMs(breaker)).isBetween(150L, 200L);
+    }
+
+
     // ---- 跳闸：失败率口径 ----
 
     /** 失败样本 ≥ min-calls 且失败率 ≥ 阈值 → OPEN；后续调用前置闸直接拒绝。 */
