@@ -43,6 +43,7 @@
 - [T178 错误码统一收口](tickets/T178-error-codes.md) — 新码 3 个 + 外部可见面渐进迁移（spill IO 9/技能管理 4/todo/SHA 2）；断言类 ISE 保留面钉住；spec 50 §A。
 - [T179 退避 jitter 补全](tickets/T179-backoff-jitter.md) — outbox/policy 轮询退避 ±25% 抖动（确定性 seam 三点钉边界）；spec 50 §B。
 - [T180 未订阅流计数残留](tickets/T180-unsubscribed-stream.md) — stream 轮次占用惰性化（Flux.defer；未订阅零占用）；复订阅/单飞闸语义钉住；spec 50 §C。
+- [T181 黄金轨迹 F](tickets/T181-golden-f.md) — G22 反馈捕获/G23 金丝雀稳定/G24 shadow 隔离三轨迹；spec 51 §A。
 
 ## Not yet specified
 
