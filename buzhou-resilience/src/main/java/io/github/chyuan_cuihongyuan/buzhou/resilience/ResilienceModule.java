@@ -102,6 +102,29 @@ public final class ResilienceModule {
                 limiter = null;
             }
         }
+        // spec 49 §B / T177：remaining 水位 gauge（按已知模型名集合注册，避免基数无界）
+        if (limiter != null) {
+            final ModelRateLimiter gaugeLimiter = limiter;
+            java.util.List<String> knownModels = new java.util.ArrayList<>();
+            if (modelName != null && !modelName.isBlank()) {
+                knownModels.add(modelName);
+            }
+            if (fallbacks != null) {
+                fallbacks.forEach(f -> knownModels.add(f.name()));
+            }
+            if (shadowModels != null) {
+                shadowModels.forEach(m -> knownModels.add(m.name()));
+            }
+            for (String m : knownModels) {
+                for (String dim : List.of(ModelRateLimiter.DIMENSION_RPM, ModelRateLimiter.DIMENSION_TPM)) {
+                    io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                            .gauge("buzhou.resilience.ratelimit.remaining",
+                                    () -> gaugeLimiter.remainingRatio(m, dim),
+                                    "model", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(m),
+                                    "dimension", dim);
+                }
+            }
+        }
         FallbackChain fallbackChain = fallbacks != null && !fallbacks.isEmpty()
                 ? new FallbackChain(fallbacks, properties.fallback())
                 : null;
@@ -201,7 +224,7 @@ public final class ResilienceModule {
             ModelCallInFlight inFlight = new ModelCallInFlight();
             ResilienceAdvisor advisor = new ResilienceAdvisor(
                     properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName,
-                    fallback, shadow);
+                    fallback, shadow, limiter);
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

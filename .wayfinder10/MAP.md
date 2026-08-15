@@ -39,6 +39,7 @@
 - [T174 反馈导出与评估衔接](tickets/T174-feedback-export.md) — FeedbackExporter（core.feedback 段 + negative 极性 + negativeTurnSeqs 汇总；空段缺席）；往返保真；spec 48 §A。
 - [T175 加权金丝雀降级链](tickets/T175-weighted-canary.md) — canary-enabled + weights 会话稳定哈希加权分流（同会话粘住）；目标失败按链序回退含原主模型；默认关零变化；spec 48 §B。
 - [T176 shadow fork 探测](tickets/T176-shadow-fork.md) — 主成功后异步裸调用对照（不重放工具循环；并发+日预算护栏；默认关）；shadow.compared 事件；spec 49 §A。
+- [T177 模型池 TPM/RPM 配额](tickets/T177-model-pool-quota.md) — 降级/金丝雀候选统一过限流闸+按实际服务模型记账 TPM；remaining gauge；外层锁步与双账并存诚实入档；spec 49 §B。
 
 ## Not yet specified
 

@@ -84,6 +84,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback;
     /** shadow 探测（spec 49 §A / T176）：null = 未启用。 */
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
+    /** 候选级限流闸（spec 49 §B / T177）：null = 未配置（候选调用不限流，既有行为）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter candidateLimiter;
 
     public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
                              Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
@@ -123,6 +125,19 @@ public class ResilienceAdvisor implements BaseAdvisor {
                              String modelName,
                              io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback,
                              io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow) {
+        this(config, classifier, emitter, deadlineExecutor, inFlight, stats, circuit, modelName,
+                fallback, shadow, null);
+    }
+
+    /** spec 49 §A/§B 全参：+ shadow + 候选级限流闸（null = 候选不限流）。 */
+    public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
+                             Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
+                             ModelCallInFlight inFlight, ResilienceStats stats,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit,
+                             String modelName,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter candidateLimiter) {
         this.config = config;
         this.classifier = classifier;
         this.emitter = emitter == null ? event -> {
@@ -138,6 +153,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
         this.modelName = modelName == null ? "unknown" : modelName;
         this.fallback = fallback;
         this.shadow = shadow;
+        this.candidateLimiter = candidateLimiter;
     }
 
     @Override
@@ -235,6 +251,12 @@ public class ResilienceAdvisor implements BaseAdvisor {
         if (target == null) {
             return doAdviseCall(request, callChain); // 配置竞态防御：目标已不在链上走主路径
         }
+        if (!tryAcquireCandidateQuota(targetName)) {
+            // 金丝雀目标配额尽：按链序回退（与目标失败同路，category 标配额维度）
+            return degradeFromCanary(request, callChain, targetName, "RATE_LIMIT",
+                    new io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException(
+                            targetName, "RPM+TPM", Duration.ZERO));
+        }
         if (circuit != null) {
             try {
                 circuit.beforeCall(targetName, emitter);
@@ -248,6 +270,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
             if (circuit != null) {
                 circuit.recordSuccess(targetName, emitter);
             }
+            recordCandidateUsage(targetName, response);
             return response;
         } catch (RuntimeException e) {
             String category = e instanceof ModelCallTimeoutException
@@ -257,6 +280,46 @@ public class ResilienceAdvisor implements BaseAdvisor {
             }
             return degradeFromCanary(request, callChain, targetName, category, e);
         }
+    }
+
+    /**
+     * spec 49 §B / T177：候选级限流闸——拒绝时计既有 rate-limit-rejected 家族 + 跳过
+     * （不视作模型故障入熔断窗）；未配置限流器恒放行。
+     */
+    private boolean tryAcquireCandidateQuota(String candidateName) {
+        if (candidateLimiter == null) {
+            return true;
+        }
+        try {
+            candidateLimiter.acquireOrThrow(candidateName, emitter);
+            return true;
+        } catch (io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException e) {
+            metrics().counter("buzhou.resilience.rate-limit-rejected",
+                    "model", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(candidateName));
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "候选模型限流拒绝，跳到下一级：candidate=" + candidateName);
+            return false;
+        }
+    }
+
+    /** spec 49 §B / T177：候选成功后按实际 usage 记账 TPM（缺失留痕沿既有口径）。 */
+    private void recordCandidateUsage(String candidateName, ChatClientResponse response) {
+        if (candidateLimiter == null) {
+            return;
+        }
+        Long tokens = null;
+        if (response != null && response.chatResponse() != null
+                && response.chatResponse().getMetadata() != null
+                && response.chatResponse().getMetadata().getUsage() != null) {
+            var usage = response.chatResponse().getMetadata().getUsage();
+            if (usage.getTotalTokens() != null) {
+                tokens = usage.getTotalTokens().longValue();
+            } else if (usage.getPromptTokens() != null || usage.getCompletionTokens() != null) {
+                tokens = (usage.getPromptTokens() == null ? 0L : usage.getPromptTokens().longValue())
+                        + (usage.getCompletionTokens() == null ? 0L : usage.getCompletionTokens().longValue());
+            }
+        }
+        candidateLimiter.recordUsage(candidateName, tokens, emitter);
     }
 
     /** 金丝雀目标终态失败后的链序回退：候选 = [主模型 + 备模型链] 跳过已试目标，单次尝试。 */
@@ -276,6 +339,9 @@ public class ResilienceAdvisor implements BaseAdvisor {
                     () -> new ChatClientResponse(fb.model().call(request.prompt()), request.context())));
         }
         for (Candidate candidate : candidates) {
+            if (!tryAcquireCandidateQuota(candidate.name())) {
+                continue;
+            }
             if (circuit != null) {
                 try {
                     circuit.beforeCall(candidate.name(), emitter);
@@ -290,6 +356,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 if (circuit != null) {
                     circuit.recordSuccess(candidate.name(), emitter);
                 }
+                recordCandidateUsage(candidate.name(), response);
                 if (stats != null) {
                     stats.recordFallbackSwitch();
                 }
@@ -331,6 +398,9 @@ public class ResilienceAdvisor implements BaseAdvisor {
             throw primaryError;
         }
         for (io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel fb : fallback.models()) {
+            if (!tryAcquireCandidateQuota(fb.name())) {
+                continue;
+            }
             if (circuit != null) {
                 try {
                     circuit.beforeCall(fb.name(), emitter);
@@ -345,6 +415,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 if (circuit != null) {
                     circuit.recordSuccess(fb.name(), emitter);
                 }
+                recordCandidateUsage(fb.name(), response);
                 if (stats != null) {
                     stats.recordFallbackSwitch();
                 }

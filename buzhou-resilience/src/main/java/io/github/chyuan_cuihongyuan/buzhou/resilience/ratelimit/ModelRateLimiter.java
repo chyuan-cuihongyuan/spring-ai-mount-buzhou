@@ -133,6 +133,26 @@ public final class ModelRateLimiter {
         bucket.recordTpm(tokens);
     }
 
+    /**
+     * spec 49 §B / T177：模型桶剩余水位探针（0..1；未启用该维度/无桶返回 1）。
+     * gauge 注册侧按已知模型名集合调用，避免基数无界。
+     */
+    public double remainingRatio(String modelName, String dimension) {
+        Bucket bucket = buckets.get(modelName);
+        if (bucket == null) {
+            return 1.0;
+        }
+        if (DIMENSION_RPM.equals(dimension)) {
+            return bucket.rpmBucket == null ? 1.0
+                    : Math.clamp(bucket.rpmBucket.available() / bucket.rpmCapacity, 0.0, 1.0);
+        }
+        if (DIMENSION_TPM.equals(dimension)) {
+            return bucket.tpmBucket == null ? 1.0
+                    : Math.clamp(bucket.tpmBucket.available() / bucket.tpmCapacity, 0.0, 1.0);
+        }
+        return 1.0;
+    }
+
     // ---- 单模型令牌桶 ----
 
     private static final class Bucket {
