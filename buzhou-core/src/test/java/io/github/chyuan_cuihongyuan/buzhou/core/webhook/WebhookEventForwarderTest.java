@@ -166,6 +166,28 @@ class WebhookEventForwarderTest {
         assertThat(forwarder.deadLetters()).hasSize(1);
     }
 
+    /** 死信重放（spec 37 §B / T133）：耗尽死信 → 端点恢复 → replayDeadLetters 一键补投。 */
+    @Test
+    void replaysDeadLettersAfterEndpointRecovers() throws Exception {
+        Collector collector = new Collector();
+        collector.status = 500;
+        startServer(collector);
+        forwarder = newForwarder(new InMemorySessionStateStore(), null, 2, 100);
+
+        forwarder.onEvent(SessionEvent.of("will.die", Map.of()));
+        await(() -> forwarder.deadLettered() == 1);
+        assertThat(forwarder.deadLetters()).hasSize(1);
+        int deadAtFirst = forwarder.deadLetters().size();
+
+        collector.status = 200; // 端点恢复
+        assertThat(forwarder.replayDeadLetters()).isEqualTo(1);
+        await(() -> forwarder.delivered() == 1);
+        await(() -> forwarder.pendingCount() == 0);
+        assertThat(forwarder.deadLetters()).isEmpty(); // 死信区清空
+        assertThat(collector.received.peek().body()).contains("will.die"); // 消费端终见事件
+        assertThat(deadAtFirst).isEqualTo(1);
+    }
+
     // ---- helpers ----
 
     private WebhookEventForwarder newForwarder(SessionStateStore store, String secret,

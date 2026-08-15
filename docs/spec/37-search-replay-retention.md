@@ -10,3 +10,10 @@
   无命中给可操作提示（换关键词/查绑定）。
 - 绑定可见性沿用 `BindingVisibility`（会话不可见技能不出结果）；
   SkillModule.configure() 自动注册（与 load_skill 同列）。
+
+## §B webhook 死信重放（T133 / impl-106）
+
+- `WebhookEventForwarder.replayDeadLetters()`：死信迁回 outbox（attempts 清零、seq 续新、
+  立即可投递）并 nudge 分发器；返回重放条数（outbox 容量满则部分重放）。
+- 投递语义回到常规 at-least-once（可能再死信——消费端幂等键契约内）；损坏死信在重放时丢弃。
+- runbook §2 处置更新：死信处置从「按 eventId 消费端补录」升级为一键重放。

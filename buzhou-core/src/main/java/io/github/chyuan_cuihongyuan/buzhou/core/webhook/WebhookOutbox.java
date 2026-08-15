@@ -127,6 +127,28 @@ final class WebhookOutbox {
         return store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).size();
     }
 
+    /** spec 37 §B / T133 / impl-106：死信迁回 outbox（attempts=0、立即可投递）；容量满则停。 */
+    synchronized int requeueDead(int limit) {
+        int requeued = 0;
+        for (Map.Entry<String, StateEntry> e : store.scanByPrefix(SESSION_ID, DEAD_PREFIX).entrySet()) {
+            if (requeued >= limit || pendingCount() >= capacity) {
+                break;
+            }
+            OutboxRecord dead = parse(e.getValue().value());
+            store.delete(SESSION_ID, e.getKey());
+            if (dead == null) {
+                continue; // 损坏死信：丢弃（已在隔离期暴露过）
+            }
+            long now = System.currentTimeMillis();
+            store.put(SESSION_ID, new StateEntry(OUTBOX_PREFIX + dead.eventId(),
+                    toJson(new OutboxRecord(dead.eventId(), dead.type(), dead.body(),
+                            seq.incrementAndGet(), 0, now, dead.createdAtEpochMs())),
+                    "webhook-outbox", 0, null, Instant.now()));
+            requeued++;
+        }
+        return requeued;
+    }
+
     private StateEntry entry(OutboxRecord record) {
         return new StateEntry(OUTBOX_PREFIX + record.eventId(), toJson(record),
                 "webhook-outbox", 0, null, Instant.now());

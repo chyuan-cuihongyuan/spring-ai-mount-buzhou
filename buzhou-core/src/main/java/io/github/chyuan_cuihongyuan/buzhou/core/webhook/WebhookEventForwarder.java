@@ -252,6 +252,22 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         return outbox.pendingCount();
     }
 
+    /**
+     * spec 37 §B / T133 / impl-106：一键重放全部死信（迁回 outbox、attempts 清零、
+     * 立即触发投递）。投递语义回到常规（可能再死信——消费端幂等键去重契约内）。
+     *
+     * @return 本次重放的条数（容量满则部分重放）
+     */
+    public int replayDeadLetters() {
+        int requeued = outbox.requeueDead(Integer.MAX_VALUE);
+        if (requeued > 0) {
+            nudge.release();
+            LOGGER.log(System.Logger.Level.INFO,
+                    "webhook 死信重放 " + requeued + " 条（attempts 清零，立即重投）");
+        }
+        return requeued;
+    }
+
     public Duration timeout() {
         return props.timeout();
     }
