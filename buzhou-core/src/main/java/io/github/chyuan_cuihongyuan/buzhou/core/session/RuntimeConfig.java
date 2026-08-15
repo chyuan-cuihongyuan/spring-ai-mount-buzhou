@@ -19,7 +19,8 @@ public record RuntimeConfig(
         List<SessionResourceCustomizer> sessionCustomizers,
         List<SessionAssemblyCustomizer> assemblyCustomizers,
         TurnLoopPolicy turnLoopPolicy,
-        List<SessionCleanupContributor> sessionCleanupContributors) {
+        List<SessionCleanupContributor> sessionCleanupContributors,
+        List<SessionForkListener> forkListeners) {
 
     public RuntimeConfig {
         hooks = hooks == null ? List.of() : List.copyOf(hooks);
@@ -31,6 +32,7 @@ public record RuntimeConfig(
         assemblyCustomizers = assemblyCustomizers == null ? List.of() : List.copyOf(assemblyCustomizers);
         sessionCleanupContributors = sessionCleanupContributors == null
                 ? List.of() : List.copyOf(sessionCleanupContributors);
+        forkListeners = forkListeners == null ? List.of() : List.copyOf(forkListeners);
     }
 
     /** impl-35 前的 9 槽形状（无清理贡献者）——保留委托，源 / 二进制兼容。 */
@@ -41,7 +43,20 @@ public record RuntimeConfig(
                          List<SessionAssemblyCustomizer> assemblyCustomizers,
                          TurnLoopPolicy turnLoopPolicy) {
         this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
-                sessionCustomizers, assemblyCustomizers, turnLoopPolicy, List.of());
+                sessionCustomizers, assemblyCustomizers, turnLoopPolicy, List.of(), List.of());
+    }
+
+    /** impl-80 前的 10 槽形状（无 fork 监听器）——保留委托，源 / 二进制兼容。 */
+    public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
+                         Set<String> idempotentToolNames, MemoryViewProcessor viewProcessor,
+                         List<ToolCallback> autoTools, Map<String, String> serialGroups,
+                         List<SessionResourceCustomizer> sessionCustomizers,
+                         List<SessionAssemblyCustomizer> assemblyCustomizers,
+                         TurnLoopPolicy turnLoopPolicy,
+                         List<SessionCleanupContributor> sessionCleanupContributors) {
+        this(hooks, disabledHookNames, idempotentToolNames, viewProcessor, autoTools, serialGroups,
+                sessionCustomizers, assemblyCustomizers, turnLoopPolicy, sessionCleanupContributors,
+                List.of());
     }
 
     public RuntimeConfig(List<BuzhouHook> hooks, Set<String> disabledHookNames,
@@ -111,6 +126,12 @@ public record RuntimeConfig(
                 List.of(), null, contributors);
     }
 
+    /** 仅含 fork 监听器（spec 26 / T105 / impl-80——fork 复制完成后的旁路登记）。 */
+    public static RuntimeConfig forkListeners(List<SessionForkListener> listeners) {
+        return new RuntimeConfig(List.of(), Set.of(), Set.of(), null, List.of(), Map.of(), List.of(),
+                List.of(), null, List.of(), listeners);
+    }
+
     public static RuntimeConfig merge(RuntimeConfig... configs) {
         List<BuzhouHook> hooks = new java.util.ArrayList<>();
         Set<String> disabled = new java.util.HashSet<>();
@@ -121,6 +142,7 @@ public record RuntimeConfig(
         List<SessionResourceCustomizer> customizers = new java.util.ArrayList<>();
         List<SessionAssemblyCustomizer> assemblyCustomizers = new java.util.ArrayList<>();
         List<SessionCleanupContributor> cleanupContributors = new java.util.ArrayList<>();
+        List<SessionForkListener> forkListeners = new java.util.ArrayList<>();
         TurnLoopPolicy turnLoopPolicy = null;
         for (RuntimeConfig config : configs) {
             if (config == null) {
@@ -137,12 +159,14 @@ public record RuntimeConfig(
             customizers.addAll(config.sessionCustomizers());
             assemblyCustomizers.addAll(config.assemblyCustomizers());
             cleanupContributors.addAll(config.sessionCleanupContributors());
+            forkListeners.addAll(config.forkListeners());
             if (config.turnLoopPolicy() != null) {
                 turnLoopPolicy = config.turnLoopPolicy();
             }
         }
         return new RuntimeConfig(hooks, disabled, idempotent, compose(viewProcessors), autoTools,
-                serialGroups, customizers, assemblyCustomizers, turnLoopPolicy, cleanupContributors);
+                serialGroups, customizers, assemblyCustomizers, turnLoopPolicy, cleanupContributors,
+                forkListeners);
     }
 
     /**

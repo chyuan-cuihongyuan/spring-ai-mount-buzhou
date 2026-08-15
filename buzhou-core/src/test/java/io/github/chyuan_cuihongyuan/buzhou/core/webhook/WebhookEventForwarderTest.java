@@ -81,9 +81,8 @@ class WebhookEventForwarderTest {
 
         forwarder.onEvent(SessionEvent.of("retry.me", Map.of()));
 
-        await(() -> !collector.received.isEmpty());
+        await(() -> forwarder.delivered() == 1); // 服务端先收到、端上后计数——以端上为准
         assertThat(collector.hits).isEqualTo(2); // 1 次失败 + 1 次成功
-        assertThat(forwarder.delivered()).isEqualTo(1);
         assertThat(forwarder.failed()).isZero();
         assertThat(forwarder.deadLetters()).isEmpty();
     }

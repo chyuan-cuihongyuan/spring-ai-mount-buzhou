@@ -187,6 +187,18 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 .ifPresent(summary -> stores.summaryStore().save(newSessionId, summary));
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.session.forks");
+        // spec 26 / T105 / impl-80：fork 监听器——store 外会话关联数据（spill 证据引用）登记；
+        // 复制已完成，登记失败只 WARN 不回滚（降级为无引用登记的安全态）。
+        for (io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener listener
+                : config.forkListeners()) {
+            try {
+                listener.onForked(sourceSessionId, newSessionId);
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "fork 监听器登记失败（listener=" + listener.getClass().getSimpleName()
+                                + "，source=" + sourceSessionId + "）：" + e.getMessage());
+            }
+        }
         if (session instanceof DefaultAgentSession concrete) {
             concrete.dispatchEventInternal(SessionEvent.of(
                     "session.forked", java.util.Map.of("sourceSessionId", sourceSessionId)));

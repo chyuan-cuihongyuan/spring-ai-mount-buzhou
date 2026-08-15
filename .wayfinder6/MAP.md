@@ -23,6 +23,7 @@
 
 - [T103 webhook 持久化 outbox](tickets/T103-webhook-durable-outbox.md) — SessionStateStore 合成会话键空间（`__buzhou.webhook__`）承载 outbox/dead；emit 同步入队、到期轮询投递、成功即删、记录级持久退避、max-attempts（默认 8）死信隔离可查询；at-least-once + 幂等键契约不变；spec 24。
 - [T104 熔断冷却自适应退避](tickets/T104-adaptive-half-open.md) — 连续跳闸驱动冷却指数退避（×2^(trips-1) 封顶 backoff-cap 默认 8），探测成功即复位；生效冷却贯穿 admit/占位/逃生；事件 payload + gauge + stats 快照；首跳行为零变化；spec 25。
+- [T105 fork 证据归属与生命周期](tickets/T105-fork-evidence-lifecycle.md) — 引用计数共享：fork 登记引用（持久账本 .evidence-refs.json）、源删除被引用证据保留、最后引用者关闭物理删、TTL/孤儿扫描门控、悬垂读 EVIDENCE_GONE；core forkListeners 第 11 槽；spec 26。
 
 ## Not yet specified
 

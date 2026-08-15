@@ -88,7 +88,11 @@ public final class SpillModule {
                 List.of((registry, appId, agentName, sessionId) ->
                         registry.register("spill-cleanup",
                                 () -> store.deleteBySession(
-                                        sanitize(agentName), sanitize(sessionId)))));
+                                        sanitize(agentName), sanitize(sessionId)))),
+                List.of(), null, List.of(),
+                // spec 26 / T105 / impl-80：fork 证据引用登记——fork 存活期间源证据不物理删
+                List.of((sourceSessionId, newSessionId) ->
+                        store.acquireSessionReferences(sourceSessionId, newSessionId)));
     }
 
     private String sanitize(String component) {

@@ -42,6 +42,31 @@ class SessionForkEndToEndTest {
         branch.close();
     }
 
+    /** fork 监听器（spec 26 / T105 / impl-80）：复制完成后回调；监听器异常不使 fork 失败。 */
+    @Test
+    void forkListenersInvokedAfterCopyAndFailureTolerated() {
+        ScriptedChatModel model = new ScriptedChatModel();
+        model.enqueueText("a1");
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        List<String> calls = new CopyOnWriteArrayList<>();
+        RuntimeConfig config = RuntimeConfig.merge(RuntimeConfig.defaults(),
+                RuntimeConfig.forkListeners(List.of(
+                        (src, forked) -> calls.add(src + "->" + forked),
+                        (src, forked) -> {
+                            throw new IllegalStateException("登记失败（应被吞掉）");
+                        })));
+        AgentRuntime runtime = Buzhou.runtime(model, stores, config);
+
+        AgentSession source = runtime.spawn("app", "agent", "sess-src");
+        source.chat("q1");
+        source.close();
+
+        AgentSession branch = runtime.fork("sess-src", "app", "agent", "sess-branch");
+        assertThat(calls).containsExactly("sess-src->sess-branch"); // 正常回调已执行
+        assertThat(stores.messageStore().load("sess-branch")).isNotEmpty(); // fork 不因监听器失败回滚
+        branch.close();
+    }
+
     /** 分支独立演化：分支续写不影响源会话消息历史。 */
     @Test
     void branchesEvolveIndependently() {

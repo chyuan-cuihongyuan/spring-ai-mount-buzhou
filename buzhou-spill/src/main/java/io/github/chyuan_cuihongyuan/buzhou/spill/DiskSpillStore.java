@@ -18,6 +18,7 @@ public class DiskSpillStore implements SpillStore {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String DATA_SUFFIX = ".spill";
     private static final String META_SUFFIX = ".meta";
+    private static final System.Logger LOGGER = System.getLogger(DiskSpillStore.class.getName());
 
     private final Path rootDir;
 
@@ -29,6 +30,9 @@ public class DiskSpillStore implements SpillStore {
             io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakHandle> leakHandles =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /** spec 26 / T105 / impl-80：证据引用账本（fork 引用计数共享——最后引用者关闭）。 */
+    private final EvidenceRefLedger refLedger;
+
     public DiskSpillStore(Path rootDir) {
         this(rootDir, SpillQuota.unbounded());
     }
@@ -36,6 +40,7 @@ public class DiskSpillStore implements SpillStore {
     public DiskSpillStore(Path rootDir, SpillQuota quota) {
         this.rootDir = rootDir;
         this.quota = quota == null ? SpillQuota.unbounded() : quota;
+        this.refLedger = new EvidenceRefLedger(rootDir);
     }
 
     @Override
@@ -138,14 +143,21 @@ public class DiskSpillStore implements SpillStore {
                         if (live.contains(sessionDir.getFileName().toString())) {
                             continue;
                         }
+                        int retained = 0;
                         try (Stream<Path> files = Files.list(sessionDir)) {
                             for (Path file : files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).toList()) {
+                                if (!refLedger.referrers(uriOf(file)).isEmpty()) {
+                                    retained++; // fork 仍引用（属主会话已亡）：物理保留
+                                    continue;
+                                }
                                 deleteQuietly(file);
                                 deleteQuietly(Path.of(file.toString().replace(DATA_SUFFIX, META_SUFFIX)));
                                 deleted++;
                             }
                         }
-                        deleteQuietly(sessionDir);
+                        if (retained == 0) {
+                            deleteQuietly(sessionDir);
+                        }
                     }
                 }
             }
@@ -196,11 +208,17 @@ public class DiskSpillStore implements SpillStore {
                             ReadIntegrity.CORRUPTION_WARNING + "\n"
                                     + RangeReadEngine.read(content, request).content(),
                             content.length(), false, null))
-                    .orElse(new RangeReadResult("spill 不存在或已被清理：" + uri, 0, false, null));
+                    .orElse(new RangeReadResult(
+                        "EVIDENCE_GONE：spill 证据已被清理（" + uri + "）——该证据可能属已删除会话"
+                                + "且无引用保留。请基于对话摘要重建所需信息，或重新执行生成该数据的工具。",
+                        0, false, null));
         }
         return load(uri)
                 .map(content -> RangeReadEngine.read(content, request))
-                .orElse(new RangeReadResult("spill 不存在或已被清理：" + uri, 0, false, null));
+                .orElse(new RangeReadResult(
+                        "EVIDENCE_GONE：spill 证据已被清理（" + uri + "）——该证据可能属已删除会话"
+                                + "且无引用保留。请基于对话摘要重建所需信息，或重新执行生成该数据的工具。",
+                        0, false, null));
     }
 
     @Override
@@ -220,6 +238,7 @@ public class DiskSpillStore implements SpillStore {
 
     @Override
     public void delete(SpillUri uri) {
+        refLedger.remove(uri.toString());
         closeLeakHandle(dataPath(uri));
         deleteQuietly(dataPath(uri));
         deleteQuietly(metaPath(uri));
@@ -233,25 +252,59 @@ public class DiskSpillStore implements SpillStore {
         }
     }
 
+    /**
+     * 会话级联删除（spec 26 / T105 引用感知）：①该会话持有的全部引用摘除——引用集清空
+     * 的证据（属主早已删除、被本会话引用保留至今）此刻物理删；②属主目录内文件——仍有
+     * 其他会话引用（fork 存活）则保留 + WARN，否则物理删；目录空了才移除。
+     */
     @Override
     public int deleteBySession(String agentName, String sessionId) {
+        int count = 0;
+        // ① 延迟物理删：本会话是最后引用者的证据
+        for (String uri : refLedger.releaseAllFor(sessionId)) {
+            try {
+                delete(SpillUri.parse(uri));
+                count++;
+            } catch (IllegalArgumentException ignored) {
+                // 账本 uri 与磁盘形态不一致（历史数据）：跳过
+            }
+        }
+        // ② 属主目录清理（引用门控）
         Path sessionDir = rootDir.resolve(agentName).resolve(sessionId);
         if (!Files.isDirectory(sessionDir)) {
-            return 0;
+            return count;
         }
-        int[] count = {0};
         try (Stream<Path> files = Files.list(sessionDir)) {
-            files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).forEach(p -> {
+            int retained = 0;
+            for (Path p : files.filter(f -> f.toString().endsWith(DATA_SUFFIX)).toList()) {
+                String uri = uriOf(p);
+                if (!refLedger.referrers(uri).isEmpty()) {
+                    retained++;
+                    continue; // fork 仍引用：物理保留（最后引用者关闭时删）
+                }
                 closeLeakHandle(p);
                 deleteQuietly(p);
                 deleteQuietly(Path.of(p.toString().replace(DATA_SUFFIX, META_SUFFIX)));
-                count[0]++;
-            });
-            Files.deleteIfExists(sessionDir);
+                refLedger.remove(uri);
+                count++;
+            }
+            if (retained == 0) {
+                Files.deleteIfExists(sessionDir);
+            } else {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "spill 会话删除保留 " + retained + " 个仍被引用的证据文件（fork 存活）：" + sessionDir);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return count[0];
+        return count;
+    }
+
+    /** 从数据文件路径反推 uri（目录名即 sanitize 后的 agent/session，文件名即 toolCallId）。 */
+    private String uriOf(Path dataFile) {
+        return "spill://" + dataFile.getParent().getParent().getFileName() + "/"
+                + dataFile.getParent().getFileName() + "/"
+                + dataFile.getFileName().toString().replace(DATA_SUFFIX, "");
     }
 
     @Override
@@ -271,7 +324,9 @@ public class DiskSpillStore implements SpillStore {
                 ObjectNode meta = (ObjectNode) MAPPER.readTree(Files.readString(metaPath));
                 boolean linked = meta.path("linked").asBoolean(false);
                 Instant createdAt = Instant.parse(meta.path("createdAt").asText());
-                if (!linked && createdAt.plus(ttl).isBefore(now)) {
+                String uri = uriOf(Path.of(metaPath.toString().replace(META_SUFFIX, DATA_SUFFIX)));
+                boolean referenced = !refLedger.referrers(uri).isEmpty();
+                if (!linked && !referenced && createdAt.plus(ttl).isBefore(now)) {
                     closeLeakHandle(Path.of(metaPath.toString().replace(META_SUFFIX, DATA_SUFFIX)));
                     deleteQuietly(metaPath);
                     deleteQuietly(Path.of(metaPath.toString().replace(META_SUFFIX, DATA_SUFFIX)));
@@ -290,6 +345,40 @@ public class DiskSpillStore implements SpillStore {
 
     public Path dataPathOf(SpillUri uri) {
         return dataPath(uri);
+    }
+
+    /**
+     * spec 26 / T105 / impl-80：fork 引用登记——sessionId 的全部证据（任意 agent 目录下）
+     * 为 referrer 增加引用。按 sessionId 全根扫描（会话目录名全局唯一约定），免 agentName 传递。
+     */
+    public int acquireSessionReferences(String sessionId, String referrerSessionId) {
+        String dirName = SpillModule.sanitizeComponent(sessionId);
+        int acquired = 0;
+        if (!Files.isDirectory(rootDir)) {
+            return 0;
+        }
+        try (Stream<Path> agents = Files.list(rootDir)) {
+            for (Path agentDir : agents.filter(Files::isDirectory).toList()) {
+                Path sessionDir = agentDir.resolve(dirName);
+                if (!Files.isDirectory(sessionDir)) {
+                    continue;
+                }
+                try (Stream<Path> files = Files.list(sessionDir)) {
+                    for (Path file : files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).toList()) {
+                        refLedger.acquire(uriOf(file), SpillModule.sanitizeComponent(referrerSessionId));
+                        acquired++;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return acquired;
+    }
+
+    /** 观测/测试：证据当前引用会话集合（空集 = 无引用登记）。 */
+    public java.util.Set<String> evidenceReferrers(SpillUri uri) {
+        return refLedger.referrers(uri.toString());
     }
 
     private Path dataPath(SpillUri uri) {
