@@ -47,3 +47,12 @@
 | spill 加密往返 | 64KB 载荷 AES-GCM store+load 单次 | ~8ms | 150ms |
 | 单飞闸开销 | 串行轮次进出闸（CAS 占位/释放） | <1ms | 5ms |
 | 读降级路径 | EMPTY 策略读失败→空历史 | <1ms | 10ms |
+
+## effort #10 增补哨兵（T183 / impl-152；2026-08-16 首轮实测）
+
+| 哨兵 | 场景 | 首轮 P95 | 硬顶 |
+|------|------|---------|------|
+| TTFT 打点开销 | 带打点的流式端到端消费（spawn→stream→blockLast） | <5ms | 50ms |
+| rateTurn 写入 | 单次反馈（校验+state put+事件） | <1ms | 20ms |
+| 候选限流闸 | RPM 预检+扣减单次 | <0.1ms | 5ms |
+| shadow 提交 | submit 即发即忘（护栏+虚拟线程启动） | <1ms | 20ms |

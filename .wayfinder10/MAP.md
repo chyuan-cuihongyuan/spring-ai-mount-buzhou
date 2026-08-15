@@ -45,6 +45,7 @@
 - [T180 未订阅流计数残留](tickets/T180-unsubscribed-stream.md) — stream 轮次占用惰性化（Flux.defer；未订阅零占用）；复订阅/单飞闸语义钉住；spec 50 §C。
 - [T181 黄金轨迹 F](tickets/T181-golden-f.md) — G22 反馈捕获/G23 金丝雀稳定/G24 shadow 隔离三轨迹；spec 51 §A。
 - [T182 红队对抗四批](tickets/T182-redteam-surface4.md) — 反馈伪造/shadow 泄漏/配额绕过/漂移观察档 + 跳级唯一性与粘性对抗断言；spec 51 §B。
+- [T183 perf 哨兵四批](tickets/T183-perf-4.md) — TTFT 打点/rateTurn/候选闸/shadow 提交四哨兵（首轮全 <5ms）+ baseline 落档；spec 51 §C。
 
 ## Not yet specified
 
