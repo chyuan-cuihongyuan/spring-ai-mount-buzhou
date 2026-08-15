@@ -17,6 +17,8 @@ import java.time.Duration;
  * @param outboxCapacity  持久化 outbox 未决记录容量（默认 10_000；满则拒入 + 计数，不阻塞主链）
  * @param queueCapacity   <b>已废弃 no-op</b>（spec 24 起投递前暂存持久化，内存队列移除）；
  *                        显式配置时启动 WARN 提示迁移 outbox-capacity
+ * @param closeDrainTimeout spec 44 §A / T159：close 时已到期记录排空预算（默认 5s；未到期
+ *                        退避记录仍留存 store 待重启恢复）
  */
 @ConfigurationProperties(prefix = "buzhou.webhook")
 public record BuzhouWebhookProperties(
@@ -25,13 +27,33 @@ public record BuzhouWebhookProperties(
         Duration timeout,
         Integer maxAttempts,
         Integer outboxCapacity,
-        Integer queueCapacity) {
+        Integer queueCapacity,
+        Duration closeDrainTimeout) {
+
+    /** 兼容构造（close-drain-timeout 未配置面）。 */
+    public BuzhouWebhookProperties(String url, String secret, Duration timeout,
+            Integer maxAttempts, Integer outboxCapacity, Integer queueCapacity) {
+        this(url, secret, timeout, maxAttempts, outboxCapacity, queueCapacity, null);
+    }
+
+    /** spec 44 §A：close 排空预算生效值（null/非正 → 默认 5s）。 */
+    public Duration effectiveCloseDrainTimeout() {
+        return closeDrainTimeout == null || !closeDrainTimeout.isPositive()
+                ? Duration.ofSeconds(5) : closeDrainTimeout;
+    }
 
     private static final System.Logger LOGGER = System.getLogger(BuzhouWebhookProperties.class.getName());
 
+    /** 多构造器场景下显式指定规范构造器为绑定构造器（6 参兼容构造不参与绑定）。 */
+    @org.springframework.boot.context.properties.bind.ConstructorBinding
     public BuzhouWebhookProperties {
         if (timeout == null || timeout.isZero() || timeout.isNegative()) {
             timeout = Duration.ofSeconds(5);
+        }
+        if (closeDrainTimeout != null && !closeDrainTimeout.isPositive()) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                    "buzhou.webhook.close-drain-timeout（" + closeDrainTimeout + "）非法",
+                    "正时长（null = 默认 5s）");
         }
         if (maxAttempts == null) {
             maxAttempts = 8;

@@ -29,6 +29,7 @@
 - [T156 消息读失败降级](tickets/T156-read-degrade.md) — ReadDegradePolicy/Holder + loadHistory 统一路由（EMPTY=WARN+计数+空历史；OFF 默认上抛不变）+ read-degrade 属性 fail-fast；spec 42 §B。
 - [T157 命令执行资源限额](tickets/T157-command-limits.md) — 勘察纠偏（强杀/兜底已有）后缩窄：输出内存兜底上限可配（七参构造 + max-output-bytes 属性）+ 截断语义钉住；rlimit/cgroup 出界；spec 43 §A。
 - [T158 配置校验补全](tickets/T158-config-validation.md) — runaway/backpressure 全键 fail-fast + webhook 静默回退改显式拒绝（pre-1.0 破坏性变更入档）；null=不限语义保留；spec 43 §B。
+- [T159 停机排空补全](tickets/T159-shutdown-drain.md) — SleepTimeScheduler 优雅 close（有界排空→硬截断）+ webhook close-drain-timeout 可配 + 在途/到期排空语义钉住；spec 44 §A。
 
 ## Not yet specified
 

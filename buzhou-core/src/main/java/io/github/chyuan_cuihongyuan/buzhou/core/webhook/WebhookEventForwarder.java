@@ -125,9 +125,10 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         }
     }
 
-    /** 优雅关闭：限时 5s 排空「已到期」记录；未到期退避记录留存 store，由下次启动恢复。 */
+    /** 优雅关闭：限时（可配 close-drain-timeout，默认 5s）排空「已到期」记录；未到期退避记录留存 store，由下次启动恢复。 */
     private void drainDueBeforeClose() {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        long deadline = System.nanoTime()
+                + TimeUnit.MILLISECONDS.toNanos(props.effectiveCloseDrainTimeout().toMillis());
         while (System.nanoTime() < deadline && !outbox.due(Instant.now(), 1).isEmpty()) {
             processDueBatch();
         }
@@ -219,7 +220,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         closing = true;
         nudge.release();
         try {
-            stopped.await(5, TimeUnit.SECONDS);
+            stopped.await(props.effectiveCloseDrainTimeout().toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

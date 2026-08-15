@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -43,6 +44,8 @@ public final class SleepTimeScheduler implements AutoCloseable {
     private final int maxPendingPerSession;
     private final java.time.Duration backoffBase;
     private final java.time.Duration backoffCap;
+    /** spec 44 §A / T159：close 优雅排空预算（缺省 5s）。 */
+    private final java.time.Duration closeGrace;
     /** impl-38：超限丢弃的累计任务数（丢弃不静默——测试与运维可断言）。 */
     private final AtomicLong droppedTasks = new AtomicLong();
 
@@ -53,6 +56,14 @@ public final class SleepTimeScheduler implements AutoCloseable {
     /** 测试可注入短退避节奏（base/cap 任意正 Duration）。 */
     public SleepTimeScheduler(int maxPendingPerSession, java.time.Duration backoffBase,
                               java.time.Duration backoffCap) {
+        this(maxPendingPerSession, backoffBase, backoffCap, java.time.Duration.ofSeconds(5));
+    }
+
+    /** spec 44 §A / T159 / impl-130：带 close 优雅排空预算构造（非正回退 5s）。 */
+    public SleepTimeScheduler(int maxPendingPerSession, java.time.Duration backoffBase,
+                              java.time.Duration backoffCap, java.time.Duration closeGrace) {
+        this.closeGrace = closeGrace == null || !closeGrace.isPositive()
+                ? java.time.Duration.ofSeconds(5) : closeGrace;
         this.maxPendingPerSession = Math.max(1, maxPendingPerSession);
         this.backoffBase = backoffBase == null || backoffBase.isZero() || backoffBase.isNegative()
                 ? java.time.Duration.ofSeconds(1) : backoffBase;
@@ -146,8 +157,21 @@ public final class SleepTimeScheduler implements AutoCloseable {
         }
     }
 
+    /**
+     * spec 44 §A / T159 / impl-130：优雅关闭——先 shutdown 排空在途整理任务（有界等待，缺省 5s、
+     * 构造可调），超时再 shutdownNow 硬截断。修前 shutdownNow 直接丢弃 pending 摘要任务
+     * （Lifecycle javadoc 自认的遗留）。
+     */
     @Override
     public void close() {
-        virtualExecutor.shutdownNow();
+        virtualExecutor.shutdown();
+        try {
+            if (!virtualExecutor.awaitTermination(closeGrace.toMillis(), TimeUnit.MILLISECONDS)) {
+                virtualExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            virtualExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }
