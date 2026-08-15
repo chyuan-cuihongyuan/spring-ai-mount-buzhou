@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultSessionEventContext;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.MediaRef;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.StructuredOutputException;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultTurnContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
@@ -211,13 +212,19 @@ public class DefaultAgentSession implements AgentSession {
 
     @Override
     public String chat(String input) {
+        return chat(input, java.util.List.of());
+    }
+
+    /** 多模态输入（spec 27 / T106 / impl-81）：媒体经 PromptUserSpec 随本轮下发。 */
+    @Override
+    public String chat(String input, java.util.List<MediaRef> media) {
         ensureOpen();
         ensureLeaseHeld();
         ensureNotShuttingDown();
         // impl-30：在途计数（finally 减——任何终结路径均收口，停机排空的裁决源）
         inFlightTurns.incrementAndGet();
         try {
-            return doChat(input);
+            return doChat(input, media);
         } finally {
             inFlightTurns.decrementAndGet();
         }
@@ -230,6 +237,11 @@ public class DefaultAgentSession implements AgentSession {
      */
     @Override
     public <T> T chatForEntity(String input, Class<T> type) {
+        return chatForEntity(input, java.util.List.of(), type);
+    }
+
+    @Override
+    public <T> T chatForEntity(String input, java.util.List<MediaRef> media, Class<T> type) {
         ensureOpen();
         ensureLeaseHeld();
         ensureNotShuttingDown();
@@ -237,7 +249,7 @@ public class DefaultAgentSession implements AgentSession {
         try {
             org.springframework.ai.converter.BeanOutputConverter<T> converter =
                     new org.springframework.ai.converter.BeanOutputConverter<>(type);
-            String first = doChat(input + "\n" + converter.getFormat());
+            String first = doChat(input + "\n" + converter.getFormat(), media);
             String firstError = parseError(first, converter);
             if (firstError == null) {
                 return converter.convert(first);
@@ -245,7 +257,7 @@ public class DefaultAgentSession implements AgentSession {
             dispatchEvent(SessionEvent.of("structured.reask"));
             String second = doChat(input + "\n" + converter.getFormat()
                     + "\n[系统反馈] 你上一次的输出无法解析（" + firstError
-                    + "）。请只输出一个符合上述格式的 JSON，不要包含任何其他文本或代码块标记。");
+                    + "）。请只输出一个符合上述格式的 JSON，不要包含任何其他文本或代码块标记。", media);
             String secondError = parseError(second, converter);
             if (secondError == null) {
                 return converter.convert(second);
@@ -256,6 +268,20 @@ public class DefaultAgentSession implements AgentSession {
         } finally {
             inFlightTurns.decrementAndGet();
         }
+    }
+
+    /** spec 27 / T106：用户输入 + 媒体引用组装（无媒体走纯文本，与既有行为零差异）。 */
+    private static java.util.function.Consumer<org.springframework.ai.chat.client.ChatClient.PromptUserSpec>
+    applyMedia(String input, java.util.List<MediaRef> media) {
+        return u -> {
+            u.text(input);
+            if (media != null && !media.isEmpty()) {
+                u.media(media.stream()
+                        .map(ref -> new org.springframework.ai.content.Media(
+                                org.springframework.util.MimeType.valueOf(ref.mimeType()), ref.uri()))
+                        .toArray(org.springframework.ai.content.Media[]::new));
+            }
+        };
     }
 
     /** 解析失败返回错误摘要（成功返回 null）；convert 抛异常 / 返回 null 均视为失败。 */
@@ -282,7 +308,7 @@ public class DefaultAgentSession implements AgentSession {
         return response.length() <= 120 ? response : response.substring(0, 120) + "…";
     }
 
-    private String doChat(String input) {
+    private String doChat(String input, java.util.List<MediaRef> media) {
         int turnSeq = hookEnv.nextTurn();
         long turnStartNanos = System.nanoTime(); // impl-41 / spec 13 §T66：turn.duration
         observers.forEach(o -> o.onTurnStart(turnSeq, input));
@@ -294,7 +320,7 @@ public class DefaultAgentSession implements AgentSession {
         String response;
         try {
             response = callModelWithinBudget(turnSeq, () -> chatClient.prompt()
-                    .user(turnCtx.input())
+                    .user(applyMedia(turnCtx.input(), media))
                     .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                     .call()
                     .content());
@@ -379,6 +405,12 @@ public class DefaultAgentSession implements AgentSession {
 
     @Override
     public Flux<ChatResponse> stream(String input) {
+        return stream(input, java.util.List.of());
+    }
+
+    /** 流式 + 多模态输入（spec 27 / T106 / impl-81）。 */
+    @Override
+    public Flux<ChatResponse> stream(String input, java.util.List<MediaRef> media) {
         ensureOpen();
         ensureLeaseHeld();
         ensureNotShuttingDown();
@@ -394,7 +426,7 @@ public class DefaultAgentSession implements AgentSession {
         }
         StringBuilder replyAccumulator = new StringBuilder();
         Flux<ChatResponse> stream = chatClient.prompt()
-                .user(turnCtx.input())
+                .user(applyMedia(turnCtx.input(), media))
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                 .stream()
                 .chatResponse();

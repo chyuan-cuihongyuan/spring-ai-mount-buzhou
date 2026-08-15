@@ -14,6 +14,15 @@ public interface AgentSession extends AutoCloseable {
     String chat(String input);
 
     /**
+     * 多模态输入（spec 27 / T106 / impl-81）：文本 + 媒体引用（图片/PDF 等，URI 形态）。
+     * 媒体仅随最近一条带媒体的用户消息重发，更早轮次降级为文本标记（token 成本口径
+     * 见 {@link MediaRef#TOKENS_PER_MEDIA}）。默认不支持（显式失败，不静默丢媒体）。
+     */
+    default String chat(String input, java.util.List<MediaRef> media) {
+        throw new UnsupportedOperationException("本 AgentSession 实现不支持多模态输入");
+    }
+
+    /**
      * 结构化输出（spec 19 / T87 / impl-62）：要求模型按 {@code type} 的 JSON schema 输出并解析为
      * 实例。解析失败自动 REASK 一次（携带解析错误反馈的完整轮次，诚实计入预算）；再失败抛
      * {@link StructuredOutputException}。流式不支持（JSON 增量解析语义不明）。
@@ -23,7 +32,18 @@ public interface AgentSession extends AutoCloseable {
                 "本 AgentSession 实现不支持结构化输出（chatForEntity）");
     }
 
+    /** 结构化输出 + 多模态输入（spec 27：媒体随两次尝试全程携带）。 */
+    default <T> T chatForEntity(String input, java.util.List<MediaRef> media, Class<T> type) {
+        throw new UnsupportedOperationException(
+                "本 AgentSession 实现不支持结构化输出（chatForEntity）");
+    }
+
     Flux<ChatResponse> stream(String input);
+
+    /** 流式 + 多模态输入（spec 27；媒体语义同 {@link #chat(String, java.util.List)}）。 */
+    default Flux<ChatResponse> stream(String input, java.util.List<MediaRef> media) {
+        throw new UnsupportedOperationException("本 AgentSession 实现不支持多模态输入");
+    }
 
     /** 取消在途轮次（impl-05）：立即中断在飞工具、丢弃在飞结果；会话不谢幕，可继续 chat。 */
     void cancel();

@@ -1,6 +1,6 @@
 ---
 Type: task
-Status: open
+Status: closed
 ---
 ## Question
 
@@ -15,3 +15,10 @@ AFK 自决（授权同 effort #5，可推翻）：
 3. **存储表示：`SnapshotMessage` 增 `List<MediaRef>` 字段（record 组件追加，构造器兼容 null→空表）**——metadata 约定无 schema 保障，正式字段才能进 store 契约测试；JDBC/Redis 序列化增列/增键。
 4. **token 估算口径：媒体固定计数（图片按尺寸分档：≤512² ≈ 160 tok、≤1024² ≈ 320、更大 ≈ 640；PDF 按页 ×150）**——CharHeuristicTokenEstimator 增媒体档位；口径写入 spec（估算非精确，预算闸按此累计）。
 5. **兼容矩阵**：stream 同签名重载；chatForEntity 委托带媒体重载；压缩管线对媒体消息「不可压缩标记」（带媒体的用户消息不进摘要合并，原文保留——摘要器只处理文本）。
+
+### 闭合细化（实现期定稿）
+
+- **URI-only**：字节直传不入 API（metadata JSON 膨胀 + base64 反模式）；字节由应用侧落存储后引用（spill 化摄取助手记 fog）。原决议「字节走 spill 化 URL」的自动 spill 化降级为应用侧责任。
+- **重发策略实现为「最近一条带媒体消息附媒体重发，更早降级 [历史媒体] 文本标记」**（token 成本核心关切）；mediaRefs 落 BuzhouMessage.metadata（无 schema 变更）。
+- token 口径简化为每媒体固定 320（无尺寸信息，按中位图片档位）。
+- spec 27 落档。

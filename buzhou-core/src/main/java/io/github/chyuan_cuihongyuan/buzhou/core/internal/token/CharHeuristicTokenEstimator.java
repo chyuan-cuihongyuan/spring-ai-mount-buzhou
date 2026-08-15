@@ -33,8 +33,20 @@ public class CharHeuristicTokenEstimator implements TokenEstimator {
     @Override
     public int estimateMessages(List<Message> messages) {
         return messages.stream()
-                .mapToInt(m -> estimate(m.getText()) + 4)
+                .mapToInt(m -> estimate(m.getText()) + 4 + mediaCharge(m))
                 .sum();
+    }
+
+    /**
+     * spec 27 / T106：媒体固定计数（每媒体 {@link io.github.chyuan_cuihongyuan.buzhou.core.session.MediaRef#TOKENS_PER_MEDIA}
+     * ——尺寸未知按中位档位估，预算闸按此累计）。
+     */
+    private int mediaCharge(Message message) {
+        if (message instanceof org.springframework.ai.chat.messages.UserMessage userMessage) {
+            return userMessage.getMedia().size()
+                    * io.github.chyuan_cuihongyuan.buzhou.core.session.MediaRef.TOKENS_PER_MEDIA;
+        }
+        return 0;
     }
 
     @Override

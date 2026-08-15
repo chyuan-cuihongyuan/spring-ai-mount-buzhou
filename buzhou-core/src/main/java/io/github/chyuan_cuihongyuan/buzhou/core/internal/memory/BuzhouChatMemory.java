@@ -74,6 +74,14 @@ public class BuzhouChatMemory implements ChatMemory {
                     ? turnByConversation.get(conversationId).get() : 1;
             stored = viewProcessor.process(conversationId, stored, Math.max(currentTurn, 1));
         }
+        // spec 27 / T106：媒体只随最近一条带媒体消息重发（token 成本控制）；
+        // 更早轮次的带媒体消息降级为文本标记（store 全量保留，语义可回溯）。
+        String lastMediaMessageId = null;
+        for (BuzhouMessage message : stored) {
+            if (message.role() == Role.USER && hasMediaRefs(message)) {
+                lastMediaMessageId = message.id();
+            }
+        }
         List<Message> result = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> pendingToolResponses = new ArrayList<>();
         for (BuzhouMessage message : stored) {
@@ -88,7 +96,7 @@ public class BuzhouChatMemory implements ChatMemory {
                 result.add(ToolResponseMessage.builder().responses(pendingToolResponses).build());
                 pendingToolResponses = new ArrayList<>();
             }
-            result.add(toSpringMessage(message));
+            result.add(toSpringMessage(message, message.id().equals(lastMediaMessageId)));
         }
         if (!pendingToolResponses.isEmpty()) {
             result.add(ToolResponseMessage.builder().responses(pendingToolResponses).build());
@@ -154,15 +162,57 @@ public class BuzhouChatMemory implements ChatMemory {
             Object reasoningContent = assistant.getMetadata().get("reasoningContent");
             reasoning = reasoningContent instanceof String s ? s : null;
         }
+        Map<String, Object> metadata = new HashMap<>(message.getMetadata());
+        if (message instanceof UserMessage userMessage && !userMessage.getMedia().isEmpty()) {
+            // spec 27 / T106：媒体引用持久化（URI 形态，store JSON 列随 metadata 序列化）
+            metadata.put("mediaRefs", userMessage.getMedia().stream()
+                    .map(m -> Map.of("mimeType", String.valueOf(m.getMimeType()),
+                            "uri", String.valueOf(m.getData())))
+                    .toList());
+        }
         return List.of(new BuzhouMessage(
                 UUID.randomUUID().toString(), sessionId, turnSeq, seqInTurn, role,
                 message.getText(), toolCalls, null, reasoning, null,
-                new HashMap<>(message.getMetadata()), Instant.now()));
+                metadata, Instant.now()));
     }
 
-    private Message toSpringMessage(BuzhouMessage message) {
+    private static boolean hasMediaRefs(BuzhouMessage message) {
+        return message.metadata().get("mediaRefs") instanceof List<?> list && !list.isEmpty();
+    }
+
+    private static java.util.List<org.springframework.ai.content.Media> mediaRefsOf(BuzhouMessage message) {
+        if (!(message.metadata().get("mediaRefs") instanceof List<?> list)) {
+            return List.of();
+        }
+        java.util.List<org.springframework.ai.content.Media> media = new ArrayList<>();
+        for (Object item : list) {
+            io.github.chyuan_cuihongyuan.buzhou.core.session.MediaRef ref =
+                    io.github.chyuan_cuihongyuan.buzhou.core.session.MediaRef.fromMetadata(item);
+            if (ref != null) {
+                media.add(new org.springframework.ai.content.Media(
+                        org.springframework.util.MimeType.valueOf(ref.mimeType()), ref.uri()));
+            }
+        }
+        return media;
+    }
+
+    private Message toSpringMessage(BuzhouMessage message, boolean attachMedia) {
         return switch (message.role()) {
-            case USER -> new UserMessage(message.content());
+            case USER -> {
+                java.util.List<org.springframework.ai.content.Media> media = mediaRefsOf(message);
+                if (media.isEmpty()) {
+                    yield new UserMessage(message.content());
+                }
+                if (attachMedia) {
+                    yield UserMessage.builder().text(message.content()).media(media).build();
+                }
+                // 更早轮次：媒体降级为文本标记（模型可知历史曾有媒体及其地址）
+                String marked = message.content() + "\n[历史媒体（本轮未随附）] "
+                        + media.stream()
+                                .map(m -> m.getMimeType() + " " + m.getData())
+                                .reduce((a, b) -> a + "; " + b).orElse("");
+                yield new UserMessage(marked);
+            }
             case SYSTEM -> new SystemMessage(message.content());
             case ASSISTANT -> AssistantMessage.builder()
                     .content(message.content())
