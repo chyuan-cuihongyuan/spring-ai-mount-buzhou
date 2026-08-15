@@ -163,6 +163,20 @@ public class BuzhouCoreAutoConfiguration {
                         io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters::new));
     }
 
+    /**
+     * spec 42 §B / T156 / impl-127：读降级策略初始化——bean 创建即把全局默认写入
+     * {@link io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder}（memory/jdbc/redis
+     * 任何 store 形态都生效）；策略只认 off|empty，非法值在属性构造期 fail-fast。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy buzhouReadDegradePolicy(
+            BuzhouCoreProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy policy =
+                properties.store().readDegradePolicy();
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder.set(policy);
+        return policy;
+    }
+
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "buzhou.store", name = "type", havingValue = "memory", matchIfMissing = true)

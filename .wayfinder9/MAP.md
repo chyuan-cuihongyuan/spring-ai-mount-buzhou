@@ -26,6 +26,7 @@
 - [T153 审计轮换持久化与外锚](tickets/T153-audit-rotation-anchor.md) — rotate 写而后切（PemFileKeyPersister + scanDirectory 重启入环 + signing.key-dir）；VerificationReport headHash/anchorMatched 外锚比对（删尾/重写可检测）；spec 41 §A。
 - [T154 时钟注入面](tickets/T154-clock-injection.md) — 熔断六处 + 配额 todayKey 注入 Clock（三参构造缺省 systemUTC 零变化）；RateLimiter/Advisor 退避/Outbox.due 显式不注入（诚实边界）；spec 41 §B。
 - [T155 迁移器防护](tickets/T155-migrator-guards.md) — 未来版本拒绝（Flyway validateOnMigrate 等价）+ 版本表 checksum 列（存量幂等补列/NULL 回填锚定/篡改拒绝）；spec 42 §A。
+- [T156 消息读失败降级](tickets/T156-read-degrade.md) — ReadDegradePolicy/Holder + loadHistory 统一路由（EMPTY=WARN+计数+空历史；OFF 默认上抛不变）+ read-degrade 属性 fail-fast；spec 42 §B。
 
 ## Not yet specified
 

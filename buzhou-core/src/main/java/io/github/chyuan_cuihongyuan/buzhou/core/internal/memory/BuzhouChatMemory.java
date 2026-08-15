@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class BuzhouChatMemory implements ChatMemory {
 
+    private static final System.Logger LOGGER = System.getLogger(BuzhouChatMemory.class.getName());
+
     private final MessageStore messageStore;
     private DanglingCallRepairer repairer;
     private io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor viewProcessor;
@@ -65,7 +67,7 @@ public class BuzhouChatMemory implements ChatMemory {
 
     @Override
     public List<Message> get(String conversationId) {
-        List<BuzhouMessage> stored = messageStore.load(conversationId);
+        List<BuzhouMessage> stored = loadHistory(conversationId);
         if (repairer != null) {
             stored = repairer.repair(conversationId, stored);
         }
@@ -110,13 +112,13 @@ public class BuzhouChatMemory implements ChatMemory {
     }
 
     private int seedTurn(String conversationId) {
-        return (int) messageStore.load(conversationId).stream()
+        return (int) loadHistory(conversationId).stream()
                 .filter(m -> m.role() == Role.USER)
                 .count();
     }
 
     private int seedSeq(String conversationId) {
-        List<BuzhouMessage> stored = messageStore.load(conversationId);
+        List<BuzhouMessage> stored = loadHistory(conversationId);
         int seq = 0;
         for (int i = stored.size() - 1; i >= 0; i--) {
             if (stored.get(i).role() == Role.USER) {
@@ -125,6 +127,27 @@ public class BuzhouChatMemory implements ChatMemory {
             seq++;
         }
         return seq;
+    }
+
+    /**
+     * spec 42 §B / T156 / impl-127：读历史统一路由——按 {@link io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder}
+     * 全局策略处理读失败：OFF（默认）原样上抛（Turn 失败，既往行为）；EMPTY 降级空历史继续
+     * （WARN + buzhou.stores.read-degraded outcome=empty 计数可感，不静默）。
+     */
+    private List<BuzhouMessage> loadHistory(String conversationId) {
+        try {
+            return messageStore.load(conversationId);
+        } catch (RuntimeException e) {
+            if (io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder.get()
+                    == io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy.EMPTY) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "消息历史读失败，降级空历史继续（sessionId=" + conversationId + "）：", e);
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.stores.read-degraded", "outcome", "empty");
+                return List.of();
+            }
+            throw e;
+        }
     }
 
     private Role roleOf(Message message) {

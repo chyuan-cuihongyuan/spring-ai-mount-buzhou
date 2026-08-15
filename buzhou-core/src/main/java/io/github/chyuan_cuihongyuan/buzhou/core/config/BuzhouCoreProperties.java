@@ -35,7 +35,7 @@ public record BuzhouCoreProperties(String modelName, Store store,
 
     public BuzhouCoreProperties {
         modelName = (modelName == null || modelName.isBlank()) ? "unknown" : modelName;
-        store = store == null ? new Store(null, null) : store;
+        store = store == null ? new Store(null, null, null) : store;
         leaseTtl = (leaseTtl == null || leaseTtl.isZero() || leaseTtl.isNegative())
                 ? DEFAULT_LEASE_TTL : leaseTtl;
         leaseRenewInterval = (leaseRenewInterval == null
@@ -50,10 +50,32 @@ public record BuzhouCoreProperties(String modelName, Store store,
         return leaseRenewInterval != null ? leaseRenewInterval : leaseTtl.dividedBy(3);
     }
 
-    public record Store(String type, InMemory inMemory) {
+    public record Store(String type, InMemory inMemory, String readDegrade) {
+
+        /** 兼容构造（read-degrade 未配置面）。 */
+        public Store(String type, InMemory inMemory) {
+            this(type, inMemory, null);
+        }
+
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public Store {
             type = (type == null || type.isBlank()) ? "memory" : type;
             inMemory = inMemory == null ? new InMemory(null, null, null, null) : inMemory;
+            // spec 42 §B / T156：读降级策略只认 off|empty（缺省 off），非法值 fail-fast
+            if (readDegrade != null && !readDegrade.isBlank()
+                    && !"off".equalsIgnoreCase(readDegrade) && !"empty".equalsIgnoreCase(readDegrade)) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                        "buzhou.store.read-degrade（" + readDegrade + "）非法", "off | empty");
+            }
+            readDegrade = readDegrade == null || readDegrade.isBlank() ? "off"
+                    : readDegrade.toLowerCase(java.util.Locale.ROOT);
+        }
+
+        /** 生效读降级策略。 */
+        public io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy readDegradePolicy() {
+            return "empty".equals(readDegrade)
+                    ? io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy.EMPTY
+                    : io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy.OFF;
         }
 
         /**
