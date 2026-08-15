@@ -1,6 +1,6 @@
 ---
 Type: task
-Status: open
+Status: closed
 ---
 ## Question
 
@@ -14,3 +14,10 @@ AFK 自决（授权同 effort #5，可推翻）：
 2. **断言维度**：`EventSequenceAssert`（收集 SessionEvent 流）支持：类型序列匹配（containsInOrder）、payload 字段路径断言（JsonPath 风格 getter）、间隔约束（事件 A 后必须/不得出现 B）、计数断言。黄金用例 v1 覆盖六大机制各 ≥1：压缩触发、预算拦截、降级链切换、配额重置、熔断恢复、REASK。
 3. **CI 接入：进 ci.yml 常规跑**（黄金集是回归不是性能/对抗，快且该挡）——golden tag 只用于过滤选择，默认包含。
 4. **与夜间门关系**：互不重叠——红队测对抗输入、perf 测时延、golden 测机制行为回归；runbook 告警清单引用黄金集失败语义。
+
+### 闭合细化（实现期定稿）
+
+- 六条轨迹 v1：降级链/预算/配额/熔断恢复/REASK/fork（压缩无会话级事件面，由 buzhou-memory 既有测试承载——fog 事件化后再入集）。
+- 实现期发现两条机制语义并回写 spec：熔断样本按逻辑调用计（非重试次数，G4 min-calls=1 的由来）；session.forked 发往分支会话/全局通道（G6 用 attachGlobal）。
+- EventSequenceAssert 增 attachGlobal（跨会话事件面）。
+- spec 32 落档。

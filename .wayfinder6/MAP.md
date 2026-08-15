@@ -29,6 +29,7 @@
 - [T108 store fsck 一致性校验](tickets/T108-store-fsck.md) — StoreFsck.run 只读对账（四检测项：孤儿摘要/残留 state/泄漏租约/悬挂观测，全集=观测留痕+extras）+ repair 按项可选清除（观测永不自动清）；spec 29 + runbook 引用。
 - [T109 会话索引与枚举](tickets/T109-session-index.md) — SessionIndexStore SPI（upsert/get/list/delete）+ SessionIndexObserver 生命周期维护（最终一致）+ 内存/JDBC V3/Redis 三实现与自动装配；未装配零影响；spec 30。
 - [T110 工具结果尺寸防护](tickets/T110-mcp-result-guard.md) — ToolResultLimiter（默认 20K 字符截断+提示尾，glob per-tool 豁免，read_range 默认豁免）；HarnessToolCallingManager 统一出口 + Holder 全局默认 + buzhou.tools.* 配置；spec 31。
+- [T111 黄金轨迹回归评估](tickets/T111-golden-trajectory-eval.md) — EventSequenceAssert（子序列/间隔/计数/payload，attach+attachGlobal）+ 六条黄金轨迹（降级链/预算/配额/熔断恢复/REASK/fork）；机制语义两发现回写 spec；spec 32。
 
 ## Not yet specified
 
