@@ -107,8 +107,9 @@ public class DefaultAgentSession implements AgentSession {
     static final String MDC_SESSION_ID = "buzhou.sessionId";
     static final String MDC_TURN_SEQ = "buzhou.turnSeq";
 
-    /** spec 47 §B / T173：反馈 state store 键前缀（scanByPrefix 枚举面；导出衔接 T174 消费）。 */
-    static final String FEEDBACK_KEY_PREFIX = "buzhou.feedback.";
+    /** spec 47 §B / T173：反馈 state store 键前缀（单一事实源在 FeedbackExporter）。 */
+    static final String FEEDBACK_KEY_PREFIX =
+            io.github.chyuan_cuihongyuan.buzhou.core.session.FeedbackExporter.FEEDBACK_PREFIX;
 
     /** spec 47 §B / T173：反馈键去重序号（同轮同毫秒多次反馈不撞键）。 */
     private final java.util.concurrent.atomic.AtomicLong feedbackSeq = new java.util.concurrent.atomic.AtomicLong();

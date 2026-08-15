@@ -186,6 +186,20 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 48 §A / T174：turn 反馈导出扩展——自动并入 SessionExport.extensions
+     * （与 memory.facts 同通道；宿主自定义同名 bean 可覆盖）。仅当 store bean 存在时装配
+     * （store.type 拼错等 fail-fast 场景不抢跑、保持既有引导文案）。
+     */
+    @Bean
+    @ConditionalOnBean(BuzhouStores.class)
+    @ConditionalOnMissingBean(io.github.chyuan_cuihongyuan.buzhou.core.session.FeedbackExporter.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.FeedbackExporter buzhouFeedbackExporter(
+            BuzhouStores stores) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.session.FeedbackExporter(
+                stores.sessionStateStore());
+    }
+
+    /**
      * impl-42 / spec 13 §T68：{@code buzhou.store.type} 封闭枚举 fail-fast——拼错值
      * （如 {@code jbdc}）此前会静默落进「无任何 store 装配」的深水区运行时失败；现在
      * 启动即失败并给出可选值与已装模块指引（经 {@link BuzhouStoreFailureAnalyzer} 翻译）。
