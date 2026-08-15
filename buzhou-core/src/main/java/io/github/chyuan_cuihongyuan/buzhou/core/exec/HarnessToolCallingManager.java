@@ -72,6 +72,13 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private volatile io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog;
     /** impl-10 / T35：并行批回喂策略（默认 ALL；FAILED_ONLY 见枚举语义）。 */
     private volatile BatchFeedbackPolicy batchFeedbackPolicy = BatchFeedbackPolicy.ALL;
+    /** spec 31 / T110 / impl-85：工具结果尺寸防护（Holder 默认 20K + read_range 豁免）。 */
+    private volatile ToolResultLimiter resultLimiter = ToolResultLimiterHolder.current();
+
+    /** spec 31：per-session 覆盖限幅器（经 SessionAssemblyContext.toolManager() 注入）。 */
+    public void setResultLimiter(ToolResultLimiter limiter) {
+        this.resultLimiter = limiter == null ? ToolResultLimiter.disabled() : limiter;
+    }
 
     /** impl-10 / T35：批提交回喂策略（LangGraph superstep 修正版语义的显式化）。 */
     public enum BatchFeedbackPolicy {
@@ -255,7 +262,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                         ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
                                 "执行失败：" + cause));
             }
-            responses.add(response);
+            responses.add(resultLimiter.apply(response));
             returnDirect |= isReturnDirect(callbacksByName.get(response.name()));
         }
 

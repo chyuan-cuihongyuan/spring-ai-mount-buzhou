@@ -44,7 +44,8 @@ import java.util.List;
 @EnableConfigurationProperties({BuzhouCoreProperties.class, BuzhouRetentionProperties.class,
         BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class,
         BuzhouTokenBudgetProperties.class,
-        io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class})
+        io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
+        BuzhouToolsProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -61,6 +62,25 @@ public class BuzhouCoreAutoConfiguration {
         return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props,
                 stores != null ? stores.sessionStateStore()
                         : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore());
+    }
+
+    /**
+     * 工具结果限幅器全局默认（spec 31 / T110 / impl-85）：启动期据配置设定 Holder；
+     * 会话装配时 toolManager 从 Holder 取初值（可经 toolManager() per-session 覆盖）。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiter buzhouToolResultLimiter(
+            BuzhouToolsProperties props) {
+        java.util.Map<String, Integer> overrides = new java.util.LinkedHashMap<>();
+        overrides.put("read_range", -1); // spill 自治理豁免（默认档）
+        if (props.resultLimitOverrides() != null) {
+            overrides.putAll(props.resultLimitOverrides());
+        }
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiter limiter =
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiter(
+                        props.resultLimitChars(), overrides);
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiterHolder.set(limiter);
+        return limiter;
     }
 
     // ---- 失控检测与容量闸（impl-45 / spec 14 §A，自分支增量移植）----

@@ -1,6 +1,6 @@
 ---
 Type: task
-Status: open
+Status: closed
 ---
 ## Question
 
@@ -14,3 +14,10 @@ AFK 自决（授权同 effort #5，可推翻）：
 2. **阈值口径：字符数（默认 20_000 chars ≈ 5K token），可配 `buzhou.tools.result-limit-chars`**——token 估算在结果侧多一次全量扫描成本，字符数够近似且零歧义。
 3. **超限行为：截断 + 结构化提示头**——保留头部原文 + `…[结果已截断：原始 N 字符，超出 M。可用 spill 工具分页读取或细化查询]` 提示尾；**不自动转 spill**（自动 spill 需要工具结果与工具调用的关联落盘，M1 复杂度不抵收益，fog 记录）。事件 `tool.result.truncated`（toolName/originalChars/limit）。
 4. **配置粒度：全局阈值 + per-tool 覆盖 map**（`buzhou.tools.result-limit-overrides`，glob 工具名，值=字符数或 -1 禁用）——per-server 粒度需要 server→tool 映射维护，等漂移检测（T86）基线消费成熟再议。
+
+### 闭合细化（实现期定稿）
+
+- 事件降级：截断信号 = 结果内提示尾 + 指标（manager 无事件通道；结果自含信号模型与观测双可见）。
+- 全局默认经 ToolResultLimiterHolder（BuzhouMetricsHolder 同型）；auto-config 启动期灌配置，非 Spring 用户同等默认 20K。
+- overrides 追加式叠加默认 read_range 豁免（同键改值、新键叠加）。
+- spec 31 落档。
