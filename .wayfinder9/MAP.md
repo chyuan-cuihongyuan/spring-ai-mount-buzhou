@@ -32,6 +32,7 @@
 - [T159 停机排空补全](tickets/T159-shutdown-drain.md) — SleepTimeScheduler 优雅 close（有界排空→硬截断）+ webhook close-drain-timeout 可配 + 在途/到期排空语义钉住；spec 44 §A。
 - [T160 观测纪律收口](tickets/T160-metrics-enforcer.md) — MetricTags.bound 截断全落点（circuit gauge/计数 + fallback from/to）+ enforcer dependencyConvergence（json-schema-validator 钉 3.0.1 收口）；spec 44 §B。
 - [T161 黄金轨迹 E](tickets/T161-golden-e.md) — G19 单飞闸/G20 轮换持久化+外锚/G21 加密往返三轨迹（事件面缺席处以可观测 API 断言，口径修正入档）；spec 45 §A。
+- [T162 红队对抗扩展](tickets/T162-redteam-surface3.md) — 静态安全四对抗（密钥错配/密文篡改/记录改写/删尾重写）观察档；检测边界诚实钉住；spec 45 §B。
 
 ## Not yet specified
 

@@ -17,3 +17,18 @@
 
 - examples golden 包（Prior art：GoldenTrajectoryEffort8Test）；G19 用挂起工具驱动在途，
   G20/G21 直驱机制公开面。
+
+## §B 红队对抗扩展（T162 / impl-133——观察档）
+
+静态安全新攻击面的确定性对抗用例（替身模型域外；promptfoo 词汇不可表达——沿用 effort #8
+NewSurfaceAdversarialTest 口径，先观察不进硬门）：
+
+1. **密钥错配**：换钥重启读旧加密文件 → 快速失败（不静默产出脏明文）。
+2. **密文篡改**：磁盘位翻转 → GCM tag 验败快速失败。
+3. **记录改写**：DB 写权限攻击者改写中间记录 → 链断在首个被改记录（firstBreakIndex 定位）。
+4. **删尾/整链重写**：内部一致性自洽场景下，签名与外锚的检测边界诚实钉住——
+   纯内部校验的盲区（删尾 intact）由外锚补检；伪造链头 ≠ 外锚即拒。
+
+### Out of Scope
+
+- 转 nightly 硬门（先观察，稳定后按 baseline 定门——沿用 #8 节奏）。
