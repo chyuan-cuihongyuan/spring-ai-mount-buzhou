@@ -103,6 +103,7 @@ JDBC 部署升级至 V3（会话索引表）由 SchemaMigrator 版本化自动�
 | `buzhou.webhook.dead-letter` | 任意（P2） | 事件进死信（重试耗尽/4xx）——`deadLetters()` 定位 eventId，按需重放 |
 | `buzhou.webhook.dropped` | 任意 | outbox 容量满拒入——下游不可用时长超退避窗口，扩 outbox-capacity 或修下游 |
 | `buzhou.tools.result-truncated` | 窗口速率持续非零 | 工具结果频繁被截断——定位高频工具优化其返回（分页/聚合），或 per-tool 覆盖 |
+| `buzhou.observability.queue.wait` | P95 持续 > 500ms | 观测管线满队阻塞背压（at-least-once 不丢的代价）——store 写入慢：查存储健康/批量参数（spec 39 §B） |
 | `buzhou.mcp.tools-drift` | 任意 | 工具面变更未同步——refresh |
 | `buzhou.mcp.connect.failures` | 持续非零 | MCP server 不可达 |
 | guard 审计链断链 WARN | 任意 | 审计链完整性——立即人工（合规风险） |

@@ -23,6 +23,41 @@ import static org.awaitility.Awaitility.await;
 
 class AsyncObservabilityPipelineTest {
 
+    /**
+     * spec 39 §B / T139 / impl-112：满队语义 = **阻塞背压而非丢弃**——容量 1 +
+     * 慢 store（latch 占住 drain 线程）下，后续入队阻塞等待；释放后全部落库、零丢失。
+     * （语义是 at-least-once 观测不丢——代价是极端慢 store 时主链等待；runbook §7 有
+     * queue.wait 告警口径。）
+     */
+    @Test
+    void fullQueueBlocksRatherThanDrops() throws Exception {
+        RecordingStore store = new RecordingStore();
+        // 容量 1、批 200、长 flush 间隔——drain 由 store latch 占住
+        io.github.chyuan_cuihongyuan.buzhou.observability.ObservabilityConfig config =
+                new io.github.chyuan_cuihongyuan.buzhou.observability.ObservabilityConfig(
+                        true, 200, Duration.ofSeconds(60), Duration.ofSeconds(5),
+                        1, true, null, 32768, true, true, false, null);
+        CountDownLatch hold = new CountDownLatch(1);
+        store.saveLatch = hold;
+        try (AsyncObservabilityPipeline pipeline = new AsyncObservabilityPipeline(store, config, null)) {
+            SpanContext ctx = new SpanContext("s1", "session-bp", 1);
+            pipeline.emit(ctx, EventType.FINAL_REPLY, Map.of("i", 1)); // 占满容量（drain 取走前排后仍被 latch 卡）
+            pipeline.emit(ctx, EventType.FINAL_REPLY, Map.of("i", 2));
+
+            // 第 2 条已入队/阻塞中（drain 被 store 卡住）——再发一条必然阻塞主链
+            Thread producer = new Thread(() ->
+                    pipeline.emit(ctx, EventType.FINAL_REPLY, Map.of("i", 3)));
+            producer.start();
+            Thread.sleep(300);
+            assertThat(producer.isAlive()).isTrue(); // 阻塞在 put（未丢、未吞异常）
+
+            hold.countDown(); // 释放 store
+            producer.join(5_000);
+            pipeline.flush();
+            assertThat(store.events).hasSize(3); // 零丢失
+        }
+    }
+
     @Test
     void flushPersistsSpansAndEvents() {
         RecordingStore store = new RecordingStore();

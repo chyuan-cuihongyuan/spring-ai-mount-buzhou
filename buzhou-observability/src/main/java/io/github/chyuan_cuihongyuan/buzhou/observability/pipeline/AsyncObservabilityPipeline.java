@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 异步批量落库管线（spec 03 异步落库管线）。
  *
  * <p>有界内存队列（默认容量 10000）→ 后台虚拟线程批量 drain → {@link ObservabilityStore}。
+ * <b>满队语义 = 阻塞背压而非丢弃</b>（spec 39 §B：at-least-once 观测不丢；代价是极端慢
+ * store 时入队线程等待——经 {@code buzhou.observability.queue.wait} Timer 可观测）。
  * 批大小（默认 200）或 flush 间隔（默认 1s）先到先触发；会话 close 强制 flush（由
  * {@code ObservabilitySessionState.onClose} → {@link #flush()} 触发）。
  *
