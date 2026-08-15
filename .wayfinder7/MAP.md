@@ -16,6 +16,7 @@
 - [T113 索引 DELETED 联动 + fsck 索引源](tickets/T113-index-delete-fsck.md) — delete() 级联置 DELETED（审计留存；默认列表排除 DELETED，三实现+契约统一）；fsck 全集索引优先/观测回退；spec 33 §B。
 - [T114 outbox 前缀扫描](tickets/T114-outbox-prefix-scan.md) — SessionStateStore.scanByPrefix SPI（JDBC LIKE 下推/Redis 键集合过滤）；WebhookOutbox 四路径改走前缀扫描消全量读放大；spec 33 §C。
 - [T115 memory 压缩事件化](tickets/T115-compaction-events.md) — ivp.setCompactionListener（空折入零通知、lenient）+ MemoryModule 观测双写 memory.compacted（compactedCount/reclaimedChars）；spec 34 §A。
+- [T116 黄金轨迹扩充 A](tickets/T116-golden-effort6-a.md) — GoldenTrajectoryEffort6Test 三轨迹（evidence 引用生命周期/outbox 跨重启补投/压缩事件观测）；spec 34 §B。
 
 ## Not yet specified
 
