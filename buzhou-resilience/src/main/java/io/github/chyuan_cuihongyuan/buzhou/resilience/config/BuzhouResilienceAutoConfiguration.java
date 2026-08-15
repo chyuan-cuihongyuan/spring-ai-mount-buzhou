@@ -41,8 +41,10 @@ public class BuzhouResilienceAutoConfiguration {
             ResilienceStats stats, Map<String, ChatModel> chatModels) {
         String modelName = env.getProperty("buzhou.model-name", "unknown");
         warnIfMultiInstanceSemantics(properties, env);
+        // spec 49 §A / T176：shadow 模型按名解析（与 fallback 同 fail-fast 口径）
         return ResilienceModule.configure(properties, modelName, stats,
-                resolveFallbacks(properties, chatModels));
+                resolveFallbacks(properties, chatModels),
+                resolveShadows(properties, chatModels));
     }
 
     /**
@@ -85,6 +87,26 @@ public class BuzhouResilienceAutoConfiguration {
             if (model == null) {
                 throw new BuzhouConfigurationException(
                         "buzhou.resilience.fallback.models（" + name + "）未命中任何 ChatModel bean",
+                        "检查 bean 名拼写；容器内可用 ChatModel bean：" + chatModels.keySet());
+            }
+            resolved.add(new NamedFallbackModel(name, model));
+        }
+        return resolved;
+    }
+
+    /** spec 49 §A / T176：按 bean 名解析 shadow 模型（未命中 fail-fast；未启用返回 null）。 */
+    private static List<NamedFallbackModel> resolveShadows(ResilienceProperties properties,
+            Map<String, ChatModel> chatModels) {
+        ResilienceProperties.Shadow shadow = properties.shadow();
+        if (shadow == null || !shadow.effectiveEnabled()) {
+            return null;
+        }
+        List<NamedFallbackModel> resolved = new ArrayList<>(shadow.models().size());
+        for (String name : shadow.models()) {
+            ChatModel model = chatModels.get(name);
+            if (model == null) {
+                throw new BuzhouConfigurationException(
+                        "buzhou.resilience.shadow.models（" + name + "）未命中任何 ChatModel bean",
                         "检查 bean 名拼写；容器内可用 ChatModel bean：" + chatModels.keySet());
             }
             resolved.add(new NamedFallbackModel(name, model));

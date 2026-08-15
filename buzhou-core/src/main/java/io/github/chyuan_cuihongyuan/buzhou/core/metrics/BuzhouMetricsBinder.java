@@ -63,5 +63,9 @@ public final class BuzhouMetricsBinder implements MeterBinder {
         for (String reason : new String[]{"client", "deadline", "guard"}) {
             registry.counter("buzhou.stream.cancelled", "reason", reason);
         }
+        // shadow 探测（spec 49 §A / T176；有界枚举四值）
+        for (String outcome : new String[]{"ok", "error", "skipped-budget", "skipped-concurrency"}) {
+            registry.counter("buzhou.resilience.shadow.calls", "outcome", outcome);
+        }
     }
 }

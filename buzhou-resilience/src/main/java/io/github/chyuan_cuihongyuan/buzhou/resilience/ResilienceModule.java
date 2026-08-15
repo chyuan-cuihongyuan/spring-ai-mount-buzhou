@@ -69,6 +69,18 @@ public final class ResilienceModule {
      */
     public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
                                           List<NamedFallbackModel> fallbacks) {
+        return configure(properties, modelName, stats, fallbacks, null);
+    }
+
+    /**
+     * 带备模型降级链 + shadow 探测的完整入口（spec 49 §A / T176）。
+     *
+     * @param fallbacks    备模型有序列表（null / 空 = 不降级）
+     * @param shadowModels shadow 模型列表（null / 空 = 不探测；仅 shadow.effectiveEnabled 时生效）
+     */
+    public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
+                                          List<NamedFallbackModel> fallbacks,
+                                          List<NamedFallbackModel> shadowModels) {
         if (!properties.enabled()) {
             return RuntimeConfig.defaults();
         }
@@ -93,9 +105,16 @@ public final class ResilienceModule {
         FallbackChain fallbackChain = fallbacks != null && !fallbacks.isEmpty()
                 ? new FallbackChain(fallbacks, properties.fallback())
                 : null;
+        // spec 49 §A / T176：shadow 探测控制器（进程级共享——并发信号量与日预算都是进程级事实）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow =
+                properties.shadow() != null && properties.shadow().effectiveEnabled()
+                        && shadowModels != null && !shadowModels.isEmpty()
+                        ? new io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController(
+                                shadowModels, properties.shadow())
+                        : null;
         RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,
-                        fallbackChain, limiter)));
+                        fallbackChain, limiter, shadow)));
         // per-session 日配额（impl-59）：有任一维度才挂 Hook（无配额零开销）。
         if (SessionQuotaHook.anyDimension(properties.sessionQuota())) {
             return RuntimeConfig.merge(assembly,
@@ -153,10 +172,12 @@ public final class ResilienceModule {
         private final ModelCircuitBreaker circuit;
         private final FallbackChain fallback;
         private final ModelRateLimiter limiter;
+        private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
 
         ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
                                      String modelName, ResilienceStats stats, ModelCircuitBreaker circuit,
-                                     FallbackChain fallback, ModelRateLimiter limiter) {
+                                     FallbackChain fallback, ModelRateLimiter limiter,
+                                     io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow) {
             this.properties = properties;
             this.classifier = classifier;
             this.modelName = modelName;
@@ -164,6 +185,7 @@ public final class ResilienceModule {
             this.circuit = circuit;
             this.fallback = fallback;
             this.limiter = limiter;
+            this.shadow = shadow;
         }
 
         @Override
@@ -179,7 +201,7 @@ public final class ResilienceModule {
             ModelCallInFlight inFlight = new ModelCallInFlight();
             ResilienceAdvisor advisor = new ResilienceAdvisor(
                     properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName,
-                    fallback);
+                    fallback, shadow);
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

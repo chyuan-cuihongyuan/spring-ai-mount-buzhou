@@ -82,6 +82,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
     private final String modelName;
     /** 备模型降级链（impl-57）：null = 未配置。 */
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback;
+    /** shadow 探测（spec 49 §A / T176）：null = 未启用。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
 
     public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
                              Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
@@ -109,6 +111,18 @@ public class ResilienceAdvisor implements BaseAdvisor {
                              io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit,
                              String modelName,
                              io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback) {
+        this(config, classifier, emitter, deadlineExecutor, inFlight, stats, circuit, modelName,
+                fallback, null);
+    }
+
+    /** spec 49 §A / T176 全参：+ shadow 探测控制器（null = 未启用）。 */
+    public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
+                             Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
+                             ModelCallInFlight inFlight, ResilienceStats stats,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit,
+                             String modelName,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow) {
         this.config = config;
         this.classifier = classifier;
         this.emitter = emitter == null ? event -> {
@@ -123,6 +137,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
         this.circuit = circuit;
         this.modelName = modelName == null ? "unknown" : modelName;
         this.fallback = fallback;
+        this.shadow = shadow;
     }
 
     @Override
@@ -158,9 +173,16 @@ public class ResilienceAdvisor implements BaseAdvisor {
             }
         }
         try {
+            long startNs = System.nanoTime();
             ChatClientResponse response = doAdviseCall(request, callChain);
             if (circuit != null) {
                 circuit.recordSuccess(modelName, emitter);
+            }
+            // spec 49 §A / T176：主模型成功后提交 shadow 对照（提交即返回，用户路径零增延迟；
+            // 金丝雀/流式路径不探测——诚实边界见 spec）
+            if (shadow != null && shadow.enabled()) {
+                shadow.submit(request.prompt(), modelName,
+                        (System.nanoTime() - startNs) / 1_000_000, emitter);
             }
             return response;
         } catch (ModelCallTimeoutException e) {

@@ -38,6 +38,7 @@
 - [T173 turn 反馈捕获 API](tickets/T173-turn-feedback.md) — rateTurn 三型校验 + state store 持久化（feedback 键前缀可 scan）+ turn.feedback 事件外发；spec 47 §B。
 - [T174 反馈导出与评估衔接](tickets/T174-feedback-export.md) — FeedbackExporter（core.feedback 段 + negative 极性 + negativeTurnSeqs 汇总；空段缺席）；往返保真；spec 48 §A。
 - [T175 加权金丝雀降级链](tickets/T175-weighted-canary.md) — canary-enabled + weights 会话稳定哈希加权分流（同会话粘住）；目标失败按链序回退含原主模型；默认关零变化；spec 48 §B。
+- [T176 shadow fork 探测](tickets/T176-shadow-fork.md) — 主成功后异步裸调用对照（不重放工具循环；并发+日预算护栏；默认关）；shadow.compared 事件；spec 49 §A。
 
 ## Not yet specified
 
