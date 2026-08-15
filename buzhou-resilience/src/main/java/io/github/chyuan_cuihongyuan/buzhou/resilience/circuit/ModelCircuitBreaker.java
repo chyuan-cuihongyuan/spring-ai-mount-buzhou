@@ -51,11 +51,22 @@ public final class ModelCircuitBreaker {
     private final ResilienceProperties.Circuit config;
     private final Set<String> failureCategories;
     private final ResilienceStats stats; // null 安全：编程式路径未传时静默
+    private final java.time.Clock clock;
     private final ConcurrentHashMap<String, ModelCircuit> circuits = new ConcurrentHashMap<>();
 
     public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats) {
+        this(config, stats, java.time.Clock.systemUTC());
+    }
+
+    /**
+     * spec 41 §B / T154 / impl-125：时钟注入——冷却/半开/退避的时间行为经可配 Clock 驱动
+     * （测试可零真实等待推进时间）；缺省 systemUTC 与既往行为一致。
+     */
+    public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats,
+            java.time.Clock clock) {
         this.config = config;
         this.stats = stats;
+        this.clock = clock == null ? java.time.Clock.systemUTC() : clock;
         this.failureCategories = config.failureCategories().stream()
                 .map(c -> c.toUpperCase(Locale.ROOT))
                 .collect(Collectors.toUnmodifiableSet());
@@ -78,7 +89,7 @@ public final class ModelCircuitBreaker {
             emitter.accept(new SessionEvent(EVENT_CALL_REJECTED,
                     Map.of("modelName", modelName, "state", admission.state().name(),
                             "retryInMs", admission.retryInMs()),
-                    Instant.now()));
+                    Instant.now(clock)));
         }
         LOGGER.log(System.Logger.Level.INFO,
                 "熔断器拒绝调用：model=" + modelName + "，state=" + admission.state()
@@ -156,7 +167,7 @@ public final class ModelCircuitBreaker {
                         transition(CircuitState.HALF_OPEN, emitter);
                         halfOpenSuccesses = 0;
                         probesInFlight = 1;
-                        halfOpenSince = Instant.now();
+                        halfOpenSince = Instant.now(clock);
                         return Admission.admit();
                     }
                     long remaining = Math.max(0, effectiveCooldownMs - elapsedSince(openedAt).toMillis());
@@ -173,7 +184,7 @@ public final class ModelCircuitBreaker {
                         probesInFlight = 0;
                     }
                     probesInFlight++;
-                    halfOpenSince = Instant.now();
+                    halfOpenSince = Instant.now(clock);
                     return Admission.admit();
                 case CLOSED:
                 default:
@@ -232,7 +243,7 @@ public final class ModelCircuitBreaker {
                 consecutiveTrips++;
                 long multiplier = config.backoffMultiplier(consecutiveTrips);
                 effectiveCooldownMs = config.openCooldown().toMillis() * multiplier;
-                openedAt = Instant.now();
+                openedAt = Instant.now(clock);
                 probesInFlight = 0;
                 if (stats != null) {
                     stats.recordCircuitTrip(modelName);
@@ -263,7 +274,7 @@ public final class ModelCircuitBreaker {
                     payload.put("consecutiveTrips", consecutiveTrips);
                     payload.put("openDurationMs", effectiveCooldownMs);
                 }
-                emitter.accept(new SessionEvent(EVENT_STATE_CHANGED, payload, Instant.now()));
+                emitter.accept(new SessionEvent(EVENT_STATE_CHANGED, payload, Instant.now(clock)));
             }
         }
 
@@ -288,7 +299,7 @@ public final class ModelCircuitBreaker {
         }
 
         private Duration elapsedSince(Instant since) {
-            return Duration.between(since, Instant.now());
+            return Duration.between(since, Instant.now(clock));
         }
     }
 

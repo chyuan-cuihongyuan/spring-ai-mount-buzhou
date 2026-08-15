@@ -51,4 +51,41 @@
 - KMS/Vault 托管密钥（persister 接口已留扩展点，集成属部署域）。
 - 定时自动轮换（运维动作，runbook 记步骤）。
 
-## §B 时钟注入面（占位，T154 落地时补全）
+## §B 时钟注入面（T154 / impl-125）
+
+### Problem Statement
+
+熔断冷却、半开超时、配额 UTC 日窗的时间行为全部依赖系统时钟（JDK 直接调用）——测试只能
+Thread.sleep 真实等待冷却/翻日：慢、flake（计时断言时序敏感）、且长冷却窗口（如退避封顶 8×）
+根本不可测。时间不可控 = 时间行为不可回归。
+
+### Solution
+
+时间敏感组件提供可注入 Clock（java.time.Clock，构造器可选参，缺省 systemUTC 与既往一致）：
+熔断器（ModelCircuitBreaker）与日配额钩子（SessionQuotaHook）先行。测试以可推进时钟替身驱动
+状态迁移，零真实等待。
+
+### User Stories
+
+1. As a 框架开发者, I want 熔断冷却/半开迁移可由注入时钟驱动, so that 状态机时间行为测试零等待、不 flake。
+2. As a 框架开发者, I want 配额 UTC 日窗翻日可由注入时钟驱动, so that 窗口重置语义可确定性回归。
+3. As a 应用开发者, I want 不注入时钟时行为与既往完全一致, so that 升级零影响。
+
+### Implementation Decisions
+
+- `ModelCircuitBreaker` 增三参构造（config, stats, clock）；内部全部 `Instant.now()` →
+  `Instant.now(clock)`（跳闸时刻/半开进入/事件时间戳/冷却剩余计算六处）。契约：clock 须 UTC 基。
+- `SessionQuotaHook` 增三参构造；`todayKey()` 由静态 `LocalDate.now(UTC)` 改实例 `LocalDate.now(clock)`
+  （todayKey 随之转实例方法）。既有两参构造保留（缺省 systemUTC）。
+- 诚实边界：ModelRateLimiter（System.nanoTime 单调域）与 ResilienceAdvisor 退避 sleep 不在本片
+  注入（单调钟与墙钟语义不同，测试价值/风险比低）；WebhookOutbox.due(Instant,…) 本就是参数化
+  时间面，不重复注入。
+
+### Testing Decisions
+
+- 只测外部行为（resilience 单测）：可推进 MutableClock 驱动——三失败样本 OPEN 后推进 61s 即半开放行
+  （冷却 60s 配置，零 sleep）；turnsPerDay=1 同日第二轮拦截、推进跨 UTC 午夜再放行。
+
+### Out of Scope
+
+- 全仓统一 Clock 装配 bean（组件各自可选参即可，避免过度装配面）。

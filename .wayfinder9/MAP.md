@@ -24,6 +24,7 @@
 - [T151 spill 落盘静态加密](tickets/T151-spill-encryption.md) — SpillCipher（JDK AES-256-GCM 信封、魔法前缀、随机 IV）+ encryption-key 配置即开、缺省关零变化；旧明文兼容读；密钥错配快速失败；spec 40 §A。
 - [T152 会话单飞闸](tickets/T152-singleflight-gate.md) — 在途计数升级 CAS 0→1 单飞闸（三入口同闸）；并发第二轮次 TURN_IN_FLIGHT（NON_RETRYABLE 新码）确定拒绝；终结释放、默认开无开关；跨进程仍归租约门；spec 40 §B。
 - [T153 审计轮换持久化与外锚](tickets/T153-audit-rotation-anchor.md) — rotate 写而后切（PemFileKeyPersister + scanDirectory 重启入环 + signing.key-dir）；VerificationReport headHash/anchorMatched 外锚比对（删尾/重写可检测）；spec 41 §A。
+- [T154 时钟注入面](tickets/T154-clock-injection.md) — 熔断六处 + 配额 todayKey 注入 Clock（三参构造缺省 systemUTC 零变化）；RateLimiter/Advisor 退避/Outbox.due 显式不注入（诚实边界）；spec 41 §B。
 
 ## Not yet specified
 

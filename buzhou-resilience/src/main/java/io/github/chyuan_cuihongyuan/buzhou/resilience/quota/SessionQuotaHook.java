@@ -44,11 +44,19 @@ public class SessionQuotaHook implements BuzhouHook {
 
     private final ResilienceProperties.SessionQuota quota;
     private final ResilienceStats stats; // null 安全
+    private final java.time.Clock clock; // spec 41 §B / T154：UTC 日窗时钟可注入（测试零等待翻日）
     private final Map<String, Object> sessionLocks = new ConcurrentHashMap<>();
 
     public SessionQuotaHook(ResilienceProperties.SessionQuota quota, ResilienceStats stats) {
+        this(quota, stats, java.time.Clock.systemUTC());
+    }
+
+    /** spec 41 §B / T154 / impl-125：时钟注入（契约：须为 UTC 基时钟）；缺省 systemUTC。 */
+    public SessionQuotaHook(ResilienceProperties.SessionQuota quota, ResilienceStats stats,
+            java.time.Clock clock) {
         this.quota = quota;
         this.stats = stats;
+        this.clock = clock == null ? java.time.Clock.systemUTC() : clock;
     }
 
     @Override
@@ -165,8 +173,8 @@ public class SessionQuotaHook implements BuzhouHook {
         }
     }
 
-    private static long todayKey() {
-        return LocalDate.now(ZoneOffset.UTC).toEpochDay();
+    private long todayKey() {
+        return LocalDate.now(clock).toEpochDay(); // clock 契约：UTC 基（缺省 systemUTC）
     }
 
     private Object lockFor(String sessionId) {
