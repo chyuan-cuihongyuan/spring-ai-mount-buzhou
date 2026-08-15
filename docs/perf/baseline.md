@@ -29,3 +29,12 @@
 | 导出往返 | 500 消息 toJson+fromJson | ~35ms | 800ms |
 
 同 PerfBaselineTest 口径：跨机器绝对值不可比，只看同机趋势；越顶 = profiling 信号。
+
+
+## effort #8 增补哨兵（T144 / impl-117；2026-08-15 首轮实测）
+
+| 哨兵 | 场景 | 首轮 P95 | 硬顶 |
+|------|------|---------|------|
+| skill_search | classpath 全集子串匹配 | ~1ms | 100ms |
+| 死信重放存储面 | 百条 dead 迁回 outbox | ~5ms | 500ms |
+| 迁移单会话 | 2 消息跨 runtime 往返 | ~3ms | 300ms |

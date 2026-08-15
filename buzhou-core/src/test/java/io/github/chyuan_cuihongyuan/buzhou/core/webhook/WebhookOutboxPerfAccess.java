@@ -11,6 +11,9 @@ import java.util.List;
  */
 public final class WebhookOutboxPerfAccess {
 
+    /** 合成会话常量（造死信/outbox 键用；透传包私有 WebhookOutbox 的口径）。 */
+    public static final String SESSION_ID = WebhookOutbox.SESSION_ID;
+
     private final WebhookOutbox outbox;
 
     public WebhookOutboxPerfAccess(SessionStateStore store, int capacity) {
@@ -28,5 +31,10 @@ public final class WebhookOutboxPerfAccess {
 
     public int pendingCount() {
         return outbox.pendingCount();
+    }
+
+    /** 死信迁回 outbox（perf 哨兵直驱；同 forwarder.replayDeadLetters 的存储面）。 */
+    public int requeueDead(int limit) {
+        return outbox.requeueDead(limit);
     }
 }

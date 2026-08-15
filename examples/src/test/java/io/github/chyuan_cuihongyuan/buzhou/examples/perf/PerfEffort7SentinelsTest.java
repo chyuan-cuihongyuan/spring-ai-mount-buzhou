@@ -1,9 +1,12 @@
 package io.github.chyuan_cuihongyuan.buzhou.examples.perf;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionIndexStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo;
@@ -101,6 +104,86 @@ class PerfEffort7SentinelsTest {
             samples[i] = (System.nanoTime() - start) / 1_000_000.0;
         }
         assertThat(p95(samples)).isLessThan(EXPORT_ROUNDTRIP_P95_MAX_MILLIS);
+    }
+
+    /** ④skill_search 全集匹配（effort #8 / T144 / impl-117）。 */
+    @Test
+    void skillSearchSentinel() {
+        var module = io.github.chyuan_cuihongyuan.buzhou.skill.SkillModule.builder().build();
+        var search = new io.github.chyuan_cuihongyuan.buzhou.skill.SkillSearchTool(
+                module.skillRegistry(), null);
+
+        double[] samples = new double[SAMPLES];
+        for (int i = 0; i < SAMPLES; i++) {
+            long start = System.nanoTime();
+            assertThat(search.call("{\"query\":\"e\"}", null)).contains("load_skill");
+            samples[i] = (System.nanoTime() - start) / 1_000_000.0;
+        }
+        assertThat(p95(samples)).isLessThan(100);
+    }
+
+    /** ⑤死信重放存储面：百条迁回 outbox 的 requeueDead 批扫（直驱桥，无 HTTP）。 */
+    @Test
+    void deadLetterRequeueSentinel() {
+        var store = new InMemorySessionStateStore();
+        var access = new WebhookOutboxPerfAccess(store, 10_000);
+        // 造百条死信（经真实 store 形态：dead.<uuid> 键 + 记录 JSON）
+        for (int i = 0; i < 100; i++) {
+            store.put(WebhookOutboxPerfAccess.SESSION_ID,
+                    new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                            "dead.perf-" + i,
+                            "{\"eventId\":\"perf-" + i + "\",\"type\":\"perf.dead\","
+                                    + "\"body\":\"{\\\"i\\\":" + i + "}\","
+                                    + "\"seq\":" + i + ",\"attempts\":8,"
+                                    + "\"nextAttemptAtEpochMs\":0,\"createdAtEpochMs\":0}",
+                            "webhook-outbox", 0, null, java.time.Instant.now()));
+        }
+
+        double[] samples = new double[SAMPLES];
+        for (int i = 0; i < SAMPLES; i++) {
+            // 迁回后再放回死信区（保持每轮等量）
+            long start = System.nanoTime();
+            int requeued = access.requeueDead(10_000);
+            samples[i] = (System.nanoTime() - start) / 1_000_000.0;
+            assertThat(requeued).isEqualTo(100);
+            // requeue 后把 outbox 行删掉、重造死信，回到初始形态
+            store.scanByPrefix(WebhookOutboxPerfAccess.SESSION_ID,
+                    "outbox.").keySet().forEach(k -> store.delete(
+                    WebhookOutboxPerfAccess.SESSION_ID, k));
+            for (int j = 0; j < 100; j++) {
+                store.put(WebhookOutboxPerfAccess.SESSION_ID,
+                        new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                                "dead.perf-" + j,
+                                "{\"eventId\":\"perf-" + j + "\",\"type\":\"perf.dead\","
+                                        + "\"body\":\"{\\\"i\\\":" + j + "}\","
+                                        + "\"seq\":" + j + ",\"attempts\":8,"
+                                        + "\"nextAttemptAtEpochMs\":0,\"createdAtEpochMs\":0}",
+                                "webhook-outbox", 0, null, java.time.Instant.now()));
+            }
+        }
+        assertThat(p95(samples)).isLessThan(500);
+    }
+
+    /** ⑥迁移单会话往返（500 消息跨 runtime）。 */
+    @Test
+    void migratorSentinel() {
+        ScriptedChatModel model = new ScriptedChatModel();
+        var stores = Buzhou.inMemoryStores();
+        var runtime = Buzhou.runtime(model, stores, RuntimeConfig.defaults());
+        var session = runtime.spawn("app", "ag", "perf-mig");
+        session.chat("q");
+        session.close();
+
+        double[] samples = new double[SAMPLES];
+        for (int i = 0; i < SAMPLES; i++) {
+            var fresh = Buzhou.runtime(model, Buzhou.inMemoryStores(), RuntimeConfig.defaults());
+            long start = System.nanoTime();
+            String id = io.github.chyuan_cuihongyuan.buzhou.core.session.SessionMigrator
+                    .migrate(runtime, fresh, "perf-mig", false);
+            samples[i] = (System.nanoTime() - start) / 1_000_000.0;
+            assertThat(id).isNotEqualTo("perf-mig");
+        }
+        assertThat(p95(samples)).isLessThan(300);
     }
 
     private static double p95(double[] samples) {
