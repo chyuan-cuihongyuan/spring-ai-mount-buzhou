@@ -16,3 +16,13 @@
   默认 Id 重映射；keepIds 冲突 fail-fast 沿用；指标 `buzhou.session.migrations`。
 - 轻量工具定位（非自动服务）：调用方显式逐会话搬迁（JDBC→Redis 切换/缩容下线）。
 - 跨 store 形态用例在 examples（依赖方向 core ← store 模块）。
+
+## §C 黄金轨迹 C（T137 / impl-110）
+
+- `GoldenTrajectoryEffort8Test` 四轨迹：
+  - **G13 半开多探测**（阈值 2）：OPEN→HALF_OPEN→（探测 1 成功仍半开）→CLOSED
+    三段 state-changed 子序列。
+  - **G14 目录溢出 + 检索**：skill_search 命中技能 + 检索源（listAllFor 不截断）≥
+    注入面（listForPage 截断）。
+  - **G15 死信重放**：恒 500 耗尽死信→端点恢复→replayDeadLetters 一键补投（消费端终见）。
+  - **G16 保留清扫**：过期 CLOSED 淘汰、ACTIVE 永不扫、未过期保留。
