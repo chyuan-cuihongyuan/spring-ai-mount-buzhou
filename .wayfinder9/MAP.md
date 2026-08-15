@@ -34,6 +34,7 @@
 - [T161 黄金轨迹 E](tickets/T161-golden-e.md) — G19 单飞闸/G20 轮换持久化+外锚/G21 加密往返三轨迹（事件面缺席处以可观测 API 断言，口径修正入档）；spec 45 §A。
 - [T162 红队对抗扩展](tickets/T162-redteam-surface3.md) — 静态安全四对抗（密钥错配/密文篡改/记录改写/删尾重写）观察档；检测边界诚实钉住；spec 45 §B。
 - [T163 perf 哨兵第三批](tickets/T163-perf-3.md) — 加密往返/单飞闸/读降级三哨兵（10 倍宽幅硬顶）+ baseline 落档；spec 45 §C。
+- [T164 examples 演示第三批](tickets/T164-demo-3.md) — 加密开关对照/单飞快速失败/读降级续聊三演示。
 
 ## Not yet specified
 
