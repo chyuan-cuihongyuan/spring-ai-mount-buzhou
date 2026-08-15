@@ -62,6 +62,11 @@ public class HookEnvironment {
         return Math.max(turn.get(), 1);
     }
 
+    /** spec 47 §B / T173：会话 state store 访问（turn 反馈持久化等会话级直写）。 */
+    public SessionStateStore stateStore() {
+        return stateStore;
+    }
+
     public SessionStateHandle stateHandle() {
         return stateHandle;
     }

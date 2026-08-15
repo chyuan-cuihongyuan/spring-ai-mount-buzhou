@@ -107,6 +107,12 @@ public class DefaultAgentSession implements AgentSession {
     static final String MDC_SESSION_ID = "buzhou.sessionId";
     static final String MDC_TURN_SEQ = "buzhou.turnSeq";
 
+    /** spec 47 §B / T173：反馈 state store 键前缀（scanByPrefix 枚举面；导出衔接 T174 消费）。 */
+    static final String FEEDBACK_KEY_PREFIX = "buzhou.feedback.";
+
+    /** spec 47 §B / T173：反馈键去重序号（同轮同毫秒多次反馈不撞键）。 */
+    private final java.util.concurrent.atomic.AtomicLong feedbackSeq = new java.util.concurrent.atomic.AtomicLong();
+
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
                                Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
@@ -581,6 +587,101 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public void cancel() {
         cancel(io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.IMMEDIATE);
+    }
+
+    /**
+     * spec 47 §B / T173 / impl-142：turn 级反馈捕获——校验 → state store 持久化
+     * （{@code buzhou.feedback.<turnSeq>.<epochMillis>}，URLEncoded k=v 五字段）→
+     * {@code turn.feedback} 会话事件外发（监听者/webhook 零改造收到）。
+     */
+    @Override
+    public void rateTurn(int turnSeq, String type, String value, String comment, String source) {
+        ensureOpen();
+        if (turnSeq < 1 || turnSeq > hookEnv.currentTurn()) {
+            throw new IllegalArgumentException("rateTurn turnSeq 超范围（" + turnSeq + "）："
+                    + "目标轮次须已存在（1 ≤ turnSeq ≤ " + hookEnv.currentTurn() + "）");
+        }
+        String normalizedType = validateFeedback(turnSeq, type, value, source);
+        String src = source == null || source.isBlank() ? "user" : source;
+        java.time.Instant at = java.time.Instant.now();
+        String key = FEEDBACK_KEY_PREFIX + turnSeq + "." + at.toEpochMilli()
+                + "-" + feedbackSeq.incrementAndGet();
+        String encoded = encodeFeedback(normalizedType, value, comment, src, at);
+        hookEnv.stateStore().put(sessionId, new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                key, encoded, "turn-feedback", turnSeq, null, at));
+        java.util.Map<String, Object> payload = new java.util.LinkedHashMap<>();
+        payload.put("turnSeq", turnSeq);
+        payload.put("type", normalizedType);
+        payload.put("value", value);
+        if (comment != null && !comment.isBlank()) {
+            payload.put("comment", comment);
+        }
+        payload.put("source", src);
+        dispatchEvent(new SessionEvent("turn.feedback", payload, at));
+    }
+
+    /** spec 47 §B：反馈校验（非法 IllegalArgumentException，文案含修复建议；normalize type）。 */
+    private static String validateFeedback(int turnSeq, String type, String value, String source) {
+        if (type == null) {
+            throw new IllegalArgumentException("rateTurn type 不可为空：boolean | numeric | categorical");
+        }
+        String normalized = type.trim().toLowerCase(java.util.Locale.ROOT);
+        switch (normalized) {
+            case "boolean" -> {
+                if (value == null || !"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
+                    throw new IllegalArgumentException(
+                            "rateTurn boolean 型 value 须为 true/false（收到 " + value + "）");
+                }
+            }
+            case "numeric" -> {
+                try {
+                    Long.parseLong(value);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(
+                            "rateTurn numeric 型 value 须可解析为整数（收到 " + value + "）", e);
+                }
+            }
+            case "categorical" -> {
+                if (value == null || value.isBlank()) {
+                    throw new IllegalArgumentException("rateTurn categorical 型 value 不可为空短串");
+                }
+            }
+            default -> throw new IllegalArgumentException(
+                    "rateTurn type 非法（" + type + "）：boolean | numeric | categorical");
+        }
+        if (source != null && !source.isBlank()
+                && !"user".equals(source) && !"implicit".equals(source)) {
+            throw new IllegalArgumentException("rateTurn source 非法（" + source + "）：user | implicit");
+        }
+        return normalized;
+    }
+
+    /** spec 47 §B：反馈 lossless 编码（core 零 JSON 依赖的 k=v& 形态；URLEncoder 双向可解）。 */
+    private static String encodeFeedback(String type, String value, String comment,
+                                         String source, java.time.Instant at) {
+        java.util.Map<String, String> fields = new java.util.LinkedHashMap<>();
+        fields.put("type", type);
+        fields.put("value", value == null ? "" : value);
+        fields.put("comment", comment == null ? "" : comment);
+        fields.put("source", source);
+        fields.put("at", at.toString());
+        StringBuilder sb = new StringBuilder();
+        fields.forEach((k, v) -> {
+            if (sb.length() > 0) {
+                sb.append('&');
+            }
+            sb.append(k).append('=').append(urlEncode(v));
+        });
+        return sb.toString();
+    }
+
+    private static String urlEncode(String raw) {
+        try {
+            return java.net.URLEncoder.encode(raw == null ? "" : raw, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (RuntimeException e) {
+            // UTF_8 恒可用；防御性兜底（不可达路径）
+            return String.valueOf(raw);
+        }
     }
 
     /** impl-05 / T31：按模式取消（三档语义见 {@link io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode}）。 */

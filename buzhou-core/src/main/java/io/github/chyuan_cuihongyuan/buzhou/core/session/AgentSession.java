@@ -45,6 +45,22 @@ public interface AgentSession extends AutoCloseable {
         throw new UnsupportedOperationException("本 AgentSession 实现不支持多模态输入");
     }
 
+    /**
+     * spec 47 §B / T173：turn 级反馈捕获（Langfuse score 语义收窄）。
+     *
+     * <p>校验通过后持久化到会话 state store（键前缀 {@code buzhou.feedback.}，跨实例可读、
+     * 同轮可多次）并以 {@code turn.feedback} 会话事件外发（webhook 监听者零改造收到）。
+     *
+     * @param turnSeq 目标轮次（须已存在：1 ≤ turnSeq ≤ 当前轮次）
+     * @param type    boolean | numeric | categorical
+     * @param value   boolean 型 true/false；numeric 型可解析整数；categorical 型任意非空短串
+     * @param comment 可空备注
+     * @param source  user（默认）| implicit（系统隐式信号，如重试计数）
+     */
+    default void rateTurn(int turnSeq, String type, String value, String comment, String source) {
+        throw new UnsupportedOperationException("本 AgentSession 实现不支持 turn 反馈捕获（rateTurn）");
+    }
+
     /** 取消在途轮次（impl-05）：立即中断在飞工具、丢弃在飞结果；会话不谢幕，可继续 chat。 */
     void cancel();
 
