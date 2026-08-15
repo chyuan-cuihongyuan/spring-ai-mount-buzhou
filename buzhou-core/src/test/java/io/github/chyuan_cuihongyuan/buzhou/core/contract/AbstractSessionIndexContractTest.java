@@ -101,6 +101,25 @@ public abstract class AbstractSessionIndexContractTest {
         assertThat(index().list(SessionIndexQuery.defaults())).isEmpty();
     }
 
+    /** 保留策略清扫（spec 37 §C）：过期 CLOSED/DELETED 淘汰、ACTIVE 永不扫、limit 截断。 */
+    @Test
+    public void purgeEvictsExpiredNonActiveRowsOnly() {
+        SessionIndexStore index = index();
+        index.upsert(info("p-live", "app", "ag", SessionInfo.STATUS_ACTIVE, 100L, Map.of())); // 老但活跃
+        index.upsert(info("p-closed", "app", "ag", SessionInfo.STATUS_CLOSED, 100L, Map.of())); // 老且关闭
+        index.upsert(info("p-dead", "app", "ag", SessionInfo.STATUS_DELETED, 100L, Map.of())); // 老且已删
+        index.upsert(info("p-fresh", "app", "ag", SessionInfo.STATUS_CLOSED,
+                System.currentTimeMillis(), Map.of())); // 新关闭（未过期）
+
+        int purged = index.purgeOlderThan(java.time.Instant.ofEpochMilli(1_000L), 10);
+
+        assertThat(purged).isEqualTo(2);
+        assertThat(index.get("p-live")).isPresent(); // ACTIVE 永不扫
+        assertThat(index.get("p-fresh")).isPresent(); // 未过期
+        assertThat(index.get("p-closed")).isEmpty();
+        assertThat(index.get("p-dead")).isEmpty();
+    }
+
     /** 默认排除 DELETED（审计行仅显式 status 过滤可见——spec 33 §B）。 */
     @Test
     public void deletedRowsHiddenFromDefaultListing() {

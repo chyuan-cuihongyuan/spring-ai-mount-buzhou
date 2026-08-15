@@ -48,6 +48,35 @@ public final class SessionIndexObserver implements SessionObserver {
     @Override
     public void onOpen() {
         upsertQuietly(SessionInfo.STATUS_ACTIVE);
+        maybePurge();
+    }
+
+    /**
+     * spec 37 §C / T134：保留策略惰性清扫——1/64 概率触发、单次上限 256 条
+     * （免热路径开销；retention 由装配方经静态配置注入，-1 = 永不清扫）。
+     */
+    private void maybePurge() {
+        java.time.Duration retention = RETENTION;
+        if (retention == null || retention.isNegative() || retention.isZero()) {
+            return; // -1/0 = 永久保留
+        }
+        if (PURGE_RANDOM.nextInt(64) != 0) {
+            return;
+        }
+        try {
+            index.purgeOlderThan(java.time.Instant.now().minus(retention), 256);
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING, "索引保留清扫失败（忽略，下次再试）：" + e.getMessage());
+        }
+    }
+
+    /** 保留期（静态装配配置：buzhou.index.closed-retention；null/-1 = 永久）。 */
+    private static volatile java.time.Duration RETENTION;
+    private static final java.util.Random PURGE_RANDOM = new java.util.Random();
+
+    /** 装配期注入保留期（auto-config / 编程式调用一次）。 */
+    public static void configureRetention(java.time.Duration retention) {
+        RETENTION = retention;
     }
 
     @Override

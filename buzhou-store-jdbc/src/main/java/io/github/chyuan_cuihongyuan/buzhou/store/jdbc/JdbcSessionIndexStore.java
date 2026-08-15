@@ -119,6 +119,13 @@ public class JdbcSessionIndexStore implements SessionIndexStore {
         jdbc.update("DELETE FROM buzhou_session_index WHERE session_id = ?", sessionId);
     }
 
+    /** spec 37 §C / T134：过期 CLOSED/DELETED 批量淘汰（单语句原子；ACTIVE 不动）。 */
+    @Override
+    public int purgeOlderThan(java.time.Instant cutoff, int limit) {
+        return jdbc.update("DELETE FROM buzhou_session_index WHERE status <> 'ACTIVE' "
+                + "AND last_active_at_ms < ? LIMIT " + Math.max(1, limit), cutoff.toEpochMilli());
+    }
+
     private static String writeTags(Map<String, String> tags) {
         try {
             return MAPPER.writeValueAsString(tags == null ? Map.of() : tags);

@@ -17,3 +17,12 @@
   立即可投递）并 nudge 分发器；返回重放条数（outbox 容量满则部分重放）。
 - 投递语义回到常规 at-least-once（可能再死信——消费端幂等键契约内）；损坏死信在重放时丢弃。
 - runbook §2 处置更新：死信处置从「按 eventId 消费端补录」升级为一键重放。
+
+## §C 索引 CLOSED 行保留（T134 / impl-107）
+
+- `SessionIndexStore.purgeOlderThan(cutoff, limit)` default no-op；三实现覆写
+  （内存遍历删 / JDBC 单语句 `DELETE … WHERE status<>'ACTIVE' AND last_active_at_ms<? LIMIT n` /
+  Redis ZSET score 升序区段翻页删）。ACTIVE 永不扫；limit 截断（增量清扫）。
+- **惰性触发**：SessionIndexObserver.onOpen 时 1/64 概率清扫、单次 ≤256 条（免热路径开销）；
+  保留期 `buzhou.index.closed-retention`（默认 30d；-1/0 = 永久）经
+  `SessionIndexObserver.configureRetention` 装配期注入。

@@ -26,4 +26,13 @@ public interface SessionIndexStore {
 
     /** 会话删除时摘除索引行（幂等）。 */
     void delete(String sessionId);
+
+    /**
+     * 保留策略清扫（spec 37 §C / T134 / impl-107）：删除 lastActiveAt < cutoff 且
+     * status != ACTIVE 的行（CLOSED/DELETED 淘汰；ACTIVE 永不扫）。默认 no-op 返回 0
+     * （实现覆写）。返回实际删除数。
+     */
+    default int purgeOlderThan(java.time.Instant cutoff, int limit) {
+        return 0;
+    }
 }

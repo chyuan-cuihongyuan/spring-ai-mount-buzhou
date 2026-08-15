@@ -16,6 +16,7 @@
 
 - [T132 skill_search 检索工具](tickets/T132-skill-search.md) — query 子串检索不截断全集（listAllFor 新 default + 覆写）；上限 20 + load_skill 指引；绑定可见性沿用；spec 37 §A。
 - [T133 死信重放 API](tickets/T133-deadletter-replay.md) — replayDeadLetters() 一键迁回 outbox（attempts 清零/容量满部分重放/损坏丢弃）；spec 37 §B。
+- [T134 索引 CLOSED 行保留](tickets/T134-index-retention.md) — purgeOlderThan（三实现覆写，ACTIVE 永不扫）+ 观察者 1/64 惰性清扫 + closed-retention 可配；spec 37 §C。
 
 ## Not yet specified
 

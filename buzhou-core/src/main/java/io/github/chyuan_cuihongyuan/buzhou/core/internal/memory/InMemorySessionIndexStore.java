@@ -52,6 +52,24 @@ public class InMemorySessionIndexStore implements SessionIndexStore {
         rows.remove(sessionId);
     }
 
+    /** spec 37 §C / T134：过期 CLOSED/DELETED 淘汰（ACTIVE 永不扫）。 */
+    @Override
+    public int purgeOlderThan(java.time.Instant cutoff, int limit) {
+        int purged = 0;
+        for (String id : rows.keySet()) {
+            if (purged >= limit) {
+                break;
+            }
+            SessionInfo info = rows.get(id);
+            if (info != null && !SessionInfo.STATUS_ACTIVE.equals(info.status())
+                    && info.lastActiveAtEpochMs() < cutoff.toEpochMilli()) {
+                rows.remove(id);
+                purged++;
+            }
+        }
+        return purged;
+    }
+
     private static boolean matches(SessionInfo info, SessionIndexQuery q) {
         if (q.appId() != null && !q.appId().equals(info.appId())) {
             return false;

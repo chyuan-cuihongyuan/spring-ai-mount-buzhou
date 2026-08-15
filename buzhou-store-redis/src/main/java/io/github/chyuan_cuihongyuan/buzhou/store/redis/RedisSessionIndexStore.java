@@ -82,6 +82,28 @@ public class RedisSessionIndexStore implements SessionIndexStore, AutoCloseable 
         sync.commands().del(keys.sessionIndexInfo(sessionId));
     }
 
+    /** spec 37 §C / T134：按 lastActive 升序翻页找过期行逐条删（zrange score 即 lastActive）。 */
+    @Override
+    public int purgeOlderThan(java.time.Instant cutoff, int limit) {
+        long cutoffMs = cutoff.toEpochMilli();
+        int purged = 0;
+        // 升序取「分数 < cutoff」区段（ZSET score = lastActiveAtEpochMs）
+        var candidates = sync.commands().zrangebyscore(keys.sessionIndexZset(),
+                Double.NEGATIVE_INFINITY, (double) cutoffMs, 0, Math.max(1, limit));
+        for (String id : candidates) {
+            SessionInfo info = get(id).orElse(null);
+            if (info == null || SessionInfo.STATUS_ACTIVE.equals(info.status())) {
+                continue; // 升序区段可能含 ACTIVE（lastActive 早但活跃中）——跳过
+            }
+            delete(id);
+            purged++;
+            if (purged >= limit) {
+                break;
+            }
+        }
+        return purged;
+    }
+
     private static boolean matches(SessionInfo info, SessionIndexQuery q) {
         if (q.appId() != null && !q.appId().equals(info.appId())) {
             return false;
