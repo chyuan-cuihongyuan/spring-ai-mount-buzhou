@@ -43,3 +43,19 @@ npx promptfoo@latest redteam eval -c redteam/promptfooconfig.yaml --fail-on-erro
 （`NewSurfaceAdversarialTest`，替身模型评 harness 行为）：①媒体内越权指令不改
 HITL 门语义；②工具结果注入以数据形态在场、危险调用仍被门拦。口径：先观察不进
 硬门；用例稳定转 nightly 重放后按 baseline 定门。
+
+## 新能力攻击面（effort #10 / T182 / spec 51 §B——观察档）
+
+四对抗面（替身模型、确定性断言，沿 effort #8 承载模式）：
+
+- **反馈伪造**：`rateTurn` 是会话实例方法——跨会话伪造在构造上不可能（无静态入口）；
+  越权观察点收敛为「输入域全拒」（六路校验：type/值域/source/未来轮次/关闭后，TurnFeedbackTest）。
+  残余面：合法会话内的虚假反馈（false negative/positive 污染评估集）——框架不鉴别人类身份，
+  属部署面（接入层鉴权），边界钉住。
+- **shadow 泄漏**：shadow 输出绝不回注用户（G24 轨迹断言回复来自主模型）；shadow 失败计数
+  吞噬（ShadowTrafficEndToEndTest）。残余面：shadow 携带的 prompt 内容外流到 shadow 模型
+  提供方——与主模型同信任域是部署前提，runbook 记指引。
+- **配额绕过**：候选限流拒绝后跳级（跳过该候选不重复触达）；每轮每候选至多一次触达
+  （ResilienceRedteamSurfaceTest 断言）。残余面：跨轮 refill 自然恢复属令牌桶语义非绕过。
+- **金丝雀漂移**：同会话粘住首选（G23 两轮同源断言）；漂移仅在配置变更重启后发生
+  （可接受的运维窗口，runbook 记「变更后存量会话漂移一次」语义）。
