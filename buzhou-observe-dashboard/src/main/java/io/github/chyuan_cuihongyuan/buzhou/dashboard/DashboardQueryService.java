@@ -27,14 +27,28 @@ public class DashboardQueryService {
 
     private final ObservabilityStore store;
 
+    private final io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore indexStore;
+
     public DashboardQueryService(ObservabilityStore store) {
+        this(store, null);
+    }
+
+    /** spec 36 §B / T122 / impl-97：索引优先装配（null = 观测留痕回退，既有行为）。 */
+    public DashboardQueryService(ObservabilityStore store,
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore indexStore) {
         this.store = store;
+        this.indexStore = indexStore;
     }
 
     // ---- DTO ----
 
     /** 会话分页：nextCursor 为 null 表示没有下一页。 */
     public record SessionPage(List<SessionSummary> items, String nextCursor) {}
+
+    /** 过滤会话分页行（spec 36 §B：索引源——带状态/标签/app 维度）。 */
+    public record IndexedSessionPage(
+            List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo> items,
+            String nextCursor, boolean fromIndex) {}
 
     /** Span 树节点（view=tree 服务端组树）。 */
     public record SpanNode(SpanRecord span, List<SpanNode> children) {}
@@ -70,6 +84,41 @@ public class DashboardQueryService {
         List<SessionSummary> items = hasMore ? probed.subList(0, size) : probed;
         return new SessionPage(List.copyOf(items),
                 hasMore ? String.valueOf(offset + size) : null);
+    }
+
+    /**
+     * 过滤会话列表（spec 36 §B / T122 / impl-97）：SessionIndexStore 装配时走索引
+     * （appId/agentName/status/tag 过滤 + lastActive 倒序；DELETED 默认排除）；未装配
+     * 回退观测留痕（无过滤维度，参数被忽略并标记 fromIndex=false——诚实降级）。
+     */
+    public IndexedSessionPage listSessionsFiltered(String appId, String agentName, String status,
+            String tagKey, String tagValue, String cursor, int size) {
+        int offset = cursor == null || cursor.isBlank() ? 0 : Integer.parseInt(cursor);
+        int pageSize = Math.max(1, Math.min(size, 200));
+        if (indexStore != null) {
+            List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo> probed =
+                    indexStore.list(new io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery(
+                            appId, agentName, status, tagKey, tagValue, offset, pageSize + 1));
+            boolean hasMore = probed.size() > pageSize;
+            List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo> items =
+                    hasMore ? probed.subList(0, pageSize) : probed;
+            return new IndexedSessionPage(List.copyOf(items),
+                    hasMore ? String.valueOf(offset + pageSize) : null, true);
+        }
+        // 回退：观测留痕（无过滤维度——调用方以 fromIndex=false 感知降级）
+        SessionPage fallback = listSessions(cursor, pageSize);
+        List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo> items =
+                fallback.items().stream()
+                        .map(sum -> new io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo(
+                                sum.sessionId(), null, null,
+                                io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo.STATUS_ACTIVE,
+                                sum.firstActivityAt() == null ? 0L
+                                        : sum.firstActivityAt().toEpochMilli(),
+                                sum.lastActivityAt() == null ? 0L
+                                        : sum.lastActivityAt().toEpochMilli(),
+                                sum.turnCount(), java.util.Map.of()))
+                        .toList();
+        return new IndexedSessionPage(items, fallback.nextCursor(), false);
     }
 
     /** 会话回放：轮次序列 + 每轮 Event 流（Thinking/FinalReply/工具出入参）。 */

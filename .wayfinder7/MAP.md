@@ -22,6 +22,7 @@
 - [T119 skills 目录注入预算](tickets/T119-skills-catalog-budget.md) — listForPage（entries+total）+ 渲染器溢出提示（另有 N 个未列出 + catalog-max-entries 指引）；评分/skill_search 记 fog；spec 35 §B。
 - [T120 MediaIntake 字节摄取](tickets/T120-media-bytes-intake.md) — 字节→spill→MediaRef 闭环（Latin-1 二进制无损往返；spill 语义全沿用）；spec 35 §C。
 - [T121 导出 facts 扩展槽](tickets/T121-export-facts.md) — SessionExport.extensions 第 9 槽 + SessionExportExtension 接口 + memory FactsExporter（fact.* scanByPrefix 无损段）；导入回放最终一致；spec 36 §A。
+- [T122 dashboard 消费索引](tickets/T122-dashboard-index.md) — listSessionsFiltered（索引优先过滤/分页，观测回退 fromIndex=false 降级可感）+ Builder.sessionIndex 注入；spec 36 §B。
 
 ## Not yet specified
 

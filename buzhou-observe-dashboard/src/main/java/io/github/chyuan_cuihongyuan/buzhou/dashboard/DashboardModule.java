@@ -25,7 +25,7 @@ public class DashboardModule implements AutoCloseable {
     private volatile boolean started;
 
     private DashboardModule(Builder builder) {
-        DashboardQueryService queries = new DashboardQueryService(builder.store);
+        DashboardQueryService queries = new DashboardQueryService(builder.store, builder.indexStore);
         try {
             this.server = new io.github.chyuan_cuihongyuan.buzhou.dashboard.internal
                     .DashboardHttpServer(queries, builder.skillAdmin, builder.pathPrefix,
@@ -67,6 +67,8 @@ public class DashboardModule implements AutoCloseable {
     public static final class Builder {
         private final ObservabilityStore store;
         private SkillAdminPort skillAdmin;
+        /** spec 36 §B / T122 / impl-97：会话索引（过滤列表数据源；null = 观测留痕回退）。 */
+        private io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore indexStore;
         private int port;
         private String pathPrefix = "/buzhou";
         /** impl-48：默认只绑 loopback；非 loopback 绑定应配 authToken（装配层强制）。 */
@@ -83,6 +85,12 @@ public class DashboardModule implements AutoCloseable {
         /** 注入 Skill 管理端口（装配侧适配 SkillAdminApi）；不注入则 Skill 端点 501。 */
         public Builder skillAdmin(SkillAdminPort skillAdmin) {
             this.skillAdmin = skillAdmin;
+            return this;
+        }
+
+        /** 注入会话索引（过滤列表走 SessionIndexStore；不注入则观测留痕回退）。 */
+        public Builder sessionIndex(io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore indexStore) {
+            this.indexStore = indexStore;
             return this;
         }
 
