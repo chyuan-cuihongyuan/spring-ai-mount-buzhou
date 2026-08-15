@@ -35,7 +35,8 @@ public class RunCommandTool implements ToolCallback {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     /** 输出内存兜底上限（5MB）；上下文治理归 Spill offload，不在此截断语义内（spec 06 推演 #14）。 */
-    private static final int MAX_OUTPUT_BYTES = 5 * 1024 * 1024;
+    /** 缺省输出内存兜底上限（5MB）；可配覆写（spec 43 §A / T157）。 */
+    public static final long DEFAULT_MAX_OUTPUT_BYTES = 5L * 1024 * 1024;
     /** 主进程退出后继续排空在途输出字节的宽限；逾期即返回已捕获内容，不阻塞在分离子进程持有的管道上。 */
     private static final long OUTPUT_DRAIN_GRACE_MILLIS = 500;
     /** 主进程存活 / 宽限期内复检输出管道的轮询间隔。 */
@@ -53,6 +54,8 @@ public class RunCommandTool implements ToolCallback {
     private final java.util.Set<String> extraEnvAllowlist;
     /** impl-60：沙箱委托（spec 17 合流）——非 null 时执行走 backend，null 走内置 ProcessBuilder。 */
     private final io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend backend;
+    /** spec 43 §A / T157 / impl-128：输出内存兜底上限（可配；缺省 5MB）。 */
+    private final long maxOutputBytes;
 
     public RunCommandTool(FileSandbox sandbox, CommandBlacklist blacklist,
                           Duration defaultTimeout, Duration maxTimeout) {
@@ -70,9 +73,27 @@ public class RunCommandTool implements ToolCallback {
                           Duration defaultTimeout, Duration maxTimeout,
                           java.util.Set<String> extraEnvAllowlist,
                           io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend backend) {
+        this(sandbox, blacklist, defaultTimeout, maxTimeout, extraEnvAllowlist, backend,
+                DEFAULT_MAX_OUTPUT_BYTES);
+    }
+
+    /**
+     * spec 43 §A / T157 / impl-128：输出内存兜底上限可配构造（正数；缺省 {@link #DEFAULT_MAX_OUTPUT_BYTES}=5MB）。
+     * 截断语义：读线程捕获到上限即返回并附截断标记（进程继续跑完、exit 码照常上报）。
+     */
+    public RunCommandTool(FileSandbox sandbox, CommandBlacklist blacklist,
+                          Duration defaultTimeout, Duration maxTimeout,
+                          java.util.Set<String> extraEnvAllowlist,
+                          io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend backend,
+                          long maxOutputBytes) {
+        if (maxOutputBytes <= 0) {
+            throw new IllegalArgumentException(
+                    "maxOutputBytes 必须为正（收到 " + maxOutputBytes + "）");
+        }
         this.sandbox = sandbox;
         this.blacklist = blacklist;
         this.defaultTimeout = defaultTimeout;
+        this.maxOutputBytes = maxOutputBytes;
         this.maxTimeout = maxTimeout;
         this.extraEnvAllowlist = extraEnvAllowlist == null ? java.util.Set.of() : extraEnvAllowlist;
         this.backend = backend;
@@ -130,7 +151,7 @@ public class RunCommandTool implements ToolCallback {
         // readBounded 自终止（主进程死后宽限即返回），故即便分离子进程（reparent 到 init）
         // 仍持有管道、永不产生 EOF，主进程已产出的输出也不会丢失、读线程也不会悬挂。
         CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(
-                () -> readBounded(process.getInputStream(), process),
+                () -> readBounded(process.getInputStream(), process, maxOutputBytes),
                 r -> Thread.ofVirtual().start(r));
         boolean finished;
         try {
@@ -208,7 +229,7 @@ public class RunCommandTool implements ToolCallback {
     }
 
     /**
-     * 排空进程输出，至多 {@link #MAX_OUTPUT_BYTES} 截断。
+     * 排空进程输出，至多 maxOutputBytes（缺省 {@link #DEFAULT_MAX_OUTPUT_BYTES}）截断。
      *
      * <p><b>非阻塞轮询</b>（非 {@code readNBytes} 阻塞至 EOF）：主进程存活期间按 {@code available()}
      * 排空可得字节、{@link #POLL_MILLIS} 复检；主进程退出后再给 {@link #OUTPUT_DRAIN_GRACE_MILLIS} 宽限
@@ -216,7 +237,7 @@ public class RunCommandTool implements ToolCallback {
      * init）仍持有管道、永不产生 EOF，主进程已产出的输出也不会丢失、读线程也不会悬挂
      * （修前缺陷：{@code readNBytes} 阻塞至 EOF，分离子进程持有管道时丢失主进程输出）。
      */
-    private static String readBounded(InputStream in, Process process) {
+    private static String readBounded(InputStream in, Process process, long maxOutputBytes) {
         try (in) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[8192];
@@ -229,8 +250,8 @@ public class RunCommandTool implements ToolCallback {
                         return finish(out); // EOF：所有持有者已关闭管道，完整返回
                     }
                     out.write(buf, 0, n);
-                    if (out.size() > MAX_OUTPUT_BYTES) {
-                        return truncate(out);
+                    if (out.size() > maxOutputBytes) {
+                        return truncate(out, maxOutputBytes);
                     }
                 }
                 if (!process.isAlive()) {
@@ -255,9 +276,9 @@ public class RunCommandTool implements ToolCallback {
         return out.toString(StandardCharsets.UTF_8);
     }
 
-    private static String truncate(ByteArrayOutputStream out) {
+    private static String truncate(ByteArrayOutputStream out, long maxOutputBytes) {
         byte[] data = out.toByteArray();
-        return new String(data, 0, Math.min(data.length, MAX_OUTPUT_BYTES), StandardCharsets.UTF_8)
-                + "\n[输出超过内存兜底上限 5MB，已截断]";
+        return new String(data, 0, (int) Math.min(data.length, maxOutputBytes), StandardCharsets.UTF_8)
+                + "\n[输出超过内存兜底上限 " + maxOutputBytes + " 字节，已截断]";
     }
 }

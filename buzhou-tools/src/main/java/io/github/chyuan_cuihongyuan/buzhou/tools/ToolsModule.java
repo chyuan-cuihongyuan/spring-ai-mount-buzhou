@@ -85,7 +85,11 @@ public final class ToolsModule {
                 }
                 t.add(new RunCommandTool(sandbox,
                         builder.blacklist == null ? CommandBlacklist.defaults() : builder.blacklist,
-                        builder.runCommandTimeout, builder.runCommandMaxTimeout));
+                        builder.runCommandTimeout, builder.runCommandMaxTimeout,
+                        java.util.Set.of(), null,
+                        builder.runCommandMaxOutputBytes == null
+                                ? io.github.chyuan_cuihongyuan.buzhou.tools.command.RunCommandTool.DEFAULT_MAX_OUTPUT_BYTES
+                                : builder.runCommandMaxOutputBytes));
             }
             dangerous.add("run_command");
         }
@@ -171,6 +175,8 @@ public final class ToolsModule {
         private List<Path> allowedPaths = List.of();
         private Duration runCommandTimeout = Duration.ofSeconds(60);
         private Duration runCommandMaxTimeout = Duration.ofMinutes(10);
+        /** spec 43 §A / T157：run_command 输出内存兜底上限（null = 工具默认 5MB）。 */
+        private Long runCommandMaxOutputBytes;
         private CommandBlacklist blacklist;
         /** spec 17 / impl-60：沙箱委托（null = 内置 ProcessBuilder 版）。 */
         private io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend commandBackend;
@@ -287,6 +293,15 @@ public final class ToolsModule {
             Map<String, Object> rc = sub(ymlConfig, "run-command");
             if (rc.get("timeout-seconds") instanceof Number n) {
                 this.runCommandTimeout = Duration.ofSeconds(n.longValue());
+            }
+            // spec 43 §A / T157 / impl-128：max-output-bytes（非正数 fail-fast——兜底上限配错不如不配）
+            if (rc.get("max-output-bytes") instanceof Number n) {
+                if (n.longValue() <= 0) {
+                    throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                            "buzhou.tools.run-command.max-output-bytes（" + n.longValue() + "）非法",
+                            "正整数字节数（缺省 5MB）");
+                }
+                this.runCommandMaxOutputBytes = n.longValue();
             }
             if (rc.get("blacklist") instanceof List<?> list) {
                 this.blacklist = new CommandBlacklist(
