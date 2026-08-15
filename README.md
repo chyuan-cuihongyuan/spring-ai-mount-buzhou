@@ -59,6 +59,22 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 
 运维接手见 **[docs/ops-runbook.md](docs/ops-runbook.md)**；公开 API 面见 [docs/api-surface.md](docs/api-surface.md)。
 
+## 生产级纵深（effort #6 新增）
+
+投递可靠性 / 数据生命周期 / 输入面 / 运维面 / 质量面的第二级纵深（详设 spec 24–32）：
+
+| 能力 | 一句话 | 详设 |
+|------|--------|------|
+| **Webhook 持久化 Outbox** | 事件 emit 即落 state store，跨重启补投递 + 记录级退避 + 死信可查（at-least-once + 幂等键） | [spec 24](docs/spec/24-webhook-outbox.md) |
+| **熔断冷却自适应退避** | 连续跳闸冷却指数放缓（封顶 backoff-cap），探测成功即复位 | [spec 25](docs/spec/25-adaptive-circuit-backoff.md) |
+| **fork 证据引用计数** | fork 存续期源证据不被删除（最后引用者关闭）；悬垂读 EVIDENCE_GONE 容错 | [spec 26](docs/spec/26-evidence-refcount.md) |
+| **多模态输入（MediaRef）** | chat/stream/chatForEntity 携带媒体 URI；持久化 + 最近重发策略 + 媒体计费 | [spec 27](docs/spec/27-multimodal-input.md) |
+| **会话导出/导入** | 单 JSON 文档跨环境移植（默认 Id 重映射 / keepIds 冲突 fail-fast） | [spec 28](docs/spec/28-session-export-import.md) |
+| **Store fsck** | 五 store 对账：孤儿摘要/残留 state/泄漏租约/悬挂观测——只读报告 + 按项修复 | [spec 29](docs/spec/29-store-fsck.md) |
+| **会话索引** | 五 store 外的枚举/过滤查询面（生命周期维护、最终一致；内存/JDBC/Redis） | [spec 30](docs/spec/30-session-index.md) |
+| **工具结果限幅** | 结果入上下文前 20K 字符护栏（截断+提示尾+per-tool 豁免） | [spec 31](docs/spec/31-tool-result-limit.md) |
+| **黄金轨迹回归集** | 六大机制「脚本化输入→事件序列断言」行为回归防线 | [spec 32](docs/spec/32-golden-trajectories.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |

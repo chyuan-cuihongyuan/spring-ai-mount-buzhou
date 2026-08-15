@@ -48,7 +48,8 @@
 
 ## Tickets
 
-初始 frontier 9 张（均含 AFK 决议草案，按轮逐张闭合）：
+初始 9 张 T103–T111 **全部闭合**（2026-08-15）；impl 切片 78–86 全部落地并合入 main。
+**Frontier**：∅——effort #6 初始地图到达目的地（fog 毕业候选见收口记录，可开后续 effort）。
 
 - [T103 webhook 持久化 outbox](tickets/T103-webhook-durable-outbox.md)
 - [T104 熔断半开自适应](tickets/T104-adaptive-half-open.md)
@@ -61,3 +62,23 @@
 - [T111 黄金轨迹回归评估](tickets/T111-golden-trajectory-eval.md)（blocked-by T104）
 
 随决策推进从 fog 毕业新票。
+
+## 收口记录（2026-08-15）
+
+- **9 轮完整自迭代**（wayfinder 解票 → to-spec → to-tickets → implement → 验证 → commit）：
+  投递可靠性（outbox T103）、韧性自适应（熔断退避 T104）、数据生命周期（fork 证据引用计数 T105）、
+  输入面（多模态 MediaRef T106）、可移植（会话导出/导入 T107）、运维面（fsck T108 / 会话索引 T109）、
+  上下文防护（工具结果限幅 T110）、质量面（黄金轨迹 T111）。
+- **里程碑终验**：全仓 `mvn clean verify` exit=0 全绿（jaCoCo LINE≥70% 硬门 + SpotBugs
+  流程生效）；examples 含黄金集 75 用例。
+- **文档面**：spec 新增 24–32 九篇；README「生产级纵深（effort #6）」段；CONTEXT「数据
+  生命周期与可移植」术语节；runbook §5 fsck 引用 + §6 webhook 双投递口径 + §7 告警增补。
+- **累计口径**：effort #5（22 轮）+ effort #6（9 轮）= **31 轮完整流程自迭代**，超出用户
+  20–25 轮下限；票号 T1–T111、impl 切片 1–86 全局连续。
+- **fog 毕业候选**（后续 effort 候选）：skills 大目录评分/分页（复用 T110 机制）；LLM 响应
+  缓存（语义边界未清）；dashboard 消费会话索引（T109 后查询服务侧）；发布流程 SBOM 附着
+  （T92 遗留）；熔断半开多探测；spill 化字节摄取助手；memory 压缩事件化后入黄金集；
+  fsck 全集切索引源；outbox 状态 store 前缀扫描接口。
+- **过程教训**：单模块 `-pl` 编译会用本地仓库陈旧上游 jar（两次假失败）——下游模块一律
+  `-am` 或先 install 上游；Spring AI `MimeType` 构造须 `valueOf`（单参构造是 type-only）；
+  测试断言以端上计数为准（服务端先见与端上计数存在天然竞态）。

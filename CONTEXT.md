@@ -55,3 +55,15 @@
 - **会话分支（Fork）** — 复制源会话全部历史开新会话；State 不复制（预算重置 = 重试语义）。
 - **事件外发（Webhook Forwarder）** — 会话事件 at-least-once HTTP 投递（HMAC-SHA256 签名 + 事件幂等键）。
 - **工具集漂移（Tools Drift）** — MCP server 端工具列表变更与本地基线的差量（协议 tools/list_changed 订阅）。
+
+## 数据生命周期与可移植（effort #6）
+
+- **持久化 Outbox** — 事件外发前的持久暂存队列（state store 合成会话）：跨重启不丢、记录级退避、死信隔离；at-least-once + 幂等键契约。
+- **冷却自适应退避** — 熔断连续跳闸驱动的冷却指数放缓（×2^(trips-1) 封顶 backoff-cap）；探测成功即复位。
+- **证据引用计数（Evidence Refcount）** — fork 对源会话 spill 证据的引用登记：源删除被引用证据保留，最后引用者关闭才物理删（EVIDENCE_GONE 容错悬垂读）。
+- **媒体引用（MediaRef）** — 多模态输入的 URI 引用形态（mimeType + uri）；只随最近一条带媒体消息重发，历史轮降级文本标记。
+- **会话导出/导入（SessionExport）** — 单 JSON 文档承载 messages+summary+state 的跨环境移植面；导入默认 Id 重映射。
+- **fsck（Store Integrity）** — 五 store 跨槽对账工具：孤儿摘要/残留 state/泄漏租约/悬挂观测，只读报告 + 按项可选修复。
+- **会话索引（SessionIndex）** — 五 store 之外的枚举/过滤查询面（生命周期维护、最终一致；未装配零影响）。
+- **工具结果限幅（Result Limit）** — 工具结果入模型上下文前的字符上限（默认 20K + 提示尾 + per-tool 豁免）。
+- **黄金轨迹（Golden Trajectory）** — 机制行为的「脚本化输入 → 事件序列断言」回归集（与红队/perf 互补）。
