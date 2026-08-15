@@ -27,6 +27,7 @@
 - [T142 javadoc @since 审计](tickets/T142-javadoc-since-audit.md) — 脚本审计 24 类型全缺 → 批量注入 @since 1.0.0；编译绿。
 - [T143 黄金轨迹 D](tickets/T143-golden-d.md) — G17 迁移双型（H2→内存跨形态）+ G18 outbox 水位；examples 增 store-jdbc/h2 test 依赖；spec 38 §D。
 - [T144 perf 哨兵增补](tickets/T144-perf-sentinels-2.md) — skill_search/死信重放存储面/迁移往返三哨兵（baseline 落档）；perf 桥补 requeueDead/SESSION_ID。
+- [T145 examples 演示第二批](tickets/T145-examples-demo-2.md) — 检索两步发现/死信运维重放/迁移演练三用例（ToolResponse 断言口径注记）。
 
 ## Not yet specified
 
