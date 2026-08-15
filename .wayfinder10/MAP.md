@@ -41,6 +41,7 @@
 - [T176 shadow fork 探测](tickets/T176-shadow-fork.md) — 主成功后异步裸调用对照（不重放工具循环；并发+日预算护栏；默认关）；shadow.compared 事件；spec 49 §A。
 - [T177 模型池 TPM/RPM 配额](tickets/T177-model-pool-quota.md) — 降级/金丝雀候选统一过限流闸+按实际服务模型记账 TPM；remaining gauge；外层锁步与双账并存诚实入档；spec 49 §B。
 - [T178 错误码统一收口](tickets/T178-error-codes.md) — 新码 3 个 + 外部可见面渐进迁移（spill IO 9/技能管理 4/todo/SHA 2）；断言类 ISE 保留面钉住；spec 50 §A。
+- [T179 退避 jitter 补全](tickets/T179-backoff-jitter.md) — outbox/policy 轮询退避 ±25% 抖动（确定性 seam 三点钉边界）；spec 50 §B。
 
 ## Not yet specified
 

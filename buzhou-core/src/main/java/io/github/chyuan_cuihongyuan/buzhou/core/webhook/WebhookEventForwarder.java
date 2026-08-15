@@ -59,6 +59,20 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     private static final long BACKOFF_CAP_MILLIS = 60_000;
     private static final int DEAD_LETTER_QUERY_LIMIT = 100;
 
+    /**
+     * spec 50 §B / T179 / impl-148：退避抖动随机源（±25%，防多实例同相位雷鸣羊群）。
+     * 生产默认 ThreadLocalRandom；确定性测试直接调 {@link #jitteredBackoffMillis}。
+     */
+    private final java.util.function.DoubleSupplier jitterRandom =
+            java.util.concurrent.ThreadLocalRandom.current()::nextDouble;
+
+    /** spec 50 §B：带 ±25% 抖动的退避（base=1s×2^attempts 封顶 60s；抖动后 ∈ [0.75, 1.25]×base）。 */
+    static long jitteredBackoffMillis(int attempts, java.util.function.DoubleSupplier random) {
+        long base = Math.min(BACKOFF_BASE_MILLIS << attempts, BACKOFF_CAP_MILLIS);
+        double factor = 0.75 + 0.5 * random.getAsDouble();
+        return Math.round(base * factor);
+    }
+
     private final BuzhouWebhookProperties props;
     private final HttpClient http;
     private final WebhookOutbox outbox;
@@ -158,7 +172,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
             markDead(record, "重试耗尽");
             return;
         }
-        long backoff = Math.min(BACKOFF_BASE_MILLIS << attempts, BACKOFF_CAP_MILLIS);
+        long backoff = jitteredBackoffMillis(attempts, jitterRandom);
         outbox.update(new WebhookOutbox.OutboxRecord(record.eventId(), record.type(), record.body(),
                 record.seq(), attempts, System.currentTimeMillis() + backoff, record.createdAtEpochMs()));
     }

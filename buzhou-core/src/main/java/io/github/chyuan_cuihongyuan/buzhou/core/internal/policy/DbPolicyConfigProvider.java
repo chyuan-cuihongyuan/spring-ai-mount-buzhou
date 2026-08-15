@@ -107,7 +107,10 @@ public class DbPolicyConfigProvider implements PolicyConfigProvider, AutoCloseab
     }
 
     private long backoffMillis(int failures) {
-        return pollInterval.toMillis() * (1L << Math.min(failures, BACKOFF_CAP_POWER));
+        long base = pollInterval.toMillis() * (1L << Math.min(failures, BACKOFF_CAP_POWER));
+        // spec 50 §B / T179 / impl-148：±25% 抖动（防多实例同相位重试雷鸣羊群；0.75~1.25×base）
+        double factor = 0.75 + 0.5 * java.util.concurrent.ThreadLocalRandom.current().nextDouble();
+        return Math.round(base * factor);
     }
 
     @Override
