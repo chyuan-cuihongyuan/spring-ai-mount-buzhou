@@ -26,3 +26,9 @@
     注入面（listForPage 截断）。
   - **G15 死信重放**：恒 500 耗尽死信→端点恢复→replayDeadLetters 一键补投（消费端终见）。
   - **G16 保留清扫**：过期 CLOSED 淘汰、ACTIVE 永不扫、未过期保留。
+
+## §D 黄金轨迹 D（T143 / impl-116）
+
+- **G17 跨 runtime 迁移**：JDBC(H2)→内存重映射续用（历史随迁注入）+ keepIds 原位落位
+  （examples 增 store-jdbc/h2 test 依赖——跨 store 接缝归聚合模块）。
+- **G18 outbox 健康水位**：pending/deadLetters/delivered/dropped 四键可见、恒 UP。

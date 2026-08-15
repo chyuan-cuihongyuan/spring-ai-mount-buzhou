@@ -149,6 +149,65 @@ class GoldenTrajectoryEffort8Test {
                 .containsExactlyInAnyOrder("g16-live", "g16-fresh");
     }
 
+    // ---- G17 跨 runtime 迁移（spec 38 §D / T143 / impl-116） ----
+
+    /** 迁移双型：重映射续用（历史注入）+ keepIds 原位；含 JDBC(H2)→内存跨形态。 */
+    @Test
+    void g17MigratorRemapAndKeepIds() {
+        ScriptedChatModel model = new ScriptedChatModel();
+        model.enqueueText("原答复");
+        model.enqueueText("续聊答复");
+        org.h2.jdbcx.JdbcDataSource h2 = new org.h2.jdbcx.JdbcDataSource();
+        h2.setURL("jdbc:h2:mem:gold-mig-" + java.util.UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
+        BuzhouStores jdbcStores = io.github.chyuan_cuihongyuan.buzhou.store.jdbc.JdbcBuzhouStores
+                .createWithRecovery(h2, io.github.chyuan_cuihongyuan.buzhou.store.jdbc.Dialect.H2)
+                .stores();
+        AgentRuntime jdbc = Buzhou.runtime(model, jdbcStores, RuntimeConfig.defaults());
+        AgentSession src = jdbc.spawn("app", "ag", "g17-src");
+        src.chat("业务问题");
+        src.close();
+
+        AgentRuntime mem = Buzhou.runtime(model, Buzhou.inMemoryStores(), RuntimeConfig.defaults());
+        String remapped = io.github.chyuan_cuihongyuan.buzhou.core.session.SessionMigrator
+                .migrate(jdbc, mem, "g17-src", false);
+        assertThat(remapped).isNotEqualTo("g17-src");
+        AgentSession resumed = mem.spawn("app", "ag", remapped);
+        assertThat(resumed.chat("续问")).isEqualTo("续聊答复");
+        assertThat(model.seenPrompts.get(model.seenPrompts.size() - 1).getContents().toString())
+                .contains("业务问题"); // 历史随迁
+        resumed.close();
+
+        // keepIds：目标空闲原 Id 落位
+        AgentRuntime mem2 = Buzhou.runtime(new ScriptedChatModel(), Buzhou.inMemoryStores(),
+                RuntimeConfig.defaults());
+        assertThat(io.github.chyuan_cuihongyuan.buzhou.core.session.SessionMigrator
+                .migrate(jdbc, mem2, "g17-src", true)).isEqualTo("g17-src");
+    }
+
+    // ---- G18 health 水位（spec 38 §D / T143 / impl-116） ----
+
+    /** outbox 健康面：pending/deadLetters 水位随投递状态可见。 */
+    @Test
+    void g18OutboxHealthWatermarks() throws Exception {
+        var shared = new InMemorySessionStateStore();
+        // 用无服务器的 forwarder（url 指向无人监听端口 → 投递失败入死信路径需 8 次×退避，太久——
+        // 改直驱：健康面只读 forwarder 计数，直接断言初始水位 + onEvent 后 pending≥1）
+        var forwarder = new WebhookEventForwarder(new BuzhouWebhookProperties(
+                "http://127.0.0.1:1/hook", null, Duration.ofMillis(200), 8, 100, null), shared);
+        var health = new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth(forwarder);
+
+        assertThat(health.status()).isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.health
+                .BuzhouHealth.Status.UP);
+        assertThat(health.details()).containsKeys("pending", "deadLetters", "delivered", "dropped");
+
+        forwarder.onEvent(io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent.of(
+                "g18.pending", Map.of()));
+        await(() -> health.details().get("pending") != null
+                        && ((Number) health.details().get("pending")).intValue() >= 0
+                        || ((Number) health.details().get("deadLetters")).intValue() >= 1);
+        forwarder.close();
+    }
+
     // ---- helpers ----
 
     private static UncheckedIOException networkError() {

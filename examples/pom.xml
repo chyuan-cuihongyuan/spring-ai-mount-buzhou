@@ -43,6 +43,16 @@
       <groupId>io.github.chyuan-cuihongyuan</groupId>
       <artifactId>buzhou-memory</artifactId>
     </dependency>
+    <!-- 跨 store 迁移演示/黄金轨迹（T136/T143）：JDBC(H2) 形态接缝 -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-store-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!--
       跨机制集成测试落于此（聚合侧）：feature 模块之间禁止直接依赖（09 模块工程档依赖白名单），
       涉及两个及以上 feature 模块的端到端测试只能由聚合模块承载。
