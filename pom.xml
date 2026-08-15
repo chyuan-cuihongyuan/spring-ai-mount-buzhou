@@ -94,6 +94,16 @@
         <artifactId>buzhou-memory</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!--
+        spec 44 §B / T160 / impl-131：三方版本分歧收口钉——spring-ai-client-chat 传递
+        json-schema-validator 3.0.1 而 mcp sdk 传递 3.0.0；dependencyConvergence 门禁下显式取高者
+        （校验器补版本向后兼容，3.0.1 含 errata 修复）。
+      -->
+      <dependency>
+        <groupId>com.networknt</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>3.0.1</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.ai</groupId>
         <artifactId>spring-ai-bom</artifactId>
@@ -269,6 +279,24 @@
                     <dependency>io.github.chyuan-cuihongyuan</dependency>
                   </dependencies>
                 </requireSameVersions>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+          <!--
+            spec 44 §B / T159 → T160 / impl-131：依赖治理收口——
+            dependencyConvergence：三方依赖版本分歧（Maven 最近者胜出）转为硬失败，强制经 BOM/属性收口；
+            banDuplicatePomDependencyVersions：同 POM 重复声明依赖即拒。
+          -->
+          <execution>
+            <id>enforce-dependency-governance</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <dependencyConvergence/>
+                <banDuplicatePomDependencyVersions/>
               </rules>
               <fail>true</fail>
             </configuration>

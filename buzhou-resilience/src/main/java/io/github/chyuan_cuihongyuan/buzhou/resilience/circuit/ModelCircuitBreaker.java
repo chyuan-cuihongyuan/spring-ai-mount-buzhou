@@ -84,7 +84,7 @@ public final class ModelCircuitBreaker {
         if (stats != null) {
             stats.recordCircuitRejected();
         }
-        metrics().counter("buzhou.resilience.circuit-rejected", "model", modelName);
+        metrics().counter("buzhou.resilience.circuit-rejected", "model", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(modelName));
         if (emitter != null) {
             emitter.accept(new SessionEvent(EVENT_CALL_REJECTED,
                     Map.of("modelName", modelName, "state", admission.state().name(),
@@ -154,10 +154,12 @@ public final class ModelCircuitBreaker {
             this.modelName = modelName;
             this.window = new boolean[config.windowSize()];
             this.effectiveCooldownMs = config.openCooldown().toMillis();
+            // spec 44 §B / T160：gauge tag 截断（与 RateLimitAdvisor 同一纪律）
             metrics().gauge("buzhou.resilience.circuit-open",
-                    () -> snapshotState() == CircuitState.OPEN ? 1 : 0, "model", modelName);
+                    () -> snapshotState() == CircuitState.OPEN ? 1 : 0,
+                    "model", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(modelName));
             metrics().gauge("buzhou.resilience.circuit-backoff-multiplier",
-                    this::backoffMultiplier, "model", modelName);
+                    this::backoffMultiplier, "model", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(modelName));
         }
 
         synchronized Admission admit(Consumer<SessionEvent> emitter) {
@@ -249,7 +251,7 @@ public final class ModelCircuitBreaker {
                     stats.recordCircuitTrip(modelName);
                     stats.updateCircuitBackoff(modelName, multiplier);
                 }
-                metrics().counter("buzhou.resilience.circuit-tripped", "model", modelName);
+                metrics().counter("buzhou.resilience.circuit-tripped", "model", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(modelName));
                 LOGGER.log(System.Logger.Level.WARNING,
                         "模型熔断器跳闸：model=" + modelName + "，" + from + " → OPEN（冷却 "
                                 + effectiveCooldownMs + "ms，连续第 " + consecutiveTrips

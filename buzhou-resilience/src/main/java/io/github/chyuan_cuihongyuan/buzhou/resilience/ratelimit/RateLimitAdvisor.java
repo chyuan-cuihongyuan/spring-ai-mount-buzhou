@@ -78,7 +78,7 @@ public class RateLimitAdvisor implements BaseAdvisor {
 
     /** 模型名进指标 tag 前截断（tag 值有界纪律，防无界 tag 基数）。 */
     private String boundedModel() {
-        return modelName.length() > 32 ? modelName.substring(0, 32) : modelName;
+        return io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(modelName);
     }
 
     @Override

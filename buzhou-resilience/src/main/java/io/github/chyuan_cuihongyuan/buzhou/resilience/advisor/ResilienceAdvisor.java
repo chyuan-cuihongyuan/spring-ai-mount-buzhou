@@ -200,7 +200,9 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 if (stats != null) {
                     stats.recordFallbackSwitch();
                 }
-                metrics().counter("buzhou.resilience.fallback-switches", "from", modelName, "to", fb.name());
+                metrics().counter("buzhou.resilience.fallback-switches",
+                        "from", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(modelName),
+                        "to", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(fb.name()));
                 emit(new SessionEvent(io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_SWITCHED,
                         Map.of("from", modelName, "to", fb.name(), "category", category), Instant.now()));
                 LOGGER.log(System.Logger.Level.WARNING,
