@@ -42,7 +42,57 @@ public record BuzhouRunawayProperties(
 
     public BuzhouRunawayProperties {
         enabled = enabled == null || enabled;
-        // 阈值字段保持 null = 未配置，由检测器派生
+        // spec 43 §B / T158 / impl-129：越界值 fail-fast（宽容只留给「未配置」null）
+        if (perTurn != null) {
+            positiveOrNull(perTurn.maxSteps(), "runaway.per-turn.max-steps");
+            positiveOrNull(perTurn.maxToolCalls(), "runaway.per-turn.max-tool-calls");
+            if (perTurn.wallClock() != null && !perTurn.wallClock().isPositive()) {
+                throw configError("runaway.per-turn.wall-clock", perTurn.wallClock().toString(),
+                        "正时长（null = 不限）");
+            }
+        }
+        if (perSession != null) {
+            positiveOrNull(perSession.maxSteps(), "runaway.per-session.max-steps");
+            positiveOrNull(perSession.maxToolCalls(), "runaway.per-session.max-tool-calls");
+        }
+        if (perTool != null) {
+            perTool.forEach((pattern, limit) -> {
+                if (limit == null || limit.maxCalls() == null || limit.maxCalls() < 1) {
+                    throw configError("runaway.per-tool[" + pattern + "].max-calls",
+                            limit == null || limit.maxCalls() == null ? "null"
+                                    : String.valueOf(limit.maxCalls()),
+                            "正整数");
+                }
+            });
+        }
+        if (softThresholdRatio != null && (softThresholdRatio <= 0 || softThresholdRatio > 1)) {
+            throw configError("runaway.soft-threshold-ratio", String.valueOf(softThresholdRatio),
+                    "(0, 1]（剩余预算占比）");
+        }
+        if (repetition != null) {
+            if (repetition.consecutive() != null && repetition.consecutive() < 2) {
+                throw configError("runaway.repetition.consecutive",
+                        String.valueOf(repetition.consecutive()), "≥2（连续同参调用才有检测意义）");
+            }
+            if (repetition.action() != null && !repetition.action().isBlank()
+                    && !"block".equals(repetition.action()) && !"flag-only".equals(repetition.action())) {
+                throw configError("runaway.repetition.action", repetition.action(),
+                        "block | flag-only");
+            }
+        }
+        if (escalatePolicy != null && !escalatePolicy.isBlank() && !"emit-event".equals(escalatePolicy)) {
+            throw configError("runaway.escalate-policy", escalatePolicy, "emit-event（当前唯一档）");
+        }
+    }
+
+    private static void positiveOrNull(Integer value, String key) {
+        if (value != null && value < 1) {
+            throw configError("buzhou." + key, String.valueOf(value), "正整数（null = 不限）");
+        }
+    }
+
+    private static BuzhouConfigurationException configError(String key, String value, String hint) {
+        return new BuzhouConfigurationException("buzhou." + key + "（" + value + "）非法", hint);
     }
 
     /** 全默认（装配测试 / 兜底用；所有阈值 null = 不限，等价现状）。 */

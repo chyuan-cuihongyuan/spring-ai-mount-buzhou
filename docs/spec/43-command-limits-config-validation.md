@@ -40,4 +40,42 @@ offload（两层互不替代——本上限是 OOM 防护不是上下文防护�
 - rlimit/cgroup 资源限额（纯 JDK 不可移植；沙箱档 SandboxLimits 已有，内置档黑名单+环境白名单
   +输出上限+进程树强杀即内置档的完整防线）。
 
-## §B 配置校验补全（占位，T158 落地时补全）
+## §B 配置校验补全（T158 / impl-129）
+
+### Problem Statement
+
+三处配置校验缺口：`buzhou.runaway.*` 与 `buzhou.backpressure.*` 全部数值/策略键零 fail-fast
+（负步数、非法策略词静默落到下游派生）；`buzhou.webhook.max-attempts/outbox-capacity` 非法值
+静默回退默认——配置错而不知，是「深水区运行时失败」的典型入口。
+
+### Solution
+
+越界/非法值启动即拒（BuzhouConfigurationException，消息含键名/收到值/合法形态）；宽容只留给
+「未配置 null」（null = 不限/默认的既有语义不变）。webhook 两键静默回退改显式拒绝
+（pre-1.0 破坏性变更，api-surface 入档）。
+
+### User Stories
+
+1. As a 应用开发者, I want 负数步数/非法策略词启动即被拒, so that 配置错误在启动期暴露而非运行期。
+2. As a 应用开发者, I want null = 不限/默认语义不变, so that 既有合法配置零迁移。
+3. As a SRE, I want 错误消息给出键名/收到值/合法形态, so that 排查无需翻源码。
+
+### Implementation Decisions
+
+- `BuzhouRunawayProperties`：perTurn/perSession 正整数、wallClock 正时长、perTool maxCalls 正整数、
+  softThresholdRatio ∈ (0,1]、repetition.consecutive ≥2 + action ∈ {block,flag-only}、
+  escalatePolicy = emit-event（当前唯一档）。
+- `BuzhouBackpressureProperties`：maxConcurrentSessions 正整数、spawnQueueTimeout 正时长、
+  策略词 ∈ {QUEUE,FAIL_FAST}（spawn 与 tool 两处；此前非法值静默归 QUEUE）、tool 组
+  maxConcurrentPerTurn 正整数 / toolTimeout 正时长 / permitAcquireTimeout 非负（0=FAIL_FAST 等价）。
+- `BuzhouWebhookProperties`：maxAttempts/outboxCapacity 非法值（<1）由静默回退默认改
+  BuzhouConfigurationException；null 默认不变。
+
+### Testing Decisions
+
+- core 单测：合法全量构造通过 + 逐键非法值拒绝（消息含键名）；webhook null 默认不变/非法拒绝/
+  有效值语义回归。
+
+### Out of Scope
+
+- JSR-303 注解化（仓库既有路线是构造器校验，保持一致）。

@@ -33,11 +33,18 @@ public record BuzhouWebhookProperties(
         if (timeout == null || timeout.isZero() || timeout.isNegative()) {
             timeout = Duration.ofSeconds(5);
         }
-        if (maxAttempts == null || maxAttempts < 1) {
+        if (maxAttempts == null) {
             maxAttempts = 8;
+        } else if (maxAttempts < 1) {
+            // spec 43 §B / T158：静默回退默认 → 显式拒绝（pre-1.0 破坏性变更，api-surface 入档）
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                    "buzhou.webhook.max-attempts（" + maxAttempts + "）非法", "≥1（默认 8）");
         }
-        if (outboxCapacity == null || outboxCapacity < 1) {
+        if (outboxCapacity == null) {
             outboxCapacity = 10_000;
+        } else if (outboxCapacity < 1) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                    "buzhou.webhook.outbox-capacity（" + outboxCapacity + "）非法", "≥1（默认 10000）");
         }
         if (queueCapacity != null) {
             LOGGER.log(System.Logger.Level.WARNING,

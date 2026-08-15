@@ -49,7 +49,44 @@ public record BuzhouBackpressureProperties(
 
     public BuzhouBackpressureProperties {
         enabled = enabled == null || enabled;
-        // 阈值字段保持 null = 未配置，由装配层派生
+        // spec 43 §B / T158 / impl-129：越界值 fail-fast（宽容只留给「未配置」null）
+        if (maxConcurrentSessions != null && maxConcurrentSessions < 1) {
+            throw configError("backpressure.max-concurrent-sessions",
+                    String.valueOf(maxConcurrentSessions), "正整数（null = 不限）");
+        }
+        if (spawnQueueTimeout != null && !spawnQueueTimeout.isPositive()) {
+            throw configError("backpressure.spawn-queue-timeout", spawnQueueTimeout.toString(),
+                    "正时长（null = 默认 30s）");
+        }
+        if (spawnOverloadPolicy != null && !spawnOverloadPolicy.isBlank()
+                && !"QUEUE".equals(spawnOverloadPolicy) && !"FAIL_FAST".equals(spawnOverloadPolicy)) {
+            throw configError("backpressure.spawn-overload-policy", spawnOverloadPolicy,
+                    "QUEUE | FAIL_FAST（此前非法值被静默归 QUEUE，现启动即拒）");
+        }
+        if (tool != null) {
+            if (tool.maxConcurrentPerTurn() != null && tool.maxConcurrentPerTurn() < 1) {
+                throw configError("backpressure.tool.max-concurrent-per-turn",
+                        String.valueOf(tool.maxConcurrentPerTurn()), "正整数（null = 默认 8）");
+            }
+            if (tool.toolTimeout() != null && !tool.toolTimeout().isPositive()) {
+                throw configError("backpressure.tool.tool-timeout", tool.toolTimeout().toString(),
+                        "正时长（null = 默认 60s）");
+            }
+            // 0 合法（FAIL_FAST 等价）；负数拒绝
+            if (tool.permitAcquireTimeout() != null && tool.permitAcquireTimeout().isNegative()) {
+                throw configError("backpressure.tool.permit-acquire-timeout",
+                        tool.permitAcquireTimeout().toString(), "非负时长（0 = 不等待即拒绝）");
+            }
+            if (tool.overloadPolicy() != null && !tool.overloadPolicy().isBlank()
+                    && !"QUEUE".equals(tool.overloadPolicy()) && !"FAIL_FAST".equals(tool.overloadPolicy())) {
+                throw configError("backpressure.tool.overload-policy", tool.overloadPolicy(),
+                        "QUEUE | FAIL_FAST");
+            }
+        }
+    }
+
+    private static BuzhouConfigurationException configError(String key, String value, String hint) {
+        return new BuzhouConfigurationException("buzhou." + key + "（" + value + "）非法", hint);
     }
 
     /** 全默认（装配测试 / 兜底用）。 */
