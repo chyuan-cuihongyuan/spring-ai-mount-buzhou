@@ -48,6 +48,9 @@ public enum ErrorCode {
     /** 结构化输出解析失败（REASK 一次后仍不合规；spec 19 / impl-62）。 */
     STRUCTURED_OUTPUT_FAILED(RetryCategory.NON_RETRYABLE, "结构化输出解析失败"),
 
+    /** 会话单飞闸拒绝（同会话已有在途轮次；spec 40 §B / impl-123——并发轮次由「未定义」转「确定拒绝」）。 */
+    TURN_IN_FLIGHT(RetryCategory.NON_RETRYABLE, "会话已有在途轮次"),
+
     // ---- FATAL：环境或数据根因，需人工介入 ----
 
     /** 数据损坏（单条记录无法解析 / 链校验断点；跳过计数并告警，需人工修复）。 */

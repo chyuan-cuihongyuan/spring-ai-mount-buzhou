@@ -222,7 +222,7 @@ public class DefaultAgentSession implements AgentSession {
         ensureLeaseHeld();
         ensureNotShuttingDown();
         // impl-30：在途计数（finally 减——任何终结路径均收口，停机排空的裁决源）
-        inFlightTurns.incrementAndGet();
+        acquireTurnSlot();
         try {
             return doChat(input, media);
         } finally {
@@ -245,7 +245,7 @@ public class DefaultAgentSession implements AgentSession {
         ensureOpen();
         ensureLeaseHeld();
         ensureNotShuttingDown();
-        inFlightTurns.incrementAndGet();
+        acquireTurnSlot();
         try {
             org.springframework.ai.converter.BeanOutputConverter<T> converter =
                     new org.springframework.ai.converter.BeanOutputConverter<>(type);
@@ -357,6 +357,19 @@ public class DefaultAgentSession implements AgentSession {
     }
 
     /**
+     * spec 40 §B / T152 / impl-123：会话单飞闸——在途计数 CAS 0→1 占位，占位失败即同会话
+     * 已有在途轮次，快速失败（{@link ErrorCode#TURN_IN_FLIGHT}，NON_RETRYABLE）。
+     * 语义由既往「并发同会话轮次属未定义使用」升级为确定拒绝；闸在轮次终结（含异常收尾）释放。
+     */
+    private void acquireTurnSlot() {
+        if (!inFlightTurns.compareAndSet(0, 1)) {
+            throw new BuzhouException(ErrorCode.TURN_IN_FLIGHT,
+                    "会话已有在途轮次（sessionId=" + sessionId + "）：同会话轮次不并发（单飞闸）；"
+                            + "请等待在途轮次终结，或为新交互 spawn 独立会话");
+        }
+    }
+
+    /**
      * impl-28 / spec 13 §core-2：模型调用兜底（挂起点④）。配置了 turnDeadline/loopTimeout 时，
      * 整个 ChatClient 调用（含 Advisor 链内的工具递归循环）不得超过 预算 + {@link #MODEL_FINALIZE_GRACE}。
      * 实现方式：CompletableFuture 在守卫虚拟线程上执行调用、主线程限时等待——Spring AI
@@ -415,7 +428,7 @@ public class DefaultAgentSession implements AgentSession {
         ensureLeaseHeld();
         ensureNotShuttingDown();
         // impl-30：在途计数在订阅终结（doFinally）时递减——与 onTurnStart 的预先通知时点对齐
-        inFlightTurns.incrementAndGet();
+        acquireTurnSlot();
         int turnSeq = hookEnv.nextTurn();
         observers.forEach(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
