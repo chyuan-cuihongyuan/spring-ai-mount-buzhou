@@ -12,7 +12,7 @@
 
 ## Decisions so far
 
-（空——按 frontier 逐票回填。）
+- [T112 index 契约测试矩阵](tickets/T112-index-contract-matrix.md) — AbstractSessionIndexContractTest 五契约随 test-jar 发布，内存/JDBC/Redis 三实现接入（后两者附重启持久用例）；spec 33 §A。
 
 ## Not yet specified
 
