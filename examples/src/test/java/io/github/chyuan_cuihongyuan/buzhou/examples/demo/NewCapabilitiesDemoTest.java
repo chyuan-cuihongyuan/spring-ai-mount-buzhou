@@ -134,7 +134,8 @@ class NewCapabilitiesDemoTest {
         HttpServer server = startCaptureServer(received, signatures);
         WebhookEventForwarder forwarder = new WebhookEventForwarder(new BuzhouWebhookProperties(
                 "http://127.0.0.1:" + server.getAddress().getPort() + "/hook",
-                "demo-secret", Duration.ofSeconds(3), 2, 32));
+                "demo-secret", Duration.ofSeconds(3), 2, 32, null),
+                Buzhou.inMemoryStores().sessionStateStore());
 
         ScriptedChatModel model = new ScriptedChatModel();
         model.enqueueText("r1");

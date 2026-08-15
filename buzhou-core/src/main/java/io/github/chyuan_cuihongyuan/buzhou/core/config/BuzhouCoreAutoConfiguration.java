@@ -48,14 +48,19 @@ import java.util.List;
 public class BuzhouCoreAutoConfiguration {
 
     /**
-     * 事件外发 webhook（spec 20 / T89 / impl-64）：配置 {@code buzhou.webhook.url} 才装配
-     * （默认关、零开销）。forwarder 经全局监听挂点挂全部会话（见 buzhouAgentRuntime）。
+     * 事件外发 webhook（spec 20 / T89；outbox 持久化 spec 24 / T103 / impl-78）：配置
+     * {@code buzhou.webhook.url} 才装配（默认关、零开销）。事件经持久化 outbox 投递
+     * （stateStore 合成会话，重启恢复）；forwarder 经全局监听挂点挂全部会话（见 buzhouAgentRuntime）。
      */
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(prefix = "buzhou.webhook", name = "url")
     public io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder webhookEventForwarder(
-            io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties props) {
-        return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props);
+            io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties props,
+            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> storesProvider) {
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores = storesProvider.getIfAvailable();
+        return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props,
+                stores != null ? stores.sessionStateStore()
+                        : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore());
     }
 
     // ---- 失控检测与容量闸（impl-45 / spec 14 §A，自分支增量移植）----

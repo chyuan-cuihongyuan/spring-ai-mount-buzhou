@@ -69,6 +69,10 @@
 每实例独立额度**。可行部署：粘性路由（会话归同实例）+ 租约独占（跨实例接管走 steal）。
 分布式限流/配额/熔断为显式 out-of-scope（spec 23）。
 
+**webhook outbox（spec 24）**：outbox 落共享 state store（JDBC/Redis）时事件跨重启不丢，
+但多实例分发器可能**双投递**——at-least-once 契约内，消费端以 `X-Buzhou-Event-Id` 幂等
+去重是契约责任；内存 store 部署等价旧进程内暂存（重启丢在途）。
+
 ## 7. 告警项清单（指标 → 阈值 → 动作）
 
 | 指标 | 建议阈值 | 动作 |
@@ -79,6 +83,8 @@
 | `buzhou.budget.hard-stops` | 业务定义 | 成本失控或攻击性使用 |
 | `buzhou.backpressure.spawn-rejected` | 持续非零 | 容量不足——扩容或提闸 |
 | `buzhou.webhook.failures` | 持续非零 | 外发端点故障（消费方告警） |
+| `buzhou.webhook.dead-letter` | 任意（P2） | 事件进死信（重试耗尽/4xx）——`deadLetters()` 定位 eventId，按需重放 |
+| `buzhou.webhook.dropped` | 任意 | outbox 容量满拒入——下游不可用时长超退避窗口，扩 outbox-capacity 或修下游 |
 | `buzhou.mcp.tools-drift` | 任意 | 工具面变更未同步——refresh |
 | `buzhou.mcp.connect.failures` | 持续非零 | MCP server 不可达 |
 | guard 审计链断链 WARN | 任意 | 审计链完整性——立即人工（合规风险） |

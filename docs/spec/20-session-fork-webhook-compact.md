@@ -18,7 +18,7 @@
 - 源无消息历史 → IllegalArgumentException；停机期拒绝（SHUTDOWN_INTERRUPTED）。
 - 事件 `session.forked`（sourceSessionId）；指标 `buzhou.session.forks`。
 
-## 事件外发 webhook（T89 / impl-64）
+## 事件外发 webhook（T89 / impl-64；投递可靠性升级见 spec 24——内存队列语义已被持久化 outbox 取代，信封/签名/重试口径沿用）
 
 - **`core/webhook/WebhookEventForwarder`**（`SessionEventListener`）：配置 `buzhou.webhook.url` 才装配
   （默认关）。core 增**全局监听挂点**：`DefaultAgentRuntime.addGlobalEventListener`（新会话自动挂 +
