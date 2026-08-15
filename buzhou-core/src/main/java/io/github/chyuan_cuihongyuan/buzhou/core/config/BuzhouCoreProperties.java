@@ -107,10 +107,14 @@ public record BuzhouCoreProperties(String modelName, Store store,
      * @param eventDispatch 事件分发（{@code buzhou.core.event-dispatch.*}；默认 SYNC 内联）
      * @param toolTimeout   单工具执行超时（impl-49：此前硬编码 60s；run_command 等长任务工具
      *                      的模块级 maxTimeout 大于本值时须同步调大本值，否则 harness 层先掐断）
+     * @param streamTotalTimeout spec 46 §B / T171：流式回复累计时长上限（慢滴流防护——相邻信号
+     *                      间隔 timeout 挡不住「每 9s 滴一字」的持续慢流）；null = 默认 10m；
+     *                      ≤0 = 显式关闭（既有不限语义逃生舱）
      */
     public record Core(EventDispatch eventDispatch, java.time.Duration toolTimeout,
-                       java.time.Duration indexClosedRetention) {
-        /** 多构造器场景下显式指定绑定构造器（1/2 参兼容构造仅供编程式使用）。 */
+                       java.time.Duration indexClosedRetention,
+                       java.time.Duration streamTotalTimeout) {
+        /** 多构造器场景下显式指定绑定构造器（1/2/3 参兼容构造仅供编程式使用）。 */
         @org.springframework.boot.context.properties.bind.ConstructorBinding
         public Core {
             eventDispatch = eventDispatch == null ? new EventDispatch(null, null, null, null)
@@ -120,16 +124,27 @@ public record BuzhouCoreProperties(String modelName, Store store,
             // spec 37 §C / T134：索引保留期——null = 默认 30d；负值/0 = 永久（不清扫）
             indexClosedRetention = indexClosedRetention == null
                     ? java.time.Duration.ofDays(30) : indexClosedRetention;
+            // spec 46 §B / T171：null = 默认 10m；≤0 = ZERO 哨兵（关闭，装配层据此不设上限）
+            streamTotalTimeout = streamTotalTimeout == null
+                    ? java.time.Duration.ofMinutes(10)
+                    : (streamTotalTimeout.isZero() || streamTotalTimeout.isNegative()
+                            ? java.time.Duration.ZERO : streamTotalTimeout);
         }
 
         /** 既有 1 参构造兼容。 */
         public Core(EventDispatch eventDispatch) {
-            this(eventDispatch, null, null);
+            this(eventDispatch, null, null, null);
         }
 
         /** 既有 2 参构造兼容。 */
         public Core(EventDispatch eventDispatch, java.time.Duration toolTimeout) {
-            this(eventDispatch, toolTimeout, null);
+            this(eventDispatch, toolTimeout, null, null);
+        }
+
+        /** 既有 3 参构造兼容。 */
+        public Core(EventDispatch eventDispatch, java.time.Duration toolTimeout,
+                    java.time.Duration indexClosedRetention) {
+            this(eventDispatch, toolTimeout, indexClosedRetention, null);
         }
     }
 

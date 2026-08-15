@@ -59,5 +59,9 @@ public final class BuzhouMetricsBinder implements MeterBinder {
         // 流式体验指标（spec 46 §A / T170；model tag 由记录侧截断）
         io.micrometer.core.instrument.Timer.builder("buzhou.model.ttft").register(registry);
         io.micrometer.core.instrument.Timer.builder("buzhou.model.tpot").register(registry);
+        // 流终止原因分类（spec 46 §B / T171；有界枚举三值）
+        for (String reason : new String[]{"client", "deadline", "guard"}) {
+            registry.counter("buzhou.stream.cancelled", "reason", reason);
+        }
     }
 }

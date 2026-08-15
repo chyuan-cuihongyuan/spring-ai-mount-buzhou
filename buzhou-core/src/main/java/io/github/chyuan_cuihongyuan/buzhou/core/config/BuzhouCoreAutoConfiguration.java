@@ -373,7 +373,10 @@ public class BuzhouCoreAutoConfiguration {
                                 })
                         : null;
         DefaultAgentRuntime runtime = new DefaultAgentRuntime(chatModel, stores,
-                new HarnessAssembler().withToolTimeout(properties.core().toolTimeout()), merged,
+                new HarnessAssembler().withToolTimeout(properties.core().toolTimeout())
+                        // spec 46 §B / T171：流累计上限（buzhou.core.stream-total-timeout；
+                        // 属性层已归一：正值生效 / ZERO 显式关闭 / 未配默认 10m）
+                        .withStreamTotalTimeout(properties.core().streamTotalTimeout()), merged,
                 properties.leaseTtl(), properties.effectiveLeaseRenewInterval(),
                 properties.lifecycle().timeoutPerShutdownPhase(),
                 eventDispatch.isBuffered() ? eventDispatch : null,

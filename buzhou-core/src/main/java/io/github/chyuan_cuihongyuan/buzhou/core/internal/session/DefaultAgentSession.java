@@ -94,6 +94,14 @@ public class DefaultAgentSession implements AgentSession {
     private BufferedEventDispatcher eventDispatcher;
     /** impl-35 / spec 13 §stores-6：级联清理协调器；null = delete() 退化为 close()（既有构造兼容）。 */
     private final io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner sessionCleaner;
+    /**
+     * spec 46 §B / T171 / impl-140：流式回复累计时长上限（慢滴流防护）；null = 不设
+     * （显式关闭）。与相邻信号间隔 timeout（{@code turnBudget}）正交，两道上限先到者生效。
+     */
+    private final Duration streamTotalTimeout;
+
+    /** spec 46 §B：流累计上限框架默认（10 分钟——远超正常流式回复，只拦慢性挂死）。 */
+    static final Duration DEFAULT_STREAM_TOTAL_TIMEOUT = Duration.ofMinutes(10);
 
     public DefaultAgentSession(String appId, String agentName, String sessionId,
                                ChatClient chatClient, SessionResourceRegistry registry,
@@ -169,6 +177,26 @@ public class DefaultAgentSession implements AgentSession {
                                SessionLeaseGuard leaseGuard,
                                io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
                                io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner sessionCleaner) {
+        this(appId, agentName, sessionId, chatClient, registry, onClose, hookChain, hookEnv,
+                toolManager, spanContextCarrier, observers, turnBudget, leaseGuard,
+                eventDispatchConfig, sessionCleaner, null);
+    }
+
+    /**
+     * spec 46 §B / T171 / impl-140：完整构造入口 + 流累计上限——{@code streamTotalTimeout}
+     * 为 null 时取框架默认 10m；{@link Duration#ZERO} 或负值 = 显式关闭（既有不限语义）。
+     */
+    public DefaultAgentSession(String appId, String agentName, String sessionId,
+                               ChatClient chatClient, SessionResourceRegistry registry,
+                               Runnable onClose, HookChain hookChain, HookEnvironment hookEnv,
+                               HarnessToolCallingManager toolManager,
+                               SpanContextCarrier spanContextCarrier,
+                               List<SessionObserver> observers,
+                               Duration turnBudget,
+                               SessionLeaseGuard leaseGuard,
+                               io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig eventDispatchConfig,
+                               io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner sessionCleaner,
+                               Duration streamTotalTimeout) {
         this.appId = appId;
         this.agentName = agentName;
         this.sessionId = sessionId;
@@ -182,6 +210,10 @@ public class DefaultAgentSession implements AgentSession {
         this.observers = new CopyOnWriteArrayList<>(observers);
         this.turnBudget = turnBudget;
         this.leaseGuard = leaseGuard;
+        this.streamTotalTimeout = streamTotalTimeout == null
+                ? DEFAULT_STREAM_TOTAL_TIMEOUT
+                : (streamTotalTimeout.isZero() || streamTotalTimeout.isNegative()
+                        ? null : streamTotalTimeout);
         // impl-41 / spec 13 §T66：会话挂点——未 close 即被 GC = 资源泄漏嫌疑
         this.leakHandle = io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder
                 .detector().track("session:" + sessionId);
@@ -435,6 +467,7 @@ public class DefaultAgentSession implements AgentSession {
         HookResult before = hookChain.beforeTurn(turnCtx);
         if (before instanceof HookResult.Block block) {
             inFlightTurns.decrementAndGet(); // 未返回 Flux 前即终结，同步收口计数
+            recordStreamCancelled("guard");
             return Flux.error(new IllegalStateException(block.reason()));
         }
         StringBuilder replyAccumulator = new StringBuilder();
@@ -445,9 +478,17 @@ public class DefaultAgentSession implements AgentSession {
                 .chatResponse();
         if (turnBudget != null) {
             // impl-28：流式兜底——相邻信号间隔不得超过 预算+收尾宽限（挂死/断流的模型调用被
-            // TimeoutException 截断，走既有 doOnError→onTurnError 路径）。诚实边界：流式 timeout
-            // 为「相邻信号间隔」语义，持续慢滴流的流不被累计截断（流式固有语义）。
+            // TimeoutException 截断，走既有 doOnError→onTurnError 路径）。
             stream = stream.timeout(turnBudget.plus(MODEL_FINALIZE_GRACE));
+        }
+        if (streamTotalTimeout != null) {
+            // spec 46 §B / T171：累计上限——自订阅起整条流不得超过 stream-total-timeout（慢滴流
+            // 防护：间隔 timeout 对持续滴流无效）。超限以标记异常 onError 终结（takeUntilOther
+            // 语义：other 出错即向下游传播并取消上游），走既有 doOnError→failTurnOnce 收尾。
+            Duration cap = streamTotalTimeout;
+            stream = stream.takeUntilOther(
+                    reactor.core.publisher.Mono.delay(cap).then(
+                            reactor.core.publisher.Mono.error(new StreamTotalTimeoutException(cap))));
         }
         // impl-30 / spec 13 §core-1：轮次终结一次性守卫——complete/error/cancel/timeout 四路
         // 终结信号共用（正常完成与异常收尾语义均只执行一次，幂等）
@@ -460,16 +501,31 @@ public class DefaultAgentSession implements AgentSession {
                     }
                 })
                 .doOnComplete(() -> completeStreamTurnOnce(finalized, turnSeq, turnCtx, replyAccumulator))
-                .doOnError(e -> failTurnOnce(finalized, turnSeq, e))
+                .doOnError(e -> {
+                    // spec 46 §B / T171：超时类错误归 deadline（间隔 timeout 与累计超限同因计数）
+                    if (e instanceof TimeoutException || e instanceof StreamTotalTimeoutException) {
+                        recordStreamCancelled("deadline");
+                    }
+                    failTurnOnce(finalized, turnSeq, e);
+                })
                 // impl-30 / spec 13 §core-1：doFinally 收尾——订阅者 cancel 与正常完成同路执行
                 // span 关闭、turn 记账（onTurnError 终结在途 Turn）；在途计数在此递减
                 .doFinally(signal -> {
                     inFlightTurns.decrementAndGet();
                     if (signal == SignalType.CANCEL) {
+                        // spec 46 §B / T171：订阅者主动断开归 client（含上游算子主动取消时
+                        // 走 error 路径、不与此重复计数的先验：CANCEL 只对应下游 dispose）
+                        recordStreamCancelled("client");
                         failTurnOnce(finalized, turnSeq,
                                 new CancellationException("流式订阅被取消，Turn 终止"));
                     }
                 });
+    }
+
+    /** spec 46 §B / T171：流终止原因分类计数（有界枚举 client|deadline|guard；预注册家族）。 */
+    private static void recordStreamCancelled(String reason) {
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.stream.cancelled", 1, "reason", reason);
     }
 
     /**

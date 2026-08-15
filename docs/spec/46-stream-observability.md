@@ -65,7 +65,8 @@ adviseStream 只在流终结时聚合 usage 与正文，首信号无打点——
 ### Solution
 
 终止原因分类计数器 `buzhou.stream.cancelled{reason=client|deadline|guard}`（有界枚举、预注册）；
-新增流累计时长上限 `buzhou.session.stream-total-timeout`（缺省 10m，≤0 关闭）——自订阅起计，
+新增流累计时长上限 `buzhou.core.stream-total-timeout`（缺省 10m，≤0 关闭；实现期自
+`buzhou.session.*` 修正为 `buzhou.core.*`——与 tool-timeout 等既有 core 旋钮同族）——自订阅起计，
 超限以错误终结流并按 reason=deadline 计数，走既有 failTurnOnce 收尾路径。
 
 ### User Stories
@@ -83,8 +84,11 @@ adviseStream 只在流终结时聚合 usage 与正文，首信号无打点——
 - 累计上限实现：流包装 `takeUntilOther(Mono.delay(cap).then(Mono.error(标记异常)))` 语义——
   超限时流以标记异常 onError 终结，复用既有 doOnError→failTurnOnce 链路（TURN 记账/span 关闭
   均既有语义）；标记异常为 core 内部类型，消息注明「流累计时长超限」。
-- 配置：`BuzhouCoreProperties` 新键 `stream-total-timeout`（Duration，缺省 10m；≤0 显式关闭），
-  HarnessAssembler 传入 DefaultAgentSession 新构造参数（既有构造兼容重载保留）。
+- 配置：`BuzhouCoreProperties.Core` 新键 `stream-total-timeout`（Duration，缺省 10m；≤0 显式关闭），
+  `HarnessAssembler.withStreamTotalTimeout` wither 传入 `DefaultAgentSession` 新构造参数（既有构造兼容重载保留）。
+- 诚实边界：累计超限触发时上游（含 ObservabilityAdvisor 的 span 包装）收到的是 cancel 信号——
+  MODEL_CALL span 终态可能记为 CANCELLED 而非 ERROR；TURN 级记账（failTurnOnce + 标记异常 + deadline
+  计数）不受影响，准确。
 - 相邻信号间隔 timeout（既有）语义不变；两道上限并存时先到者生效。
 - 行为变更入档：缺省开启 10m 上限（此前语义为不限），pre-1.0 允许，api-surface 记录。
 

@@ -44,11 +44,20 @@ public class HarnessAssembler {
     /** impl-49：单工具执行超时（原硬编码 60s；buzhou.core.tool-timeout 可配）。 */
     private Duration toolTimeout = DEFAULT_TOOL_TIMEOUT;
 
+    /** spec 46 §B / T171：流累计上限；null = 会话层默认 10m，ZERO = 显式关闭。 */
+    private Duration streamTotalTimeout;
+
     /** impl-49：流式设超时（builder 风格）。 */
     public HarnessAssembler withToolTimeout(Duration timeout) {
         if (timeout != null && !timeout.isZero() && !timeout.isNegative()) {
             this.toolTimeout = timeout;
         }
+        return this;
+    }
+
+    /** spec 46 §B / T171：流累计上限（builder 风格；ZERO/负 = 关闭，null = 默认 10m）。 */
+    public HarnessAssembler withStreamTotalTimeout(Duration cap) {
+        this.streamTotalTimeout = cap;
         return this;
     }
 
@@ -216,7 +225,7 @@ public class HarnessAssembler {
         Duration turnBudget = turnLoopPolicy == null ? null : turnLoopPolicy.effectiveTurnBudget();
         return new DefaultAgentSession(appId, agentName, sessionId, builder.build(), registry, onClose,
                 chain, env, toolManager, spanContextCarrier, assemblyCtx.observers(), turnBudget,
-                leaseGuard, eventDispatchConfig, sessionCleaner);
+                leaseGuard, eventDispatchConfig, sessionCleaner, streamTotalTimeout);
     }
 
     public ChatClient.Builder enhance(ChatClient.Builder builder, BuzhouStores stores) {
