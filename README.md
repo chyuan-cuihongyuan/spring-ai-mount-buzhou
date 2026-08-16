@@ -234,7 +234,7 @@ try (AgentSession session = runtime.spawn("app", "agent", "session-1")) {
 | `buzhou.resilience.rate-limit.requests-per-minute` | 不限 | 模型 RPM 桶 |
 | `buzhou.runaway.enabled` | `true` | 失控检测（阈值默认不设 = 不限，safe-by-default） |
 | `buzhou.runaway.per-turn.max-steps` | 不限 | 单轮最大步数（软阈值 80% 提醒，硬顶终止） |
-| `buzhou.runaway.per-turn.max-wall-clock` | 不限 | 单轮墙钟上限 |
+| `buzhou.runaway.per-turn.wall-clock` | 不限 | 单轮墙钟上限 |
 | `buzhou.backpressure.max-concurrent-sessions` | 不限 | 会话并发容量闸 |
 | `buzhou.core.tool-timeout` | `60s` | 单工具执行超时（长任务工具须同步调大） |
 | `buzhou.core.event-dispatch.mode` | `sync` | 事件分发：`sync` / `buffered`（有界队列） |

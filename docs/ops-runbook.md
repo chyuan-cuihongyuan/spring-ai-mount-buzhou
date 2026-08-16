@@ -61,7 +61,7 @@
 | `buzhou.webhook.outbox-capacity` | 10000 | 下游长期不可用时的未决积压上限（满则拒入+计数） |
 | `buzhou.tools.result-limit-chars` | 20000 | 工具结果入上下文护栏；频繁截断（`result-truncated` 指标）→ 优化该工具或 per-tool 覆盖 |
 | `buzhou.skills.catalog-max-entries` | 64 | 目录注入体积护栏（截断附「另有 N 个未列出」提示） |
-| `buzhou.index.closed-retention` | 30d | 索引 CLOSED/DELETED 行保留期（-1 永久）；过期惰性清扫（1/64 概率 ≤256 条） |
+| `buzhou.core.index-closed-retention`（impl-178 键名修正：原 index.* 键与组件路径不符被静默吞） | 30d | 索引 CLOSED/DELETED 行保留期（-1 永久）；过期惰性清扫（1/64 概率 ≤256 条） |
 | `buzhou.spill.encryption-key` | 关 | spill 落盘 AES-256-GCM 加密（Base64 32B；推荐环境变量注入）；开启后旧明文文件兼容读 |
 | `buzhou.store.read-degrade` | off | `empty` = 消息读失败降级空历史续聊（WARN + `buzhou.stores.read-degraded` 计数可感；模型看不到历史是已知代价） |
 | `buzhou.webhook.close-drain-timeout` | 5s | 停机排空已到期 webhook 记录的预算（与容器终止宽限期对齐） |
@@ -229,3 +229,16 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   过期条目命中路径惰性清除（不返回陈旧）。
 - 命中异常排查：`hit/miss/evicted` 计数（advisor 暴露 store）——miss 高先查 messages 视图
   是否每请求漂移（memory 注入内容含时间戳/随机数会使键失效）；evicted 高提 max-entries。
+
+### 配置治理（effort #13 / spec 治理面）
+
+- **绑定矩阵防线**：`ConfigBindingsMatrixTest`（starter）对全模块 metadata 键做真实装配路径
+  绑定断言——新增 yml 键未注册矩阵即失败；「按文档配置静默不生效」类缺陷（T187/impl-178
+  共修复 5 处）在 CI 必红。
+- **公共面快照**：`docs/api-surface.snapshot.txt`（449 类型）与 `ApiSurfaceSnapshotTest`
+  比对——有意变更流程：regenerateSnapshot 覆写 → 人工核对 diff → api-surface.md 同步入档。
+  快照比对仅在 reactor 联编（全仓 verify）生效，单模块跑跳过（诚实边界）。
+- **键拼写防护**：错拼键不报错（Spring ignoreUnknownFields）——IDE 经 metadata 提示是第一道；
+  疑似键不生效时跑绑定矩阵定位（新键必须同时落 metadata + 矩阵登记）。
+- **新键检查单**：metadata 入档 → 矩阵 SAMPLE_OVERRIDES/ENV_READ_KEYS 登记 → runbook §3
+  调优表按需补录 → 多构造器 record 需 @ConstructorBinding（T187 教训）。

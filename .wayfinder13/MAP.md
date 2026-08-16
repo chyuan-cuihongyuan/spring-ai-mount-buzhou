@@ -24,6 +24,12 @@
 ## Decisions so far
 
 - [T214 配置绑定完整性矩阵](tickets/T214-config-bindings-matrix.md) — 93 键全矩阵防线；**当场抓获修复 4 存量缺陷**（2 Duration parse 炸 + 3 键名静默失效改名入档）。
+- [T215 公共面快照](tickets/T215-apisurface-snapshot.md) — 449 类型黄金快照 + 比对 + regenerate；reactor 形态门。
+- [T216 配置文档对账](tickets/T216-config-docs-matrix.md) — runbook/README 键名同步收尾；metadata 事实源口径。
+- [T217 治理面对抗](tickets/T217-governance-redteam.md) — 漂移演练删行红/恢复绿；更新流程入档。
+- [T218 键拼写演示](tickets/T218-governance-demo.md) — 三道防线钉住（演示票面修订为流程入档）。
+- [T219 runbook 增补](tickets/T219-runbook-9.md) — 配置治理节（矩阵/快照/拼写/新键检查单）。
+- [T220 CONTEXT/api-surface 增补](tickets/T220-context-api-13.md) — 术语节 3 条 + 修复性改名/行为修复入档。
 
 ## Not yet specified
 

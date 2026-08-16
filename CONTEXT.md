@@ -142,3 +142,22 @@
 - **评估完成事件（eval.run.completed）** — run 收尾外发（webhook 同通道零改造）；
   空集 run 不发（事件语义 = 评估完成而非建档）。
 - **自定义事件出口（emitEvent）** — AgentSession 公共面：宿主领域事件与会话事件同通道派发。
+
+## 精确响应缓存（effort #12）
+
+- **精确响应缓存（Exact Response Cache）** — 同请求（model + 注入后 messages + options 采样）
+  二次调用命中短路：零模型调用、零 token、不进熔断窗、无 MODEL_CALL span（诚实：没调模型）。
+- **终态缓存边界** — 只缓存无 toolCalls 且内容非空的终态响应（工具副作用安全）；
+  LiteLLM 代理层无此约束，agent harness 特有。
+- **流式组装缓存** — 流式完整聚合（内容+usage+finishReason）后写；命中 Flux.just 重放；
+  取消/错误不写半截。
+- **LRU+TTL 惰性过期** — 容量逐出与 TTL 过期都计 evicted；过期不返回陈旧；无后台线程。
+
+## 配置与公共面治理（effort #13）
+
+- **配置绑定矩阵（Bindings Matrix）** — 全模块 metadata 键经真实装配路径逐一绑定断言；
+  「键存在但静默不生效」类缺陷（键名/组件漂移、绑定构造器缺失）在 CI 必红。
+- **公共面快照（API Snapshot）** — 非 internal public 类型全集黄金快照（449 类型 × 14 模块）；
+  新增/移除公开类型未入档即失败；更新流程 = regenerate → 核对 diff → 文档同步。
+- **env 直读面** — 无 @ConfigurationProperties 的模块键（guard/memory/tools/leak 等）经
+  Environment 直读消费——矩阵以 env 等值断言覆盖（装配链可达性口径）。

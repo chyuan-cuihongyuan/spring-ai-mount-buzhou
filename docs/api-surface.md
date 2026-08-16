@@ -663,3 +663,16 @@
 - yml 键：`buzhou.resilience.response-cache.{enabled,max-entries,ttl}`（metadata 已入档）
 - **破坏性变更（pre-1.0）**：`ResilienceProperties` canonical 构造组件数 13→14（兼容构造
   保留源码兼容；反射绑定按 canonical 的调用方需核对）
+
+## effort #13 新增公共面（治理 / impl-178–180，@since 1.0.0）
+
+**buzhou-spring-boot-starter（测试面防线，非运行时 API）**
+
+- `ConfigBindingsMatrixTest`（93 键绑定矩阵；新键必须登记）
+- `ApiSurfaceSnapshotTest` + `docs/api-surface.snapshot.txt`（449 类型黄金快照）
+- **配置键破坏性改名（pre-1.0，原键本就静默无效——修复性改名）**：
+  `buzhou.runaway.per-turn.max-wall-clock` → `per-turn.wall-clock`；
+  `buzhou.runaway.session.*` → `runaway.per-session.*`；
+  `buzhou.index.closed-retention` → `buzhou.core.index-closed-retention`
+- **行为修复**：`buzhou.leak.lease-age-threshold` / `buzhou.skills.catalog-cache-ttl`
+  支持 Spring 双格式时长（"5m"/"PT5M"），原仅 ISO 格式（与 metadata 文档矛盾）
