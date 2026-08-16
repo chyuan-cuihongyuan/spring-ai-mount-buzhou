@@ -104,3 +104,27 @@
   WARN + 计数可感不静默）；缺省 off 上抛不变。
 - **输出兜底上限（Output Cap）** — run_command 输出内存兜底可配（max-output-bytes，缺省 5MB；
   截断标记可见）——OOM 防护层，与 Spill offload 的上下文治理层互不替代。
+
+## 运营可观测与流量治理（effort #10）
+
+- **TTFT/TPOT** — 流式体验双指标：首内容信号时延（time to first token）与每输出 token 间时延
+  （time per output token）；timer 预注册 + STREAM_FIRST_TOKEN 事件（空块不触发）。
+- **流取消三路分类** — `buzhou.stream.cancelled` 计数按 client（下游取消）/ deadline（超时）/
+  guard（护栏终结）三标签分流；取消不再是一枚笼统计数。
+- **慢滴流累计上限（stream-total-timeout）** — 相邻信号间隔 timeout 挡不住的「每 9s 滴一字」
+  慢流由累计时长上限兜底（缺省 10m，≤0 显式关）。
+- **MDC 会话轮次关联** — chat 调用线程日志携带会话/轮次两键（try/finally 必清）；stream 路径
+  因信号切线程清错线程的结构性限制不入（裁定入档）。
+- **turn 反馈（rateTurn）** — 轮次级反馈捕获 API：boolean/numeric/categorical 三型校验、
+  state store 持久化（`buzhou.feedback.` 前缀可 scan）、`turn.feedback` 事件外发。
+- **反馈导出（FeedbackExporter）** — core.feedback 导出扩展段：负反馈标记 + negativeTurnSeqs
+  汇总，衔接评估数据集；无反馈时空段缺席。
+- **加权金丝雀（Weighted Canary）** — 降级候选池按会话稳定哈希加权抽取初始目标（同会话粘住）；
+  目标失败按链序回退含原主模型；默认关。
+- **shadow 探测（Shadow Fork）** — 主调用成功后异步裸调用对照模型（不重放工具循环）；
+  并发 + UTC 日预算双护栏；`shadow.compared` 事件；默认关零提交。
+- **池配额（Pool Quota）** — 降级/金丝雀候选统一过 RPM/TPM 限流闸、按实际服务模型记账；
+  remaining gauge 可感余量。
+- **错误码统一（ErrorCode 收口）** — 泛化 throw 渐进挂码（SPILL_IO_FAILED/STORE_READ_FAILED/
+  SKILL_OPERATION_INVALID 新码）；断言类 ISE 保留面钉住不迁。
+- **未订阅流惰性化** — stream 轮次占用以 Flux.defer 惰性化：未订阅零占用、零计数残留。

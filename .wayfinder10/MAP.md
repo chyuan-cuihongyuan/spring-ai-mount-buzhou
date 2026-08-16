@@ -48,6 +48,8 @@
 - [T183 perf 哨兵四批](tickets/T183-perf-4.md) — TTFT 打点/rateTurn/候选闸/shadow 提交四哨兵（首轮全 <5ms）+ baseline 落档；spec 51 §C。
 - [T184 examples 演示四批](tickets/T184-demo-4.md) — TTFT 观测/rateTurn 反馈+导出/金丝雀权重/shadow 对照四演示；spec 51 续。
 - [T185 runbook 第六轮](tickets/T185-runbook-6.md) — 症状+4/告警+5/§8 流量治理与反馈运营（金丝雀漂移语义、shadow 信任前提、MDC pattern）。
+- [T186 CONTEXT/api-surface 增补](tickets/T186-context-api-10.md) — 术语节 12 条 + effort#10 公共面 + 破坏性变更 3 处入档（impl-154）。
+- [T187 配置元数据四批](tickets/T187-metadata-4.md) — 7 键入档 + 绑定验证；**勘察纠偏：Fallback/Circuit 缺 @ConstructorBinding 致 yml 键静默不生效（impl-57 起存量缺陷），修复 + circuit 回归**（impl-155）。
 
 ## Not yet specified
 

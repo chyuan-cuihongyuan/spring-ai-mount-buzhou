@@ -592,3 +592,40 @@
 
 - enforcer 第二执行段：dependencyConvergence + banDuplicatePomDependencyVersions；
   `com.networknt:json-schema-validator` 钉 3.0.1（Spring AI 双路传递分歧收口）
+
+## effort #10 新增公共面（spec 46–51 / impl-139–153，@since 1.0.0）
+
+**buzhou-observability**
+
+- `ObservabilityAdvisor`：TTFT/TPOT 首内容信号打点（span 属性 + STREAM_FIRST_TOKEN 事件；
+  空块不触发；非流式零变化）
+- `buzhou.model.ttft` / `buzhou.model.tpot` Timer（`BuzhouMetricsBinder` 预注册；model tag 截断）
+
+**buzhou-core**
+
+- `AgentSession.rateTurn(turnSeq, type, value, comment, source)` default 方法（不支持实现抛 UOE）
+- `FeedbackExporter`（core.feedback 导出扩展段：负反馈标记 + negativeTurnSeqs 汇总；空段缺席）
+- `EventType.STREAM_FIRST_TOKEN` 常量；`turn.feedback` 会话事件（webhook 监听者零改造）
+- `buzhou.stream.cancelled{client|deadline|guard}` 计数 + `StreamTotalTimeoutException`（internal；
+  对外语义经轮次失败面呈现）
+- `BuzhouCoreProperties.Core.streamTotalTimeout`（第 4 组件；null = 10m，≤0 = ZERO 哨兵关闭；
+  3 参兼容构造保留）
+- `ErrorCode` 新增 `SPILL_IO_FAILED` / `STORE_READ_FAILED` / `SKILL_OPERATION_INVALID`
+- **破坏性变更（pre-1.0）**：泛化 throw 渐进挂码——spill IO 面（9 处）、store 读取面、技能管理面
+  （4 处）、todo/SHA（2 处）由 ISE/泛化 RuntimeException 改抛带 ErrorCode 的 `BuzhouException`；
+  断言类 ISE 保留面钉住不迁（catch 具体异常类型的调用方需跟进）
+
+**buzhou-resilience**
+
+- `ResilienceProperties.Fallback`：`canaryEnabled` / `weights` 第 3/4 组件（2 参兼容构造保留）
+- `ResilienceProperties.Shadow` 参数组（`shadow.enabled/models/max-concurrent/daily-budget`）；
+  顶层 record 第 13 组件（12 参兼容构造保留）
+- `ShadowTrafficController`（异步对照提交 + 并发/日预算护栏；`EVENT_COMPARED = "shadow.compared"`）
+- `ModelRateLimiter`：降级/金丝雀候选过闸 + 按实际服务模型 TPM 记账 + remaining gauge
+- **破坏性变更（pre-1.0）**：`Fallback`/`ResilienceProperties` canonical 构造组件数增加
+  （兼容构造保留，源码兼容；反射按 canonical 构造绑定的调用方需核对）
+
+**buzhou-spill / buzhou-skills / buzhou-tools**
+
+- `DiskSpillStore` / `SkillAdminApi` / `TodoStore` 泛化异常挂码（对齐上文错误码收口；
+  无签名变化）
