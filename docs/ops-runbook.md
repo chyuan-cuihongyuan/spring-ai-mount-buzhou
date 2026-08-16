@@ -34,6 +34,10 @@
 | **启动失败「检测到未来 schema 版本」** | SchemaMigrator 守卫（spec 42 §A） | 旧构建对上新库被拒——升构建到库版本；不要绕过（防旧 schema 写坏新库） |
 | **启动失败「已应用迁移脚本被改动」** | 版本表 checksum 锚（spec 42 §A） | 已应用脚本不可变——恢复脚本原文；新变更用新版本号脚本 |
 | 启动失败「store.type=jdbc 但对应 store 实现未装配」 | store 类型守卫 | 引 buzhou-store-jdbc + 确认 DataSource bean |
+| **流式回复中途断掉、错误含「流累计时长超限」** | `buzhou.stream.cancelled{reason=deadline}`（spec 46 §B） | 慢滴流防护截断（默认 10m）——确属长流场景调 `buzhou.core.stream-total-timeout`（≤0 关闭）；偶发则查模型吞吐 |
+| **流式取消占比异常** | `buzhou.stream.cancelled{reason}` 三路拆解 | client 升 = 前端断开行为变化；deadline 升 = 模型/网络变慢（配合 TTFT）；guard 升 = 护栏拦截频次 |
+| **反馈写入被拒（rateTurn）** | 异常文案含修法 | type 三型/值域/source 两值/轮次须已存在——按文案修参；关闭会话不可反馈 |
+| **金丝雀/降级候选被限流跳过** | `buzhou.resilience.rate-limit-rejected{model}` | 候选池配额闸（spec 49 §B）——提 `rate-limit.*` 或减候选流量；非模型故障，不入熔断窗 |
 
 ## 3. 配置调优表（高频项）
 
@@ -137,3 +141,39 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 | `buzhou.mcp.tools-drift` | 任意 | 工具面变更未同步——refresh |
 | `buzhou.mcp.connect.failures` | 持续非零 | MCP server 不可达 |
 | guard 审计链断链 WARN | 任意 | 审计链完整性——立即人工（合规风险） |
+| `buzhou.model.ttft` | P95 持续劣化（如 >5s，业务定） | 流式首字变慢——排队（provider 侧）/模型负载；配合 `buzhou.model.tpot` 区分首字慢 vs 吐字慢 |
+| `buzhou.model.tpot` | P95 持续劣化 | 吐字节奏变慢——模型过载典型症状（换模型/降并发） |
+| `buzhou.stream.cancelled{reason=deadline}` | 窗口速率突增 | 截断风暴——慢滴流/超时预算过紧 |
+| `buzhou.resilience.shadow.calls{outcome=error}` | 持续非零 | shadow 模型故障（不影响用户）；探测失真，修 shadow 端点 |
+| `buzhou.resilience.shadow.calls{outcome=skipped-budget}` | 长期 100% | shadow 日预算耗尽——提 `shadow.daily-budget` 或降采样 |
+
+
+## 8. 流量治理与反馈运营（effort #10 / spec 48–49）
+
+### 金丝雀（weighted canary）
+
+- 配置：`buzhou.resilience.fallback.canary-enabled=true` + `weights.<modelName>=N`（未列名=1）。
+  首次调用按会话稳定哈希加权抽取初始目标（同会话粘住）；`canary.selected` 事件可见首选落点。
+- **变更语义**：权重/候选变更后存量会话在下一次首选解析时漂移一次（新会话即新分布）——
+  灰度窗口预期行为，非故障。
+- 故障回退不受权重影响：所选目标终态失败按链序试剩余候选（含原主模型），全败上抛所选目标
+  原始错误。
+
+### shadow 探测
+
+- 配置：`buzhou.resilience.shadow.enabled=true` + `models=[bean 名]`（未命中启动失败）；
+  `max-concurrent`（默认 2）/`daily-budget`（默认 1000，UTC 日池，提交次数口径）。
+- 语义红线：不回注用户、不重放工具循环（裸调用）；失败吞噬（计数 outcome=error）。
+- 预算池尽即停（skipped-budget 计数可感）；对照数据看 `shadow.compared` 事件
+  （primaryMs/shadowMs/deltaMs/tokens）——换模型决策依据。
+- 信任前提：shadow 模型与主模型同信任域（prompt 内容会发给 shadow 提供方）。
+
+### 反馈运营（rateTurn / core.feedback）
+
+- 接入：`session.rateTurn(turnSeq, type, value, comment, source)`（user 显式 / implicit 系统隐式）。
+- 落点：state store `buzhou.feedback.*` 键 + `turn.feedback` 事件（webhook 订阅零改造）。
+- 评估回流：`SessionExport.extensions["core.feedback"]` 段含 `negative` 极性标记与
+  `negativeTurnSeqs` 汇总——负反馈轮可直接筛入离线评估集。
+- 日志关联（MDC）：chat 轮次期间日志携带 `buzhou.sessionId`/`buzhou.turnSeq`——
+  logback pattern 加 `%X{buzhou.sessionId:-}` 即与会话对齐（流式路径不支持，结构性限制
+  见 spec 47 §A）。
