@@ -244,6 +244,25 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 - 命中异常排查：`hit/miss/evicted` 计数（advisor 暴露 store）——miss 高先查 messages 视图
   是否每请求漂移（memory 注入内容含时间戳/随机数会使键失效）；evicted 高提 max-entries。
 
+### 语义缓存（effort #15 / spec 55，LiteLLM semantic caching 同思想）
+
+- 配置：`buzhou.resilience.semantic-cache.enabled=true`（**默认关**）+
+  `similarity-threshold`（默认 0.95）+ `max-entries`（默认 128）+ `ttl`（默认 1h）；
+  需注册 Spring AI `EmbeddingModel` bean（如 OpenAI starter 自动装配）——enabled 而无
+  bean 启动即失败（fail-fast 带修法）。
+- **机制**：精确缓存（+450）miss 后，问题文本嵌入 → 同桶（model+options）最近邻
+  cosine ≥ 阈值即命中——同义问法（非逐字相同）零模型调用；带 toolCalls 不缓存
+  （与精确缓存同界）；命中不进熔断窗。
+- **成本口径（开启前算账）**：命中省一次模型调用、花一或两次嵌入调用（查询+写入）——
+  模型贵/嵌入便宜的 FAQ 型负载最划算；会话续聊（每轮 messages 变化）收益有限。
+- **残余风险（诚实声明）**：语义判别力归嵌入模型——「X」与「不是 X」若被嵌入模型编码
+  为相近向量，语义缓存会错误重放（否定句场景）。框架保证阈值/分桶/边界正确；误命中
+  风险靠高阈值（调低阈值 = 增召回也增误命中）+ 默认关闭 + 适用面自律（强时效/强否定
+  语义敏感场景不开）承担。红队测试钉住机制语义（SemanticCacheRedteamTest）。
+- 嵌入服务故障：查询/写入嵌入失败 → 该调用旁路直通主路径（bypass 计数可感，不阻断）。
+- 进程内向量存储（桶内线性扫描，量级数百——perf 哨兵钉住）；跨实例共享语义缓存
+  out-of-scope（RediSearch 向量另议）。
+
 ### 配置治理（effort #13 / spec 治理面）
 
 - **绑定矩阵防线**：`ConfigBindingsMatrixTest`（starter）对全模块 metadata 键做真实装配路径

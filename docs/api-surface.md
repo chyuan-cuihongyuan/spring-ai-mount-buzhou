@@ -701,3 +701,18 @@
   destroyMethod=close）
 - yml 键：**零新增**（复用 `buzhou.store.type` + `buzhou.resilience.rate-limit.*`；
   绑定矩阵防线核对通过）
+
+## effort #15 新增公共面（spec 55 / impl-191–195，@since 1.0.0）
+
+**buzhou-resilience（resilience.cache 包，全新两类）**
+
+- `SemanticCacheStore`（进程内向量存储：桶内线性 cosine 最近邻 + LRU/TTL 惰性过期；
+  hit/miss/evicted 计数；可注入 Clock；零向量/维度错配防御性 miss）
+- `SemanticCacheAdvisor`（BaseAdvisor；order +460 = 精确缓存之后；嵌入查询/写入失败
+  旁路降级 + bypassCount() 观测；终态写入边界复用 ResponseCacheAdvisor.isTerminal）
+- `ResilienceProperties.SemanticCache` 参数组（顶层 record 第 15 组件；14 参兼容构造保留）
+- `ResilienceModule.configure` 增 EmbeddingModel 尾参重载（旧签名委托）
+- yml 键：`buzhou.resilience.semantic-cache.{enabled,similarity-threshold,max-entries,ttl}`
+  （metadata 已入档 + 绑定矩阵登记——enabled=true 全路径含 stub EmbeddingModel）
+- **破坏性变更（pre-1.0）**：`ResilienceProperties` canonical 构造组件数 14→15
+  （兼容构造保留源码兼容；反射绑定按 canonical 的调用方需核对）

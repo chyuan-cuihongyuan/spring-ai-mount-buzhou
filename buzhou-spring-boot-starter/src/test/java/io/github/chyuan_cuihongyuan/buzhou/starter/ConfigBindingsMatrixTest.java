@@ -102,6 +102,9 @@ class ConfigBindingsMatrixTest {
             Map.entry("buzhou.observe.dashboard.auth-token", "sample-token"),
             Map.entry("buzhou.observe.otel.headers", "sample-header"),
             Map.entry("buzhou.resilience.fallback.weights", "sample"),
+            // effort#15 / spec 55：语义缓存 enabled=true 全路径（矩阵上下文配 stub EmbeddingModel
+            // ——见 MatrixStubEmbeddingModel；无 bean 时 fail-fast 由红队测试覆盖）
+            Map.entry("buzhou.resilience.semantic-cache.enabled", "true"),
             Map.entry("buzhou.tools.result-limit-overrides", "sampleTool"),
             Map.entry("buzhou.runaway.per-turn.max-steps", "50"),
             Map.entry("buzhou.runaway.per-turn.max-tool-calls", "50"),
@@ -157,6 +160,8 @@ class ConfigBindingsMatrixTest {
                         BuzhouResilienceAutoConfiguration.class))
                 .withBean(ChatModel.class, () -> model)
                 .withBean("shadowModel", ScriptedChatModel.class, ScriptedChatModel::new)
+                .withBean(org.springframework.ai.embedding.EmbeddingModel.class,
+                        MatrixStubEmbeddingModel::new)
                 .withPropertyValues("buzhou.spill.root-dir=" + spillDir)
                 .withPropertyValues(properties.entrySet().stream()
                         .map(e -> e.getKey() + "=" + e.getValue()).toArray(String[]::new))
@@ -371,6 +376,20 @@ class ConfigBindingsMatrixTest {
             return "k";
         }
         return "sample";
+    }
+
+    /** 矩阵 stub：semantic-cache.enabled=true 全路径装配用（真实嵌入判别力不在此测）。 */
+    static final class MatrixStubEmbeddingModel implements org.springframework.ai.embedding.EmbeddingModel {
+        @Override
+        public org.springframework.ai.embedding.EmbeddingResponse call(
+                org.springframework.ai.embedding.EmbeddingRequest request) {
+            return new org.springframework.ai.embedding.EmbeddingResponse(java.util.List.of());
+        }
+
+        @Override
+        public float[] embed(org.springframework.ai.document.Document document) {
+            return new float[]{1f, 0f};
+        }
     }
 
 }

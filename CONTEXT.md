@@ -177,3 +177,18 @@
   （ObjectProvider 优先消费，无 bean = 内存默认零变化）。
 - **整形差异诚实入档** — 固定窗边界两窗相接可 2× 尖峰；额度总量与拒绝语义同令牌桶
   两档等价；TPM 记账可致负余额（诚实表达超限，下窗重置）。
+
+## 语义缓存（effort #15）
+
+- **语义缓存（Semantic Cache）** — 精确缓存（spec 53）之上加 embedding 相似度命中层：
+  问题文本嵌入 → 同桶（model+options 采样）最近邻 cosine ≥ 阈值即命中（LiteLLM
+  semantic caching 同思想）；order +460 = 精确缓存（+450）之后——零成本层先行。
+- **进程内向量存储** — 桶内线性扫描 + LRU/TTL 惰性过期（ResponseCacheStore 同风格）；
+  Redis/RediSearch 向量后端 out-of-scope（非标准 Redis 模块）。
+- **嵌入可插拔 + fail-fast** — Spring AI EmbeddingModel bean 注入（Buzhou 不内置
+  provider）；enabled 而无 bean 启动即失败带修法（不静默不生效）。
+- **嵌入故障旁路降级** — 嵌入查询/写入失败 → 该调用旁路直通主路径（bypass 计数可感，
+  不阻断）——嵌入故障不该弄坏主路径（与限流 fail-fast 语义刻意不同：降级不损正确性）。
+- **机制与判别力分离（诚实边界）** — 框架保证阈值/分桶/终态边界正确；「X」vs「不是 X」
+  的语义判别力归嵌入模型（红队否定对钉住：相近嵌入下框架按阈值诚实命中）——默认关闭
+  + 阈值可调 + 适用面自律承担残余误命中风险。
