@@ -12,7 +12,7 @@
   <name>buzhou-store-redis</name>
 
   <properties>
-    <jedis-mock.version>1.1.5</jedis-mock.version>
+    <jedis-mock.version>1.1.17</jedis-mock.version>
   </properties>
 
   <dependencies>
