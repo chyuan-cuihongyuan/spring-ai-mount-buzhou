@@ -46,6 +46,7 @@
 - [T181 黄金轨迹 F](tickets/T181-golden-f.md) — G22 反馈捕获/G23 金丝雀稳定/G24 shadow 隔离三轨迹；spec 51 §A。
 - [T182 红队对抗四批](tickets/T182-redteam-surface4.md) — 反馈伪造/shadow 泄漏/配额绕过/漂移观察档 + 跳级唯一性与粘性对抗断言；spec 51 §B。
 - [T183 perf 哨兵四批](tickets/T183-perf-4.md) — TTFT 打点/rateTurn/候选闸/shadow 提交四哨兵（首轮全 <5ms）+ baseline 落档；spec 51 §C。
+- [T184 examples 演示四批](tickets/T184-demo-4.md) — TTFT 观测/rateTurn 反馈+导出/金丝雀权重/shadow 对照四演示；spec 51 续。
 
 ## Not yet specified
 
