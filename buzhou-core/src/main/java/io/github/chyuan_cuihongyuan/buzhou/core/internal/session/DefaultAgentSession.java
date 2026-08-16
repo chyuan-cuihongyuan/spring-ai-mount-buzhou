@@ -629,6 +629,16 @@ public class DefaultAgentSession implements AgentSession {
         dispatchEvent(new SessionEvent("turn.feedback", payload, at));
     }
 
+    /** spec 52 §F / T195：自定义事件出口——委托既有 dispatchEvent（listeners/webhook 同通道）。 */
+    @Override
+    public void emitEvent(String type, java.util.Map<String, Object> payload) {
+        ensureOpen();
+        if (type == null || type.isBlank()) {
+            throw new IllegalArgumentException("emitEvent type 不能为空");
+        }
+        dispatchEvent(SessionEvent.of(type, payload));
+    }
+
     /** spec 47 §B：反馈校验（非法 IllegalArgumentException，文案含修复建议；normalize type）。 */
     private static String validateFeedback(int turnSeq, String type, String value, String source) {
         if (type == null) {

@@ -61,6 +61,15 @@ public interface AgentSession extends AutoCloseable {
         throw new UnsupportedOperationException("本 AgentSession 实现不支持 turn 反馈捕获（rateTurn）");
     }
 
+    /**
+     * 发自定义会话事件（spec 52 §F / T195）：payload 随 {@link SessionEvent} 派发给本会话
+     * 已挂载的监听器（含全局 listeners / WebhookEventForwarder——webhook 零改造收到）。
+     * 事件类型约定带模块前缀（如 {@code eval.run.completed}）防与框架内置事件撞名。
+     */
+    default void emitEvent(String type, java.util.Map<String, Object> payload) {
+        throw new UnsupportedOperationException("本 AgentSession 实现不支持自定义事件（emitEvent）");
+    }
+
     /** 取消在途轮次（impl-05）：立即中断在飞工具、丢弃在飞结果；会话不谢幕，可继续 chat。 */
     void cancel();
 

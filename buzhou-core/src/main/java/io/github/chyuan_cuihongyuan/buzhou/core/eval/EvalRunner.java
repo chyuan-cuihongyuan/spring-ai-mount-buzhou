@@ -66,7 +66,32 @@ public final class EvalRunner {
         stateStore.put(EvalDatasetStore.SESSION_ID,
                 new StateEntry(RUN_PREFIX + runId, encode(resultToMap(result)),
                         "eval", 0, null, finishedAt));
+        emitRunCompleted(result, startedAt, finishedAt);
         return result;
+    }
+
+    /**
+     * spec 52 §F / T195：run 完成事件（total > 0 才发——空集无评估发生，事件语义为
+     * 「评估完成」非「run 建档」）。实现裁定：spec 原案「末项评估会话上发」改为独立收尾
+     * 会话 {@code eval-<runId>-done}（项会话逐项 close 的资源语义优先；诚实入档）。
+     */
+    private void emitRunCompleted(EvalRunResult result, java.time.Instant startedAt,
+            java.time.Instant finishedAt) {
+        if (result.total() == 0) {
+            return;
+        }
+        java.util.Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("runId", result.runId());
+        payload.put("datasetName", result.datasetName());
+        payload.put("total", result.total());
+        payload.put("passed", result.passed());
+        payload.put("failed", result.failed());
+        payload.put("errored", result.errored());
+        payload.put("passRate", result.passRate());
+        payload.put("durationMs", java.time.Duration.between(startedAt, finishedAt).toMillis());
+        try (var done = runtime.spawn("buzhou-eval", "eval", "eval-" + result.runId() + "-done")) {
+            done.emitEvent("eval.run.completed", payload);
+        }
     }
 
     private EvalRunItemResult runItem(String runId, EvalItem item, Evaluator evaluator) {
