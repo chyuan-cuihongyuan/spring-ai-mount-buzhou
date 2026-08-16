@@ -38,6 +38,7 @@ LLM-as-judge 以 SPI 留口不做硬门（沿用 effort#7 边界）。
 - [T191 负反馈回流](tickets/T191-feedback-import.md) — isNegative 单一事实源口径复用（提 public）；幂等去重；无回复轮跳过；expected 强制非空（票面「可空」修订）；spec 52 §B。
 - [T192 评估器 SPI](tickets/T192-evaluator-spi.md) — SPI + EXACT/CONTAINS/REGEX（JSON_PATH 依赖盘点后不做）；LLM-as-judge 留口；非法正则构造期 fail-fast；spec 52 §C。
 - [T193 批次评估 runner](tickets/T193-eval-runner.md) — 项粒度会话隔离 + 三态逐项记录 + passRate 汇总落 `eval.run.<runId>`；异常不断批；勘察纠偏 throwOnCall 时序陷阱；spec 52 §D。
+- [T194 评估结果查询](tickets/T194-eval-query.md) — 四查询只读面 + 摘要行 + 倒序 + Optional empty 语义；spec 52 §E。
 
 ## Not yet specified
 
