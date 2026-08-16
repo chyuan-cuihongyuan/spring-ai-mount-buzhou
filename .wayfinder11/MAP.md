@@ -43,6 +43,7 @@ LLM-as-judge 以 SPI 留口不做硬门（沿用 effort#7 边界）。
 - [T196 评估面红队](tickets/T196-eval-redteam.md) — 伪造反馈/键注入/记录篡改/会话隔离四用例全钉住。
 - [T197 评估面 perf 哨兵](tickets/T197-eval-perf.md) — runner/scan/回流三哨兵（首轮 <5ms）+ baseline 落档。
 - [T198 评估闭环演示](tickets/T198-eval-demo.md) — 宿主视角完整闭环（负反馈→回流→run→查询→事件）+ 幂等/自定义评估器演示。
+- [T199 runbook 第七轮](tickets/T199-runbook-7.md) — 症状 +2/告警 +2/§9 评估运营（治理/回流策略/资源说明）。
 
 ## Not yet specified
 

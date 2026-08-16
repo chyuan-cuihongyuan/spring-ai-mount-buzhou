@@ -38,6 +38,8 @@
 | **流式取消占比异常** | `buzhou.stream.cancelled{reason}` 三路拆解 | client 升 = 前端断开行为变化；deadline 升 = 模型/网络变慢（配合 TTFT）；guard 升 = 护栏拦截频次 |
 | **反馈写入被拒（rateTurn）** | 异常文案含修法 | type 三型/值域/source 两值/轮次须已存在——按文案修参；关闭会话不可反馈 |
 | **金丝雀/降级候选被限流跳过** | `buzhou.resilience.rate-limit-rejected{model}` | 候选池配额闸（spec 49 §B）——提 `rate-limit.*` 或减候选流量；非模型故障，不入熔断窗 |
+| **评估 run error 项突增** | `eval.run.completed` 事件 `errored` 字段 / EvalQueryService 明细 | 评估会话执行异常（模型/装配）——查明细 detail 异常摘要；偶发=provider 抖动，持续=评估环境配置错 |
+| **负反馈回流全 skippedMissingReply** | FeedbackImporter 返回计数 | 负反馈轮无 assistant 回复（护栏拦截轮不可回流——预期行为）；若正常轮也跳过，查消息历史完整性 |
 
 ## 3. 配置调优表（高频项）
 
@@ -146,6 +148,8 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 | `buzhou.stream.cancelled{reason=deadline}` | 窗口速率突增 | 截断风暴——慢滴流/超时预算过紧 |
 | `buzhou.resilience.shadow.calls{outcome=error}` | 持续非零 | shadow 模型故障（不影响用户）；探测失真，修 shadow 端点 |
 | `buzhou.resilience.shadow.calls{outcome=skipped-budget}` | 长期 100% | shadow 日预算耗尽——提 `shadow.daily-budget` 或降采样 |
+| `eval.run.completed`（passRate） | 环比跌超业务阈值（如 >10pp） | 质量回归——对比 latestRun 与历史 run 明细定位坏例；回流新负反馈扩充数据集 |
+| `eval.run.completed`（errored 占比） | > 20% | 评估环境故障（模型/装配）——修评估环境后重跑；errored 项不参与 passRate 分子 |
 
 
 ## 8. 流量治理与反馈运营（effort #10 / spec 48–49）
@@ -177,3 +181,38 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 - 日志关联（MDC）：chat 轮次期间日志携带 `buzhou.sessionId`/`buzhou.turnSeq`——
   logback pattern 加 `%X{buzhou.sessionId:-}` 即与会话对齐（流式路径不支持，结构性限制
   见 spec 47 §A）。
+
+## 9. 评估运营（effort #11 / spec 52）
+
+### 评估数据集治理
+
+- 存储：state store 合成会话 `__buzhou.eval__`（键 `eval.ds.<name>` 元数据 +
+  `eval.ds.<name>.item.<000001>` 条目）；与业务数据同持久化面，跨重启不丢。
+- 命名：`[a-z0-9-]{1,64}`（含点/斜杠/空格被拒——键结构注入防护）；建议
+  `<领域>-<类型>`（如 `support-badcases`、`sales-regression`）。
+- 溯源：回流项带 sourceSessionId/sourceTurnSeq——评估项可回查原始会话定位上下文。
+- 删除：deleteDataset 不级联删 run 记录（run 自带 datasetName 快照，审计保留）。
+
+### 回流策略
+
+- 一键回流：`FeedbackImporter.importFromFeedback(sessionId, datasetName)`——只入负反馈轮
+  （boolean=false / numeric 负值；categorical 无极性不入）。
+- 幂等：同会话同轮重复回流跳过（skippedDuplicate）——可放心周期执行。
+- 无 assistant 回复轮（护栏拦截/中断）跳过（skippedMissingReply）——不造空期望项。
+- 建议节奏：日终批量回流 + 人工抽检数据集质量（防低质负反馈污染回归集）。
+
+### run 与评估器
+
+- run：`EvalRunner.run(datasetName, evaluator)` 顺序执行、项粒度会话隔离
+  （`eval-<runId>-i<itemId>`）、单项异常不断批；passRate = passed/total（空集 0.0）。
+- 评估器：内置 EXACT（trim 全等）/ CONTAINS（子串）/ REGEX（find 语义，非法正则构造期拒）；
+  领域断言实现 `Evaluator` SPI 即插（LLM-as-judge 由宿主自实现，框架不内置）。
+- 完成：`eval.run.completed` 事件外发（webhook 同通道）；查询面 EvalQueryService
+  （runs/run/latestRun 只读）。
+
+### 资源说明
+
+- 评估会话走普通 spawn（占会话容量配额）——大批量 run（>百项）建议低峰执行；
+  会话项粒度即开即关，不留残留。
+- run 记录含 actual 预览（2048 字符截断）——明细膨胀有界；dataset 无条目数硬顶
+  （治理面自律，超大集建议拆分）。
