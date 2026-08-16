@@ -72,3 +72,15 @@
 | 缓存 call 命中路径 | advisor 查键+重放包装（spawn+chat 全链路） | <2ms | 15ms |
 | 缓存键计算 | 10 条消息 sha256 规范序列化 | <0.5ms | 10ms |
 | 流式命中重放 | Flux.just 订阅消费（spawn+stream+blockLast） | <3ms | 20ms |
+
+## effort #14 增补哨兵（T227 / impl-188；container 环境口径，首轮实测待 CI nightly）
+
+| 哨兵 | 场景 | 设计预期 | 硬顶（10 倍宽幅） |
+|------|------|---------|------------------|
+| Redis 限流单次往返 | tryAcquire 100 次 P95（redis:7-alpine 容器，命中路径 1×INCRBY） | <5ms | 50ms |
+| Redis 限流 30 连发 | 容量 6 下 30 次抢（6 命中 + 24 超限回滚混合路径）总耗 | <150ms | 1.5s |
+
+> 本机无 Docker，首轮实测值待 CI nightly（`-Dgroups=perf`）补录；硬顶按单次 INCRBY/DECRBY
+> 往返量级推设（LiteLLM Router 同款路径），越顶 = 量级回归信号（连接池/往返放大），人工
+> profiling 定位。口径注意：container 内 Redis 往返 ≠ 跨机生产 Redis（网络 RTT 另计），
+> 只看同环境趋势。

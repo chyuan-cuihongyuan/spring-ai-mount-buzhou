@@ -70,8 +70,9 @@
 ## 4. 容量规划
 
 - **并发会话**：`max-concurrent-sessions` ≈ 单实例可承载活跃会话数（虚拟线程执行，内存为主约束）。
-- **模型吞吐**：`rate-limit.requests-per-minute / tokens-per-minute` 是**进程级**容量（多实例 =
-  N 倍额度，见 §6）；TPM 按真实 usage 记账，provider 不回 usage 时记 0 留痕。
+- **模型吞吐**：`rate-limit.requests-per-minute / tokens-per-minute` 默认是**进程级**容量
+  （多实例 = N 倍额度，见 §6）；`store.type=redis` 时自动升级为 **Redis 共享闸**（全实例
+  合计一份额度，spec 54）；TPM 按真实 usage 记账，provider 不回 usage 时记 0 留痕。
 - **成本**：会话累计进 SessionStateStore（跨崩溃持久）；日配额按 UTC 日窗重置。
 - 性能基线参考（Apple Silicon 单机）：每轮 harness 开销 P95 ≈ 0.6ms、微压缩 ≈ 1.8M msgs/s
   （docs/perf/baseline.md——跨机不可比，只看同机趋势）。
@@ -114,9 +115,22 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 
 ## 6. 多实例边界（诚实声明）
 
-单进程组件：限流桶 / 熔断器 / 日配额计数 / InMemory 审计环 / SpawnGate 容量闸——**多实例 =
-每实例独立额度**。可行部署：粘性路由（会话归同实例）+ 租约独占（跨实例接管走 steal）。
-分布式限流/配额/熔断为显式 out-of-scope（spec 23）。
+单进程组件：熔断器 / 日配额计数 / InMemory 审计环 / SpawnGate 容量闸——**多实例 =
+每实例独立额度**（限流已升级为可选共享闸，见下）。可行部署：粘性路由（会话归同实例）+
+租约独占（跨实例接管走 steal）。分布式熔断/配额为显式 out-of-scope（spec 23）。
+
+**共享限流闸（effort #14 / spec 54）**：`buzhou.store.type=redis` 且配置
+`buzhou.resilience.rate-limit.requests-per-minute / tokens-per-minute` 时，限流自动从
+进程内令牌桶切换为 **Redis 分钟固定窗**（INCR/EXPIRE，LiteLLM Router 同款）——全实例
+共享同一份 RPM/TPM 额度（总闸正确，不再 N 倍超额）。运维须知：
+
+- **整形差异**：固定窗在窗口边界两窗相接时可处理 2× 速率（尖峰）；额度总量与拒绝语义
+  与令牌桶两档等价——按总量规划，不按瞬时速率兜底。
+- **故障语义 fail-fast**：Redis 不可达时限流调用**按错误上抛**（STORE_WRITE_FAILED 带修法），
+  **不静默 fail-open**——限流失效比暂不可用更危险；Redis 是该部署形态的硬依赖。
+- 窗口键 = `buzhou:<模型净化名>:<RPM|TPM>:<epoch分钟窗>`（UTC epoch 时基，跨时区实例同窗），
+  TTL 61s 自动滚动；无需人工清理。
+- 单进程部署（无 store.type=redis）行为零变化（内存令牌桶默认）。
 
 **webhook outbox（spec 24）**：outbox 落共享 state store（JDBC/Redis）时事件跨重启不丢，
 但多实例分发器可能**双投递**——at-least-once 契约内，消费端以 `X-Buzhou-Event-Id` 幂等

@@ -104,6 +104,18 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+    <!-- effort#14 / spec 54 / T228：多实例共享限流演示（双 runtime + Redis 固定窗）；
+         container 依赖标注——CI Docker 可用时跑，本机无 Docker 自动跳过。 -->
+    <dependency>
+      <groupId>io.github.chyuan-cuihongyuan</groupId>
+      <artifactId>buzhou-store-redis</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- 真实 LLM 集成测试（impl/06）：凭据门控、CI 跳过、仅本地带 key 跑。
          starter 提供 OpenAI 兼容 ChatModel 自动装配（从 spring.ai.openai.api-key 等属性）；
          spring-boot-starter-test 提供 @SpringBootTest。 -->

@@ -161,3 +161,19 @@
   新增/移除公开类型未入档即失败；更新流程 = regenerate → 核对 diff → 文档同步。
 - **env 直读面** — 无 @ConfigurationProperties 的模块键（guard/memory/tools/leak 等）经
   Environment 直读消费——矩阵以 env 等值断言覆盖（装配链可达性口径）。
+
+## 多实例共享限流（effort #14）
+
+- **限流后端 SPI（RateLimitBackend）** — core.spi 策略/存储分离接口：策略（排队/拒绝/事件）
+  留在 ModelRateLimiter，额度存取（tryAcquire/consume/available/capacity/waitHint）抽象到后端；
+  kind 标识（memory/redis）供观测。
+- **内存令牌桶后端（InMemoryRateLimitBackend）** — 原 TokenBucket 逻辑平移，默认后端；
+  单进程部署行为零变化（全量既有测试不改一行全绿即证明）。
+- **Redis 固定窗后端（RedisRateLimitBackend）** — 分钟窗 INCR/DECR + 首写 EXPIRE 61s
+  （LiteLLM Router 同款）；多实例共享 RPM/TPM 额度（总闸正确）；超限回滚不泄漏；
+  epoch 时基窗口键（跨时区无关）；模型名净化防键注入。
+- **fail-fast 故障语义** — Redis 不可达按 STORE_WRITE_FAILED 带修法上抛，不静默 fail-open
+  （限流失效比暂不可用更危险）；starter 按 store.type=redis 自动装配共享后端
+  （ObjectProvider 优先消费，无 bean = 内存默认零变化）。
+- **整形差异诚实入档** — 固定窗边界两窗相接可 2× 尖峰；额度总量与拒绝语义同令牌桶
+  两档等价；TPM 记账可致负余额（诚实表达超限，下窗重置）。

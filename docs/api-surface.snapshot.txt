@@ -21,6 +21,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouStoreFailureAn
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouTokenBudgetProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.contract.AbstractBuzhouStoresContractTest
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.contract.AbstractSessionIndexContractTest
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouDataCorruptionException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode
@@ -148,6 +150,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseInfo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery
@@ -168,10 +171,20 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetSpec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.Transport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.UnitOfWork
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.EventSequenceAssert
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.FakeChatModel
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.FaultInjectingToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.RecordingChatModel
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.RecordingFixture
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptStep
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.TestDoubleChatModel
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ToolCallSpec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookDeadLetter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxPerfAccess
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.GuardModule
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AgentAuditRecord
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditChain
@@ -335,6 +348,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.Resilien
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMemoryRateLimitBackend
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor
@@ -425,6 +439,7 @@ buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.DegradingObse
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBuzhouStores
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisMessageStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisObservabilityStore
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisRateLimitBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisSessionIndexStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisSessionLeaseStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisSessionStateStore

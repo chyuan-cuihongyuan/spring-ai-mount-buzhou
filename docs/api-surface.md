@@ -676,3 +676,28 @@
   `buzhou.index.closed-retention` → `buzhou.core.index-closed-retention`
 - **行为修复**：`buzhou.leak.lease-age-threshold` / `buzhou.skills.catalog-cache-ttl`
   支持 Spring 双格式时长（"5m"/"PT5M"），原仅 ISO 格式（与 metadata 文档矛盾）
+
+## effort #14 新增公共面（spec 54 / impl-185–190，@since 1.0.0）
+
+**buzhou-core（core.spi 包，全新）**
+
+- `RateLimitBackend`（限流后端 SPI：tryAcquire/consume/available/capacity/
+  secondsUntilAvailable/kind；策略留在 resilience，额度存取抽象到后端）
+
+**buzhou-resilience（ratelimit 包）**
+
+- `InMemoryRateLimitBackend`（默认内存令牌桶——原 ModelRateLimiter.TokenBucket 平移；
+  单进程行为零变化）
+- `ModelRateLimiter` 新增 backend 注入构造（五参重载）与 `backend()` 观测出口
+  （旧构造保留 = 内存默认）
+- `ResilienceModule.configure` 新增带 RateLimitBackend 尾参重载（旧签名委托）
+
+**buzhou-store-redis**
+
+- `RedisRateLimitBackend`（分钟固定窗 INCR/EXPIRE，AutoCloseable；多实例共享额度；
+  fail-fast 故障语义 STORE_WRITE_FAILED 带修法；epoch 时基窗口键 + 模型名净化）
+- `BuzhouRedisStoreAutoConfiguration` 新增 `buzhouSharedRateLimitBackend` bean
+  （store.type=redis 即供；容量 env 直读 buzhou.resilience.rate-limit.*；
+  destroyMethod=close）
+- yml 键：**零新增**（复用 `buzhou.store.type` + `buzhou.resilience.rate-limit.*`；
+  绑定矩阵防线核对通过）
