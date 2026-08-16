@@ -113,6 +113,12 @@
       "defaultValue": "60s"
     },
     {
+      "name": "buzhou.core.stream-total-timeout",
+      "type": "java.time.Duration",
+      "description": "流式回复累计时长上限（spec 46 §B / T171，慢滴流防护）：相邻信号间隔 timeout 挡不住的持续慢流由本值兜底；0 或负值 = 显式关闭（既有不限语义逃生舱）。",
+      "defaultValue": "10m"
+    },
+    {
       "name": "buzhou.webhook.outbox-capacity",
       "type": "java.lang.Integer",
       "defaultValue": 10000,

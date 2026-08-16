@@ -91,6 +91,20 @@ class BuzhouCoreAutoConfigurationTest {
                 .run(ctx -> assertThat(ctx).hasFailed());
     }
 
+    /** spec 46 §B / T187：buzhou.core.stream-total-timeout 绑定 + 默认 10m + 0 关闭哨兵。 */
+    @Test
+    void shouldBindStreamTotalTimeout_whenPropertyConfigured() {
+        runner.run(ctx -> assertThat(ctx.getBean(BuzhouCoreProperties.class).core().streamTotalTimeout())
+                .isEqualTo(Duration.ofMinutes(10)));
+        runner.withPropertyValues("buzhou.core.stream-total-timeout=5m")
+                .run(ctx -> assertThat(ctx.getBean(BuzhouCoreProperties.class).core().streamTotalTimeout())
+                        .isEqualTo(Duration.ofMinutes(5)));
+        // ≤0 = ZERO 哨兵（显式关闭慢滴流累计上限，既有不限语义逃生舱）
+        runner.withPropertyValues("buzhou.core.stream-total-timeout=0s")
+                .run(ctx -> assertThat(ctx.getBean(BuzhouCoreProperties.class).core().streamTotalTimeout())
+                        .isEqualTo(Duration.ZERO));
+    }
+
     /** impl-33：buzhou.lease-ttl / buzhou.lease-renew-interval 经 kebab-case 绑定生效。 */
     @Test
     void shouldBindLeaseParameters_whenKebabPropertiesConfigured() {

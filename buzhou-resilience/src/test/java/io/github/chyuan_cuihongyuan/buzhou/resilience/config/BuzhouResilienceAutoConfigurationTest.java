@@ -74,4 +74,58 @@ class BuzhouResilienceAutoConfigurationTest {
                     .isEqualTo(io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy.FAIL_FAST);
         });
     }
+
+    // ---- 金丝雀 / shadow 配置绑定（spec 48 §B / 49 §A / T187 元数据入档） ----
+
+    @Test
+    void canaryAndShadowDefaultToOff() {
+        runner.run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            // fallback 未配置 = null（金丝雀天然关）；shadow 未配置归一为关 = 零提交零事件零计数
+            assertThat(props.fallback()).isNull();
+            assertThat(props.shadow().effectiveEnabled()).isFalse();
+            assertThat(props.shadow().maxConcurrent()).isEqualTo(2);
+            assertThat(props.shadow().dailyBudget()).isEqualTo(1000L);
+        });
+    }
+
+    @Test
+    void canaryAndShadowYmlOverridesBindToProperties() {
+        // shadow.models 按名解析 fail-fast（spec 49 §A）：提供同名 bean 供装配校验命中
+        runner.withBean("shadowModel",
+                        io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel.class,
+                        io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel::new)
+                .withPropertyValues(
+                "buzhou.resilience.fallback.canary-enabled=true",
+                "buzhou.resilience.fallback.weights.primary=9",
+                "buzhou.resilience.fallback.weights.candidate=1",
+                "buzhou.resilience.shadow.enabled=true",
+                "buzhou.resilience.shadow.models=shadowModel",
+                "buzhou.resilience.shadow.max-concurrent=4",
+                "buzhou.resilience.shadow.daily-budget=77"
+        ).run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.fallback().canaryEnabled()).isTrue();
+            assertThat(props.fallback().weights())
+                    .containsEntry("primary", 9)
+                    .containsEntry("candidate", 1);
+            assertThat(props.shadow().effectiveEnabled()).isTrue();
+            assertThat(props.shadow().models()).containsExactly("shadowModel");
+            assertThat(props.shadow().maxConcurrent()).isEqualTo(4);
+            assertThat(props.shadow().dailyBudget()).isEqualTo(77L);
+        });
+    }
+
+    /** T187 勘察修复回归：circuit 多构造器 record 补 @ConstructorBinding 后 yml 键恢复生效。 */
+    @Test
+    void circuitYmlOverridesBindToProperties() {
+        runner.withPropertyValues(
+                "buzhou.resilience.circuit.window-size=40",
+                "buzhou.resilience.circuit.half-open-success-threshold=3").run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.circuit()).isNotNull();
+            assertThat(props.circuit().windowSize()).isEqualTo(40);
+            assertThat(props.circuit().halfOpenSuccessThreshold()).isEqualTo(3);
+        });
+    }
 }

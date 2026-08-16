@@ -84,6 +84,41 @@
       "type": "java.lang.Integer",
       "defaultValue": 1,
       "description": "半开连续成功探测数（spec 35 §A）：默认 1 = 单探测即恢复；>1 抖动 provider 需连续 N 次成功。"
+    },
+    {
+      "name": "buzhou.resilience.fallback.canary-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "加权金丝雀开关（spec 48 §B）：启用时首次模型调用按会话稳定哈希在候选池（主+备）加权抽取初始目标；默认关 = 原降级链行为。"
+    },
+    {
+      "name": "buzhou.resilience.fallback.weights",
+      "type": "java.util.Map<java.lang.String,java.lang.Integer>",
+      "defaultValue": {},
+      "description": "金丝雀候选权重（modelName → 权重，未列名默认 1；LiteLLM Router simple-shuffle 语义收窄为会话稳定）。"
+    },
+    {
+      "name": "buzhou.resilience.shadow.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "shadow 探测开关（spec 49 §A）：主成功后异步裸调用对照模型；未启用零提交零事件零计数。"
+    },
+    {
+      "name": "buzhou.resilience.shadow.models",
+      "type": "java.util.List<java.lang.String>",
+      "description": "shadow ChatModel bean 名列表（未命中启动失败；空 = 不探测）。"
+    },
+    {
+      "name": "buzhou.resilience.shadow.max-concurrent",
+      "type": "java.lang.Integer",
+      "defaultValue": 2,
+      "description": "shadow 进程级并发上限（超限提交计 skipped-concurrency）。"
+    },
+    {
+      "name": "buzhou.resilience.shadow.daily-budget",
+      "type": "java.lang.Long",
+      "defaultValue": 1000,
+      "description": "shadow 进程级 UTC 日预算（提交次数口径；池尽计 skipped-budget）。"
     }
   ],
   "hints": [

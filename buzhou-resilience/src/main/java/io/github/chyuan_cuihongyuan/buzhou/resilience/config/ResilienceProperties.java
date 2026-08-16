@@ -133,6 +133,8 @@ public record ResilienceProperties(
                     backoffCap, null);
         }
 
+        /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察修复——缺注解时 yml 键静默不生效）。 */
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public Circuit {
             enabled = enabled == null ? true : enabled;
             windowSize = windowSize == null ? 20 : windowSize;
@@ -197,6 +199,8 @@ public record ResilienceProperties(
             Boolean canaryEnabled,
             Map<String, Integer> weights) {
 
+        /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察修复——缺注解时 yml 键静默不生效）。 */
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public Fallback {
             triggerCategories = triggerCategories == null || triggerCategories.isEmpty()
                     ? List.of("NETWORK", "SERVER", "TIMEOUT", "AUTH")
