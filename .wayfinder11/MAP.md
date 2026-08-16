@@ -40,6 +40,7 @@ LLM-as-judge 以 SPI 留口不做硬门（沿用 effort#7 边界）。
 - [T193 批次评估 runner](tickets/T193-eval-runner.md) — 项粒度会话隔离 + 三态逐项记录 + passRate 汇总落 `eval.run.<runId>`；异常不断批；勘察纠偏 throwOnCall 时序陷阱；spec 52 §D。
 - [T194 评估结果查询](tickets/T194-eval-query.md) — 四查询只读面 + 摘要行 + 倒序 + Optional empty 语义；spec 52 §E。
 - [T195 评估事件外发](tickets/T195-eval-events.md) — emitEvent 新公共面 + eval.run.completed（收尾会话口径）+ 空集不发裁定；spec 52 §F。
+- [T196 评估面红队](tickets/T196-eval-redteam.md) — 伪造反馈/键注入/记录篡改/会话隔离四用例全钉住。
 
 ## Not yet specified
 
