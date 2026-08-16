@@ -50,6 +50,8 @@
 - [T185 runbook 第六轮](tickets/T185-runbook-6.md) — 症状+4/告警+5/§8 流量治理与反馈运营（金丝雀漂移语义、shadow 信任前提、MDC pattern）。
 - [T186 CONTEXT/api-surface 增补](tickets/T186-context-api-10.md) — 术语节 12 条 + effort#10 公共面 + 破坏性变更 3 处入档（impl-154）。
 - [T187 配置元数据四批](tickets/T187-metadata-4.md) — 7 键入档 + 绑定验证；**勘察纠偏：Fallback/Circuit 缺 @ConstructorBinding 致 yml 键静默不生效（impl-57 起存量缺陷），修复 + circuit 回归**（impl-155）。
+- [T188 里程碑 verify](tickets/T188-milestone-verify.md) — 全仓 clean verify 18 模块 SUCCESS、1223 测试 0 失败。
+- [T189 收口](tickets/T189-effort10-closing.md) — **effort#10 到达判定达成**：20/20 票闭合；累计 110 轮（#5=22/#6=9/#7=20/#8=20/#9=19/#10=20，T1–T189，impl 1–155）核对一致；fog 梳理——评估集自动回流采纳为 effort#11 主题，其余沿用边界。
 
 ## Not yet specified
 
