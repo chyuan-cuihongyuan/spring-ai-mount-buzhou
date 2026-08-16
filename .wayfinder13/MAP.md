@@ -30,6 +30,7 @@
 - [T218 键拼写演示](tickets/T218-governance-demo.md) — 三道防线钉住（演示票面修订为流程入档）。
 - [T219 runbook 增补](tickets/T219-runbook-9.md) — 配置治理节（矩阵/快照/拼写/新键检查单）。
 - [T220 CONTEXT/api-surface 增补](tickets/T220-context-api-13.md) — 术语节 3 条 + 修复性改名/行为修复入档。
+- [T221 里程碑 verify + 收口](tickets/T221-effort13-closing.md) — 全仓 18 模块 1263 测试全绿；**effort#13 到达判定达成：8/8 票（impl 178–184）**；累计 142 轮（T1–T221，impl 1–184）核对一致；多实例共享限流采纳为 effort#14 主题。
 
 ## Not yet specified
 
