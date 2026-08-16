@@ -41,6 +41,7 @@
 - [T210 缓存演示](tickets/T210-cache-demo.md) — 同问二调零模型调用 + miss 真调宿主视角。
 - [T211 runbook 第八轮](tickets/T211-runbook-8.md) — §8 响应缓存运营（适用/不适用/红线/排查）。
 - [T212 CONTEXT/api-surface + 元数据](tickets/T212-context-api-12.md) — 术语节 4 条 + 公共面 + 3 键入档；破坏性变更 1 处（canonical 13→14）。
+- [T213 里程碑 verify + 收口](tickets/T213-effort12-closing.md) — 全仓 18 模块 1259 测试全绿；**effort#12 到达判定达成：11/11 票（impl 168–177）**；累计 134 轮（T1–T213，impl 1–177）核对一致。
 
 ## Not yet specified
 
