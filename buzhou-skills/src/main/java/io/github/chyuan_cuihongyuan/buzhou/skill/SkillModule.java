@@ -186,7 +186,15 @@ public final class SkillModule {
             } else if (ttlVal instanceof Number n) {
                 this.catalogCacheTtl = java.time.Duration.ofSeconds(n.longValue());
             } else if (ttlVal instanceof String s && !s.isBlank()) {
-                this.catalogCacheTtl = java.time.Duration.parse(s.trim());
+                // T214 勘察纠偏：metadata 默认 "30s"，原裸 Duration.parse 只认 ISO "PT30S"
+                // ——按文档配置启动即炸。改 Spring 双格式解析（30s/PT30S 均可）。
+                try {
+                    this.catalogCacheTtl = org.springframework.boot.convert.DurationStyle
+                            .detectAndParse(s.trim());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalStateException("buzhou.skills.catalog-cache-ttl 非法：\""
+                            + s + "\"（支持 30s/PT30S 两种格式）", e);
+                }
             }
             Object locationsVal = ymlConfig.get("scan-locations");
             if (locationsVal instanceof List<?> list) {

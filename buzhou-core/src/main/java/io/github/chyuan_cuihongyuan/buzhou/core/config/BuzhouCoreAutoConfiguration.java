@@ -249,8 +249,16 @@ public class BuzhouCoreAutoConfiguration {
             throw new IllegalStateException("buzhou.leak.level 非法：\"" + levelText
                     + "\"（须 DISABLED/SIMPLE/ADVANCED/PARANOID）", e);
         }
-        java.time.Duration threshold = java.time.Duration.parse(env.getProperty(
-                "buzhou.leak.lease-age-threshold", "PT5M"));
+        // T214 勘察纠偏：metadata 宣称默认 "5m"，此处原 Duration.parse 只认 ISO "PT5M"——
+        // 按文档配置启动即炸。改 Spring 双格式解析（"5m"/"PT5M" 均可）。
+        java.time.Duration threshold;
+        String thresholdText = env.getProperty("buzhou.leak.lease-age-threshold", "5m");
+        try {
+            threshold = org.springframework.boot.convert.DurationStyle.detectAndParse(thresholdText.trim());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("buzhou.leak.lease-age-threshold 非法：\"" + thresholdText
+                    + "\"（支持 5m/PT5M 两种格式，须为正时长）", e);
+        }
         io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector detector =
                 new io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector(
                         level, threshold, listener.getIfAvailable());

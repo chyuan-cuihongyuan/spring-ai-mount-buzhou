@@ -59,17 +59,17 @@
       "description": "单轮最大工具调用总数。未配置 = 不限。"
     },
     {
-      "name": "buzhou.runaway.per-turn.max-wall-clock",
+      "name": "buzhou.runaway.per-turn.wall-clock",
       "type": "java.time.Duration",
       "description": "单轮墙钟上限（与 TurnDeadline 独立；两者先到先停）。未配置 = 不限。"
     },
     {
-      "name": "buzhou.runaway.session.max-steps",
+      "name": "buzhou.runaway.per-session.max-steps",
       "type": "java.lang.Integer",
       "description": "会话累计步数上限（SessionStateStore 持久化，跨崩溃保留）。未配置 = 不限。"
     },
     {
-      "name": "buzhou.runaway.session.max-tool-calls",
+      "name": "buzhou.runaway.per-session.max-tool-calls",
       "type": "java.lang.Integer",
       "description": "会话累计工具调用上限。未配置 = 不限。"
     },
@@ -147,7 +147,7 @@
       }
     },
     {
-      "name": "buzhou.index.closed-retention",
+      "name": "buzhou.core.index-closed-retention",
       "type": "java.time.Duration",
       "defaultValue": "30d",
       "description": "索引 CLOSED/DELETED 行保留期（spec 37 §C）：过期惰性清扫（1/64 概率、单次 ≤256 条、ACTIVE 永不扫）；-1/0 = 永久保留。"

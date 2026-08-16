@@ -88,18 +88,33 @@ class BuzhouStarterHardeningTest {
 
     private static void assertKey(String classpath, String jarNameFragment, String key)
             throws Exception {
+        // T214：-am 联编（reactor）时依赖是 classes 目录而非 jar——退化为目录内 additional
+        // 元数据断言（processor 生成面在 packaged verify 全流程另有覆盖；两条路都断关键键）。
         String jarPath = java.util.Arrays.stream(classpath.split(":"))
                 .filter(p -> p.contains(jarNameFragment) && p.endsWith(".jar"))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        jarNameFragment + " jar 未在 test classpath：" + key + " 断言无法执行"));
-        try (JarFile jar = new JarFile(jarPath)) {
-            ZipEntry entry = jar.getEntry("META-INF/spring-configuration-metadata.json");
-            assertThat(entry).as(jarNameFragment + " 缺元数据文件（processor 回退？）").isNotNull();
-            try (InputStream in = jar.getInputStream(entry)) {
-                String json = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-                assertThat(json).as(jarNameFragment + " 元数据缺键 " + key).contains(key);
+                .orElse(null);
+        if (jarPath != null) {
+            try (JarFile jar = new JarFile(jarPath)) {
+                ZipEntry entry = jar.getEntry("META-INF/spring-configuration-metadata.json");
+                assertThat(entry).as(jarNameFragment + " 缺元数据文件（processor 回退？）").isNotNull();
+                try (InputStream in = jar.getInputStream(entry)) {
+                    String json = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                    assertThat(json).as(jarNameFragment + " 元数据缺键 " + key).contains(key);
+                }
             }
+            return;
         }
+        String classesDir = java.util.Arrays.stream(classpath.split(":"))
+                .filter(p -> p.contains(jarNameFragment) && p.endsWith("/classes"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        jarNameFragment + " jar/classes 未在 test classpath：" + key + " 断言无法执行"));
+        // 与 jar 内同源：processor 在 compile 期生成到 target/classes/META-INF/
+        java.nio.file.Path generated = java.nio.file.Path.of(classesDir,
+                "META-INF", "spring-configuration-metadata.json");
+        assertThat(generated).as(jarNameFragment + " 缺生成元数据（processor 回退？）").exists();
+        String json = java.nio.file.Files.readString(generated);
+        assertThat(json).as(jarNameFragment + " 元数据缺键 " + key).contains(key);
     }
 }

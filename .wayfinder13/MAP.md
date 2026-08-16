@@ -23,7 +23,7 @@
 
 ## Decisions so far
 
-（随轮补全）
+- [T214 配置绑定完整性矩阵](tickets/T214-config-bindings-matrix.md) — 93 键全矩阵防线；**当场抓获修复 4 存量缺陷**（2 Duration parse 炸 + 3 键名静默失效改名入档）。
 
 ## Not yet specified
 
