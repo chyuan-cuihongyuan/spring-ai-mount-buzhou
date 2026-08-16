@@ -64,3 +64,11 @@
 | 评估 runner 全链路 | 3 项数据集完整 run（spawn×4+chat×3+打分+记录写） | <5ms | 80ms |
 | 数据集 scan | 50 项 items() + 全量 run 摘要查询 | <2ms | 40ms |
 | 反馈回流导入 | 单会话 scan 反馈+历史读+负轮写入（幂等路径） | <2ms | 40ms |
+
+## effort #12 增补哨兵（T209 / impl-174；2026-08-16 首轮实测）
+
+| 哨兵 | 场景 | 首轮 P95 | 硬顶 |
+|------|------|---------|------|
+| 缓存 call 命中路径 | advisor 查键+重放包装（spawn+chat 全链路） | <2ms | 15ms |
+| 缓存键计算 | 10 条消息 sha256 规范序列化 | <0.5ms | 10ms |
+| 流式命中重放 | Flux.just 订阅消费（spawn+stream+blockLast） | <3ms | 20ms |

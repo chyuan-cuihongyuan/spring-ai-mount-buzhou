@@ -216,3 +216,16 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   会话项粒度即开即关，不留残留。
 - run 记录含 actual 预览（2048 字符截断）——明细膨胀有界；dataset 无条目数硬顶
   （治理面自律，超大集建议拆分）。
+
+### 精确响应缓存（effort #12 / spec 53）
+
+- 配置：`buzhou.resilience.response-cache.enabled=true` + `max-entries`（默认 256）+
+  `ttl`（默认 1h）。默认关——开启前评估适用面。
+- **适用场景**：固定 FAQ 前缀、评估/回归 run、幂等重试重放；同请求（model+messages+options
+  采样）第二次起零模型调用、零 token 成本、不进熔断窗。
+- **不适用**：强时效回复（价格/库存）、带用户身份差异输出的场景（键不含身份维度）、
+  每轮 messages 都变的会话续聊（键随 messages 变化自然 miss）。
+- 边界红线：带 toolCalls 的中间态响应不缓存（工具副作用安全）；空/异常响应不写；
+  过期条目命中路径惰性清除（不返回陈旧）。
+- 命中异常排查：`hit/miss/evicted` 计数（advisor 暴露 store）——miss 高先查 messages 视图
+  是否每请求漂移（memory 注入内容含时间戳/随机数会使键失效）；evicted 高提 max-entries。

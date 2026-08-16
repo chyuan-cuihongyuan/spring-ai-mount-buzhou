@@ -36,6 +36,11 @@
 - [T205 流式路径](tickets/T205-cache-stream.md) — 命中 Flux.just 重放；未命中 doOnComplete 聚组装（取消不写半截）；spec 53 §C。
 - [T206 LRU+TTL](tickets/T206-cache-ttl.md) — 惰性过期（可注入 Clock）；过期不返回陈旧；spec 53 §D。
 - [T207 计数与装配](tickets/T207-cache-metrics.md) — ResponseCache 第 14 组件（单构造器防盲区）；默认关零注入；metadata 3 键；resilience 113 绿；spec 53 §E。
+- [T208 缓存面红队](tickets/T208-cache-redteam.md) — 元字符注入不串键/过期不陈旧/热键存活/重放只读四用例。
+- [T209 缓存面 perf 哨兵](tickets/T209-cache-perf.md) — 命中路径/键计算/流式重放三哨兵（首轮 <3ms）+ baseline 落档。
+- [T210 缓存演示](tickets/T210-cache-demo.md) — 同问二调零模型调用 + miss 真调宿主视角。
+- [T211 runbook 第八轮](tickets/T211-runbook-8.md) — §8 响应缓存运营（适用/不适用/红线/排查）。
+- [T212 CONTEXT/api-surface + 元数据](tickets/T212-context-api-12.md) — 术语节 4 条 + 公共面 + 3 键入档；破坏性变更 1 处（canonical 13→14）。
 
 ## Not yet specified
 

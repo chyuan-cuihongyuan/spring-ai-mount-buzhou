@@ -651,3 +651,15 @@
   `eval.run.completed` 事件经此通道外发）
 - `ErrorCode.EVAL_OPERATION_INVALID`（NON_RETRYABLE）
 - **破坏性变更（pre-1.0）**：无（纯新增面；emitEvent default 不破坏既有实现）
+
+## effort #12 新增公共面（spec 53 / impl-168–175，@since 1.0.0）
+
+**buzhou-resilience（resilience.cache 包，全新）**
+
+- `ResponseCacheAdvisor`（BaseAdvisor；order +450；`isTerminal(ChatResponse)` 公开终态判定）
+- `ResponseCacheStore`（LRU+TTL 惰性过期；hit/miss/evicted 计数可读；可注入 Clock）
+- `ResponseCacheKeys`（`keyOf(modelName, Prompt)` 键计算；options 采样近似性 javadoc 入档）
+- `ResilienceProperties.ResponseCache` 参数组（顶层 record 第 14 组件；13 参兼容构造保留）
+- yml 键：`buzhou.resilience.response-cache.{enabled,max-entries,ttl}`（metadata 已入档）
+- **破坏性变更（pre-1.0）**：`ResilienceProperties` canonical 构造组件数 13→14（兼容构造
+  保留源码兼容；反射绑定按 canonical 的调用方需核对）
