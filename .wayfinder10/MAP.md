@@ -47,6 +47,7 @@
 - [T182 红队对抗四批](tickets/T182-redteam-surface4.md) — 反馈伪造/shadow 泄漏/配额绕过/漂移观察档 + 跳级唯一性与粘性对抗断言；spec 51 §B。
 - [T183 perf 哨兵四批](tickets/T183-perf-4.md) — TTFT 打点/rateTurn/候选闸/shadow 提交四哨兵（首轮全 <5ms）+ baseline 落档；spec 51 §C。
 - [T184 examples 演示四批](tickets/T184-demo-4.md) — TTFT 观测/rateTurn 反馈+导出/金丝雀权重/shadow 对照四演示；spec 51 续。
+- [T185 runbook 第六轮](tickets/T185-runbook-6.md) — 症状+4/告警+5/§8 流量治理与反馈运营（金丝雀漂移语义、shadow 信任前提、MDC pattern）。
 
 ## Not yet specified
 
