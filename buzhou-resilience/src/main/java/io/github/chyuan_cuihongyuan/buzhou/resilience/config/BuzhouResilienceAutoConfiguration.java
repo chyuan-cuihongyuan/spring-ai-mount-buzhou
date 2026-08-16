@@ -38,26 +38,33 @@ public class BuzhouResilienceAutoConfiguration {
 
     @Bean
     public RuntimeConfig resilienceRuntimeConfig(ResilienceProperties properties, Environment env,
-            ResilienceStats stats, Map<String, ChatModel> chatModels) {
+            ResilienceStats stats, Map<String, ChatModel> chatModels,
+            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend> sharedBackend) {
         String modelName = env.getProperty("buzhou.model-name", "unknown");
-        warnIfMultiInstanceSemantics(properties, env);
+        warnIfMultiInstanceSemantics(properties, env, sharedBackend.getIfAvailable() != null);
         // spec 49 §A / T176：shadow 模型按名解析（与 fallback 同 fail-fast 口径）
+        // spec 54 §A / T224：共享限流后端优先（store.type=redis 时 store-redis 供 bean）；
+        // 无 bean = 内存令牌桶（默认零变化）
         return ResilienceModule.configure(properties, modelName, stats,
                 resolveFallbacks(properties, chatModels),
-                resolveShadows(properties, chatModels));
+                resolveShadows(properties, chatModels),
+                sharedBackend.getIfAvailable());
     }
 
     /**
      * impl-74 / T99 / spec 23：多实例语义显式化——store.type=jbdc/redis 是多实例部署信号，
-     * 而限流/熔断/日配额是单进程机制（每实例独立额度）。启动 WARN 一次指向 runbook §6；
+     * 而熔断/日配额是单进程机制（每实例独立额度）。启动 WARN 一次指向 runbook §6；
      * 不做配置拒绝（粘性路由 + 租约独占是合法部署形态，只是要知情）。
+     * spec 54 §A / T224：限流在共享后端（Redis 固定窗）下跨实例共享额度——不再计入
+     * 单进程告警；无共享后端时限流仍单进程（每实例独立额度，N 实例 = N 倍）。
      */
-    private static void warnIfMultiInstanceSemantics(ResilienceProperties properties, Environment env) {
+    private static void warnIfMultiInstanceSemantics(ResilienceProperties properties, Environment env,
+            boolean sharedRateLimitBackend) {
         String storeType = env.getProperty("buzhou.store.type", "memory");
         if ("memory".equals(storeType)) {
             return; // 单实例信号，无告警必要
         }
-        boolean rateLimit = properties.rateLimit() != null
+        boolean rateLimit = !sharedRateLimitBackend && properties.rateLimit() != null
                 && (properties.rateLimit().requestsPerMinute() != null
                         || properties.rateLimit().tokensPerMinute() != null);
         boolean quota = properties.sessionQuota() != null
@@ -68,9 +75,10 @@ public class BuzhouResilienceAutoConfiguration {
             System.getLogger(BuzhouResilienceAutoConfiguration.class.getName()).log(
                     System.Logger.Level.WARNING,
                     "检测到多实例部署信号（buzhou.store.type=" + storeType + "）且启用单进程机制"
-                            + "（限流/熔断/日配额任一）：这些机制为每实例独立额度（N 实例 = N 倍），"
+                            + (rateLimit ? "（限流——无共享后端，每实例独立额度）" : "")
+                            + "（熔断/日配额任一）：熔断/日配额为每实例独立额度（N 实例 = N 倍），"
                             + "分布式版本 out-of-scope。推荐部署：粘性路由 + 租约独占（steal 接管）。"
-                            + "详见 docs/ops-runbook.md §6。");
+                            + "限流跨实例共享见 store.type=redis 共享闸（spec 54 / runbook §6）。");
         }
     }
 

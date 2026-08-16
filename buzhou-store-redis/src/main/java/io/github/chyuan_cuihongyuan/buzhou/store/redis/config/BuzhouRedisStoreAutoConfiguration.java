@@ -53,6 +53,38 @@ public class BuzhouRedisStoreAutoConfiguration {
                 client, props.keyPrefix());
     }
 
+    /**
+     * 共享限流后端（spec 54 §A / T224 / effort#14）：store.type=redis 且配置任一限流容量
+     * （buzhou.resilience.rate-limit.requests-per-minute / tokens-per-minute）时供
+     * RateLimitBackend bean（分钟固定窗，多实例共享额度）；容量 env 直读（与 resilience
+     * 配置同源）；resilience auto-config 经 ObjectProvider 优先消费。
+     * 未配容量时不供 bean（不白开 Lettuce 独占连接；内存令牌桶默认零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression(
+            "#{environment['buzhou.resilience.rate-limit.requests-per-minute'] != null "
+                    + "or environment['buzhou.resilience.rate-limit.tokens-per-minute'] != null}")
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend buzhouSharedRateLimitBackend(
+            RedisClient client, RedisStoreProperties props, org.springframework.core.env.Environment env) {
+        Integer rpm = positiveOrNull(env.getProperty("buzhou.resilience.rate-limit.requests-per-minute"));
+        Integer tpm = positiveOrNull(env.getProperty("buzhou.resilience.rate-limit.tokens-per-minute"));
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisRateLimitBackend(
+                client, props.keyPrefix() + "rl:", rpm, tpm);
+    }
+
+    private static Integer positiveOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            long parsed = Long.parseLong(value.trim());
+            return parsed > 0 ? (int) Math.min(parsed, Integer.MAX_VALUE) : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public BuzhouStores buzhouStores(RedisClient client, RedisStoreProperties props,

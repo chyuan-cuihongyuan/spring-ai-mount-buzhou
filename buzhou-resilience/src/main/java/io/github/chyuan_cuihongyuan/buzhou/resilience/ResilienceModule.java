@@ -81,6 +81,18 @@ public final class ResilienceModule {
     public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
                                           List<NamedFallbackModel> fallbacks,
                                           List<NamedFallbackModel> shadowModels) {
+        return configure(properties, modelName, stats, fallbacks, shadowModels, null);
+    }
+
+    /**
+     * 带共享限流后端的完整入口（spec 54 §A / T224 / effort#14）：backend 非 null 时
+     * 限流额度存取走共享后端（如 Redis 固定窗——多实例共享额度）；null = 内存令牌桶
+     * （默认零变化）。
+     */
+    public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
+                                          List<NamedFallbackModel> fallbacks,
+                                          List<NamedFallbackModel> shadowModels,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend rateLimitBackend) {
         if (!properties.enabled()) {
             return RuntimeConfig.defaults();
         }
@@ -97,7 +109,7 @@ public final class ResilienceModule {
         if (rl != null) {
             limiter = new ModelRateLimiter(
                     rl.requestsPerMinute(), rl.tokensPerMinute(), rl.queueTimeout(),
-                    properties.effectiveRateLimitOverloadPolicy(), null);
+                    properties.effectiveRateLimitOverloadPolicy(), null, rateLimitBackend);
             if (!limiter.isEnabled()) {
                 limiter = null;
             }
