@@ -102,7 +102,7 @@
       <dependency>
         <groupId>com.networknt</groupId>
         <artifactId>json-schema-validator</artifactId>
-        <version>3.0.1</version>
+        <version>3.0.6</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.ai</groupId>
@@ -147,7 +147,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.0</version>
+          <version>3.15.0</version>
           <configuration>
             <parameters>true</parameters>
             <encoding>UTF-8</encoding>
@@ -170,7 +170,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.3</version>
+          <version>3.5.6</version>
           <configuration>
             <!-- @{argLine} 迟占位：与 jaCoCo prepare-agent 注入的 agent 参数共存（impl-54） -->
             <argLine>-Dfile.encoding=UTF-8 @{argLine}</argLine>
@@ -182,27 +182,27 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>3.4.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.11.2</version>
+          <version>3.12.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>3.2.7</version>
+          <version>3.2.8</version>
         </plugin>
         <plugin>
           <groupId>org.sonatype.central</groupId>
           <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>0.7.0</version>
+          <version>0.11.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>3.6.3</version>
         </plugin>
         <!-- impl-54 / spec 14 §J：jaCoCo 覆盖率；impl-70 / spec 21：观测升硬门——LINE ≥ 70%
              （2026-08-15 实测 77.1%–90.9%，最紧模块留 7pp 余量；BOM/starter/examples 不适用，
@@ -210,7 +210,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.8.13</version>
+          <version>0.8.15</version>
           <executions>
             <execution>
               <id>prepare-agent</id>
@@ -390,7 +390,7 @@
           <plugin>
             <groupId>org.cyclonedx</groupId>
             <artifactId>cyclonedx-maven-plugin</artifactId>
-            <version>2.9.1</version>
+            <version>2.9.3</version>
             <executions>
               <execution>
                 <id>make-aggregate-bom</id>
