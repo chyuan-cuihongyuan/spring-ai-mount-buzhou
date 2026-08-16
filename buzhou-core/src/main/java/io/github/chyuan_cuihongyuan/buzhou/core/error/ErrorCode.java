@@ -60,6 +60,9 @@ public enum ErrorCode {
     /** 技能管理操作非法（状态冲突 / 依赖未装配；spec 50 §A / T178）。 */
     SKILL_OPERATION_INVALID(RetryCategory.NON_RETRYABLE, "技能管理操作非法"),
 
+    /** 评估操作非法（数据集重名/未建、条目字段非法、run 请求不合法；spec 52 §A / T190）。 */
+    EVAL_OPERATION_INVALID(RetryCategory.NON_RETRYABLE, "评估操作非法"),
+
     // ---- FATAL：环境或数据根因，需人工介入 ----
 
     /** 数据损坏（单条记录无法解析 / 链校验断点；跳过计数并告警，需人工修复）。 */
