@@ -46,6 +46,9 @@ LLM-as-judge 以 SPI 留口不做硬门（沿用 effort#7 边界）。
 - [T199 runbook 第七轮](tickets/T199-runbook-7.md) — 症状 +2/告警 +2/§9 评估运营（治理/回流策略/资源说明）。
 - [T200 CONTEXT/api-surface 增补](tickets/T200-context-api-11.md) — 术语节 6 条 + effort#11 公共面；破坏性变更钉住零（impl-166）。
 - [T201 配置元数据五批](tickets/T201-metadata-5.md) — 零新键钉住 + 7 record 多构造器预防检查全过（impl-167）。
+- [T202 里程碑 verify + 收口](tickets/T202-effort11-closing.md) — 全仓 18 模块 1245 测试全绿；
+  **effort#11 到达判定达成：13/13 票（impl 156–167）**；累计 123 轮（T1–T202，impl 1–167）
+  核对一致；LLM 响应缓存采纳为 effort#12 主题，其余 fog 沿用边界。
 
 ## Not yet specified
 
