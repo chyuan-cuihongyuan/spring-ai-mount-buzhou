@@ -128,3 +128,17 @@
 - **错误码统一（ErrorCode 收口）** — 泛化 throw 渐进挂码（SPILL_IO_FAILED/STORE_READ_FAILED/
   SKILL_OPERATION_INVALID 新码）；断言类 ISE 保留面钉住不迁。
 - **未订阅流惰性化** — stream 轮次占用以 Flux.defer 惰性化：未订阅零占用、零计数残留。
+
+## 评估闭环（effort #11）
+
+- **评估数据集（EvalDataset）** — 命名集合 + 带溯源评估项（input/expected/sourceSessionId+
+  sourceTurnSeq）；state store 合成会话 `__buzhou.eval__` 持久化，跨重启不丢、fsck 天然豁免。
+- **负反馈回流（Feedback Import）** — 会话负反馈轮一键转评估项（isNegative 单一事实源口径）；
+  幂等去重；无 assistant 回复轮跳过（不造空期望项）。
+- **评估器（Evaluator）** — 判定 SPI：内置 EXACT/CONTAINS/REGEX；宿主实现接口即得领域断言；
+  LLM-as-judge 留口不内置不做门禁。
+- **评估 run（EvalRun）** — 数据集批次执行：项粒度会话隔离、顺序执行、单项异常不断批；
+  三态逐项记录（pass/fail/error）+ passRate 汇总落 store。
+- **评估完成事件（eval.run.completed）** — run 收尾外发（webhook 同通道零改造）；
+  空集 run 不发（事件语义 = 评估完成而非建档）。
+- **自定义事件出口（emitEvent）** — AgentSession 公共面：宿主领域事件与会话事件同通道派发。

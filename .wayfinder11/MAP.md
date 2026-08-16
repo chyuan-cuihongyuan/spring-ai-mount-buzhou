@@ -44,6 +44,8 @@ LLM-as-judge 以 SPI 留口不做硬门（沿用 effort#7 边界）。
 - [T197 评估面 perf 哨兵](tickets/T197-eval-perf.md) — runner/scan/回流三哨兵（首轮 <5ms）+ baseline 落档。
 - [T198 评估闭环演示](tickets/T198-eval-demo.md) — 宿主视角完整闭环（负反馈→回流→run→查询→事件）+ 幂等/自定义评估器演示。
 - [T199 runbook 第七轮](tickets/T199-runbook-7.md) — 症状 +2/告警 +2/§9 评估运营（治理/回流策略/资源说明）。
+- [T200 CONTEXT/api-surface 增补](tickets/T200-context-api-11.md) — 术语节 6 条 + effort#11 公共面；破坏性变更钉住零（impl-166）。
+- [T201 配置元数据五批](tickets/T201-metadata-5.md) — 零新键钉住 + 7 record 多构造器预防检查全过（impl-167）。
 
 ## Not yet specified
 

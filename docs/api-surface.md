@@ -629,3 +629,25 @@
 
 - `DiskSpillStore` / `SkillAdminApi` / `TodoStore` 泛化异常挂码（对齐上文错误码收口；
   无签名变化）
+
+## effort #11 新增公共面（spec 52 / impl-156–165，@since 1.0.0）
+
+**buzhou-core（io…buzhou.core.eval 包，全新）**
+
+- `EvalDatasetStore`（createDataset/listDatasets/dataset/addItem/items/deleteDataset；
+  合成会话 `__buzhou.eval__`）
+- `EvalDatasetMeta` / `EvalItem`（溯源 sourceSessionId+sourceTurnSeq）
+- `FeedbackImporter`（importFromFeedback；`FeedbackImportResult{imported, skippedDuplicate,
+  skippedMissingReply}`）
+- `Evaluator`（SPI）/ `EvalScore`（passed+detail 512 截断）/ `BuiltInEvaluators`
+  （EXACT/CONTAINS 常量 + regex(String) 工厂）
+- `EvalRunner`（run(datasetName, evaluator)）/ `EvalRunResult`（passRate）/ `EvalRunItemResult`
+- `EvalQueryService`（allRuns/runs/run/latestRun；只读）
+- `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
+
+**buzhou-core（session 面）**
+
+- `AgentSession.emitEvent(type, payload)` default 方法（default UOE；DefaultAgentSession 实现；
+  `eval.run.completed` 事件经此通道外发）
+- `ErrorCode.EVAL_OPERATION_INVALID`（NON_RETRYABLE）
+- **破坏性变更（pre-1.0）**：无（纯新增面；emitEvent default 不破坏既有实现）
