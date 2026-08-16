@@ -47,7 +47,19 @@ public record ResilienceProperties(
         @Valid Fallback fallback,
         @Valid SessionQuota sessionQuota,
         @Valid Shadow shadow,
-        @Valid ResponseCache responseCache) {
+        @Valid ResponseCache responseCache,
+        @Valid SemanticCache semanticCache) {
+
+    /** 14 参兼容构造（spec 55 之前调用方；semantic-cache = 未配置）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow, ResponseCache responseCache) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, responseCache, null);
+    }
 
     /** 13 参兼容构造（spec 53 之前调用方；response-cache = 未配置）。 */
     public ResilienceProperties(
@@ -318,6 +330,48 @@ public record ResilienceProperties(
         }
     }
 
+    /**
+     * 语义缓存参数组（spec 55 §C / T242 / effort#15，LiteLLM semantic caching 同思想）。
+     *
+     * <p>前缀 {@code buzhou.resilience.semantic-cache}。<b>默认关闭</b>（false-positive
+     * 残余风险由嵌入模型质量与阈值共同决定——opt-in 诚实边界）；enabled=true 且上下文无
+     * EmbeddingModel bean 启动即失败（fail-fast 带修法）。
+     *
+     * @param enabled            开关（默认 false）
+     * @param similarityThreshold cosine 命中阈值（默认 0.95；越高越保守）
+     * @param maxEntries         LRU 容量（默认 128；桶内线性扫描量级由 perf 哨兵钉住）
+     * @param ttl                条目 TTL（默认 1h；惰性过期）
+     */
+    public record SemanticCache(
+            Boolean enabled,
+            Double similarityThreshold,
+            Integer maxEntries,
+            Duration ttl) {
+
+        public SemanticCache {
+            similarityThreshold = similarityThreshold == null ? 0.95 : similarityThreshold;
+            maxEntries = maxEntries == null ? 128 : maxEntries;
+            ttl = ttl == null ? Duration.ofHours(1) : ttl;
+            if (!(similarityThreshold > 0.0 && similarityThreshold <= 1.0)) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.similarity-threshold（" + similarityThreshold + "）必须在 (0,1]");
+            }
+            if (maxEntries < 1) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.max-entries（" + maxEntries + "）必须 >= 1");
+            }
+            if (ttl.isZero() || ttl.isNegative()) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.ttl（" + ttl + "）必须为正时长");
+            }
+        }
+
+        /** 生效开关（显式开启）。 */
+        public boolean effectiveEnabled() {
+            return Boolean.TRUE.equals(enabled);
+        }
+    }
+
     /** 多构造器场景：显式指定规范构造器为绑定构造器（兼容构造不参与绑定）。 */
     @org.springframework.boot.context.properties.bind.ConstructorBinding
     public ResilienceProperties {
@@ -358,6 +412,7 @@ public record ResilienceProperties(
         circuit = circuit == null ? new Circuit(null, null, null, null, null, null) : circuit;
         shadow = shadow == null ? new Shadow(null, null, null, null) : shadow;
         responseCache = responseCache == null ? new ResponseCache(null, null, null) : responseCache;
+        semanticCache = semanticCache == null ? new SemanticCache(null, null, null, null) : semanticCache;
         if (responseCache.maxEntries() < 1) {
             throw configError("response-cache.max-entries",
                     String.valueOf(responseCache.maxEntries()), "设为 >= 1 的整数");

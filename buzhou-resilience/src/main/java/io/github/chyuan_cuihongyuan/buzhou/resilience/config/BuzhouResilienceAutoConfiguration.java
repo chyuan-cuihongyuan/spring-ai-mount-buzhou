@@ -39,16 +39,19 @@ public class BuzhouResilienceAutoConfiguration {
     @Bean
     public RuntimeConfig resilienceRuntimeConfig(ResilienceProperties properties, Environment env,
             ResilienceStats stats, Map<String, ChatModel> chatModels,
-            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend> sharedBackend) {
+            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend> sharedBackend,
+            org.springframework.beans.factory.ObjectProvider<org.springframework.ai.embedding.EmbeddingModel> embeddingModels) {
         String modelName = env.getProperty("buzhou.model-name", "unknown");
         warnIfMultiInstanceSemantics(properties, env, sharedBackend.getIfAvailable() != null);
         // spec 49 §A / T176：shadow 模型按名解析（与 fallback 同 fail-fast 口径）
         // spec 54 §A / T224：共享限流后端优先（store.type=redis 时 store-redis 供 bean）；
         // 无 bean = 内存令牌桶（默认零变化）
+        // spec 55 §C / T242：语义缓存嵌入模型（semantic-cache.enabled 且无 bean → configure 内 fail-fast）
         return ResilienceModule.configure(properties, modelName, stats,
                 resolveFallbacks(properties, chatModels),
                 resolveShadows(properties, chatModels),
-                sharedBackend.getIfAvailable());
+                sharedBackend.getIfAvailable(),
+                embeddingModels.getIfAvailable());
     }
 
     /**

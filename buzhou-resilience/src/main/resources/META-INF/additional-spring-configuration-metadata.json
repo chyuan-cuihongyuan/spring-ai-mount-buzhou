@@ -137,6 +137,30 @@
       "type": "java.time.Duration",
       "defaultValue": "1h",
       "description": "缓存条目 TTL（惰性过期——命中路径检查；过期不返回陈旧）。"
+    },
+    {
+      "name": "buzhou.resilience.semantic-cache.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "语义缓存开关（spec 55 / effort#15，LiteLLM semantic caching 同思想）：同义问法（embedding cosine ≥ 阈值）命中已缓存终态答案——零模型调用。默认关（false-positive 残余风险 opt-in）；enabled=true 且无 EmbeddingModel bean 启动即失败。"
+    },
+    {
+      "name": "buzhou.resilience.semantic-cache.similarity-threshold",
+      "type": "java.lang.Double",
+      "defaultValue": 0.95,
+      "description": "cosine 命中阈值（(0,1]；越高越保守——调低增大召回同时放大误命中风险）。"
+    },
+    {
+      "name": "buzhou.resilience.semantic-cache.max-entries",
+      "type": "java.lang.Integer",
+      "defaultValue": 128,
+      "description": "语义缓存 LRU 容量（桶内线性扫描；容量逐出计 evicted）。"
+    },
+    {
+      "name": "buzhou.resilience.semantic-cache.ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "1h",
+      "description": "语义缓存条目 TTL（惰性过期——命中路径检查）。"
     }
   ],
   "hints": [

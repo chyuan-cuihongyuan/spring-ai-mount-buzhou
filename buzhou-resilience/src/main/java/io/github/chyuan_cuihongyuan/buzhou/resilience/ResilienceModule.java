@@ -93,6 +93,19 @@ public final class ResilienceModule {
                                           List<NamedFallbackModel> fallbacks,
                                           List<NamedFallbackModel> shadowModels,
                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend rateLimitBackend) {
+        return configure(properties, modelName, stats, fallbacks, shadowModels, rateLimitBackend, null);
+    }
+
+    /**
+     * 带语义缓存嵌入模型的完整入口（spec 55 §C / T242 / effort#15）：semantic-cache.enabled=true
+     * 且 embeddingModel 非 null 时挂语义缓存 advisor；enabled=true 而 embeddingModel 为 null →
+     * fail-fast（显式开启而依赖缺失 = 配置错误，带修法）；null + 默认关 = 零行为变化。
+     */
+    public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
+                                          List<NamedFallbackModel> fallbacks,
+                                          List<NamedFallbackModel> shadowModels,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend rateLimitBackend,
+                                          org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel) {
         if (!properties.enabled()) {
             return RuntimeConfig.defaults();
         }
@@ -153,9 +166,25 @@ public final class ResilienceModule {
                         ? new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore(
                                 properties.responseCache().maxEntries(), properties.responseCache().ttl())
                         : null;
+        // spec 55 §C / T242：语义缓存（进程级共享 store；默认关 = null；enabled 而无嵌入
+        // bean = 配置矛盾 fail-fast 带修法——不静默降级成"配了却没生效"）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore = null;
+        if (properties.semanticCache() != null && properties.semanticCache().effectiveEnabled()) {
+            if (semanticEmbeddingModel == null) {
+                throw new BuzhouConfigurationException(
+                        "buzhou.resilience.semantic-cache.enabled=true 但上下文没有 EmbeddingModel bean",
+                        "注册一个 Spring AI EmbeddingModel bean（如 spring-ai-starter-model-openai 的 "
+                                + "EmbeddingModel 自动装配），或把 semantic-cache.enabled 设为 false");
+            }
+            io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties.SemanticCache sc =
+                    properties.semanticCache();
+            semanticCacheStore = new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore(
+                    sc.maxEntries(), sc.ttl(), sc.similarityThreshold());
+        }
         RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,
-                        fallbackChain, limiter, shadow, responseCacheStore)));
+                        fallbackChain, limiter, shadow, responseCacheStore, semanticCacheStore,
+                        semanticEmbeddingModel)));
         // per-session 日配额（impl-59）：有任一维度才挂 Hook（无配额零开销）。
         if (SessionQuotaHook.anyDimension(properties.sessionQuota())) {
             return RuntimeConfig.merge(assembly,
@@ -215,12 +244,16 @@ public final class ResilienceModule {
         private final ModelRateLimiter limiter;
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore;
+        private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore;
+        private final org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel;
 
         ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
                                      String modelName, ResilienceStats stats, ModelCircuitBreaker circuit,
                                      FallbackChain fallback, ModelRateLimiter limiter,
                                      io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow,
-                                     io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore) {
+                                     io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore,
+                                     io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore,
+                                     org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel) {
             this.properties = properties;
             this.classifier = classifier;
             this.modelName = modelName;
@@ -230,6 +263,8 @@ public final class ResilienceModule {
             this.limiter = limiter;
             this.shadow = shadow;
             this.responseCacheStore = responseCacheStore;
+            this.semanticCacheStore = semanticCacheStore;
+            this.semanticEmbeddingModel = semanticEmbeddingModel;
         }
 
         @Override
@@ -239,6 +274,12 @@ public final class ResilienceModule {
             if (responseCacheStore != null) {
                 ctx.addAdvisor(new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor(
                         responseCacheStore, modelName));
+            }
+            // 语义缓存（spec 55 §B / T241）：order +460 = 精确缓存(+450)之后——精确键（零成本）
+            // 先短路，语义查（嵌入成本）只在精确 miss 后发生；命中同样短路 observability/resilience。
+            if (semanticCacheStore != null && semanticEmbeddingModel != null) {
+                ctx.addAdvisor(new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheAdvisor(
+                        semanticCacheStore, semanticEmbeddingModel, modelName));
             }
             // 限流 Advisor（spec 15「背压 · 维度③」）：先于 ResilienceAdvisor 注入（order +650 < +700）。
             // impl-59：limiter 为进程级共享（configure() 创建），本 advisor 每会话持有会话事件通道。
