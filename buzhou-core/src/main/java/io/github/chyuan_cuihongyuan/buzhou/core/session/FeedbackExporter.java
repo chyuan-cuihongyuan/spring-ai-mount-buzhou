@@ -109,8 +109,11 @@ public final class FeedbackExporter implements SessionExportExtension {
         }
     }
 
-    /** 极性判定：boolean false / numeric 负值为负；categorical 无极性。 */
-    static boolean isNegative(String type, String value) {
+    /**
+     * 极性判定（单一事实源）：boolean false / numeric 负值为负；categorical 无极性。
+     * spec 52 §B / T191：FeedbackImporter 回流复用同口径（public 即为此）。
+     */
+    public static boolean isNegative(String type, String value) {
         if (type == null || value == null) {
             return false;
         }
@@ -159,7 +162,8 @@ public final class FeedbackExporter implements SessionExportExtension {
     }
 
     /** k=v& 解码（与 DefaultAgentSession.encodeFeedback 双向）。 */
-    static Map<String, String> decode(String encoded) {
+    /** k=v& 行字段解码（spec 52 §B / T191：回流通道复用，public 即为此）。 */
+    public static Map<String, String> decode(String encoded) {
         Map<String, String> out = new LinkedHashMap<>();
         if (encoded == null || encoded.isBlank()) {
             return out;

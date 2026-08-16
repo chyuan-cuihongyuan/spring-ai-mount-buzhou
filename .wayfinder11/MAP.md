@@ -35,6 +35,7 @@ LLM-as-judge 以 SPI 留口不做硬门（沿用 effort#7 边界）。
 ## Decisions so far
 
 - [T190 评估数据集 store](tickets/T190-eval-dataset-store.md) — 合成会话 `__buzhou.eval__` + 双前缀键 + 治理面五操作；EVAL_OPERATION_INVALID 挂码；deleteDataset 相邻前缀串删纠偏；spec 52 §A。
+- [T191 负反馈回流](tickets/T191-feedback-import.md) — isNegative 单一事实源口径复用（提 public）；幂等去重；无回复轮跳过；expected 强制非空（票面「可空」修订）；spec 52 §B。
 
 ## Not yet specified
 
