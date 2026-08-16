@@ -128,4 +128,38 @@ class BuzhouResilienceAutoConfigurationTest {
             assertThat(props.circuit().halfOpenSuccessThreshold()).isEqualTo(3);
         });
     }
+
+    // ---- 精确响应缓存（spec 53 §E / T207） ----
+
+    @Test
+    void responseCacheDefaultsToOff() {
+        runner.run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.responseCache().effectiveEnabled()).isFalse();
+            assertThat(props.responseCache().maxEntries()).isEqualTo(256);
+            assertThat(props.responseCache().ttl()).isEqualTo(Duration.ofHours(1));
+        });
+    }
+
+    @Test
+    void responseCacheYmlOverridesBindAndFailFastOnInvalid() {
+        runner.withPropertyValues(
+                "buzhou.resilience.response-cache.enabled=true",
+                "buzhou.resilience.response-cache.max-entries=128",
+                "buzhou.resilience.response-cache.ttl=30m").run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.responseCache().effectiveEnabled()).isTrue();
+            assertThat(props.responseCache().maxEntries()).isEqualTo(128);
+            assertThat(props.responseCache().ttl()).isEqualTo(Duration.ofMinutes(30));
+        });
+        // 非法值 fail-fast（max-entries < 1 / ttl 非正）
+        runner.withPropertyValues(
+                "buzhou.resilience.response-cache.enabled=true",
+                "buzhou.resilience.response-cache.max-entries=0")
+                .run(ctx -> assertThat(ctx).hasFailed());
+        runner.withPropertyValues(
+                "buzhou.resilience.response-cache.enabled=true",
+                "buzhou.resilience.response-cache.ttl=0s")
+                .run(ctx -> assertThat(ctx).hasFailed());
+    }
 }

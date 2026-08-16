@@ -46,7 +46,19 @@ public record ResilienceProperties(
         @Valid Circuit circuit,
         @Valid Fallback fallback,
         @Valid SessionQuota sessionQuota,
-        @Valid Shadow shadow) {
+        @Valid Shadow shadow,
+        @Valid ResponseCache responseCache) {
+
+    /** 13 参兼容构造（spec 53 之前调用方；response-cache = 未配置）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, null);
+    }
 
     /** 12 参兼容构造（spec 49 之前调用方；shadow = 未配置）。 */
     public ResilienceProperties(
@@ -282,6 +294,30 @@ public record ResilienceProperties(
         }
     }
 
+    /**
+     * 精确响应缓存参数组（spec 53 §E / T207）。前缀 {@code buzhou.resilience.response-cache}。
+     * 默认关（零行为回归）；开启后同请求（model+messages+options 采样）二次调用命中短路。
+     *
+     * @param enabled    开关（默认 false）
+     * @param maxEntries LRU 容量（默认 256）
+     * @param ttl        条目 TTL（默认 1h；惰性过期——命中路径检查）
+     */
+    public record ResponseCache(
+            Boolean enabled,
+            Integer maxEntries,
+            Duration ttl) {
+
+        public ResponseCache {
+            maxEntries = maxEntries == null ? 256 : maxEntries;
+            ttl = ttl == null ? Duration.ofHours(1) : ttl;
+        }
+
+        /** 生效开关（显式开启）。 */
+        public boolean effectiveEnabled() {
+            return Boolean.TRUE.equals(enabled);
+        }
+    }
+
     /** 多构造器场景：显式指定规范构造器为绑定构造器（兼容构造不参与绑定）。 */
     @org.springframework.boot.context.properties.bind.ConstructorBinding
     public ResilienceProperties {
@@ -321,6 +357,14 @@ public record ResilienceProperties(
         // rateLimit 保持 null = 未配置（不限），由模块层判定
         circuit = circuit == null ? new Circuit(null, null, null, null, null, null) : circuit;
         shadow = shadow == null ? new Shadow(null, null, null, null) : shadow;
+        responseCache = responseCache == null ? new ResponseCache(null, null, null) : responseCache;
+        if (responseCache.maxEntries() < 1) {
+            throw configError("response-cache.max-entries",
+                    String.valueOf(responseCache.maxEntries()), "设为 >= 1 的整数");
+        }
+        if (responseCache.ttl().isZero() || responseCache.ttl().isNegative()) {
+            throw configError("response-cache.ttl", responseCache.ttl().toString(), "设为正时长，如 1h");
+        }
     }
 
     private static BuzhouConfigurationException configError(String key, String value, String action) {

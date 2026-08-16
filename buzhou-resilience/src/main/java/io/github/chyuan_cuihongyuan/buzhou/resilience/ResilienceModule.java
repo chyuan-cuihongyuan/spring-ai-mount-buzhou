@@ -135,9 +135,15 @@ public final class ResilienceModule {
                         ? new io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController(
                                 shadowModels, properties.shadow())
                         : null;
+        // spec 53 §E / T207：精确响应缓存（进程级共享 store；默认关 = null 零注入零开销）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore =
+                properties.responseCache() != null && properties.responseCache().effectiveEnabled()
+                        ? new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore(
+                                properties.responseCache().maxEntries(), properties.responseCache().ttl())
+                        : null;
         RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,
-                        fallbackChain, limiter, shadow)));
+                        fallbackChain, limiter, shadow, responseCacheStore)));
         // per-session 日配额（impl-59）：有任一维度才挂 Hook（无配额零开销）。
         if (SessionQuotaHook.anyDimension(properties.sessionQuota())) {
             return RuntimeConfig.merge(assembly,
@@ -196,11 +202,13 @@ public final class ResilienceModule {
         private final FallbackChain fallback;
         private final ModelRateLimiter limiter;
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
+        private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore;
 
         ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
                                      String modelName, ResilienceStats stats, ModelCircuitBreaker circuit,
                                      FallbackChain fallback, ModelRateLimiter limiter,
-                                     io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow) {
+                                     io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow,
+                                     io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore) {
             this.properties = properties;
             this.classifier = classifier;
             this.modelName = modelName;
@@ -209,10 +217,17 @@ public final class ResilienceModule {
             this.fallback = fallback;
             this.limiter = limiter;
             this.shadow = shadow;
+            this.responseCacheStore = responseCacheStore;
         }
 
         @Override
         public void customize(SessionAssemblyContext ctx) {
+            // 精确响应缓存（spec 53 §A / T203）：order +450 先于 observability(+500)/resilience(+700)
+            // ——命中短路两者（无模型调用即无 span/熔断窗；命中可观测走 store 计数）。
+            if (responseCacheStore != null) {
+                ctx.addAdvisor(new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor(
+                        responseCacheStore, modelName));
+            }
             // 限流 Advisor（spec 15「背压 · 维度③」）：先于 ResilienceAdvisor 注入（order +650 < +700）。
             // impl-59：limiter 为进程级共享（configure() 创建），本 advisor 每会话持有会话事件通道。
             if (limiter != null) {

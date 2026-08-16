@@ -119,6 +119,24 @@
       "type": "java.lang.Long",
       "defaultValue": 1000,
       "description": "shadow 进程级 UTC 日预算（提交次数口径；池尽计 skipped-budget）。"
+    },
+    {
+      "name": "buzhou.resilience.response-cache.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "精确响应缓存开关（spec 53）：同请求（model+messages+options 采样）二次调用命中短路；默认关 = 零行为回归。"
+    },
+    {
+      "name": "buzhou.resilience.response-cache.max-entries",
+      "type": "java.lang.Integer",
+      "defaultValue": 256,
+      "description": "缓存 LRU 容量（容量逐出计 evicted）。"
+    },
+    {
+      "name": "buzhou.resilience.response-cache.ttl",
+      "type": "java.time.Duration",
+      "defaultValue": "1h",
+      "description": "缓存条目 TTL（惰性过期——命中路径检查；过期不返回陈旧）。"
     }
   ],
   "hints": [
