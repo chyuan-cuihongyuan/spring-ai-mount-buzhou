@@ -249,7 +249,7 @@ entry 进入 DRAINING 后：
 buzhou:
   skill:
     enabled: true            # 默认开（classpath Skill，05 默认开关集）
-    db-enabled: false        # 默认关（需持久层依赖，05 默认开关集）
+    db-enabled: true         # 【回写 2026-08-17】record 默认开（存在 SkillStore bean 时生效；显式 false 关闭，spec 21 / impl-66 定型）；原稿「默认关」作废
     scan-locations: ["classpath*:META-INF/skills/"]   # 可追加业务扫描路径
     catalog-max-entries: 64  # 清单注入上限，防爆系统提示词
   mcp:

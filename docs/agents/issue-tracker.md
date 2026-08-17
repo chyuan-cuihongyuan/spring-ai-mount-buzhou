@@ -1,6 +1,6 @@
 # Issue tracker: Local Markdown
 
-Issues and specs for this repo live as markdown files in **per-effort directories**. Durable efforts (wayfinder maps, specs, impl slices) live in **`.wayfinder*/` effort dirs** (committed to git): `.wayfinder/`（effort #1，已闭合）、`.wayfinder2/`（effort #2「做完美」，当前）。`.scratch/` is gitignored and only for throwaway drafts — do not put durable issues there.
+Issues and specs for this repo live as markdown files in **a single wayfinder directory**. Durable efforts (wayfinder maps, specs, impl slices) live in **`.wayfinder/`** (committed to git)：总索引 = `.wayfinder/MAP.md`；每 effort 一张 map = `.wayfinder/maps/effort-<NN>.md`（#1–#15 已闭合）；决策票 = `.wayfinder/tickets/`；实现切片 = `.wayfinder/impl/`。2026-08-17 前曾按 effort 分裂为 `.wayfinder/`…`.wayfinder15/` 十五个目录，已融合为单一目录——**新 effort 只加 `maps/effort-<NN>.md`，勿再新建 `.wayfinderN/`**。`.scratch/` is gitignored and only for throwaway drafts — do not put durable issues there.
 
 ## Conventions
 
@@ -20,11 +20,11 @@ Read the file at the referenced path. The user will normally pass the path or th
 
 ## Wayfinding operations
 
-Used by `/wayfinder`. The **map** is a file with one **child** file per ticket. Current convention (see the effort dir's `README.md` for frontmatter fields):
+Used by `/wayfinder`. The **map** is a file with one **child** file per ticket. Current convention (see `.wayfinder/README.md` for frontmatter fields):
 
-- **Map**: `.wayfinder*/MAP.md` — the Notes / Decisions-so-far / Fog body.
-- **Child ticket**: `.wayfinder*/tickets/T<n>-<slug>.md`（编号在 effort 间全局续用，如 `.wayfinder2/` 从 T28 起）, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `open`/`closed`.
+- **Map**: 总索引 `.wayfinder/MAP.md` + 每 effort 一张 `.wayfinder/maps/effort-<NN>.md` — the Notes / Decisions-so-far / Fog body.
+- **Child ticket**: `.wayfinder/tickets/T<n>-<slug>.md`（编号跨 effort 全局连续：T1–T248，T231–T239 跳号未用，下一张 T249）, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `open`/`closed`.
 - **Blocking**: a `blocked-by:` line in frontmatter. A ticket is unblocked when every ticket it lists is `closed`.
-- **Frontier**: scan the effort's `tickets/` for files that are open, unblocked, and unclaimed; first by number wins.
+- **Frontier**: scan `.wayfinder/tickets/` for files that are open, unblocked, and unclaimed; first by number wins.
 - **Claim**: set `assignee` and save before any work.
 - **Resolve**: append the answer under a `## Resolution` heading, set `status: closed`, then append a context pointer (gist + link) to the map's Decisions-so-far in `MAP.md`.

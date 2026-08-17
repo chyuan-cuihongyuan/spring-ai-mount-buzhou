@@ -268,7 +268,7 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 - **绑定矩阵防线**：`ConfigBindingsMatrixTest`（starter）对全模块 metadata 键做真实装配路径
   绑定断言——新增 yml 键未注册矩阵即失败；「按文档配置静默不生效」类缺陷（T187/impl-178
   共修复 5 处）在 CI 必红。
-- **公共面快照**：`docs/api-surface.snapshot.txt`（449 类型）与 `ApiSurfaceSnapshotTest`
+- **公共面快照**：`docs/api-surface.snapshot.txt`（466 类型）与 `ApiSurfaceSnapshotTest`
   比对——有意变更流程：regenerateSnapshot 覆写 → 人工核对 diff → api-surface.md 同步入档。
   快照比对仅在 reactor 联编（全仓 verify）生效，单模块跑跳过（诚实边界）。
 - **键拼写防护**：错拼键不报错（Spring ignoreUnknownFields）——IDE 经 metadata 提示是第一道；

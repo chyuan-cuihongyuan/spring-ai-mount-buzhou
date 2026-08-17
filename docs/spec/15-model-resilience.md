@@ -9,7 +9,7 @@
 - **ResilienceAdvisor**（advisor 链 order = ToolCallingAdvisor.DEFAULT_ORDER + 700，最内层模型包裹）：
   单次模型调用错误归一化分类 → 按策略重试。重试不重放外层 advisor（Hook 观察到的是「一次逻辑调用」）。
 - **错误五类**（SRE 统一口径，`ErrorCategory`）：RATE_LIMIT（429，尊重 Retry-After 并钳制到 maxBackoff）/
-  NETWORK（瞬时网络与 5xx）/ SERVER / CONTENT（静默内容拒绝，不重试仅上报）/ AUTH（不重试）/ UNKNOWN。
+  NETWORK（瞬时网络与 5xx——SERVER 不单独成类，impl 期并入 NETWORK，2026-08-17 回写）/ CONTENT（静默内容拒绝，不重试仅上报）/ AUTH（不重试）/ UNKNOWN。
   分类 SPI：`ProviderErrorClassifier`（默认实现识别 RestClient 系 HTTP 异常）。
 - **指数退避**：`initial × multiplier^(attempt-1)`，钳制 `maxBackoff`，jitter `[0,1]` 打散惊群。
 - **deadline**：单次模型调用统一超时（默认 60s；0 关闭）。执行经虚拟线程 executor +

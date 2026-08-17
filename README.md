@@ -38,7 +38,7 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 8 | **Hook 护栏体系** | 长产物读写护栏、HITL 危险操作人工审核、Hook→state→Attachment 联动闭环（补失忆范式） | `buzhou-guard` |
 | 9 | **持久化 SPI** | 五大存储 SPI（Message / Summary / SessionState / SessionLease / Observability）+ 内存/JDBC/Redis 实现，按需切换 | `buzhou-core` / `buzhou-store-jdbc` / `buzhou-store-redis` |
 
-> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 机制详设 01–23）。
+> 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 机制详设 01–55）。
 
 ## 生产级纵深（effort #5 新增）
 
@@ -91,9 +91,9 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 ```
                      buzhou-core（内核：session / exec / hook / spi / policy）
                             │
-   ┌────────┬──────────┬────┴─────┬──────────┬──────────┬──────────┐
-buzhou-   buzhou-   buzhou-    buzhou-    buzhou-    buzhou-    buzhou-
-memory    spill     observability skills   mcp        guard      tools
+   ┌────────┬──────────┬────┴─────┬──────────┬──────────┬──────────┬───────────┐
+buzhou-   buzhou-   buzhou-    buzhou-    buzhou-    buzhou-    buzhou-    buzhou-
+memory    spill     observability skills   mcp        guard      tools      resilience
    │                  │   │
    │        buzhou-observe-otel / buzhou-observe-dashboard（二层边）
    │
@@ -115,6 +115,7 @@ buzhou-bom                 —— 全模块同版本收口
 | `buzhou-mcp` | MCP 工具集热插拔 | `buzhou.mcp.enabled` | 开 |
 | `buzhou-guard` | Hook 护栏（读写护栏 / HITL / 事实闭环） | `buzhou.guard.enabled` | 开 |
 | `buzhou-tools` | 原子工具集 | `buzhou.tools.enabled` | 开 |
+| `buzhou-resilience` | 模型韧性（重试/退避/错误分类/统一超时/限流/熔断降级/响应缓存） | `buzhou.resilience.enabled` | 开 |
 | `buzhou-store-jdbc` | JDBC 持久化实现 | `buzhou.store.type=jdbc` | — |
 | `buzhou-store-redis` | Redis 持久化实现 | `buzhou.store.type=redis` | — |
 | `buzhou-spring-boot-starter` | 依赖聚合 starter（无代码） | — | — |

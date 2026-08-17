@@ -1,6 +1,6 @@
 # Spec — Buzhou core 做深做透
 
-> 本 spec 是 `.wayfinder/` 当前 effort（map + 9 ticket）的**总纲合成**，由 `/to-spec` 从 wayfinder 图与仓库现状综合而成。逐项交付物仍由对应 ticket 承载；本文件规定**问题、方案、验收与边界**，并固化测试缝决策。
+> 本 spec 是 **effort #1**（[map](maps/effort-01.md) + T1–T9 决策票）的**总纲合成**，由 `/to-spec` 从 wayfinder 图与仓库现状综合而成。逐项交付物仍由对应 ticket 承载；本文件规定**问题、方案、验收与边界**，并固化测试缝决策。effort #2 起总纲改落 `docs/spec/12+`。
 >
 > tracker 约定见 [`.wayfinder/README.md`](README.md)；术语以仓库根 [CONTEXT.md](../CONTEXT.md) 为准；机制详设见 [docs/spec/](../docs/spec/)。
 

@@ -20,7 +20,7 @@
 
 ## API 稳定性审计（T100 / impl-75）
 
-- **`docs/api-surface.md`**：14 模块 public 类型清单（404 项，脚本可重跑）；starter 零类型显式标注。
+- **`docs/api-surface.md`**：13 模块 public 类型清单（466 项，脚本可重跑；2026-08-17 复核快照口径）；starter 零类型显式标注。
 - **internal 契约**：36 个 public-in-internal 类型声明为实现细节（非公开 API）。
 - **@since**：0.1.0-SNAPSHOT 预发布期不追溯；1.0.0 起新公开类型起标。
 - **政策**（CONTRIBUTING 同步）：语义化版本（minor 只加不改）；废弃 ≥ 2 个 minor +

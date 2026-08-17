@@ -32,7 +32,7 @@ cp settings.xml ~/.m2/settings.xml   # 首次执行一次即可，之后 mvn 直
 ## 设计约定（Spec 先行）
 
 - **领域术语** 以仓库根 [CONTEXT.md](CONTEXT.md) 为准。
-- **机制设计** 以 [docs/spec/](docs/spec/) 的 Spec 为准（00-overview 总入口 + 九份机制详设）。**改机制先改 Spec**：蓝本明确描述的机制严格遵循，留白处的自主推演以 `> 【推演】` 标注。
+- **机制设计** 以 [docs/spec/](docs/spec/) 的 Spec 为准（00-overview 总入口 + 01–55 共 55 份详设）。**改机制先改 Spec**：蓝本明确描述的机制严格遵循，留白处的自主推演以 `> 【推演】` 标注。
 - 公共 API 在各模块的 `api` 子包（语义版本承诺）；`internal` 子包跨模块禁止引用、不承诺兼容。
 
 ## 模块依赖规则（硬性）

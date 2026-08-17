@@ -17,6 +17,8 @@ CI 沿用根目录 `mvn verify`，评测阈值断言自动纳入回归门禁。
 
 同一排障 Agent 下四个测试类，各侧重一簇机制，全部用脚本化 `ChatModel`（`ScriptedChatModel`，随 `buzhou-core` test-jar 发布）驱动，不依赖真实模型与外部服务。
 
+> 【扩充 2026-08-17】后续 effort 已在 `demo/` 扩充至 31 个测试类（Effort6/8/9/10/11/12/15 能力演示、缓存/语义缓存/共享限流双实例，及 ArgsValidationRetry / BoundedTurn / CancelMode / DeadlineHang / DeleteSessionCascade / EventBackpressure / GracefulShutdown / LeaseSteal 等端到端面）；下表四簇为首发核心。
+
 | 测试类 | 演示机制 |
 |---|---|
 | `MemoryCompactionDemoTest` | 记忆压缩链：旧轮大工具返回微压缩为 evidence 占位符 + `read_evidence` 回查；超预算触发九段摘要、P0 三段锚定；大返回超阈值 Spill 落盘 + `read_range` 回读 |

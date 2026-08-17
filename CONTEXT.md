@@ -157,7 +157,7 @@
 
 - **配置绑定矩阵（Bindings Matrix）** — 全模块 metadata 键经真实装配路径逐一绑定断言；
   「键存在但静默不生效」类缺陷（键名/组件漂移、绑定构造器缺失）在 CI 必红。
-- **公共面快照（API Snapshot）** — 非 internal public 类型全集黄金快照（449 类型 × 14 模块）；
+- **公共面快照（API Snapshot）** — 非 internal public 类型全集黄金快照（466 类型 × 13 模块）；
   新增/移除公开类型未入档即失败；更新流程 = regenerate → 核对 diff → 文档同步。
 - **env 直读面** — 无 @ConfigurationProperties 的模块键（guard/memory/tools/leak 等）经
   Environment 直读消费——矩阵以 env 等值断言覆盖（装配链可达性口径）。

@@ -118,7 +118,7 @@ sourceSessionId+sourceTurnSeq 去重。
 ### Solution
 
 `EvalRunner.run(datasetName, Evaluator)` → `EvalRunResult`：逐项 spawn 独立评估会话
-（appId=`buzhou-eval`、sessionId=`eval-<runId>-item<id>`，项粒度隔离、互不污染）→
+（appId=`buzhou-eval`、sessionId=`eval-<runId>-i<id>`【回写 2026-08-17：原稿 item<id>，实现取短形】，项粒度隔离、互不污染）→
 `chat(item.input)` → 评估器打分 → run 记录 `eval.run.<runId>` 落合成会话；顺序执行。
 
 ### User Stories
@@ -180,7 +180,8 @@ run 记录落 store 后没有只读查询面：宿主与运维要自己 scan 解
 ### Solution
 
 run 完成即发 `eval.run.completed` 事件：payload `{runId, datasetName, total, passed,
-failed, errored, passRate, durationMs}`。发送通道 = run 完成后在**末项评估会话**上调
+failed, errored, passRate, durationMs}`。发送通道 = run 完成后在独立 `eval-<runId>-done` 会话上调
+【回写 2026-08-17：原设计为末项评估会话；实现取独立 done 会话——项会话逐项 close 的资源语义优先】
 新增公共面 `AgentSession.emitEvent(type, payload)`（default 抛 UOE；DefaultAgentSession
 委托 dispatchEvent）——会话已自动挂载全局 listeners（含 WebhookEventForwarder），
 webhook 零改造收到。
@@ -194,7 +195,7 @@ webhook 零改造收到。
 
 - `emitEvent` 进 AgentSession 公共面（rateTurn 同模式 default 方法；api-surface 入档）；
   payload Map 拷贝不可变（SessionEvent compact ctor 已保证）。
-- 事件在末项会话上发（run 会话尚在生命周期内；发完即 close）；空集 run 无会话——
+- 事件在独立 `eval-<runId>-done` 会话上发【回写 2026-08-17：原稿「末项会话上发（run 会话尚在生命周期内；发完即 close）」，实现以 done 会话专责发事件】；空集 run 无会话——
   走 `SessionEvent.of` 直发全局 listeners？**裁定：空集 run 不发事件**（无评估发生，
   事件语义为「评估完成」非「run 建档」；边界入档）。
 - run 失败（如 dataset 不存在 fail-fast）不产生 run 记录也不发事件。

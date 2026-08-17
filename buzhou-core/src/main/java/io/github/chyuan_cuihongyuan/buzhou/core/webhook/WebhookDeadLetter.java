@@ -5,7 +5,7 @@ import java.time.Instant;
 /**
  * Webhook 死信查询形态（spec 24 / T103 / impl-78）：超 max-attempts 或 4xx 即死的
  * 待外发事件，经 {@link WebhookEventForwarder#deadLetters()} 查询（上限 100）。
- * 死信不自动重试；重放由运维按需自建（spec 24 out-of-scope）。
+ * 死信不自动重试；重放见 {@link WebhookEventForwarder#replayDeadLetters()}（spec 37 §B 已收口，原 spec 24 out-of-scope 注记作废）。
  *
  * @param eventId   幂等键（与投递请求头 X-Buzhou-Event-Id 同值）
  * @param type      事件类型

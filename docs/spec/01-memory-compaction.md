@@ -12,7 +12,7 @@
 3. **九段式结构化摘要（Structured Summary）**——第二级：预算仍超限时调用 LLM 生成九段摘要，段落带 P0–P3 优先级，支持增量合并与段落降级（gist + 指针，不整段删除）。
 4. **悬空调用修复（Dangling Tool Call Repair）与重试重放**——加载历史时先修复残缺消息：租约即判据，先重试后修复，完全悬空剔除、部分悬空合成，全程记 Event 审计。
 
-挂接方式对齐 Spring AI 2.0：以自定义 `ChatMemory` + 记忆 Advisor（默认 order +200，工具调用循环外）落位，与「完结轮次为压缩原子单位」天然对齐（见 `research/spring-ai-surface.md` §3）。
+挂接方式对齐 Spring AI 2.0：以自定义 `ChatMemory` + 记忆 Advisor（默认 order = `ToolCallingAdvisor.DEFAULT_ORDER + 400`，工具调用循环内——【回写 2026-08-17】原稿 +200 循环外，impl 期随 03 号档 advisor 位序表调整）落位，与「完结轮次为压缩原子单位」天然对齐（见 `research/spring-ai-surface.md` §3）。
 
 非目标：长期记忆、跨会话知识沉淀、向量检索记忆——均属 Out of scope（见 map.md）。
 
@@ -33,7 +33,7 @@
 
 ## API
 
-包根：`io.github.chyuan_cuihongyuan.buzhou.core.memory`（core 模块）；存储 SPI 在 `buzhou.core.store`，回查工具在 `buzhou.core.tool`。所有接口面向 Spring AI 2.0（`org.springframework.ai.chat.messages.Message` 等）。
+包根【回写 2026-08-17，按实现归属修正】：机制实现在 `io.github.chyuan_cuihongyuan.buzhou.memory`（buzhou-memory 模块）；存储 SPI 在 `buzhou.core.spi`；回查工具 `EvidenceLookupTool` 在 `buzhou.memory.tool`，范围读取 `RangeReadEngine` 在 buzhou-spill（见 02 号档）。所有接口面向 Spring AI 2.0（`org.springframework.ai.chat.messages.Message` 等）。
 
 ### 预算与估算
 
@@ -83,7 +83,7 @@ public interface BudgetCalculator {
 ```java
 /** 注入视图构建器——本机制的总装入口。管线固定顺序：
  *  悬空检测 →（重试/重放 → 修复）→ 微压缩 → 动态预算 →（必要时）摘要合并 → 组装视图。 */
-public interface InjectionViewBuilder {
+public interface InjectionViewProcessor {
     InjectionView build(String sessionId, InjectionContext ctx);
 
     record InjectionContext(String modelName,
@@ -238,15 +238,15 @@ public interface DanglingToolCallRepairer {
 
 ```java
 /** 记忆门面：实现 Spring AI ChatMemory（get/add/clear 三方法）。
- *  get() 内部委托 InjectionViewBuilder 返回压缩视图；add() 只追加原文。读写分离。 */
+ *  get() 内部委托 InjectionViewProcessor 返回压缩视图；add() 只追加原文。读写分离。 */
 public class BuzhouChatMemory implements ChatMemory { /* ... */ }
 
-/** 记忆 Advisor：默认 order = DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER（+200），在 ToolCallingAdvisor（+300）之外，
+/** 记忆 Advisor：默认 order = ToolCallingAdvisor.DEFAULT_ORDER + 400【回写 2026-08-17：原稿 DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER（+200）循环外，impl 期调为循环内，位序全表见 03 号档】，
  *  每用户轮次只读写一次，与「完结轮次为压缩原子单位」对齐（research §3）。 */
 public class BuzhouMemoryAdvisor implements BaseAdvisor { /* before() 注入视图；after() 落库 */ }
 
-/** 证据回查内置工具（buzhou.core.tool）：按 evidence-id（消息 id）取原文，支持范围读取；
- *  范围读取实现为 core 共享能力（与 Spill 回读共享），默认自动注册，可被工具策略关闭。 */
+/** 证据回查内置工具（buzhou.memory.tool【回写 2026-08-17：原稿 buzhou.core.tool】）：按 evidence-id（消息 id）取原文，支持范围读取；
+ *  范围读取实现落 buzhou-spill（RangeReadEngine，与 Spill 回读共享【回写：原稿称 core 共享能力】），默认自动注册，可被工具策略关闭。 */
 public class EvidenceLookupTool {
     public String read(String evidenceId, Long offset, Integer limit) { /* ... */ }
 }
@@ -333,8 +333,8 @@ sequenceDiagram
     autonumber
     participant U as 用户
     participant S as AgentSession
-    participant MA as BuzhouMemoryAdvisor(+200)
-    participant VB as InjectionViewBuilder
+    participant MA as BuzhouMemoryAdvisor(+400)
+    participant VB as InjectionViewProcessor
     participant RP as DanglingToolCallRepairer
     participant MC as MicroCompactor
     participant BC as BudgetCalculator
@@ -412,7 +412,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant VB as InjectionViewBuilder
+    participant VB as InjectionViewProcessor
     participant SS as SummaryStore
     participant SG as SummaryGenerator
     participant LLM as 摘要模型（默认主模型）

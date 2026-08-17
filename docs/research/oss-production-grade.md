@@ -1,6 +1,6 @@
 # 生产级（production-grade）两轮研究：本地缺口勘察 + ≥10K★ 开源运维实践
 
-> effort #3（`.wayfinder3/`）事实源。2026-08-14 由 **6 个并行子 agent** 完成：2 个本地勘察（buzhou-core；memory/spill/guard/store-jdbc/store-redis）+ 4 个外部研究（Spring 系生产实践；数据基础设施运维；运行时可靠性；安全运维 + LLM serving）。star 数为当日 GitHub API 实测；载荷性本地结论已由主 agent 复核（MySQL 索引/JdbcToolCallLog 未装配/renew 无调用方/LeaseLostException 零抛出/AuditChain 未接线，五项全证实）。
+> effort #3（[map](../../.wayfinder/maps/effort-03.md)）事实源。2026-08-14 由 **6 个并行子 agent** 完成：2 个本地勘察（buzhou-core；memory/spill/guard/store-jdbc/store-redis）+ 4 个外部研究（Spring 系生产实践；数据基础设施运维；运行时可靠性；安全运维 + LLM serving）。star 数为当日 GitHub API 实测；载荷性本地结论已由主 agent 复核（MySQL 索引/JdbcToolCallLog 未装配/renew 无调用方/LeaseLostException 零抛出/AuditChain 未接线，五项全证实）。
 > 遵守 effort #2 的 **10K+ stars 政策**：采纳事实源只认 ≥10K★ OSS；不达标者（Reactor 5,234★、JMH 2,663★、SLSA 全家、cosign/Scorecard 等）仅注记。
 
 ## 0. 执行摘要

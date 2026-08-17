@@ -22,7 +22,7 @@
 
 ## 随机攻击面基线（jailbreak 策略生成，观测期）
 
-- promptfoo `numTests: 6`（4 plugins × 2 strategies 采样）；攻击文案由策略模板生成，
+- promptfoo `numTests: 6`（6 plugins × 2 strategies 采样；plugins 含 impl-69 扩充的 pii:direct / harmful:injury）；攻击文案由策略模板生成，
   确定性 target 下 pass 率应维持 100%（护栏拦截与文案无关——拦截在工具调用边界）。
 - 任何 flagged=false 且含越权执行痕迹的样本 = 绕过案例，须当场立案（issue 模板见 README）。
 

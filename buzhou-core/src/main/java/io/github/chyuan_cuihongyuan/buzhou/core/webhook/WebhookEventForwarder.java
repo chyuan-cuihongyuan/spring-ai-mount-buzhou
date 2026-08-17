@@ -228,7 +228,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         }
     }
 
-    /** 优雅关闭：停止接新事件，限时 5s 排空已到期记录（退避中的留存 store 待重启恢复）。 */
+    /** 优雅关闭：停止接新事件，限时（可配 close-drain-timeout，默认 5s，spec 44 §A）排空已到期记录（退避中的留存 store 待重启恢复）。 */
     @Override
     public void close() {
         closing = true;
@@ -258,7 +258,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         return deadLettered.get();
     }
 
-    /** 死信查询（上限 100；重放由运维按需自建，spec 24 out-of-scope）。 */
+    /** 死信查询（上限 100）；重放见 {@link #replayDeadLetters()}（spec 37 §B，原 spec 24 out-of-scope 注记作废）。 */
     public List<WebhookDeadLetter> deadLetters() {
         return outbox.deadLetters(DEAD_LETTER_QUERY_LIMIT);
     }
