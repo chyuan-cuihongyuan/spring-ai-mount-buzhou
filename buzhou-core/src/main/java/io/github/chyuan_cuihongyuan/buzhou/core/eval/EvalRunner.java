@@ -46,6 +46,16 @@ public final class EvalRunner {
 
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
     public EvalRunResult run(String datasetName, Evaluator evaluator) {
+        return run(datasetName, evaluator, 1); // spec 68：默认串行零变化
+    }
+
+    /**
+     * 带并行度的评估 run（spec 68 §A / T287，LangSmith/DeepEval 并行评估借鉴）：
+     * 虚拟线程池并行执行项（每项仍独占隔离 eval 会话）；<b>结果按数据集项序聚合</b>
+     * （与串行同序——确定性不因并行漂移）；并行度 clamp 1..32（防失控）；汇总/落盘/
+     * 事件与串行同口径（全部项完成后一次进行）。项内异常经既有三态收敛（不炸整跑）。
+     */
+    public EvalRunResult run(String datasetName, Evaluator evaluator, int parallelism) {
         List<EvalItem> items = datasetStore.dataset(datasetName)
                 .map(meta -> datasetStore.items(datasetName))
                 .orElseThrow(() -> new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
@@ -53,9 +63,33 @@ public final class EvalRunner {
         String runId = "r" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
         Instant startedAt = Instant.now();
-        List<EvalRunItemResult> results = new ArrayList<>();
-        for (EvalItem item : items) {
-            results.add(runItem(runId, item, evaluator));
+        int workers = Math.max(1, Math.min(32, parallelism)); // clamp 1..32
+        List<EvalRunItemResult> results;
+        if (workers == 1 || items.size() <= 1) {
+            results = new ArrayList<>();
+            for (EvalItem item : items) {
+                results.add(runItem(runId, item, evaluator));
+            }
+        } else {
+            EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
+            List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
+            for (int i = 0; i < items.size(); i++) {
+                final int index = i;
+                final EvalItem item = items.get(i);
+                tasks.add(() -> {
+                    byIndex[index] = runItem(runId, item, evaluator);
+                    return null;
+                });
+            }
+            try (java.util.concurrent.ExecutorService pool =
+                    java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+                pool.invokeAll(tasks);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
+                        "评估并行执行被中断（dataset=" + datasetName + "）");
+            }
+            results = List.of(byIndex); // 按项序聚合（与串行同序）
         }
         Instant finishedAt = Instant.now();
         int passed = (int) results.stream().filter(r -> EvalRunItemResult.STATUS_PASS.equals(r.status())).count();

@@ -272,6 +272,14 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 - 溯源：回流项带 sourceSessionId/sourceTurnSeq——评估项可回查原始会话定位上下文。
 - 删除：deleteDataset 不级联删 run 记录（run 自带 datasetName 快照，审计保留）。
 
+### 并行执行（effort #28 / spec 68）
+
+- `runner.run(dataset, evaluator, parallelism)`：虚拟线程池并行执行评估项（每项仍
+  独占隔离 eval 会话）；**结果按数据集项序聚合**（与串行同序——断言/diff 不漂移）；
+  并行度 clamp 1..32；默认 `run(dataset, evaluator)` = 1 零变化。
+- 诚实边界：共享模型端点的吞吐/限流是外部约束——高并行度可能触发宿主限流（错误
+  三态如实入账）；项内异常既有三态收敛（不炸整跑）。
+
 ### LLM-as-judge（effort #21 / spec 61）
 
 - 内置 `LlmJudgeEvaluator`（注入 judge ChatModel + 可选 rubric）：语义质量断言

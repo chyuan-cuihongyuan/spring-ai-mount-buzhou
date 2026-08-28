@@ -842,3 +842,9 @@
   lastActivityAt 过滤 + waterline 返回；空结果水位不变；Langfuse cursor 语义）
 - `JsonlExportResult` 第 5 组件 `waterline`（4 参兼容构造保留；全量导出 = null）
 - 类型级快照：**零新增**；yml 键：**零新增**
+
+## effort #28 新增公共面（spec 68 / impl-214，@since 1.0.0）
+
+- `EvalRunner.run(dataset, evaluator, parallelism)` 三参重载（虚拟线程并行 + 项序
+  聚合 + clamp 1..32；LangSmith/DeepEval 并行评估借鉴；默认路径零变化）
+- 类型级快照：**零新增**；yml 键：**零新增**（API 参数非配置）
