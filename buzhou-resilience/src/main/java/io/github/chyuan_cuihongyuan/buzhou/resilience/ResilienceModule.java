@@ -165,8 +165,15 @@ public final class ResilienceModule {
                 }
             }
         }
+        // spec 64 §A / T279：延迟感知排序（进程级 EMA 追踪；默认关 = null 零计时零排序）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackLatencyTracker latencyTracker =
+                fallbacks != null && !fallbacks.isEmpty()
+                        && properties.fallback() != null
+                        && properties.fallback().effectiveLatencyAware()
+                        ? new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackLatencyTracker()
+                        : null;
         FallbackChain fallbackChain = fallbacks != null && !fallbacks.isEmpty()
-                ? new FallbackChain(fallbacks, properties.fallback())
+                ? new FallbackChain(fallbacks, properties.fallback(), latencyTracker)
                 : null;
         // spec 49 §A / T176：shadow 探测控制器（进程级共享——并发信号量与日预算都是进程级事实）
         io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow =
@@ -307,7 +314,9 @@ public final class ResilienceModule {
             ModelCallInFlight inFlight = new ModelCallInFlight();
             ResilienceAdvisor advisor = new ResilienceAdvisor(
                     properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName,
-                    fallback, shadow, limiter);
+                    fallback, shadow, limiter,
+                    // spec 64 §A / T279：延迟追踪经链携带（链未建/未开启 = null 零计时）
+                    fallback == null ? null : fallback.latencyTracker());
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

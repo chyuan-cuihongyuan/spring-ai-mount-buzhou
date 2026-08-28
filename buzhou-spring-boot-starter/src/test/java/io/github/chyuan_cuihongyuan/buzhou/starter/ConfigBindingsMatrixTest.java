@@ -99,6 +99,8 @@ class ConfigBindingsMatrixTest {
             Map.entry("buzhou.resilience.rate-limit.requests-per-minute", "1000"),
             Map.entry("buzhou.resilience.rate-limit.tokens-per-minute", "100000"),
             Map.entry("buzhou.resilience.shadow.models", "shadowModel"),
+            // effort#24 / spec 64：延迟感知排序 enabled=true 全路径（无备模型时 tracker 不建，零行为）
+            Map.entry("buzhou.resilience.fallback.latency-aware", "true"),
             Map.entry("buzhou.spill.max-total-bytes", "1048576"),
             Map.entry("buzhou.spill.max-files-per-session", "100"),
             Map.entry("buzhou.observe.dashboard.auth-token", "sample-token"),

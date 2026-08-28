@@ -803,3 +803,19 @@
   position-bias TIE；协议失败 protocol TIE；`PairwiseVerdict(winner, reason)`；Ragas
   pairwise / Chatbot Arena 借鉴）
 - 类型级快照：+1（外部类；内部枚举/record 随类不入）；yml 键：**零新增**
+
+## effort #24 新增公共面（spec 64 / impl-210，@since 1.0.0）
+
+**buzhou-resilience（fallback 包）**
+
+- `FallbackLatencyTracker`（备模型延迟 EMA 追踪：α=0.3、未知取已知中位数中性、
+  稳定排序视图；LiteLLM latency-based routing 借鉴）
+- `FallbackChain` 3 参构造（tracker 注入）与 `latencyTracker()` 出口；`models()`
+  排序视图
+- `ResilienceAdvisor` 12 参构造（tracker 计时接线：备模型/金丝雀三处调用）
+- `ResilienceProperties.Fallback` 第 5 组件 `latencyAware`（4 参兼容构造保留）
+- yml 键：`buzhou.resilience.fallback.latency-aware`（默认 false；metadata + 矩阵
+  enabled=true 全路径）
+- **破坏性变更（pre-1.0）**：`Fallback` canonical 构造组件数 4→5（兼容构造保留源码
+  兼容；反射绑定按 canonical 的调用方需核对）
+- 类型级快照：+1（FallbackLatencyTracker）

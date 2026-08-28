@@ -352,6 +352,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouRe
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceStats
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackLatencyTracker
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMemoryRateLimitBackend

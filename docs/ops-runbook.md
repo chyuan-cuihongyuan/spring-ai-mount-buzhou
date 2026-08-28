@@ -148,6 +148,12 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   budget 累计（prompt/completion-tokens、cost-micro-usd）同走 CAS 助手——多实例共享
   store 下预算/失控防护上限不被并发穿透；回退语义与配额一致（停滞 16 次才回退）。
 
+**延迟感知备模型排序（effort #24 / spec 64）**：`buzhou.resilience.fallback.latency-aware=true`
+（默认关）时，备模型/金丝雀调用延迟入进程级 EMA（α=0.3），降级遍历序按 EMA 升序——
+快者优先、慢化趋势数次调用内传导；未知延迟取已知中位数（新上链模型中性：不插队不
+饿死）；并列保配置序。运维须知：排序只改「先试谁」，金丝雀/限流/熔断跳过语义不变；
+EMA 进程级（重启清零冷启动）；无备模型时开启零效果。
+
 **共享熔断闸（effort #17 / spec 57）**：`buzhou.store.type=redis` 且熔断启用（默认开）时，
 熔断从进程级升级为「跳闸事实共享、探测与窗口留本地」：任一实例跳闸即写 Redis TTL 标记
 （键 `buzhou:cb:<模型净化名>`，TTL = 生效冷却含退避倍数）——存活期内**全实例**对该模型按
