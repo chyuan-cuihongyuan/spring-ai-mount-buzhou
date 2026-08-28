@@ -40,6 +40,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalScore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.LlmJudgeEvaluator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseEvalRunner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseJudge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CancellationToken
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend

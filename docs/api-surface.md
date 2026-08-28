@@ -865,3 +865,12 @@
   提前走增量摘要路径；Letta 自然边界压缩的 Completed-Turn 代理；默认 0=关）
 - yml 键：`buzhou.memory.boundary-compact-backlog`（默认 0；metadata + 矩阵 env-read）
 - 类型级快照：**零新增**
+
+## effort #31 新增公共面（spec 71 / impl-217，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `PairwiseEvalRunner`（A/B 成对评估：双 runtime 逐项执行 + PairwiseJudge 双向裁定 +
+  胜率汇总（error 不入分母）+ 并行 clamp；`PairwiseItemResult` / `PairwiseSummary` /
+  `PairwiseEvalResult` 返回面；Ragas pairwise eval / LiteLLM model-compare 借鉴）
+- 类型级快照：+1；yml 键：**零新增**
