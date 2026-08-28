@@ -929,3 +929,11 @@
   `due()` 键序区间读最早到期 + 孤儿/陈旧自愈 + 构造期回填；Kafka log+index 借鉴；
   spec 78 scanByKeyRange 的首个消费方——退避积压不再放大调度读）
 - 类型级快照：**零新增**（内部结构）；yml 键：**零新增**
+
+## effort #41 新增公共面（spec 80 / impl-227，@since 1.0.0）
+
+- `EvalGate.enforce(dataset, evaluator, threshold[, parallelism])` → `GateResult`
+  （评估回归门：passRate ≥ 阈值判过 + error 计入分母从严 + 失败项预览截 10 条 +
+  CI 单行 summary；Promptfoo eval CI gate / LangSmith eval-as-gate 借鉴；执行复用
+  EvalRunner 管线）
+- 类型级快照：+1；yml 键：**零新增**
