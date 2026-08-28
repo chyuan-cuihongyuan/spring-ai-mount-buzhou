@@ -266,6 +266,13 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   CI 不强制（沿用本节「LLM-judge + 20% 人工抽检」口径）。
 - 确定性三件（EXACT/CONTAINS/REGEX）行为零变化。
 
+### 成对对比（effort #23 / spec 63）
+
+- `PairwiseJudge.compare(input, outputA, outputB, rubric?)` → WINNER_A/WINNER_B/TIE：
+  **双向评判消位置偏差**（(A,B) 与 (B,A) 各评一次，两方向同赢家才裁；翻转判
+  position-bias TIE——LLM judge 首位展示偏好显性化，不冒充裁决）。宿主自行驱动两次
+  运行后调用（不做 A/B 编排）；成本 = 每对 2 次 judge 调用。
+
 ### 回流策略
 
 - 一键回流：`FeedbackImporter.importFromFeedback(sessionId, datasetName)`——只入负反馈轮

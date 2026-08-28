@@ -794,3 +794,12 @@
 - `AtomicStateCounters`（core.internal.hook——非公开面：值形态无关的进度检测 CAS 计数
   写助手；TokenBudgetHook / RunawayHook / SessionQuotaHook 三处计数统一）
 - 类型级快照：**零新增**（internal 包不入公共面）；yml 键：**零新增**
+
+## effort #23 新增公共面（spec 63 / impl-209，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `PairwiseJudge`（成对 A/B 对比：双向评判消位置偏差——两方向同赢家才裁，翻转判
+  position-bias TIE；协议失败 protocol TIE；`PairwiseVerdict(winner, reason)`；Ragas
+  pairwise / Chatbot Arena 借鉴）
+- 类型级快照：+1（外部类；内部枚举/record 随类不入）；yml 键：**零新增**
