@@ -119,6 +119,11 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 每实例独立额度**（限流已升级为可选共享闸，见下）。可行部署：粘性路由（会话归同实例）+
 租约独占（跨实例接管走 steal）。分布式熔断/配额为显式 out-of-scope（spec 23）。
 
+**agent 并发 Turn 隔离舱（effort #45 / spec 84）**：`buzhou.bulkhead.enabled=true` +
+`buzhou.bulkhead.agents.<agent>=<maxConcurrentTurns>`（默认关——全 NOOP 零行为）；
+舱满 fail-fast 抛 QUOTA_EXCEEDED（`acquire-timeout` 可设等待）；计数器
+`buzhou.bulkhead.rejected`；spawn 闸限会话数、本舱限在飞 Turn 数——正交双层。
+
 **共享限流闸（effort #14 / spec 54）**：`buzhou.store.type=redis` 且配置
 `buzhou.resilience.rate-limit.requests-per-minute / tokens-per-minute` 时，限流自动从
 进程内令牌桶切换为 **Redis 分钟固定窗**（INCR/EXPIRE，LiteLLM Router 同款）——全实例

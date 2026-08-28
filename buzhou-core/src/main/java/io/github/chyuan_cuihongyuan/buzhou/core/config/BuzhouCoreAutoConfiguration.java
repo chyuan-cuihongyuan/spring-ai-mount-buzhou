@@ -423,6 +423,33 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 84 §A / T323：agent 并发 Turn 隔离舱（opt-in {@code buzhou.bulkhead.enabled=true}
+     * + {@code buzhou.bulkhead.agents.<agent>=<maxConcurrentTurns>}，默认关——全 NOOP 零行为；
+     * resilience4j Bulkhead 思想：spawn 闸限会话数，本舱限在飞 Turn 数，正交）。未配
+     * agents 表时开启也是 NOOP（诚实：无上限可执行）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.bulkhead", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead buzhouAgentBulkhead(
+            org.springframework.core.env.Environment env) {
+        java.util.Map<String, Integer> limits = org.springframework.boot.context.properties.bind.Binder
+                .get(env).bind("buzhou.bulkhead.agents",
+                        org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                String.class, Integer.class))
+                .orElse(java.util.Map.of());
+        java.time.Duration timeout = org.springframework.boot.context.properties.bind.Binder
+                .get(env).bind("buzhou.bulkhead.acquire-timeout",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .of(java.time.Duration.class))
+                .orElse(java.time.Duration.ZERO);
+        io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead bulkhead =
+                io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.of(limits, timeout);
+        io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.install(bulkhead);
+        return bulkhead;
+    }
+
+    /**
      * spec 69 §A / T290：崩溃自愈 watchdog（opt-in {@code buzhou.recovery.auto-resume=true}，
      * 默认关；Temporal crash-watchdog 思想）——启动完成后枚举 RUNNING 快照逐一续跑
      * （steal=false：他方活跃实例持锁即跳过，仅接管疑似崩溃者）。无 RunRegistry bean

@@ -86,6 +86,8 @@ class ConfigBindingsMatrixTest {
             "buzhou.memory.boundary-compact-backlog",
             // effort#29 / spec 69 / T290：崩溃自愈 watchdog（core autoconfig env 直读路径）
             "buzhou.recovery.auto-resume",
+            // effort#45 / spec 84 / T324：agent 并发 Turn 隔离舱（Binder 路径；agents 为结构化 map 走 SKIPPED）
+            "buzhou.bulkhead.enabled", "buzhou.bulkhead.acquire-timeout",
             "buzhou.tools.run-command.max-output-bytes",
             "buzhou.leak.level", "buzhou.leak.lease-age-threshold",
             "buzhou.mcp.grace-period", "buzhou.mcp.force-close-timeout", "buzhou.mcp.poll-interval",
@@ -97,6 +99,7 @@ class ConfigBindingsMatrixTest {
 
     /** 复杂结构化键（List<KeyFile> 等）——样例值需文件/结构，跳过并显式登记（不静默）。 */
     private static final List<String> SKIPPED_KEYS = List.of(
+            "buzhou.bulkhead.agents", // Map<String,Integer>：Binder 结构化面（spec 84 / T324）
             "buzhou.guard.audit.signing.keys", // List<KeyFile>：需 PEM 文件，结构化装配面
             "buzhou.guard.audit.signing.key-dir"); // 目录扫描副作用键（防真扫）
 

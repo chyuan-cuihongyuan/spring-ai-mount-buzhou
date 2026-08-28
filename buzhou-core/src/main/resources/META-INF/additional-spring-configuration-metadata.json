@@ -169,6 +169,23 @@
       "type": "java.lang.Boolean",
       "defaultValue": false,
       "description": "崩溃自愈 watchdog（spec 69 / T290，Temporal crash-watchdog 借鉴）：启动完成后自动枚举 RUNNING 快照续跑（他方活跃实例持锁即跳过）；需要 RunRegistry bean。"
+    },
+    {
+      "name": "buzhou.bulkhead.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "spec 84 / T323：agent 并发 Turn 隔离舱开关（默认关——全 NOOP 零行为；开启后与 buzhou.bulkhead.agents 配合）。"
+    },
+    {
+      "name": "buzhou.bulkhead.agents",
+      "type": "java.util.Map<java.lang.String,java.lang.Integer>",
+      "description": "spec 84 / T323：每 agent 并发 Turn 上限表（agent 名 → maxConcurrentTurns；未列出的 agent 不限；resilience4j Bulkhead 借鉴）。"
+    },
+    {
+      "name": "buzhou.bulkhead.acquire-timeout",
+      "type": "java.time.Duration",
+      "defaultValue": "0s",
+      "description": "spec 84 / T323：舱满等待空位时长（默认 0s = fail-fast 抛 QUOTA_EXCEEDED）。"
     }
   ],
   "hints": [

@@ -959,3 +959,11 @@
   有界族，256 条封顶折 `<kind>:__overflow__`，top(n)/snapshot() 供看板与健康面；
   Sentry fingerprint 借鉴；进程内有界 Map 不进 micrometer tag；工具错误路径已接线）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #45 新增公共面（spec 84 / impl-231，@since 1.0.0）
+
+- `AgentBulkhead`（agent 并发 Turn 隔离舱：per-agent 信号量上限 + NOOP 零开销默认 +
+  chat/chatForEntity/stream 三入口接线（stream 名额横跨流生命周期）+ QUOTA_EXCEEDED
+  fail-fast/超时两档 + `buzhou.bulkhead.enabled/agents/acquire-timeout` 三键默认关；
+  resilience4j Bulkhead 借鉴——spawn 闸限会话数、本舱限在飞 Turn 数，正交）
+- 类型级快照：+1；yml 键：+3（buzhou.bulkhead.*，默认关）

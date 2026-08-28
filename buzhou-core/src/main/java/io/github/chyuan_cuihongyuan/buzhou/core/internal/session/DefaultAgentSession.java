@@ -264,12 +264,17 @@ public class DefaultAgentSession implements AgentSession {
         ensureOpen();
         ensureLeaseHeld();
         ensureNotShuttingDown();
-        // impl-30：在途计数（finally 减——任何终结路径均收口，停机排空的裁决源）
-        acquireTurnSlot();
-        try {
-            return doChat(input, media);
-        } finally {
-            inFlightTurns.decrementAndGet();
+        // spec 84 §A / T323：agent 并发 Turn 隔离舱（未配置上限 = NOOP 零开销）
+        try (io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.Lease bulkheadLease =
+                io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.global()
+                        .acquire(agentName)) {
+            // impl-30：在途计数（finally 减——任何终结路径均收口，停机排空的裁决源）
+            acquireTurnSlot();
+            try {
+                return doChat(input, media);
+            } finally {
+                inFlightTurns.decrementAndGet();
+            }
         }
     }
 
@@ -288,6 +293,8 @@ public class DefaultAgentSession implements AgentSession {
         ensureOpen();
         ensureLeaseHeld();
         ensureNotShuttingDown();
+        try (var bulkheadLease = io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead
+                .global().acquire(agentName)) {
         acquireTurnSlot();
         try {
             org.springframework.ai.converter.BeanOutputConverter<T> converter =
@@ -310,6 +317,7 @@ public class DefaultAgentSession implements AgentSession {
                     + "；解析错误=" + secondError, null);
         } finally {
             inFlightTurns.decrementAndGet();
+        }
         }
     }
 
@@ -486,7 +494,12 @@ public class DefaultAgentSession implements AgentSession {
         // 与轮次开启（onTurnStart/beforeTurn）移入订阅时（Flux.defer）。修复既往诚实边界：
         // 「stream() 返回后从未订阅 → 在途计数残留 +1 至会话 close」（DefaultAgentSession 自认）。
         // 副作用钉住：同一 Flux 重复订阅 = 重复开轮（单飞闸拒绝第二次，TURN_IN_FLIGHT error）。
-        return Flux.defer(() -> doStream(input, media));
+        // spec 84 §A / T323：隔离舱名额横跨流的整个生命周期（doFinally 释放——与在途计数同收口点）
+        return Flux.defer(() -> {
+            var bulkheadLease = io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead
+                    .global().acquire(agentName);
+            return doStream(input, media).doFinally(signal -> bulkheadLease.close());
+        });
     }
 
     private Flux<ChatResponse> doStream(String input, java.util.List<MediaRef> media) {

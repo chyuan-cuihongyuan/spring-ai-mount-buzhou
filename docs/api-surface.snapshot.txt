@@ -9,6 +9,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContr
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsck
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreIntegrityReport
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException
