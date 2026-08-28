@@ -75,6 +75,29 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | **工具结果限幅** | 结果入上下文前 20K 字符护栏（截断+提示尾+per-tool 豁免） | [spec 31](docs/spec/31-tool-result-limit.md) |
 | **黄金轨迹回归集** | 六大机制「脚本化输入→事件序列断言」行为回归防线 | [spec 32](docs/spec/32-golden-trajectories.md) |
 
+## 生产级纵深（effort #7–#35 增量）
+
+> 此后各 effort 的精选主线（全量见 [docs/spec/](docs/spec/) 与 [运维手册](docs/ops-runbook.md)；每项默认零行为变化或 opt-in）。
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 共享与原子性 | 共享限流闸 | Redis 分钟固定窗——全实例同一份 RPM/TPM 额度 | [spec 54](docs/spec/54-shared-rate-limit.md) |
+| | 原子计数写 | state store CAS 原语（内存/JDBC/Redis WATCH）+ 配额/runaway/budget 三处统一——多实例不丢计数 | [spec 56](docs/spec/56-shared-quota-atomic.md) / [62](docs/spec/62-counter-atomicity-spread.md) |
+| | 共享熔断闸 | 任一实例跳闸全实例 OPEN（TTL 标记）；探测达标任一实例清除恢复 | [spec 57](docs/spec/57-shared-circuit-breaker.md) |
+| 缓存与前缀 | 精确响应缓存 | 终态答案键值命中零模型调用（LRU-TTL + 流式重放） | [spec 53](docs/spec/53-response-cache.md) |
+| | 语义缓存 | 同义问法 embedding 相似度命中（FAQ 型负载省模型调用） | [spec 55](docs/spec/55-semantic-cache.md) |
+| | 技能目录语义排序/检索语义面 | 注入与检索按当前问法相似度排序（预算内保最相关；零命中近邻提示） | [spec 59](docs/spec/59-skill-semantic-ranking.md) / [73](docs/spec/73-skill-search-semantic.md) |
+| | 前缀稳定注入序 | 稳定块前置最大化 provider KV-cache 前缀命中 | [spec 66](docs/spec/66-prefix-stable-injection.md) |
+| | 延迟感知备模型排序 | 降级链按 EMA 延迟升序尝试（快者优先） | [spec 64](docs/spec/64-latency-aware-fallback.md) |
+| 评估闭环 | 评估数据集/runner/查询 | 数据集 + 隔离执行 + 三态记录 + 回流（负反馈/会话轨迹建集） | [spec 52](docs/spec/52-eval-loop.md) / [72](docs/spec/72-trajectory-importer.md) |
+| | LLM-as-judge / 成对对比 | judge 评分协议 + A/B 双向裁定消位置偏差 + 一键 A/B 胜率（run 落盘可回溯） | [spec 61](docs/spec/61-llm-judge-evaluator.md) / [63](docs/spec/63-pairwise-judge.md) / [71](docs/spec/71-pairwise-eval-runner.md) / [74](docs/spec/74-ab-run-persistence.md) |
+| | 评估并行执行 | 虚拟线程并行 + 项序聚合确定性 | [spec 68](docs/spec/68-parallel-eval.md) |
+| 观测与分析 | 观测 OLAP JSONL 导出 | spans/events 一行一 JSON（DuckDB/ClickHouse 直装）+ 增量水位 | [spec 60](docs/spec/60-observability-jsonl-export.md) / [67](docs/spec/67-olap-incremental-export.md) |
+| | outbox 读放大消减 | 容量计数下推 + Redis 流水线批量读 | [spec 58](docs/spec/58-outbox-scan-amplification.md) |
+| 恢复与压缩 | 崩溃自愈 watchdog | 启动自动接管疑似崩溃 run（租约门不打扰活跃实例） | [spec 69](docs/spec/69-crash-resume-watchdog.md) |
+| | 边界机会压缩 | 待摘积压达阈值在轮边界提前摘要（宽松态生成） | [spec 70](docs/spec/70-boundary-compaction.md) |
+| 成本归因 | agent 级成本台账 | 按 agentName 跨会话累计 tokens/microUsd（CAS 原子） | [spec 65](docs/spec/65-agent-cost-ledger.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |
@@ -261,6 +284,7 @@ try (AgentSession session = runtime.spawn("app", "agent", "session-1")) {
 - [13 生产收口](docs/spec/13-production-hardening.md) — core/memory/spill/guard 生产级收口（生命周期/错误分类/泄漏检测/健康指标/配置校验）
 - [14 外围收口](docs/spec/14-perimeter-hardening.md) — 观测三模块安全化 + mcp/skills/tools 收口 + resilience/runaway/容量闸移植 + 配置元数据/红队/CI 基建
 - [15 模型韧性与失控防护](docs/spec/15-model-resilience.md) — 重试/退避/错误分类/限流/失控检测四层硬顶/会话容量闸机制详设
+- **spec 16–74（effort #5–#35 增量纵深）** — 共享与原子性 / 缓存与前缀 / 评估闭环 / 观测与分析 / 恢复与压缩 / 成本归因（精选主线见上方「生产级纵深（effort #7–#35 增量）」表；全量清单在 [docs/spec/](docs/spec/)，运维口径在 [docs/ops-runbook.md](docs/ops-runbook.md)）
 - [RELEASING.md](RELEASING.md) — 发布到 Maven Central 的流程
 
 ## 兼容矩阵
