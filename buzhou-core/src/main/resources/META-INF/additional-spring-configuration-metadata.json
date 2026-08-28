@@ -163,6 +163,12 @@
       "type": "java.time.Duration",
       "defaultValue": "5s",
       "description": "spec 44 §A（T159）：webhook 停机排空已到期记录的预算（与容器终止宽限期对齐）；非正值启动即拒。"
+    },
+    {
+      "name": "buzhou.recovery.auto-resume",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "崩溃自愈 watchdog（spec 69 / T290，Temporal crash-watchdog 借鉴）：启动完成后自动枚举 RUNNING 快照续跑（他方活跃实例持锁即跳过）；需要 RunRegistry bean。"
     }
   ],
   "hints": [

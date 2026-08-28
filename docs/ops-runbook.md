@@ -187,6 +187,12 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 水位——恒 UP，告警走指标面）与 `session-index`（wired/hasRows 采样探测——未装配时该面
 不注册，属预期降级非故障）。
 
+**崩溃自愈 watchdog（effort #29 / spec 69）**：`buzhou.recovery.auto-resume=true`（默认关）
++ RunRegistry bean 时，启动完成后自动枚举 RUNNING 快照逐一续跑（steal=false——他方
+活跃实例持锁即跳过不打扰；Temporal crash-watchdog 思想）。运维须知：三态计数
+（resumed/leaseHeld/failed）入启动日志；坏快照失败隔离（一个不阻断其余）；周期巡检
+不做（启动时一次 + 租约门是保守正确形态——接管风暴防护 fog 留位）。
+
 ## 7. 告警项清单（指标 → 阈值 → 动作）
 
 | 指标 | 建议阈值 | 动作 |

@@ -848,3 +848,13 @@
 - `EvalRunner.run(dataset, evaluator, parallelism)` 三参重载（虚拟线程并行 + 项序
   聚合 + clamp 1..32；LangSmith/DeepEval 并行评估借鉴；默认路径零变化）
 - 类型级快照：**零新增**；yml 键：**零新增**（API 参数非配置）
+
+## effort #29 新增公共面（spec 69 / impl-215，@since 1.0.0）
+
+- `RunRecoveryService.autoResumeAll()`（崩溃自愈 watchdog：枚举 RUNNING 逐一续跑，
+  steal=false 租约门跳过；`AutoResumeResult(resumed, leaseHeld, failed)` 三态计数；
+  失败 per-run 隔离；Temporal crash-watchdog 借鉴）
+- `BuzhouCoreAutoConfiguration` 新增 `buzhouCrashResumeWatchdog` SmartLifecycle bean
+  （opt-in `buzhou.recovery.auto-resume=true`，默认关）
+- yml 键：`buzhou.recovery.auto-resume`（默认 false；metadata + 矩阵 env-read 登记）
+- 类型级快照：**零新增**

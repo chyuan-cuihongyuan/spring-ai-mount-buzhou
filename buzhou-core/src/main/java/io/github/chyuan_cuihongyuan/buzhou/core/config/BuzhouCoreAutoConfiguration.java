@@ -423,6 +423,46 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 69 §A / T290：崩溃自愈 watchdog（opt-in {@code buzhou.recovery.auto-resume=true}，
+     * 默认关；Temporal crash-watchdog 思想）——启动完成后枚举 RUNNING 快照逐一续跑
+     * （steal=false：他方活跃实例持锁即跳过，仅接管疑似崩溃者）。无 RunRegistry bean
+     * 或未开启时零操作。SmartLifecycle start 一次（幂等；续跑历史加载触发悬空修复 +
+     * 事件日志回放——与手工 restart 同语义）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.recovery", name = "auto-resume", havingValue = "true")
+    public org.springframework.context.SmartLifecycle buzhouCrashResumeWatchdog(
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry,
+            DefaultAgentRuntime runtime) {
+        io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry registry =
+                runRegistry.getIfAvailable();
+        return new org.springframework.context.SmartLifecycle() {
+            private boolean running;
+
+            @Override
+            public void start() {
+                running = true;
+                if (registry != null) {
+                    new io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService(
+                            registry, runtime).autoResumeAll();
+                }
+            }
+
+            @Override
+            public void stop() {
+                running = false;
+            }
+
+            @Override
+            public boolean isRunning() {
+                return running;
+            }
+        };
+    }
+
+    /**
      * impl-37 / spec 13 §stores-6：保留策略族后台执行器（{@code buzhou.retention.*}）。
      * bean 恒在（{@code enabled=false} 只关自启动调度——各策略仍可手动
      * {@code RetentionSweeper#sweepOnce()} 触发）。恢复设施（ToolCallLog/RunRegistry）
