@@ -272,6 +272,15 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   CI 不强制（沿用本节「LLM-judge + 20% 人工抽检」口径）。
 - 确定性三件（EXACT/CONTAINS/REGEX）行为零变化。
 
+### agent 级成本归集（effort #25 / spec 65）
+
+- `AgentCostLedgerHook`（宿主显式挂载，`new AgentCostLedgerHook(pricingProps, modelName,
+  stateStore)` 后注册进 Hook 链）：按 agentName 跨会话累计 prompt/completion tokens 与
+  定价 microUsd 至合成会话 `__buzhou.cost__`（CAS 原子——多实例共享 store 下总额正确）。
+- 查询：`AgentCostLedgerHook.query(store)` → per-agent 台账行；重置 = 删合成会话键。
+- 只记账不拦截（预算硬顶仍归 budget）；不挂载零行为零写；无价目模型 microUsd 记 0
+  （tokens 仍归集）；appId/tag 维度 fog 留位（LiteLLM spend tracking 思想）。
+
 ### 成对对比（effort #23 / spec 63）
 
 - `PairwiseJudge.compare(input, outputA, outputB, rubric?)` → WINNER_A/WINNER_B/TIE：

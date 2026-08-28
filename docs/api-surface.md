@@ -819,3 +819,12 @@
 - **破坏性变更（pre-1.0）**：`Fallback` canonical 构造组件数 4→5（兼容构造保留源码
   兼容；反射绑定按 canonical 的调用方需核对）
 - 类型级快照：+1（FallbackLatencyTracker）
+
+## effort #25 新增公共面（spec 65 / impl-211，@since 1.0.0）
+
+**buzhou-resilience（budget 包）**
+
+- `AgentCostLedgerHook`（agent 级成本归集：afterModel usage→agentName 台账；合成会话
+  `__buzhou.cost__`；CAS 原子跨实例；`query(store)` per-agent 行；LiteLLM spend
+  tracking 借鉴；显式挂载不自动装配）
+- 类型级快照：+1；yml 键：**零新增**
