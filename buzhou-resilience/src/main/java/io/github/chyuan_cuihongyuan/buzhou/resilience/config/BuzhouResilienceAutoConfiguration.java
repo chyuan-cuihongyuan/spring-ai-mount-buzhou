@@ -40,18 +40,23 @@ public class BuzhouResilienceAutoConfiguration {
     public RuntimeConfig resilienceRuntimeConfig(ResilienceProperties properties, Environment env,
             ResilienceStats stats, Map<String, ChatModel> chatModels,
             org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend> sharedBackend,
-            org.springframework.beans.factory.ObjectProvider<org.springframework.ai.embedding.EmbeddingModel> embeddingModels) {
+            org.springframework.beans.factory.ObjectProvider<org.springframework.ai.embedding.EmbeddingModel> embeddingModels,
+            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend> sharedCircuitBackend) {
         String modelName = env.getProperty("buzhou.model-name", "unknown");
-        warnIfMultiInstanceSemantics(properties, env, sharedBackend.getIfAvailable() != null);
+        boolean sharedCircuit = sharedCircuitBackend.getIfAvailable() != null;
+        warnIfMultiInstanceSemantics(properties, env, sharedBackend.getIfAvailable() != null, sharedCircuit);
         // spec 49 §A / T176：shadow 模型按名解析（与 fallback 同 fail-fast 口径）
         // spec 54 §A / T224：共享限流后端优先（store.type=redis 时 store-redis 供 bean）；
         // 无 bean = 内存令牌桶（默认零变化）
         // spec 55 §C / T242：语义缓存嵌入模型（semantic-cache.enabled 且无 bean → configure 内 fail-fast）
+        // spec 57 §A / T255：共享熔断闸后端优先（store.type=redis 时 store-redis 供 bean）；
+        // 无 bean = 进程语义（默认零变化）
         return ResilienceModule.configure(properties, modelName, stats,
                 resolveFallbacks(properties, chatModels),
                 resolveShadows(properties, chatModels),
                 sharedBackend.getIfAvailable(),
-                embeddingModels.getIfAvailable());
+                embeddingModels.getIfAvailable(),
+                sharedCircuitBackend.getIfAvailable());
     }
 
     /**
@@ -60,9 +65,11 @@ public class BuzhouResilienceAutoConfiguration {
      * 不做配置拒绝（粘性路由 + 租约独占是合法部署形态，只是要知情）。
      * spec 54 §A / T224：限流在共享后端（Redis 固定窗）下跨实例共享额度——不再计入
      * 单进程告警；无共享后端时限流仍单进程（每实例独立额度，N 实例 = N 倍）。
+     * spec 57 §A / T255：熔断在共享后端（Redis TTL 标记）下跳闸事实跨实例共享——
+     * 不再计入单进程告警。
      */
     private static void warnIfMultiInstanceSemantics(ResilienceProperties properties, Environment env,
-            boolean sharedRateLimitBackend) {
+            boolean sharedRateLimitBackend, boolean sharedCircuitBackend) {
         String storeType = env.getProperty("buzhou.store.type", "memory");
         if ("memory".equals(storeType)) {
             return; // 单实例信号，无告警必要
@@ -73,15 +80,18 @@ public class BuzhouResilienceAutoConfiguration {
         boolean quota = properties.sessionQuota() != null
                 && io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
                         .anyDimension(properties.sessionQuota());
-        boolean circuit = properties.circuit() != null && properties.circuit().effectiveEnabled();
+        boolean circuit = !sharedCircuitBackend && properties.circuit() != null
+                && properties.circuit().effectiveEnabled();
         if (rateLimit || quota || circuit) {
             System.getLogger(BuzhouResilienceAutoConfiguration.class.getName()).log(
                     System.Logger.Level.WARNING,
                     "检测到多实例部署信号（buzhou.store.type=" + storeType + "）且启用单进程机制"
                             + (rateLimit ? "（限流——无共享后端，每实例独立额度）" : "")
-                            + "（熔断/日配额任一）：熔断/日配额为每实例独立额度（N 实例 = N 倍），"
-                            + "分布式版本 out-of-scope。推荐部署：粘性路由 + 租约独占（steal 接管）。"
-                            + "限流跨实例共享见 store.type=redis 共享闸（spec 54 / runbook §6）。");
+                            + (circuit ? "（熔断——无共享后端，每实例独立跳闸）" : "")
+                            + "（日配额任一）：单进程机制 = N 实例独立额度/跳闸。"
+                            + "推荐部署：粘性路由 + 租约独占（steal 接管）。"
+                            + "限流/熔断跨实例共享见 store.type=redis 共享闸（spec 54/57 / runbook §6）；"
+                            + "配额计数已原子扣减（spec 56），额度共享按会话粘性天然成立。");
         }
     }
 

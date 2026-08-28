@@ -106,6 +106,21 @@ public final class ResilienceModule {
                                           List<NamedFallbackModel> shadowModels,
                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend rateLimitBackend,
                                           org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel) {
+        return configure(properties, modelName, stats, fallbacks, shadowModels, rateLimitBackend,
+                semanticEmbeddingModel, null);
+    }
+
+    /**
+     * 带共享熔断闸后端的完整入口（spec 57 §A / T255 / effort#17）：circuitBackend 非 null
+     * 时熔断跳闸事实跨实例共享（Redis TTL 标记——任一实例跳闸全实例拒绝，冷却期满首见
+     * 实例探测，达标任一实例清除恢复）；null = 进程语义（默认零变化）。
+     */
+    public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
+                                          List<NamedFallbackModel> fallbacks,
+                                          List<NamedFallbackModel> shadowModels,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend rateLimitBackend,
+                                          org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend circuitBackend) {
         if (!properties.enabled()) {
             return RuntimeConfig.defaults();
         }
@@ -115,7 +130,7 @@ public final class ResilienceModule {
         // 进程级事实，configure 每 context 一次、经 customizer 闭包注入全部会话
         // （此前限流器在 customize() 内建，N 会话 = N 倍限额）。
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
-                ? new ModelCircuitBreaker(properties.circuit(), stats)
+                ? new ModelCircuitBreaker(properties.circuit(), stats, java.time.Clock.systemUTC(), circuitBackend)
                 : null;
         ModelRateLimiter limiter = null;
         ResilienceProperties.RateLimit rl = properties.rateLimit();

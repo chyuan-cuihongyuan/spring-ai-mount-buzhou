@@ -716,3 +716,35 @@
   （metadata 已入档 + 绑定矩阵登记——enabled=true 全路径含 stub EmbeddingModel）
 - **破坏性变更（pre-1.0）**：`ResilienceProperties` canonical 构造组件数 14→15
   （兼容构造保留源码兼容；反射绑定按 canonical 的调用方需核对）
+
+## effort #16 新增公共面（spec 56 / impl-196–198，@since 1.0.0）
+
+- `SessionStateStore.compareAndSwap(sessionId, key, expected, update)`（default 方法：
+  非原子 check-then-write；内存 compute / JDBC 条件单语句 / 池化 Redis WATCH 事务覆写真原子）
+- `SessionStateHandle.compareAndSwap(key, expected, update)`（default 同上；HookEnvironment
+  覆写透传 store CAS）
+- `ResilienceStats`：`recordQuotaCasFallback()` / `quotaCasFallbacks()`（回退可观测）
+- 类型级快照：**零新增类型**（方法级增补不入快照）；yml 键：**零新增**
+
+## effort #17 新增公共面（spec 57 / impl-199–201，@since 1.0.0）
+
+**buzhou-core（core.spi 包）**
+
+- `CircuitBreakerStateBackend`（共享熔断闸后端 SPI：recordTrip/activeTrip/clear/kind +
+  TripMarker(openedAt, cooldownMs, consecutiveTrips)；默认全 no-op = 进程语义零变化）
+
+**buzhou-resilience（circuit 包）**
+
+- `ModelCircuitBreaker` 新增 backend 注入构造（四参重载；旧构造保留 = 进程默认）
+- `ResilienceModule.configure` 增 CircuitBreakerStateBackend 尾参重载（旧签名委托）
+- `BuzhouResilienceAutoConfiguration`：ObjectProvider 消费共享后端；多实例告警区分
+  「熔断——无共享后端」
+
+**buzhou-store-redis**
+
+- `RedisCircuitBreakerStateBackend`（TTL 键跳闸标记：键存活 = 全实例 OPEN、过期 =
+  可探测免清理；AutoCloseable；故障降级本地语义 WARN 继续；模型名净化入键）
+- `BuzhouRedisStoreAutoConfiguration` 新增 `buzhouSharedCircuitBreakerBackend` bean
+  （store.type=redis 且熔断启用即供；destroyMethod=close）
+- 类型级快照：+2（CircuitBreakerStateBackend / RedisCircuitBreakerStateBackend）；
+  yml 键：**零新增**（复用 `buzhou.store.type` + `buzhou.resilience.circuit.enabled`）

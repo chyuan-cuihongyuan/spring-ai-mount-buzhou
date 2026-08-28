@@ -48,6 +48,7 @@
 ## 韧性与成本（effort #5）
 
 - **熔断（Circuit Breaker）** — 按 modelName 分桶的进程级失败率闸门：CLOSED/OPEN/HALF_OPEN 三态，OPEN 期调用零重试快速失败，冷却后单探测恢复。
+- **共享熔断闸（Shared Circuit Gate）** — Redis TTL 标记跨实例共享跳闸事实：任一实例跳闸全实例 OPEN、冷却期满首见实例探测、达标任一实例清除恢复；窗口与探测留本地（LiteLLM deployment cooldown 思想）。
 - **备模型降级链（Fallback Chain）** — 主模型终态失败或熔断 OPEN 后，在同一逻辑调用内按序切换备模型；全败上抛主因。
 - **会话预算（Session Budget）** — 会话生命周期累计的 token/成本硬顶（microUsd 整数口径），超限拦截下一次模型调用。
 - **日配额（Daily Quota）** — per-session 的 turns/tool-calls/tokens 每日限额，UTC 自然日窗口重置。

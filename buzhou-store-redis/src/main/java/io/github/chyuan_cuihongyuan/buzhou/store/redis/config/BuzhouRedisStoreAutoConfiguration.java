@@ -73,6 +73,23 @@ public class BuzhouRedisStoreAutoConfiguration {
                 client, props.keyPrefix() + "rl:", rpm, tpm);
     }
 
+    /**
+     * 共享熔断闸后端（spec 57 §A / T254 / effort#17）：store.type=redis 且熔断启用
+     * （buzhou.resilience.circuit.enabled，默认开）时供 CircuitBreakerStateBackend bean
+     * （TTL 键——跳闸事实跨实例共享）；resilience auto-config 经 ObjectProvider 优先消费。
+     * 熔断未启用时不供 bean（不白开 Lettuce 独占连接；进程语义默认零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression(
+            "#{environment['buzhou.resilience.circuit.enabled'] == null "
+                    + "or environment['buzhou.resilience.circuit.enabled'].equalsIgnoreCase('true')}")
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend buzhouSharedCircuitBreakerBackend(
+            RedisClient client, RedisStoreProperties props) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisCircuitBreakerStateBackend(
+                client, props.keyPrefix() + "cb:");
+    }
+
     private static Integer positiveOrNull(String value) {
         if (value == null || value.isBlank()) {
             return null;

@@ -136,6 +136,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CachedEmbeddingProvider
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CompositeAttachmentRenderer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextWindowResolver
@@ -439,6 +440,7 @@ buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config.JdbcStor
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config.WriteFailurePolicyProperties
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.DegradingObservabilityStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBuzhouStores
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisCircuitBreakerStateBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisMessageStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisObservabilityStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisRateLimitBackend

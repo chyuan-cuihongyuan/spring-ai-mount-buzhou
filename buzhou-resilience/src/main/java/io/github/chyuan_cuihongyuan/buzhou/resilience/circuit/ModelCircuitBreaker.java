@@ -38,6 +38,12 @@ import java.util.stream.Collectors;
  * 指标 {@code buzhou.resilience.circuit-backoff-multiplier}（按 model 分桶 gauge）。
  *
  * <p>线程安全：每模型一把监视器锁（模型调用频率下无争用热点；正确性优先）。
+ *
+ * <p><b>共享熔断闸（spec 57 / T255）</b>：可选 {@link CircuitBreakerStateBackend}（null =
+ * 现状零变化）——「跳闸事实共享、探测与窗口留本地」：本地转 OPEN 写共享标记（全实例
+ * 拒绝）；本地 CLOSED 分支先查共享标记（活跃则按 OPEN 拒绝，retryIn = 共享冷却剩余）；
+ * 本地半开探测达标转 CLOSED 清共享标记（全实例恢复）。共享面故障降级本地语义
+ * （WARN 后继续——观测面故障不放大，与限流 fail-fast 刻意不同）。
  */
 public final class ModelCircuitBreaker {
 
@@ -52,6 +58,8 @@ public final class ModelCircuitBreaker {
     private final Set<String> failureCategories;
     private final ResilienceStats stats; // null 安全：编程式路径未传时静默
     private final java.time.Clock clock;
+    /** spec 57 / T255：共享熔断闸后端（null = 进程语义零变化）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend shared;
     private final ConcurrentHashMap<String, ModelCircuit> circuits = new ConcurrentHashMap<>();
 
     public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats) {
@@ -64,9 +72,17 @@ public final class ModelCircuitBreaker {
      */
     public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats,
             java.time.Clock clock) {
+        this(config, stats, clock, null);
+    }
+
+    /** spec 57 / T255：共享闸构造（backend null = 既有进程语义；非 null = 跳闸事实跨实例共享）。 */
+    public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats,
+            java.time.Clock clock,
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend shared) {
         this.config = config;
         this.stats = stats;
         this.clock = clock == null ? java.time.Clock.systemUTC() : clock;
+        this.shared = shared;
         this.failureCategories = config.failureCategories().stream()
                 .map(c -> c.toUpperCase(Locale.ROOT))
                 .collect(Collectors.toUnmodifiableSet());
@@ -75,27 +91,75 @@ public final class ModelCircuitBreaker {
     /**
      * 调用前置闸：CLOSED 放行；OPEN 冷却完毕升 HALF_OPEN 并放行为探测、未冷却抛
      * {@link ModelCircuitOpenException}；HALF_OPEN 探测占位（或探测超时逃生重放行）。
+     * spec 57 / T255：本地 CLOSED 时先查共享闸（共享标记活跃 → 按 OPEN 拒绝，
+     * retryIn = 共享冷却剩余）——本地 OPEN/HALF_OPEN 语义优先且不变。
      */
     public void beforeCall(String modelName, Consumer<SessionEvent> emitter) {
-        Admission admission = circuit(modelName).admit(emitter);
+        ModelCircuit local = circuit(modelName);
+        if (local.snapshotState() == CircuitState.CLOSED && shared != null) {
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend.TripMarker trip =
+                    activeSharedTrip(modelName);
+            if (trip != null) {
+                reject(modelName, CircuitState.OPEN, trip.cooldownMs(), emitter);
+                return;
+            }
+        }
+        Admission admission = local.admit(emitter);
         if (admission.admitted()) {
             return;
         }
+        reject(modelName, admission.state(), admission.retryInMs(), emitter);
+    }
+
+    /** 拒绝公共路径（本地裁决与共享闸裁决同口径：计数/指标/事件/异常）。 */
+    private void reject(String modelName, CircuitState state, long retryInMs,
+            Consumer<SessionEvent> emitter) {
         if (stats != null) {
             stats.recordCircuitRejected();
         }
         metrics().counter("buzhou.resilience.circuit-rejected", "model", io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(modelName));
         if (emitter != null) {
             emitter.accept(new SessionEvent(EVENT_CALL_REJECTED,
-                    Map.of("modelName", modelName, "state", admission.state().name(),
-                            "retryInMs", admission.retryInMs()),
+                    Map.of("modelName", modelName, "state", state.name(),
+                            "retryInMs", retryInMs),
                     Instant.now(clock)));
         }
         LOGGER.log(System.Logger.Level.INFO,
-                "熔断器拒绝调用：model=" + modelName + "，state=" + admission.state()
-                        + "，retryInMs=" + admission.retryInMs());
-        throw new ModelCircuitOpenException(modelName, admission.state(),
-                Duration.ofMillis(admission.retryInMs()));
+                "熔断器拒绝调用：model=" + modelName + "，state=" + state
+                        + "，retryInMs=" + retryInMs);
+        throw new ModelCircuitOpenException(modelName, state, Duration.ofMillis(retryInMs));
+    }
+
+    /** 共享标记读取（降级安全：后端故障 WARN 后按无标记处理——本地语义继续）。 */
+    private io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend.TripMarker activeSharedTrip(
+            String modelName) {
+        try {
+            return shared.activeTrip(modelName).orElse(null);
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "共享熔断闸读取失败，本次按本地语义裁决（model=" + modelName + "）", e);
+            return null;
+        }
+    }
+
+    /** 共享跳闸写入（降级安全：写失败不阻断本地跳闸语义）。 */
+    private void recordSharedTrip(String modelName, Instant openedAt, long cooldownMs, int trips) {
+        try {
+            shared.recordTrip(modelName, openedAt, cooldownMs, trips);
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "共享熔断闸写入失败（其他实例将不共享本次跳闸；model=" + modelName + "）", e);
+        }
+    }
+
+    /** 共享标记清除（降级安全；幂等）。 */
+    private void clearSharedTrip(String modelName) {
+        try {
+            shared.clear(modelName);
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "共享熔断闸清除失败（标记将随 TTL 自然过期；model=" + modelName + "）", e);
+        }
     }
 
     /** 逻辑调用成功（含返回了 CONTENT 静默拒绝的响应——provider 可用性正常）。 */
@@ -247,6 +311,9 @@ public final class ModelCircuitBreaker {
                 effectiveCooldownMs = config.openCooldown().toMillis() * multiplier;
                 openedAt = Instant.now(clock);
                 probesInFlight = 0;
+                if (shared != null) {
+                    recordSharedTrip(modelName, openedAt, effectiveCooldownMs, consecutiveTrips);
+                }
                 if (stats != null) {
                     stats.recordCircuitTrip(modelName);
                     stats.updateCircuitBackoff(modelName, multiplier);
@@ -259,6 +326,9 @@ public final class ModelCircuitBreaker {
             } else if (to == CircuitState.CLOSED) {
                 consecutiveTrips = 0;
                 effectiveCooldownMs = config.openCooldown().toMillis();
+                if (from == CircuitState.HALF_OPEN && shared != null) {
+                    clearSharedTrip(modelName); // 半开探测达标 → 全实例恢复（幂等）
+                }
                 if (from != CircuitState.CLOSED) {
                     LOGGER.log(System.Logger.Level.INFO,
                             "模型熔断器恢复：model=" + modelName + "，" + from + " → CLOSED");
