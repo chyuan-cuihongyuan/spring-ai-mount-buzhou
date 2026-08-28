@@ -187,6 +187,11 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 水位——恒 UP，告警走指标面）与 `session-index`（wired/hasRows 采样探测——未装配时该面
 不注册，属预期降级非故障）。
 
+**边界机会压缩（effort #30 / spec 70）**：`buzhou.memory.boundary-compact-backlog=N`
+（默认 0=关）：待摘消息积压 ≥ N 时在干净轮边界提前增量摘要——预算宽松态生成（摘要
+质量更高、豁免逐出梯子紧急态；Letta「自然边界压缩」的 Completed-Turn 代理——真语义
+检测 fog 留位）。成本口径：提前摘要 = 一次摘要调用换梯子豁免；无摘要模型时不适用。
+
 **崩溃自愈 watchdog（effort #29 / spec 69）**：`buzhou.recovery.auto-resume=true`（默认关）
 + RunRegistry bean 时，启动完成后自动枚举 RUNNING 快照逐一续跑（steal=false——他方
 活跃实例持锁即跳过不打扰；Temporal crash-watchdog 思想）。运维须知：三态计数

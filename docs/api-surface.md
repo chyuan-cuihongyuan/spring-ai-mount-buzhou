@@ -858,3 +858,10 @@
   （opt-in `buzhou.recovery.auto-resume=true`，默认关）
 - yml 键：`buzhou.recovery.auto-resume`（默认 false；metadata + 矩阵 env-read 登记）
 - 类型级快照：**零新增**
+
+## effort #30 新增公共面（spec 70 / impl-216，@since 1.0.0）
+
+- `InjectionViewProcessor.setBoundaryCompactBacklog(int)`（边界机会压缩：积压 ≥ N
+  提前走增量摘要路径；Letta 自然边界压缩的 Completed-Turn 代理；默认 0=关）
+- yml 键：`buzhou.memory.boundary-compact-backlog`（默认 0；metadata + 矩阵 env-read）
+- 类型级快照：**零新增**

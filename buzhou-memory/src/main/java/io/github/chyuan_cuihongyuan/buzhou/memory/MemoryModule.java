@@ -116,6 +116,13 @@ public final class MemoryModule {
             Object prefixStable = ymlConfig == null ? null : ymlConfig.get("prefix-stable-injection");
             ivp.setPrefixStableInjection(Boolean.TRUE.equals(prefixStable)
                     || (prefixStable instanceof String ps && Boolean.parseBoolean(ps.trim())));
+            // spec 70 §A / T291：边界机会压缩积压阈值（默认 0=关——积压达标提前摘要）
+            Object backlog = ymlConfig == null ? null : ymlConfig.get("boundary-compact-backlog");
+            if (backlog instanceof Number n) {
+                ivp.setBoundaryCompactBacklog(n.intValue());
+            } else if (backlog instanceof String bs && !bs.isBlank()) {
+                ivp.setBoundaryCompactBacklog(Integer.parseInt(bs.trim()));
+            }
             // impl-13 / T40：压缩前检查点与三档回滚
             ivp.setCheckpoints(new io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints(
                     stores.sessionStateStore()));

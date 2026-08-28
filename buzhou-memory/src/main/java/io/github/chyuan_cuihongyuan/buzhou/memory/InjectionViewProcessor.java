@@ -61,6 +61,14 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         this.prefixStableInjection = prefixStableInjection;
     }
 
+    /** spec 70 §A / T291：边界机会压缩阈值（待摘积压 ≥ N 提前摘要；默认 0=关）。 */
+    public void setBoundaryCompactBacklog(int boundaryCompactBacklog) {
+        this.boundaryCompactBacklog = boundaryCompactBacklog;
+    }
+
+    /** spec 70 §A / T291：边界机会压缩积压阈值（0=关）。 */
+    private int boundaryCompactBacklog = 0;
+
     /** impl-02：默认逐出比例（保留 30% 最新候选原文内联续接）。 */
     public static final double DEFAULT_EVICT_RATIO = 0.7d;
     /** impl-02：预算仍超时的步进梯子步长（0.7→0.8→…→1.0）。 */
@@ -221,7 +229,21 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         }
         // T23：摘要 token 预算（动态拆解为每段字符预算页脚渲染给模型）
         int summaryTokenBudget = Math.max(budget.historyBudget(), 1000);
-        if (!budget.compactionNeeded()) {
+        // spec 70 §A / T291：边界机会压缩（Letta「自然边界压缩」的 Completed-Turn 代理）——
+        // 待摘积压达阈值时在干净轮边界提前走增量摘要路径（预算尚宽松：摘要质量更高、
+        // 豁免梯子紧急态）；默认 0=关零变化；无摘要模型时不适用（无摘要链路可提前）。
+        boolean backlogTrigger = false;
+        if (!budget.compactionNeeded() && boundaryCompactBacklog > 0 && summaryModel != null) {
+            final int cutoffTurn = currentTurn - keepRecentTurns;
+            final int alreadyCovered = previous == null ? 0 : previous.coversUpToTurn();
+            final NineSectionSummary backlogPrevious = previous;
+            backlogTrigger = compacted.stream()
+                    .filter(m -> m.turnSeq() <= cutoffTurn && m.turnSeq() > alreadyCovered)
+                    .filter(m -> backlogPrevious == null
+                            || !backlogPrevious.summarizedMessageIds().contains(m.id()))
+                    .count() >= boundaryCompactBacklog;
+        }
+        if (!budget.compactionNeeded() && !backlogTrigger) {
             return injectSummaryOnly(compacted, previous, factsBlock, catalogBlock,
                     currentTurn, sessionId, summaryTokenBudget);
         }
