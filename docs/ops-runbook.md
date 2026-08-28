@@ -321,6 +321,13 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   position-bias TIE——LLM judge 首位展示偏好显性化，不冒充裁决）。宿主自行驱动两次
   运行后调用（不做 A/B 编排）；成本 = 每对 2 次 judge 调用。
 
+### 轨迹建集（effort #32 / spec 72）
+
+- `SessionTrajectoryImporter.importFromSession(sessionId, datasetName)`：既有会话完整
+  轮（问→答）一键转评估项（带会话+轮次溯源；同溯源去重；缺问缺答跳过计数）——
+  LangSmith session 转 dataset 思想。golden 与否归调用方筛会话（机制不预设）；与
+  负反馈回流互补（正例建集 + 负例回流）。
+
 ### 回流策略
 
 - 一键回流：`FeedbackImporter.importFromFeedback(sessionId, datasetName)`——只入负反馈轮

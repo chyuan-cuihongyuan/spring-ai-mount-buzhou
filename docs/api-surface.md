@@ -874,3 +874,11 @@
   胜率汇总（error 不入分母）+ 并行 clamp；`PairwiseItemResult` / `PairwiseSummary` /
   `PairwiseEvalResult` 返回面；Ragas pairwise eval / LiteLLM model-compare 借鉴）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #32 新增公共面（spec 72 / impl-218，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `SessionTrajectoryImporter`（会话轨迹→评估数据集回流：完整轮入集 + 溯源去重 +
+  三态计数；LangSmith session-to-dataset 借鉴；golden 筛选归调用方）
+- 类型级快照：+1；yml 键：**零新增**
