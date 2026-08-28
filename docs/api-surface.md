@@ -982,3 +982,10 @@
   幂等 + 计数器 tag type）；装配 `GuardModule.builder().piiRedaction(types?)` /
   `buzhou.guard.pii.enabled`（默认关）+ `types`
 - 类型级快照：+3；yml 键：+2（buzhou.guard.pii.enabled/types，默认关）
+
+## effort #48 新增公共面（spec 87 / impl-234，@since 1.0.0）
+
+- `RagasEvaluators`（Ragas 系数值评估器：faithfulness 断言支持率（幻觉面）+
+  answerRelevancy 针对性 0-10（跑题面）；S x/y 协议 + clamp + 协议失败走 error
+  收敛 + 分母 0 从严；与二值 LlmJudgeEvaluator 互补的连续分面）
+- 类型级快照：+1；yml 键：**零新增**
