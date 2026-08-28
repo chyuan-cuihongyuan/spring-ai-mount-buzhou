@@ -62,6 +62,7 @@ public final class EvalRunner {
                         "数据集未建：" + datasetName + "（修法：先 createDataset 再 run）"));
         String runId = "r" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
+        try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_EVAL, runId)) {
         Instant startedAt = Instant.now();
         int workers = Math.max(1, Math.min(32, parallelism)); // clamp 1..32
         List<EvalRunItemResult> results;
@@ -102,6 +103,7 @@ public final class EvalRunner {
                         "eval", 0, null, finishedAt));
         emitRunCompleted(result, startedAt, finishedAt);
         return result;
+        }
     }
 
     /**

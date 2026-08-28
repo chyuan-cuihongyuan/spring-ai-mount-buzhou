@@ -323,6 +323,9 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   完成即发 `ab.run.completed` 事件（total>0 门，与落盘正交——spec 75，
   eval.run.completed 家族口径，webhook/看板订阅面同前缀过滤）；
   `abRun(store, runId)` 单 run 明细回读（verdict 面，spec 76）。
+- **活跃 run 观测（effort #38 / spec 77）**：gauge `buzhou.eval.runs.active`
+  （tag kind=eval|ab）——run 生命周期内在飞计数（runId 幂等；close 幂等）；
+  未装 micrometer 时 no-op 零开销。
 
 - `PairwiseJudge.compare(input, outputA, outputB, rubric?)` → WINNER_A/WINNER_B/TIE：
   **双向评判消位置偏差**（(A,B) 与 (B,A) 各评一次，两方向同赢家才裁；翻转判

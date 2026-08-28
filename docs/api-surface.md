@@ -907,3 +907,10 @@
   PairwiseEvalResult>`，verdict 面；LangSmith run detail API 借鉴；与 abRuns 共用
   `mapToResult` 解码底座）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #38 新增公共面（spec 77 / impl-224，@since 1.0.0）
+
+- `EvalRunRegistry`（活跃评估 run 注册表：eval/ab 两 kind 在飞计数 + gauge
+  `buzhou.eval.runs.active`（tag kind）；runId 幂等 + Registration close 幂等；
+  LangSmith active-runs 观测面借鉴；BuzhouMetricsHolder 同款全局旋钮模式）
+- 类型级快照：+1；yml 键：**零新增**

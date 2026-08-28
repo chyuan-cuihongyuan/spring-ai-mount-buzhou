@@ -70,6 +70,7 @@ public final class PairwiseEvalRunner {
                         "数据集未建：" + datasetName + "（修法：先 createDataset 再 compare）"));
         String runId = "ab" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
+        try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_AB, runId)) {
         Instant startedAt = Instant.now();
         int workers = Math.max(1, Math.min(32, parallelism));
         PairwiseItemResult[] byIndex = new PairwiseItemResult[items.size()];
@@ -124,6 +125,7 @@ public final class PairwiseEvalRunner {
         }
         emitRunCompleted(result, runtimeA);
         return result;
+        }
     }
 
     /**
