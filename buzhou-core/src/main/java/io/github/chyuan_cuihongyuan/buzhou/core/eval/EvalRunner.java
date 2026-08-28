@@ -96,8 +96,10 @@ public final class EvalRunner {
         int passed = (int) results.stream().filter(r -> EvalRunItemResult.STATUS_PASS.equals(r.status())).count();
         int failed = (int) results.stream().filter(r -> EvalRunItemResult.STATUS_FAIL.equals(r.status())).count();
         int errored = (int) results.stream().filter(r -> EvalRunItemResult.STATUS_ERROR.equals(r.status())).count();
+        // spec 82 §A / T319：run 执行时刻的数据集指纹入档（diff 据此显形就地改项型漂移）
         EvalRunResult result = new EvalRunResult(runId, datasetName, startedAt, finishedAt,
-                results.size(), passed, failed, errored, results);
+                results.size(), passed, failed, errored, results,
+                datasetStore.fingerprint(datasetName).orElse(null));
         stateStore.put(EvalDatasetStore.SESSION_ID,
                 new StateEntry(RUN_PREFIX + runId, encode(resultToMap(result)),
                         "eval", 0, null, finishedAt));
@@ -185,6 +187,9 @@ public final class EvalRunner {
         map.put("failed", r.failed());
         map.put("errored", r.errored());
         map.put("passRate", r.passRate());
+        if (r.datasetFingerprint() != null) {
+            map.put("datasetFingerprint", r.datasetFingerprint());
+        }
         List<Map<String, Object>> items = new ArrayList<>();
         for (EvalRunItemResult item : r.items()) {
             Map<String, Object> row = new LinkedHashMap<>();
@@ -219,7 +224,8 @@ public final class EvalRunner {
                 ((Number) map.getOrDefault("passed", 0)).intValue(),
                 ((Number) map.getOrDefault("failed", 0)).intValue(),
                 ((Number) map.getOrDefault("errored", 0)).intValue(),
-                items);
+                items,
+                (String) map.get("datasetFingerprint"));
     }
 
     static String encode(Map<String, Object> map) {

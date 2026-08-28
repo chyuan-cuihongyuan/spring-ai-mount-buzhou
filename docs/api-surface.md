@@ -944,3 +944,11 @@
   STABLE_PASS/STABLE_FAIL + 单侧项（数据集漂移）单独计数 + netDelta + 项序确定；
   LangSmith run compare 借鉴；纯函数不触 store；`runOf` 便捷构造）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #43 新增公共面（spec 82 / impl-229，@since 1.0.0）
+
+- `EvalDatasetStore.fingerprint(name)`（数据集内容指纹 SHA-256——内容寻址名无关，
+  LangSmith dataset versioning 借鉴）+ `EvalRunResult.datasetFingerprint`（run 执行
+  时刻指纹入档，9 参旧构造兼容）+ `EvalRunDiff.DiffResult.datasetDrift`（就地改项
+  型漂移显形——单侧项只显形增删）
+- 类型级快照：**零新增**（字段级）；yml 键：**零新增**

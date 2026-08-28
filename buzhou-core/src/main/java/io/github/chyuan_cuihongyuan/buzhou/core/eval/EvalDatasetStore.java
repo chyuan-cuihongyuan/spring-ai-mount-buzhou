@@ -121,6 +121,35 @@ public final class EvalDatasetStore {
         return true;
     }
 
+    /**
+     * 数据集内容指纹（spec 82 §A / T319，LangSmith dataset versioning 借鉴）：
+     * SHA-256 hex over 条目规范化序列（id\u0000input\u0000expected\u0000，按 id 升序）。
+     * 内容寻址——与数据集名无关（同名不同内容 ≠ 同版本，同内容不同名 = 同版本）；
+     * run 记录携带本指纹（spec 82），diff 据此显形「就地改项」型数据集漂移
+     * （单侧项只能显形增删，显形不了改）。不存在 = empty；空集 = 空序列哈希（合法）。
+     */
+    public Optional<String> fingerprint(String name) {
+        requireValidName(name);
+        if (dataset(name).isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            java.security.MessageDigest digest =
+                    java.security.MessageDigest.getInstance("SHA-256");
+            for (EvalItem item : items(name)) {
+                digest.update((item.id() + "\u0000" + item.input() + "\u0000"
+                        + item.expected() + "\u0000").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+            StringBuilder hex = new StringBuilder();
+            for (byte b : digest.digest()) {
+                hex.append(String.format("%02x", b));
+            }
+            return Optional.of(hex.toString());
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 不可用（JVM 环境异常）", e);
+        }
+    }
+
     // ---- 键与编解码 ----
 
     private static String dsKey(String name) {

@@ -331,7 +331,8 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   `GateResult.summary()` 单行人读；exit-code 映射归宿主 CI）。
 - **run 对比（effort #42 / spec 81）**：`EvalRunDiff.diff(base, head)` 两 run 逐项
   迁移（REGRESSION/FIX/稳定态 + 单侧项=数据集漂移 + netDelta）——改 prompt/模型后
-  回归项一眼可见；输入从 `EvalQueryService.run(runId)` 回读。
+  回归项一眼可见；输入从 `EvalQueryService.run(runId)` 回读；`datasetDrift` 显形
+  就地改项型漂移（数据集指纹——spec 82，`EvalDatasetStore.fingerprint` 内容寻址）。
 - **活跃 run 观测（effort #38 / spec 77）**：gauge `buzhou.eval.runs.active`
   （tag kind=eval|ab）——run 生命周期内在飞计数（runId 幂等；close 幂等）；
   未装 micrometer 时 no-op 零开销。

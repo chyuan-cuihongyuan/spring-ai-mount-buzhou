@@ -29,10 +29,10 @@ public final class EvalRunDiff {
     public record ItemDiff(String itemId, String before, String after, Change change) {
     }
 
-    /** 对比汇总（四态计数 + 单侧计数 + 净变化 + 明细行按 itemId 稳定序）。 */
+    /** 对比汇总（四态计数 + 单侧计数 + 净变化 + 明细行按 itemId 稳定序 + 指纹漂移）。 */
     public record DiffResult(String baseRunId, String headRunId, int regressions, int fixes,
                              int stablePass, int stableFail, int baseOnly, int headOnly,
-                             List<ItemDiff> items) {
+                             boolean datasetDrift, List<ItemDiff> items) {
 
         /** 净变化 = fixes - regressions（正 = 变好；CI 门/趋势判断用）。 */
         public int netDelta() {
@@ -87,7 +87,11 @@ public final class EvalRunDiff {
             items.add(new ItemDiff(id, before, after, change));
         }
         return new DiffResult(base.runId(), head.runId(), regressions, fixes, stablePass,
-                stableFail, baseOnly, headOnly, List.copyOf(items));
+                stableFail, baseOnly, headOnly,
+                // spec 82 §A / T319：双侧指纹已知且不等 = 数据集就地改过（单侧项只显形增删）
+                base.datasetFingerprint() != null && head.datasetFingerprint() != null
+                        && !base.datasetFingerprint().equals(head.datasetFingerprint()),
+                List.copyOf(items));
     }
 
     // ---- 测试/宿主便捷构造（纯函数输入面） ----
