@@ -2,10 +2,14 @@ package io.github.chyuan_cuihongyuan.buzhou.core.eval;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -38,10 +42,19 @@ public final class PairwiseEvalRunner {
 
     private final EvalDatasetStore datasetStore;
     private final PairwiseJudge judge;
+    /** spec 74 §A / T299：run 落盘（null = 不落盘，行为与 #31 一致）。 */
+    private final SessionStateStore stateStore;
 
     public PairwiseEvalRunner(EvalDatasetStore datasetStore, PairwiseJudge judge) {
+        this(datasetStore, judge, null);
+    }
+
+    /** spec 74 §A / T299：带落盘的构造（run 记录进 eval 合成会话，键 ab.run.<runId>）。 */
+    public PairwiseEvalRunner(EvalDatasetStore datasetStore, PairwiseJudge judge,
+            SessionStateStore stateStore) {
         this.datasetStore = datasetStore;
         this.judge = judge;
+        this.stateStore = stateStore;
     }
 
     /**
@@ -99,10 +112,88 @@ public final class PairwiseEvalRunner {
             }
         }
         int decided = winsA + winsB + ties;
-        return new PairwiseEvalResult(runId, datasetName, startedAt, Instant.now(), results,
+        PairwiseEvalResult result = new PairwiseEvalResult(runId, datasetName, startedAt,
+                Instant.now(), results,
                 new PairwiseSummary(winsA, winsB, ties, errors, results.size(),
                         decided == 0 ? 0.0 : (double) winsA / decided,
                         decided == 0 ? 0.0 : (double) winsB / decided));
+        if (stateStore != null) {
+            stateStore.put(EvalDatasetStore.SESSION_ID, new StateEntry(
+                    AB_RUN_PREFIX + runId, EvalRunner.encode(toMap(result)),
+                    "eval", 0, null, result.finishedAt()));
+        }
+        return result;
+    }
+
+    /** spec 74 §A / T299：A/B run 记录键前缀（eval 合成会话）。 */
+    static final String AB_RUN_PREFIX = "ab.run.";
+
+    /** 落盘摘要行（明细 verdict 走 items 字段——decode 面同构）。 */
+    public record AbRunSummary(String runId, String datasetName, Instant startedAt,
+                               Instant finishedAt, PairwiseSummary summary) {
+    }
+
+    /** A/B run 摘要列表（按 dataset 过滤可选；startedAt 倒序）。 */
+    public static List<AbRunSummary> abRuns(SessionStateStore stateStore, String datasetName) {
+        List<AbRunSummary> out = new ArrayList<>();
+        stateStore.scanByPrefix(EvalDatasetStore.SESSION_ID, AB_RUN_PREFIX)
+                .forEach((key, entry) -> {
+                    Map<String, Object> map = EvalRunner.decodeMap(entry.value());
+                    String ds = String.valueOf(map.get("datasetName"));
+                    if (datasetName != null && !datasetName.equals(ds)) {
+                        return;
+                    }
+                    Map<?, ?> s = (Map<?, ?>) map.get("summary");
+                    out.add(new AbRunSummary(
+                            String.valueOf(map.get("runId")),
+                            ds,
+                            Instant.parse(String.valueOf(map.get("startedAt"))),
+                            Instant.parse(String.valueOf(map.get("finishedAt"))),
+                            new PairwiseSummary(
+                                    num(s, "winsA"), num(s, "winsB"), num(s, "ties"),
+                                    num(s, "errors"), num(s, "total"),
+                                    dnum(s, "winRateA"), dnum(s, "winRateB"))));
+                });
+        out.sort(java.util.Comparator.comparing(AbRunSummary::startedAt).reversed());
+        return out;
+    }
+
+    private static int num(Map<?, ?> map, String key) {
+        return map.get(key) instanceof Number n ? n.intValue() : 0;
+    }
+
+    private static double dnum(Map<?, ?> map, String key) {
+        return map.get(key) instanceof Number n ? n.doubleValue() : 0.0;
+    }
+
+    private static Map<String, Object> toMap(PairwiseEvalResult r) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("runId", r.runId());
+        map.put("datasetName", r.datasetName());
+        map.put("startedAt", r.startedAt().toString());
+        map.put("finishedAt", r.finishedAt().toString());
+        PairwiseSummary s = r.summary();
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("winsA", s.winsA());
+        summary.put("winsB", s.winsB());
+        summary.put("ties", s.ties());
+        summary.put("errors", s.errors());
+        summary.put("total", s.total());
+        summary.put("winRateA", s.winRateA());
+        summary.put("winRateB", s.winRateB());
+        map.put("summary", summary);
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (PairwiseItemResult item : r.items()) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("itemId", item.itemId());
+            row.put("winner", item.error() != null ? null
+                    : item.verdict().winner().name());
+            row.put("reason", item.error() != null ? null : item.verdict().reason());
+            row.put("error", item.error());
+            items.add(row);
+        }
+        map.put("items", items);
+        return map;
     }
 
     /** 单项：双 runtime 各执行（异常 → 该项 error 不裁胜负）+ judge 双向裁定。 */

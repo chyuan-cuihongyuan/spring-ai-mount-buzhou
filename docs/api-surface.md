@@ -888,3 +888,9 @@
 - `SkillSearchTool` 3 参构造（SemanticSkillRanker 注入：命中语义排序 + 零命中近邻
   提示 3 条；与目录注入共享 ranker/向量缓存；无 ranker 行为零变化）
 - 类型级快照：**零新增**；yml 键：**零新增**（复用 semantic-ranking.enabled）
+
+## effort #34 新增公共面（spec 74 / impl-220，@since 1.0.0）
+
+- `PairwiseEvalRunner` 3 参构造（SessionStateStore 落盘：`ab.run.<runId>` 记录）与
+  `abRuns(store, dataset?)` 摘要查询（startedAt 倒序；`AbRunSummary` 行）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

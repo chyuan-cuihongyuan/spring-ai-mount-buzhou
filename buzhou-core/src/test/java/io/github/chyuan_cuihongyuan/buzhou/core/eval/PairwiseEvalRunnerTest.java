@@ -128,4 +128,33 @@ class PairwiseEvalRunnerTest {
     private static String verdictOf(PairwiseEvalRunner.PairwiseItemResult r) {
         return r.error() != null ? "error" : r.verdict().winner().name();
     }
+
+    /** spec 74 §B / T300：run 落盘 + 查询（dataset 过滤 / startedAt 倒序）；不落盘构造零变化。 */
+    @Test
+    void abRunsPersistAndQuery() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        seedDataset(stores, 3);
+        EvalDatasetStore ds = new EvalDatasetStore(stores.sessionStateStore());
+        ds.createDataset("other", null);
+        ds.addItem("other", "x", "y", null, null);
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(new EchoModel("plain-"), stores, RuntimeConfig.defaults());
+        PairwiseEvalRunner persisting = new PairwiseEvalRunner(ds, new PairwiseJudge(new GoldContentJudge()),
+                stores.sessionStateStore());
+
+        PairwiseEvalRunner.PairwiseEvalResult first = persisting.compare("ab", runtimeA, runtimeB, 1);
+        PairwiseEvalRunner.PairwiseEvalResult second = persisting.compare("other", runtimeA, runtimeB, 1);
+
+        java.util.List<PairwiseEvalRunner.AbRunSummary> all =
+                PairwiseEvalRunner.abRuns(stores.sessionStateStore(), null);
+        assertThat(all).hasSize(2);
+        java.util.List<PairwiseEvalRunner.AbRunSummary> filtered =
+                PairwiseEvalRunner.abRuns(stores.sessionStateStore(), "ab");
+        assertThat(filtered).hasSize(1);
+        assertThat(filtered.getFirst().runId()).isEqualTo(first.runId());
+        assertThat(filtered.getFirst().summary().winsA()).isEqualTo(3); // 汇总回读等值
+        assertThat(filtered.getFirst().summary().winRateA()).isEqualTo(1.0);
+        // 倒序：other（后跑）在前
+        assertThat(all.getFirst().runId()).isEqualTo(second.runId());
+    }
 }

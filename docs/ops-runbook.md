@@ -318,7 +318,8 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 - **A/B 一键对比（effort #31 / spec 71）**：`PairwiseEvalRunner.compare(dataset,
   runtimeA, runtimeB, parallelism)`——同数据集双 runtime 逐项执行 + 双向裁定 + 胜率
   汇总（error 不入分母——基础设施故障与质量判定诚实分离）；Ragas pairwise eval /
-  LiteLLM model-compare 思想。
+  LiteLLM model-compare 思想；3 参构造注入 state store 时 run 记录落
+  `ab.run.<runId>`（`abRuns(store, dataset?)` 摘要查询，startedAt 倒序——spec 74）。
 
 - `PairwiseJudge.compare(input, outputA, outputB, rubric?)` → WINNER_A/WINNER_B/TIE：
   **双向评判消位置偏差**（(A,B) 与 (B,A) 各评一次，两方向同赢家才裁；翻转判
