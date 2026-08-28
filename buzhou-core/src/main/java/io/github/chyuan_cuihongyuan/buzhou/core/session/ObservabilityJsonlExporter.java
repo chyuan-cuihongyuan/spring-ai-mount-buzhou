@@ -37,8 +37,14 @@ import java.util.List;
  */
 public final class ObservabilityJsonlExporter {
 
-    /** 导出结果（会话数 / span 行 / event 行 / 坏值降级条目）。 */
-    public record JsonlExportResult(int sessions, long spans, long events, long skipped) {
+    /** 导出结果（会话数 / span 行 / event 行 / 坏值降级条目；waterline = 增量水位）。 */
+    public record JsonlExportResult(int sessions, long spans, long events, long skipped,
+                                    Instant waterline) {
+
+        /** spec 60 兼容 4 参构造（全量导出——无水位语义）。 */
+        public JsonlExportResult(int sessions, long spans, long events, long skipped) {
+            this(sessions, spans, events, skipped, null);
+        }
     }
 
     /** 会话枚举分页大小（全量导出内步进；对导出结果无语义影响）。 */
@@ -87,11 +93,27 @@ public final class ObservabilityJsonlExporter {
 
     /** 全量导出：会话枚举分页耗尽，逐会话 spans+events（会话序连续；返回累计结果）。 */
     public JsonlExportResult exportAll(Writer out) throws IOException {
+        return export(out, null);
+    }
+
+    /**
+     * 增量导出（spec 67 §A / T285，Langfuse cursor 水位语义）：只导出
+     * lastActivityAt ≥ since 的会话；返回 waterline = 本次导出观测到的最大
+     * activityAt（空结果 = since 原样）。会话粒度 at-least-once——有新数据的会话
+     * 全量重导（OLAP 端按 spanId/eventId 主键 upsert）。
+     */
+    public JsonlExportResult exportAllSince(Writer out, Instant since) throws IOException {
+        return export(out, since == null ? Instant.EPOCH : since);
+    }
+
+    private JsonlExportResult export(Writer out, Instant since) throws IOException {
         int sessions = 0;
         long spans = 0;
         long events = 0;
         long skipped = 0;
+        Instant waterline = since;
         String cursor = null;
+        int seen = 0; // 枚举偏移（含被水位过滤跳过的会话——游标按页位置推进）
         try (JsonGenerator gen = MAPPER.getFactory().createGenerator(out)) {
             while (true) {
                 List<SessionSummary> page = store.listSessionSummaries(cursor, SESSION_PAGE_SIZE);
@@ -99,6 +121,11 @@ public final class ObservabilityJsonlExporter {
                     break;
                 }
                 for (SessionSummary summary : page) {
+                    seen++;
+                    if (since != null && (summary.lastActivityAt() == null
+                            || summary.lastActivityAt().isBefore(since))) {
+                        continue; // 水位过滤：活跃早于 since 的会话跳过
+                    }
                     for (SpanRecord s : store.spansOfSession(summary.sessionId())) {
                         skipped += writeSpanLine(gen, s);
                         spans++;
@@ -108,14 +135,18 @@ public final class ObservabilityJsonlExporter {
                         events++;
                     }
                     sessions++;
+                    if (since != null && summary.lastActivityAt() != null
+                            && (waterline == null || summary.lastActivityAt().isAfter(waterline))) {
+                        waterline = summary.lastActivityAt(); // 水位只在增量路径追踪
+                    }
                 }
                 if (page.size() < SESSION_PAGE_SIZE) {
                     break; // 末页
                 }
-                cursor = String.valueOf(sessions); // offset 语义游标（契约：不透明字符串）
+                cursor = String.valueOf(seen); // offset 语义游标（契约：不透明字符串）
             }
         }
-        return new JsonlExportResult(sessions, spans, events, skipped);
+        return new JsonlExportResult(sessions, spans, events, skipped, waterline);
     }
 
     // ---- 行写入（字段序稳定；返回坏值降级条目数 0/1） ----

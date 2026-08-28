@@ -835,3 +835,10 @@
   catalog→summary→facts 稳定块前置；默认 false 保持 spec 04 口径）
 - 类型级快照：**零新增**；yml 键：`buzhou.memory.prefix-stable-injection`（默认 false；
   metadata + 矩阵 env-read 登记）
+
+## effort #27 新增公共面（spec 67 / impl-213，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportAllSince(Writer, Instant)`（增量水位导出：
+  lastActivityAt 过滤 + waterline 返回；空结果水位不变；Langfuse cursor 语义）
+- `JsonlExportResult` 第 5 组件 `waterline`（4 参兼容构造保留；全量导出 = null）
+- 类型级快照：**零新增**；yml 键：**零新增**

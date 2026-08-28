@@ -158,4 +158,45 @@ class ObservabilityJsonlExporterTest {
         assertThat(parsed.get("duration_ms").isNull()).isTrue();
         assertThat(parsed.get("endedAt").isNull()).isTrue();
     }
+
+    /** 增量导出（spec 67 §B / T286）：水位过滤 / 新水位 / 空结果水位不变 / 边界包含。 */
+    @Test
+    void incrementalExportFiltersByWaterline() throws Exception {
+        Instant tOld = T0;                    // 早于水位
+        Instant tEdge = T0.plusSeconds(100);  // = 水位（边界包含）
+        Instant tNew = T0.plusSeconds(200);   // 晚于水位
+        store.saveSpans(List.of(
+                span("old", null, "sess-old", 1, "chat", tOld, tOld.plusSeconds(1), Map.of()),
+                span("edge", null, "sess-edge", 1, "chat", tEdge, tEdge.plusSeconds(1), Map.of()),
+                span("new", null, "sess-new", 1, "chat", tNew, tNew.plusSeconds(1), Map.of())));
+
+        Instant since = T0.plusSeconds(100);
+        StringWriter out = new StringWriter();
+        ObservabilityJsonlExporter.JsonlExportResult result =
+                exporter.exportAllSince(out, since);
+
+        assertThat(result.sessions()).isEqualTo(2); // edge + new（old 被过滤）
+        assertThat(result.waterline()).isEqualTo(tNew.plusSeconds(1)); // 新水位 = 最大 activityAt（endedAt 口径）
+        String content = out.toString();
+        assertThat(content).contains("sess-edge").contains("sess-new").doesNotContain("sess-old");
+
+        // 空结果：水位推进到未来（严格晚于所有 activityAt）→ 无导出、水位原样返回
+        StringWriter empty = new StringWriter();
+        Instant future = tNew.plusSeconds(2);
+        ObservabilityJsonlExporter.JsonlExportResult none =
+                exporter.exportAllSince(empty, future);
+        assertThat(none.sessions()).isZero();
+        assertThat(none.waterline()).isEqualTo(future);
+        assertThat(empty.toString()).isEmpty();
+    }
+
+    /** 全量导出回归：waterline 为 null（无水位语义）+ 行为与 spec 60 一致。 */
+    @Test
+    void fullExportHasNoWaterlineSemantics() throws Exception {
+        store.saveSpans(List.of(span("s1", null, "sess-a", 1, "chat", T0, T1, Map.of())));
+        StringWriter out = new StringWriter();
+        ObservabilityJsonlExporter.JsonlExportResult result = exporter.exportAll(out);
+        assertThat(result.sessions()).isEqualTo(1);
+        assertThat(result.waterline()).isNull();
+    }
 }

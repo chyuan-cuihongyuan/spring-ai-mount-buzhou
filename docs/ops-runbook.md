@@ -256,6 +256,10 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 - **容错**：坏值条目降级该列为 null + `skipped` 计数（返回面暴露），不阻断 dump；
   快照语义（运行中会话 = 当前已落库部分）。
 - 零配置键、零行为变化（纯新增只读出口）。
+- **增量导出（effort #27 / spec 67）**：`exportAllSince(out, since)` 只导出
+  lastActivityAt ≥ since 的会话，返回 `waterline`（本次最大活跃时刻）作下次水位
+  （空结果水位原样）——周级 pipeline 断点续传。会话粒度 at-least-once：有新数据的
+  会话全量重导，OLAP 端按 spanId/eventId 主键 upsert 去重（Langfuse cursor 水位语义）。
 
 ## 9. 评估运营（effort #11 / spec 52）
 
