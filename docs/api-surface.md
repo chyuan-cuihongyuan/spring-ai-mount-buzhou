@@ -937,3 +937,10 @@
   CI 单行 summary；Promptfoo eval CI gate / LangSmith eval-as-gate 借鉴；执行复用
   EvalRunner 管线）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #42 新增公共面（spec 81 / impl-228，@since 1.0.0）
+
+- `EvalRunDiff.diff(base, head)` 两 run 逐项对比（四态迁移 REGRESSION/FIX/
+  STABLE_PASS/STABLE_FAIL + 单侧项（数据集漂移）单独计数 + netDelta + 项序确定；
+  LangSmith run compare 借鉴；纯函数不触 store；`runOf` 便捷构造）
+- 类型级快照：+1；yml 键：**零新增**

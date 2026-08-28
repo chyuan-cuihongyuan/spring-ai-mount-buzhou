@@ -37,6 +37,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalQueryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunItemResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunResult
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalScore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
