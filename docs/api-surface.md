@@ -952,3 +952,10 @@
   时刻指纹入档，9 参旧构造兼容）+ `EvalRunDiff.DiffResult.datasetDrift`（就地改项
   型漂移显形——单侧项只显形增删）
 - 类型级快照：**零新增**（字段级）；yml 键：**零新增**
+
+## effort #44 新增公共面（spec 83 / impl-230，@since 1.0.0）
+
+- `ErrorSignatures`（错误签名聚类：异常简名+归一化首行（数字/十六进制折叠）成
+  有界族，256 条封顶折 `<kind>:__overflow__`，top(n)/snapshot() 供看板与健康面；
+  Sentry fingerprint 借鉴；进程内有界 Map 不进 micrometer tag；工具错误路径已接线）
+- 类型级快照：+1；yml 键：**零新增**

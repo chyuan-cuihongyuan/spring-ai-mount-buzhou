@@ -71,6 +71,11 @@ public class HookedToolCallback implements ToolCallback {
         // impl-41 / spec 13 §T66：工具调用指标（全部机制的工具都经本回调执行）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.tool.calls", "outcome", error == null ? "ok" : "failed");
+        if (error != null) {
+            // spec 83 §A / T321：错误签名聚类（top 错误族——看板/健康面；不进 micrometer tag）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global()
+                    .record("tool", error);
+        }
 
         HookResult after = chain.afterTool(ctx);
         if (after instanceof HookResult.Block) {
