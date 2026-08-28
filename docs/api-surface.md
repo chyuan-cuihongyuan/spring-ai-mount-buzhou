@@ -894,3 +894,9 @@
 - `PairwiseEvalRunner` 3 参构造（SessionStateStore 落盘：`ab.run.<runId>` 记录）与
   `abRuns(store, dataset?)` 摘要查询（startedAt 倒序；`AbRunSummary` 行）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #36 新增公共面（spec 75 / impl-222，@since 1.0.0）
+
+- `PairwiseEvalRunner.compare` 完成事件 `ab.run.completed`（eval.run.completed 家族
+  扩展，LangSmith run 事件面借鉴；total>0 门；与落盘正交）
+- 类型级快照：**零新增**（行为面）；yml 键：**零新增**

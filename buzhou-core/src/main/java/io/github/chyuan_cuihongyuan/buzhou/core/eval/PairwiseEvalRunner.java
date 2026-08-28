@@ -20,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * <p><b>组合面</b>：EvalRunner 的项执行语义（隔离会话）+ PairwiseJudge 的成对裁决 +
  * 虚拟线程并行（默认 1）。诚实边界：judge 判别力归模型（#21/#23 同口径）；A/B 两路
  * 执行异常按该项 error 记（不裁胜负）；胜率 = wins/(wins+ties+losses) 口径单独给
- * （error 项不计入分母——诚实分离）。
+ * （error 项不计入分母——诚实分离）。run 完成事件 {@code ab.run.completed}（spec 75）。
  *
  * @since 1.0.0
  */
@@ -122,7 +122,35 @@ public final class PairwiseEvalRunner {
                     AB_RUN_PREFIX + runId, EvalRunner.encode(toMap(result)),
                     "eval", 0, null, result.finishedAt()));
         }
+        emitRunCompleted(result, runtimeA);
         return result;
+    }
+
+    /**
+     * spec 75 §A / T303：A/B run 完成事件（{@code eval.run.completed} 家族扩展，
+     * LangSmith run 事件面借鉴）。独立收尾会话 {@code ab-<runId>-done}（A 路
+     * runtime——基准面持有者）；total > 0 才发（空集无对比发生）；与落盘正交
+     * （不落盘构造同样发——事件面只依赖执行本身）。
+     */
+    private void emitRunCompleted(PairwiseEvalResult result, AgentRuntime runtimeA) {
+        if (result.summary().total() == 0) {
+            return;
+        }
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("runId", result.runId());
+        payload.put("datasetName", result.datasetName());
+        payload.put("total", result.summary().total());
+        payload.put("winsA", result.summary().winsA());
+        payload.put("winsB", result.summary().winsB());
+        payload.put("ties", result.summary().ties());
+        payload.put("errors", result.summary().errors());
+        payload.put("winRateA", result.summary().winRateA());
+        payload.put("winRateB", result.summary().winRateB());
+        payload.put("durationMs", java.time.Duration
+                .between(result.startedAt(), result.finishedAt()).toMillis());
+        try (var done = runtimeA.spawn("buzhou-eval", "eval", "ab-" + result.runId() + "-done")) {
+            done.emitEvent("ab.run.completed", payload);
+        }
     }
 
     /** spec 74 §A / T299：A/B run 记录键前缀（eval 合成会话）。 */

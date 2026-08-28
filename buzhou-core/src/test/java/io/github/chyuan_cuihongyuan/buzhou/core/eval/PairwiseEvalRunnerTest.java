@@ -13,6 +13,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 
 import java.util.List;
+import java.util.Queue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -156,5 +157,74 @@ class PairwiseEvalRunnerTest {
         assertThat(filtered.getFirst().summary().winRateA()).isEqualTo(1.0);
         // 倒序：other（后跑）在前
         assertThat(all.getFirst().runId()).isEqualTo(second.runId());
+    }
+
+    // ---- spec 75 §B / T304：A/B run 完成事件（eval.run.completed 家族扩展） ----
+
+    /** 事件捕获面：全局监听器队列（收尾会话生命周期内异步派发，队列线程安全）。 */
+    private static java.util.Queue<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent>
+            captureEvents(io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime runtime) {
+        java.util.Queue<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> received =
+                new java.util.concurrent.ConcurrentLinkedQueue<>();
+        runtime.addGlobalEventListener(received::add);
+        return received;
+    }
+
+    @Test
+    void abRunCompletionEmitsEventWithSummaryPayload() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        seedDataset(stores, 3);
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(new EchoModel("plain-"), stores, RuntimeConfig.defaults());
+        Queue<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> events =
+                captureEvents((io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime) runtimeA);
+
+        PairwiseEvalRunner.PairwiseEvalResult result = runner(stores, new GoldContentJudge())
+                .compare("ab", runtimeA, runtimeB, 1);
+
+        io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent event = events.stream()
+                .filter(e -> "ab.run.completed".equals(e.type()))
+                .findFirst().orElseThrow();
+        assertThat(event.payload().get("runId")).isEqualTo(result.runId());
+        assertThat(event.payload().get("datasetName")).isEqualTo("ab");
+        assertThat(event.payload().get("total")).isEqualTo(3);
+        assertThat(event.payload().get("winsA")).isEqualTo(3);
+        assertThat(event.payload().get("winsB")).isEqualTo(0);
+        assertThat(event.payload().get("winRateA")).isEqualTo(1.0);
+        assertThat(event.payload()).containsKey("durationMs");
+    }
+
+    @Test
+    void emptyAbRunEmitsNoEvalFamilyEvent() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        EvalDatasetStore ds = new EvalDatasetStore(stores.sessionStateStore());
+        ds.createDataset("ab-empty", null);
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(new EchoModel("plain-"), stores, RuntimeConfig.defaults());
+        Queue<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> events =
+                captureEvents((io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime) runtimeA);
+
+        runner(stores, new GoldContentJudge()).compare("ab-empty", runtimeA, runtimeB, 1);
+
+        // 空集 run 不发 eval/ab 事件（语义 = 对比完成，空集无对比发生）
+        assertThat(events.stream()
+                .noneMatch(e -> e.type().startsWith("eval.") || e.type().startsWith("ab.")))
+                .isTrue();
+    }
+
+    @Test
+    void eventEmitsIndependentlyOfPersistence() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        seedDataset(stores, 2);
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(new EchoModel("plain-"), stores, RuntimeConfig.defaults());
+        Queue<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> events =
+                captureEvents((io.github.chyuan_cuihongyuan.buzhou.core.internal.session.DefaultAgentRuntime) runtimeA);
+
+        // 2 参构造（不落盘）同样发事件——事件面与落盘正交
+        runner(stores, new GoldContentJudge()).compare("ab", runtimeA, runtimeB, 1);
+
+        assertThat(events.stream().anyMatch(e -> "ab.run.completed".equals(e.type()))).isTrue();
+        assertThat(PairwiseEvalRunner.abRuns(stores.sessionStateStore(), null)).isEmpty();
     }
 }

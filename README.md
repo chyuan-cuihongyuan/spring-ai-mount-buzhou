@@ -90,7 +90,7 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | | 前缀稳定注入序 | 稳定块前置最大化 provider KV-cache 前缀命中 | [spec 66](docs/spec/66-prefix-stable-injection.md) |
 | | 延迟感知备模型排序 | 降级链按 EMA 延迟升序尝试（快者优先） | [spec 64](docs/spec/64-latency-aware-fallback.md) |
 | 评估闭环 | 评估数据集/runner/查询 | 数据集 + 隔离执行 + 三态记录 + 回流（负反馈/会话轨迹建集） | [spec 52](docs/spec/52-eval-loop.md) / [72](docs/spec/72-trajectory-importer.md) |
-| | LLM-as-judge / 成对对比 | judge 评分协议 + A/B 双向裁定消位置偏差 + 一键 A/B 胜率（run 落盘可回溯） | [spec 61](docs/spec/61-llm-judge-evaluator.md) / [63](docs/spec/63-pairwise-judge.md) / [71](docs/spec/71-pairwise-eval-runner.md) / [74](docs/spec/74-ab-run-persistence.md) |
+| | LLM-as-judge / 成对对比 | judge 评分协议 + A/B 双向裁定消位置偏差 + 一键 A/B 胜率（run 落盘可回溯 + 完成事件） | [spec 61](docs/spec/61-llm-judge-evaluator.md) / [63](docs/spec/63-pairwise-judge.md) / [71](docs/spec/71-pairwise-eval-runner.md) / [74](docs/spec/74-ab-run-persistence.md) / [75](docs/spec/75-ab-run-events.md) |
 | | 评估并行执行 | 虚拟线程并行 + 项序聚合确定性 | [spec 68](docs/spec/68-parallel-eval.md) |
 | 观测与分析 | 观测 OLAP JSONL 导出 | spans/events 一行一 JSON（DuckDB/ClickHouse 直装）+ 增量水位 | [spec 60](docs/spec/60-observability-jsonl-export.md) / [67](docs/spec/67-olap-incremental-export.md) |
 | | outbox 读放大消减 | 容量计数下推 + Redis 流水线批量读 | [spec 58](docs/spec/58-outbox-scan-amplification.md) |
