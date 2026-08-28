@@ -51,6 +51,7 @@
 - **备模型降级链（Fallback Chain）** — 主模型终态失败或熔断 OPEN 后，在同一逻辑调用内按序切换备模型；全败上抛主因。
 - **会话预算（Session Budget）** — 会话生命周期累计的 token/成本硬顶（microUsd 整数口径），超限拦截下一次模型调用。
 - **日配额（Daily Quota）** — per-session 的 turns/tool-calls/tokens 每日限额，UTC 自然日窗口重置。
+- **原子配额扣减（Atomic Quota Deduction）** — 日配额计数写经 state store CAS 原语（compareAndSwap）原子完成：多实例共享 store 下并发递增不丢计数；日翻越竞争只重置一次；停滞耗尽回退覆写并以 quotaCasFallbacks 暴露。
 - **REASK** — 结构化输出解析失败后携带解析错误反馈的重问一次语义（诚实计入轮次预算）。
 - **会话分支（Fork）** — 复制源会话全部历史开新会话；State 不复制（预算重置 = 重试语义）。
 - **事件外发（Webhook Forwarder）** — 会话事件 at-least-once HTTP 投递（HMAC-SHA256 签名 + 事件幂等键）。

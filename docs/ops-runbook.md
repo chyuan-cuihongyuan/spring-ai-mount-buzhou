@@ -132,6 +132,19 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   TTL 61s 自动滚动；无需人工清理。
 - 单进程部署（无 store.type=redis）行为零变化（内存令牌桶默认）。
 
+**配额原子扣减（effort #16 / spec 56）**：per-session 日配额（turns/tool-calls/tokens）
+计数写经 state store 的 `compareAndSwap` 原语原子完成——多实例共享 store（JDBC/Redis/
+内存）时并发递增**不丢计数**（配额上限不被并发穿透）；UTC 日翻越并发只重置一次。分层
+诚实边界：
+
+- 内存 store：per-key compute 原子（始终真原子）；JDBC：条件单语句（UPDATE 带值匹配 /
+  INSERT 带 NOT EXISTS）；**Redis：仅池化装配（`createPooled` / starter 自动装配）为真
+  原子**（WATCH/MULTI/EXEC 专用连接），旧直连装配（已废弃路径）退化为单实例语义。
+- 极端竞争（值停滞 16 次重试，仅存储异常/对抗场景可达）回退 last-write 覆写并暴露
+  `quotaCasFallbacks` 计数（resilience 健康详情）——出现非零值即原子路径长期抢败，
+  应排查 store 延迟/正确性，而非调大配额。
+- 配额拦截点/事件/文案零变化；零新配置键。
+
 **webhook outbox（spec 24）**：outbox 落共享 state store（JDBC/Redis）时事件跨重启不丢，
 但多实例分发器可能**双投递**——at-least-once 契约内，消费端以 `X-Buzhou-Event-Id` 幂等
 去重是契约责任；内存 store 部署等价旧进程内暂存（重启丢在途）。

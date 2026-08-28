@@ -38,6 +38,14 @@ public class HookEnvironment {
         public void delete(String key) {
             stateStore.delete(sessionId, key);
         }
+
+        /** spec 56 §B / T250：与 {@link #put} 同口径构造 StateEntry 透传 store CAS。 */
+        @Override
+        public boolean compareAndSwap(String key, String expectedValue, Object update) {
+            return stateStore.compareAndSwap(sessionId, key, expectedValue,
+                    new StateEntry(key, String.valueOf(update),
+                            "hook", turn.get(), null, Instant.now()));
+        }
     };
 
     public HookEnvironment(String sessionId, String agentName, SessionStateStore stateStore) {

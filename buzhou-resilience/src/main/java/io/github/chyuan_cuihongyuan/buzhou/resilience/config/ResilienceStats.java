@@ -26,6 +26,8 @@ public final class ResilienceStats implements BuzhouHealth {
     private final AtomicLong fallbackSwitches = new AtomicLong();
     private final AtomicLong fallbackExhausted = new AtomicLong();
     private final AtomicLong quotaRejections = new AtomicLong();
+    /** spec 56 §B / T250：配额 CAS 重试耗尽回退覆写次数（极端竞争观测——出现即说明原子路径长期抢败）。 */
+    private final AtomicLong quotaCasFallbacks = new AtomicLong();
     private final AtomicReference<String> lastErrorCategory = new AtomicReference<>();
     /** 各模型熔断态（有界：模型名实际有限集）。 */
     private final Map<String, String> circuitStates = new java.util.concurrent.ConcurrentHashMap<>();
@@ -56,6 +58,7 @@ public final class ResilienceStats implements BuzhouHealth {
         details.put("fallbackSwitches", fallbackSwitches.get());
         details.put("fallbackExhausted", fallbackExhausted.get());
         details.put("quotaRejections", quotaRejections.get());
+        details.put("quotaCasFallbacks", quotaCasFallbacks.get());
         if (!circuitStates.isEmpty()) {
             details.put("circuitStates", new LinkedHashMap<>(circuitStates));
         }
@@ -126,6 +129,15 @@ public final class ResilienceStats implements BuzhouHealth {
     /** per-session 日配额拦截一次（impl-59）。 */
     public void recordQuotaRejection() {
         quotaRejections.incrementAndGet();
+    }
+
+    /** spec 56 §B / T250：配额 CAS 重试耗尽回退覆写一次（极端竞争可观测）。 */
+    public void recordQuotaCasFallback() {
+        quotaCasFallbacks.incrementAndGet();
+    }
+
+    public long quotaCasFallbacks() {
+        return quotaCasFallbacks.get();
     }
 
     public long retryAttempts() {

@@ -97,6 +97,43 @@ public abstract class AbstractBuzhouStoresContractTest {
         assertThat(stores().sessionStateStore().deleteIfValueMatches(sessionId, "auth.t.fp", "v1")).isFalse();
     }
 
+    /** spec 56 §A / T249：CAS 条件写四态契约（三 store 同测——absent 建键 / 匹配换值 / 失配拒换 / 全字段覆写）。 */
+    @Test
+    void stateStoreCompareAndSwapIsConditional() {
+        String sessionId = "contract-state-casw-" + UUID.randomUUID();
+        var store = stores().sessionStateStore();
+
+        // absent + expected=null → 建键成功；条目字段全量落（producer/createdTurn 随 update）
+        assertThat(store.compareAndSwap(sessionId, "quota.turns", null,
+                new StateEntry("quota.turns", "20638:1", "hook", 2, null, Instant.now()))).isTrue();
+        assertThat(store.get(sessionId, "quota.turns")).isPresent()
+                .get().extracting(StateEntry::value).isEqualTo("20638:1");
+
+        // absent + expected 非空 → 拒绝（键已在，非 absent）
+        assertThat(store.compareAndSwap(sessionId, "quota.turns", "other",
+                new StateEntry("quota.turns", "20638:2", "hook", 2, null, Instant.now()))).isFalse();
+
+        // 匹配 → 换值成功（旧串为 expected）
+        assertThat(store.compareAndSwap(sessionId, "quota.turns", "20638:1",
+                new StateEntry("quota.turns", "20638:2", "hook", 3, null, Instant.now()))).isTrue();
+        assertThat(store.get(sessionId, "quota.turns")).isPresent()
+                .get().extracting(StateEntry::value).isEqualTo("20638:2");
+
+        // 失配 → 拒换，原值不动
+        assertThat(store.compareAndSwap(sessionId, "quota.turns", "20638:1",
+                new StateEntry("quota.turns", "20638:9", "hook", 4, null, Instant.now()))).isFalse();
+        assertThat(store.get(sessionId, "quota.turns")).isPresent()
+                .get().extracting(StateEntry::value).isEqualTo("20638:2");
+
+        // 真不存在的键 + expected 非空 → 拒绝（absent ≠ 任意串）
+        assertThat(store.compareAndSwap(sessionId, "quota.absent", "stale",
+                new StateEntry("quota.absent", "x", "hook", 1, null, Instant.now()))).isFalse();
+        assertThat(store.get(sessionId, "quota.absent")).isEmpty();
+
+        // 键集索引同步（getAll 可见 CAS 写入的键）
+        assertThat(store.getAll(sessionId)).containsKey("quota.turns");
+    }
+
     @Test
     void leaseMutualExclusionStealRenewRelease() {
         String sessionId = "contract-lease-" + UUID.randomUUID();

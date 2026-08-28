@@ -74,6 +74,29 @@ public class JdbcSessionStateStore implements SessionStateStore {
         return result;
     }
 
+    /** spec 56 §A / T249：CAS 条件写——条件单语句影响行数判定（免方言 MERGE，H2/MySQL/PG 可移植）。 */
+    @Override
+    public boolean compareAndSwap(String sessionId, String key, String expectedValue, StateEntry update) {
+        if (expectedValue != null) {
+            return jdbc.update("""
+                            UPDATE buzhou_session_state
+                            SET state_value = ?, producer = ?, created_turn = ?, ttl_turns = ?, updated_at = ?
+                            WHERE session_id = ? AND state_key = ? AND state_value = ?
+                            """,
+                    update.value(), update.producer(), update.createdTurn(), update.ttlTurns(),
+                    Timestamp.from(update.updatedAt()), sessionId, key, expectedValue) == 1;
+        }
+        // expected=null：键不存在才插（NOT EXISTS 单语句——并发双插只有一方影响行数为 1）
+        return jdbc.update("""
+                        INSERT INTO buzhou_session_state
+                        (session_id, state_key, state_value, producer, created_turn, ttl_turns, updated_at)
+                        SELECT ?,?,?,?,?,?,? WHERE NOT EXISTS
+                        (SELECT 1 FROM buzhou_session_state WHERE session_id = ? AND state_key = ?)
+                        """,
+                sessionId, update.key(), update.value(), update.producer(), update.createdTurn(),
+                update.ttlTurns(), Timestamp.from(update.updatedAt()), sessionId, key) == 1;
+    }
+
     /** spec 33 §C / T114：前缀下推扫描（键条件走索引；prefix 为内部常量无 LIKE 元字符）。 */
     @Override
     public Map<String, StateEntry> scanByPrefix(String sessionId, String prefix) {

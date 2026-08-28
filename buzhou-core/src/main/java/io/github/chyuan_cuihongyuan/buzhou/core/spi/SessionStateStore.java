@@ -22,6 +22,24 @@ public interface SessionStateStore {
     boolean deleteIfValueMatches(String sessionId, String key, String expectedValue);
 
     /**
+     * 条件写（CAS，spec 56 §A / T249）：仅当当前 value 与 {@code expectedValue} 相等时以
+     * {@code update} 覆写，返回是否成功。{@code expectedValue == null} 表示键当前不存在才写
+     * （日翻越首写竞态钉住）。跨实例原子扣减（配额计数等）依赖本方法。
+     *
+     * <p>默认实现 get+比对+put <b>非原子</b>（check-then-write 竞窗存在）——仅单实例语义；
+     * 真原子由各实现覆写：内存 compute、JDBC 条件单语句、Redis Lua（同
+     * {@link #deleteIfValueMatches} 先例）。
+     */
+    default boolean compareAndSwap(String sessionId, String key, String expectedValue, StateEntry update) {
+        String current = get(sessionId, key).map(StateEntry::value).orElse(null);
+        if (!java.util.Objects.equals(current, expectedValue)) {
+            return false;
+        }
+        put(sessionId, update);
+        return true;
+    }
+
+    /**
      * impl-35 / spec 13 §stores-6：删除该会话的全部 state 条目（含键集合索引）。幂等——
      * 会话不存在时无操作。默认 no-op（既有实现二进制兼容，由各实现补齐语义）。
      */

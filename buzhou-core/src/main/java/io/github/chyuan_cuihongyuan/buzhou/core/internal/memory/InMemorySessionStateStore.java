@@ -94,4 +94,31 @@ public class InMemorySessionStateStore implements SessionStateStore {
     int sessionCount() {
         return bySession.size();
     }
+
+    /** spec 56 §A / T249：CAS 条件写——compute 对单 key 原子（含 absent 分支与准入上限）。 */
+    @Override
+    public boolean compareAndSwap(String sessionId, String key, String expectedValue, StateEntry update) {
+        ConcurrentHashMap<String, StateEntry> session = bySession.get(sessionId);
+        if (session == null) {
+            // 新会话才进准入临界区（避免既有会话的 CAS 在全局锁上排队——热路径船队效应）
+            synchronized (admissionLock) {
+                if (!bySession.containsKey(sessionId) && bySession.size() >= maxSessions) {
+                    throw new QuotaExceededException(
+                            "内存状态存储会话数已达上限 maxSessions=%d（sessionId=%s）"
+                                    .formatted(maxSessions, sessionId));
+                }
+                session = bySession.computeIfAbsent(sessionId, k -> new ConcurrentHashMap<>());
+            }
+        }
+        boolean[] swapped = {false};
+        session.compute(key, (k, cur) -> {
+            String curValue = cur == null ? null : cur.value();
+            if (java.util.Objects.equals(curValue, expectedValue)) {
+                swapped[0] = true;
+                return update;
+            }
+            return cur;
+        });
+        return swapped[0];
+    }
 }

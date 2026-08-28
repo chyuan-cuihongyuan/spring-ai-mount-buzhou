@@ -31,7 +31,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * beforeModel（tokens，读当日已累计）。超配额 {@code block}（受控终态文本，对齐 runaway/budget 硬顶）
  * + 事件 {@code quota.exceeded}。
  *
- * <p><b>诚实边界</b>：单进程语义——多实例部署 = 每实例独立配额（分布式配额 out-of-scope）。
+ * <p><b>原子扣减</b>（spec 56 / T250）：三维度计数写经 state handle 的
+ * {@code compareAndSwap} 有界重试（16 次）——多实例共享 state store（Redis/JDBC）下
+ * 并发递增不丢更新；日翻越以「expect 旧值原串」收敛（只一方重置成功）。重试耗尽回退
+ * last-write 覆写 + {@code quotaCasFallbacks} 计数（极端竞争下宁可少记、不误拦截、不崩溃）。
+ * 跨实例原子性由 store 覆写 CAS 承诺（内存/JDBC/池化 Redis 真原子；默认实现仅单实例——
+ * 此时 per-JVM sessionLocks 兜底）。
+ *
+ * <p><b>诚实边界</b>：旧装配的 Redis store（无事务连接池）CAS 退化非原子（见
+ * {@code RedisSessionStateStore#compareAndSwap}）。
  */
 public class SessionQuotaHook implements BuzhouHook {
 
@@ -46,6 +54,9 @@ public class SessionQuotaHook implements BuzhouHook {
     private final ResilienceStats stats; // null 安全
     private final java.time.Clock clock; // spec 41 §B / T154：UTC 日窗时钟可注入（测试零等待翻日）
     private final Map<String, Object> sessionLocks = new ConcurrentHashMap<>();
+
+    /** CAS 重试上限（spec 56 §B）：极端竞争（连续 16 次被抢先）回退覆写——计数可能少记，语义不崩。 */
+    private static final int CAS_ATTEMPTS = 16;
 
     public SessionQuotaHook(ResilienceProperties.SessionQuota quota, ResilienceStats stats) {
         this(quota, stats, java.time.Clock.systemUTC());
@@ -76,7 +87,10 @@ public class SessionQuotaHook implements BuzhouHook {
         if (cap == null) {
             return HookResult.CONTINUE;
         }
-        int used = incrementDayCounter(ctx, KEY_TURNS);
+        int used;
+        synchronized (lockFor(ctx.sessionId())) { // JVM 内串行化读+CAS（防重试饥饿）；跨实例由 store CAS 仲裁
+            used = incrementDayCounter(ctx, KEY_TURNS);
+        }
         if (used > cap) {
             return exceeded(ctx, "turns", cap, used - 1); // 本轮未开始即拦截，计数回退语义：用 cap 表述
         }
@@ -136,25 +150,67 @@ public class SessionQuotaHook implements BuzhouHook {
         if (tokens == 0) {
             return HookResult.CONTINUE;
         }
-        synchronized (lockFor(ctx.sessionId())) {
-            long today = readToday(ctx, KEY_TOKENS);
-            ctx.state().put(KEY_TOKENS, todayKey() + ":" + (today + tokens));
+        synchronized (lockFor(ctx.sessionId())) { // 默认非原子 CAS 的单实例兜底；真原子 store 下仅降竞争
+            accumulateToday(ctx, KEY_TOKENS, tokens);
         }
         return HookResult.CONTINUE;
     }
 
     // ---- helpers ----
 
-    /** 递增并返回当日计数（日不符先重置；调用方按需持会话锁——beforeTurn 单线程可不持）。 */
+    /**
+     * 原子递增并返回当日计数（spec 56 §B / T250）：CAS(raw, day:next) 带进度检测重试——
+     * 失败后值仍在变（他人有进展）即继续重试（不丢计数）；仅值<b>停滞</b>满
+     * {@link #CAS_ATTEMPTS} 次（存储异常/对抗性失败）才回退覆写 + stats 回退计数
+     * （诚实边界：极端竞争下宁可少记、不误拦截、不崩溃）。raw 为 null（首写）或旧日串
+     * （翻越重置）都作为 expected 原值——并发下只一方成功，失败方重读续算。
+     */
     private int incrementDayCounter(HookContext ctx, String key) {
-        long today = readToday(ctx, key);
-        int next = (int) today + 1;
-        ctx.state().put(key, todayKey() + ":" + next);
-        return next;
+        long today = todayKey();
+        String prevRaw = "unset-sentinel";
+        int stalled = 0;
+        while (stalled < CAS_ATTEMPTS) {
+            String raw = ctx.state().get(key, String.class).orElse(null);
+            stalled = java.util.Objects.equals(raw, prevRaw) ? stalled + 1 : 0;
+            prevRaw = raw;
+            long next = countForToday(raw, today) + 1;
+            if (ctx.state().compareAndSwap(key, raw, today + ":" + next)) {
+                return (int) next;
+            }
+            Thread.yield(); // 礼让抢占方，缩短重试方饥饿窗口
+        }
+        if (stats != null) {
+            stats.recordQuotaCasFallback();
+        }
+        long fallback = countForToday(ctx.state().get(key, String.class).orElse(null), today) + 1;
+        ctx.state().put(key, today + ":" + fallback);
+        return (int) fallback;
     }
 
-    private long readToday(HookContext ctx, String key) {
-        String raw = ctx.state().get(key, String.class).orElse(null);
+    /** 原子累计 tokens（与 {@link #incrementDayCounter} 同进度检测 CAS 口径，delta = usage 合计）。 */
+    private void accumulateToday(HookContext ctx, String key, long delta) {
+        long today = todayKey();
+        String prevRaw = "unset-sentinel";
+        int stalled = 0;
+        while (stalled < CAS_ATTEMPTS) {
+            String raw = ctx.state().get(key, String.class).orElse(null);
+            stalled = java.util.Objects.equals(raw, prevRaw) ? stalled + 1 : 0;
+            prevRaw = raw;
+            long next = countForToday(raw, today) + delta;
+            if (ctx.state().compareAndSwap(key, raw, today + ":" + next)) {
+                return;
+            }
+            Thread.yield();
+        }
+        if (stats != null) {
+            stats.recordQuotaCasFallback();
+        }
+        long fallback = countForToday(ctx.state().get(key, String.class).orElse(null), today) + delta;
+        ctx.state().put(key, today + ":" + fallback);
+    }
+
+    /** 解析当日计数：null/格式坏/日不符（翻越）一律 0。 */
+    private long countForToday(String raw, long today) {
         if (raw == null) {
             return 0L;
         }
@@ -163,14 +219,17 @@ public class SessionQuotaHook implements BuzhouHook {
             return 0L;
         }
         try {
-            long day = Long.parseLong(raw.substring(0, sep));
-            if (day != todayKey()) {
-                return 0L; // 新的一天：读时重置（写回由随后 increment/put 完成）
+            if (Long.parseLong(raw.substring(0, sep)) != today) {
+                return 0L;
             }
             return Long.parseLong(raw.substring(sep + 1));
         } catch (NumberFormatException e) {
             return 0L;
         }
+    }
+
+    private long readToday(HookContext ctx, String key) {
+        return countForToday(ctx.state().get(key, String.class).orElse(null), todayKey());
     }
 
     private long todayKey() {
