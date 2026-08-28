@@ -108,7 +108,17 @@ public final class EvalRunner {
                     null, ms);
         }
         long ms = (System.nanoTime() - start) / 1_000_000;
-        EvalScore score = evaluator.evaluate(actual, item.expected(), item);
+        EvalScore score;
+        try {
+            score = evaluator.evaluate(actual, item.expected(), item);
+        } catch (Exception e) {
+            // spec 61 §A / T273：评估器异常收敛为该条 error（judge 调用抖动等不炸整跑；
+            // 与执行异常同三态语义）
+            return new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_ERROR,
+                    "评估器异常：" + e.getClass().getSimpleName() + ": "
+                            + String.valueOf(e.getMessage()).lines().findFirst().orElse(""),
+                    preview(actual), ms);
+        }
         if (score == null) {
             return new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_ERROR,
                     "评估器返回 null（违反 SPI 契约，按 error 记录）",

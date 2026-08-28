@@ -254,6 +254,15 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 - 溯源：回流项带 sourceSessionId/sourceTurnSeq——评估项可回查原始会话定位上下文。
 - 删除：deleteDataset 不级联删 run 记录（run 自带 datasetName 快照，审计保留）。
 
+### LLM-as-judge（effort #21 / spec 61）
+
+- 内置 `LlmJudgeEvaluator`（注入 judge ChatModel + 可选 rubric）：语义质量断言
+  （「是否解决问题/事实一致」）——PASS/FAIL 首词协议；不可解析/judge 异常记该条
+  error（passRate 不被协议失败污染，单条 API 抖动不炸整跑）。
+- 诚实边界：判别力与抗提示注入归 judge 模型；无温度控制（ChatModel 宿主配置）；
+  CI 不强制（沿用本节「LLM-judge + 20% 人工抽检」口径）。
+- 确定性三件（EXACT/CONTAINS/REGEX）行为零变化。
+
 ### 回流策略
 
 - 一键回流：`FeedbackImporter.importFromFeedback(sessionId, datasetName)`——只入负反馈轮

@@ -778,3 +778,13 @@
   一行一 JSON 对象、字段序稳定、duration_ms 派生、换行转义、坏值列降级 + skipped 计数；
   `JsonlExportResult(sessions, spans, events, skipped)` 返回面）
 - 类型级快照：+1；yml 键：**零新增**（纯新增只读出口）
+
+## effort #21 新增公共面（spec 61 / impl-207，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `LlmJudgeEvaluator`（LLM-as-judge：judge ChatModel + 可选 rubric + PASS/FAIL 首词
+  协议解析；`JudgeProtocolException`（不可解析 → runner 记该条 error）；DeepEval/Ragas
+  G-Eval 借鉴；诚实边界：判别力/抗注入归 judge 模型、CI 不强制）
+- `EvalRunner` 评估器异常收敛为该条 error（不再炸整跑）
+- 类型级快照：+1；yml 键：**零新增**（宿主显式构造传入 run）
