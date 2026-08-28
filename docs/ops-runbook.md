@@ -144,6 +144,9 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   `quotaCasFallbacks` 计数（resilience 健康详情）——出现非零值即原子路径长期抢败，
   应排查 store 延迟/正确性，而非调大配额。
 - 配额拦截点/事件/文案零变化；零新配置键。
+- **计数原子化推广（effort #22 / spec 62）**：runaway 会话累计（steps/tool-calls）与
+  budget 累计（prompt/completion-tokens、cost-micro-usd）同走 CAS 助手——多实例共享
+  store 下预算/失控防护上限不被并发穿透；回退语义与配额一致（停滞 16 次才回退）。
 
 **共享熔断闸（effort #17 / spec 57）**：`buzhou.store.type=redis` 且熔断启用（默认开）时，
 熔断从进程级升级为「跳闸事实共享、探测与窗口留本地」：任一实例跳闸即写 Redis TTL 标记

@@ -172,10 +172,22 @@ public class TokenBudgetHook implements BuzhouHook {
     }
 
     private long stateAdd(HookContext ctx, String key, long delta) {
-        long current = stateGet(ctx, key);
-        long next = current + delta;
-        ctx.state().put(key, Long.toString(next));
-        return next;
+        // spec 62 / T275：CAS 写统一走 AtomicStateCounters（跨实例原子 + 进度检测重试；
+        // 调用方按需持会话锁——默认非原子 CAS 的单实例兜底）
+        String next = io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters
+                .swapValue(ctx.state(), key, raw -> Long.toString(stateGetRaw(raw) + delta), null);
+        return stateGetRaw(next);
+    }
+
+    private static long stateGetRaw(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return 0L;
+        }
+        try {
+            return Long.parseLong(raw.trim());
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
     }
 
     private long stateGet(HookContext ctx, String key) {

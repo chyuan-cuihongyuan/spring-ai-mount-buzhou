@@ -788,3 +788,9 @@
   G-Eval 借鉴；诚实边界：判别力/抗注入归 judge 模型、CI 不强制）
 - `EvalRunner` 评估器异常收敛为该条 error（不再炸整跑）
 - 类型级快照：+1；yml 键：**零新增**（宿主显式构造传入 run）
+
+## effort #22 新增公共面（spec 62 / impl-208，@since 1.0.0）
+
+- `AtomicStateCounters`（core.internal.hook——非公开面：值形态无关的进度检测 CAS 计数
+  写助手；TokenBudgetHook / RunawayHook / SessionQuotaHook 三处计数统一）
+- 类型级快照：**零新增**（internal 包不入公共面）；yml 键：**零新增**

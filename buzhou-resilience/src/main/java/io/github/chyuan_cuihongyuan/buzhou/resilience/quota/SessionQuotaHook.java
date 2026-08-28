@@ -55,9 +55,6 @@ public class SessionQuotaHook implements BuzhouHook {
     private final java.time.Clock clock; // spec 41 §B / T154：UTC 日窗时钟可注入（测试零等待翻日）
     private final Map<String, Object> sessionLocks = new ConcurrentHashMap<>();
 
-    /** CAS 重试上限（spec 56 §B）：极端竞争（连续 16 次被抢先）回退覆写——计数可能少记，语义不崩。 */
-    private static final int CAS_ATTEMPTS = 16;
-
     public SessionQuotaHook(ResilienceProperties.SessionQuota quota, ResilienceStats stats) {
         this(quota, stats, java.time.Clock.systemUTC());
     }
@@ -159,54 +156,28 @@ public class SessionQuotaHook implements BuzhouHook {
     // ---- helpers ----
 
     /**
-     * 原子递增并返回当日计数（spec 56 §B / T250）：CAS(raw, day:next) 带进度检测重试——
-     * 失败后值仍在变（他人有进展）即继续重试（不丢计数）；仅值<b>停滞</b>满
-     * {@link #CAS_ATTEMPTS} 次（存储异常/对抗性失败）才回退覆写 + stats 回退计数
-     * （诚实边界：极端竞争下宁可少记、不误拦截、不崩溃）。raw 为 null（首写）或旧日串
-     * （翻越重置）都作为 expected 原值——并发下只一方成功，失败方重读续算。
+     * 原子递增并返回当日计数（spec 56 §B / T250；spec 62 / T275 统一走 AtomicStateCounters）：
+     * CAS(raw, day:next) 带进度检测重试——失败后值仍在变即续试（不丢计数）；仅值停滞
+     * 满 {@link io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters#MAX_STALLED_ATTEMPTS}
+     * 次回退覆写 + stats 回退计数。raw 为 null（首写）或旧日串（翻越重置）都作为
+     * expected 原值——并发下只一方成功，失败方重读续算。
      */
     private int incrementDayCounter(HookContext ctx, String key) {
         long today = todayKey();
-        String prevRaw = "unset-sentinel";
-        int stalled = 0;
-        while (stalled < CAS_ATTEMPTS) {
-            String raw = ctx.state().get(key, String.class).orElse(null);
-            stalled = java.util.Objects.equals(raw, prevRaw) ? stalled + 1 : 0;
-            prevRaw = raw;
-            long next = countForToday(raw, today) + 1;
-            if (ctx.state().compareAndSwap(key, raw, today + ":" + next)) {
-                return (int) next;
-            }
-            Thread.yield(); // 礼让抢占方，缩短重试方饥饿窗口
-        }
-        if (stats != null) {
-            stats.recordQuotaCasFallback();
-        }
-        long fallback = countForToday(ctx.state().get(key, String.class).orElse(null), today) + 1;
-        ctx.state().put(key, today + ":" + fallback);
-        return (int) fallback;
+        String next = io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters
+                .swapValue(ctx.state(), key,
+                        raw -> today + ":" + (countForToday(raw, today) + 1),
+                        stats == null ? null : stats::recordQuotaCasFallback);
+        return (int) countForToday(next, today);
     }
 
-    /** 原子累计 tokens（与 {@link #incrementDayCounter} 同进度检测 CAS 口径，delta = usage 合计）。 */
+    /** 原子累计 tokens（同上口径，delta = usage 合计）。 */
     private void accumulateToday(HookContext ctx, String key, long delta) {
         long today = todayKey();
-        String prevRaw = "unset-sentinel";
-        int stalled = 0;
-        while (stalled < CAS_ATTEMPTS) {
-            String raw = ctx.state().get(key, String.class).orElse(null);
-            stalled = java.util.Objects.equals(raw, prevRaw) ? stalled + 1 : 0;
-            prevRaw = raw;
-            long next = countForToday(raw, today) + delta;
-            if (ctx.state().compareAndSwap(key, raw, today + ":" + next)) {
-                return;
-            }
-            Thread.yield();
-        }
-        if (stats != null) {
-            stats.recordQuotaCasFallback();
-        }
-        long fallback = countForToday(ctx.state().get(key, String.class).orElse(null), today) + delta;
-        ctx.state().put(key, today + ":" + fallback);
+        io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters.swapValue(
+                ctx.state(), key,
+                raw -> today + ":" + (countForToday(raw, today) + delta),
+                stats == null ? null : stats::recordQuotaCasFallback);
     }
 
     /** 解析当日计数：null/格式坏/日不符（翻越）一律 0。 */
