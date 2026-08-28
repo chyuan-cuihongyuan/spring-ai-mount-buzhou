@@ -70,4 +70,30 @@ public interface SessionStateStore {
     default int countByPrefix(String sessionId, String prefix) {
         return scanByPrefix(sessionId, prefix).size();
     }
+
+    /**
+     * spec 78 §A / T309：前缀内<b>键序区间</b>扫描——键字典序升序、{@code fromKeyInclusive}
+     * 含界（null = 前缀起点）、{@code toKeyExclusive} 排他上界（null = 无上界）、limit
+     * 截断（&le;0 = 空）。与 {@link #scanByPrefix} 的关键差异：<b>结果顺序有保证</b>（键序
+     * 即时间序的结构——如 outbox due-time 索引 spec 79——依赖本面消全量读放大）。
+     * 默认 = scanByPrefix 过滤 + 排序 + 截断（正确但全量读）；JDBC/内存覆写下推。
+     */
+    default Map<String, StateEntry> scanByKeyRange(String sessionId, String prefix,
+            String fromKeyInclusive, String toKeyExclusive, int limit) {
+        if (limit <= 0) {
+            return Map.of();
+        }
+        String from = fromKeyInclusive == null ? prefix : fromKeyInclusive;
+        java.util.Map<String, StateEntry> all = scanByPrefix(sessionId, prefix);
+        java.util.TreeMap<String, StateEntry> sorted = new java.util.TreeMap<>();
+        all.forEach((k, v) -> {
+            if (k.compareTo(from) >= 0
+                    && (toKeyExclusive == null || k.compareTo(toKeyExclusive) < 0)) {
+                sorted.put(k, v);
+            }
+        });
+        Map<String, StateEntry> result = new java.util.LinkedHashMap<>();
+        sorted.entrySet().stream().limit(limit).forEach(e -> result.put(e.getKey(), e.getValue()));
+        return result;
+    }
 }

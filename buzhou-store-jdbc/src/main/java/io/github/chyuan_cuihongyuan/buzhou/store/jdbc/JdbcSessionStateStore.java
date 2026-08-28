@@ -116,6 +116,36 @@ public class JdbcSessionStateStore implements SessionStateStore {
         return count == null ? 0 : count;
     }
 
+    /**
+     * spec 78 §A / T309：键序区间下推（ORDER BY + BETWEEN + LIMIT；H2/MySQL/PG 同语法）。
+     * from=null → 前缀起点（LIKE 下界足够）；to=null → 无上界（条件剔除）。
+     */
+    @Override
+    public Map<String, StateEntry> scanByKeyRange(String sessionId, String prefix,
+            String fromKeyInclusive, String toKeyExclusive, int limit) {
+        if (limit <= 0) {
+            return Map.of();
+        }
+        Map<String, StateEntry> result = new LinkedHashMap<>();
+        String from = fromKeyInclusive == null ? prefix : fromKeyInclusive;
+        if (toKeyExclusive == null) {
+            jdbc.query("""
+                            SELECT * FROM buzhou_session_state
+                            WHERE session_id = ? AND state_key LIKE ? AND state_key >= ?
+                            ORDER BY state_key LIMIT ?
+                            """, MAPPER, sessionId, prefix + "%", from, limit)
+                    .forEach(entry -> result.put(entry.key(), entry));
+        } else {
+            jdbc.query("""
+                            SELECT * FROM buzhou_session_state
+                            WHERE session_id = ? AND state_key LIKE ? AND state_key >= ? AND state_key < ?
+                            ORDER BY state_key LIMIT ?
+                            """, MAPPER, sessionId, prefix + "%", from, toKeyExclusive, limit)
+                    .forEach(entry -> result.put(entry.key(), entry));
+        }
+        return result;
+    }
+
     @Override
     public void delete(String sessionId, String key) {
         jdbc.update("DELETE FROM buzhou_session_state WHERE session_id = ? AND state_key = ?",

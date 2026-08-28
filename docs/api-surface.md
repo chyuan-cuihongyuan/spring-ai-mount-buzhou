@@ -914,3 +914,11 @@
   `buzhou.eval.runs.active`（tag kind）；runId 幂等 + Registration close 幂等；
   LangSmith active-runs 观测面借鉴；BuzhouMetricsHolder 同款全局旋钮模式）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #39 新增公共面（spec 78 / impl-225，@since 1.0.0）
+
+- `SessionStateStore.scanByKeyRange(sessionId, prefix, fromKeyInclusive,
+  toKeyExclusive, limit)`（键序区间扫描：字典序升序 + 含界下界 + 排他上界 + limit
+  截断；JDBC ORDER BY/LIMIT 下推、内存键迭代覆写、默认排序兜底；Kafka log 有序读
+  借鉴——「时间编进键」结构的公共底座）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

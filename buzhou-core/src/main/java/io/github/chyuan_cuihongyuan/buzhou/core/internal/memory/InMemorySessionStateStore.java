@@ -111,6 +111,30 @@ public class InMemorySessionStateStore implements SessionStateStore {
         return bySession.size();
     }
 
+    /** spec 78 §A / T309：键序区间（键迭代 + TreeMap 排序截断——免 getAll 全值拷贝）。 */
+    @Override
+    public Map<String, StateEntry> scanByKeyRange(String sessionId, String prefix,
+            String fromKeyInclusive, String toKeyExclusive, int limit) {
+        if (limit <= 0) {
+            return Map.of();
+        }
+        ConcurrentHashMap<String, StateEntry> session = bySession.get(sessionId);
+        if (session == null) {
+            return Map.of();
+        }
+        String from = fromKeyInclusive == null ? prefix : fromKeyInclusive;
+        java.util.TreeMap<String, StateEntry> sorted = new java.util.TreeMap<>();
+        session.forEach((k, v) -> {
+            if (k.startsWith(prefix) && k.compareTo(from) >= 0
+                    && (toKeyExclusive == null || k.compareTo(toKeyExclusive) < 0)) {
+                sorted.put(k, v);
+            }
+        });
+        Map<String, StateEntry> result = new java.util.LinkedHashMap<>();
+        sorted.entrySet().stream().limit(limit).forEach(e -> result.put(e.getKey(), e.getValue()));
+        return result;
+    }
+
     /** spec 56 §A / T249：CAS 条件写——compute 对单 key 原子（含 absent 分支与准入上限）。 */
     @Override
     public boolean compareAndSwap(String sessionId, String key, String expectedValue, StateEntry update) {

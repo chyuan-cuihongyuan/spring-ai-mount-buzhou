@@ -156,6 +156,40 @@ public abstract class AbstractBuzhouStoresContractTest {
         assertThat(store.countByPrefix(sessionId, "outbox.")).isEqualTo(store.scanByPrefix(sessionId, "outbox.").size());
     }
 
+    /**
+     * spec 78 §B / T310：键序区间契约（三栈同测——键序保证 / 上下界语义 / limit 截断 /
+     * 空集与非法 limit）。键布局模拟 outbox due-time 索引（spec 79 前置）：
+     * d.<16位零垫时间戳>.<eventId>——键序即时间序。
+     */
+    @Test
+    void stateStoreScanByKeyRangeOrdersAndBounds() {
+        String sessionId = "contract-range-" + UUID.randomUUID();
+        var store = stores().sessionStateStore();
+        // 三条 due 索引（时间戳零垫 16 位）+ 一条同前缀外邻居 + 一条前缀外键
+        store.put(sessionId, new StateEntry("d.0000000000000005.e1", "v1", "idx",
+                0, null, Instant.now()));
+        store.put(sessionId, new StateEntry("d.0000000000000010.e2", "v2", "idx",
+                0, null, Instant.now()));
+        store.put(sessionId, new StateEntry("d.0000000000000020.e3", "v3", "idx",
+                0, null, Instant.now()));
+        store.put(sessionId, new StateEntry("dead.e1", "v", "idx", 0, null, Instant.now()));
+
+        // 键序升序 + 排他上界：ts < 10 → 只有 e1
+        assertThat(store.scanByKeyRange(sessionId, "d.", null,
+                "d.0000000000000010", 10).keySet())
+                .containsExactly("d.0000000000000005.e1");
+        // 含界下界 + 无上界：ts >= 10 → e2, e3（键序）
+        assertThat(store.scanByKeyRange(sessionId, "d.",
+                "d.0000000000000010.e2", null, 10).keySet())
+                .containsExactly("d.0000000000000010.e2", "d.0000000000000020.e3");
+        // limit 截断（取最早一条）
+        assertThat(store.scanByKeyRange(sessionId, "d.", null, null, 1).keySet())
+                .containsExactly("d.0000000000000005.e1");
+        // 空键空间 / 非法 limit
+        assertThat(store.scanByKeyRange(sessionId, "absent.", null, null, 5)).isEmpty();
+        assertThat(store.scanByKeyRange(sessionId, "d.", null, null, 0)).isEmpty();
+    }
+
     @Test
     void leaseMutualExclusionStealRenewRelease() {
         String sessionId = "contract-lease-" + UUID.randomUUID();
