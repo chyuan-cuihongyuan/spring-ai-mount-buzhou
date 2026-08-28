@@ -85,6 +85,8 @@ class ConfigBindingsMatrixTest {
             "buzhou.mcp.grace-period", "buzhou.mcp.force-close-timeout", "buzhou.mcp.poll-interval",
             "buzhou.store.jdbc.dialect", "buzhou.store.redis.snapshot-ttl",
             "buzhou.skills.catalog-max-entries", "buzhou.skills.catalog-cache-ttl",
+            // effort#19 / spec 59 / T268：语义排序键走 fromYml env 直读路径（无 properties record 字段）
+            "buzhou.skills.semantic-ranking.enabled",
             "buzhou.spill.enabled");
 
     /** 复杂结构化键（List<KeyFile> 等）——样例值需文件/结构，跳过并显式登记（不静默）。 */
@@ -105,6 +107,9 @@ class ConfigBindingsMatrixTest {
             // effort#15 / spec 55：语义缓存 enabled=true 全路径（矩阵上下文配 stub EmbeddingModel
             // ——见 MatrixStubEmbeddingModel；无 bean 时 fail-fast 由红队测试覆盖）
             Map.entry("buzhou.resilience.semantic-cache.enabled", "true"),
+            // effort#19 / spec 59：技能目录语义排序 enabled=true 全路径（同上 stub 嵌入上下文；
+            // 无 bean fail-fast 由 skills 模块红队覆盖）
+            Map.entry("buzhou.skills.semantic-ranking.enabled", "true"),
             Map.entry("buzhou.tools.result-limit-overrides", "sampleTool"),
             Map.entry("buzhou.runaway.per-turn.max-steps", "50"),
             Map.entry("buzhou.runaway.per-turn.max-tool-calls", "50"),

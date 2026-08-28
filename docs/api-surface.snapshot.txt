@@ -358,6 +358,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateL
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.DefaultSkillRegistry
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.LoadSkillTool
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SemanticSkillRanker
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SessionBindingIndex
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.Skill
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillCatalogRendererImpl

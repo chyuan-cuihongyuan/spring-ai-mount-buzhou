@@ -755,3 +755,17 @@
   兼容第三方；JDBC COUNT(*) 下推 / Redis 键集侧计数 / 内存键迭代覆写）
 - 类型级快照：**零新增类型**；yml 键：**零新增**
 - `RedisSync.batchHgetAll`（包内：共享连接 async 流水线批量 HGETALL；事务绑定线程退化逐键）
+
+## effort #19 新增公共面（spec 59 / impl-204–205，@since 1.0.0）
+
+**buzhou-skills**
+
+- `SemanticSkillRanker`（目录语义排序：cosine 降序 + 原序稳定并列；技能向量缓存
+  name 键 + 文本变更失效；嵌入失败回退原序 + bypassCount() 观测）
+- `SkillCatalogRendererImpl` 四参构造（ranker + catalogMaxEntries；null ranker = 旧行为）
+- `SkillModule.Builder`：`semanticRankingEnabled` / `embeddingModel`（enabled 无 bean
+  → build() fail-fast 带修法）
+- `SkillCatalogRenderer#renderCatalog(sessionId, queryHint)`（core default 方法——旧签名委托）
+- yml 键：`buzhou.skills.semantic-ranking.enabled`（默认 false；metadata + 绑定矩阵
+  enabled=true 全路径登记）
+- 类型级快照：+1（SemanticSkillRanker）

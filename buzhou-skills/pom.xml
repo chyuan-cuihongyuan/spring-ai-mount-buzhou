@@ -21,6 +21,12 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
+    <!-- spec 59 §A / T265：目录语义排序的 EmbeddingModel 接口（optional——禁用语义排序时零影响） -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-model</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- impl-51 / spec 14 §G：SkillStore 持久化实现（optional——无 jdbc/redis 运行时零影响；
          星形拓扑下 store-* 模块只依赖 core，feature SPI 的实现托管在本模块） -->
     <dependency>

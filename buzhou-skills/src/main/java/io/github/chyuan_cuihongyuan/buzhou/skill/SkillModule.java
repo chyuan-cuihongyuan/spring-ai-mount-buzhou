@@ -54,7 +54,20 @@ public final class SkillModule {
         this.registry = new DefaultSkillRegistry(classpathSkills, dbStore, policyProvider,
                 builder.dbEnabled, builder.catalogMaxEntries, builder.catalogCacheTtl);
         this.bindingIndex = new SessionBindingIndex();
-        this.catalogRenderer = new SkillCatalogRendererImpl(bindingIndex, registry);
+        // spec 59 §A / T266：语义排序（默认关）；enabled 而无 EmbeddingModel = 配置错误
+        // fail-fast 带修法（与语义缓存 spec 55 同口径——显式开启而依赖缺失不静默失效）
+        SemanticSkillRanker ranker = null;
+        if (builder.semanticRankingEnabled) {
+            if (builder.embeddingModel == null) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                        "buzhou.skills.semantic-ranking.enabled=true 但容器内无 EmbeddingModel bean",
+                        "语义排序需要一个 EmbeddingModel bean（如 spring-ai-starter-model-* 提供的实现或自建 stub）；"
+                                + "或显式设 buzhou.skills.semantic-ranking.enabled=false 关闭。");
+            }
+            ranker = new SemanticSkillRanker(builder.embeddingModel);
+        }
+        this.catalogRenderer = new SkillCatalogRendererImpl(bindingIndex, registry, ranker,
+                builder.catalogMaxEntries);
         this.loadSkillTool = new LoadSkillTool(registry, bindingIndex);
         this.skillSearchTool = new SkillSearchTool(registry, bindingIndex);
         this.resourceResolver = new SkillResourceResolverImpl(registry, bindingIndex);
@@ -117,6 +130,9 @@ public final class SkillModule {
         private SkillStore dbStore;
         private PolicyConfigProvider policyProvider;
         private BindingPolicyStore bindingStore;
+        /** spec 59 §A / T266：目录语义排序开关（默认 false——零行为变化）。 */
+        private boolean semanticRankingEnabled = false;
+        private org.springframework.ai.embedding.EmbeddingModel embeddingModel;
 
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
@@ -162,6 +178,18 @@ public final class SkillModule {
             return this;
         }
 
+        /** spec 59 §A / T266：目录语义排序开关（默认 false）。 */
+        public Builder semanticRankingEnabled(boolean semanticRankingEnabled) {
+            this.semanticRankingEnabled = semanticRankingEnabled;
+            return this;
+        }
+
+        /** spec 59 §A / T266：排序用嵌入模型（enabled=true 时必须提供，否则 build() fail-fast）。 */
+        public Builder embeddingModel(org.springframework.ai.embedding.EmbeddingModel embeddingModel) {
+            this.embeddingModel = embeddingModel;
+            return this;
+        }
+
         @SuppressWarnings("unchecked")
         public Builder fromYml(Map<String, Object> ymlConfig) {
             if (ymlConfig == null || ymlConfig.isEmpty()) {
@@ -174,6 +202,13 @@ public final class SkillModule {
             Object dbVal = ymlConfig.get("db-enabled");
             if (dbVal instanceof Boolean b) {
                 this.dbEnabled = b;
+            }
+            // spec 59 §A / T266：semantic-ranking.enabled（默认 false；嵌入模型经 Builder 注入）
+            Object rankingVal = ymlConfig.get("semantic-ranking.enabled");
+            if (rankingVal instanceof Boolean b) {
+                this.semanticRankingEnabled = b;
+            } else if (rankingVal instanceof String str && !str.isBlank()) {
+                this.semanticRankingEnabled = Boolean.parseBoolean(str.trim());
             }
             Object maxVal = ymlConfig.get("catalog-max-entries");
             if (maxVal instanceof Number n) {

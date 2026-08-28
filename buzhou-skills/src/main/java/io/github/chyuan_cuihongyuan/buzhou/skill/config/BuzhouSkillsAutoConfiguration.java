@@ -40,12 +40,16 @@ public class BuzhouSkillsAutoConfiguration {
                                    BuzhouSkillsProperties properties,
                                    ObjectProvider<BindingPolicyStore> bindingStore,
                                    ObjectProvider<PolicyConfigProvider> policyProvider,
-                                   ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore> skillStore) {
+                                   ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore> skillStore,
+                                   ObjectProvider<org.springframework.ai.embedding.EmbeddingModel> embeddingModels) {
         io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore store = skillStore.getIfAvailable();
         io.github.chyuan_cuihongyuan.buzhou.skill.SkillModule.Builder builder =
                 SkillModule.fromYml(ConfigMaps.sub(env, "buzhou.skills"))
                         .bindingStore(bindingStore.getIfAvailable())
-                        .policyProvider(policyProvider.getIfAvailable());
+                        .policyProvider(policyProvider.getIfAvailable())
+                        // spec 59 §A / T266：语义排序嵌入模型（optional——enabled=true 而无 bean
+                        // 在 build() fail-fast 带修法，与语义缓存同口径）
+                        .embeddingModel(embeddingModels.getIfAvailable());
         if (store != null) {
             // 显式 store bean = 用户意图启用 DB 动态 Skill（除非显式 db-enabled=false；impl-66 正规化注入）
             builder.dbStore(store).dbEnabled(properties.dbEnabled());

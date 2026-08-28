@@ -181,8 +181,9 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         // 先渲染事实块（maxInjectChars 截断 + 指针），供预算入账与注入共用（spec 07：先渲染后评估；
         // system-reminder 块与摘要 Current State 追加两通道共享同一文本，不重复超额）
         String factsBlock = renderFacts(sessionId, currentTurn);
-        // 渲染技能清单块（spec 04：每轮现取，上架/解绑下一轮即生效；系统侧固定扣除计入预算）
-        String catalogBlock = renderCatalog(sessionId);
+        // 渲染技能清单块（spec 04：每轮现取，上架/解绑下一轮即生效；系统侧固定扣除计入预算；
+        // spec 59 §A / T264：携带本轮问法（最新 USER 文本）——实现方可用作语义排序 hint）
+        String catalogBlock = renderCatalog(sessionId, latestUserText(stored));
         if (summaryModel == null) {
             // 无摘要模型时事实/清单仍需注入（注入闭环不依赖摘要链路）
             return (factsBlock == null && catalogBlock == null) ? compacted
@@ -279,11 +280,25 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     }
 
     /** 渲染当前会话可见的技能清单为注入文本；无渲染器/无 sessionId/无可见技能时返回 null。 */
-    private String renderCatalog(String sessionId) {
+    private String renderCatalog(String sessionId, String queryHint) {
         if (skillCatalogRenderer == null || sessionId == null) {
             return null;
         }
-        return skillCatalogRenderer.renderCatalog(sessionId).orElse(null);
+        return skillCatalogRenderer.renderCatalog(sessionId, queryHint).orElse(null);
+    }
+
+    /** spec 59 §A / T264：stored 尾部最新 USER 消息文本（无 = null——无问法语义）。 */
+    private static String latestUserText(List<BuzhouMessage> stored) {
+        if (stored == null) {
+            return null;
+        }
+        for (int i = stored.size() - 1; i >= 0; i--) {
+            BuzhouMessage m = stored.get(i);
+            if (m.role() == Role.USER && m.content() != null && !m.content().isBlank()) {
+                return m.content();
+            }
+        }
+        return null;
     }
 
     private BudgetReport evaluateBudget(List<BuzhouMessage> compacted, NineSectionSummary summary,

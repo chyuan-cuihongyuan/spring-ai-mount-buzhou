@@ -75,6 +75,7 @@
 
 - **探测槽位不变量** — 熔断半开「在飞探测数 + 已成功数 ≥ 阈值」即占位满员（每成功永久占一槽；连续 N 成功才恢复）。
 - **目录注入预算** — skills 清单注入上限（默认 64）+ 溢出提示（「另有 N 个未列出」）。
+- **目录语义排序（Semantic Catalog Ranking）** — 注入前按当前问法与「技能名+描述」的 embedding cosine 相似度排序再应用预算（预算内保最相关）；技能向量缓存、失败回退注册序、默认关闭（Claude Code skills 按需加载 + LiteLLM semantic routing 思想）。
 - **媒体摄取（MediaIntake）** — 字节 → spill 落盘 → MediaRef URI 的闭环（Latin-1 双向无损）。
 - **导出扩展段（Export Extension）** — SessionExport.extensions 模块自定义段（如 memory.facts）；导入回放最终一致。
 - **DELETED 索引态** — 会话删除级联把索引行置 DELETED（审计留存；默认列表排除，显式过滤可查）。

@@ -25,4 +25,13 @@ public interface SkillCatalogRenderer {
      * @param sessionId 会话 id
      */
     Optional<String> renderCatalog(String sessionId);
+
+    /**
+     * 带当前问法的渲染（spec 59 §A / T264）：queryHint = 本轮用户输入文本（null/空 = 无
+     * 问法语义）。默认委托 {@link #renderCatalog(String)}——实现方可覆写做问法敏感处理
+     * （如语义排序）；第三方渲染器零破坏。
+     */
+    default Optional<String> renderCatalog(String sessionId, String queryHint) {
+        return renderCatalog(sessionId);
+    }
 }
