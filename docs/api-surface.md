@@ -967,3 +967,9 @@
   fail-fast/超时两档 + `buzhou.bulkhead.enabled/agents/acquire-timeout` 三键默认关；
   resilience4j Bulkhead 借鉴——spawn 闸限会话数、本舱限在飞 Turn 数，正交）
 - 类型级快照：+1；yml 键：+3（buzhou.bulkhead.*，默认关）
+
+## effort #46 新增公共面（spec 85 / impl-232，@since 1.0.0）
+
+- `ErrorSignaturesHealth`（`/actuator/buzhou` 快照的 error-signatures 段：恒 UP +
+  top-5 错误族有界详情 + distinct 数；#44 fog 毕业生——进程内 top 表接健康面）
+- 类型级快照：+1；yml 键：**零新增**

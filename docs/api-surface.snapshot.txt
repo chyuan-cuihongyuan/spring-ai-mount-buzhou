@@ -58,6 +58,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiterHolde
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolValidationFeedback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook

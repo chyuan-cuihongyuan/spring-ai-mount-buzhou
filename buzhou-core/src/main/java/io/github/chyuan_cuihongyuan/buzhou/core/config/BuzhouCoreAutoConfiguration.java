@@ -312,6 +312,14 @@ public class BuzhouCoreAutoConfiguration {
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint(
                     contributors.orderedStream().toList());
         }
+
+        /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth buzhouErrorSignaturesHealth() {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth(
+                    io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global());
+        }
     }
 
     /**
