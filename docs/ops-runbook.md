@@ -229,6 +229,20 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   logback pattern 加 `%X{buzhou.sessionId:-}` 即与会话对齐（流式路径不支持，结构性限制
   见 spec 47 §A）。
 
+## 8.5 观测数据 OLAP 导出（effort #20 / spec 60）
+
+- **面**：`ObservabilityJsonlExporter`（core）——spans/events 平铺为一行一 JSON 对象的
+  JSONL：单会话（`exportSession`）/ 单类（`exportSpans`/`exportEvents`）/ 全量
+  （`exportAll`，会话枚举分页驱动）。
+- **装载**：JSON Lines 规范合规（每行独立可解析、负载内换行转义）——DuckDB
+  `read_json_auto('spans.jsonl')` / ClickHouse JSONEachRow 直接装载；跨会话分析
+  （最慢模型/工具失败率/turn 深度）不再逐会话手搬。
+- **列**：span 行含 `duration_ms` 派生列（未关闭 span 为 null）；`attributes`/`payload`
+  为对象列（read_json 自动推断）。
+- **容错**：坏值条目降级该列为 null + `skipped` 计数（返回面暴露），不阻断 dump；
+  快照语义（运行中会话 = 当前已落库部分）。
+- 零配置键、零行为变化（纯新增只读出口）。
+
 ## 9. 评估运营（effort #11 / spec 52）
 
 ### 评估数据集治理

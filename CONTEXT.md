@@ -29,6 +29,7 @@
 - **Span** — 有始有终、可嵌套的执行区间（会话 ⊃ 轮次 ⊃ 模型调用/工具调用）。
 - **Event** — Span 内部的关键瞬间：思维链（Thinking）、最终回复、工具入参/出参、错误。
 - **认知可观测（Cognitive Observability）** — 记录模型基于什么证据、做出什么推理、得到什么结论，而不只是"调用发生了"。
+- **观测 OLAP 导出（Observability JSONL Export）** — spans/events 平铺为一行一 JSON 对象的 JSONL 只读出口（单会话/全量分页驱动）；JSON Lines 合规可直接装载 DuckDB/ClickHouse；坏值列降级 + skipped 计数（Langfuse/Helicone 摄取面思想）。
 
 ## 能力供给
 

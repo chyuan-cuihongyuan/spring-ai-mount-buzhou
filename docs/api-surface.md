@@ -769,3 +769,12 @@
 - yml 键：`buzhou.skills.semantic-ranking.enabled`（默认 false；metadata + 绑定矩阵
   enabled=true 全路径登记）
 - 类型级快照：+1（SemanticSkillRanker）
+
+## effort #20 新增公共面（spec 60 / impl-206，@since 1.0.0）
+
+**buzhou-core（session 包）**
+
+- `ObservabilityJsonlExporter`（观测 OLAP JSONL 导出：单会话/单类/全量分页驱动；
+  一行一 JSON 对象、字段序稳定、duration_ms 派生、换行转义、坏值列降级 + skipped 计数；
+  `JsonlExportResult(sessions, spans, events, skipped)` 返回面）
+- 类型级快照：+1；yml 键：**零新增**（纯新增只读出口）
