@@ -154,6 +154,11 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 饿死）；并列保配置序。运维须知：排序只改「先试谁」，金丝雀/限流/熔断跳过语义不变；
 EMA 进程级（重启清零冷启动）；无备模型时开启零效果。
 
+**前缀稳定注入序（effort #26 / spec 66）**：`buzhou.memory.prefix-stable-injection=true`
+（默认关）时注入块序切换 catalog→summary→facts——技能清单（跨轮最稳定）前置，
+最大化 provider KV-cache 前缀命中（Anthropic prompt caching 最佳实践）。诚实边界：
+摘要轮间更新仍会断其后前缀（只优化清单稳定段）；命中增益归 provider 计费行为。
+
 **共享熔断闸（effort #17 / spec 57）**：`buzhou.store.type=redis` 且熔断启用（默认开）时，
 熔断从进程级升级为「跳闸事实共享、探测与窗口留本地」：任一实例跳闸即写 Redis TTL 标记
 （键 `buzhou:cb:<模型净化名>`，TTL = 生效冷却含退避倍数）——存活期内**全实例**对该模型按

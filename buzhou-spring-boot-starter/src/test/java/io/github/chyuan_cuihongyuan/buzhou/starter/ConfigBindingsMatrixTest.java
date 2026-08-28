@@ -80,6 +80,8 @@ class ConfigBindingsMatrixTest {
             "buzhou.guard.policy.enabled", "buzhou.guard.policy.source",
             "buzhou.guard.policy.refresh-interval",
             "buzhou.memory.enabled", "buzhou.memory.embedding-cache-capacity",
+            // effort#26 / spec 66 / T284：前缀稳定注入序（fromYml env 直读路径）
+            "buzhou.memory.prefix-stable-injection",
             "buzhou.tools.run-command.max-output-bytes",
             "buzhou.leak.level", "buzhou.leak.lease-age-threshold",
             "buzhou.mcp.grace-period", "buzhou.mcp.force-close-timeout", "buzhou.mcp.poll-interval",

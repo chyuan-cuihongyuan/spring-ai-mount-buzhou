@@ -53,6 +53,13 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     private java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink;
     /** spec 34 §A / spec 38 §A：压缩结果监听器（sessionId + 结果 + 当前逐出比例；MemoryModule 接观测双写）。 */
     private io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener compactionListener;
+    /** spec 66 §A / T283：前缀稳定注入序（默认关——稳定块前置最大化 KV-cache 前缀命中）。 */
+    private boolean prefixStableInjection = false;
+
+    /** spec 66 §A / T283：前缀稳定注入序开关（true = 清单块前置：catalog→summary→facts→recent）。 */
+    public void setPrefixStableInjection(boolean prefixStableInjection) {
+        this.prefixStableInjection = prefixStableInjection;
+    }
 
     /** impl-02：默认逐出比例（保留 30% 最新候选原文内联续接）。 */
     public static final double DEFAULT_EVICT_RATIO = 0.7d;
@@ -356,6 +363,12 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                                                     int currentTurn, String sessionId,
                                                     int summaryTokenBudget) {
         List<BuzhouMessage> result = new ArrayList<>();
+        // spec 66 §A / T283：前缀稳定序（默认关）——最稳定块（技能清单）前置，最大化
+        // provider 端 KV-cache 前缀命中（Anthropic prompt caching 最佳实践：稳定内容在前、
+        // 易变内容在后）；默认序保持 spec 04 口径（摘要→事实→清单）零变化。
+        if (prefixStableInjection && catalogBlock != null) {
+            result.add(catalogMessage(catalogBlock, currentTurn));
+        }
         if (summary != null) {
             // 把未过期事实追加到 CURRENT_STATE 段（P0 死保，压缩不丢现场）
             NineSectionSummary enriched = enrichWithFacts(summary, factsBlock);
@@ -378,18 +391,21 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
             result.add(factBlock);
         }
         // 技能清单 Catalog 块（spec 04：系统提示词尾部，事实块之后、近期原文之前）
-        if (catalogBlock != null) {
-            BuzhouMessage catalogMsg = new BuzhouMessage(
-                    UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
-                    "<system-reminder>\n" + catalogBlock + "\n</system-reminder>",
-                    List.of(), null, null, null, Map.of("skill-catalog", true), Instant.now());
-            result.add(catalogMsg);
+        if (catalogBlock != null && !prefixStableInjection) {
+            result.add(catalogMessage(catalogBlock, currentTurn));
         }
         if (result.isEmpty()) {
             return recent;
         }
         result.addAll(recent);
         return result;
+    }
+
+    private static BuzhouMessage catalogMessage(String catalogBlock, int currentTurn) {
+        return new BuzhouMessage(
+                UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
+                "<system-reminder>\n" + catalogBlock + "\n</system-reminder>",
+                List.of(), null, null, null, Map.of("skill-catalog", true), Instant.now());
     }
 
     /** 把未过期事实追加到摘要 CURRENT_STATE 段（保证压缩后事实仍保留，P0 不丢）。 */

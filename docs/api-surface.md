@@ -828,3 +828,10 @@
   `__buzhou.cost__`；CAS 原子跨实例；`query(store)` per-agent 行；LiteLLM spend
   tracking 借鉴；显式挂载不自动装配）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #26 新增公共面（spec 66 / impl-212，@since 1.0.0）
+
+- `InjectionViewProcessor.setPrefixStableInjection(boolean)`（前缀稳定注入序开关：
+  catalog→summary→facts 稳定块前置；默认 false 保持 spec 04 口径）
+- 类型级快照：**零新增**；yml 键：`buzhou.memory.prefix-stable-injection`（默认 false；
+  metadata + 矩阵 env-read 登记）

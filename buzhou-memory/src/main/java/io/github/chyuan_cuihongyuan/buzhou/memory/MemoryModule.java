@@ -112,6 +112,10 @@ public final class MemoryModule {
             ivp.setAttachmentRenderer(attachmentRenderer);
             ivp.setSkillCatalogRenderer(skillCatalogRenderer);
             ivp.setEvictRatio(evictRatio);
+            // spec 66 §A / T283：前缀稳定注入序（默认关——稳定块前置最大化 KV-cache 前缀命中）
+            Object prefixStable = ymlConfig == null ? null : ymlConfig.get("prefix-stable-injection");
+            ivp.setPrefixStableInjection(Boolean.TRUE.equals(prefixStable)
+                    || (prefixStable instanceof String ps && Boolean.parseBoolean(ps.trim())));
             // impl-13 / T40：压缩前检查点与三档回滚
             ivp.setCheckpoints(new io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints(
                     stores.sessionStateStore()));
