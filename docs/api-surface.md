@@ -922,3 +922,10 @@
   截断；JDBC ORDER BY/LIMIT 下推、内存键迭代覆写、默认排序兜底；Kafka log 有序读
   借鉴——「时间编进键」结构的公共底座）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #40 新增公共面（spec 79 / impl-226，@since 1.0.0）
+
+- `WebhookOutbox` due-time 索引（键 `due.<零垫 nextAttemptAt>.<eventId>` 双写 +
+  `due()` 键序区间读最早到期 + 孤儿/陈旧自愈 + 构造期回填；Kafka log+index 借鉴；
+  spec 78 scanByKeyRange 的首个消费方——退避积压不再放大调度读）
+- 类型级快照：**零新增**（内部结构）；yml 键：**零新增**

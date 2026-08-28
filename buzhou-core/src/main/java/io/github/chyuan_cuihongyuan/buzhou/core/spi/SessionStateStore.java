@@ -50,7 +50,7 @@ public interface SessionStateStore {
      * 键前缀扫描（spec 33 §C / T114 / impl-89）：返回该会话键以 prefix 开头的条目。
      * 默认实现 = getAll 过滤（正确但全量读）；JDBC/Redis 覆写为下推扫描（键条件/集合
      * 侧匹配），供 outbox 等高频前缀键空间消全量读放大。prefix 不得含 LIKE/通配元字符
-     *（内部常量约定：webhook outbox 的 {@code outbox.} / {@code dead.}）。
+     *（内部常量约定：webhook outbox 的 {@code outbox.} / {@code dead.} / {@code due.}）。
      */
     default Map<String, StateEntry> scanByPrefix(String sessionId, String prefix) {
         Map<String, StateEntry> result = new java.util.LinkedHashMap<>();

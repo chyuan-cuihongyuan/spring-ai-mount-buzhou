@@ -186,6 +186,9 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 `countByPrefix` 下推——JDBC `COUNT(*)`（零行传输）、Redis 键集侧计数（零 HGETALL）；
 `scanByPrefix`（投递调度每拍）Redis 侧改**一次流水线批量值读**（N 次往返 → 1 次批量）。
 2k pending 量级哨兵入档（nightly perf 组）。容量仍为软上限（并发竞差 1 条级，语义不变）。
+**due 调度读也已消（effort #40 / spec 79）**：投递调度每拍的 `due()` 改走 due-time
+索引键序区间读（`scanByKeyRange`——spec 78 底座），退避积压不再放大读；孤儿/陈旧
+索引读路径自愈；limit 按到期序取（重退避者不被挤饿）；旧版数据构造期幂等回填。
 
 **健康端点新维度（effort #8）**：`webhook-outbox`（pending/deadLetters/delivered/dropped
 水位——恒 UP，告警走指标面）与 `session-index`（wired/hasRows 采样探测——未装配时该面

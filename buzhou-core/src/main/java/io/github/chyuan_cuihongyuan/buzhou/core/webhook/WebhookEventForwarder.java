@@ -154,7 +154,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
             Outcome outcome = attemptOnce(record);
             switch (outcome) {
                 case DELIVERED -> {
-                    outbox.delete(record.eventId());
+                    outbox.delete(record);
                     delivered.incrementAndGet();
                     BuzhouMetricsHolder.metrics().counter("buzhou.webhook.delivered");
                 }
@@ -173,8 +173,10 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
             return;
         }
         long backoff = jitteredBackoffMillis(attempts, jitterRandom);
-        outbox.update(new WebhookOutbox.OutboxRecord(record.eventId(), record.type(), record.body(),
-                record.seq(), attempts, System.currentTimeMillis() + backoff, record.createdAtEpochMs()));
+        // spec 79：索引键随迁需要旧记录（旧 due 键删除依据）
+        outbox.update(record, new WebhookOutbox.OutboxRecord(record.eventId(), record.type(),
+                record.body(), record.seq(), attempts,
+                System.currentTimeMillis() + backoff, record.createdAtEpochMs()));
     }
 
     private void markDead(WebhookOutbox.OutboxRecord record, String reason) {
