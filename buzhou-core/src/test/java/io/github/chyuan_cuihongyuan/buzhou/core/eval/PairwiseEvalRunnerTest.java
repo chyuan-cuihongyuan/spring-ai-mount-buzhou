@@ -227,4 +227,71 @@ class PairwiseEvalRunnerTest {
         assertThat(events.stream().anyMatch(e -> "ab.run.completed".equals(e.type()))).isTrue();
         assertThat(PairwiseEvalRunner.abRuns(stores.sessionStateStore(), null)).isEmpty();
     }
+
+    // ---- spec 76 §B / T306：A/B run 明细回读（verdict 面 + 前缀隔离） ----
+
+    @Test
+    void abRunDetailRoundTripsVerdicts() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        seedDataset(stores, 2);
+        // 第 2 项（输入 q02）B 路必挂——按输入内容判定，制造 1 win + 1 error 的确定混合
+        ScriptedChatModel brokenOnQ02 = new ScriptedChatModel() {
+            @Override
+            public ChatResponse call(Prompt prompt) {
+                String text = prompt.getInstructions().getLast().getText();
+                if (text.contains("q02")) {
+                    throw new IllegalStateException("B 路尾部异常");
+                }
+                return new EchoModel("plain-").call(prompt);
+            }
+        };
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(brokenOnQ02, stores, RuntimeConfig.defaults());
+        PairwiseEvalRunner persisting = new PairwiseEvalRunner(
+                new EvalDatasetStore(stores.sessionStateStore()),
+                new PairwiseJudge(new GoldContentJudge()), stores.sessionStateStore());
+        PairwiseEvalRunner.PairwiseEvalResult original = persisting.compare("ab", runtimeA, runtimeB, 1);
+
+        var detail = PairwiseEvalRunner.abRun(stores.sessionStateStore(), original.runId());
+        assertThat(detail).isPresent();
+        PairwiseEvalRunner.PairwiseEvalResult decoded = detail.orElseThrow();
+        assertThat(decoded.runId()).isEqualTo(original.runId());
+        assertThat(decoded.datasetName()).isEqualTo("ab");
+        assertThat(decoded.summary().winsA()).isEqualTo(original.summary().winsA());
+        assertThat(decoded.summary().errors()).isEqualTo(original.summary().errors());
+        assertThat(decoded.items()).hasSize(2);
+        // verdict 面等值：win 项 winner/reason 保留；error 项 error 文本保留
+        assertThat(decoded.items().get(0).verdict()).isNotNull();
+        assertThat(decoded.items().get(0).verdict().winner())
+                .isEqualTo(original.items().get(0).verdict().winner());
+        assertThat(decoded.items().get(0).verdict().reason())
+                .isEqualTo(original.items().get(0).verdict().reason());
+        assertThat(decoded.items().get(1).error()).contains("B 路执行异常");
+        // 输出原文不落盘（spec 74 决策）——回读为 null
+        assertThat(decoded.items()).allSatisfy(i -> {
+            assertThat(i.outputA()).isNull();
+            assertThat(i.outputB()).isNull();
+        });
+    }
+
+    @Test
+    void unknownRunIdYieldsEmptyAndPrefixesStayIsolated() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        seedDataset(stores, 1);
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(new EchoModel("plain-"), stores, RuntimeConfig.defaults());
+        // 落一条 eval run（eval. 前缀）+ 一条 ab run（ab. 前缀）
+        EvalDatasetStore ds = new EvalDatasetStore(stores.sessionStateStore());
+        EvalRunner evalRunner = new EvalRunner(runtimeA, ds, stores.sessionStateStore());
+        EvalRunResult evalResult = evalRunner.run("ab", BuiltInEvaluators.EXACT);
+        PairwiseEvalRunner persisting = new PairwiseEvalRunner(ds,
+                new PairwiseJudge(new GoldContentJudge()), stores.sessionStateStore());
+        PairwiseEvalRunner.PairwiseEvalResult abResult = persisting.compare("ab", runtimeA, runtimeB, 1);
+
+        assertThat(PairwiseEvalRunner.abRun(stores.sessionStateStore(), "no-such-run")).isEmpty();
+        // eval runId 不是 ab run：前缀隔离不误命中
+        assertThat(PairwiseEvalRunner.abRun(stores.sessionStateStore(), evalResult.runId())).isEmpty();
+        // ab runId 也不是 eval run
+        assertThat(new EvalQueryService(stores.sessionStateStore()).run(abResult.runId())).isEmpty();
+    }
 }

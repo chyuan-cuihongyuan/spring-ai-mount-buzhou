@@ -321,7 +321,8 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   LiteLLM model-compare 思想；3 参构造注入 state store 时 run 记录落
   `ab.run.<runId>`（`abRuns(store, dataset?)` 摘要查询，startedAt 倒序——spec 74）；
   完成即发 `ab.run.completed` 事件（total>0 门，与落盘正交——spec 75，
-  eval.run.completed 家族口径，webhook/看板订阅面同前缀过滤）。
+  eval.run.completed 家族口径，webhook/看板订阅面同前缀过滤）；
+  `abRun(store, runId)` 单 run 明细回读（verdict 面，spec 76）。
 
 - `PairwiseJudge.compare(input, outputA, outputB, rubric?)` → WINNER_A/WINNER_B/TIE：
   **双向评判消位置偏差**（(A,B) 与 (B,A) 各评一次，两方向同赢家才裁；翻转判

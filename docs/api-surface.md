@@ -900,3 +900,10 @@
 - `PairwiseEvalRunner.compare` 完成事件 `ab.run.completed`（eval.run.completed 家族
   扩展，LangSmith run 事件面借鉴；total>0 门；与落盘正交）
 - 类型级快照：**零新增**（行为面）；yml 键：**零新增**
+
+## effort #37 新增公共面（spec 76 / impl-223，@since 1.0.0）
+
+- `PairwiseEvalRunner.abRun(store, runId)` 单 run 明细回读（`Optional<
+  PairwiseEvalResult>`，verdict 面；LangSmith run detail API 借鉴；与 abRuns 共用
+  `mapToResult` 解码底座）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

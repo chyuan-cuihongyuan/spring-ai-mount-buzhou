@@ -190,6 +190,42 @@ public final class PairwiseEvalRunner {
         return map.get(key) instanceof Number n ? n.intValue() : 0;
     }
 
+    /**
+     * spec 76 §A / T305：单 A/B run 完整明细回读（verdict 面：winner/reason/error；
+     * 输出原文不落盘故回读为 null——spec 74 同决策）。未知/未落盘 runId = empty。
+     */
+    public static java.util.Optional<PairwiseEvalResult> abRun(SessionStateStore stateStore,
+            String runId) {
+        return stateStore.get(EvalDatasetStore.SESSION_ID, AB_RUN_PREFIX + runId)
+                .map(e -> mapToResult(EvalRunner.decodeMap(e.value())));
+    }
+
+    /** 落盘 map → 结果面（abRuns 摘要与 abRun 明细共用的解码底座）。 */
+    static PairwiseEvalResult mapToResult(Map<String, Object> map) {
+        List<PairwiseItemResult> items = new ArrayList<>();
+        for (Object row : (List<?>) map.getOrDefault("items", List.of())) {
+            Map<?, ?> m = (Map<?, ?>) row;
+            String error = (String) m.get("error");
+            PairwiseJudge.PairwiseVerdict verdict = error != null || m.get("winner") == null
+                    ? null
+                    : new PairwiseJudge.PairwiseVerdict(
+                            PairwiseJudge.Winner.valueOf(String.valueOf(m.get("winner"))),
+                            (String) m.get("reason"));
+            items.add(new PairwiseItemResult((String) m.get("itemId"), null, null,
+                    verdict, error));
+        }
+        Map<?, ?> s = (Map<?, ?>) map.get("summary");
+        return new PairwiseEvalResult(
+                String.valueOf(map.get("runId")),
+                String.valueOf(map.get("datasetName")),
+                Instant.parse(String.valueOf(map.get("startedAt"))),
+                Instant.parse(String.valueOf(map.get("finishedAt"))),
+                items,
+                new PairwiseSummary(num(s, "winsA"), num(s, "winsB"), num(s, "ties"),
+                        num(s, "errors"), num(s, "total"),
+                        dnum(s, "winRateA"), dnum(s, "winRateB")));
+    }
+
     private static double dnum(Map<?, ?> map, String key) {
         return map.get(key) instanceof Number n ? n.doubleValue() : 0.0;
     }
