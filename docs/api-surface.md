@@ -989,3 +989,10 @@
   answerRelevancy 针对性 0-10（跑题面）；S x/y 协议 + clamp + 协议失败走 error
   收敛 + 分母 0 从严；与二值 LlmJudgeEvaluator 互补的连续分面）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #49 新增公共面（spec 88 / impl-235，@since 1.0.0）
+
+- `EvalRunJsonlExporter`（eval run OLAP JSONL 导出：item+summary 行 + 汇总列反规范
+  化（单表免 join）+ 指纹列 + 诚实零行；与观测导出 spec 60/67 同族——质量-行为
+  联合分析补齐）
+- 类型级快照：+1；yml 键：**零新增**
