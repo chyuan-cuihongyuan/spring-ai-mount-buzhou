@@ -14,10 +14,12 @@ import io.lettuce.core.api.sync.RedisCommands;
  */
 final class RedisSync {
 
+    private final io.lettuce.core.api.StatefulRedisConnection<String, String> sharedConnection;
     private final RedisCommands<String, String> shared;
     private final ThreadLocal<RedisCommands<String, String>> txCommands = new ThreadLocal<>();
 
     RedisSync(StatefulRedisConnection<String, String> sharedConnection) {
+        this.sharedConnection = sharedConnection;
         this.shared = sharedConnection.sync();
     }
 
@@ -34,5 +36,34 @@ final class RedisSync {
     /** 事务结束：解除绑定。 */
     void clearTransaction() {
         txCommands.remove();
+    }
+
+    /**
+     * 批量 HGETALL（spec 58 §A / T259）：共享连接 async 流水线（N 次往返 → 一次批量
+     * 提交，响应按序收回）；事务绑定线程退化为逐键 sync（MULTI 队列内禁与 async 混用）。
+     */
+    java.util.List<java.util.Map<String, String>> batchHgetAll(java.util.List<String> keys) {
+        if (keys.isEmpty()) {
+            return java.util.List.of();
+        }
+        RedisCommands<String, String> tx = txCommands.get();
+        if (tx != null) {
+            return keys.stream().map(tx::hgetall).toList();
+        }
+        io.lettuce.core.api.async.RedisAsyncCommands<String, String> async = sharedConnection.async();
+        java.util.List<io.lettuce.core.RedisFuture<java.util.Map<String, String>>> futures =
+                new java.util.ArrayList<>(keys.size());
+        for (String k : keys) {
+            futures.add(async.hgetall(k));
+        }
+        java.util.List<java.util.Map<String, String>> results = new java.util.ArrayList<>(keys.size());
+        for (io.lettuce.core.RedisFuture<java.util.Map<String, String>> f : futures) {
+            try {
+                results.add(f.get(10, java.util.concurrent.TimeUnit.SECONDS));
+            } catch (Exception e) {
+                throw new IllegalStateException("Redis 批量 HGETALL 等待失败", e);
+            }
+        }
+        return results;
     }
 }

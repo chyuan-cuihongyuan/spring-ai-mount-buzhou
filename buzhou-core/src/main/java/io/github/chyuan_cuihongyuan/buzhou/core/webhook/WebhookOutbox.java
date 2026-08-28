@@ -123,8 +123,9 @@ final class WebhookOutbox {
                 toJson(record), "webhook-outbox", 0, null, Instant.now()));
     }
 
+    /** spec 58 §A / T259：容量计数走 countByPrefix 下推（append 热路径不再全量读值）。 */
     int pendingCount() {
-        return store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).size();
+        return store.countByPrefix(SESSION_ID, OUTBOX_PREFIX);
     }
 
     /** spec 37 §B / T133 / impl-106：死信迁回 outbox（attempts=0、立即可投递）；容量满则停。 */

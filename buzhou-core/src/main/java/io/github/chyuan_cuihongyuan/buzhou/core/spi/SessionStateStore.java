@@ -61,4 +61,13 @@ public interface SessionStateStore {
         });
         return result;
     }
+
+    /**
+     * 前缀键计数（spec 58 §A / T259）：容量检查等「只要数量不要值」的调用方用本方法，
+     * 避免全量值读放大。默认 = {@link #scanByPrefix} 取 size（正确但全量读）；
+     * JDBC 覆写 COUNT(*)（零行传输）、Redis 覆写键集侧计数（零值读）、内存覆写键迭代。
+     */
+    default int countByPrefix(String sessionId, String prefix) {
+        return scanByPrefix(sessionId, prefix).size();
+    }
 }

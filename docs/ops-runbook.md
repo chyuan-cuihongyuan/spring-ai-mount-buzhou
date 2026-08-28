@@ -164,6 +164,11 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 但多实例分发器可能**双投递**——at-least-once 契约内，消费端以 `X-Buzhou-Event-Id` 幂等
 去重是契约责任；内存 store 部署等价旧进程内暂存（重启丢在途）。
 
+**outbox 读放大已消（effort #18 / spec 58）**：入队容量检查（每次事件触发）走
+`countByPrefix` 下推——JDBC `COUNT(*)`（零行传输）、Redis 键集侧计数（零 HGETALL）；
+`scanByPrefix`（投递调度每拍）Redis 侧改**一次流水线批量值读**（N 次往返 → 1 次批量）。
+2k pending 量级哨兵入档（nightly perf 组）。容量仍为软上限（并发竞差 1 条级，语义不变）。
+
 **健康端点新维度（effort #8）**：`webhook-outbox`（pending/deadLetters/delivered/dropped
 水位——恒 UP，告警走指标面）与 `session-index`（wired/hasRows 采样探测——未装配时该面
 不注册，属预期降级非故障）。

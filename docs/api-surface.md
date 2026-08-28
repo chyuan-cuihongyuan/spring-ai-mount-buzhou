@@ -748,3 +748,10 @@
   （store.type=redis 且熔断启用即供；destroyMethod=close）
 - 类型级快照：+2（CircuitBreakerStateBackend / RedisCircuitBreakerStateBackend）；
   yml 键：**零新增**（复用 `buzhou.store.type` + `buzhou.resilience.circuit.enabled`）
+
+## effort #18 新增公共面（spec 58 / impl-202–203，@since 1.0.0）
+
+- `SessionStateStore.countByPrefix(sessionId, prefix)`（default 方法：scanByPrefix().size()
+  兼容第三方；JDBC COUNT(*) 下推 / Redis 键集侧计数 / 内存键迭代覆写）
+- 类型级快照：**零新增类型**；yml 键：**零新增**
+- `RedisSync.batchHgetAll`（包内：共享连接 async 流水线批量 HGETALL；事务绑定线程退化逐键）

@@ -107,6 +107,15 @@ public class JdbcSessionStateStore implements SessionStateStore {
         return result;
     }
 
+    /** spec 58 §A / T259：COUNT 下推（容量检查零行传输）。 */
+    @Override
+    public int countByPrefix(String sessionId, String prefix) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM buzhou_session_state WHERE session_id = ? AND state_key LIKE ?",
+                Integer.class, sessionId, prefix + "%");
+        return count == null ? 0 : count;
+    }
+
     @Override
     public void delete(String sessionId, String key) {
         jdbc.update("DELETE FROM buzhou_session_state WHERE session_id = ? AND state_key = ?",

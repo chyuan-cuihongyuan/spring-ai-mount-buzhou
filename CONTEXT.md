@@ -61,6 +61,7 @@
 ## 数据生命周期与可移植（effort #6）
 
 - **持久化 Outbox** — 事件外发前的持久暂存队列（state store 合成会话）：跨重启不丢、记录级退避、死信隔离；at-least-once + 幂等键契约。
+- **前缀计数下推（countByPrefix）** — 「只要数量不要值」的键空间计数面：JDBC COUNT(*) / Redis 键集侧计数 / 内存键迭代——容量检查等热路径零值读放大。
 - **冷却自适应退避** — 熔断连续跳闸驱动的冷却指数放缓（×2^(trips-1) 封顶 backoff-cap）；探测成功即复位。
 - **证据引用计数（Evidence Refcount）** — fork 对源会话 spill 证据的引用登记：源删除被引用证据保留，最后引用者关闭才物理删（EVIDENCE_GONE 容错悬垂读）。
 - **媒体引用（MediaRef）** — 多模态输入的 URI 引用形态（mimeType + uri）；只随最近一条带媒体消息重发，历史轮降级文本标记。

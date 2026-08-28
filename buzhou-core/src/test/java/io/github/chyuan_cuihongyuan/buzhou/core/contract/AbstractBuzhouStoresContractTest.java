@@ -134,6 +134,28 @@ public abstract class AbstractBuzhouStoresContractTest {
         assertThat(store.getAll(sessionId)).containsKey("quota.turns");
     }
 
+    /** spec 58 §A / T259：前缀计数契约（三栈同测——空集 0 / 命中计数 / prefix 边界不误计 / 与扫描一致）。 */
+    @Test
+    void stateStoreCountByPrefixMatchesScan() {
+        String sessionId = "contract-count-" + UUID.randomUUID();
+        var store = stores().sessionStateStore();
+
+        assertThat(store.countByPrefix(sessionId, "outbox.")).isZero(); // 空键空间
+
+        for (int i = 1; i <= 5; i++) {
+            store.put(sessionId, new StateEntry("outbox.e" + i, "v" + i, "webhook-outbox",
+                    0, null, Instant.now()));
+        }
+        store.put(sessionId, new StateEntry("dead.e1", "v", "webhook-outbox", 0, null, Instant.now()));
+        store.put(sessionId, new StateEntry("meta.initialized", "1", "webhook-outbox", 0, null, Instant.now()));
+
+        assertThat(store.countByPrefix(sessionId, "outbox.")).isEqualTo(5); // 只计命中前缀
+        assertThat(store.countByPrefix(sessionId, "dead.")).isEqualTo(1);
+        assertThat(store.countByPrefix(sessionId, "out")).isEqualTo(5); // 前缀边界：dead./meta 不误计
+        assertThat(store.countByPrefix(sessionId, "outbox.e")).isEqualTo(5);
+        assertThat(store.countByPrefix(sessionId, "outbox.")).isEqualTo(store.scanByPrefix(sessionId, "outbox.").size());
+    }
+
     @Test
     void leaseMutualExclusionStealRenewRelease() {
         String sessionId = "contract-lease-" + UUID.randomUUID();

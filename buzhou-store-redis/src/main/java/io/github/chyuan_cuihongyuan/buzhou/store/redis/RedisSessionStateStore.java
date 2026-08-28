@@ -134,21 +134,37 @@ public class RedisSessionStateStore implements SessionStateStore {
         return Optional.ofNullable(fromHash(fields));
     }
 
-    /** spec 33 §C / T114：键集合侧前缀过滤后按需 hgetall（免全量条目读）。 */
+    /** spec 33 §C / T114：键集合侧前缀过滤后批量 HGETALL（spec 58 / T259：N 次往返 → 一次流水线）。 */
     @Override
     public Map<String, StateEntry> scanByPrefix(String sessionId, String prefix) {
-        Map<String, StateEntry> result = new java.util.LinkedHashMap<>();
-        var c = sync.commands();
-        for (String k : c.smembers(keys.stateKeys(sessionId))) {
+        java.util.List<String> matched = new java.util.ArrayList<>();
+        for (String k : sync.commands().smembers(keys.stateKeys(sessionId))) {
             if (k.startsWith(prefix)) {
-                Map<String, String> fields = c.hgetall(keys.stateEntry(sessionId, k));
-                StateEntry entry = fromHash(fields);
-                if (entry != null) {
-                    result.put(k, entry);
-                }
+                matched.add(k);
+            }
+        }
+        Map<String, StateEntry> result = new LinkedHashMap<>();
+        java.util.List<Map<String, String>> fields = sync.batchHgetAll(
+                matched.stream().map(k -> keys.stateEntry(sessionId, k)).toList());
+        for (int i = 0; i < matched.size(); i++) {
+            StateEntry entry = fromHash(fields.get(i));
+            if (entry != null) {
+                result.put(matched.get(i), entry);
             }
         }
         return result;
+    }
+
+    /** spec 58 §A / T259：键集侧计数（容量检查零值读、零 HGETALL 往返）。 */
+    @Override
+    public int countByPrefix(String sessionId, String prefix) {
+        int count = 0;
+        for (String k : sync.commands().smembers(keys.stateKeys(sessionId))) {
+            if (k.startsWith(prefix)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override

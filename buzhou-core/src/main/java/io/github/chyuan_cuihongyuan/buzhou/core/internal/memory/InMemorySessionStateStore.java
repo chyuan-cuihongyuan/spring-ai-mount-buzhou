@@ -90,6 +90,22 @@ public class InMemorySessionStateStore implements SessionStateStore {
         bySession.remove(sessionId);
     }
 
+    /** spec 58 §A / T259：键迭代计数（值零读）。 */
+    @Override
+    public int countByPrefix(String sessionId, String prefix) {
+        ConcurrentHashMap<String, StateEntry> session = bySession.get(sessionId);
+        if (session == null) {
+            return 0;
+        }
+        int count = 0;
+        for (String k : session.keySet()) {
+            if (k.startsWith(prefix)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /** impl-36：在册会话数（测试与运维可观测）。 */
     int sessionCount() {
         return bySession.size();
