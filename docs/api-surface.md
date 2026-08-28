@@ -996,3 +996,10 @@
   化（单表免 join）+ 指纹列 + 诚实零行；与观测导出 spec 60/67 同族——质量-行为
   联合分析补齐）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #50 新增公共面（spec 89 / impl-236，@since 1.0.0）
+
+- `RagasEvaluators.gEval(judge, dimension, rubric[, threshold])`（G-Eval 自定义维度
+  打分：维度名进 detail 前缀（OLAP 分组锚点）+ BOTH 参照系（输入与黄金答案齐进
+  prompt）+ 空维度名 fail-fast；DeepEval G-Eval 借鉴——评分标准是数据不是代码）
+- 类型级快照：**零新增**（方法级 + Reference 枚举内部化）；yml 键：**零新增**

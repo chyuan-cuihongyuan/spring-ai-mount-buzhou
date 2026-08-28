@@ -96,4 +96,27 @@ class RagasEvaluatorsTest {
         assertThat(faithfulnessPrompt).contains(expected).doesNotContain("【用户输入】");
         assertThat(relevancyPrompt).contains("如何重置密码？").contains("【用户输入】");
     }
+
+    @Test
+    void gEvalScoresCustomDimensionWithBothReferences() {
+        java.util.List<String> seen = new java.util.ArrayList<>();
+        ChatModel capturing = prompt -> {
+            seen.add(prompt.getInstructions().get(1).getText());
+            return new ChatResponse(List.of(new Generation(new AssistantMessage("S 7/10 还行"))));
+        };
+
+        EvalScore result = RagasEvaluators.gEval(capturing, "合规性",
+                "不得出现承诺收益的表述；风险提示完整", 0.6)
+                .evaluate("收益可能翻倍", "稳健表述", item());
+
+        assertThat(result.passed()).isTrue(); // 0.7 >= 0.6
+        assertThat(result.detail()).startsWith("[合规性] score=0.700");
+        // BOTH 参照系：输入与黄金答案都进 prompt
+        String prompt = seen.getFirst();
+        assertThat(prompt).contains("维度：合规性").contains("收益可能翻倍")
+                .contains("稳健表述").contains("如何重置密码？");
+
+        assertThatThrownBy(() -> RagasEvaluators.gEval(capturing, " ", "x"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }
