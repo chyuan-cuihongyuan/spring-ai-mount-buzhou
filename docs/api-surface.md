@@ -882,3 +882,9 @@
 - `SessionTrajectoryImporter`（会话轨迹→评估数据集回流：完整轮入集 + 溯源去重 +
   三态计数；LangSmith session-to-dataset 借鉴；golden 筛选归调用方）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #33 新增公共面（spec 73 / impl-219，@since 1.0.0）
+
+- `SkillSearchTool` 3 参构造（SemanticSkillRanker 注入：命中语义排序 + 零命中近邻
+  提示 3 条；与目录注入共享 ranker/向量缓存；无 ranker 行为零变化）
+- 类型级快照：**零新增**；yml 键：**零新增**（复用 semantic-ranking.enabled）

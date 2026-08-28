@@ -69,7 +69,8 @@ public final class SkillModule {
         this.catalogRenderer = new SkillCatalogRendererImpl(bindingIndex, registry, ranker,
                 builder.catalogMaxEntries);
         this.loadSkillTool = new LoadSkillTool(registry, bindingIndex);
-        this.skillSearchTool = new SkillSearchTool(registry, bindingIndex);
+        // spec 73 §A / T297：检索共享同一 ranker（命中语义排序 + 零命中近邻提示）
+        this.skillSearchTool = new SkillSearchTool(registry, bindingIndex, ranker);
         this.resourceResolver = new SkillResourceResolverImpl(registry, bindingIndex);
         this.adminApi = new SkillAdminApi(dbStore, classpathSkills, builder.bindingStore,
                 this.registry::invalidateCatalogCache);

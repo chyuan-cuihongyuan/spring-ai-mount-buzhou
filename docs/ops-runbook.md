@@ -154,6 +154,10 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 饿死）；并列保配置序。运维须知：排序只改「先试谁」，金丝雀/限流/熔断跳过语义不变；
 EMA 进程级（重启清零冷启动）；无备模型时开启零效果。
 
+**skill_search 语义面（effort #33 / spec 73）**：`semantic-ranking.enabled=true` 时检索
+同样受益——命中集按 query 相似度排序（20 条上限内保最相关）；零子串命中给语义最近
+3 条提示（无阈值——判别力归嵌入模型，与目录注入共享同一 ranker 与向量缓存）。
+
 **前缀稳定注入序（effort #26 / spec 66）**：`buzhou.memory.prefix-stable-injection=true`
 （默认关）时注入块序切换 catalog→summary→facts——技能清单（跨轮最稳定）前置，
 最大化 provider KV-cache 前缀命中（Anthropic prompt caching 最佳实践）。诚实边界：
