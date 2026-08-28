@@ -973,3 +973,12 @@
 - `ErrorSignaturesHealth`（`/actuator/buzhou` 快照的 error-signatures 段：恒 UP +
   top-5 错误族有界详情 + distinct 数；#44 fog 毕业生——进程内 top 表接健康面）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #47 新增公共面（spec 86 / impl-233，@since 1.0.0）
+
+- `guard/pii` 三件套（Presidio 规则式子集借鉴）：`PiiType`（5 型）+
+  `PiiDetector`（GB 11643 校验位/Luhn/IPv4 段验证收窄误报 + 重叠去重）+
+  `PiiRedactionHook`（afterTool `[PII:TYPE]` 占位符改写，order 70 先于 spotlight、
+  幂等 + 计数器 tag type）；装配 `GuardModule.builder().piiRedaction(types?)` /
+  `buzhou.guard.pii.enabled`（默认关）+ `types`
+- 类型级快照：+3；yml 键：+2（buzhou.guard.pii.enabled/types，默认关）

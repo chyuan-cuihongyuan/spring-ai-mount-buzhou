@@ -234,6 +234,9 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHo
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.hook.GuardAuthApi
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.inject.CanaryGuardHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.inject.SpotlightHook
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiDetector
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.policy.EmbeddedPolicyEngine
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyDecision
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyEngine

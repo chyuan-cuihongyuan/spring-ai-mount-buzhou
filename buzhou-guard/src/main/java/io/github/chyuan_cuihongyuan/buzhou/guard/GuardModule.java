@@ -64,6 +64,13 @@ public final class GuardModule {
         if (builder.spotlighting) {
             h.add(new SpotlightHook());
         }
+        // spec 86 §A / T329：PII 脱敏先于 spotlight（order 70 < 80——先脱敏原文再包裹）
+        if (builder.piiRedaction) {
+            h.add(builder.piiTypes == null
+                    ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook()
+                    : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
+                            builder.piiTypes));
+        }
         // impl-21 / T49：FIDES 最小 taint（读侧打标 + 写门校验；默认关，按机制开关）
         if (builder.taintTracking) {
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintTrackingHook(
@@ -125,6 +132,9 @@ public final class GuardModule {
         private double canarySimilarityThreshold = 0.6;
         // impl-21 / T49：FIDES 最小 taint 信息流控制（默认关）
         private boolean taintTracking = false;
+        // spec 86 §A / T329：工具输出 PII 脱敏（默认关；null 类型集 = 全类型）
+        private boolean piiRedaction = false;
+        private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> piiTypes = null;
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
 
@@ -157,6 +167,19 @@ public final class GuardModule {
         /** 开启 FIDES 最小 taint 信息流控制（读侧打标 + 写门：untrusted 上下文写侧调用转 HITL）。 */
         public Builder taintTracking() {
             this.taintTracking = true;
+            return this;
+        }
+
+        /** 开启工具输出 PII 脱敏（全类型；spec 86 / T329，Presidio 借鉴）。 */
+        public Builder piiRedaction() {
+            return piiRedaction(null);
+        }
+
+        /** 开启 PII 脱敏并指定类型子集（null/空 = 全类型）。 */
+        public Builder piiRedaction(
+                java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> types) {
+            this.piiRedaction = true;
+            this.piiTypes = types;
             return this;
         }
 
@@ -238,6 +261,29 @@ public final class GuardModule {
             if (canaryVal instanceof Boolean b2) {
                 this.canaryGuard = b2;
             }
+            // spec 86 §A / T329：pii.enabled（默认 false）+ pii.types（List/CSV，可选）
+            Object piiVal = ymlConfig.get("pii");
+            if (piiVal instanceof Map<?, ?> piiMap) {
+                Object piiEnabled = piiMap.get("enabled");
+                if (piiEnabled instanceof Boolean b3) {
+                    this.piiRedaction = b3;
+                }
+                Object typesVal = piiMap.get("types");
+                java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> types =
+                        new java.util.LinkedHashSet<>();
+                if (typesVal instanceof List<?> typeList) {
+                    for (Object t : typeList) {
+                        parsePiiType(String.valueOf(t), types);
+                    }
+                } else if (typesVal instanceof String csv) {
+                    for (String t : csv.split(",")) {
+                        parsePiiType(t.trim(), types);
+                    }
+                }
+                if (!types.isEmpty()) {
+                    this.piiTypes = types;
+                }
+            }
             Object tokenVal = ymlConfig.get("canary-token");
             if (tokenVal instanceof String s2 && !s2.isBlank()) {
                 this.canaryToken = s2;
@@ -253,9 +299,18 @@ public final class GuardModule {
             return this;
         }
 
+        private static void parsePiiType(String raw,
+                java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> into) {
+            try {
+                into.add(io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType.valueOf(
+                        raw.trim().toUpperCase(java.util.Locale.ROOT)));
+            } catch (IllegalArgumentException ignored) {
+                // 未知类型忽略（有界枚举纪律——fail-soft，装配日志面另议）
+            }
+        }
+
         @SuppressWarnings("unchecked")
-        private void parseToolEntry(Map<String, Object> toolMap) {
-            String name = stringOf(toolMap.get("name"));
+        private void parseToolEntry(Map<String, Object> toolMap) {            String name = stringOf(toolMap.get("name"));
             if (name == null || name.isBlank()) {
                 return;
             }
