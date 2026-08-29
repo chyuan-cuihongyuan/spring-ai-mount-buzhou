@@ -1466,3 +1466,9 @@
   双口径列 microUsd 精确/usd 6 位小数人读 + export→reset 每窗口一份 + 空表
   零行诚实——导出族第八员，spec 174 fog 收口）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #139 新增公共面（spec 190 / impl-306，@since 1.0.0）
+
+- `health/ModelCostHealth`（模型成本健康面：恒 UP 观测 + distinct/total 双
+  口径 + top-8 烧钱行有界——台账/JSONL/健康段三面齐）
+- 类型级快照：+1；yml 键：**零新增**
