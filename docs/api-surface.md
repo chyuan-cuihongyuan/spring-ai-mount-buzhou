@@ -1438,3 +1438,10 @@
   不足即拒 + denied 风暴压制证据面 + 冷启动底数 + refill 逃逸——Finagle
   retry budget 借鉴，防重试风暴）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #135 新增公共面（spec 182 / impl-302，@since 1.0.0）
+
+- `retention/AdvisoryFileLock`（文件咨询锁：createNewFile 原子抢锁 + 仅持有者
+  释放他者拒 + stale 陈旧判定 + forceRelease 处置——多实例单跑通用底座，
+  ShedLock 借鉴，spec127/162「多实例节流」fog 起步）
+- 类型级快照：+1；yml 键：**零新增**
