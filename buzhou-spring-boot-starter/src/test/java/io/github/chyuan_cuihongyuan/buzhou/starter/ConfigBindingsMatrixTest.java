@@ -90,6 +90,10 @@ class ConfigBindingsMatrixTest {
             "buzhou.bulkhead.enabled", "buzhou.bulkhead.acquire-timeout",
             // effort#51 / spec 90 / T344：语义漂移触发（fromYml env 直读路径）
             "buzhou.memory.semantic-drift", "buzhou.memory.semantic-drift-threshold",
+            // effort#52/#69 / spec 91/107：配置体检（@ConditionalOnProperty env 直读）
+            "buzhou.config-doctor.enabled",
+            // effort#68 / spec 106：输入侧 PII（guard fromYml env 直读）
+            "buzhou.guard.pii.input-redaction",
             "buzhou.tools.run-command.max-output-bytes",
             "buzhou.leak.level", "buzhou.leak.lease-age-threshold",
             "buzhou.mcp.grace-period", "buzhou.mcp.force-close-timeout", "buzhou.mcp.poll-interval",
