@@ -67,16 +67,28 @@ public final class GuardModule {
         // spec 86 §A / T329：PII 脱敏先于 spotlight（order 70 < 80——先脱敏原文再包裹）
         if (builder.piiRedaction) {
             h.add(builder.piiTypes == null
-                    ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook()
-                    : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                            builder.piiTypes));
+                    ? (builder.customPiiRules == null
+                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook()
+                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
+                                    null, builder.customPiiRules))
+                    : (builder.customPiiRules == null
+                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
+                                    builder.piiTypes)
+                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
+                                    builder.piiTypes, builder.customPiiRules)));
         }
         // spec 106 §A / T389：用户输入脱敏（beforeTurn replaceInput——与输出侧正交）
         if (builder.piiInputRedaction) {
             h.add(builder.piiTypes == null
-                    ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook()
-                    : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                            builder.piiTypes));
+                    ? (builder.customPiiRules == null
+                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook()
+                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
+                                    null, builder.customPiiRules))
+                    : (builder.customPiiRules == null
+                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
+                                    builder.piiTypes)
+                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
+                                    builder.piiTypes, builder.customPiiRules)));
         }
         // impl-21 / T49：FIDES 最小 taint（读侧打标 + 写门校验；默认关，按机制开关）
         if (builder.taintTracking) {
@@ -144,6 +156,8 @@ public final class GuardModule {
         // spec 106 §A / T389：用户输入 PII 脱敏（默认关；与输出侧正交，types 复用）
         private boolean piiInputRedaction = false;
         private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> piiTypes = null;
+        // spec 129 / T475：自定义 PII 规则（yml/程序面；null = 无叠加）
+        private io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules customPiiRules;
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
 
@@ -195,6 +209,13 @@ public final class GuardModule {
         /** 开启用户输入 PII 脱敏（类型集沿用当前 piiTypes；未设 = 全类型；spec 106 / T389）。 */
         public Builder piiInputRedaction() {
             this.piiInputRedaction = true;
+            return this;
+        }
+
+        /** spec 129 / T475：自定义 PII 规则（输出/输入两侧共用叠加；null = 清除）。 */
+        public Builder customPiiRules(
+                io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules rules) {
+            this.customPiiRules = rules;
             return this;
         }
 
@@ -303,6 +324,11 @@ public final class GuardModule {
                 if (!types.isEmpty()) {
                     this.piiTypes = types;
                 }
+                // spec 129 / T475：custom-rules 声明式规则（List<{name,pattern}> 或 name→pattern map）
+                Object rulesVal = piiMap.get("custom-rules");
+                if (rulesVal != null) {
+                    this.customPiiRules = parseCustomPiiRules(rulesVal);
+                }
             }
             Object tokenVal = ymlConfig.get("canary-token");
             if (tokenVal instanceof String s2 && !s2.isBlank()) {
@@ -327,6 +353,38 @@ public final class GuardModule {
             } catch (IllegalArgumentException ignored) {
                 // 未知类型忽略（有界枚举纪律——fail-soft，装配日志面另议）
             }
+        }
+
+        /**
+         * spec 129 / T475：解析 custom-rules（List of {name, pattern} 或 name→pattern
+         * Map）——非法名/正则装配期 fail-fast（Rule 构造器与 Pattern.compile 原样上抛）。
+         */
+        private static io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules
+        parseCustomPiiRules(Object rulesVal) {
+            List<io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules.Rule> rules =
+                    new ArrayList<>();
+            if (rulesVal instanceof List<?> ruleList) {
+                for (Object item : ruleList) {
+                    if (item instanceof Map<?, ?> ruleMap) {
+                        String name = stringOf(ruleMap.get("name"));
+                        String pattern = stringOf(ruleMap.get("pattern"));
+                        if (name != null && pattern != null) {
+                            rules.add(io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules.Rule
+                                    .of(name, pattern));
+                        }
+                    }
+                }
+            } else if (rulesVal instanceof Map<?, ?> nameToPattern) {
+                for (Map.Entry<?, ?> entry : nameToPattern.entrySet()) {
+                    String name = stringOf(entry.getKey());
+                    String pattern = stringOf(entry.getValue());
+                    if (name != null && pattern != null) {
+                        rules.add(io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules.Rule
+                                .of(name, pattern));
+                    }
+                }
+            }
+            return new io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules(rules);
         }
 
         @SuppressWarnings("unchecked")

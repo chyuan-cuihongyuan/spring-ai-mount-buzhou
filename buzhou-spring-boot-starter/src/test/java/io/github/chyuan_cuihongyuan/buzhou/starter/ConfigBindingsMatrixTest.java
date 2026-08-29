@@ -108,7 +108,8 @@ class ConfigBindingsMatrixTest {
             "buzhou.bulkhead.agents", // Map<String,Integer>：Binder 结构化面（spec 84 / T324）
             "buzhou.webhook.include-types", // List<String>：Binder 结构化面（spec 105 / T390）
             "buzhou.guard.audit.signing.keys", // List<KeyFile>：需 PEM 文件，结构化装配面
-            "buzhou.guard.audit.signing.key-dir"); // 目录扫描副作用键（防真扫）
+            "buzhou.guard.audit.signing.key-dir", // 目录扫描副作用键（防真扫）
+            "buzhou.guard.pii.custom-rules"); // List<Map>：guard fromYml 结构化面（spec 129 / T475）
 
     /** 无默认值键的样例（其余按 defaultValue 或类型默认）。 */
     private static final Map<String, String> SAMPLE_OVERRIDES = Map.ofEntries(

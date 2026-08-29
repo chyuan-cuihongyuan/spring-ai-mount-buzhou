@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,15 +24,22 @@ public class PiiInputRedactionHook implements BuzhouHook {
 
     private final PiiDetector detector;
     private final Set<PiiType> enabledTypes;
+    private final CustomPiiRules customRules;
 
     public PiiInputRedactionHook() {
         this(EnumSet.allOf(PiiType.class));
     }
 
     public PiiInputRedactionHook(Set<PiiType> enabledTypes) {
+        this(enabledTypes, null);
+    }
+
+    /** spec 129 / T475：输入侧叠加自定义规则（镜像输出侧三参构造器；null = 无叠加）。 */
+    public PiiInputRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules) {
         this.detector = new PiiDetector();
         this.enabledTypes = EnumSet.copyOf(enabledTypes == null || enabledTypes.isEmpty()
                 ? EnumSet.allOf(PiiType.class) : enabledTypes);
+        this.customRules = customRules == null ? new CustomPiiRules(List.of()) : customRules;
     }
 
     @Override
@@ -51,6 +59,10 @@ public class PiiInputRedactionHook implements BuzhouHook {
             return HookResult.CONTINUE; // 幂等：占位符已是脱敏产物
         }
         String redacted = detector.redact(input, enabledTypes);
+        // spec 129 / T475：自定义规则叠加（内置结果之上继续脱领域格式——幂等由规则特异性保证）
+        if (!customRules.isEmpty()) {
+            redacted = customRules.redact(redacted);
+        }
         if (redacted == input) {
             return HookResult.CONTINUE; // 无命中零改写（引用等）
         }
