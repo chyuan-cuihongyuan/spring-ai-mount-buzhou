@@ -1232,3 +1232,10 @@
   在途 + 部分结果不可见 + 每任务去向入异常；`SUPERSTEP_FAILED` 新错误码——
   与 B 侧 harness 原子前检同轮 A/B 分工，MAP 登记）
 - 类型级快照：+1（concurrent 包静态工具类）；yml 键：**零新增**
+
+## effort #88 新增公共面（spec 124 / impl-274，@since 1.0.0）
+
+- `budget/VirtualKeys`（虚拟 key 配额：per-key token 硬顶 + AtomicLong CAS 原子
+  扣减越限整体拒绝 + usage/topUsage 井读 + reset 窗口清零——LiteLLM virtual-key
+  budgets 借鉴，未注册 key 直通）
+- 类型级快照：+1（budget 包 final 类 + KeyUsage record）；yml 键：**零新增**
