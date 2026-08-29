@@ -1003,3 +1003,12 @@
   打分：维度名进 detail 前缀（OLAP 分组锚点）+ BOTH 参照系（输入与黄金答案齐进
   prompt）+ 空维度名 fail-fast；DeepEval G-Eval 借鉴——评分标准是数据不是代码）
 - 类型级快照：**零新增**（方法级 + Reference 枚举内部化）；yml 键：**零新增**
+
+## effort #51 新增公共面（spec 90 / impl-237，@since 1.0.0）
+
+- `memory/compact` 漂移双件套：`SemanticDriftDetector`（函数接口——词面/嵌入/
+  模型实现自由）+ `LexicalDriftDetector`（字符 bigram Jaccard 默认实现，阈值 0.15
+  保守档）；InjectionViewProcessor 边界压缩并联 driftTrigger（与积压判据同管线）；
+  MemoryModule 键 `buzhou.memory.semantic-drift`（默认关）+ `-threshold`；
+  Letta 语义触发压缩借鉴——spec 70 双信号化（计数+漂移）
+- 类型级快照：+2；yml 键：+2（buzhou.memory.semantic-drift/-threshold，默认关）

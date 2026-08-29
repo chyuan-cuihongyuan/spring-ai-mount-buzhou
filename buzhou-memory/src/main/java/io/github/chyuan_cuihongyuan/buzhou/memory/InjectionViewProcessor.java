@@ -66,6 +66,15 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         this.boundaryCompactBacklog = boundaryCompactBacklog;
     }
 
+    /** spec 90 §A / T343：语义漂移触发边界压缩（null=关——默认零变化）。 */
+    public void setSemanticDriftDetector(
+            io.github.chyuan_cuihongyuan.buzhou.memory.compact.SemanticDriftDetector detector) {
+        this.semanticDriftDetector = detector;
+    }
+
+    /** spec 90 §A / T343：漂移检测器（null=关；有摘要基准且话题漂移时提前边界压缩）。 */
+    private io.github.chyuan_cuihongyuan.buzhou.memory.compact.SemanticDriftDetector semanticDriftDetector;
+
     /** spec 70 §A / T291：边界机会压缩积压阈值（0=关）。 */
     private int boundaryCompactBacklog = 0;
 
@@ -243,7 +252,12 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                             || !backlogPrevious.summarizedMessageIds().contains(m.id()))
                     .count() >= boundaryCompactBacklog;
         }
-        if (!budget.compactionNeeded() && !backlogTrigger) {
+        // spec 90 §A / T343：语义漂移触发（与积压触发同路径不同判据）——话题已漂移时
+        // 旧话题轮次近期大概率不再被引用，是比积压计数更贴近「自然边界」的提前时机；
+        // 需有摘要基准（previous 非空）才可比对；无待摘消息时走下游空折入自然无害。
+        boolean driftTrigger = semanticDriftDetector != null && previous != null
+                && semanticDriftDetector.drifted(latestUserText(stored), previous.render());
+        if (!budget.compactionNeeded() && !backlogTrigger && !driftTrigger) {
             return injectSummaryOnly(compacted, previous, factsBlock, catalogBlock,
                     currentTurn, sessionId, summaryTokenBudget);
         }

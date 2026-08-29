@@ -186,6 +186,18 @@
       "type": "java.time.Duration",
       "defaultValue": "0s",
       "description": "spec 84 / T323：舱满等待空位时长（默认 0s = fail-fast 抛 QUOTA_EXCEEDED）。"
+    },
+    {
+      "name": "buzhou.memory.semantic-drift",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "spec 90 / T343：语义漂移触发边界压缩开关（默认关——零变化；词面 bigram Jaccard 检测，可注入 embedding 实现）。"
+    },
+    {
+      "name": "buzhou.memory.semantic-drift-threshold",
+      "type": "java.lang.Double",
+      "defaultValue": 0.15,
+      "description": "spec 90 / T343：漂移相似度阈值（低于判漂移；0=永不判漂移；保守档防误触发）。"
     }
   ],
   "hints": [

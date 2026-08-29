@@ -284,10 +284,12 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheck
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompletedTurnDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultCompletedTurnDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultMicroCompactor
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.LexicalDriftDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionPolicy
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactor
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.SemanticDriftDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.TurnSpan
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.config.BuzhouMemoryAutoConfiguration
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.config.BuzhouMemoryHealthAutoConfiguration

@@ -123,6 +123,23 @@ public final class MemoryModule {
             } else if (backlog instanceof String bs && !bs.isBlank()) {
                 ivp.setBoundaryCompactBacklog(Integer.parseInt(bs.trim()));
             }
+            // spec 90 §A / T343：语义漂移触发（semantic-drift=true 开 + 可调阈值；默认关）
+            Object driftEnabled = ymlConfig == null ? null : ymlConfig.get("semantic-drift");
+            boolean driftOn = Boolean.TRUE.equals(driftEnabled)
+                    || (driftEnabled instanceof String ds && Boolean.parseBoolean(ds.trim()));
+            if (driftOn) {
+                Object driftThreshold = ymlConfig.get("semantic-drift-threshold");
+                double threshold = io.github.chyuan_cuihongyuan.buzhou.memory.compact
+                        .LexicalDriftDetector.DEFAULT_THRESHOLD;
+                if (driftThreshold instanceof Number tn) {
+                    threshold = tn.doubleValue();
+                } else if (driftThreshold instanceof String ts && !ts.isBlank()) {
+                    threshold = Double.parseDouble(ts.trim());
+                }
+                ivp.setSemanticDriftDetector(
+                        new io.github.chyuan_cuihongyuan.buzhou.memory.compact.LexicalDriftDetector(
+                                threshold));
+            }
             // impl-13 / T40：压缩前检查点与三档回滚
             ivp.setCheckpoints(new io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints(
                     stores.sessionStateStore()));
