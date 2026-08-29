@@ -245,6 +245,47 @@ public final class ObservabilityJsonlExporter {
         return (sessionId.hashCode() & Integer.MAX_VALUE) % 100 < policy.baseRatePercent();
     }
 
+    /**
+     * 导出清单（spec 146 §A / T471，git pack 索引目录思想）：一行一会话的
+     * manifest——sessionId/firstActivityAt/lastActivityAt/turnCount/spanCount/
+     * eventCount。审计与增量核对「这份 JSONL 里有什么」不必解析整个数据体；
+     * eventCount 现算（Summary 无此列——清单与数据体的核对正是它的用途）。
+     */
+    public int exportManifest(java.io.Writer out) throws java.io.IOException {
+        int sessions = 0;
+        String cursor = null;
+        int seen = 0;
+        try (com.fasterxml.jackson.core.JsonGenerator gen = MAPPER.getFactory()
+                .createGenerator(out)) {
+            while (true) {
+                List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary> page =
+                        store.listSessionSummaries(cursor, SESSION_PAGE_SIZE);
+                if (page.isEmpty()) {
+                    break;
+                }
+                for (io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary summary : page) {
+                    seen++;
+                    gen.writeStartObject();
+                    gen.writeStringField("sessionId", summary.sessionId());
+                    gen.writeStringField("firstActivityAt", iso(summary.firstActivityAt()));
+                    gen.writeStringField("lastActivityAt", iso(summary.lastActivityAt()));
+                    gen.writeNumberField("turnCount", summary.turnCount());
+                    gen.writeNumberField("spanCount", summary.spanCount());
+                    gen.writeNumberField("eventCount",
+                            store.eventsOfSession(summary.sessionId()).size());
+                    gen.writeEndObject();
+                    gen.writeRaw('\n');
+                    sessions++;
+                }
+                if (page.size() < SESSION_PAGE_SIZE) {
+                    break;
+                }
+                cursor = String.valueOf(seen);
+            }
+        }
+        return sessions;
+    }
+
     private JsonlExportResult export(Writer out, Instant since) throws IOException {
         int sessions = 0;
         long spans = 0;

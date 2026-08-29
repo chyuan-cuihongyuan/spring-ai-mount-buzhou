@@ -1314,3 +1314,10 @@
   PiiRedactionHook 双点接线自定义补盲 + 自定义名 64 封顶折 __overflow__ +
   reset 窗口清零——Presidio anonymizer 统计口径借鉴）
 - 类型级快照：+1（buzhou-guard + Hit record）；yml 键：**零新增**
+
+## effort #118 新增公共面（spec 146 / impl-285，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportManifest`（导出清单：一行一会话六列
+  id/首末活动/轮次/span/event 计数——eventCount 现算与数据体互核，git pack
+  索引借鉴；列序稳定行序无承诺）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
