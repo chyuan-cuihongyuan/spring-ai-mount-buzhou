@@ -1056,3 +1056,11 @@
   对账 + 计数样本 + `repair` 按项清/补（默认全 false safe-by-default）+ 纯静态
   不触写路径；StoreFsck 同思想第三域——spec 79 fog 收口，投递停摆提前可见）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #58 新增公共面（spec 97 / impl-244，@since 1.0.0）
+
+- `SessionArchiver`（会话归档冷层：三槽快照落 `__buzhou.archive__` 合成会话 +
+  SessionCleaner 级联删除 + restore 原键原值回放 + archived() 清单 + 编码失败
+  fail-fast 不删 + Instant SimpleModule 编解码无 jsr310 依赖；删除前置安全网——
+  #35 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**

@@ -4,6 +4,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupResult
