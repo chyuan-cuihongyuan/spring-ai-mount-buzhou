@@ -24,6 +24,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRunawayProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsProperties;
+import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouArchiveProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouResilienceAutoConfiguration;
@@ -71,6 +72,7 @@ class ConfigBindingsMatrixTest {
             Map.entry("buzhou.runaway", BuzhouRunawayProperties.class),
             Map.entry("buzhou.backpressure", BuzhouBackpressureProperties.class),
             Map.entry("buzhou.tools", BuzhouToolsProperties.class),
+            Map.entry("buzhou.session-archive", BuzhouArchiveProperties.class),
             Map.entry("buzhou", BuzhouCoreProperties.class));
 
     /** env 直读键（guard / memory 模块——无 properties record，装配链走 Environment）。 */
@@ -105,7 +107,10 @@ class ConfigBindingsMatrixTest {
             // effort#123 / spec 158：虚拟 key 闸（env 直读 active-key；limits 为结构化 map 走 SKIPPED）
             "buzhou.virtual-keys.active-key",
             // effort#124 / spec 160：tag 基数守卫 opt-in（env 直读 Boolean）
-            "buzhou.metrics.cardinality-guard.enabled");
+            "buzhou.metrics.cardinality-guard.enabled",
+            // effort#130 / spec 130 补登记：归档 TTL 定时清理三键（properties Binder 面）
+            "buzhou.session-archive.purge-enabled", "buzhou.session-archive.purge-ttl",
+            "buzhou.session-archive.purge-interval");
 
     /** 复杂结构化键（List<KeyFile> 等）——样例值需文件/结构，跳过并显式登记（不静默）。 */
     private static final List<String> SKIPPED_KEYS = List.of(

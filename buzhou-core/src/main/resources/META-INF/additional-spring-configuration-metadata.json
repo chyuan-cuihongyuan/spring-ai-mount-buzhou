@@ -231,6 +231,24 @@
             "type": "java.lang.Boolean",
             "defaultValue": false,
             "description": "tag 基数守卫 opt-in（默认关零变化；开 = 全局指标装饰 TagCardinalityGuard——per-(名,键) 值集 64 封顶越限折 __overflow__）。spec 160 / T513。"
+        },
+        {
+            "name": "buzhou.session-archive.purge-enabled",
+            "type": "java.lang.Boolean",
+            "description": "归档 TTL 定时清理开关（默认关——删除动作必须显式开启；spec 130 / T526）。",
+            "defaultValue": false
+        },
+        {
+            "name": "buzhou.session-archive.purge-ttl",
+            "type": "java.time.Duration",
+            "description": "归档保留 TTL（到期删除；spec 130 / T526）。",
+            "defaultValue": "7d"
+        },
+        {
+            "name": "buzhou.session-archive.purge-interval",
+            "type": "java.time.Duration",
+            "description": "清理周期（scheduleWithFixedDelay；spec 130 / T526）。",
+            "defaultValue": "1h"
         }
     ],
     "hints": [

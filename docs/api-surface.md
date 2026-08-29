@@ -1403,3 +1403,10 @@
   平铺 + export→reset 每窗口一份热度榜 + 空表零行诚实——导出族第七员，
   spec 140 fog 收口）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #130 新增公共面（spec 172 / impl-297，@since 1.0.0）
+
+- 归档清理三键登记补齐（additional-metadata +3 + 矩阵 Binder 面 +
+  PREFIX_TO_BEAN 归属 BuzhouArchiveProperties——spec 130 漏面收口，
+  T187 静默失防线闭环）
+- 类型级快照：**零新增**；yml 键：**零新增**（既有键补登记）
