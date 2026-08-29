@@ -286,6 +286,14 @@ public final class ObservabilityJsonlExporter {
         return sessions;
     }
 
+    /** gzip 清单导出（spec 194 §A / T556：与 spec 109 压缩族同管线——解压与明文逐字节一致）。 */
+    public int exportManifestGzip(java.io.OutputStream out) throws java.io.IOException {
+        try (java.io.Writer writer = new java.io.OutputStreamWriter(
+                new java.util.zip.GZIPOutputStream(out), java.nio.charset.StandardCharsets.UTF_8)) {
+            return exportManifest(writer);
+        }
+    }
+
     private JsonlExportResult export(Writer out, Instant since) throws IOException {
         int sessions = 0;
         long spans = 0;

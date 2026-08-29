@@ -1472,3 +1472,10 @@
 - `health/ModelCostHealth`（模型成本健康面：恒 UP 观测 + distinct/total 双
   口径 + top-8 烧钱行有界——台账/JSONL/健康段三面齐）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #141 新增公共面（spec 194 / impl-308，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportManifestGzip`（清单 gzip 面：解压与明文
+  逐字节一致——gzip 族管线合流）+ `VirtualKeys.resetAll`（整窗换窗：用量+
+  耗尽态同清、限额保留）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

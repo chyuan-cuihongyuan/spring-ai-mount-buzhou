@@ -139,6 +139,12 @@ public final class VirtualKeys {
         exhausted.remove(key);
     }
 
+    /** 全量窗口清零（spec 194 §A / T556：整窗换窗——所有 key 用量与耗尽态同清；限额表保留）。 */
+    public void resetAll() {
+        used.values().forEach(counter -> counter.set(0));
+        exhausted.clear();
+    }
+
     /**
      * 耗尽态（spec 148 §A / T501）：已用 ≥ 限额，或上次扣减尝试越限被拒——
      * 「部分消耗永远凑不满」的诚实表达；预算闸据此拦截下一次调用。
