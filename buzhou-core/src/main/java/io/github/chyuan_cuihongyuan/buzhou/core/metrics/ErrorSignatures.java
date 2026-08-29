@@ -99,6 +99,14 @@ public final class ErrorSignatures {
         return counts.size();
     }
 
+    /**
+     * 清零（spec 121 §A / T423，spec 112 fog「导出后清零」）：窗口化统计——
+     * export → reset 循环即「每窗口一份 JSONL、进程内表永有界」。
+     */
+    public void reset() {
+        counts.clear();
+    }
+
     static String signature(String kind, String errorText) {
         String firstLine = errorText == null ? "" : errorText.lines().findFirst().orElse("");
         // 单趟归一（替换符不含数字——避免被后续趟误折）：长十六进制 → hex#，数字串 → #

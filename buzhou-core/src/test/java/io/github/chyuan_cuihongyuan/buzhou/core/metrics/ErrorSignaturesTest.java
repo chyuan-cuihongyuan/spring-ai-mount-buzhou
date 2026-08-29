@@ -74,6 +74,23 @@ class ErrorSignaturesTest {
         assertThat(registry.top(0)).isEmpty();
     }
 
+    /** spec 121 §B / T424：窗口化清零——export → reset 循环表永有界；gauge 重注册不冻结。 */
+    @Test
+    void resetEnablesWindowedExportCycle() {
+        ErrorSignatures registry = ErrorSignatures.create();
+        registry.record("tool", "boom A");
+        assertThat(registry.distinct()).isEqualTo(1);
+
+        registry.reset();
+        assertThat(registry.distinct()).isZero();
+        assertThat(registry.snapshot()).isEmpty();
+        assertThat(registry.top(3)).isEmpty();
+
+        // 清零后新窗口照常计数（不残留旧计数/不冻结）
+        registry.record("model", "new boom");
+        assertThat(registry.snapshot()).containsExactly(Map.entry("model:new boom", 1L));
+    }
+
     @Test
     void throwableRecordingUsesSimpleNameAndMessage() {
         ErrorSignatures registry = ErrorSignatures.create();

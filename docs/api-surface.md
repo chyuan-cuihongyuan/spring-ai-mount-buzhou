@@ -1219,3 +1219,9 @@
 - `SessionArchiver.archivedDetailed()`（归档详情：sessionId/archivedAt/messageCount/
   stateCount 倒序——合规审计零解析；损坏归档 -1 占位行可见不静默）
 - 类型级快照：**零新增**（方法级 + 内部 record）；yml 键：**零新增**
+
+## effort #83 新增公共面（spec 121 / impl-268，@since 1.0.0）
+
+- `ErrorSignatures.reset()`（窗口化清零：export → reset 循环 = 每窗口一份 JSONL、
+  进程内表永有界——spec 112 fog 收口，错误族时序管线补齐）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
