@@ -82,7 +82,7 @@ public final class TagCardinalityGuard implements BuzhouMetrics {
         Map<String, Map<String, Boolean>> perName = seen.get(name);
         if (perName == null) {
             if (seen.size() >= MAX_NAMES) {
-                folds.incrementAndGet();
+                foldCounted();
                 return foldAll(tagKeyValue);
             }
             perName = seen.computeIfAbsent(name, k -> new ConcurrentHashMap<>());
@@ -102,7 +102,7 @@ public final class TagCardinalityGuard implements BuzhouMetrics {
                 continue; // 在册直通
             }
             if (valueSet.size() >= maxValuesPerTag) {
-                folds.incrementAndGet();
+                foldCounted();
                 if (out == tagKeyValue) {
                     out = tagKeyValue.clone();
                 }
@@ -112,6 +112,12 @@ public final class TagCardinalityGuard implements BuzhouMetrics {
             valueSet.put(value, Boolean.TRUE);
         }
         return out;
+    }
+
+    /** 折入计数 + 指标（spec 204 §A / T568：越限进 buzhou.metrics.tag-overflow——守卫失守可告警）。 */
+    private void foldCounted() {
+        folds.incrementAndGet();
+        BuzhouMetricsHolder.metrics().counter("buzhou.metrics.tag-overflow");
     }
 
     private static String[] foldAll(String[] tagKeyValue) {
