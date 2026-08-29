@@ -1321,3 +1321,11 @@
   id/首末活动/轮次/span/event 计数——eventCount 现算与数据体互核，git pack
   索引借鉴；列序稳定行序无承诺）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #119 新增公共面（spec 148 / impl-286，@since 1.0.0）
+
+- `TokenBudgetHook(props, model, store, virtualKeys, virtualKey)` + 
+  `EVENT_KEY_HARD_STOP`（key 级预算闸：afterModel 跨会话扣减 + 越限即刻观测
+  事件 + beforeModel 耗尽拦截模型零调用 + `VirtualKeys.isExhausted` 越限锁定
+  至 reset——LiteLLM virtual-key 闸位语义；null = 零变化）
+- 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**（编程面）

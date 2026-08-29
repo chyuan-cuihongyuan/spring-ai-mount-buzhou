@@ -32,6 +32,8 @@ public final class VirtualKeys {
 
     private final Map<String, AtomicLong> used = new ConcurrentHashMap<>();
     private final Map<String, Long> limits = new ConcurrentHashMap<>();
+    /** 耗尽态：一次超额尝试后锁定（部分消耗永远凑不满限额——诚实表达「下次也不行」）。 */
+    private final java.util.Set<String> exhausted = ConcurrentHashMap.newKeySet();
 
     private VirtualKeys() {
     }
@@ -85,6 +87,7 @@ public final class VirtualKeys {
             long next = prev + tokens;
             if (next > limit) {
                 BuzhouMetricsHolder.metrics().counter("buzhou.virtual-keys.rejected");
+                exhausted.add(key); // spec 148：锁定耗尽态（150/200 类部分消耗不冒充可续）
                 return false;
             }
             if (spent.compareAndSet(prev, next)) {
@@ -127,12 +130,26 @@ public final class VirtualKeys {
                 .toList();
     }
 
-    /** 窗口清零（export → reset 循环每窗口一份账；未注册 key no-op）。 */
+    /** 窗口清零（export → reset 循环每窗口一份账；未注册 key no-op；耗尽态同清）。 */
     public void reset(String key) {
         AtomicLong spent = used.get(key);
         if (spent != null) {
             spent.set(0);
         }
+        exhausted.remove(key);
+    }
+
+    /**
+     * 耗尽态（spec 148 §A / T501）：已用 ≥ 限额，或上次扣减尝试越限被拒——
+     * 「部分消耗永远凑不满」的诚实表达；预算闸据此拦截下一次调用。
+     */
+    public boolean isExhausted(String key) {
+        if (exhausted.contains(key)) {
+            return true;
+        }
+        AtomicLong spent = used.get(key);
+        Long limit = limits.get(key);
+        return spent != null && limit != null && spent.get() >= limit;
     }
 
     /** 在册 key 数（测试/健康面）。 */

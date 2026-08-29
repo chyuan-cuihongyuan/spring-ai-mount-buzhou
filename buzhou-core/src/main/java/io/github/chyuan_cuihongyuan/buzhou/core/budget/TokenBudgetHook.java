@@ -50,14 +50,28 @@ public class TokenBudgetHook implements BuzhouHook {
     private static final String KEY_COMPLETION = "buzhou.budget.completion-tokens";
     private static final String KEY_COST_MICRO_USD = "buzhou.budget.cost-micro-usd";
 
+    /** key 级 token 硬顶终止（spec 148 §A / T501：跨会话共享预算耗尽——payload 含 limit/value）。 */
+    public static final String EVENT_KEY_HARD_STOP = "budget.key-hard-stop";
+
     private final BuzhouTokenBudgetProperties props;
     private final String defaultModelName;
     private final io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore;
     private final Map<String, Object> sessionLocks = new ConcurrentHashMap<>();
+    /** key 级预算（可选——spec 124 注册表接线，spec 148 / T501；null = 无 key 面）。 */
+    private final VirtualKeys virtualKeys;
+    private final String virtualKey;
 
     public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
                            io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore) {
+        this(props, defaultModelName, observabilityStore, null, null);
+    }
+
+    public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
+                           io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore,
+                           VirtualKeys virtualKeys, String virtualKey) {
         this.props = props;
+        this.virtualKeys = virtualKeys;
+        this.virtualKey = virtualKey;
         this.defaultModelName = defaultModelName == null || defaultModelName.isBlank()
                 ? "unknown" : defaultModelName;
         this.observabilityStore = observabilityStore;
@@ -100,6 +114,22 @@ public class TokenBudgetHook implements BuzhouHook {
         BuzhouMetricsHolder.metrics().counter("buzhou.budget.prompt-tokens", prompt);
         BuzhouMetricsHolder.metrics().counter("buzhou.budget.completion-tokens", completion);
 
+        if (virtualKeys != null && virtualKey != null
+                && !virtualKeys.trySpend(virtualKey, prompt + completion)) {
+            // spec 148 / T501：key 级扣减越限——观测事件即刻发（本响应已生成），
+            // 拦截发生在下一次 beforeModel（与会话硬顶同「不可逆预算」纪律）
+            VirtualKeys.KeyUsage usage = virtualKeys.usage(virtualKey);
+            emit(ctx, EVENT_KEY_HARD_STOP, Map.of(
+                    "sessionId", ctx.sessionId(),
+                    "turn", ctx.turn(),
+                    "reason", "virtual-key-tokens",
+                    "limit", usage == null ? -1L : usage.limitTokens(),
+                    "value", usage == null ? -1L : usage.usedTokens(),
+                    "partialResultRef", "messageStore:" + ctx.sessionId()));
+            BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.budget.hard-stops", "reason", "virtual-key-tokens");
+        }
+
         Map<String, Object> payload = new java.util.LinkedHashMap<>();
         payload.put("sessionId", ctx.sessionId());
         payload.put("turn", ctx.turn());
@@ -119,7 +149,26 @@ public class TokenBudgetHook implements BuzhouHook {
     /** 闸门：beforeModel 检查会话累计硬顶，超限拦截本次模型调用。 */
     @Override
     public HookResult beforeModel(ModelCallContext ctx) {
-        if (!props.enabled() || !props.anyCapConfigured()) {
+        if (!props.enabled()) {
+            return HookResult.CONTINUE;
+        }
+        if (virtualKeys != null && virtualKey != null && virtualKeys.isExhausted(virtualKey)) {
+            VirtualKeys.KeyUsage usage = virtualKeys.usage(virtualKey);
+            long limit = usage == null ? -1L : usage.limitTokens();
+            long value = usage == null ? -1L : usage.usedTokens();
+            emit(ctx, EVENT_KEY_HARD_STOP, Map.of(
+                    "sessionId", ctx.sessionId(),
+                    "turn", ctx.turn(),
+                    "reason", "virtual-key-tokens",
+                    "limit", limit,
+                    "value", value,
+                    "partialResultRef", "messageStore:" + ctx.sessionId()));
+            BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.budget.hard-stops", "reason", "virtual-key-tokens");
+            return HookResult.block("虚拟 key "" + virtualKey + "" token 预算已耗尽（限额 "
+                    + limit + "，已消耗 " + value + "），本轮终止。窗口 reset 后恢复。");
+        }
+        if (!props.anyCapConfigured()) {
             return HookResult.CONTINUE;
         }
         long sessionPrompt = stateGet(ctx, KEY_PROMPT);
