@@ -1396,3 +1396,10 @@
   自然失效、输出零变化；PromptPrefixCache 首个内置消费方，vLLM radix
   prefix-cache 借鉴）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #129 新增公共面（spec 170 / impl-296，@since 1.0.0）
+
+- `skill/SkillUsageStatsJsonl.export`（技能使用报表 JSONL：与 topUsed 同序
+  平铺 + export→reset 每窗口一份热度榜 + 空表零行诚实——导出族第七员，
+  spec 140 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
