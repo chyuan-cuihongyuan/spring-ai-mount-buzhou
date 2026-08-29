@@ -119,6 +119,17 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 每实例独立额度**（限流已升级为可选共享闸，见下）。可行部署：粘性路由（会话归同实例）+
 租约独占（跨实例接管走 steal）。分布式熔断/配额为显式 out-of-scope（spec 23）。
 
+**A/B 胜率门（effort #63 / spec 101）**：`new PairwiseGate(runner).enforce(...)`——
+换版验收一行判定（winRateA ≥ 阈值；error 不入分母）。
+**归档治理（effort #65/#82 / spec 103/120）**：`purgeExpired(ttl, now)` 到期清理
+（cron 驱动）+ `archivedDetailed()` 审计详情。
+**错误签名管线（effort #74/#83 / spec 112/121）**：`ErrorSignaturesJsonl.export` →
+`reset()` 窗口化循环——错误族时序进数仓。
+**outbox due 审计（effort #57 / spec 96）**：`WebhookOutboxAudit.audit(store)` 只读
+对账（孤儿/陈旧/缺失——缺失=投递停摆须修）。
+**观测 gzip 导出（effort #71/#81 / spec 109/119）**：exportAllGzip /
+exportAllSinceGzip / exportSessionGzip 三入口——归档/跨网体积降一个量级。
+
 **配置体检（effort #52 / spec 91）**：`buzhou.config-doctor.enabled=true`（默认关）
 ——就绪事件对 buzhou.* 配置面做一次键拼写（近邻建议）与值域体检，发现走日志；
 只读不改行为。

@@ -119,6 +119,24 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 护栏 | 工具输出 PII 脱敏 | 5 型规则式（校验位收窄误报）+ `[PII:TYPE]` 占位符（Presidio 借鉴） | [spec 86](docs/spec/86-pii-redaction.md) |
 | 记忆 | 语义漂移触发压缩 | 话题漂移提前折入摘要（词面 SPI 可换 embedding）；trigger 溯源事件 | [spec 90](docs/spec/90-semantic-drift-compaction.md) / [95](docs/spec/95-summary-folded-trigger.md) |
 
+## 生产级纵深（effort #56–#83 增量）
+
+50 轮自迭代会话后半程的精选主线（详设 spec 99–121）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 评估闭环 | A/B 胜率门 + 版本查询 | 换版验收一行判定（error 不入分母）+ run/AB run 按数据集版本聚合 | [spec 101](docs/spec/101-ab-win-rate-gate.md) / [113](docs/spec/113-runs-of-version.md) / [114](docs/spec/114-ab-runs-of-version.md) |
+| | 数据集快照 + run 对比 | 冻结版本（原 id 复制指纹一致）+ 四态迁移 diff | [spec 100](docs/spec/100-dataset-snapshot.md) / [81](docs/spec/81-run-diff.md) |
+| 护栏 | 用户输入 PII 脱敏 + 自定义规则 | beforeTurn 占位符化 + 领域命名正则（Presidio PatternRecognizer） | [spec 106](docs/spec/106-pii-input-redaction.md) / [118](docs/spec/118-custom-pii-rules.md) |
+| 运维与治理 | 配置体检 v2 + 健康段 | 跨键矛盾规则（NOOP 空转/孤儿依赖）+ config-doctor 健康缓存 | [spec 115](docs/spec/115-doctor-cross-key-rules.md) / [107](docs/spec/107-config-doctor-health.md) |
+| | 会话归档治理 | 删除前三槽冷存 + restore 回放 + TTL 清理 + 审计详情 | [spec 97](docs/spec/97-session-archiver.md) / [103](docs/spec/103-archive-ttl-purge.md) / [120](docs/spec/120-archive-detail-query.md) |
+| | 一致性工具 | outbox due 索引审计（孤儿/陈旧/缺失）——投递停摆提前可见 | [spec 96](docs/spec/96-due-index-audit.md) |
+| | webhook 订阅过滤 | include-types 命中才入队（被滤不占容量） | [spec 105](docs/spec/105-webhook-type-filter.md) |
+| 观测 | 错误签名闭环 | tool+model 双族 + 健康段 + JSONL 导出 + 窗口化清零 | [spec 83](docs/spec/83-error-signatures.md)–[85](docs/spec/85-error-signatures-health.md) / [112](docs/spec/112-signatures-jsonl-export.md) / [121](docs/spec/121-signatures-reset.md) |
+| | gzip 导出族 + 时长遥测 | 观测 gzip 三入口（全量/增量/单会话）+ 工具/评估 run 时长 timer | [spec 109](docs/spec/109-observability-gzip-export.md) / [119](docs/spec/119-session-gzip-export.md) / [108](docs/spec/108-tool-duration-timer.md) / [111](docs/spec/111-eval-run-duration-timer.md) |
+| | 技能双遥测 | 目录注入（截断率）+ skill_search 三态命中率 | [spec 110](docs/spec/110-catalog-telemetry.md) / [116](docs/spec/116-skill-search-telemetry.md) |
+| 韧性 | bulkhead 拒绝计数 | per-agent 进程内表 + 健康 topRejected——限流风暴定位 | [spec 117](docs/spec/117-bulkhead-rejection-stats.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |
