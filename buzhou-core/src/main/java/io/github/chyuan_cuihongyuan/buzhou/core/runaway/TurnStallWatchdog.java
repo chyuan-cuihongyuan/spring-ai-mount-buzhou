@@ -36,9 +36,25 @@ public final class TurnStallWatchdog implements SmartLifecycle, AutoCloseable {
 
     private volatile ScheduledExecutorService scheduler;
     private volatile boolean running;
+    /** spec 186 / T545：可选咨询锁 + 因锁跳过计数。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.retention.AdvisoryFileLock lock;
+    private final String lockOwner;
+    private final java.util.concurrent.atomic.AtomicLong skippedForLock =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public TurnStallWatchdog(TurnHeartbeat heartbeat, Duration quietThreshold,
                              Duration interval, boolean enabled) {
+        this(heartbeat, quietThreshold, interval, enabled, null);
+    }
+
+    /**
+     * spec 186 §A / T545：带咨询锁构造（多实例单跑档——lock 非空时每轮先抢锁；
+     * 未获锁<b>零通知</b>（空表通知语义保留给「真巡检过没事」——跳过不是空）
+     * 只计 {@link #skippedForLock()} + WARN）。lock null = 既有零变化。
+     */
+    public TurnStallWatchdog(TurnHeartbeat heartbeat, Duration quietThreshold,
+                             Duration interval, boolean enabled,
+                             io.github.chyuan_cuihongyuan.buzhou.core.retention.AdvisoryFileLock lock) {
         if (quietThreshold == null || quietThreshold.isNegative()) {
             throw new IllegalArgumentException("quietThreshold must be non-negative");
         }
@@ -52,6 +68,9 @@ public final class TurnStallWatchdog implements SmartLifecycle, AutoCloseable {
         this.quietThreshold = quietThreshold;
         this.interval = interval;
         this.enabled = enabled;
+        this.lock = lock;
+        this.lockOwner = "stall-watchdog@" + java.lang.management.ManagementFactory
+                .getRuntimeMXBean().getName().replace('@', '-');
     }
 
     /** 停滞轮听众（每轮一调用：空表 = 本轮无停滞——「跑过没事」也是事实）。 */
@@ -66,18 +85,49 @@ public final class TurnStallWatchdog implements SmartLifecycle, AutoCloseable {
         return heartbeat;
     }
 
-    /** 单轮巡检（手动/调度共用；返回本轮停滞清单）。 */
+    /** 单轮巡检（手动/调度共用；返回本轮停滞清单；未获锁返回 null——与空表
+     * 「巡检过没事」区分）。 */
     public List<TurnHeartbeat.Stalled> inspectOnce() {
-        List<TurnHeartbeat.Stalled> stalled =
-                heartbeat.stalled(heartbeat.registered(), quietThreshold, Instant.now());
-        listeners.forEach(listener -> listener.accept(stalled));
-        if (!stalled.isEmpty()) {
-            LOGGER.log(System.Logger.Level.WARNING,
-                    "轮次停滞巡检：{0} 个在飞轮次 quiet 超过 {1}s（最长 {2}s）",
-                    stalled.size(), quietThreshold.toSeconds(),
-                    stalled.isEmpty() ? 0 : stalled.get(0).quietFor().toSeconds());
+        if (lock != null) {
+            try {
+                if (!lock.tryAcquire(lockOwner, Instant.now())) {
+                    skippedForLock.incrementAndGet();
+                    LOGGER.log(System.Logger.Level.WARNING,
+                            "停滞巡检未获锁——别的实例在跑，本轮跳过（零通知）");
+                    return null;
+                }
+            } catch (java.io.IOException e) {
+                skippedForLock.incrementAndGet();
+                LOGGER.log(System.Logger.Level.WARNING, "停滞巡检抢锁失败（IO）——跳过本轮", e);
+                return null;
+            }
         }
-        return stalled;
+        try {
+            List<TurnHeartbeat.Stalled> stalled =
+                    heartbeat.stalled(heartbeat.registered(), quietThreshold, Instant.now());
+            listeners.forEach(listener -> listener.accept(stalled));
+            if (!stalled.isEmpty()) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "轮次停滞巡检：{0} 个在飞轮次 quiet 超过 {1}s（最长 {2}s）",
+                        stalled.size(), quietThreshold.toSeconds(),
+                        stalled.isEmpty() ? 0 : stalled.get(0).quietFor().toSeconds());
+            }
+            return stalled;
+        } finally {
+            if (lock != null) {
+                try {
+                    lock.release(lockOwner);
+                } catch (java.io.IOException e) {
+                    LOGGER.log(System.Logger.Level.WARNING,
+                            "停滞巡检释放锁失败（下轮按陈旧回收）", e);
+                }
+            }
+        }
+    }
+
+    /** 因未获锁跳过的轮数（多实例部署的「本实例在歇」证据面）。 */
+    public long skippedForLock() {
+        return skippedForLock.get();
     }
 
     @Override

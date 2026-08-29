@@ -1452,3 +1452,10 @@
   抢锁未获跳过通知 -1「别的实例在跑」+ finally 用后即还 + IO 失败 fail-safe
   跳过；null = 零变化——spec 127 多实例节流 fog 落地）
 - 类型级快照：**零新增**（构造器 + 常量）；yml 键：**零新增**（编程面）
+
+## effort #137 新增公共面（spec 186 / impl-304，@since 1.0.0）
+
+- `TurnStallWatchdog(…, AdvisoryFileLock)` + `skippedForLock()`（巡检犬接锁：
+  未获锁零通知——null 哨兵与空表「跑过没事」严格区分 + 跳过计数证据面 +
+  finally 用后即还；null = 零变化，spec 182 第二站接线）
+- 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**
