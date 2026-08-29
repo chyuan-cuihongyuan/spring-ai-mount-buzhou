@@ -42,6 +42,9 @@ public enum ErrorCode {
     /** 会话已关闭（关闭后拒绝 chat / 注册资源等生命周期误用）。 */
     SESSION_CLOSED(RetryCategory.NON_RETRYABLE, "会话已关闭"),
 
+    /** 会话隔离检疫中（连败跳闸冷却；spec 143——到时自动解除）。 */
+    SESSION_QUARANTINED(RetryCategory.NON_RETRYABLE, "会话隔离检疫中"),
+
     /** 沙箱违规（路径越界 / 解析失败；同一路径重试必然再被拒）。 */
     SANDBOX_VIOLATION(RetryCategory.NON_RETRYABLE, "沙箱边界违规"),
 
