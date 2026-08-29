@@ -1133,3 +1133,9 @@
   UNKNOWN(pending)→UP + errors/warnings/checkedKeys 有界详情；listener+health
   复合 bean 替换原装配——spec 91 fog 收口）
 - 类型级快照：+1；yml 键：**零新增**（复用 buzhou.config-doctor.enabled）
+
+## effort #70 新增公共面（spec 108 / impl-255，@since 1.0.0）
+
+- 工具调用时长 timer：`buzhou.tool.duration`（tag outcome=ok|failed——delegate
+  调用本体 nanoTime 计时；既有计数/错误反馈/签名通道零变化；P95 慢工具告警底座）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
