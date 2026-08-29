@@ -47,6 +47,14 @@ public final class RetryBudget {
         balanceMillis.addAndGet(depositMillisPerCall);
     }
 
+    /** 批量存入（spec 206 §A / T570：n 次调用一次记账——批量路径免循环；n &lt; 0 拒绝）。 */
+    public void deposit(int calls) {
+        if (calls < 0) {
+            throw new IllegalArgumentException("calls must be >= 0: " + calls);
+        }
+        balanceMillis.addAndGet(depositMillisPerCall * (long) calls);
+    }
+
     /** 支取一次重试（余额不足 false 且计数——风暴被压制的证据面）。 */
     public boolean tryAcquire() {
         while (true) {
