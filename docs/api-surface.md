@@ -1084,3 +1084,10 @@
   指纹与源一致 + target 不可覆盖 + 快照可续 addItem 分叉——冻结版本底座；
   LangSmith dataset versioning 借鉴，spec 82 fog 收口）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #63 新增公共面（spec 101 / impl-248，@since 1.0.0）
+
+- `PairwiseGate.enforce(...)` → `AbGateResult`（A/B 胜率门：winRateA ≥ 阈值判定 +
+  逐项预览截 10 + CI 单行 summary + error 不入分母 spec 71 口径；Promptfoo
+  model-compare 借鉴——与 EvalGate 组成双门族，spec 80 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
