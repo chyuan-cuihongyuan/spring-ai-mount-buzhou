@@ -58,13 +58,22 @@ public final class ToolQuotaHook implements BuzhouHook {
             return HookResult.CONTINUE; // 零配置零限制
         }
         String key = STATE_PREFIX + ctx.toolName();
-        Integer used = ctx.state().get(key, Integer.class).orElse(0);
+        // 会话态 value 口径为 String（StateEntry 存 String.valueOf）——字符串往返
+        int used = ctx.state().get(key, String.class)
+                .map(s -> {
+                    try {
+                        return Integer.parseInt(s);
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                })
+                .orElse(0);
         if (used >= limit) {
             BuzhouMetricsHolder.metrics().counter(BLOCKED_COUNTER, 1, "tool", ctx.toolName());
             return HookResult.block("本会话工具「" + ctx.toolName() + "」调用已达上限（"
                     + limit + " 次）——请改用其他工具或结束当前任务");
         }
-        ctx.state().put(key, used + 1); // 放行即计（被拒不重复计）
+        ctx.state().put(key, String.valueOf(used + 1)); // 放行即计（被拒不重复计）
         return HookResult.CONTINUE;
     }
 }
