@@ -1139,3 +1139,10 @@
 - 工具调用时长 timer：`buzhou.tool.duration`（tag outcome=ok|failed——delegate
   调用本体 nanoTime 计时；既有计数/错误反馈/签名通道零变化；P95 慢工具告警底座）
 - 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #71 新增公共面（spec 109 / impl-256，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportAllGzip / exportAllSinceGzip`（gzip 压缩导出：
+  GZIP+UTF-8 Writer 复用既有管线，解压与明文逐字节一致；水位/计数语义不变；
+  spec 88 fog 收口——归档/跨网体积降一个量级）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

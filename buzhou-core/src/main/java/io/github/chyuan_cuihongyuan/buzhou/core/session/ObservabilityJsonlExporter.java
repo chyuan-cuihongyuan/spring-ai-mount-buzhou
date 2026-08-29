@@ -106,6 +106,27 @@ public final class ObservabilityJsonlExporter {
         return export(out, since == null ? Instant.EPOCH : since);
     }
 
+    /**
+     * gzip 全量导出（spec 109 §A / T397）：GZIP 压缩流内写 UTF-8 JSONL——
+     * 跨环境搬运（对象存储归档 / 跨网传输）体积降一个量级；行内容与未压缩面
+     * 逐字节一致（同一 Writer 管线）。调用方负责关流（压缩流完整性由 close 收尾）。
+     */
+    public JsonlExportResult exportAllGzip(java.io.OutputStream out) throws IOException {
+        try (java.io.Writer writer = new java.io.OutputStreamWriter(
+                new java.util.zip.GZIPOutputStream(out), java.nio.charset.StandardCharsets.UTF_8)) {
+            return exportAll(writer);
+        }
+    }
+
+    /** gzip 增量导出（spec 67 水位语义 + spec 109 压缩面）。 */
+    public JsonlExportResult exportAllSinceGzip(java.io.OutputStream out, Instant since)
+            throws IOException {
+        try (java.io.Writer writer = new java.io.OutputStreamWriter(
+                new java.util.zip.GZIPOutputStream(out), java.nio.charset.StandardCharsets.UTF_8)) {
+            return exportAllSince(writer, since);
+        }
+    }
+
     private JsonlExportResult export(Writer out, Instant since) throws IOException {
         int sessions = 0;
         long spans = 0;
