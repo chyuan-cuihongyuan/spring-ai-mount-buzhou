@@ -1077,3 +1077,10 @@
 - 折入速率指标：counter `buzhou.memory.summary.folded` / `fold-skipped`
   （tag trigger=budget/backlog/drift 有界——成功与熔断跳过双面；spec 95 fog 收口）
 - 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #62 新增公共面（spec 100 / impl-247，@since 1.0.0）
+
+- `EvalDatasetStore.snapshotDataset(source, target)`（数据集快照副本：原 id 复制
+  指纹与源一致 + target 不可覆盖 + 快照可续 addItem 分叉——冻结版本底座；
+  LangSmith dataset versioning 借鉴，spec 82 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

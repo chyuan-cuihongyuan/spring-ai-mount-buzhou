@@ -106,6 +106,41 @@ public final class EvalDatasetStore {
         return result;
     }
 
+    /**
+     * 数据集快照副本（spec 100 §A / T371，LangSmith dataset versioning 借鉴）：
+     * 把 source 全部条目<b>原 id 复制</b>到新数据集 target——快照指纹与源一致
+     * （指纹覆盖 id/input/expected，spec 82），run 可长期指向冻结版本；target 已存在
+     * fail-fast（快照不可覆盖——版本不可变语义）；source 不存在 fail-fast。
+     * 快照可继续 addItem（nextItemId 从 max+1 续起）。
+     */
+    public EvalDatasetMeta snapshotDataset(String source, String target) {
+        requireValidName(source);
+        requireValidName(target);
+        if (dataset(target).isPresent()) {
+            throw evalError("目标数据集已存在：" + target, "快照不可覆盖——换名或先 deleteDataset");
+        }
+        List<EvalItem> items = dataset(source)
+                .map(m -> items(source))
+                .orElseThrow(evalErrorSupplier("源数据集未建：" + source, "先 createDataset 再快照"));
+        EvalDatasetMeta meta = new EvalDatasetMeta(target,
+                "snapshot of " + source, items.size(), Instant.now());
+        Map<String, Object> metaMap = metaToMap(meta);
+        long nextId = 1;
+        for (EvalItem item : items) {
+            stateStore.put(SESSION_ID, new StateEntry(itemKey(target, item.id()),
+                    encode(itemToMap(item)), "eval", 0, null, item.createdAt()));
+            try {
+                nextId = Math.max(nextId, Long.parseLong(item.id()) + 1);
+            } catch (NumberFormatException ignored) {
+                // 非数字 id（外部导入形态）：nextId 维持现状，addItem 会继续序列分配
+            }
+        }
+        metaMap.put("nextItemId", nextId);
+        stateStore.put(SESSION_ID, new StateEntry(dsKey(target), encode(metaMap),
+                "eval", 0, null, meta.createdAt()));
+        return meta;
+    }
+
     /** 删数据集（元数据 + 条目；run 记录独立前缀不级联）。不存在 = false。 */
     public boolean deleteDataset(String name) {
         requireValidName(name);
