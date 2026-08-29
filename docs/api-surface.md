@@ -1200,3 +1200,10 @@
   overflow + 稳定排序 + NOOP agent 零计数；BulkheadHealth 增 topRejected 3 条
   ——限流风暴一屏定位，spec 84 fog 收口）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #80 新增公共面（spec 118 / impl-265，@since 1.0.0）
+
+- `CustomPiiRules`（自定义 PII 规则：命名正则 [A-Z0-9_]{2,32} fail-fast + 命中
+  [PII:NAME] 占位符与内置同形态 + 叠加不短路；`PiiRedactionHook` 3 参构造——
+  Presidio PatternRecognizer 对应物，spec 86 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**（编程面——yml 声明式 fog 记账）

@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,15 +24,23 @@ public class PiiRedactionHook implements BuzhouHook {
 
     private final PiiDetector detector;
     private final Set<PiiType> enabledTypes;
+    /** spec 118 §A / T417：自定义规则（内置五型之外——宿主命名正则；null = 无）。 */
+    private final CustomPiiRules customRules;
 
     public PiiRedactionHook() {
         this(EnumSet.allOf(PiiType.class));
     }
 
     public PiiRedactionHook(Set<PiiType> enabledTypes) {
+        this(enabledTypes, null);
+    }
+
+    /** spec 118 §A / T417：带自定义规则的构造（内置类型 + 自定义规则叠加脱敏）。 */
+    public PiiRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules) {
         this.detector = new PiiDetector();
         this.enabledTypes = EnumSet.copyOf(enabledTypes == null || enabledTypes.isEmpty()
                 ? EnumSet.allOf(PiiType.class) : enabledTypes);
+        this.customRules = customRules == null ? new CustomPiiRules(List.of()) : customRules;
     }
 
     @Override
@@ -54,6 +63,10 @@ public class PiiRedactionHook implements BuzhouHook {
             return HookResult.CONTINUE; // 幂等：占位符已是脱敏产物（readback 纵深）
         }
         String redacted = detector.redact(content, enabledTypes);
+        if (customRules != null && !customRules.isEmpty()) {
+            // spec 118 §A / T417：自定义规则叠加（内置结果之上——占位符幂等短路天然防重复）
+            redacted = customRules.redact(redacted);
+        }
         if (redacted == content) { // 引用等——无命中零改写
             return HookResult.CONTINUE;
         }
