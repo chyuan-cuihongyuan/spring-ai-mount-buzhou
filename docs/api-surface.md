@@ -1213,3 +1213,9 @@
 - `ObservabilityJsonlExporter.exportSessionGzip`（单会话 gzip 导出——工单附件/
   事故取证场景；与明文逐字节一致；gzip 三入口族完整：全量/增量/单会话）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #82 新增公共面（spec 120 / impl-267，@since 1.0.0）
+
+- `SessionArchiver.archivedDetailed()`（归档详情：sessionId/archivedAt/messageCount/
+  stateCount 倒序——合规审计零解析；损坏归档 -1 占位行可见不静默）
+- 类型级快照：**零新增**（方法级 + 内部 record）；yml 键：**零新增**

@@ -142,6 +142,32 @@ public final class SessionArchiver {
         return purged;
     }
 
+    /** 归档详情行（spec 120 §A / T421：合规审计——谁在何时归档、规模几何）。 */
+    public record ArchivedDetail(String sessionId, Instant archivedAt,
+                                 int messageCount, int stateCount) {
+    }
+
+    /**
+     * 归档详情清单（spec 120 §A / T421：合规审计面）：archivedAt 倒序；损坏归档
+     * 以 messageCount=-1 行占位（可见而非静默跳过——修复走手工删）。
+     */
+    public List<ArchivedDetail> archivedDetailed() {
+        List<ArchivedDetail> out = new ArrayList<>();
+        stores.sessionStateStore().scanByPrefix(ARCHIVE_SESSION_ID, ARCHIVE_PREFIX)
+                .forEach((key, entry) -> {
+                    String sessionId = key.substring(ARCHIVE_PREFIX.length());
+                    try {
+                        ArchiveEntry parsed = decode(entry.value());
+                        out.add(new ArchivedDetail(sessionId, parsed.archivedAt(),
+                                parsed.messages().size(), parsed.states().size()));
+                    } catch (RuntimeException parseFailure) {
+                        out.add(new ArchivedDetail(sessionId, Instant.EPOCH, -1, 0));
+                    }
+                });
+        out.sort(java.util.Comparator.comparing(ArchivedDetail::archivedAt).reversed());
+        return out;
+    }
+
     /** 归档快照（单会话三槽 + 时间戳）。 */
     public record ArchiveEntry(String sessionId, Instant archivedAt,
                                List<BuzhouMessage> messages, StructuredSummary summary,

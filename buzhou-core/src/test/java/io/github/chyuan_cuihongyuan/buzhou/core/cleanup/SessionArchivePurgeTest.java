@@ -45,6 +45,32 @@ class SessionArchivePurgeTest {
         assertThat(archiver.archived()).isEmpty();
     }
 
+    /** spec 120 §B / T422：归档详情——规模/时间可见；损坏归档占位行不静默。 */
+    @Test
+    void archivedDetailedShowsScaleAndCorruption() {
+        BuzhouStores stores = io.github.chyuan_cuihongyuan.buzhou.core.Buzhou.inMemoryStores();
+        SessionArchiver archiver = new SessionArchiver(stores, new SessionCleaner(stores));
+        archiveOne(stores, archiver, "audited");
+
+        var details = archiver.archivedDetailed();
+
+        assertThat(details).hasSize(1);
+        assertThat(details.getFirst().sessionId()).isEqualTo("audited");
+        assertThat(details.getFirst().messageCount()).isEqualTo(1);
+        assertThat(details.getFirst().archivedAt()).isAfter(
+                java.time.Instant.now().minusSeconds(60));
+
+        // 损坏归档占位行（messageCount=-1）
+        stores.sessionStateStore().put(SessionArchiver.ARCHIVE_SESSION_ID,
+                new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                        SessionArchiver.ARCHIVE_PREFIX + "broken", "not-json",
+                        "session-archiver", 0, null, Instant.now()));
+        assertThat(archiver.archivedDetailed()).extracting(SessionArchiver.ArchivedDetail::sessionId)
+                .containsExactlyInAnyOrder("audited", "broken");
+        assertThat(archiver.archivedDetailed()).filteredOn(d -> d.sessionId().equals("broken"))
+                .allSatisfy(d -> assertThat(d.messageCount()).isEqualTo(-1));
+    }
+
     @Test
     void nonPositiveTtlMeansExplicitPurgeAll() {
         BuzhouStores stores = Buzhou.inMemoryStores();
