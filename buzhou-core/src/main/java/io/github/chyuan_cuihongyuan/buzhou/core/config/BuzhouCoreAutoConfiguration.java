@@ -320,6 +320,14 @@ public class BuzhouCoreAutoConfiguration {
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth(
                     io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global());
         }
+
+        /** spec 92 §A / T349：隔离舱健康段（未配置 UNKNOWN；配置后 per-agent 详情）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BulkheadHealth buzhouBulkheadHealth() {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BulkheadHealth(
+                    io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.global());
+        }
     }
 
     /**

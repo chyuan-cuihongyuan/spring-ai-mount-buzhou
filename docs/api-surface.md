@@ -1020,3 +1020,10 @@
   summary + `examine(Environment)` 聚合入口；`buzhou.config-doctor.enabled` 默认关
   就绪事件日志一次；Spring Shell doctor 借鉴——#52 插曲产品化）
 - 类型级快照：+1；yml 键：+1（buzhou.config-doctor.enabled，默认关）
+
+## effort #53 新增公共面（spec 92 / impl-239，@since 1.0.0）
+
+- `BulkheadHealth`（/actuator/buzhou 的 bulkhead 段：未配置 UNKNOWN + disabled
+  详情；配置后 UP + per-agent inFlight/limit 有界详情 16 条截断；#84 fog 毕业生）
+  + `AgentBulkhead.configuredAgents()`（agent → limit 只读视图）
+- 类型级快照：+1；yml 键：**零新增**

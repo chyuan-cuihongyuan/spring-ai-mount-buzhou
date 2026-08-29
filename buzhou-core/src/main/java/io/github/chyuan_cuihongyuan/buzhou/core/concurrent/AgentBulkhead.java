@@ -71,6 +71,11 @@ public final class AgentBulkhead {
         return semaphore == null ? 0 : limitOf(agentName) - semaphore.availablePermits();
     }
 
+    /** 已配置上限的 agent 视图（agent → limit，只读；健康面/看板用——spec 92 §A）。 */
+    public Map<String, Integer> configuredAgents() {
+        return Map.copyOf(limits);
+    }
+
     /**
      * 取一个 Turn 名额（未配置上限 = NOOP 舱零开销）；超限按 acquire-timeout 等待，
      * 仍无空位抛 QUOTA_EXCEEDED。返回 lease（try-with-resources 释放）。
