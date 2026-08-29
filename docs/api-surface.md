@@ -1445,3 +1445,10 @@
   释放他者拒 + stale 陈旧判定 + forceRelease 处置——多实例单跑通用底座，
   ShedLock 借鉴，spec127/162「多实例节流」fog 起步）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #136 新增公共面（spec 184 / impl-303，@since 1.0.0）
+
+- `ArchivePurgeJob(…, AdvisoryFileLock)` + `SKIPPED_LOCKED`（清理接锁档：每轮
+  抢锁未获跳过通知 -1「别的实例在跑」+ finally 用后即还 + IO 失败 fail-safe
+  跳过；null = 零变化——spec 127 多实例节流 fog 落地）
+- 类型级快照：**零新增**（构造器 + 常量）；yml 键：**零新增**（编程面）
