@@ -66,6 +66,15 @@ public final class DatasetExpectations {
         return new DatasetExpectations(List.of());
     }
 
+    /**
+     * 常用默认组合（spec 212 §A / T576）：四内置期望全开（非空输入 + 期望在场 +
+     * 输入唯一 + 规模窗 [1,1000]）——多数管线的一句话门禁；规模窗不合身时自组
+     * {@link #of}。
+     */
+    public static DatasetExpectations ofCommonDefaults() {
+        return of(nonBlankInputs(), expectedPresent(), uniqueInputs(), sizeBetween(1, 1000));
+    }
+
     public static DatasetExpectations of(Expectation... expectations) {
         Objects.requireNonNull(expectations, "expectations");
         for (Expectation expectation : expectations) {
