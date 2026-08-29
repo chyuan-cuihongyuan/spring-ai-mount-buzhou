@@ -1307,3 +1307,10 @@
   超 TTL 转 UNKNOWN(stale)——旧快照不冒充现在；手动刷新面恒可用；默认无 TTL
   零变化；details 增 examinedAt/freshnessTtlMs/stale，Consul TTL check 借鉴）
 - 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**
+
+## effort #117 新增公共面（spec 144 / impl-284，@since 1.0.0）
+
+- `guard/pii/PiiHitStats`（PII 命中统计：内置类型 + 自定义规则名统一排行 +
+  PiiRedactionHook 双点接线自定义补盲 + 自定义名 64 封顶折 __overflow__ +
+  reset 窗口清零——Presidio anonymizer 统计口径借鉴）
+- 类型级快照：+1（buzhou-guard + Hit record）；yml 键：**零新增**

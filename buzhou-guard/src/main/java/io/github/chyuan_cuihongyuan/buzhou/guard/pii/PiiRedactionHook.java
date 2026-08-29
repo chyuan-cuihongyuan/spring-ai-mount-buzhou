@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder;
 
 import java.util.EnumSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -74,9 +75,35 @@ public class PiiRedactionHook implements BuzhouHook {
             if (enabledTypes.contains(m.type())) {
                 BuzhouMetricsHolder.metrics().counter("buzhou.guard.pii.redactions",
                         "type", m.type().name());
+                PiiHitStats.global().record(m.type()); // spec 144 / T469：命中统计
+            }
+        }
+        if (customRules != null && !customRules.isEmpty()) {
+            for (String ruleName : customRuleHits(redacted)) {
+                PiiHitStats.global().recordCustom(ruleName);
             }
         }
         ctx.replaceResult(redacted);
         return HookResult.CONTINUE;
+    }
+    /** 从脱敏产物提取自定义规则命中名（占位符 [PII:NAME]；内置类型名剔除）。 */
+    private static List<String> customRuleHits(String redacted) {
+        List<String> names = new ArrayList<>();
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("\\[PII:([A-Z0-9_]{2,32})\\]").matcher(redacted);
+        while (m.find()) {
+            String name = m.group(1);
+            boolean builtIn = false;
+            for (PiiType type : PiiType.values()) {
+                if (type.name().equals(name)) {
+                    builtIn = true;
+                    break;
+                }
+            }
+            if (!builtIn) {
+                names.add(name);
+            }
+        }
+        return names;
     }
 }
