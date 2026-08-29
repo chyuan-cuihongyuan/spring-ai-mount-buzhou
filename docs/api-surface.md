@@ -1167,3 +1167,10 @@
   snapshot 全量一行一 JSON count 降序——错误族趋势进数仓量化治理效果；
   spec 83 fog 收口，导出五族补齐）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #75 新增公共面（spec 113 / impl-260，@since 1.0.0）
+
+- `EvalQueryService.runsOfVersion(fingerprint)`（按数据集内容版本跨名聚合查 run
+  + `EvalRunSummary.datasetFingerprint` 列（8 参旧构造兼容）——spec 82/100 组合
+  收口：snapshotDataset → runsOfVersion → EvalRunDiff 版本回归全链路）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
