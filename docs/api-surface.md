@@ -1343,3 +1343,10 @@
   四点自动 beat + order 50 先留痕后裁决 + 永续 CONTINUE 观测不干预 +
   heartbeat() 共享视图——spec 138 的接线面）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #122 新增公共面（spec 154 / impl-289，@since 1.0.0）
+
+- `health/VirtualKeysHealth`（虚拟 key 健康面：恒 UP 观测不裁决 + distinct/
+  exhausted 全量计数 + top-8 用量行 used/limit/exhausted 行内标记 +
+  @ConditionalOnBean 按需装配——spec 148 key 配额的观测闭环）
+- 类型级快照：+1；yml 键：**零新增**

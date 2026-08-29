@@ -340,6 +340,15 @@ public class BuzhouCoreAutoConfiguration {
 
         /** spec 102 §A / T379：会话归档健康段（stores 缺席 = UNKNOWN-disabled，不抢 store 校验报错优先级）。 */
         @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth buzhouVirtualKeysHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys) {
+        // spec 154 / T507：宿主声明 VirtualKeys bean 时健康段自动出现（编程面默认无）
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth(keys);
+    }
+
+    @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
         io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth buzhouArchiveHealth(
                 org.springframework.beans.factory.ObjectProvider<BuzhouStores> stores) {
