@@ -511,3 +511,31 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 - **热重载**：`ReloadableConfig.of(初值)` 包住任意参数 record——调参面 `replace(新值)` 即
   热生效（版本自增、订阅者通知在锁外）；watcher（文件/配置中心轮询）归宿主实现，本原语只管
   「换与通知」。
+
+### 防泛洪与 per-tool 配额（B 侧 / spec 167+185）
+
+- **输入泛洪**：`InputFloodGuardHook`（默认 5 次/60s 相同输入拦）——只拦 SHA-256(strip) 全同输入，
+  改写重试不误伤；blocked 计数即「循环/重放风暴」信号，客户端缺陷定位入口。
+- **per-tool 配额**：`ToolQuotaHook(Map<工具,上限> + 可选 "*")`——贵工具标 10 次/会话即拦，
+  会话态生命周期即窗自然清零；blocked 按 tool 分标签即「哪个工具被爆」侧写。
+
+### 工具泳道与 TTL 缓存（B 侧 / spec 173+183）
+
+- **泳道**：`LaneLimitingToolCallback.wrap(工具, 泳道名, 许可数, registry, 等待超时)`——慢查询标
+  `slow-db:2`，快工具许可不被挤占；超时文案指明泳道满即容量调参入口；异常也归还许可。
+- **TTL 缓存**：`TtlCachingToolCallback.wrap(只读工具, maxAge, maxEntries)`——窗内复读回同引用零
+  下游执行；只包时效钝感工具（时效敏感/写工具不包——契约归声明方）；hit/miss 比=复读率×窗收益。
+
+### 影子读与降级演练（B 侧 / spec 189+195）
+
+- **影子读**：`ShadowProbe(rate)`——确定性哈希采样同 key 同判定；换模型前 5% 影子一周，diverged
+  率即真实分布行为差异面；影子异常全吞主路零感知；分歧样本环形 32 可回放定位。
+- **降级演练**：`FallbackDrill`——每 10 分钟演练备链一次，凭证过期/配额耗尽在真降级前暴露；
+  `filter(chain.models(), maxAge)` 只留近期验证过的备胎——「存在」升级为「验证过」。
+
+### 维护门与事件去重（B 侧 / spec 205+203）
+
+- **维护模式**：`gate.begin(reason, 预计恢复)` → 新 Turn 温和拒绝（可读文案）→ 逐会话
+  `drain.beginDrain + awaitDrained` 排存量 → 维护 → `gate.end()`——计划内维护的标准序列。
+- **事件去重**：`EventDeduplicator` 包在 fanout 前——完全相同重复（type+键排序 payload 指纹）
+  发射侧即拦；deduped 计数高 = 宿主双发 bug 显影剂。

@@ -176,6 +176,16 @@ B 会话（.wayfinder200+ 号段）的精选主线（每项默认零行为变化
 | | 多 sink 扇出 | N 目的地独立投递语义/outbox 隔离/类型路由（Kafka 多消费组） | [spec 151](docs/spec/151-webhook-fanout.md) |
 | 观测与预算 | 舱集群聚合 + 会话特征 | 心跳共享事实双列快照（spec57 范式）+ 行为侧写一次定义多处消费（Feast） | [spec 127](docs/spec/127-bulkhead-cluster-aggregation.md) / [161](docs/spec/161-session-features.md) |
 | | 弹性预算池 + 配置热重载 | 保底配额+surplus 借用（Spark AQE）+ volatile 换引用版本化订阅（Caddy） | [spec 157](docs/spec/157-elastic-budget-pool.md) / [163](docs/spec/163-reloadable-config.md) |
+| 防泛洪 | 输入泛洪防护 + per-tool 配额 | 相同输入窗口计数超阈拦（网关风暴防护）+ 单工具会话内上限（per-API quota） | [spec 167](docs/spec/167-input-flood-guard.md) / [185](docs/spec/185-tool-session-quota.md) |
+| 工具治理 | 结果裁剪 + 跨轮 TTL 缓存 | fail-open 变换提炼字段（VRL/jq）+ 只读工具 maxAge 复用窗（HTTP max-age） | [spec 169](docs/spec/169-tool-result-transform.md) / [183](docs/spec/183-tool-ttl-cache.md) |
+| | 工具泳道 + 目录漂移看门狗 | 慢工具独立泳道许可（Hystrix 舱）+ 指纹基线变化即事件（SBOM 闭环） | [spec 173](docs/spec/173-tool-lanes.md) / [201](docs/spec/201-catalog-drift-watcher.md) |
+| 模型路由 | 平滑加权分流 + 影子读 | Nginx smooth WRR 比例精确分布平滑 + 采样旁路对照主影子（Istio mirror） | [spec 199](docs/spec/199-weighted-router.md) / [189](docs/spec/189-shadow-probe.md) |
+| | 降级链演练 + 目录指纹 | 备胎主动验证持证上岗（Envoy 健康检查）+ 工具面 SBOM 对账 | [spec 195](docs/spec/195-fallback-drill.md) / [175](docs/spec/175-tool-catalog-fingerprint.md) |
+| 可靠性闭环 | 导出防篡改清单 + 事件去重 | 逐项摘要+总摘要 verify 三列（OCI manifest）+ 发射侧指纹环拦截重复 | [spec 193](docs/spec/193-export-manifest.md) / [203](docs/spec/203-event-dedup.md) |
+| | 序号围栏 + 凭证租约 | 信封单调 seq 缺口显形（Kafka）+ 密钥 TTL 签发续租吊销（Vault） | [spec 159](docs/spec/159-delivery-seq-fence.md) / [153](docs/spec/153-secret-leases.md) |
+| 观测治理 | 轮时延计时 + 上下文水位 | 端到端轮 timer+滚动窗读数 + 低水位翻转事件预警线 | [spec 191](docs/spec/191-turn-timing.md) / [181](docs/spec/181-context-watermark.md) |
+| | 空闲水位 + 配置指纹 | 特征仓事实驱动的空闲判定（Flink watermark）+ 配置面漂移对账 | [spec 179](docs/spec/179-idle-session-monitor.md) / [187](docs/spec/187-config-fingerprint.md) |
+| 运行闸 | 模型调用循环闸 + 维护模式门 | 轮内调用总闸费用硬顶 + 全局温和拒新维护窗（K8s cordon） | [spec 197](docs/spec/197-model-call-cap.md) / [205](docs/spec/205-maintenance-gate.md) |
 
 ## 技术基线
 
