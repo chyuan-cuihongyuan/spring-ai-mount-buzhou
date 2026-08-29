@@ -1286,3 +1286,10 @@
   TailSamplingPolicy + SampledExportResult kept/notSampled 分列 + 单行 summary，
   OTel tail sampling 借鉴）
 - 类型级快照：**零新增**（方法级 + 嵌套 record）；yml 键：**零新增**
+
+## effort #114 新增公共面（spec 138 / impl-281，@since 1.0.0）
+
+- `runaway/TurnHeartbeat`（轮次心跳：注册制在飞表 + beat 进展打点 + stalled
+  候选制检测 quiet 降序最长停滞优先 + stalled-detected 计数——「活着但不动」
+  卡死面可见，Temporal Activity heartbeat 借鉴）
+- 类型级快照：+1（+Stalled record）；yml 键：**零新增**
