@@ -113,11 +113,14 @@ public final class PairwiseEvalRunner {
             }
         }
         int decided = winsA + winsB + ties;
+        // spec 93 §A / T351：run 执行时刻的数据集指纹入档（与 spec 82 同语义——
+        // A/B 结论的适用版本可验）
         PairwiseEvalResult result = new PairwiseEvalResult(runId, datasetName, startedAt,
                 Instant.now(), results,
                 new PairwiseSummary(winsA, winsB, ties, errors, results.size(),
                         decided == 0 ? 0.0 : (double) winsA / decided,
-                        decided == 0 ? 0.0 : (double) winsB / decided));
+                        decided == 0 ? 0.0 : (double) winsB / decided),
+                datasetStore.fingerprint(datasetName).orElse(null));
         if (stateStore != null) {
             stateStore.put(EvalDatasetStore.SESSION_ID, new StateEntry(
                     AB_RUN_PREFIX + runId, EvalRunner.encode(toMap(result)),
@@ -158,9 +161,10 @@ public final class PairwiseEvalRunner {
     /** spec 74 §A / T299：A/B run 记录键前缀（eval 合成会话）。 */
     static final String AB_RUN_PREFIX = "ab.run.";
 
-    /** 落盘摘要行（明细 verdict 走 items 字段——decode 面同构）。 */
+    /** 落盘摘要行（明细 verdict 走 items 字段——decode 面同构；指纹 spec 93 §A）。 */
     public record AbRunSummary(String runId, String datasetName, Instant startedAt,
-                               Instant finishedAt, PairwiseSummary summary) {
+                               Instant finishedAt, PairwiseSummary summary,
+                               String datasetFingerprint) {
     }
 
     /** A/B run 摘要列表（按 dataset 过滤可选；startedAt 倒序）。 */
@@ -182,7 +186,8 @@ public final class PairwiseEvalRunner {
                             new PairwiseSummary(
                                     num(s, "winsA"), num(s, "winsB"), num(s, "ties"),
                                     num(s, "errors"), num(s, "total"),
-                                    dnum(s, "winRateA"), dnum(s, "winRateB"))));
+                                    dnum(s, "winRateA"), dnum(s, "winRateB")),
+                            (String) map.get("datasetFingerprint")));
                 });
         out.sort(java.util.Comparator.comparing(AbRunSummary::startedAt).reversed());
         return out;
@@ -225,7 +230,8 @@ public final class PairwiseEvalRunner {
                 items,
                 new PairwiseSummary(num(s, "winsA"), num(s, "winsB"), num(s, "ties"),
                         num(s, "errors"), num(s, "total"),
-                        dnum(s, "winRateA"), dnum(s, "winRateB")));
+                        dnum(s, "winRateA"), dnum(s, "winRateB")),
+                (String) map.get("datasetFingerprint"));
     }
 
     private static double dnum(Map<?, ?> map, String key) {
@@ -238,6 +244,9 @@ public final class PairwiseEvalRunner {
         map.put("datasetName", r.datasetName());
         map.put("startedAt", r.startedAt().toString());
         map.put("finishedAt", r.finishedAt().toString());
+        if (r.datasetFingerprint() != null) {
+            map.put("datasetFingerprint", r.datasetFingerprint());
+        }
         PairwiseSummary s = r.summary();
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("winsA", s.winsA());
@@ -287,9 +296,16 @@ public final class PairwiseEvalRunner {
                 judge.compare(item.input(), outputA, outputB), null);
     }
 
-    /** A/B 对比结果（项明细 + 汇总）。 */
+    /** A/B 对比结果（项明细 + 汇总 + 数据集指纹——spec 93 §A，与 spec 82 同语义）。 */
     public record PairwiseEvalResult(String runId, String datasetName, Instant startedAt,
                                      Instant finishedAt, List<PairwiseItemResult> items,
-                                     PairwiseSummary summary) {
+                                     PairwiseSummary summary, String datasetFingerprint) {
+
+        /** 6 参兼容构造（spec 93 前旧形态：无指纹）。 */
+        public PairwiseEvalResult(String runId, String datasetName, Instant startedAt,
+                                  Instant finishedAt, List<PairwiseItemResult> items,
+                                  PairwiseSummary summary) {
+            this(runId, datasetName, startedAt, finishedAt, items, summary, null);
+        }
     }
 }

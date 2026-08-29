@@ -1027,3 +1027,10 @@
   详情；配置后 UP + per-agent inFlight/limit 有界详情 16 条截断；#84 fog 毕业生）
   + `AgentBulkhead.configuredAgents()`（agent → limit 只读视图）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #54 新增公共面（spec 93 / impl-240，@since 1.0.0）
+
+- `PairwiseEvalResult.datasetFingerprint` / `AbRunSummary.datasetFingerprint`（A/B
+  run 执行时刻数据集指纹入档——与 spec 82 同语义，7 参 record + 6 参旧构造兼容，
+  null 不写键；数据集演进后 A/B 结论适用性可验）
+- 类型级快照：**零新增**（字段级）；yml 键：**零新增**

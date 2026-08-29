@@ -131,6 +131,27 @@ class PairwiseEvalRunnerTest {
     }
 
     /** spec 74 §B / T300：run 落盘 + 查询（dataset 过滤 / startedAt 倒序）；不落盘构造零变化。 */
+    /** spec 93 §B / T352：A/B run 指纹——入档/回读等值，旧记录不误报。 */
+    @Test
+    void abRunCarriesDatasetFingerprint() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        seedDataset(stores, 2);
+        EvalDatasetStore ds = new EvalDatasetStore(stores.sessionStateStore());
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(new EchoModel("plain-"), stores, RuntimeConfig.defaults());
+        PairwiseEvalRunner persisting = new PairwiseEvalRunner(ds,
+                new PairwiseJudge(new GoldContentJudge()), stores.sessionStateStore());
+
+        PairwiseEvalRunner.PairwiseEvalResult result = persisting.compare("ab", runtimeA, runtimeB, 1);
+
+        // 内存面等值 + 落盘回读等值 + 摘要行携带
+        assertThat(result.datasetFingerprint()).isEqualTo(ds.fingerprint("ab").orElseThrow());
+        var detail = PairwiseEvalRunner.abRun(stores.sessionStateStore(), result.runId()).orElseThrow();
+        assertThat(detail.datasetFingerprint()).isEqualTo(result.datasetFingerprint());
+        assertThat(PairwiseEvalRunner.abRuns(stores.sessionStateStore(), "ab")
+                .getFirst().datasetFingerprint()).isEqualTo(result.datasetFingerprint());
+    }
+
     @Test
     void abRunsPersistAndQuery() {
         BuzhouStores stores = Buzhou.inMemoryStores();
