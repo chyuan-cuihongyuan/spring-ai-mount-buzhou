@@ -159,6 +159,35 @@ final class WebhookOutbox {
         return store.countByPrefix(SESSION_ID, OUTBOX_PREFIX);
     }
 
+    /**
+     * spec 135 / T483：最老待投记录（全量扫含<b>退避中</b>——due() 只见到期者；
+     * 取 createdAt 最早）。损坏记录跳过（隔离归 due() 路径既有语义）；无积压 = empty。
+     */
+    java.util.Optional<OutboxRecord> pendingOldest(int scanLimit) {
+        OutboxRecord oldest = null;
+        for (Map.Entry<String, StateEntry> e
+                : store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).entrySet()) {
+            if (scanLimit-- <= 0) {
+                break;
+            }
+            OutboxRecord r = parse(e.getValue().value());
+            if (r == null) {
+                continue;
+            }
+            if (oldest == null || r.createdAtEpochMs() < oldest.createdAtEpochMs()
+                    || (r.createdAtEpochMs() == oldest.createdAtEpochMs()
+                            && r.seq() < oldest.seq())) {
+                oldest = r;
+            }
+        }
+        return java.util.Optional.ofNullable(oldest);
+    }
+
+    /** 死信计数（spec 135 lag 面）。 */
+    int deadCount() {
+        return store.countByPrefix(SESSION_ID, DEAD_PREFIX);
+    }
+
     /** spec 37 §B / T133 / impl-106：死信迁回 outbox（attempts=0、立即可投递）；容量满则停。 */
     synchronized int requeueDead(int limit) {
         int requeued = 0;
