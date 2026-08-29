@@ -1253,3 +1253,13 @@
   + 逐出诚实计数 + getOrLoad 惰性装载 + Stats 四计数 hitRate——vLLM/SGLang
   radix prefix-cache 借鉴，不猜语义相似与向量面正交）
 - 类型级快照：+1（新 cache 包 final 类 + Stats record）；yml 键：**零新增**
+
+## effort #92 新增公共面（spec 130 / impl-277，@since 1.0.0）
+
+- `retention/ArchivePurgeJob`（归档 TTL 定时清理：SmartLifecycle 单线程
+  scheduleWithFixedDelay + purgeOnce 手动面 + listener 删除数可观测 0 也通知 +
+  单轮异常不杀调度线程——S3 lifecycle 借鉴，spec 103 fog 收口）
+- `config/BuzhouArchiveProperties` + autoconfig：`SessionArchiver` 兜底 bean +
+  purge job（purge-enabled 默认关）
+- 类型级快照：+2；yml 键：+3（buzhou.session-archive.purge-enabled/purge-ttl/
+  purge-interval）

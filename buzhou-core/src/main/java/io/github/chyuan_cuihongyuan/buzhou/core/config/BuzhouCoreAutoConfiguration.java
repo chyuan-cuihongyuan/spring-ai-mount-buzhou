@@ -45,7 +45,7 @@ import java.util.List;
         BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class,
         BuzhouTokenBudgetProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
-        BuzhouToolsProperties.class})
+        BuzhouToolsProperties.class, BuzhouArchiveProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -574,5 +574,39 @@ public class BuzhouCoreAutoConfiguration {
                 retention.sweepInterval(),
                 null,
                 retention.enabled());
+    }
+
+    /**
+     * spec 127 / T455：会话归档器 bean（宿主未自建时兜底——spec 97 归档冷层的
+     * 自动装配面；SessionCleaner 与 sweeper 各持实例，装配参数同源）。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver buzhouSessionArchiver(
+            BuzhouStores stores,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog> toolCallLog,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver(
+                stores,
+                new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner(
+                        stores, runRegistry.getIfAvailable(), toolCallLog.getIfAvailable()));
+    }
+
+    /**
+     * spec 127 / T455：归档 TTL 定时清理（{@code buzhou.session-archive.purge-enabled}
+     * 默认关——删除动作必须显式开启；开启后单线程 scheduleWithFixedDelay 兑现
+     * purgeTtl；多实例各跑一份，幂等无害）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "buzhou.session-archive", name = "purge-enabled",
+            havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob buzhouArchivePurgeJob(
+            io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver archiver,
+            BuzhouArchiveProperties archive) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob(
+                archiver, archive.getPurgeTtl(), archive.getPurgeInterval(),
+                archive.isPurgeEnabled());
     }
 }
