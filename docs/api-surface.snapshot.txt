@@ -200,6 +200,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ToolCallSpec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookDeadLetter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxPerfAccess
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.GuardModule

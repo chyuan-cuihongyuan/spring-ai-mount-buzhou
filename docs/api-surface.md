@@ -1049,3 +1049,10 @@
   装配双写 `memory.summary.folded` 事件（payload: trigger/generation/coversUpToTurn；
   spec 90 fog 收口——压缩观测双事件族补齐）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #57 新增公共面（spec 96 / impl-243，@since 1.0.0）
+
+- `WebhookOutboxAudit`（outbox due 索引一致性审计：孤儿/陈旧/缺失三类失真只读
+  对账 + 计数样本 + `repair` 按项清/补（默认全 false safe-by-default）+ 纯静态
+  不触写路径；StoreFsck 同思想第三域——spec 79 fog 收口，投递停摆提前可见）
+- 类型级快照：+1；yml 键：**零新增**
