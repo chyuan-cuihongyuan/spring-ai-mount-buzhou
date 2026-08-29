@@ -1126,3 +1126,10 @@
   幂等 + 类型集与输出侧共用 + `buzhou.guard.pii.input-redaction` 独立开关默认关；
   spec 86 fog 收口——输入/输出双侧防线闭环）
 - 类型级快照：+1；yml 键：+1（buzhou.guard.pii.input-redaction，默认关）
+
+## effort #69 新增公共面（spec 107 / impl-254，@since 1.0.0）
+
+- `ConfigDoctorHealth`（/actuator/buzhou 的 config-doctor 段：就绪一次体检缓存 +
+  UNKNOWN(pending)→UP + errors/warnings/checkedKeys 有界详情；listener+health
+  复合 bean 替换原装配——spec 91 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**（复用 buzhou.config-doctor.enabled）

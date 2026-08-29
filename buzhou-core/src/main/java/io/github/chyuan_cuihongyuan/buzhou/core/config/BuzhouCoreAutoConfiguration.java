@@ -485,27 +485,17 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
-     * spec 91 §A / T345：配置体检（opt-in {@code buzhou.config-doctor.enabled=true}，默认关；
-     * Spring Shell doctor 思想）——就绪事件时把实际 buzhou.* 配置面与 classpath 键宇宙
-     * 对照：拼错键 WARN（编辑距离 ≤2 近邻建议）、值域越界 ERROR；发现走日志
-     * （只读不写——报告不改行为，去向由宿主决定）。
+     * spec 91 §A / T345 + spec 107 §A / T391：配置体检（opt-in
+     * {@code buzhou.config-doctor.enabled=true}，默认关；Spring Shell doctor 思想）——
+     * 就绪事件跑一次 ConfigDoctor：发现走日志 + 报告缓存进健康段（/actuator/buzhou
+     * 的 config-doctor 段：errors/warnings/checkedKeys）。只读不写——报告不改行为。
      */
     @Bean
     @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
             prefix = "buzhou.config-doctor", name = "enabled", havingValue = "true")
-    public org.springframework.context.ApplicationListener<
-            org.springframework.boot.context.event.ApplicationReadyEvent> buzhouConfigDoctor(
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.ConfigDoctorHealth buzhouConfigDoctorHealth(
             org.springframework.core.env.Environment env) {
-        return event -> {
-            ConfigDoctor.DoctorReport report = new ConfigDoctor().examine(env);
-            System.Logger logger = System.getLogger(ConfigDoctor.class.getName());
-            logger.log(System.Logger.Level.INFO, report.summary());
-            for (ConfigDoctor.Finding finding : report.findings()) {
-                logger.log(System.Logger.Level.WARNING,
-                        "config-doctor " + finding.level() + " " + finding.key() + "："
-                                + finding.message());
-            }
-        };
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.ConfigDoctorHealth(env);
     }
 
     /**
