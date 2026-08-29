@@ -67,6 +67,11 @@ public final class TurnHeartbeat {
         return lastBeat.size();
     }
 
+    /** 在飞会话 id 快照（巡检犬自轮询用——注册制事实表的全集视图，字典序稳定）。 */
+    public java.util.List<String> registered() {
+        return lastBeat.keySet().stream().sorted().toList();
+    }
+
     /**
      * 停滞检测：候选会话里「已注册且 quiet &gt; threshold」者按停滞时长降序返回
      * （最长停滞优先——排障视线先落最卡处）；每检出一个计 stalled-detected。

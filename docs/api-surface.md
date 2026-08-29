@@ -1366,3 +1366,11 @@
   开 = Holder 安装面装饰 TagCardinalityGuard 全局生效；默认关零变化——
   spec 132 的装配面收口）
 - 类型级快照：**零新增**；yml 键：+1
+
+## effort #125 新增公共面（spec 162 / impl-292，@since 1.0.0）
+
+- `runaway/TurnStallWatchdog`（停滞巡检犬：registered 全集低频轮询 + quiet
+  超阈值按停滞时长降序交付 listener + 每轮重复告警诚实语义——去重归接收端 +
+  空表也通知 + 单轮异常不杀调度；TurnHeartbeat 增 registered() 全集视图，
+  K8s liveness probe 借鉴）
+- 类型级快照：+1；yml 键：**零新增**
