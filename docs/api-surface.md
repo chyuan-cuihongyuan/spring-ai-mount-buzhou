@@ -1381,3 +1381,10 @@
   .extractCustomRuleNames`（输入侧命中进同一张合规报表——自定义占位符提取
   上移双钩共用，内置类型名剔除防双计；spec 144 fog 收口）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #127 新增公共面（spec 166 / impl-294，@since 1.0.0）
+
+- `guard/pii/PiiHitStatsJsonl.export`（PII 命中报表 JSONL：与 top 同序平铺
+  + export→reset 每窗口一份合规报表 + 转义纪律 + 空表零行诚实——导出族
+  第六员，spec 164 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
