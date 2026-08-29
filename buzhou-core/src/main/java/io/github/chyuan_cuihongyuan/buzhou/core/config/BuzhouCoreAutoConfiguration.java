@@ -45,7 +45,8 @@ import java.util.List;
         BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class,
         BuzhouTokenBudgetProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
-        BuzhouToolsProperties.class, BuzhouArchiveProperties.class})
+        BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
+        BuzhouVirtualKeyProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -149,11 +150,44 @@ public class BuzhouCoreAutoConfiguration {
     public BuzhouHook tokenBudgetHook(
             BuzhouTokenBudgetProperties tokenBudgetProperties,
             ObjectProvider<BuzhouStores> stores,
-            org.springframework.core.env.Environment env) {
+            org.springframework.core.env.Environment env,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys> virtualKeys) {
         BuzhouStores available = stores.getIfAvailable();
+        // spec 158 / T511：active-key 配置时接 key 级预算闸（省缺 = 既有零变化）
+        String activeKey = env.getProperty("buzhou.virtual-keys.active-key");
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys = activeKey == null
+                ? null : virtualKeys.getIfAvailable();
         return new io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook(
                 tokenBudgetProperties, env.getProperty("buzhou.model-name", "unknown"),
-                available == null ? null : available.observabilityStore());
+                available == null ? null : available.observabilityStore(), keys, activeKey);
+    }
+
+    /**
+     * spec 158 / T511：虚拟 key 注册表（active-key 配置时装配；limits 空表 +
+     * active-key 组合在装配期 fail-fast——不带病上线）。健康段经
+     * {@code @ConditionalOnBean(VirtualKeys)} 随之出现。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.virtual-keys", name = "active-key")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys buzhouVirtualKeys(
+            BuzhouVirtualKeyProperties props) {
+        if (props.limits() == null || props.limits().isEmpty()) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.virtual-keys.active-key 配置了但 limits 为空——key 闸无从扣减",
+                    "请补 buzhou.virtual-keys.limits.<key>=<token 硬顶>，或删除 active-key");
+        }
+        if (!props.limits().containsKey(props.activeKey())) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.virtual-keys.active-key=[" + props.activeKey()
+                            + "] 不在 limits 表里——省缺 key 的扣减是静默直通（诚实边界反被误用）",
+                    "请在 limits 里给它设硬顶，或改 active-key");
+        }
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys =
+                io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys.create();
+        props.limits().forEach(keys::register);
+        return keys;
     }
 
     /**

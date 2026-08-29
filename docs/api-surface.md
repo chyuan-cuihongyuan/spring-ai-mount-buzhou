@@ -1350,3 +1350,12 @@
   exhausted 全量计数 + top-8 用量行 used/limit/exhausted 行内标记 +
   @ConditionalOnBean 按需装配——spec 148 key 配额的观测闭环）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #123 新增公共面（spec 158 / impl-290，@since 1.0.0）
+
+- `config/BuzhouVirtualKeyProperties` + autoconfig `buzhouVirtualKeys` bean
+  （虚拟 key yml 装配：active-key + limits.<key> 两键即得 key 级预算闸全链——
+  registry → tokenBudgetHook → VirtualKeysHealth 自动出现；bind/装配分期
+  校验不带病上线）
+- 类型级快照：+1；yml 键：+2（buzhou.virtual-keys.active-key/limits——后者
+  Map 结构化面矩阵 SKIPPED 登记）

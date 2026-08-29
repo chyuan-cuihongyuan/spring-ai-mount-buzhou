@@ -101,7 +101,9 @@ class ConfigBindingsMatrixTest {
             "buzhou.skills.catalog-max-entries", "buzhou.skills.catalog-cache-ttl",
             // effort#19 / spec 59 / T268：语义排序键走 fromYml env 直读路径（无 properties record 字段）
             "buzhou.skills.semantic-ranking.enabled",
-            "buzhou.spill.enabled");
+            "buzhou.spill.enabled",
+            // effort#123 / spec 158：虚拟 key 闸（env 直读 active-key；limits 为结构化 map 走 SKIPPED）
+            "buzhou.virtual-keys.active-key");
 
     /** 复杂结构化键（List<KeyFile> 等）——样例值需文件/结构，跳过并显式登记（不静默）。 */
     private static final List<String> SKIPPED_KEYS = List.of(
@@ -109,7 +111,8 @@ class ConfigBindingsMatrixTest {
             "buzhou.webhook.include-types", // List<String>：Binder 结构化面（spec 105 / T390）
             "buzhou.guard.audit.signing.keys", // List<KeyFile>：需 PEM 文件，结构化装配面
             "buzhou.guard.audit.signing.key-dir", // 目录扫描副作用键（防真扫）
-            "buzhou.guard.pii.custom-rules"); // List<Map>：guard fromYml 结构化面（spec 129 / T475）
+            "buzhou.guard.pii.custom-rules", // List<Map>：guard fromYml 结构化面（spec 129 / T475）
+            "buzhou.virtual-keys.limits"); // Map<String,Long>：Binder 结构化面（spec 158 / T511）
 
     /** 无默认值键的样例（其余按 defaultValue 或类型默认）。 */
     private static final Map<String, String> SAMPLE_OVERRIDES = Map.ofEntries(
@@ -129,6 +132,7 @@ class ConfigBindingsMatrixTest {
             // effort#19 / spec 59：技能目录语义排序 enabled=true 全路径（同上 stub 嵌入上下文；
             // 无 bean fail-fast 由 skills 模块红队覆盖）
             Map.entry("buzhou.skills.semantic-ranking.enabled", "true"),
+            Map.entry("buzhou.virtual-keys.active-key", "app-key"),
             Map.entry("buzhou.tools.result-limit-overrides", "sampleTool"),
             Map.entry("buzhou.runaway.per-turn.max-steps", "50"),
             Map.entry("buzhou.runaway.per-turn.max-tool-calls", "50"),
@@ -164,6 +168,9 @@ class ConfigBindingsMatrixTest {
         properties.put("buzhou.observe.otel.headers.k", "v");
         properties.put("buzhou.resilience.fallback.weights.m", "3");
         properties.put("buzhou.tools.result-limit-overrides.t", "100");
+        // effort#123 / spec 158：active-key 样例配套的 limits 子键（active-key=app-key），
+        // 否则装配期 fail-fast「limits 为空」会正确地拒掉矩阵上下文
+        properties.put("buzhou.virtual-keys.limits.app-key", "100000");
 
         java.nio.file.Path spillDir = Files.createTempDirectory("buzhou-matrix-spill");
         ScriptedChatModel model = new ScriptedChatModel();

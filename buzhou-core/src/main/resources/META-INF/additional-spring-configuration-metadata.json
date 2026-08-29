@@ -1,287 +1,297 @@
 {
-  "properties": [
-    {
-      "name": "buzhou.store.type",
-      "type": "java.lang.String",
-      "defaultValue": "memory",
-      "description": "存储形态（封闭枚举，拼错启动即失败）：memory=进程内有界套件（默认）；jdbc=MySQL/PostgreSQL/H2（需 buzhou-store-jdbc）；redis=Redis（需 buzhou-store-redis）。"
-    },
-    {
-      "name": "buzhou.leak.level",
-      "type": "java.lang.String",
-      "defaultValue": "SIMPLE",
-      "description": "impl-41 资源泄漏检测级别：DISABLED=不追踪（零开销）；SIMPLE=1/128 采样（默认）；ADVANCED=1/128 采样+出租栈捕获；PARANOID=全采样+栈捕获（排障用）。"
-    },
-    {
-      "name": "buzhou.leak.lease-age-threshold",
-      "type": "java.time.Duration",
-      "defaultValue": "5m",
-      "description": "impl-41 泄漏上报的出租时长阈值：GC 时年龄低于该值的对象视为噪声跳过。"
-    },
-    {
-      "name": "buzhou.core.event-dispatch.capacity",
-      "type": "java.lang.Integer",
-      "defaultValue": 1024,
-      "description": "impl-34 buffered 事件分发队列容量（负值启动即失败）。"
-    },
-    {
-      "name": "buzhou.lifecycle.timeout-per-shutdown-phase",
-      "type": "java.time.Duration",
-      "defaultValue": "30s",
-      "description": "impl-30 单停机 phase 的排空预算：预算内等在途 Turn 收尾，到点硬截断。"
-    },
-    {
-      "name": "buzhou.store.redis.snapshot-ttl",
-      "type": "java.time.Duration",
-      "defaultValue": "168h",
-      "description": "impl-42 迁移：Redis 注入快照默认 7 天 TTL（原 ZERO=永生堆积）；显式配 0s 仍表示永不过期。"
-    },
-    {
-      "name": "buzhou.store.jdbc.dialect",
-      "type": "java.lang.String",
-      "defaultValue": "AUTO",
-      "description": "impl-42 迁移：默认 AUTO 按连接 DatabaseMetaData 自动探测（原缺省假定 H2）。"
-    },
-    {
-      "name": "buzhou.runaway.enabled",
-      "type": "java.lang.Boolean",
-      "description": "失控检测总开关（阈值默认不设 = 不限，safe-by-default）。",
-      "defaultValue": true
-    },
-    {
-      "name": "buzhou.runaway.per-turn.max-steps",
-      "type": "java.lang.Integer",
-      "description": "单轮最大模型步数（软阈值 80% 时注入剩余预算提醒，硬顶终止）。未配置 = 不限。"
-    },
-    {
-      "name": "buzhou.runaway.per-turn.max-tool-calls",
-      "type": "java.lang.Integer",
-      "description": "单轮最大工具调用总数。未配置 = 不限。"
-    },
-    {
-      "name": "buzhou.runaway.per-turn.wall-clock",
-      "type": "java.time.Duration",
-      "description": "单轮墙钟上限（与 TurnDeadline 独立；两者先到先停）。未配置 = 不限。"
-    },
-    {
-      "name": "buzhou.runaway.per-session.max-steps",
-      "type": "java.lang.Integer",
-      "description": "会话累计步数上限（SessionStateStore 持久化，跨崩溃保留）。未配置 = 不限。"
-    },
-    {
-      "name": "buzhou.runaway.per-session.max-tool-calls",
-      "type": "java.lang.Integer",
-      "description": "会话累计工具调用上限。未配置 = 不限。"
-    },
-    {
-      "name": "buzhou.backpressure.enabled",
-      "type": "java.lang.Boolean",
-      "description": "spawn 容量闸总开关。",
-      "defaultValue": true
-    },
-    {
-      "name": "buzhou.backpressure.max-concurrent-sessions",
-      "type": "java.lang.Integer",
-      "description": "实例级并发活跃会话上限。未配置 = 不限。"
-    },
-    {
-      "name": "buzhou.backpressure.spawn-queue-timeout",
-      "type": "java.time.Duration",
-      "description": "QUEUE 档 spawn 排队超时。",
-      "defaultValue": "30s"
-    },
-    {
-      "name": "buzhou.backpressure.spawn-overload-policy",
-      "type": "java.lang.String",
-      "description": "spawn 过载策略：QUEUE 或 FAIL_FAST。",
-      "defaultValue": "QUEUE"
-    },
-    {
-      "name": "buzhou.backpressure.tool.max-concurrent-per-turn",
-      "type": "java.lang.Integer",
-      "description": "每轮工具并发上限。未配置 = 8。"
-    },
-    {
-      "name": "buzhou.backpressure.tool.tool-timeout",
-      "type": "java.time.Duration",
-      "description": "单工具执行超时。未配置 = 60s。"
-    },
-    {
-      "name": "buzhou.core.tool-timeout",
-      "type": "java.time.Duration",
-      "description": "单工具执行超时（harness 派发层硬顶）。长任务工具（如 run_command maxTimeout）大于 60s 时须同步调大本值。",
-      "defaultValue": "60s"
-    },
-    {
-      "name": "buzhou.core.stream-total-timeout",
-      "type": "java.time.Duration",
-      "description": "流式回复累计时长上限（spec 46 §B / T171，慢滴流防护）：相邻信号间隔 timeout 挡不住的持续慢流由本值兜底；0 或负值 = 显式关闭（既有不限语义逃生舱）。",
-      "defaultValue": "10m"
-    },
-    {
-      "name": "buzhou.webhook.outbox-capacity",
-      "type": "java.lang.Integer",
-      "defaultValue": 10000,
-      "description": "持久化 outbox 未决记录容量（spec 24）：满则新事件拒入 + dropped 计数（不阻塞会话主链）。"
-    },
-    {
-      "name": "buzhou.tools.result-limit-chars",
-      "type": "java.lang.Integer",
-      "defaultValue": 20000,
-      "description": "工具结果入模型上下文的字符上限（spec 31）：超限截断+提示尾；-1 不限。"
-    },
-    {
-      "name": "buzhou.tools.result-limit-overrides",
-      "type": "java.util.Map<java.lang.String,java.lang.Integer>",
-      "description": "per-tool 限幅覆盖（glob 键→字符数/-1 豁免；spec 31）：追加式叠加默认 read_range 豁免。"
-    },
-    {
-      "name": "buzhou.webhook.queue-capacity",
-      "type": "java.lang.Integer",
-      "defaultValue": 256,
-      "description": "已废弃 no-op（spec 24 起投递暂存持久化 outbox 化）——请改用 buzhou.webhook.outbox-capacity。",
-      "deprecation": {
-        "level": "warning",
-        "reason": "outbox 持久化取代内存队列（spec 24 / T103）。",
-        "replacement": "buzhou.webhook.outbox-capacity"
-      }
-    },
-    {
-      "name": "buzhou.core.index-closed-retention",
-      "type": "java.time.Duration",
-      "defaultValue": "30d",
-      "description": "索引 CLOSED/DELETED 行保留期（spec 37 §C）：过期惰性清扫（1/64 概率、单次 ≤256 条、ACTIVE 永不扫）；-1/0 = 永久保留。"
-    },
-    {
-      "name": "buzhou.store.read-degrade",
-      "type": "java.lang.String",
-      "defaultValue": "off",
-      "description": "spec 40 §B（T156）：消息历史读失败策略——off=原样上抛（默认，Turn 失败）；empty=降级空历史续聊（WARN + buzhou.stores.read-degraded 计数可感；模型看不到历史是已知代价）。非法值启动即拒。"
-    },
-    {
-      "name": "buzhou.webhook.close-drain-timeout",
-      "type": "java.time.Duration",
-      "defaultValue": "5s",
-      "description": "spec 44 §A（T159）：webhook 停机排空已到期记录的预算（与容器终止宽限期对齐）；非正值启动即拒。"
-    },
-    {
-      "name": "buzhou.recovery.auto-resume",
-      "type": "java.lang.Boolean",
-      "defaultValue": false,
-      "description": "崩溃自愈 watchdog（spec 69 / T290，Temporal crash-watchdog 借鉴）：启动完成后自动枚举 RUNNING 快照续跑（他方活跃实例持锁即跳过）；需要 RunRegistry bean。"
-    },
-    {
-      "name": "buzhou.bulkhead.enabled",
-      "type": "java.lang.Boolean",
-      "defaultValue": false,
-      "description": "spec 84 / T323：agent 并发 Turn 隔离舱开关（默认关——全 NOOP 零行为；开启后与 buzhou.bulkhead.agents 配合）。"
-    },
-    {
-      "name": "buzhou.bulkhead.agents",
-      "type": "java.util.Map<java.lang.String,java.lang.Integer>",
-      "description": "spec 84 / T323：每 agent 并发 Turn 上限表（agent 名 → maxConcurrentTurns；未列出的 agent 不限；resilience4j Bulkhead 借鉴）。"
-    },
-    {
-      "name": "buzhou.bulkhead.acquire-timeout",
-      "type": "java.time.Duration",
-      "defaultValue": "0s",
-      "description": "spec 84 / T323：舱满等待空位时长（默认 0s = fail-fast 抛 QUOTA_EXCEEDED）。"
-    },
-    {
-      "name": "buzhou.memory.semantic-drift",
-      "type": "java.lang.Boolean",
-      "defaultValue": false,
-      "description": "spec 90 / T343：语义漂移触发边界压缩开关（默认关——零变化；词面 bigram Jaccard 检测，可注入 embedding 实现）。"
-    },
-    {
-      "name": "buzhou.memory.semantic-drift-threshold",
-      "type": "java.lang.Double",
-      "defaultValue": 0.15,
-      "description": "spec 90 / T343：漂移相似度阈值（低于判漂移；0=永不判漂移；保守档防误触发）。"
-    },
-    {
-      "name": "buzhou.config-doctor.enabled",
-      "type": "java.lang.Boolean",
-      "defaultValue": false,
-      "description": "spec 91 / T345：配置体检开关（默认关——开启后就绪事件时对 buzhou.* 配置面做一次键拼写/值域体检，发现走日志；只读不写）。"
-    },
-    {
-      "name": "buzhou.webhook.include-types",
-      "type": "java.util.List<java.lang.String>",
-      "description": "spec 105 / T387：webhook 订阅类型过滤（命中才投递；空/缺省 = 全投递；被滤事件不占 outbox 容量）。"
-    },
-    {
-      "name": "buzhou.guard.pii.input-redaction",
-      "type": "java.lang.Boolean",
-      "defaultValue": false,
-      "description": "spec 106 / T391：用户输入 PII 脱敏开关（beforeTurn 占位符化——默认关；类型集与输出侧共用 buzhou.guard.pii.types）。"
-    }
-  ],
-  "hints": [
-    {
-      "name": "buzhou.backpressure.spawn-overload-policy",
-      "values": [
+    "properties": [
         {
-          "value": "QUEUE",
-          "description": "有界排队 + 超时"
+            "name": "buzhou.store.type",
+            "type": "java.lang.String",
+            "defaultValue": "memory",
+            "description": "存储形态（封闭枚举，拼错启动即失败）：memory=进程内有界套件（默认）；jdbc=MySQL/PostgreSQL/H2（需 buzhou-store-jdbc）；redis=Redis（需 buzhou-store-redis）。"
         },
         {
-          "value": "FAIL_FAST",
-          "description": "快速失败"
+            "name": "buzhou.leak.level",
+            "type": "java.lang.String",
+            "defaultValue": "SIMPLE",
+            "description": "impl-41 资源泄漏检测级别：DISABLED=不追踪（零开销）；SIMPLE=1/128 采样（默认）；ADVANCED=1/128 采样+出租栈捕获；PARANOID=全采样+栈捕获（排障用）。"
+        },
+        {
+            "name": "buzhou.leak.lease-age-threshold",
+            "type": "java.time.Duration",
+            "defaultValue": "5m",
+            "description": "impl-41 泄漏上报的出租时长阈值：GC 时年龄低于该值的对象视为噪声跳过。"
+        },
+        {
+            "name": "buzhou.core.event-dispatch.capacity",
+            "type": "java.lang.Integer",
+            "defaultValue": 1024,
+            "description": "impl-34 buffered 事件分发队列容量（负值启动即失败）。"
+        },
+        {
+            "name": "buzhou.lifecycle.timeout-per-shutdown-phase",
+            "type": "java.time.Duration",
+            "defaultValue": "30s",
+            "description": "impl-30 单停机 phase 的排空预算：预算内等在途 Turn 收尾，到点硬截断。"
+        },
+        {
+            "name": "buzhou.store.redis.snapshot-ttl",
+            "type": "java.time.Duration",
+            "defaultValue": "168h",
+            "description": "impl-42 迁移：Redis 注入快照默认 7 天 TTL（原 ZERO=永生堆积）；显式配 0s 仍表示永不过期。"
+        },
+        {
+            "name": "buzhou.store.jdbc.dialect",
+            "type": "java.lang.String",
+            "defaultValue": "AUTO",
+            "description": "impl-42 迁移：默认 AUTO 按连接 DatabaseMetaData 自动探测（原缺省假定 H2）。"
+        },
+        {
+            "name": "buzhou.runaway.enabled",
+            "type": "java.lang.Boolean",
+            "description": "失控检测总开关（阈值默认不设 = 不限，safe-by-default）。",
+            "defaultValue": true
+        },
+        {
+            "name": "buzhou.runaway.per-turn.max-steps",
+            "type": "java.lang.Integer",
+            "description": "单轮最大模型步数（软阈值 80% 时注入剩余预算提醒，硬顶终止）。未配置 = 不限。"
+        },
+        {
+            "name": "buzhou.runaway.per-turn.max-tool-calls",
+            "type": "java.lang.Integer",
+            "description": "单轮最大工具调用总数。未配置 = 不限。"
+        },
+        {
+            "name": "buzhou.runaway.per-turn.wall-clock",
+            "type": "java.time.Duration",
+            "description": "单轮墙钟上限（与 TurnDeadline 独立；两者先到先停）。未配置 = 不限。"
+        },
+        {
+            "name": "buzhou.runaway.per-session.max-steps",
+            "type": "java.lang.Integer",
+            "description": "会话累计步数上限（SessionStateStore 持久化，跨崩溃保留）。未配置 = 不限。"
+        },
+        {
+            "name": "buzhou.runaway.per-session.max-tool-calls",
+            "type": "java.lang.Integer",
+            "description": "会话累计工具调用上限。未配置 = 不限。"
+        },
+        {
+            "name": "buzhou.backpressure.enabled",
+            "type": "java.lang.Boolean",
+            "description": "spawn 容量闸总开关。",
+            "defaultValue": true
+        },
+        {
+            "name": "buzhou.backpressure.max-concurrent-sessions",
+            "type": "java.lang.Integer",
+            "description": "实例级并发活跃会话上限。未配置 = 不限。"
+        },
+        {
+            "name": "buzhou.backpressure.spawn-queue-timeout",
+            "type": "java.time.Duration",
+            "description": "QUEUE 档 spawn 排队超时。",
+            "defaultValue": "30s"
+        },
+        {
+            "name": "buzhou.backpressure.spawn-overload-policy",
+            "type": "java.lang.String",
+            "description": "spawn 过载策略：QUEUE 或 FAIL_FAST。",
+            "defaultValue": "QUEUE"
+        },
+        {
+            "name": "buzhou.backpressure.tool.max-concurrent-per-turn",
+            "type": "java.lang.Integer",
+            "description": "每轮工具并发上限。未配置 = 8。"
+        },
+        {
+            "name": "buzhou.backpressure.tool.tool-timeout",
+            "type": "java.time.Duration",
+            "description": "单工具执行超时。未配置 = 60s。"
+        },
+        {
+            "name": "buzhou.core.tool-timeout",
+            "type": "java.time.Duration",
+            "description": "单工具执行超时（harness 派发层硬顶）。长任务工具（如 run_command maxTimeout）大于 60s 时须同步调大本值。",
+            "defaultValue": "60s"
+        },
+        {
+            "name": "buzhou.core.stream-total-timeout",
+            "type": "java.time.Duration",
+            "description": "流式回复累计时长上限（spec 46 §B / T171，慢滴流防护）：相邻信号间隔 timeout 挡不住的持续慢流由本值兜底；0 或负值 = 显式关闭（既有不限语义逃生舱）。",
+            "defaultValue": "10m"
+        },
+        {
+            "name": "buzhou.webhook.outbox-capacity",
+            "type": "java.lang.Integer",
+            "defaultValue": 10000,
+            "description": "持久化 outbox 未决记录容量（spec 24）：满则新事件拒入 + dropped 计数（不阻塞会话主链）。"
+        },
+        {
+            "name": "buzhou.tools.result-limit-chars",
+            "type": "java.lang.Integer",
+            "defaultValue": 20000,
+            "description": "工具结果入模型上下文的字符上限（spec 31）：超限截断+提示尾；-1 不限。"
+        },
+        {
+            "name": "buzhou.tools.result-limit-overrides",
+            "type": "java.util.Map<java.lang.String,java.lang.Integer>",
+            "description": "per-tool 限幅覆盖（glob 键→字符数/-1 豁免；spec 31）：追加式叠加默认 read_range 豁免。"
+        },
+        {
+            "name": "buzhou.webhook.queue-capacity",
+            "type": "java.lang.Integer",
+            "defaultValue": 256,
+            "description": "已废弃 no-op（spec 24 起投递暂存持久化 outbox 化）——请改用 buzhou.webhook.outbox-capacity。",
+            "deprecation": {
+                "level": "warning",
+                "reason": "outbox 持久化取代内存队列（spec 24 / T103）。",
+                "replacement": "buzhou.webhook.outbox-capacity"
+            }
+        },
+        {
+            "name": "buzhou.core.index-closed-retention",
+            "type": "java.time.Duration",
+            "defaultValue": "30d",
+            "description": "索引 CLOSED/DELETED 行保留期（spec 37 §C）：过期惰性清扫（1/64 概率、单次 ≤256 条、ACTIVE 永不扫）；-1/0 = 永久保留。"
+        },
+        {
+            "name": "buzhou.store.read-degrade",
+            "type": "java.lang.String",
+            "defaultValue": "off",
+            "description": "spec 40 §B（T156）：消息历史读失败策略——off=原样上抛（默认，Turn 失败）；empty=降级空历史续聊（WARN + buzhou.stores.read-degraded 计数可感；模型看不到历史是已知代价）。非法值启动即拒。"
+        },
+        {
+            "name": "buzhou.webhook.close-drain-timeout",
+            "type": "java.time.Duration",
+            "defaultValue": "5s",
+            "description": "spec 44 §A（T159）：webhook 停机排空已到期记录的预算（与容器终止宽限期对齐）；非正值启动即拒。"
+        },
+        {
+            "name": "buzhou.recovery.auto-resume",
+            "type": "java.lang.Boolean",
+            "defaultValue": false,
+            "description": "崩溃自愈 watchdog（spec 69 / T290，Temporal crash-watchdog 借鉴）：启动完成后自动枚举 RUNNING 快照续跑（他方活跃实例持锁即跳过）；需要 RunRegistry bean。"
+        },
+        {
+            "name": "buzhou.bulkhead.enabled",
+            "type": "java.lang.Boolean",
+            "defaultValue": false,
+            "description": "spec 84 / T323：agent 并发 Turn 隔离舱开关（默认关——全 NOOP 零行为；开启后与 buzhou.bulkhead.agents 配合）。"
+        },
+        {
+            "name": "buzhou.bulkhead.agents",
+            "type": "java.util.Map<java.lang.String,java.lang.Integer>",
+            "description": "spec 84 / T323：每 agent 并发 Turn 上限表（agent 名 → maxConcurrentTurns；未列出的 agent 不限；resilience4j Bulkhead 借鉴）。"
+        },
+        {
+            "name": "buzhou.bulkhead.acquire-timeout",
+            "type": "java.time.Duration",
+            "defaultValue": "0s",
+            "description": "spec 84 / T323：舱满等待空位时长（默认 0s = fail-fast 抛 QUOTA_EXCEEDED）。"
+        },
+        {
+            "name": "buzhou.memory.semantic-drift",
+            "type": "java.lang.Boolean",
+            "defaultValue": false,
+            "description": "spec 90 / T343：语义漂移触发边界压缩开关（默认关——零变化；词面 bigram Jaccard 检测，可注入 embedding 实现）。"
+        },
+        {
+            "name": "buzhou.memory.semantic-drift-threshold",
+            "type": "java.lang.Double",
+            "defaultValue": 0.15,
+            "description": "spec 90 / T343：漂移相似度阈值（低于判漂移；0=永不判漂移；保守档防误触发）。"
+        },
+        {
+            "name": "buzhou.config-doctor.enabled",
+            "type": "java.lang.Boolean",
+            "defaultValue": false,
+            "description": "spec 91 / T345：配置体检开关（默认关——开启后就绪事件时对 buzhou.* 配置面做一次键拼写/值域体检，发现走日志；只读不写）。"
+        },
+        {
+            "name": "buzhou.webhook.include-types",
+            "type": "java.util.List<java.lang.String>",
+            "description": "spec 105 / T387：webhook 订阅类型过滤（命中才投递；空/缺省 = 全投递；被滤事件不占 outbox 容量）。"
+        },
+        {
+            "name": "buzhou.guard.pii.input-redaction",
+            "type": "java.lang.Boolean",
+            "defaultValue": false,
+            "description": "spec 106 / T391：用户输入 PII 脱敏开关（beforeTurn 占位符化——默认关；类型集与输出侧共用 buzhou.guard.pii.types）。"
+        },
+        {
+            "name": "buzhou.virtual-keys.active-key",
+            "type": "java.lang.String",
+            "description": "本实例扣减归属的虚拟 key（省缺 = 不启用 key 级预算闸；配置时必须在 limits 表内，装配期 fail-fast）。spec 158 / T511。"
+        },
+        {
+            "name": "buzhou.virtual-keys.limits",
+            "type": "java.util.Map<java.lang.String,java.lang.Long>",
+            "description": "虚拟 key → token 硬顶表（Binder 结构化面，矩阵走 SKIPPED）。spec 158 / T511。"
         }
-      ]
-    },
-    {
-      "name": "buzhou.store.type",
-      "values": [
+    ],
+    "hints": [
         {
-          "value": "memory",
-          "description": "进程内存储（默认；有界容量配额见 buzhou.store.in-memory.*）"
+            "name": "buzhou.backpressure.spawn-overload-policy",
+            "values": [
+                {
+                    "value": "QUEUE",
+                    "description": "有界排队 + 超时"
+                },
+                {
+                    "value": "FAIL_FAST",
+                    "description": "快速失败"
+                }
+            ]
         },
         {
-          "value": "jdbc",
-          "description": "JDBC 存储（需要 buzhou-store-jdbc 依赖与 DataSource）"
+            "name": "buzhou.store.type",
+            "values": [
+                {
+                    "value": "memory",
+                    "description": "进程内存储（默认；有界容量配额见 buzhou.store.in-memory.*）"
+                },
+                {
+                    "value": "jdbc",
+                    "description": "JDBC 存储（需要 buzhou-store-jdbc 依赖与 DataSource）"
+                },
+                {
+                    "value": "redis",
+                    "description": "Redis 存储（需要 buzhou-store-redis 依赖）"
+                }
+            ]
         },
         {
-          "value": "redis",
-          "description": "Redis 存储（需要 buzhou-store-redis 依赖）"
+            "name": "buzhou.leak.level",
+            "values": [
+                {
+                    "value": "DISABLED"
+                },
+                {
+                    "value": "SIMPLE"
+                },
+                {
+                    "value": "ADVANCED"
+                },
+                {
+                    "value": "PARANOID"
+                }
+            ]
+        },
+        {
+            "name": "buzhou.store.jdbc.dialect",
+            "values": [
+                {
+                    "value": "AUTO",
+                    "description": "按连接元数据自动探测（默认）"
+                },
+                {
+                    "value": "H2"
+                },
+                {
+                    "value": "MYSQL"
+                },
+                {
+                    "value": "POSTGRESQL"
+                }
+            ]
         }
-      ]
-    },
-    {
-      "name": "buzhou.leak.level",
-      "values": [
-        {
-          "value": "DISABLED"
-        },
-        {
-          "value": "SIMPLE"
-        },
-        {
-          "value": "ADVANCED"
-        },
-        {
-          "value": "PARANOID"
-        }
-      ]
-    },
-    {
-      "name": "buzhou.store.jdbc.dialect",
-      "values": [
-        {
-          "value": "AUTO",
-          "description": "按连接元数据自动探测（默认）"
-        },
-        {
-          "value": "H2"
-        },
-        {
-          "value": "MYSQL"
-        },
-        {
-          "value": "POSTGRESQL"
-        }
-      ]
-    }
-  ]
+    ]
 }
