@@ -1225,3 +1225,10 @@
 - `ErrorSignatures.reset()`（窗口化清零：export → reset 循环 = 每窗口一份 JSONL、
   进程内表永有界——spec 112 fog 收口，错误族时序管线补齐）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #86 A 侧新增公共面（spec 122 / impl-272，@since 1.0.0）
+
+- `SuperstepBatch.runAll`（concurrent 包事务性并行批原语：完成序感知首败即中止
+  在途 + 部分结果不可见 + 每任务去向入异常；`SUPERSTEP_FAILED` 新错误码——
+  与 B 侧 harness 原子前检同轮 A/B 分工，MAP 登记）
+- 类型级快照：+1（concurrent 包静态工具类）；yml 键：**零新增**

@@ -63,6 +63,9 @@ public enum ErrorCode {
     /** 评估操作非法（数据集重名/未建、条目字段非法、run 请求不合法；spec 52 §A / T190）。 */
     EVAL_OPERATION_INVALID(RetryCategory.NON_RETRYABLE, "评估操作非法"),
 
+    /** 并行批失败（superstep 任一任务失败即整批失败；单任务重试无意义，需整批重放。spec 122 / T443）。 */
+    SUPERSTEP_FAILED(RetryCategory.NON_RETRYABLE, "并行批执行失败"),
+
     // ---- FATAL：环境或数据根因，需人工介入 ----
 
     /** 数据损坏（单条记录无法解析 / 链校验断点；跳过计数并告警，需人工修复）。 */
