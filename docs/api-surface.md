@@ -1271,3 +1271,10 @@
   满则新名全折 + folds() 守卫面 + 畸形键值透传不放大故障，Loki cardinality
   limit 借鉴——「tag 有界」从纪律变机制）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #112 新增公共面（spec 134 / impl-279，@since 1.0.0）
+
+- `eval/DatasetExpectations`（数据集期望套件：四内置期望 + named 自定义行级 +
+  只读 validate 带行号发现样本封顶 10 + 共 N 处诚实计数 + 单行 summary——
+  Great Expectations 借鉴，脏数据 run 前 fail-fast）
+- 类型级快照：+1（+Finding/Result/Expectation 内部 record）；yml 键：**零新增**
