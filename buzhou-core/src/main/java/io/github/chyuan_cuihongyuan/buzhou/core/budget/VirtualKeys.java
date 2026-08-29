@@ -117,6 +117,11 @@ public final class VirtualKeys {
         return new KeyUsage(key, spent.get(), limit);
     }
 
+    /** 全量用量视图（spec 214 §A / T578：topUsage 同序全量——健康/导出便利面）。 */
+    public List<KeyUsage> usageAll() {
+        return topUsage(Integer.MAX_VALUE);
+    }
+
     /** 用量 top-N（used 降序，同 used key 字典序——输出稳定；未动用的 key 也可见）。 */
     public List<KeyUsage> topUsage(int n) {
         return used.entrySet().stream()

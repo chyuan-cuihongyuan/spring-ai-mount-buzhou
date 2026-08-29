@@ -72,6 +72,11 @@ public final class TurnHeartbeat {
         return lastBeat.keySet().stream().sorted().toList();
     }
 
+    /** 全清（spec 214 §A / T578：部署重启/测试复位语义——表归零，幂等）。 */
+    public void clearAll() {
+        lastBeat.clear();
+    }
+
     /** 单会话停滞时长查询（spec 196 §A / T558：未注册/未超阈 null——单点排障面）。 */
     public Duration stalledSince(String sessionId, Duration quietThreshold, Instant now) {
         if (quietThreshold == null || quietThreshold.isNegative()) {
