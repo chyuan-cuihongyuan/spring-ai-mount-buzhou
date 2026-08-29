@@ -458,6 +458,30 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 91 §A / T345：配置体检（opt-in {@code buzhou.config-doctor.enabled=true}，默认关；
+     * Spring Shell doctor 思想）——就绪事件时把实际 buzhou.* 配置面与 classpath 键宇宙
+     * 对照：拼错键 WARN（编辑距离 ≤2 近邻建议）、值域越界 ERROR；发现走日志
+     * （只读不写——报告不改行为，去向由宿主决定）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.config-doctor", name = "enabled", havingValue = "true")
+    public org.springframework.context.ApplicationListener<
+            org.springframework.boot.context.event.ApplicationReadyEvent> buzhouConfigDoctor(
+            org.springframework.core.env.Environment env) {
+        return event -> {
+            ConfigDoctor.DoctorReport report = new ConfigDoctor().examine(env);
+            System.Logger logger = System.getLogger(ConfigDoctor.class.getName());
+            logger.log(System.Logger.Level.INFO, report.summary());
+            for (ConfigDoctor.Finding finding : report.findings()) {
+                logger.log(System.Logger.Level.WARNING,
+                        "config-doctor " + finding.level() + " " + finding.key() + "："
+                                + finding.message());
+            }
+        };
+    }
+
+    /**
      * spec 69 §A / T290：崩溃自愈 watchdog（opt-in {@code buzhou.recovery.auto-resume=true}，
      * 默认关；Temporal crash-watchdog 思想）——启动完成后枚举 RUNNING 快照逐一续跑
      * （steal=false：他方活跃实例持锁即跳过，仅接管疑似崩溃者）。无 RunRegistry bean

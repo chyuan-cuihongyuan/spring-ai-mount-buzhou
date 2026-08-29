@@ -198,6 +198,12 @@
       "type": "java.lang.Double",
       "defaultValue": 0.15,
       "description": "spec 90 / T343：漂移相似度阈值（低于判漂移；0=永不判漂移；保守档防误触发）。"
+    },
+    {
+      "name": "buzhou.config-doctor.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "spec 91 / T345：配置体检开关（默认关——开启后就绪事件时对 buzhou.* 配置面做一次键拼写/值域体检，发现走日志；只读不写）。"
     }
   ],
   "hints": [

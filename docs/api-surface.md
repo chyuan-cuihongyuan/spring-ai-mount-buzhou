@@ -1012,3 +1012,11 @@
   MemoryModule 键 `buzhou.memory.semantic-drift`（默认关）+ `-threshold`；
   Letta 语义触发压缩借鉴——spec 70 双信号化（计数+漂移）
 - 类型级快照：+2；yml 键：+2（buzhou.memory.semantic-drift/-threshold，默认关）
+
+## effort #52 新增公共面（spec 91 / impl-238，@since 1.0.0）
+
+- `ConfigDoctor`（配置体检：classpath metadata json 聚合键宇宙 + 未知键 WARN 近邻
+  建议（编辑距离 ≤2）+ 值域越界 ERROR（Boolean 严格白名单）+ 有界报告 + 单行
+  summary + `examine(Environment)` 聚合入口；`buzhou.config-doctor.enabled` 默认关
+  就绪事件日志一次；Spring Shell doctor 借鉴——#52 插曲产品化）
+- 类型级快照：+1；yml 键：+1（buzhou.config-doctor.enabled，默认关）

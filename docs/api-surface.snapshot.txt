@@ -14,6 +14,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFact
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDoctor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRetentionProperties
