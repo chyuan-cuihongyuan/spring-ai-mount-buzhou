@@ -1431,3 +1431,10 @@
   ModelCostLedger.global——零配置全局成本账；无价目零值在册诚实；
   只记账不拦截，spec 174 fog 收口）
 - 类型级快照：**零新增**（接线级）；yml 键：**零新增**
+
+## effort #133 新增公共面（spec 178 / impl-300，@since 1.0.0）
+
+- `backpressure/RetryBudget`（重试预算：流量百分比毫单位连续累积 + CAS 支取
+  不足即拒 + denied 风暴压制证据面 + 冷启动底数 + refill 逃逸——Finagle
+  retry budget 借鉴，防重试风暴）
+- 类型级快照：+1；yml 键：**零新增**
