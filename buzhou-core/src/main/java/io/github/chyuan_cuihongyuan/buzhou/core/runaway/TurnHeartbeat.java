@@ -72,6 +72,20 @@ public final class TurnHeartbeat {
         return lastBeat.keySet().stream().sorted().toList();
     }
 
+    /** 单会话停滞时长查询（spec 196 §A / T558：未注册/未超阈 null——单点排障面）。 */
+    public Duration stalledSince(String sessionId, Duration quietThreshold, Instant now) {
+        if (quietThreshold == null || quietThreshold.isNegative()) {
+            throw new IllegalArgumentException("quietThreshold must be non-negative");
+        }
+        requireNow(now);
+        Instant beat = lastBeat.get(sessionId);
+        if (beat == null) {
+            return null;
+        }
+        Duration quiet = Duration.between(beat, now);
+        return quiet.compareTo(quietThreshold) > 0 ? quiet : null;
+    }
+
     /**
      * 停滞检测：候选会话里「已注册且 quiet &gt; threshold」者按停滞时长降序返回
      * （最长停滞优先——排障视线先落最卡处）；每检出一个计 stalled-detected。

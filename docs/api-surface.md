@@ -1479,3 +1479,10 @@
   逐字节一致——gzip 族管线合流）+ `VirtualKeys.resetAll`（整窗换窗：用量+
   耗尽态同清、限额保留）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #142 新增公共面（spec 196 / impl-309，@since 1.0.0）
+
+- `ErrorSignatures.top(kind, n)`（按 kind 分面的错误族排行——「只看模型侧/
+  工具侧」看板）+ `TurnHeartbeat.stalledSince`（单会话停滞时长查询——
+  超阈 Duration/未超未注册 null，与批量 stalled 互补）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

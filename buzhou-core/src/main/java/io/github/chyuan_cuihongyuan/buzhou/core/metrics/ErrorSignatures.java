@@ -82,6 +82,24 @@ public final class ErrorSignatures {
                 .toList();
     }
 
+    /** 按 kind 前缀过滤的 top-N（spec 196 §A / T558：kind + ":" 是签名前缀——
+     * 「只看模型侧错误族」这类分面看板；空白 kind = IllegalArgumentException）。 */
+    public List<Map.Entry<String, Long>> top(String kind, int n) {
+        if (kind == null || kind.isBlank()) {
+            throw new IllegalArgumentException("kind must not be blank");
+        }
+        String prefix = kind + ":";
+        return counts.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(prefix))
+                .sorted((a, b) -> {
+                    int byCount = Long.compare(b.getValue().get(), a.getValue().get());
+                    return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
+                })
+                .limit(Math.max(0, n))
+                .map(e -> Map.entry(e.getKey(), e.getValue().get()))
+                .toList();
+    }
+
     /** 签名计数快照（只读；健康端点用）。 */
     public Map<String, Long> snapshot() {
         Map<String, Long> out = new java.util.LinkedHashMap<>();
