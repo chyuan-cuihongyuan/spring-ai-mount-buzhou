@@ -1300,3 +1300,10 @@
   排行稳定排序 + unused 零使用清单治理证据面 + reset 窗口清零 + 1024 封顶折
   __overflow__——Backstage catalog score 借鉴）
 - 类型级快照：+1（buzhou-skills + SkillUsage record）；yml 键：**零新增**
+
+## effort #116 新增公共面（spec 142 / impl-283，@since 1.0.0）
+
+- `ConfigDoctorHealth(env, freshnessTtl)` + `reexamine()`（体检陈旧度：报告
+  超 TTL 转 UNKNOWN(stale)——旧快照不冒充现在；手动刷新面恒可用；默认无 TTL
+  零变化；details 增 examinedAt/freshnessTtlMs/stale，Consul TTL check 借鉴）
+- 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**
