@@ -1329,3 +1329,10 @@
   事件 + beforeModel 耗尽拦截模型零调用 + `VirtualKeys.isExhausted` 越限锁定
   至 reset——LiteLLM virtual-key 闸位语义；null = 零变化）
 - 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**（编程面）
+
+## effort #120 新增公共面（spec 150 / impl-287，@since 1.0.0）
+
+- `EvalRunner.setExpectations`（run 前期望门禁：脏数据集 fail-fast 模型零
+  调用零 token 成本——message 带 summary + 前三条发现；null = 零变化，
+  spec 134 账本的闸位接线）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

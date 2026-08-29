@@ -37,11 +37,19 @@ public final class EvalRunner {
     private final EvalDatasetStore datasetStore;
     private final SessionStateStore stateStore;
 
+    /** run 前数据集期望门禁（spec 150 §A / T503，Great Expectations 借鉴；null = 无门禁零变化）。 */
+    private volatile DatasetExpectations expectations;
+
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
         this.runtime = runtime;
         this.datasetStore = datasetStore;
         this.stateStore = stateStore;
+    }
+
+    /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
+    public void setExpectations(DatasetExpectations expectations) {
+        this.expectations = expectations;
     }
 
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
@@ -60,6 +68,17 @@ public final class EvalRunner {
                 .map(meta -> datasetStore.items(datasetName))
                 .orElseThrow(() -> new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
                         "数据集未建：" + datasetName + "（修法：先 createDataset 再 run）"));
+        if (expectations != null) {
+            DatasetExpectations.Result gate = expectations.validate(items);
+            if (!gate.passed()) {
+                StringBuilder detail = new StringBuilder(gate.summary());
+                gate.findings().stream().limit(3)
+                        .forEach(f -> detail.append("\n  - ").append(f.expectation())
+                                .append(" #").append(f.itemIndex()).append(" ").append(f.detail()));
+                throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
+                        "数据集期望门禁未过（dataset=" + datasetName + "）：" + detail);
+            }
+        }
         String runId = "r" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
         try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_EVAL, runId)) {
