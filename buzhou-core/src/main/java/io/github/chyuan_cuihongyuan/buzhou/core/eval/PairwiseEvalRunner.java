@@ -126,6 +126,10 @@ public final class PairwiseEvalRunner {
                     AB_RUN_PREFIX + runId, EvalRunner.encode(toMap(result)),
                     "eval", 0, null, result.finishedAt()));
         }
+        // spec 111 §A / T403：A/B run 总时长 timer
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .timer("buzhou.eval.ab-run.duration",
+                        java.time.Duration.between(result.startedAt(), result.finishedAt()));
         emitRunCompleted(result, runtimeA);
         return result;
         }

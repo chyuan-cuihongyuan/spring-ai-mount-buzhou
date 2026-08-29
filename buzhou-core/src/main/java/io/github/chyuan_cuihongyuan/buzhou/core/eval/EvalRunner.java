@@ -103,6 +103,10 @@ public final class EvalRunner {
         stateStore.put(EvalDatasetStore.SESSION_ID,
                 new StateEntry(RUN_PREFIX + runId, encode(resultToMap(result)),
                         "eval", 0, null, finishedAt));
+        // spec 111 §A / T403：run 总时长 timer（per-item durationMs 之外的整跑视角）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .timer("buzhou.eval.run.duration",
+                        java.time.Duration.between(startedAt, finishedAt));
         emitRunCompleted(result, startedAt, finishedAt);
         return result;
         }

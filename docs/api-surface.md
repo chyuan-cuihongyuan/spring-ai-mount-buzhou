@@ -1153,3 +1153,10 @@
   `catalog-overflow`（tag outcome=truncated|fit——截断率即 catalog-max-entries
   调优信号；双注入路径同源计数；空目录零计数）
 - 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #73 新增公共面（spec 111 / impl-258，@since 1.0.0）
+
+- 评估 run 时长 timer：`buzhou.eval.run.duration` / `buzhou.eval.ab-run.duration`
+  （完成点计时复用既有时间值——数据集规模感知的时长回归信号；LangSmith run
+  latency 借鉴）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
