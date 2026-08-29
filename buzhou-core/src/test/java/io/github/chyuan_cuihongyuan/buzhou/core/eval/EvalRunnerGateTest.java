@@ -34,23 +34,25 @@ class EvalRunnerGateTest {
         BuzhouStores stores = Buzhou.inMemoryStores();
         EvalDatasetStore datasetStore = new EvalDatasetStore(stores.sessionStateStore());
         datasetStore.createDataset("dirty", null);
-        datasetStore.addItem("dirty", "q1", "", null, null); // 期望缺失
-        datasetStore.addItem("dirty", " ", "a2", null, null); // 输入空白
+        // store 层已拒空 input/expected——脏面走「重复行 + 回流项缺溯源」
+        datasetStore.addItem("dirty", "同问", "a1", null, null);
+        datasetStore.addItem("dirty", "同问", "a2", null, null); // 重复输入
 
         var runtime = Buzhou.runtime(model, stores, io.github.chyuan_cuihongyuan
                 .buzhou.core.session.RuntimeConfig.defaults());
         EvalRunner runner = new EvalRunner(runtime, datasetStore, stores.sessionStateStore());
         runner.setExpectations(DatasetExpectations.of(
-                DatasetExpectations.nonBlankInputs(),
-                DatasetExpectations.expectedPresent()));
+                DatasetExpectations.uniqueInputs(),
+                DatasetExpectations.named("reflow-requires-source",
+                        item -> item.sourceSessionId() != null)));
 
         assertThatThrownBy(() -> runner.run("dirty", BuiltInEvaluators.EXACT))
                 .isInstanceOf(BuzhouException.class)
                 .satisfies(e -> assertThat(((BuzhouException) e).errorCode())
                         .isEqualTo(ErrorCode.EVAL_OPERATION_INVALID))
                 .hasMessageContaining("数据集期望门禁未过")
-                .hasMessageContaining("expected-present")
-                .hasMessageContaining("non-blank-inputs");
+                .hasMessageContaining("unique-inputs")
+                .hasMessageContaining("reflow-requires-source");
         assertThat(calls.get()).isZero(); // 模型零调用：脏数据零 token 成本
     }
 
@@ -84,11 +86,13 @@ class EvalRunnerGateTest {
         BuzhouStores stores = Buzhou.inMemoryStores();
         EvalDatasetStore datasetStore = new EvalDatasetStore(stores.sessionStateStore());
         datasetStore.createDataset("legacy", null);
-        datasetStore.addItem("legacy", "q1", "", null, null); // 脏行也照跑（零变化）
+        datasetStore.addItem("legacy", "dup", "a1", null, null);
+        datasetStore.addItem("legacy", "dup", "a2", null, null); // 无门禁：重复行照跑
+        model.enqueueText("a2");
 
         var runtime = Buzhou.runtime(model, stores, io.github.chyuan_cuihongyuan
                 .buzhou.core.session.RuntimeConfig.defaults());
         EvalRunner runner = new EvalRunner(runtime, datasetStore, stores.sessionStateStore());
-        assertThat(runner.run("legacy", BuiltInEvaluators.EXACT).items()).hasSize(1);
+        assertThat(runner.run("legacy", BuiltInEvaluators.EXACT).items()).hasSize(2);
     }
 }

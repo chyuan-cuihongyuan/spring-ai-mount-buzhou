@@ -1336,3 +1336,10 @@
   调用零 token 成本——message 带 summary + 前三条发现；null = 零变化，
   spec 134 账本的闸位接线）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #121 新增公共面（spec 152 / impl-288，@since 1.0.0）
+
+- `runaway/TurnHeartbeatHook`（心跳接线：轮次起止自动注册/清除 + 模型与工具
+  四点自动 beat + order 50 先留痕后裁决 + 永续 CONTINUE 观测不干预 +
+  heartbeat() 共享视图——spec 138 的接线面）
+- 类型级快照：+1；yml 键：**零新增**

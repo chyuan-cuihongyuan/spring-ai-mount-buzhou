@@ -118,13 +118,13 @@ public class TokenBudgetHook implements BuzhouHook {
                 && !virtualKeys.trySpend(virtualKey, prompt + completion)) {
             // spec 148 / T501：key 级扣减越限——观测事件即刻发（本响应已生成），
             // 拦截发生在下一次 beforeModel（与会话硬顶同「不可逆预算」纪律）
-            VirtualKeys.KeyUsage usage = virtualKeys.usage(virtualKey);
+            VirtualKeys.KeyUsage keyUsage = virtualKeys.usage(virtualKey);
             emit(ctx, EVENT_KEY_HARD_STOP, Map.of(
                     "sessionId", ctx.sessionId(),
                     "turn", ctx.turn(),
                     "reason", "virtual-key-tokens",
-                    "limit", usage == null ? -1L : usage.limitTokens(),
-                    "value", usage == null ? -1L : usage.usedTokens(),
+                    "limit", keyUsage == null ? -1L : keyUsage.limitTokens(),
+                    "value", keyUsage == null ? -1L : keyUsage.usedTokens(),
                     "partialResultRef", "messageStore:" + ctx.sessionId()));
             BuzhouMetricsHolder.metrics()
                     .counter("buzhou.budget.hard-stops", "reason", "virtual-key-tokens");
@@ -165,7 +165,7 @@ public class TokenBudgetHook implements BuzhouHook {
                     "partialResultRef", "messageStore:" + ctx.sessionId()));
             BuzhouMetricsHolder.metrics()
                     .counter("buzhou.budget.hard-stops", "reason", "virtual-key-tokens");
-            return HookResult.block("虚拟 key "" + virtualKey + "" token 预算已耗尽（限额 "
+            return HookResult.block("虚拟 key [" + virtualKey + "] token 预算已耗尽（限额 "
                     + limit + "，已消耗 " + value + "），本轮终止。窗口 reset 后恢复。");
         }
         if (!props.anyCapConfigured()) {
