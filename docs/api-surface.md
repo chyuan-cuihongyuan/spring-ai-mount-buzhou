@@ -1410,3 +1410,17 @@
   PREFIX_TO_BEAN 归属 BuzhouArchiveProperties——spec 130 漏面收口，
   T187 静默失防线闭环）
 - 类型级快照：**零新增**；yml 键：**零新增**（既有键补登记）
+
+## effort #131 新增公共面（spec 174 / impl-298，@since 1.0.0）
+
+- `budget/ModelCostLedger`（模型成本台账：per-model micro-USD 整数累计 +
+  topByCost 稳定排行 + totalMicroUsd 总数含 overflow + reset 窗口——
+  WandB/Langfuse cost tracking 借鉴，只记账不拦截）
+- 类型级快照：+1（+ModelCost record）；yml 键：**零新增**
+
+## effort #131 新增公共面（spec 174 / impl-298，@since 1.0.0）
+
+- `budget/ModelCostLedger`（模型成本台账：per-model micro-USD 整数累计 +
+  topByCost 稳定排行 + totalMicroUsd 总数含 overflow + reset 窗口——
+  WandB/Langfuse cost tracking 借鉴，只记账不拦截）
+- 类型级快照：+1（+ModelCost record）；yml 键：**零新增**
