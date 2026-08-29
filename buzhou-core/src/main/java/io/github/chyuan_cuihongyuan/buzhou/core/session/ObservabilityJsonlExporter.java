@@ -136,6 +136,115 @@ public final class ObservabilityJsonlExporter {
         }
     }
 
+    /**
+     * 尾采样策略（spec 136 §A / T461，OpenTelemetry tail sampling 借鉴）：
+     * 会话粒度判定（保会话完整叙事）——<b>错误会话（任一 span status=ERROR）与
+     * 慢会话（任一 span 时长 &gt; slowThreshold）100% 保留</b>，其余按
+     * {@code hash(sessionId) % 100 < baseRatePercent} <b>确定性</b>采样（同 id
+     * 重导同判定——at-least-once 幂等一致性）。rate=0 = 只留错误+慢。
+     *
+     * @param baseRatePercent 基础采样率 [0,100]
+     * @param slowThreshold   慢会话阈值（span 时长超过即保留）
+     */
+    public record TailSamplingPolicy(int baseRatePercent, java.time.Duration slowThreshold) {
+
+        public static TailSamplingPolicy of(int baseRatePercent,
+                                            java.time.Duration slowThreshold) {
+            if (baseRatePercent < 0 || baseRatePercent > 100) {
+                throw new IllegalArgumentException(
+                        "baseRatePercent must be in [0,100]: " + baseRatePercent);
+            }
+            if (slowThreshold == null || slowThreshold.isNegative()) {
+                throw new IllegalArgumentException("slowThreshold must be non-negative");
+            }
+            return new TailSamplingPolicy(baseRatePercent, slowThreshold);
+        }
+    }
+
+    /** 尾采样导出结果（kept=入选会话；notSampled=被采样面排除的健康快会话）。 */
+    public record SampledExportResult(int keptSessions, int notSampledSessions,
+                                      long spans, long events, long degraded) {
+
+        /** 单行摘要（采样门禁日志可扫读）。 */
+        public String summary() {
+            int considered = keptSessions + notSampledSessions;
+            return "tail-sampled export: kept=" + keptSessions + "/" + considered
+                    + ", spans=" + spans + ", events=" + events + ", degraded=" + degraded;
+        }
+    }
+
+    /**
+     * 尾采样全量导出（spec 136 §A / T461）：按 {@link TailSamplingPolicy} 会话粒度
+     * 筛选后走与 {@link #exportAll} 同一行管线（行内容逐字节同构）——错误/慢会话
+     * 不丢，健康快会话按确定性比率留样。{@code skipped} 面不变（坏值降级），
+     * 被排除会话数在 {@link SampledExportResult#notSampledSessions}。
+     */
+    public SampledExportResult exportAllSampled(java.io.Writer out,
+                                                TailSamplingPolicy policy) throws IOException {
+        if (policy == null) {
+            throw new IllegalArgumentException("policy must not be null");
+        }
+        int kept = 0;
+        int notSampled = 0;
+        long spans = 0;
+        long events = 0;
+        long degraded = 0;
+        String cursor = null;
+        int seen = 0;
+        try (com.fasterxml.jackson.core.JsonGenerator gen = MAPPER.getFactory()
+                .createGenerator(out)) {
+            while (true) {
+                List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary> page =
+                        store.listSessionSummaries(cursor, SESSION_PAGE_SIZE);
+                if (page.isEmpty()) {
+                    break;
+                }
+                for (io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary summary : page) {
+                    seen++;
+                    List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord> sessionSpans =
+                            store.spansOfSession(summary.sessionId());
+                    if (!sampleIn(summary.sessionId(), sessionSpans, policy)) {
+                        notSampled++;
+                        continue;
+                    }
+                    for (io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord s : sessionSpans) {
+                        degraded += writeSpanLine(gen, s);
+                        spans++;
+                    }
+                    for (io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord e
+                            : store.eventsOfSession(summary.sessionId())) {
+                        degraded += writeEventLine(gen, e);
+                        events++;
+                    }
+                    kept++;
+                }
+                if (page.size() < SESSION_PAGE_SIZE) {
+                    break;
+                }
+                cursor = String.valueOf(seen);
+            }
+        }
+        return new SampledExportResult(kept, notSampled, spans, events, degraded);
+    }
+
+    /** 会话级判定：错误 span / 慢 span / 确定性哈希命中。 */
+    private static boolean sampleIn(String sessionId,
+                                    List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord> spans,
+                                    TailSamplingPolicy policy) {
+        for (io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord s : spans) {
+            if (io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanStatus.ERROR
+                    .equals(s.status())) {
+                return true;
+            }
+            if (s.startedAt() != null && s.endedAt() != null
+                    && java.time.Duration.between(s.startedAt(), s.endedAt())
+                    .compareTo(policy.slowThreshold()) > 0) {
+                return true;
+            }
+        }
+        return (sessionId.hashCode() & Integer.MAX_VALUE) % 100 < policy.baseRatePercent();
+    }
+
     private JsonlExportResult export(Writer out, Instant since) throws IOException {
         int sessions = 0;
         long spans = 0;

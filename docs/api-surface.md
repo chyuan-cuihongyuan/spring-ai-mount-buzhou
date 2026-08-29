@@ -1278,3 +1278,11 @@
   只读 validate 带行号发现样本封顶 10 + 共 N 处诚实计数 + 单行 summary——
   Great Expectations 借鉴，脏数据 run 前 fail-fast）
 - 类型级快照：+1（+Finding/Result/Expectation 内部 record）；yml 键：**零新增**
+
+## effort #113 新增公共面（spec 136 / impl-280，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportAllSampled`（尾采样导出：错误/慢会话 100%
+  保留 + 健康快会话确定性哈希比率留样——同 id 重导同判定；会话粒度完整叙事；
+  TailSamplingPolicy + SampledExportResult kept/notSampled 分列 + 单行 summary，
+  OTel tail sampling 借鉴）
+- 类型级快照：**零新增**（方法级 + 嵌套 record）；yml 键：**零新增**
