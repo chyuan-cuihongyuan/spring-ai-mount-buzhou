@@ -1246,3 +1246,10 @@
   零追加白名单严格收窄 + id 白名单 [a-z0-9][a-z0-9-]{0,31} fail-fast——跨租户
   遍历复用既有边界检查拒绝，Milvus partition-key/chroot-per-tenant 借鉴）
 - 类型级快照：**零新增**（静态工厂方法级）；yml 键：**零新增**
+
+## effort #90 新增公共面（spec 126 / impl-276，@since 1.0.0）
+
+- `cache/PromptPrefixCache`（提示前缀缓存：规范形 sha256 键有界 LRU + 命中续命
+  + 逐出诚实计数 + getOrLoad 惰性装载 + Stats 四计数 hitRate——vLLM/SGLang
+  radix prefix-cache 借鉴，不猜语义相似与向量面正交）
+- 类型级快照：+1（新 cache 包 final 类 + Stats record）；yml 键：**零新增**
