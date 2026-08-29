@@ -103,7 +103,9 @@ class ConfigBindingsMatrixTest {
             "buzhou.skills.semantic-ranking.enabled",
             "buzhou.spill.enabled",
             // effort#123 / spec 158：虚拟 key 闸（env 直读 active-key；limits 为结构化 map 走 SKIPPED）
-            "buzhou.virtual-keys.active-key");
+            "buzhou.virtual-keys.active-key",
+            // effort#124 / spec 160：tag 基数守卫 opt-in（env 直读 Boolean）
+            "buzhou.metrics.cardinality-guard.enabled");
 
     /** 复杂结构化键（List<KeyFile> 等）——样例值需文件/结构，跳过并显式登记（不静默）。 */
     private static final List<String> SKIPPED_KEYS = List.of(

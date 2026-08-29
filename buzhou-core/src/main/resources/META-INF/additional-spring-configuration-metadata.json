@@ -225,6 +225,12 @@
             "name": "buzhou.virtual-keys.limits",
             "type": "java.util.Map<java.lang.String,java.lang.Long>",
             "description": "虚拟 key → token 硬顶表（Binder 结构化面，矩阵走 SKIPPED）。spec 158 / T511。"
+        },
+        {
+            "name": "buzhou.metrics.cardinality-guard.enabled",
+            "type": "java.lang.Boolean",
+            "defaultValue": false,
+            "description": "tag 基数守卫 opt-in（默认关零变化；开 = 全局指标装饰 TagCardinalityGuard——per-(名,键) 值集 64 封顶越限折 __overflow__）。spec 160 / T513。"
         }
     ],
     "hints": [

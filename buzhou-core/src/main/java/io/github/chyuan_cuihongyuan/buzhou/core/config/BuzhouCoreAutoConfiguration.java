@@ -331,10 +331,19 @@ public class BuzhouCoreAutoConfiguration {
         @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
                 io.micrometer.core.instrument.MeterRegistry.class)
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
-                buzhouMetricsHolderInstaller(io.micrometer.core.instrument.MeterRegistry registry) {
-            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.install(
+                buzhouMetricsHolderInstaller(io.micrometer.core.instrument.MeterRegistry registry,
+                                             org.springframework.core.env.Environment env) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics metrics =
                     new io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics(
-                            registry));
+                            registry);
+            // spec 160 / T513：tag 基数守卫 opt-in（默认关零变化；开 = 装饰后安装——
+            // per-(名,键) 值集封顶越限折 __overflow__，Loki cardinality limit 借鉴）
+            if (env.getProperty("buzhou.metrics.cardinality-guard.enabled", Boolean.class,
+                    Boolean.FALSE)) {
+                metrics = io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
+                        .wrap(metrics);
+            }
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.install(metrics);
             return new io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller();
         }
     }

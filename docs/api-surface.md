@@ -1359,3 +1359,10 @@
   校验不带病上线）
 - 类型级快照：+1；yml 键：+2（buzhou.virtual-keys.active-key/limits——后者
   Map 结构化面矩阵 SKIPPED 登记）
+
+## effort #124 新增公共面（spec 160 / impl-291，@since 1.0.0）
+
+- `buzhou.metrics.cardinality-guard.enabled`（tag 基数守卫 opt-in 装配：
+  开 = Holder 安装面装饰 TagCardinalityGuard 全局生效；默认关零变化——
+  spec 132 的装配面收口）
+- 类型级快照：**零新增**；yml 键：+1
