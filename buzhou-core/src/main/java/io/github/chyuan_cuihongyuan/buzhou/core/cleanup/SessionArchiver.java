@@ -13,6 +13,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -113,6 +114,32 @@ public final class SessionArchiver {
                 .keySet().forEach(key -> out.add(key.substring(ARCHIVE_PREFIX.length())));
         out.sort(String::compareTo);
         return out;
+    }
+
+    /**
+     * 归档 TTL 清理（spec 103 §A / T381，spec 102 fog 后半场）：删除归档时间早于
+     * {@code now - ttl} 的归档（冷层不是永久层——合规期过后让位容量）。逐条独立
+     * 删除（单条解析失败跳过不阻断）；返回删除数。ttl ≤ 0 = 清全部（显式全清语义）。
+     */
+    public int purgeExpired(java.time.Duration ttl, java.time.Instant now) {
+        java.time.Instant cutoff = ttl == null || ttl.isZero() || ttl.isNegative()
+                ? java.time.Instant.MAX : now.minus(ttl);
+        int purged = 0;
+        for (Map.Entry<String, io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry> e
+                : stores.sessionStateStore().scanByPrefix(ARCHIVE_SESSION_ID, ARCHIVE_PREFIX)
+                        .entrySet()) {
+            ArchiveEntry entry;
+            try {
+                entry = decode(e.getValue().value());
+            } catch (RuntimeException parseFailure) {
+                continue; // 损坏归档跳过（不阻断批次；修复走手工删）
+            }
+            if (entry.archivedAt().isBefore(cutoff)) {
+                stores.sessionStateStore().delete(ARCHIVE_SESSION_ID, e.getKey());
+                purged++;
+            }
+        }
+        return purged;
     }
 
     /** 归档快照（单会话三槽 + 时间戳）。 */

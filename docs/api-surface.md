@@ -1097,3 +1097,10 @@
 - `ArchiveHealth`（/actuator/buzhou 的 session-archive 段：恒 UP + 在册数
   countByPrefix 下推）+ `SessionArchiver.ARCHIVE_PREFIX` 公共化（spec 97 fog 前半场）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #65 新增公共面（spec 103 / impl-250，@since 1.0.0）
+
+- `SessionArchiver.purgeExpired(ttl, now)`（归档 TTL 清理：到期删/损坏跳过不阻断/
+  ttl≤0 显式全清/幂等；now 外注同 SessionHistoryPolicy 签名纪律；S3 lifecycle
+  借鉴——spec 102 fog 后半场，归档治理闭环「可见→治理」补齐）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
