@@ -88,6 +88,8 @@ class ConfigBindingsMatrixTest {
             "buzhou.recovery.auto-resume",
             // effort#45 / spec 84 / T324：agent 并发 Turn 隔离舱（Binder 路径；agents 为结构化 map 走 SKIPPED）
             "buzhou.bulkhead.enabled", "buzhou.bulkhead.acquire-timeout",
+            // effort#51 / spec 90 / T344：语义漂移触发（fromYml env 直读路径）
+            "buzhou.memory.semantic-drift", "buzhou.memory.semantic-drift-threshold",
             "buzhou.tools.run-command.max-output-bytes",
             "buzhou.leak.level", "buzhou.leak.lease-age-threshold",
             "buzhou.mcp.grace-period", "buzhou.mcp.force-close-timeout", "buzhou.mcp.poll-interval",
