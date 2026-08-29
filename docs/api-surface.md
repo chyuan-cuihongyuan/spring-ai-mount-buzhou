@@ -1041,3 +1041,11 @@
   + 汇总列反规范化 + 指纹列 + 未知 runId 诚实零行 + exportAll 倒序；spec 88 的
   AB 面同构——四导出面族补齐）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #56 新增公共面（spec 95 / impl-242，@since 1.0.0）
+
+- `CompactionListener.onSummaryFolded(sessionId, summary, trigger)`（摘要折入通知
+  default 方法——trigger ∈ budget/backlog/drift 溯源；lambda 兼容）+ MemoryModule
+  装配双写 `memory.summary.folded` 事件（payload: trigger/generation/coversUpToTurn；
+  spec 90 fog 收口——压缩观测双事件族补齐）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

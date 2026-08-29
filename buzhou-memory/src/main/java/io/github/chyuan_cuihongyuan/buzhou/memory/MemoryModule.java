@@ -144,16 +144,37 @@ public final class MemoryModule {
             ivp.setCheckpoints(new io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints(
                     stores.sessionStateStore()));
             // spec 34 §A / T115 / impl-90：压缩事件观测双写（memory.compacted——视图读路径无
-            // 会话事件通道，走 ObservabilityStore 侧写，RunawayCounters 同款通道）
-            ivp.setCompactionListener((sessionId, result, ratio) ->
+            // 会话事件通道，走 ObservabilityStore 侧写，RunawayCounters 同款通道）；
+            // spec 95 §A / T355：摘要折入双写（memory.summary.folded——trigger 溯源字段）
+            ivp.setCompactionListener(new io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener() {
+                @Override
+                public void onCompacted(String sessionId,
+                        io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult result,
+                        double ratio) {
                     stores.observabilityStore().saveEvents(
-                    java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
-                            java.util.UUID.randomUUID().toString(), null, sessionId,
-                            "memory.compacted", java.time.Instant.now(),
-                            java.util.Map.of(
-                                    "compactedCount", result.compactedMessageIds().size(),
-                                    "reclaimedChars", result.reclaimedChars(),
-                                    "evictRatio", ratio)))));
+                            java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
+                                    java.util.UUID.randomUUID().toString(), null, sessionId,
+                                    "memory.compacted", java.time.Instant.now(),
+                                    java.util.Map.of(
+                                            "compactedCount", result.compactedMessageIds().size(),
+                                            "reclaimedChars", result.reclaimedChars(),
+                                            "evictRatio", ratio))));
+                }
+
+                @Override
+                public void onSummaryFolded(String sessionId,
+                        io.github.chyuan_cuihongyuan.buzhou.memory.summary.NineSectionSummary summary,
+                        String trigger) {
+                    stores.observabilityStore().saveEvents(
+                            java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
+                                    java.util.UUID.randomUUID().toString(), null, sessionId,
+                                    "memory.summary.folded", java.time.Instant.now(),
+                                    java.util.Map.of(
+                                            "trigger", trigger,
+                                            "generation", summary.generation(),
+                                            "coversUpToTurn", summary.coversUpToTurn()))));
+                }
+            });
             // T25/T26：事实对账 + 双时序台账（会话状态；对账默认开、韧性 NOOP）
             ivp.setSessionStateStore(stores.sessionStateStore());
             ivp.setFactReconciliation(factReconciliation(ymlConfig));

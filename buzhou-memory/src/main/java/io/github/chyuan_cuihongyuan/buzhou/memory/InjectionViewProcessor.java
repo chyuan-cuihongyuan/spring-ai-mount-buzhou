@@ -298,6 +298,16 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 }
                 summaryBridge.save(sessionId, merged);
                 breaker.onSuccess(sessionId);
+                // spec 95 §A / T355：摘要折入通知（trigger 溯源——观测面区分预算/积压/漂移）
+                if (compactionListener != null) {
+                    try {
+                        String trigger = budget.compactionNeeded() ? "budget"
+                                : (driftTrigger ? "drift" : "backlog");
+                        compactionListener.onSummaryFolded(sessionId, merged, trigger);
+                    } catch (RuntimeException ignored) {
+                        // 观测双写失败不影响视图主链（lenient——同 notifyCompaction）
+                    }
+                }
                 // impl-13 / T40：重新压缩成功 → 清除摘要失效标记（新一轮摘要生效）
                 if (summaryInvalidated && sessionStateStore != null) {
                     io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints
