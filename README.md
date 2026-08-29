@@ -137,6 +137,26 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | | 技能双遥测 | 目录注入（截断率）+ skill_search 三态命中率 | [spec 110](docs/spec/110-catalog-telemetry.md) / [116](docs/spec/116-skill-search-telemetry.md) |
 | 韧性 | bulkhead 拒绝计数 | per-agent 进程内表 + 健康 topRejected——限流风暴定位 | [spec 117](docs/spec/117-bulkhead-rejection-stats.md) |
 
+## 生产级纵深 II（effort #86–#144 增量）
+
+第二期自迭代会话（双会话并行 A/B 分工）的精选主线（详设 spec 122–200）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 并发与背压 | superstep 原子批 + spawn 优先级 | harness 前检整批不派发（BATCH_ABORTED 可区分未执行）+ 三级抢占排队 / 完成序快速失败通用原语 | [spec 122](docs/spec/122-atomic-superstep-batch.md) / [123](docs/spec/123-spawn-priority.md) / [122A](docs/spec/122-superstep-batch.md) |
+| | 重试预算 | 配额随流量百分比累积——上游故障时重试自动勒紧防雪崩（Finagle） | [spec 178](docs/spec/178-retry-budget.md) |
+| 预算与成本 | 虚拟 key 配额闭环 | yml 两键装配 + 跨会话扣减 + 耗尽拦截 + 健康段（LiteLLM） | [spec 124](docs/spec/124-virtual-keys.md) / [148](docs/spec/148-key-budget-gate.md) / [158](docs/spec/158-vkeys-yml.md) / [154](docs/spec/154-vkeys-health.md) |
+| | 模型成本台账 | 零配置自动入账 + 排行/总数/JSONL 双口径账单 + 健康段（WandB/Langfuse） | [spec 174](docs/spec/174-model-cost-ledger.md) / [176](docs/spec/176-ledger-wiring.md) / [188](docs/spec/188-cost-export.md) / [190](docs/spec/190-cost-health.md) |
+| 韧性观测 | 轮次心跳三件套 | 表 + 钩子自动打点 + 巡检犬（「活着但不动」可见，Temporal/K8s） | [spec 138](docs/spec/138-turn-heartbeat.md) / [152](docs/spec/152-heartbeat-hook.md) / [162](docs/spec/162-stall-watchdog.md) |
+| | 多实例单跑 | 文件咨询锁（抢/还/陈旧回收）+ 清理与巡检犬接锁档（ShedLock） | [spec 182](docs/spec/182-advisory-file-lock.md) / [184](docs/spec/184-purge-lock.md) / [186](docs/spec/186-watchdog-lock.md) |
+| 评估与合规 | 数据集期望门禁 | 四内置 + 自定义行级期望，run 前脏数据零 token 出局 + 宽松档（Great Expectations） | [spec 134](docs/spec/134-dataset-expectations.md) / [150](docs/spec/150-runner-expectation-gate.md) / [198](docs/spec/198-warn-gate.md) |
+| | PII 合规三面 | 双侧命中排行 + JSONL 报表 + 输入侧接线（Presidio 口径） | [spec 144](docs/spec/144-pii-hit-stats.md) / [166](docs/spec/166-pii-report-export.md) / [164](docs/spec/164-input-pii-stats.md) |
+| 观测治理 | 尾采样 + 清单导出 | 错误/慢会话全留 + 确定性哈希留样（OTel）+ manifest 六列目录（git pack） | [spec 136](docs/spec/136-tail-sampling-export.md) / [146](docs/spec/146-export-manifest.md) |
+| | tag 基数守卫 + 目录渲染缓存 | 「tag 有界」从纪律变机制（opt-in 装配，Loki）+ 内容寻址渲染命中（vLLM radix） | [spec 132](docs/spec/132-tag-cardinality-guard.md) / [160](docs/spec/160-guard-install.md) / [168](docs/spec/168-render-cache.md) |
+| | 技能热度账 | load 打点 + 排行/零使用清单 + 窗口报表（Backstage catalog score） | [spec 140](docs/spec/140-skill-usage-stats.md) / [170](docs/spec/170-skill-report-export.md) |
+| 基础设施 | 租户隔离 + 归档定时 | tenants/<t> 沙箱严格收窄 + purge 三键默认关定时清理（Milvus/S3） | [spec 125](docs/spec/125-tenant-sandbox.md) / [127](docs/spec/127-archive-purge-job.md) |
+| 质量 | 性质测试层 | 五不变量 × 随机输入（jqwik 思想零依赖）+ starter 全量验证轮 | [spec 180](docs/spec/180-property-invariants.md) / [200](docs/spec/200-starter-verify.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |
