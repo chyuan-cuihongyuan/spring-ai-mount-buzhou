@@ -72,6 +72,8 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private volatile io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog;
     /** impl-10 / T35：并行批回喂策略（默认 ALL；FAILED_ONLY 见枚举语义）。 */
     private volatile BatchFeedbackPolicy batchFeedbackPolicy = BatchFeedbackPolicy.ALL;
+    /** spec 122 / impl-271：superstep 原子批开关（默认关=per-tool 既有行为零变化）。 */
+    private volatile boolean atomicBatchValidation = false;
     /** spec 31 / T110 / impl-85：工具结果尺寸防护（Holder 默认 20K + read_range 豁免）。 */
     private volatile ToolResultLimiter resultLimiter = ToolResultLimiterHolder.current();
 
@@ -95,6 +97,20 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** impl-10 / T35：设置批回喂策略（经 SessionAssemblyContext.toolManager() 注入）。 */
     public void setBatchFeedbackPolicy(BatchFeedbackPolicy policy) {
         this.batchFeedbackPolicy = policy == null ? BatchFeedbackPolicy.ALL : policy;
+    }
+
+    /**
+     * spec 122 / impl-271：superstep 原子批开关（经 SessionAssemblyContext.toolManager()
+     * 注入）。开启后批派发前对全部调用做「工具存在 + 入参校验」前检，任一未过则整批
+     * 不派发（合法同伴记 BATCH_ABORTED，零副作用）；默认关 = 既有 per-tool 行为。
+     */
+    public void setAtomicBatchValidation(boolean atomicBatchValidation) {
+        this.atomicBatchValidation = atomicBatchValidation;
+    }
+
+    /** 当前 superstep 原子批开关状态（测试与诊断用）。 */
+    public boolean atomicBatchValidation() {
+        return atomicBatchValidation;
     }
 
     /**
@@ -243,6 +259,26 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         toolContextMap.put(CancellationToken.KEY,
                 CancellationToken.of(() -> pendingCancel.get() != null));
         ToolContext toolContext = new ToolContext(toolContextMap);
+        // spec 122 / impl-271：superstep 原子批前检——任一未过则整批不派发（零锁零许可零副作用）。
+        if (atomicBatchValidation) {
+            List<ToolResponseMessage.ToolResponse> aborted = atomicPreflight(toolCalls, callbacksByName);
+            if (aborted != null) {
+                List<ToolResponseMessage.ToolResponse> limited = new ArrayList<>(aborted.size());
+                boolean direct = false;
+                for (ToolResponseMessage.ToolResponse response : aborted) {
+                    ToolResponseMessage.ToolResponse applied = resultLimiter.apply(response);
+                    limited.add(applied);
+                    direct |= isReturnDirect(callbacksByName.get(applied.name()));
+                }
+                List<Message> abortedHistory = new ArrayList<>(prompt.getInstructions());
+                abortedHistory.add(assistantMessage);
+                abortedHistory.add(ToolResponseMessage.builder().responses(limited).build());
+                return ToolExecutionResult.builder()
+                        .conversationHistory(abortedHistory)
+                        .returnDirect(direct)
+                        .build();
+            }
+        }
         List<Future<ToolResponseMessage.ToolResponse>> futures = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> responses = new ArrayList<>();
         boolean returnDirect = false;
@@ -274,6 +310,62 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 .conversationHistory(conversationHistory)
                 .returnDirect(returnDirect)
                 .build();
+    }
+
+    /**
+     * spec 122 / impl-271：superstep 原子批前检——逐项做「工具存在 + 入参 schema 校验」
+     * （纯内存、零锁/零许可/零派发）。任一未过：违规者按既有 REASK / missing-tool 词汇
+     * 回喂，合法同伴回喂「原子中止」并以 {@link io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome#BATCH_ABORTED}
+     * 落事件日志；全过返回 {@code null} 走正常并行派发。
+     */
+    private List<ToolResponseMessage.ToolResponse> atomicPreflight(
+            List<AssistantMessage.ToolCall> toolCalls,
+            Map<String, ToolCallback> callbacksByName) {
+        List<ToolResponseMessage.ToolResponse> preflight = new ArrayList<>(toolCalls.size());
+        boolean anyViolation = false;
+        for (AssistantMessage.ToolCall toolCall : toolCalls) {
+            ToolCallback callback = callbacksByName.get(toolCall.name());
+            if (callback == null) {
+                preflight.add(new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
+                        ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                                ToolErrorFeedback.missingToolReason(toolCall.name()))));
+                anyViolation = true;
+                continue;
+            }
+            if (argsValidation) {
+                Optional<String> violation = ToolArgsValidator.validate(
+                        callback.getToolDefinition().inputSchema(), toolCall.arguments());
+                if (violation.isPresent()) {
+                    validationFailures.incrementAndGet();
+                    String feedback = ToolValidationFeedback.format(toolCall.name(),
+                            toolCall.arguments(), violation.get());
+                    recordOutcome(toolCall,
+                            io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.VALIDATION_REJECTED,
+                            feedback);
+                    preflight.add(new ToolResponseMessage.ToolResponse(
+                            toolCall.id(), toolCall.name(), feedback));
+                    anyViolation = true;
+                    continue;
+                }
+            }
+            preflight.add(null);
+        }
+        if (!anyViolation) {
+            return null;
+        }
+        for (int i = 0; i < preflight.size(); i++) {
+            if (preflight.get(i) == null) {
+                AssistantMessage.ToolCall toolCall = toolCalls.get(i);
+                String feedback = ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
+                        "同伴参数校验未过，本批原子中止（本调用未执行）");
+                recordOutcome(toolCall,
+                        io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.BATCH_ABORTED,
+                        feedback);
+                preflight.set(i, new ToolResponseMessage.ToolResponse(
+                        toolCall.id(), toolCall.name(), feedback));
+            }
+        }
+        return preflight;
     }
 
     /**
