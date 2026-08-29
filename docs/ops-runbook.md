@@ -119,6 +119,19 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 每实例独立额度**（限流已升级为可选共享闸，见下）。可行部署：粘性路由（会话归同实例）+
 租约独占（跨实例接管走 steal）。分布式熔断/配额为显式 out-of-scope（spec 23）。
 
+**配置体检（effort #52 / spec 91）**：`buzhou.config-doctor.enabled=true`（默认关）
+——就绪事件对 buzhou.* 配置面做一次键拼写（近邻建议）与值域体检，发现走日志；
+只读不改行为。
+**错误签名观测（effort #44/#46 / spec 83/85）**：`/actuator/buzhou` 的
+error-signatures 段给 top-5 错误族（Sentry fingerprint 借鉴）——排障先看族不看日志。
+**会话归档（effort #58 / spec 97）**：`new SessionArchiver(stores, cleaner)
+.archive(sid)` 删除前冷存三槽（`__buzhou.archive__` 合成会话）——retention 清理
+建议走归档版而非裸 delete。
+**PII 脱敏（effort #47 / spec 86）**：`buzhou.guard.pii.enabled=true` +
+`pii.types`——工具输出 PII 占位符化后再进 prompt/日志（Presidio 规则式）。
+**语义漂移压缩（effort #51 / spec 90）**：`buzhou.memory.semantic-drift=true`——
+话题漂移提前折入摘要（`memory.summary.folded` 事件带 trigger 溯源——spec 95）。
+
 **agent 并发 Turn 隔离舱（effort #45 / spec 84）**：`buzhou.bulkhead.enabled=true` +
 `buzhou.bulkhead.agents.<agent>=<maxConcurrentTurns>`（默认关——全 NOOP 零行为）；
 舱满 fail-fast 抛 QUOTA_EXCEEDED（`acquire-timeout` 可设等待）；计数器

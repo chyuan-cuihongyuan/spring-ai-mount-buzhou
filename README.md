@@ -98,6 +98,27 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | | 边界机会压缩 | 待摘积压达阈值在轮边界提前摘要（宽松态生成） | [spec 70](docs/spec/70-boundary-compaction.md) |
 | 成本归因 | agent 级成本台账 | 按 agentName 跨会话累计 tokens/microUsd（CAS 原子） | [spec 65](docs/spec/65-agent-cost-ledger.md) |
 
+## 生产级纵深（effort #36–#55 增量）
+
+50 轮自迭代会话前半程的精选主线（详设 spec 75–94；每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 评估闭环 | A/B run 完成事件 + 明细查询 | `ab.run.completed` 家族事件（与落盘正交）+ `abRun(runId)` verdict 面回读 | [spec 75](docs/spec/75-ab-run-events.md) / [76](docs/spec/76-ab-run-detail-query.md) |
+| | 活跃 run gauge | `buzhou.eval.runs.active`（tag kind）在飞计数，runId/close 双幂等 | [spec 77](docs/spec/77-run-registry-gauge.md) |
+| | 评估回归门 | `EvalGate.enforce`——CI 一行判定（error 计入分母从严 + 失败预览） | [spec 80](docs/spec/80-eval-gate.md) |
+| | run 对比 diff | 四态迁移（REGRESSION/FIX/稳定态）+ 数据集漂移显形 + netDelta | [spec 81](docs/spec/81-run-diff.md) / [82](docs/spec/82-dataset-fingerprint.md) |
+| | Ragas/G-Eval 数值评估 | faithfulness/answerRelevancy 连续分 + 自定义维度打分（S x/y 协议） | [spec 87](docs/spec/87-ragas-evaluators.md) / [89](docs/spec/89-geval-dimension.md) |
+| | run JSONL 导出（eval+AB） | 汇总列反规范化一行一 JSON——质量-行为 OLAP 联合分析 | [spec 88](docs/spec/88-eval-run-jsonl-export.md) / [94](docs/spec/94-ab-run-jsonl-export.md) |
+| 存储与索引 | 键序区间扫描 SPI | `scanByKeyRange` 三栈下推（JDBC ORDER BY / Redis 键侧过滤）——时间编键结构底座 | [spec 78](docs/spec/78-key-range-scan.md) / [98](docs/spec/98-redis-key-range.md) |
+| | outbox due 索引 | `due.<零垫ts>` 双写 + 键序区间调度 + 自愈 + 审计（投递停摆提前可见） | [spec 79](docs/spec/79-outbox-due-index.md) / [96](docs/spec/96-due-index-audit.md) |
+| 韧性与隔离 | agent 并发 Turn 隔离舱 | per-agent 信号量（spawn 闸限会话数、本舱限 Turn 数正交）；resilience4j Bulkhead 借鉴 | [spec 84](docs/spec/84-agent-bulkhead.md) |
+| 观测与运维 | 错误签名聚类 + 健康面 | 归一化折叠成有界族（Sentry fingerprint）+ `/actuator/buzhou` top 段 | [spec 83](docs/spec/83-error-signatures.md) / [85](docs/spec/85-error-signatures-health.md) / [92](docs/spec/92-bulkhead-health.md) |
+| | 配置体检 doctor | 拼错键近邻建议 + 值域越界 ERROR（启动期一次，只读） | [spec 91](docs/spec/91-config-doctor.md) |
+| | 会话归档冷层 | 删除前三槽快照冷存 + restore 回放（fail-fast 不删安全网） | [spec 97](docs/spec/97-session-archiver.md) |
+| 护栏 | 工具输出 PII 脱敏 | 5 型规则式（校验位收窄误报）+ `[PII:TYPE]` 占位符（Presidio 借鉴） | [spec 86](docs/spec/86-pii-redaction.md) |
+| 记忆 | 语义漂移触发压缩 | 话题漂移提前折入摘要（词面 SPI 可换 embedding）；trigger 溯源事件 | [spec 90](docs/spec/90-semantic-drift-compaction.md) / [95](docs/spec/95-summary-folded-trigger.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |
