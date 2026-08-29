@@ -154,7 +154,7 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 观测治理 | 尾采样 + 清单导出 | 错误/慢会话全留 + 确定性哈希留样（OTel）+ manifest 六列目录（git pack） | [spec 136](docs/spec/136-tail-sampling-export.md) / [146](docs/spec/146-export-manifest.md) |
 | | tag 基数守卫 + 目录渲染缓存 | 「tag 有界」从纪律变机制（opt-in 装配，Loki）+ 内容寻址渲染命中（vLLM radix） | [spec 132](docs/spec/132-tag-cardinality-guard.md) / [160](docs/spec/160-guard-install.md) / [168](docs/spec/168-render-cache.md) |
 | | 技能热度账 | load 打点 + 排行/零使用清单 + 窗口报表（Backstage catalog score） | [spec 140](docs/spec/140-skill-usage-stats.md) / [170](docs/spec/170-skill-report-export.md) |
-| 基础设施 | 租户隔离 + 归档定时 | tenants/<t> 沙箱严格收窄 + purge 三键默认关定时清理（Milvus/S3） | [spec 125](docs/spec/125-tenant-sandbox.md) / [127](docs/spec/127-archive-purge-job.md) |
+| 基础设施 | 租户隔离 + 归档定时 | tenants/<t> 沙箱严格收窄 + purge 三键默认关定时清理（Milvus/S3） | [spec 125](docs/spec/125-tenant-sandbox.md) / [130](docs/spec/130-archive-purge-job.md) |
 | 质量 | 性质测试层 | 五不变量 × 随机输入（jqwik 思想零依赖）+ starter 全量验证轮 | [spec 180](docs/spec/180-property-invariants.md) / [200](docs/spec/200-starter-verify.md) |
 
 ## 生产级纵深 III（B 会话 200 系增量）
@@ -186,6 +186,36 @@ B 会话（.wayfinder200+ 号段）的精选主线（每项默认零行为变化
 | 观测治理 | 轮时延计时 + 上下文水位 | 端到端轮 timer+滚动窗读数 + 低水位翻转事件预警线 | [spec 191](docs/spec/191-turn-timing.md) / [181](docs/spec/181-context-watermark.md) |
 | | 空闲水位 + 配置指纹 | 特征仓事实驱动的空闲判定（Flink watermark）+ 配置面漂移对账 | [spec 179](docs/spec/179-idle-session-monitor.md) / [187](docs/spec/187-config-fingerprint.md) |
 | 运行闸 | 模型调用循环闸 + 维护模式门 | 轮内调用总闸费用硬顶 + 全局温和拒新维护窗（K8s cordon） | [spec 197](docs/spec/197-model-call-cap.md) / [205](docs/spec/205-maintenance-gate.md) |
+| 治理与验证 | 降级链单窗 + 事件 schema 门 | 三源合成备胎全景（Grafana 单窗）+ payload 必备键 fail-closed | [spec 207](docs/spec/207-fallback-chain-view.md) / [209](docs/spec/209-event-schema-check.md) |
+| | webhook 全链 E2E + spec 覆盖门 | 五件叠链五联断言（集成证明）+ README↔spec 双向完整性测试 | [spec 211](docs/spec/211-webhook-pipeline-e2e.md) / [213](docs/spec/213-spec-coverage-gate.md) |
+
+### spec 全量索引补录
+
+分组表按「精选不穷举」引用；其余详设全清单在此按文件名可寻（覆盖门 213 保证
+本索引与 docs/spec 双向一致）：
+
+[23-ops-api-final](docs/spec/23-ops-api-final.md)、[33-index-hardening](docs/spec/33-index-hardening.md)、
+[34-golden-and-compaction-events](docs/spec/34-golden-and-compaction-events.md)、[35-resilience-skills-input](docs/spec/35-resilience-skills-input.md)、
+[36-export-extensions-dashboard](docs/spec/36-export-extensions-dashboard.md)、[37-search-replay-retention](docs/spec/37-search-replay-retention.md)、
+[38-migrator-golden-redteam](docs/spec/38-migrator-golden-redteam.md)、[39-observability-health-redteam](docs/spec/39-observability-health-redteam.md)、
+[40-static-security-determinism](docs/spec/40-static-security-determinism.md)、[41-audit-rotation-clock](docs/spec/41-audit-rotation-clock.md)、
+[42-migrator-guard-read-degrade](docs/spec/42-migrator-guard-read-degrade.md)、[43-command-limits-config-validation](docs/spec/43-command-limits-config-validation.md)、
+[44-drain-and-observability](docs/spec/44-drain-and-observability.md)、[45-golden-redteam-perf](docs/spec/45-golden-redteam-perf.md)、
+[46-stream-observability](docs/spec/46-stream-observability.md)、[47-mdc-feedback](docs/spec/47-mdc-feedback.md)、
+[48-feedback-export-canary](docs/spec/48-feedback-export-canary.md)、[49-shadow-pool-quota](docs/spec/49-shadow-pool-quota.md)、
+[50-error-codes-jitter](docs/spec/50-error-codes-jitter.md)、[51-defenses-4](docs/spec/51-defenses-4.md)、
+[93-ab-run-fingerprint](docs/spec/93-ab-run-fingerprint.md)、[99-summary-fold-counters](docs/spec/99-summary-fold-counters.md)、
+[102-archive-health](docs/spec/102-archive-health.md)、[104-model-error-signatures](docs/spec/104-model-error-signatures.md)、
+[126-prefix-cache](docs/spec/126-prefix-cache.md)、[142-doctor-staleness](docs/spec/142-doctor-staleness.md)、
+[171-summary-provenance](docs/spec/171-summary-provenance.md)、[172-archive-matrix](docs/spec/172-archive-matrix.md)、
+[177-event-payload-redaction](docs/spec/177-event-payload-redaction.md)、[192-cost-health-bean](docs/spec/192-cost-health-bean.md)、
+[194-gzip-resetall](docs/spec/194-gzip-resetall.md)、[196-topkind-stalledsince](docs/spec/196-topkind-stalledsince.md)、
+[202-readme-archive](docs/spec/202-readme-archive.md)、[204-fold-counter](docs/spec/204-fold-counter.md)、
+[206-bulk-deposit](docs/spec/206-bulk-deposit.md)、[208-properties-2](docs/spec/208-properties-2.md)、
+[210-runbook](docs/spec/210-runbook.md)、[212-common-defaults](docs/spec/212-common-defaults.md)、
+[214-clearall-usageall](docs/spec/214-clearall-usageall.md)、[216-fog-ledger](docs/spec/216-fog-ledger.md)、
+[218-ab-ledger](docs/spec/218-ab-ledger.md)、[220-preverify](docs/spec/220-preverify.md)、
+[222-session-close](docs/spec/222-session-close.md)。
 
 ## 技术基线
 
