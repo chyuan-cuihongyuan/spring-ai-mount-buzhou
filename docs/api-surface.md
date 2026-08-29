@@ -1034,3 +1034,10 @@
   run 执行时刻数据集指纹入档——与 spec 82 同语义，7 参 record + 6 参旧构造兼容，
   null 不写键；数据集演进后 A/B 结论适用性可验）
 - 类型级快照：**零新增**（字段级）；yml 键：**零新增**
+
+## effort #55 新增公共面（spec 94 / impl-241，@since 1.0.0）
+
+- `AbRunJsonlExporter`（A/B run OLAP JSONL 导出静态面：verdict item 行 + summary 行
+  + 汇总列反规范化 + 指纹列 + 未知 runId 诚实零行 + exportAll 倒序；spec 88 的
+  AB 面同构——四导出面族补齐）
+- 类型级快照：+1；yml 键：**零新增**
