@@ -58,10 +58,12 @@ class IdleSessionMonitorTest {
         SessionFeatureStore features = new SessionFeatureStore();
         IdleSessionMonitor monitor = new IdleSessionMonitor(features, Duration.ofMinutes(1));
 
+        // 从未见过任何活动的会话（不在特征仓）零误报
         assertThat(monitor.sweep(Instant.now().plus(Duration.ofHours(1)))).isEmpty();
-        // 只有工具调用/模型错误（无轮开始）的会话不构成「空闲」判定面
-        features.recordToolCall("partial", false);
-        assertThat(monitor.sweep(Instant.now().plus(Duration.ofHours(1)))).isEmpty();
+        // 工具调用也是活动事实——只调过工具的会话同样可判空闲（lastActiveAt 口径统一）
+        features.recordToolCall("toolOnly", false);
+        assertThat(monitor.sweep(Instant.now().plus(Duration.ofHours(1))))
+                .extracting(IdleSessionMonitor.IdleInfo::sessionId).containsExactly("toolOnly");
     }
 
     @Test
