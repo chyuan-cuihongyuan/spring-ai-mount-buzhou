@@ -275,6 +275,12 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 .toList();
 
         NineSectionSummary merged = previous;
+        if (!toSummarize.isEmpty() && !breaker.allows(sessionId)) {
+            // spec 99 §A / T369：breaker 开路跳过折入——观测 counter（tag trigger 有界）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.memory.summary.fold-skipped", "trigger",
+                            budget.compactionNeeded() ? "budget" : (driftTrigger ? "drift" : "backlog"));
+        }
         if (!toSummarize.isEmpty() && breaker.allows(sessionId)) {
             try {
                 // impl-13 / T40：折叠提交前保存压缩前检查点（护栏：事故可回滚）
@@ -298,11 +304,13 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 }
                 summaryBridge.save(sessionId, merged);
                 breaker.onSuccess(sessionId);
-                // spec 95 §A / T355：摘要折入通知（trigger 溯源——观测面区分预算/积压/漂移）
+                // spec 95 §A / T355 + spec 99 §A / T369：折入通知 + 速率 counter
+                String trigger = budget.compactionNeeded() ? "budget"
+                        : (driftTrigger ? "drift" : "backlog");
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.memory.summary.folded", "trigger", trigger);
                 if (compactionListener != null) {
                     try {
-                        String trigger = budget.compactionNeeded() ? "budget"
-                                : (driftTrigger ? "drift" : "backlog");
                         compactionListener.onSummaryFolded(sessionId, merged, trigger);
                     } catch (RuntimeException ignored) {
                         // 观测双写失败不影响视图主链（lenient——同 notifyCompaction）

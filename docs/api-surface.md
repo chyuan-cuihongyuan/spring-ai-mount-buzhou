@@ -1071,3 +1071,9 @@
   截断 + 命中键 batchHgetAll 一次往返——spec 78 三栈下推补齐 Redis 侧；#39 fog
   收口；jedis-mock 内嵌单测）
 - 类型级快照：**零新增**（覆写级）；yml 键：**零新增**
+
+## effort #61 新增公共面（spec 99 / impl-246，@since 1.0.0）
+
+- 折入速率指标：counter `buzhou.memory.summary.folded` / `fold-skipped`
+  （tag trigger=budget/backlog/drift 有界——成功与熔断跳过双面；spec 95 fog 收口）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
