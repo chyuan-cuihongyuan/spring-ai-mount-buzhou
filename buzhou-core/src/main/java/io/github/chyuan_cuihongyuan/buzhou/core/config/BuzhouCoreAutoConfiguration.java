@@ -328,6 +328,15 @@ public class BuzhouCoreAutoConfiguration {
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.BulkheadHealth(
                     io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.global());
         }
+
+        /** spec 102 §A / T379：会话归档健康段（恒 UP + 在册数 countByPrefix 下推）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth buzhouArchiveHealth(
+                BuzhouStores stores) {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth(
+                    stores.sessionStateStore());
+        }
     }
 
     /**

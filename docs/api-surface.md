@@ -1091,3 +1091,9 @@
   逐项预览截 10 + CI 单行 summary + error 不入分母 spec 71 口径；Promptfoo
   model-compare 借鉴——与 EvalGate 组成双门族，spec 80 fog 收口）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #64 新增公共面（spec 102 / impl-249，@since 1.0.0）
+
+- `ArchiveHealth`（/actuator/buzhou 的 session-archive 段：恒 UP + 在册数
+  countByPrefix 下推）+ `SessionArchiver.ARCHIVE_PREFIX` 公共化（spec 97 fog 前半场）
+- 类型级快照：+1；yml 键：**零新增**

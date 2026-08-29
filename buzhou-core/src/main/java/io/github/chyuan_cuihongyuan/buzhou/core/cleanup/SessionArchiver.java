@@ -30,7 +30,8 @@ public final class SessionArchiver {
 
     /** 合成会话 Id（fsck 天然豁免）。 */
     public static final String ARCHIVE_SESSION_ID = "__buzhou.archive__";
-    static final String ARCHIVE_PREFIX = "archive.";
+    /** 归档键前缀（健康面 countByPrefix 复用——spec 102 §A / T379）。 */
+    public static final String ARCHIVE_PREFIX = "archive.";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
