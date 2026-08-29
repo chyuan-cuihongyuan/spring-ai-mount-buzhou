@@ -157,6 +157,26 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 基础设施 | 租户隔离 + 归档定时 | tenants/<t> 沙箱严格收窄 + purge 三键默认关定时清理（Milvus/S3） | [spec 125](docs/spec/125-tenant-sandbox.md) / [127](docs/spec/127-archive-purge-job.md) |
 | 质量 | 性质测试层 | 五不变量 × 随机输入（jqwik 思想零依赖）+ starter 全量验证轮 | [spec 180](docs/spec/180-property-invariants.md) / [200](docs/spec/200-starter-verify.md) |
 
+## 生产级纵深 III（B 会话 200 系增量）
+
+B 会话（.wayfinder200+ 号段）的精选主线（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 工具韧性 | 工具级熔断 + 幂等重试 | 失败率滑窗跳闸/冷却/半开探测（resilience4j）+ 只读工具异常静默退避重试（Temporal） | [spec 131](docs/spec/131-tool-circuit-breaker.md) / [133](docs/spec/133-idempotent-tool-retry.md) |
+| | 在飞合并 + 轮内 memo | 同键并发折叠一次执行扇出（Hystrix collapsing）+ 同轮复读秒回首轮值（request caching） | [spec 139](docs/spec/139-tool-call-coalescer.md) / [147](docs/spec/147-turn-memo.md) |
+| | 工具健康探测 | 宿主探针周期探活，翻转才通知——挂了提前知道（Consul） | [spec 165](docs/spec/165-tool-health-probe.md) |
+| 模型韧性 | 对冲请求 + 端点离群驱逐 | 长尾并发押注先回先得（gRPC hedging）+ 连错端点逐出备选池窗口复池（Envoy） | [spec 137](docs/spec/137-hedged-model.md) / [149](docs/spec/149-model-outlier-ejection.md) |
+| 会话治理 | 会话检疫 + 优雅排水 | 连败指数退避隔离（Erlang supervisor）+ 维护下线拒新等旧排空（K8s drain） | [spec 143](docs/spec/143-session-quarantine.md) / [155](docs/spec/155-session-drain.md) |
+| | spawn 优先级 + 自适应舱 | 三级抢占排队同级 FIFO（OS 多级队列）+ AIMD 动态并发上限（TCP/HPA） | [spec 123](docs/spec/123-spawn-priority.md) / [145](docs/spec/145-adaptive-bulkhead.md) |
+| 缓存与去重 | 共享 Redis 语义缓存 | 桶 HASH + 客户端 cosine 最近邻跨实例命中（RediSearch 语义可移植实现） | [spec 125](docs/spec/125-redis-semantic-vector-cache.md) |
+| 护栏 | PII yml 声明式 + 角色权限 | custom-rules 两形态装配期 fail-fast + 角色通配面 fail-closed（K8s RBAC） | [spec 129](docs/spec/129-pii-yml-custom-rules.md) / [141](docs/spec/141-tool-role-permissions.md) |
+| | 凭证租约 | 密钥 TTL 签发/续租/吊销——泄漏面从永久缩到 TTL 内（Vault） | [spec 153](docs/spec/153-secret-leases.md) |
+| 投递可靠 | outbox 滞后面 + 序号围栏 | 最老积压 age（含退避中）stalled 判定 + 信封单调 seq 缺口显形（Kafka） | [spec 135](docs/spec/135-outbox-lag.md) / [159](docs/spec/159-delivery-seq-fence.md) |
+| | 多 sink 扇出 | N 目的地独立投递语义/outbox 隔离/类型路由（Kafka 多消费组） | [spec 151](docs/spec/151-webhook-fanout.md) |
+| 观测与预算 | 舱集群聚合 + 会话特征 | 心跳共享事实双列快照（spec57 范式）+ 行为侧写一次定义多处消费（Feast） | [spec 127](docs/spec/127-bulkhead-cluster-aggregation.md) / [161](docs/spec/161-session-features.md) |
+| | 弹性预算池 + 配置热重载 | 保底配额+surplus 借用（Spark AQE）+ volatile 换引用版本化订阅（Caddy） | [spec 157](docs/spec/157-elastic-budget-pool.md) / [163](docs/spec/163-reloadable-config.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |

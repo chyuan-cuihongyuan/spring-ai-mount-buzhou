@@ -465,3 +465,49 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 - **导出窗口纪律**：观测/签名/PII/技能/成本五族 export → reset 循环 = 每窗口一份、表永有界；
   尾采样 `exportAllSampled`（错误/慢全留 + 确定性留样）控导出体积；`exportManifest` 六列目录
   不解析数据体即可核对。
+
+### 工具熔断与重试调参（B 侧 / spec 131+133）
+
+- **熔断**：`ToolCircuitBreaker(Config)` 挂 `ToolCircuitBreakerHook`（order 240）——窗 20/
+  阈值 50%/冷却 60s/半开 3 为默认；调参看 `snapshot()` 的 state 与窗内败率：频繁误跳阈值调高、
+  坏工具摘牌慢则窗调小。拒绝文案带冷却提示（模型可改道），计数 `buzhou.tool-breaker.blocked`。
+- **重试**：`RetryingToolCallback.wrap(只读工具, policy)`——默认 3 次/50ms/500ms 指数退避；
+  **只包幂等工具**（写工具重试有重复副作用风险，契约归声明方）；`buzhou.tool-retry.retries`
+  高 = 下游在抖，与熔断互补（重试管毫秒级抖动、熔断管持续故障）。
+- **健康探测**：`ToolHealthProber` 注册轻量探针（异常=DOWN 不上抛），翻转才通知——DOWN 在
+  模型撞墙前暴露；consecutiveDown 接自动摘牌（留档）。
+
+### 模型对冲与端点驱逐（B 侧 / spec 137+149）
+
+- **对冲**：`HedgedChatModel(主, 备, hedgeDelay, executor)` 当主模型挂 ChatClient——建议
+  hedgeDelay 设主模型 p95 之上（早了 = 对冲率虚高双倍成本）；`buzhou.hedge.fired/won`
+  两计数定调参：fired 高 win 低 = 阈值太早；win 高 = 对冲在救场。stream 不对冲（委派主）。
+- **驱逐**：`ModelOutlierEjection` 连错 N（默认 5）逐出备选池一个窗口（默认 30s）——
+  `filter(FallbackChain.models())` 后即健康池视图；`ejectedModels()` 名单即最可疑端点，
+  排障入口；复池后再观察新窗（计数重置）。
+
+### PII yml 规则与角色权限（B 侧 / spec 129+141）
+
+- **custom-rules**：`buzhou.guard.pii.custom-rules: - name: ORDER_ID / pattern: "ORD-\d{6,}"`
+  （或 name→pattern map 紧凑形态）——name 须 `[A-Z0-9_]{2,32}`、坏正则**启动即失败**不带病
+  上线；输出/输入两侧共用叠加；ReDoS 风险归声明方（正则自己写的）。
+- **角色面**：`ToolRoleGuardHook` 读会话态 `buzhou.tool-role`（未设=default 角色）——通配三形
+  精确/前缀`log*`/全放`*`；**未定义角色 fail-closed 全拒**（拼错不是放行理由）；会话中途
+  改角色即时生效（无缓存）。与 HITL 正交：角色管面、HITL 管次。
+
+### 会话检疫与排水维护（B 侧 / spec 143+155）
+
+- **检疫**：`SessionQuarantineHook`——连败 3 跳闸冷却 30s 起指数翻倍封顶 10min；隔离期
+  beforeTurn block（文案带剩余秒数）；到时自动放行试探，再闹更冷；健康轮调
+  `recordTurnSuccess` 复位连败（公共 API——hook 面看不到健康轮全貌，不谎装）。
+- **排水**：维护下线序列 `beginDrain` → `awaitDrained(预算)` → 归档/关闭——排水期新 Turn
+  拒（SESSION_DRAINING），在飞轮走完才继续；超时 false = 有长轮卡住，升级硬关归运维决策。
+
+### 预算池与热重载（B 侧 / spec 157+163）
+
+- **弹性池**：`ElasticBudgetPool(容量, base表)`——Σbase≤C 构造期校验；忙会话自动借
+  surplus（`C−Σmax(base,held)`——他人保底永不被借穿）；`surplus()` 曲线 = 弹性余量，
+  归还靠 `release`（借走不召回——在飞完整性优先）。
+- **热重载**：`ReloadableConfig.of(初值)` 包住任意参数 record——调参面 `replace(新值)` 即
+  热生效（版本自增、订阅者通知在锁外）；watcher（文件/配置中心轮询）归宿主实现，本原语只管
+  「换与通知」。
