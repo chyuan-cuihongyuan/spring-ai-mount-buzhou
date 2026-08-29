@@ -114,6 +114,10 @@ public class TokenBudgetHook implements BuzhouHook {
         BuzhouMetricsHolder.metrics().counter("buzhou.budget.prompt-tokens", prompt);
         BuzhouMetricsHolder.metrics().counter("buzhou.budget.completion-tokens", completion);
 
+        // spec 176 / T531：全局成本台账（per-model micro-USD——零成本也记：
+        // 「跑过零成本」是账单事实；只记账不拦截）
+        ModelCostLedger.global().record(model, costMicroUsd);
+
         if (virtualKeys != null && virtualKey != null
                 && !virtualKeys.trySpend(virtualKey, prompt + completion)) {
             // spec 148 / T501：key 级扣减越限——观测事件即刻发（本响应已生成），

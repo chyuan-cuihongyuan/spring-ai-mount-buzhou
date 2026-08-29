@@ -1424,3 +1424,10 @@
   topByCost 稳定排行 + totalMicroUsd 总数含 overflow + reset 窗口——
   WandB/Langfuse cost tracking 借鉴，只记账不拦截）
 - 类型级快照：+1（+ModelCost record）；yml 键：**零新增**
+
+## effort #132 新增公共面（spec 176 / impl-299，@since 1.0.0）
+
+- `TokenBudgetHook.afterModel` 成本台账单点入账（价目换算处直入
+  ModelCostLedger.global——零配置全局成本账；无价目零值在册诚实；
+  只记账不拦截，spec 174 fog 收口）
+- 类型级快照：**零新增**（接线级）；yml 键：**零新增**
