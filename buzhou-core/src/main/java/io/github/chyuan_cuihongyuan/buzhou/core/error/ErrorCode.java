@@ -45,6 +45,9 @@ public enum ErrorCode {
     /** 会话隔离检疫中（连败跳闸冷却；spec 143——到时自动解除）。 */
     SESSION_QUARANTINED(RetryCategory.NON_RETRYABLE, "会话隔离检疫中"),
 
+    /** 会话排水维护中（拒新 Turn 等在飞排空；spec 155）。 */
+    SESSION_DRAINING(RetryCategory.NON_RETRYABLE, "会话排水维护中"),
+
     /** 沙箱违规（路径越界 / 解析失败；同一路径重试必然再被拒）。 */
     SANDBOX_VIOLATION(RetryCategory.NON_RETRYABLE, "沙箱边界违规"),
 
