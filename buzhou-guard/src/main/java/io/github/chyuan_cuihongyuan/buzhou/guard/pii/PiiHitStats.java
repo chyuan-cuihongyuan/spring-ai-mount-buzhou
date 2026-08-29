@@ -1,5 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.guard.pii;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,5 +129,32 @@ public final class PiiHitStats {
         if (customRuleNames != null) {
             customRuleNames.forEach(this::recordCustom);
         }
+    }
+
+    /**
+     * 从脱敏产物提取自定义规则命中名（{@code [PII:NAME]} 占位符；内置类型名剔除
+     * 防双计）——输入/输出双钩共用（spec 164 / T517）。
+     */
+    public static List<String> extractCustomRuleNames(String redacted) {
+        List<String> names = new ArrayList<>();
+        if (redacted == null || redacted.isEmpty()) {
+            return names;
+        }
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("\\[PII:([A-Z0-9_]{2,32})\\]").matcher(redacted);
+        while (m.find()) {
+            String name = m.group(1);
+            boolean builtIn = false;
+            for (PiiType type : PiiType.values()) {
+                if (type.name().equals(name)) {
+                    builtIn = true;
+                    break;
+                }
+            }
+            if (!builtIn) {
+                names.add(name);
+            }
+        }
+        return names;
     }
 }

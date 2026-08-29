@@ -1374,3 +1374,10 @@
   空表也通知 + 单轮异常不杀调度；TurnHeartbeat 增 registered() 全集视图，
   K8s liveness probe 借鉴）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #126 新增公共面（spec 164 / impl-293，@since 1.0.0）
+
+- `PiiInputRedactionHook` 双点接线 PiiHitStats + `PiiHitStats
+  .extractCustomRuleNames`（输入侧命中进同一张合规报表——自定义占位符提取
+  上移双钩共用，内置类型名剔除防双计；spec 144 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

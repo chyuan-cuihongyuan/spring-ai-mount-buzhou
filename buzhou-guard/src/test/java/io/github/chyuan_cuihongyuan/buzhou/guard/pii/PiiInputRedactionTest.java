@@ -51,4 +51,23 @@ class PiiInputRedactionTest {
         hook.beforeTurn(clean);
         assertThat(clean.input()).isSameAs(before);
     }
+
+    @Test
+    void inputSideRecordsHitsIntoPiiHitStats() {
+        PiiHitStats.install(PiiHitStats.create());
+        try {
+            PiiInputRedactionHook hook = new PiiInputRedactionHook();
+            HookEnvironment env = new HookEnvironment("s2", "agent", new InMemorySessionStateStore());
+            hook.beforeTurn(new DefaultTurnContext(env, "帮我查下 13812345678，邮箱 a@b.co"));
+            hook.beforeTurn(new DefaultTurnContext(env, "再查 a@b.co"));
+
+            PiiHitStats stats = PiiHitStats.global();
+            assertThat(stats.countOf("CN_PHONE")).isEqualTo(1L);
+            assertThat(stats.countOf("EMAIL")).isEqualTo(2L);
+            assertThat(stats.top(2)).extracting(PiiHitStats.Hit::name)
+                    .containsExactly("EMAIL", "CN_PHONE");
+        } finally {
+            PiiHitStats.install(null);
+        }
+    }
 }
