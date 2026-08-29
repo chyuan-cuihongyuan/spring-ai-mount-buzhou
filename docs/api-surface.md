@@ -1239,3 +1239,10 @@
   扣减越限整体拒绝 + usage/topUsage 井读 + reset 窗口清零——LiteLLM virtual-key
   budgets 借鉴，未注册 key 直通）
 - 类型级快照：+1（budget 包 final 类 + KeyUsage record）；yml 键：**零新增**
+
+## effort #89 新增公共面（spec 125 / impl-275，@since 1.0.0）
+
+- `FileSandbox.forTenant(root, tenant)`（租户隔离沙箱：tenants/<tenant> 子根 +
+  零追加白名单严格收窄 + id 白名单 [a-z0-9][a-z0-9-]{0,31} fail-fast——跨租户
+  遍历复用既有边界检查拒绝，Milvus partition-key/chroot-per-tenant 借鉴）
+- 类型级快照：**零新增**（静态工厂方法级）；yml 键：**零新增**
