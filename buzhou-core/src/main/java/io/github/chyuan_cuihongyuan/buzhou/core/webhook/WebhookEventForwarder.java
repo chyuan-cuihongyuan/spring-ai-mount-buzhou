@@ -83,6 +83,8 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     private final AtomicLong dropped = new AtomicLong();
     private final AtomicLong failed = new AtomicLong();
     private final AtomicLong deadLettered = new AtomicLong();
+    /** spec 159 / T517：信封投递序（进程内单调；重启复位=新纪元，接收方 fence 据此 RESET）。 */
+    private final AtomicLong deliverySeq = new AtomicLong();
     volatile boolean closing;
 
     public WebhookEventForwarder(BuzhouWebhookProperties props, SessionStateStore stateStore) {
@@ -114,10 +116,11 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         String eventId = UUID.randomUUID().toString();
         String body;
         try {
-            Map<String, Object> envelope = new LinkedHashMap<>();
-            envelope.put("eventId", eventId);
-            envelope.put("type", event.type());
-            envelope.put("payload", event.payload());
+                    Map<String, Object> envelope = new LinkedHashMap<>();
+                    envelope.put("eventId", eventId);
+                    envelope.put("type", event.type());
+                    envelope.put("seq", deliverySeq.incrementAndGet());
+                    envelope.put("payload", event.payload());
             envelope.put("occurredAt", event.occurredAt().toString());
             Object sessionId = event.payload().get("sessionId");
             if (sessionId != null) {
