@@ -6,6 +6,7 @@ import io.lettuce.core.ScriptOutputType;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -165,6 +166,45 @@ public class RedisSessionStateStore implements SessionStateStore {
             }
         }
         return count;
+    }
+
+    /**
+     * spec 98 §A / T365：键序区间覆写——SMEMBERS 键侧过滤（前缀 + 区间）后排序截断，
+     * 只对命中键 HGETALL（limit 小时免全量值读——比默认实现的 scanByPrefix 全值拷贝
+     * 省一个量级往返）。顺序保证与契约一致（键字典序）。
+     */
+    @Override
+    public Map<String, StateEntry> scanByKeyRange(String sessionId, String prefix,
+            String fromKeyInclusive, String toKeyExclusive, int limit) {
+        if (limit <= 0) {
+            return Map.of();
+        }
+        String from = fromKeyInclusive == null ? prefix : fromKeyInclusive;
+        java.util.TreeMap<String, StateEntry> sorted = new java.util.TreeMap<>();
+        for (String k : sync.commands().smembers(keys.stateKeys(sessionId))) {
+            if (!k.startsWith(prefix) || k.compareTo(from) < 0) {
+                continue;
+            }
+            if (toKeyExclusive != null && k.compareTo(toKeyExclusive) >= 0) {
+                continue;
+            }
+            sorted.put(k, null); // 占位保序（值延后批量取）
+        }
+        Map<String, StateEntry> result = new LinkedHashMap<>();
+        List<String> hitKeys = new java.util.ArrayList<>(sorted.keySet());
+        if (hitKeys.size() > limit) {
+            hitKeys = hitKeys.subList(0, limit);
+        }
+        java.util.List<Map<String, String>> fields = hitKeys.isEmpty()
+                ? java.util.List.of()
+                : sync.batchHgetAll(hitKeys.stream().map(k -> keys.stateEntry(sessionId, k)).toList());
+        for (int i = 0; i < hitKeys.size(); i++) {
+            StateEntry entry = fromHash(fields.get(i));
+            if (entry != null) {
+                result.put(hitKeys.get(i), entry);
+            }
+        }
+        return result;
     }
 
     @Override

@@ -1064,3 +1064,10 @@
   fail-fast 不删 + Instant SimpleModule 编解码无 jsr310 依赖；删除前置安全网——
   #35 fog 收口）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #59 新增公共面（spec 98 / impl-245，@since 1.0.0）
+
+- `RedisSessionStateStore.scanByKeyRange` 覆写（SMEMBERS 键侧过滤 + TreeMap 排序
+  截断 + 命中键 batchHgetAll 一次往返——spec 78 三栈下推补齐 Redis 侧；#39 fog
+  收口；jedis-mock 内嵌单测）
+- 类型级快照：**零新增**（覆写级）；yml 键：**零新增**
