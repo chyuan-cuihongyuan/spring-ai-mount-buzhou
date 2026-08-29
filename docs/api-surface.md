@@ -1263,3 +1263,11 @@
   purge job（purge-enabled 默认关）
 - 类型级快照：+2；yml 键：+3（buzhou.session-archive.purge-enabled/purge-ttl/
   purge-interval）
+
+## effort #111 新增公共面（spec 132 / impl-278，@since 1.0.0）
+
+- `metrics/TagCardinalityGuard`（tag 基数守卫：装饰任意 BuzhouMetrics——
+  per-(名,键) 去重值集 64 封顶越限折 __overflow__ 样本不丢 + 指标名空间 512
+  满则新名全折 + folds() 守卫面 + 畸形键值透传不放大故障，Loki cardinality
+  limit 借鉴——「tag 有界」从纪律变机制）
+- 类型级快照：+1；yml 键：**零新增**
