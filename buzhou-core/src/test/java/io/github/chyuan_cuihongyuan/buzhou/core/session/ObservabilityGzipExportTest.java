@@ -58,6 +58,23 @@ class ObservabilityGzipExportTest {
     }
 
     @Test
+    void sessionGzipMatchesPlainSessionExport() throws Exception {
+        BuzhouStores stores = seeded();
+        ObservabilityJsonlExporter exporter = new ObservabilityJsonlExporter(
+                stores.observabilityStore());
+
+        ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
+        exporter.exportSessionGzip("s-gzip-1", gzipped);
+        StringWriter plain = new StringWriter();
+        exporter.exportSession("s-gzip-1", plain);
+
+        String unzipped = new String(new GZIPInputStream(
+                new ByteArrayInputStream(gzipped.toByteArray())).readAllBytes(),
+                StandardCharsets.UTF_8);
+        assertThat(unzipped).isEqualTo(plain.toString());
+    }
+
+    @Test
     void sinceVariantKeepsWaterlineSemantics() throws Exception {
         BuzhouStores stores = seeded();
         ObservabilityJsonlExporter exporter = new ObservabilityJsonlExporter(

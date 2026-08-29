@@ -127,6 +127,15 @@ public final class ObservabilityJsonlExporter {
         }
     }
 
+    /** gzip 单会话导出（spec 119 §A / T419：单会话归档/工单附件场景）。 */
+    public JsonlExportResult exportSessionGzip(String sessionId, java.io.OutputStream out)
+            throws IOException {
+        try (java.io.Writer writer = new java.io.OutputStreamWriter(
+                new java.util.zip.GZIPOutputStream(out), java.nio.charset.StandardCharsets.UTF_8)) {
+            return exportSession(sessionId, writer);
+        }
+    }
+
     private JsonlExportResult export(Writer out, Instant since) throws IOException {
         int sessions = 0;
         long spans = 0;

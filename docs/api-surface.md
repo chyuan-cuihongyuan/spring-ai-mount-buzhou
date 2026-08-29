@@ -1207,3 +1207,9 @@
   [PII:NAME] 占位符与内置同形态 + 叠加不短路；`PiiRedactionHook` 3 参构造——
   Presidio PatternRecognizer 对应物，spec 86 fog 收口）
 - 类型级快照：+1；yml 键：**零新增**（编程面——yml 声明式 fog 记账）
+
+## effort #81 新增公共面（spec 119 / impl-266，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportSessionGzip`（单会话 gzip 导出——工单附件/
+  事故取证场景；与明文逐字节一致；gzip 三入口族完整：全量/增量/单会话）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
