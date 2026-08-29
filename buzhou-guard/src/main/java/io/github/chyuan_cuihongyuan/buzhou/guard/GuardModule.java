@@ -71,6 +71,13 @@ public final class GuardModule {
                     : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
                             builder.piiTypes));
         }
+        // spec 106 §A / T389：用户输入脱敏（beforeTurn replaceInput——与输出侧正交）
+        if (builder.piiInputRedaction) {
+            h.add(builder.piiTypes == null
+                    ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook()
+                    : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
+                            builder.piiTypes));
+        }
         // impl-21 / T49：FIDES 最小 taint（读侧打标 + 写门校验；默认关，按机制开关）
         if (builder.taintTracking) {
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintTrackingHook(
@@ -134,6 +141,8 @@ public final class GuardModule {
         private boolean taintTracking = false;
         // spec 86 §A / T329：工具输出 PII 脱敏（默认关；null 类型集 = 全类型）
         private boolean piiRedaction = false;
+        // spec 106 §A / T389：用户输入 PII 脱敏（默认关；与输出侧正交，types 复用）
+        private boolean piiInputRedaction = false;
         private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> piiTypes = null;
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
@@ -180,6 +189,12 @@ public final class GuardModule {
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> types) {
             this.piiRedaction = true;
             this.piiTypes = types;
+            return this;
+        }
+
+        /** 开启用户输入 PII 脱敏（类型集沿用当前 piiTypes；未设 = 全类型；spec 106 / T389）。 */
+        public Builder piiInputRedaction() {
+            this.piiInputRedaction = true;
             return this;
         }
 
@@ -267,6 +282,11 @@ public final class GuardModule {
                 Object piiEnabled = piiMap.get("enabled");
                 if (piiEnabled instanceof Boolean b3) {
                     this.piiRedaction = b3;
+                }
+                // spec 106 §A / T389：输入侧独立开关（types 与输出侧共用）
+                Object inputVal = piiMap.get("input-redaction");
+                if (inputVal instanceof Boolean b4) {
+                    this.piiInputRedaction = b4;
                 }
                 Object typesVal = piiMap.get("types");
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> types =

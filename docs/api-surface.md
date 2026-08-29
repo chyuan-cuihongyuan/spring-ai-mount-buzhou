@@ -1119,3 +1119,10 @@
   （订阅类型过滤：命中才入队、被滤不占 outbox 容量 + `buzhou.webhook.filtered`
   计数；空/缺省 = 全投递零变化；GitHub/Stripe webhook 订阅面借鉴）
 - 类型级快照：**零新增**（方法级）；yml 键：+1（buzhou.webhook.include-types，默认全投递）
+
+## effort #68 新增公共面（spec 106 / impl-253，@since 1.0.0）
+
+- `PiiInputRedactionHook`（用户输入 PII 脱敏：beforeTurn replaceInput 占位符化 +
+  幂等 + 类型集与输出侧共用 + `buzhou.guard.pii.input-redaction` 独立开关默认关；
+  spec 86 fog 收口——输入/输出双侧防线闭环）
+- 类型级快照：+1；yml 键：+1（buzhou.guard.pii.input-redaction，默认关）

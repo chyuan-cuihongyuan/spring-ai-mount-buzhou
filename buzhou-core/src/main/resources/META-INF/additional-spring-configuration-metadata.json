@@ -209,6 +209,12 @@
       "name": "buzhou.webhook.include-types",
       "type": "java.util.List<java.lang.String>",
       "description": "spec 105 / T387：webhook 订阅类型过滤（命中才投递；空/缺省 = 全投递；被滤事件不占 outbox 容量）。"
+    },
+    {
+      "name": "buzhou.guard.pii.input-redaction",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "spec 106 / T391：用户输入 PII 脱敏开关（beforeTurn 占位符化——默认关；类型集与输出侧共用 buzhou.guard.pii.types）。"
     }
   ],
   "hints": [
