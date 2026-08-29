@@ -71,6 +71,13 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
         if (catalog.isEmpty()) {
             return Optional.empty();
         }
+        // spec 110 §A / T401：目录注入遥测（injected 每注入 +1；overflow 两值 tag——
+        // 截断频率提示 catalog-max-entries 是否过小）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.skills.catalog-injected");
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.skills.catalog-overflow", "outcome",
+                        overflow > 0 ? "truncated" : "fit");
         StringBuilder sb = new StringBuilder();
         sb.append("## 可用技能（Skill Catalog）\n");
         sb.append("以下技能可按需调用 load_skill(name) 加载正文（name 即清单首列）：\n");

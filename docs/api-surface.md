@@ -1146,3 +1146,10 @@
   GZIP+UTF-8 Writer 复用既有管线，解压与明文逐字节一致；水位/计数语义不变；
   spec 88 fog 收口——归档/跨网体积降一个量级）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #72 新增公共面（spec 110 / impl-257，@since 1.0.0）
+
+- 技能目录注入遥测：counter `buzhou.skills.catalog-injected` +
+  `catalog-overflow`（tag outcome=truncated|fit——截断率即 catalog-max-entries
+  调优信号；双注入路径同源计数；空目录零计数）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
