@@ -115,9 +115,11 @@ public class SkillSearchTool implements ToolCallback {
                 }
                 if (shown > 0) {
                     suggest.append("可换更精确的关键词，或直接 load_skill(name) 加载上述技能。");
+                    searchTelemetry("miss-semantic");
                     return suggest.toString();
                 }
             }
+            searchTelemetry("miss");
             return "无匹配技能（query=" + query + "）。可换更短的关键词，或请运维确认技能绑定关系。";
         }
         // spec 73 §A / T297：命中集语义排序（相关在前；失败回退注册序——ranker 内建）
@@ -138,6 +140,13 @@ public class SkillSearchTool implements ToolCallback {
             }
         }
         sb.append("用 load_skill(name) 加载正文。");
+        searchTelemetry("hit");
         return sb.toString();
+    }
+
+    /** spec 116 §A / T413：检索遥测（outcome=hit|miss|miss-semantic——命中率即技能可发现性信号）。 */
+    private static void searchTelemetry(String outcome) {
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.skills.search", "outcome", outcome);
     }
 }
