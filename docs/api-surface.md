@@ -1388,3 +1388,11 @@
   + export→reset 每窗口一份合规报表 + 转义纪律 + 空表零行诚实——导出族
   第六员，spec 164 fog 收口）
 - 类型级快照：+1；yml 键：**零新增**
+
+## effort #128 新增公共面（spec 168 / impl-295，@since 1.0.0）
+
+- `SkillCatalogRendererImpl` 渲染缓存 + `renderCacheStats()`（目录渲染按
+  name|description 规范形 sha256 内容寻址——同目录命中复用、上架/改文案即换键
+  自然失效、输出零变化；PromptPrefixCache 首个内置消费方，vLLM radix
+  prefix-cache 借鉴）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

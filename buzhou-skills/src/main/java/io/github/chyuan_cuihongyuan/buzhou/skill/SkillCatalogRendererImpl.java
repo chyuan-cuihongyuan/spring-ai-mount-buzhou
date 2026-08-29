@@ -23,6 +23,10 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
     private final SemanticSkillRanker ranker;
     /** 目录注入预算（排序路径本地截断用；与 registry 同值）。 */
     private final int catalogMaxEntries;
+    /** 渲染缓存（spec 168 / T521）：渲染是目录内容纯函数，按内容寻址复用——
+     * 目录每轮注入是热点，命中率 = 目录稳定性信号。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache<String>
+            renderCache = io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache.create();
 
     public SkillCatalogRendererImpl(SessionBindingIndex index, SkillRegistry registry) {
         this(index, registry, null, Integer.MAX_VALUE);
@@ -35,6 +39,11 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
         this.registry = registry;
         this.ranker = ranker;
         this.catalogMaxEntries = catalogMaxEntries;
+    }
+
+    /** 渲染缓存统计（命中率 = 目录稳定性信号；测试/观测面，spec 168 / T521）。 */
+    public io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache.Stats renderCacheStats() {
+        return renderCache.stats();
     }
 
     @Override
@@ -78,6 +87,22 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.skills.catalog-overflow", "outcome",
                         overflow > 0 ? "truncated" : "fit");
+        // spec 168 §A / T521：渲染缓存（PromptPrefixCache 首个内置消费方）——
+        // 渲染是目录内容的纯函数，按「name+description+overflow 规范形」内容寻址：
+        // 同目录每轮注入命中（目录每轮注入是热点），上架/改文案即换键自然失效；
+        // 命中率 = 目录稳定性信号（与 spec 126「命中率即能力」同口径）
+        StringBuilder canonical = new StringBuilder();
+        for (SkillMetadata meta : catalog) {
+            canonical.append(meta.name()).append('|')
+                    .append(meta.description() == null ? "" : meta.description()).append('\n');
+        }
+        canonical.append("#overflow=").append(overflow);
+        String key = io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
+                .keyOf(canonical.toString());
+        return renderCache.getOrLoad(key, () -> render_uncached(catalog, overflow));
+    }
+
+    private String render_uncached(List<SkillMetadata> catalog, int overflow) {
         StringBuilder sb = new StringBuilder();
         sb.append("## 可用技能（Skill Catalog）\n");
         sb.append("以下技能可按需调用 load_skill(name) 加载正文（name 即清单首列）：\n");
@@ -93,6 +118,6 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
                     .append(" 个技能因目录注入上限未列出——如需加载其正文，")
                     .append("请运维调整绑定关系或提高 buzhou.skills.catalog-max-entries）\n");
         }
-        return Optional.of(sb.toString().strip());
+        return sb.toString().strip();
     }
 }
