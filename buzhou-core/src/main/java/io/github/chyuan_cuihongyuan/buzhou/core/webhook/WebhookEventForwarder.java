@@ -93,9 +93,22 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         this.dispatcher.start();
     }
 
+    /** spec 105 §A / T387：订阅类型过滤（空集 = 全投递——默认零变化）。 */
+    private volatile java.util.Set<String> includeTypes = java.util.Set.of();
+
+    /** 限定投递的事件类型集（null/空 = 全投递；BuzhouWebhookProperties 不扩——record 兼容）。 */
+    public void setIncludeTypes(java.util.Collection<String> types) {
+        this.includeTypes = types == null ? java.util.Set.of() : java.util.Set.copyOf(types);
+    }
+
     @Override
     public void onEvent(SessionEvent event) {
         if (closing) {
+            return;
+        }
+        // spec 105 §A / T387：类型过滤在入队前（不占 outbox 容量——被滤事件不是待投事件）
+        if (!includeTypes.isEmpty() && !includeTypes.contains(event.type())) {
+            BuzhouMetricsHolder.metrics().counter("buzhou.webhook.filtered");
             return;
         }
         String eventId = UUID.randomUUID().toString();

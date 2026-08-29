@@ -1112,3 +1112,10 @@
   ArchiveHealth 装配修正（ObjectProvider + store 缺席 UNKNOWN-disabled，不抢
   启动 store 校验报错优先级）
 - 类型级快照：**零新增**（接线级）；yml 键：**零新增**
+
+## effort #67 新增公共面（spec 105 / impl-252，@since 1.0.0）
+
+- `WebhookEventForwarder.setIncludeTypes(...)` + `buzhou.webhook.include-types`
+  （订阅类型过滤：命中才入队、被滤不占 outbox 容量 + `buzhou.webhook.filtered`
+  计数；空/缺省 = 全投递零变化；GitHub/Stripe webhook 订阅面借鉴）
+- 类型级快照：**零新增**（方法级）；yml 键：+1（buzhou.webhook.include-types，默认全投递）

@@ -73,11 +73,20 @@ public class BuzhouCoreAutoConfiguration {
     @ConditionalOnProperty(prefix = "buzhou.webhook", name = "url")
     public io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder webhookEventForwarder(
             io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties props,
-            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> storesProvider) {
+            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> storesProvider,
+            org.springframework.core.env.Environment env) {
         io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores = storesProvider.getIfAvailable();
-        return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props,
-                stores != null ? stores.sessionStateStore()
-                        : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore());
+        io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder forwarder =
+                new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props,
+                        stores != null ? stores.sessionStateStore()
+                                : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore());
+        // spec 105 §A / T387：订阅类型过滤（buzhou.webhook.include-types——空/缺省 = 全投递）
+        java.util.List<String> include = org.springframework.boot.context.properties.bind.Binder
+                .get(env).bind("buzhou.webhook.include-types",
+                        org.springframework.boot.context.properties.bind.Bindable.listOf(String.class))
+                .orElse(java.util.List.of());
+        forwarder.setIncludeTypes(include);
+        return forwarder;
     }
 
     /**

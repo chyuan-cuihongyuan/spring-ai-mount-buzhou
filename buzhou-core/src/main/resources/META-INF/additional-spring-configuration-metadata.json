@@ -204,6 +204,11 @@
       "type": "java.lang.Boolean",
       "defaultValue": false,
       "description": "spec 91 / T345：配置体检开关（默认关——开启后就绪事件时对 buzhou.* 配置面做一次键拼写/值域体检，发现走日志；只读不写）。"
+    },
+    {
+      "name": "buzhou.webhook.include-types",
+      "type": "java.util.List<java.lang.String>",
+      "description": "spec 105 / T387：webhook 订阅类型过滤（命中才投递；空/缺省 = 全投递；被滤事件不占 outbox 容量）。"
     }
   ],
   "hints": [

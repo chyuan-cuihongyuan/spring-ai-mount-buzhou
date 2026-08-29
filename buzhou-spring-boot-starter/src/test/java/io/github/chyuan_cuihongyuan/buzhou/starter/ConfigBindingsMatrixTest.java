@@ -102,6 +102,7 @@ class ConfigBindingsMatrixTest {
     /** 复杂结构化键（List<KeyFile> 等）——样例值需文件/结构，跳过并显式登记（不静默）。 */
     private static final List<String> SKIPPED_KEYS = List.of(
             "buzhou.bulkhead.agents", // Map<String,Integer>：Binder 结构化面（spec 84 / T324）
+            "buzhou.webhook.include-types", // List<String>：Binder 结构化面（spec 105 / T390）
             "buzhou.guard.audit.signing.keys", // List<KeyFile>：需 PEM 文件，结构化装配面
             "buzhou.guard.audit.signing.key-dir"); // 目录扫描副作用键（防真扫）
 
