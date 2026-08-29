@@ -1180,3 +1180,10 @@
 - `PairwiseEvalRunner.abRunsOfVersion(store, fingerprint)`（AB run 按数据集内容
   版本聚合查询——spec 113 的 AB 面同构；同基线版本对比集零胶水）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #77 新增公共面（spec 115 / impl-262，@since 1.0.0）
+
+- ConfigDoctor v2 跨键规则表（四规则：NOOP 空转 / 孤儿依赖静默空转 ×2 / 开关联
+  矛盾——单键合法但组合矛盾的配置启动期点名；spec 91 fog 收口，IDE inspections
+  借鉴）
+- 类型级快照：**零新增**（规则级）；yml 键：**零新增**

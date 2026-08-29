@@ -53,11 +53,12 @@ class ConfigDoctorTest {
                 "buzhou.memory.semantic-drift", "false")); // 合法
 
         assertThat(report.errorCount()).isEqualTo(2);
-        assertThat(report.findings()).extracting(ConfigDoctor.Finding::level)
-                .containsOnly("ERROR");
-        assertThat(report.findings()).extracting(ConfigDoctor.Finding::message)
+        // ERROR 面全是值域不可解析；另含 1 条跨键 WARN（threshold 配了但 drift 未开）
+        assertThat(report.findings()).filteredOn(f -> f.level().equals("ERROR"))
+                .extracting(ConfigDoctor.Finding::message)
                 .allSatisfy(m -> assertThat(m).contains("值不可解析"));
-        assertThat(report.infoCount()).isEqualTo(2);
+        assertThat(report.warnCount()).as("findings=%s", report.findings()).isEqualTo(1);
+        assertThat(report.infoCount()).isEqualTo(2); // auto-resume + semantic-drift=false 均合法
         assertThat(report.summary()).startsWith("config-doctor FAIL").contains("errors=2");
     }
 
@@ -91,6 +92,35 @@ class ConfigDoctorTest {
         // classpath 真实键宇宙（含 metadata json 聚合）——近邻建议指向真实键
         assertThat(report.findings().getFirst().message())
                 .contains("buzhou.bulkhead.enabled");
+    }
+
+    @Test
+    void crossKeyRulesFlagNoopAndOrphanDependencies() {
+        // 规则 1：bulkhead 开而未配 agents（NOOP 空转）
+        ConfigDoctor.DoctorReport noop = doctor.examine(java.util.Map.of(
+                "buzhou.bulkhead.enabled", "true"));
+        assertThat(noop.findings()).extracting(ConfigDoctor.Finding::key)
+                .contains("buzhou.bulkhead.agents");
+
+        // 规则 2：依赖键存在而开关未开（静默空转）
+        ConfigDoctor.DoctorReport orphan = doctor.examine(java.util.Map.of(
+                "buzhou.bulkhead.acquire-timeout", "2s"));
+        assertThat(orphan.findings()).extracting(ConfigDoctor.Finding::message)
+                .anySatisfy(m -> assertThat(m).contains("未开"));
+
+        // 规则 3：漂移开而 memory 关（挂不上）
+        ConfigDoctor.DoctorReport conflict = doctor.examine(java.util.Map.of(
+                "buzhou.memory.semantic-drift", "true",
+                "buzhou.memory.enabled", "false"));
+        assertThat(conflict.findings()).extracting(ConfigDoctor.Finding::message)
+                .anySatisfy(m -> assertThat(m).contains("memory 未装配"));
+
+        // 干净组合零跨键发现（开关与依赖成对、无矛盾）
+        ConfigDoctor.DoctorReport clean = doctor.examine(java.util.Map.of(
+                "buzhou.memory.semantic-drift", "true",
+                "buzhou.memory.semantic-drift-threshold", "0.2",
+                "buzhou.recovery.auto-resume", "true"));
+        assertThat(clean.findings()).isEmpty();
     }
 
     @Test

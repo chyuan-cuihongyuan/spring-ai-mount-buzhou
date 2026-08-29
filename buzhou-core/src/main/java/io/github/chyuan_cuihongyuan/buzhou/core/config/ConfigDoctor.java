@@ -102,7 +102,54 @@ public final class ConfigDoctor {
                 break;
             }
         }
+        // spec 115 §A / T411：跨键矛盾规则（doctor v2——单键合法但组合矛盾/空转）
+        warns += crossKeyFindings(configured, findings);
         return new DoctorReport(List.copyOf(findings), configured.size(), errors, warns, infos);
+    }
+
+    /**
+     * spec 115 §A / T411：跨键矛盾规则（规则表有界显式——新规则须同步本 javadoc）：
+     * <ul>
+     *   <li>bulkhead 开而未配 agents —— NOOP 空转（开了但无上限可执行）；</li>
+     *   <li>semantic-drift 开而 memory.enabled=false —— 挂不上（memory 未装配）；</li>
+     *   <li>依赖键存在而开关未开（acquire-timeout / semantic-drift-threshold）——
+     *       疑似以为已生效（静默空转）。</li>
+     * </ul>
+     */
+    private static int crossKeyFindings(Map<String, String> configured, List<Finding> findings) {
+        int added = 0;
+        boolean bulkheadOn = truthy(configured.get("buzhou.bulkhead.enabled"));
+        if (bulkheadOn && !configured.containsKey("buzhou.bulkhead.agents")
+                && findings.size() < MAX_FINDINGS) {
+            findings.add(new Finding("WARN", "buzhou.bulkhead.agents",
+                    "隔离舱已开启但未配 agents 上限表——NOOP 空转（无上限可执行）"));
+            added++;
+        }
+        if (!bulkheadOn && configured.containsKey("buzhou.bulkhead.acquire-timeout")
+                && findings.size() < MAX_FINDINGS) {
+            findings.add(new Finding("WARN", "buzhou.bulkhead.acquire-timeout",
+                    "依赖键已配但 buzhou.bulkhead.enabled 未开——疑似以为已生效（静默空转）"));
+            added++;
+        }
+        boolean driftOn = truthy(configured.get("buzhou.memory.semantic-drift"));
+        boolean memoryOff = configured.containsKey("buzhou.memory.enabled")
+                && !truthy(configured.get("buzhou.memory.enabled"));
+        if (driftOn && memoryOff && findings.size() < MAX_FINDINGS) {
+            findings.add(new Finding("WARN", "buzhou.memory.semantic-drift",
+                    "漂移检测开启但 buzhou.memory.enabled=false——挂不上（memory 未装配）"));
+            added++;
+        }
+        if (!driftOn && configured.containsKey("buzhou.memory.semantic-drift-threshold")
+                && findings.size() < MAX_FINDINGS) {
+            findings.add(new Finding("WARN", "buzhou.memory.semantic-drift-threshold",
+                    "依赖键已配但 buzhou.memory.semantic-drift 未开——疑似以为已生效（静默空转）"));
+            added++;
+        }
+        return added;
+    }
+
+    private static boolean truthy(String value) {
+        return value != null && Boolean.parseBoolean(value.trim());
     }
 
     /** 值域校验（metadata type 面：Boolean/数值可解析性）。 */
