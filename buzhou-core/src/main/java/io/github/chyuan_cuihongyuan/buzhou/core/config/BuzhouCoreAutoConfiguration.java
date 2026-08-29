@@ -329,13 +329,14 @@ public class BuzhouCoreAutoConfiguration {
                     io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.global());
         }
 
-        /** spec 102 §A / T379：会话归档健康段（恒 UP + 在册数 countByPrefix 下推）。 */
+        /** spec 102 §A / T379：会话归档健康段（stores 缺席 = UNKNOWN-disabled，不抢 store 校验报错优先级）。 */
         @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
         io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth buzhouArchiveHealth(
-                BuzhouStores stores) {
+                org.springframework.beans.factory.ObjectProvider<BuzhouStores> stores) {
+            BuzhouStores available = stores.getIfAvailable();
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth(
-                    stores.sessionStateStore());
+                    available == null ? null : available.sessionStateStore());
         }
     }
 

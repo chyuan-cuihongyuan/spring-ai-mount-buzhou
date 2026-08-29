@@ -7,8 +7,8 @@ import java.util.Map;
 /**
  * 会话归档健康面（spec 102 §A / T379，spec 97 fog 项收口）：恒 UP（观测面——
  * 归档多不是故障，容量治理走运维）；details = 归档在册数（countByPrefix 下推，
- * 零值读）。无归档 = 0（合法状态——归档未启用不报 UNKNOWN：与 error-signatures
- * 同为观测段，非机制启用态）。
+ * 零值读）。store 缺席（如 store.type 配错导致 stores bean 未装配）= UNKNOWN +
+ * disabled 详情——不抢占启动期 store 校验的报错优先级（BuzhouBulkhead 同款纪律）。
  */
 public final class ArchiveHealth implements BuzhouHealth {
 
@@ -25,11 +25,14 @@ public final class ArchiveHealth implements BuzhouHealth {
 
     @Override
     public Status status() {
-        return Status.UP;
+        return stateStore == null ? Status.UNKNOWN : Status.UP;
     }
 
     @Override
     public Map<String, Object> details() {
+        if (stateStore == null) {
+            return Map.of("disabled", true);
+        }
         return Map.of("archivedSessions",
                 stateStore.countByPrefix(
                         io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver.ARCHIVE_SESSION_ID,

@@ -449,7 +449,14 @@ public class DefaultAgentSession implements AgentSession {
     private String callModelWithinBudget(int turnSeq, Supplier<String> modelCall) {
         Duration budget = turnBudget;
         if (budget == null) {
-            return modelCall.get();
+            // spec 104 §A / T383：直调路径失败签名聚类（无预算档——异常原样上抛语义不变）
+            try {
+                return modelCall.get();
+            } catch (RuntimeException e) {
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global()
+                        .record("model", e);
+                throw e;
+            }
         }
         Duration hardBound = budget.plus(MODEL_FINALIZE_GRACE);
         CompletableFuture<String> guarded =
@@ -461,11 +468,18 @@ public class DefaultAgentSession implements AgentSession {
             BuzhouException timeout = new BuzhouException(ErrorCode.TIMEOUT,
                     "模型调用超时：Turn 预算 " + budget.toMillis() + "ms（含 "
                             + MODEL_FINALIZE_GRACE.toSeconds() + "s 收尾宽限）已耗尽", e);
+            // spec 104 §A / T383：模型失败签名聚类（超时族可观测——spec 83 fog 收口）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global()
+                    .record("model", timeout);
             observers.forEach(o -> o.onTurnError(turnSeq, timeout));
             throw timeout;
         } catch (ExecutionException e) {
             // 还原底层异常类型：模型侧异常照常按原类型暴露（既有错误路径不变）
             Throwable cause = e.getCause() == null ? e : e.getCause();
+            // spec 104 §A / T383：模型失败签名聚类（异常族——不改变既有抛出语义）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global()
+                    .record("model", cause instanceof RuntimeException || cause instanceof Error
+                            ? cause : e);
             if (cause instanceof RuntimeException runtimeException) {
                 throw runtimeException;
             }

@@ -1104,3 +1104,11 @@
   ttl≤0 显式全清/幂等；now 外注同 SessionHistoryPolicy 签名纪律；S3 lifecycle
   借鉴——spec 102 fog 后半场，归档治理闭环「可见→治理」补齐）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #66 新增公共面（spec 104 / impl-251，@since 1.0.0）
+
+- 模型失败签名接线（DefaultAgentSession 直调/守护双路径旁路 record("model", …)，
+  抛出语义零变化——ErrorSignatures tool+model 双族补齐，spec 83 fog 收口）+
+  ArchiveHealth 装配修正（ObjectProvider + store 缺席 UNKNOWN-disabled，不抢
+  启动 store 校验报错优先级）
+- 类型级快照：**零新增**（接线级）；yml 键：**零新增**
