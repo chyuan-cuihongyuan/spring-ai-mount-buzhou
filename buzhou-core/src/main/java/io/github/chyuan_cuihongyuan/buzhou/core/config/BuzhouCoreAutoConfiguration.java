@@ -391,6 +391,13 @@ public class BuzhouCoreAutoConfiguration {
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth(keys);
     }
 
+    /** spec 192 / T553：模型成本健康段（台账全局恒在 + 预算钩子自动入账——恒有段）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth buzhouModelCostHealth() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth();
+    }
+
     @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
         io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth buzhouArchiveHealth(
