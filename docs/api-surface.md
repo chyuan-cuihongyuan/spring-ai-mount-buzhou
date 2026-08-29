@@ -1193,3 +1193,10 @@
 - skill_search 遥测：counter `buzhou.skills.search`（tag outcome=hit|miss|
   miss-semantic 三值——命中率即技能可发现性信号，语义救回单列；文案/排序零变化）
 - 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #79 新增公共面（spec 117 / impl-264，@since 1.0.0）
+
+- `AgentBulkhead.topRejections(n)`（per-agent 拒绝计数进程内有界表：256 封顶折
+  overflow + 稳定排序 + NOOP agent 零计数；BulkheadHealth 增 topRejected 3 条
+  ——限流风暴一屏定位，spec 84 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

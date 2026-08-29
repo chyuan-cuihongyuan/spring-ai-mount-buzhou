@@ -5,11 +5,13 @@ import io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode;
 import io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -97,12 +99,45 @@ public final class AgentBulkhead {
         }
         if (!acquired) {
             BuzhouMetricsHolder.metrics().counter("buzhou.bulkhead.rejected");
+            recordRejection(agentName);
             throw new BuzhouException(ErrorCode.QUOTA_EXCEEDED,
                     "agent 并发 Turn 上限已到：agent=" + agentName
                             + "，limit=" + limitOf(agentName)
                             + "（修法：调大 buzhou.bulkhead.agents.<agent> 或错峰）");
         }
         return new Lease(semaphore);
+    }
+
+    /** per-agent 拒绝计数表（spec 117 §A / T415；256 封顶折 __overflow__）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, AtomicLong> rejections =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_TRACKED_AGENTS = 256;
+    private static final String OVERFLOW_MARKER = "__overflow__";
+
+    private void recordRejection(String agent) {
+        AtomicLong counter = rejections.get(agent);
+        if (counter != null) {
+            counter.incrementAndGet();
+            return;
+        }
+        if (rejections.size() >= MAX_TRACKED_AGENTS) {
+            rejections.computeIfAbsent(OVERFLOW_MARKER, k -> new AtomicLong())
+                    .incrementAndGet();
+            return;
+        }
+        rejections.computeIfAbsent(agent, k -> new AtomicLong()).incrementAndGet();
+    }
+
+    /** top-N 被拒 agent（count 降序、同 count 字典序——输出稳定；含 overflow 折叠行）。 */
+    public List<Map.Entry<String, Long>> topRejections(int n) {
+        return rejections.entrySet().stream()
+                .sorted((a, b) -> {
+                    int byCount = Long.compare(b.getValue().get(), a.getValue().get());
+                    return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
+                })
+                .limit(Math.max(0, n))
+                .map(e -> Map.entry(e.getKey(), e.getValue().get()))
+                .toList();
     }
 
     /** Turn 名额（close 释放；NOOP 单例零开销）。 */

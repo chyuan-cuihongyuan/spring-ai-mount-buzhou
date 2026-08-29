@@ -3,6 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.health;
 import io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,6 +48,14 @@ public final class BulkheadHealth implements BuzhouHealth {
             agents.put(agent, "inFlight=" + bulkhead.inFlight(agent)
                     + "/limit=" + entry.getValue());
         }
-        return Map.of("agents", agents);
+        // spec 117 §A / T415：top 被拒 agent（限流风暴定位——topRejections 稳定排序）
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("agents", agents);
+        List<String> topRejected = new java.util.ArrayList<>();
+        for (Map.Entry<String, Long> entry : bulkhead.topRejections(3)) {
+            topRejected.add(entry.getKey() + " x" + entry.getValue());
+        }
+        out.put("topRejected", topRejected);
+        return java.util.Collections.unmodifiableMap(out);
     }
 }

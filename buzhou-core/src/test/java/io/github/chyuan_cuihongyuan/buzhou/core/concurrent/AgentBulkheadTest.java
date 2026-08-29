@@ -79,6 +79,35 @@ class AgentBulkheadTest {
         held.close();
     }
 
+    /** spec 117 §B / T416：per-agent 拒绝计数——topRejections 排序稳定；成功获取零计入。 */
+    @Test
+    void rejectionsTrackedPerAgentWithStableOrder() {
+        AgentBulkhead bulkhead = AgentBulkhead.of(Map.of("hot", 1, "warm", 1), Duration.ZERO);
+        AgentBulkhead.install(bulkhead);
+
+        try (AgentBulkhead.Lease hot = bulkhead.acquire("hot")) {
+            assertThatThrownBy(() -> bulkhead.acquire("hot")).isInstanceOf(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException.class); // 拒 1
+            assertThatThrownBy(() -> bulkhead.acquire("hot")).isInstanceOf(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException.class); // 拒 2
+        }
+        try (AgentBulkhead.Lease warm = bulkhead.acquire("warm")) {
+            assertThatThrownBy(() -> bulkhead.acquire("warm")).isInstanceOf(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException.class); // 拒 1
+            bulkhead.acquire("cold"); // 未配置 agent——NOOP 直通不拒不计数
+        }
+
+        assertThat(bulkhead.topRejections(5)).extracting(java.util.Map.Entry::getKey)
+                .containsExactly("hot", "warm");
+        assertThat(bulkhead.topRejections(5)).extracting(java.util.Map.Entry::getValue)
+                .containsExactly(2L, 1L);
+        assertThat(bulkhead.topRejections(1)).hasSize(1);
+        // 释放后可再获取（计数不影响容量语义）
+        try (AgentBulkhead.Lease again = bulkhead.acquire("hot")) {
+            assertThat(bulkhead.inFlight("hot")).isEqualTo(1);
+        }
+    }
+
     /** 端到端：同 agent 两会话并发 chat——模型挂起期间舱满，第二个 QUOTA_EXCEEDED。 */
     @Test
     void concurrentChatsOnSameAgentShareBulkhead() throws Exception {
