@@ -1459,3 +1459,10 @@
   未获锁零通知——null 哨兵与空表「跑过没事」严格区分 + 跳过计数证据面 +
   finally 用后即还；null = 零变化，spec 182 第二站接线）
 - 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**
+
+## effort #138 新增公共面（spec 188 / impl-305，@since 1.0.0）
+
+- `budget/ModelCostLedgerJsonl.export`（成本账单 JSONL：与 topByCost 同序 +
+  双口径列 microUsd 精确/usd 6 位小数人读 + export→reset 每窗口一份 + 空表
+  零行诚实——导出族第八员，spec 174 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
