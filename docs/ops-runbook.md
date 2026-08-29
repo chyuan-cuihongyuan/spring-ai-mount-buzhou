@@ -446,3 +446,22 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   疑似键不生效时跑绑定矩阵定位（新键必须同时落 metadata + 矩阵登记）。
 - **新键检查单**：metadata 入档 → 矩阵 SAMPLE_OVERRIDES/ENV_READ_KEYS 登记 → runbook §3
   调优表按需补录 → 多构造器 record 需 @ConstructorBinding（T187 教训）。
+
+## 22. 多实例治理与预算观测（effort #86-#148 增量）
+
+- **归档定时清理**：`buzhou.session-archive.purge-enabled`（默认关）+ `purge-ttl`（默认 7d）+
+  `purge-interval`（默认 1h）——开启后单线程 scheduleWithFixedDelay 兑现 TTL；多实例各跑一份
+  幂等无害，接 `AdvisoryFileLock`（5 参构造）即单实例执行（未获锁轮返回 -1）。
+- **停滞巡检**：TurnHeartbeat 三件套（表/钩子/巡检犬）——挂 `TurnHeartbeatHook` 后模型与工具
+  四点自动打点；`TurnStallWatchdog` listener 收 quiet 超阈清单（每轮都报——去重归告警端）；
+  接锁后未获锁轮零通知 + `skippedForLock()` 计数。
+- **虚拟 key 配额**：`buzhou.virtual-keys.active-key` + `limits.<key>=<token 顶>` 两键即得
+  key 级预算闸全链（registry → 预算钩子 → 健康段）；耗尽拦截下一次模型调用（模型零调用），
+  窗口 `reset()`/`resetAll()` 恢复；active-key 不在 limits 装配期 fail-fast。
+- **模型成本账**：预算钩子默认自动入账 `ModelCostLedger`（零配置）——健康段 `model-cost` top-8
+  烧钱榜实时看；`ModelCostLedgerJsonl` 按窗口导出（microUsd 精确 + usd 人读双列）。
+- **tag 基数守卫**：`buzhou.metrics.cardinality-guard.enabled=true` 全局装饰——per-(名,键) 64
+  值封顶越限折 `__overflow__`（样本不丢丢维度）；折入计 `buzhou.metrics.tag-overflow` 可告警。
+- **导出窗口纪律**：观测/签名/PII/技能/成本五族 export → reset 循环 = 每窗口一份、表永有界；
+  尾采样 `exportAllSampled`（错误/慢全留 + 确定性留样）控导出体积；`exportManifest` 六列目录
+  不解析数据体即可核对。
