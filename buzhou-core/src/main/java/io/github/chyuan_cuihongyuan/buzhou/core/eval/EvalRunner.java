@@ -39,6 +39,8 @@ public final class EvalRunner {
 
     /** run 前数据集期望门禁（spec 150 §A / T503，Great Expectations 借鉴；null = 无门禁零变化）。 */
     private volatile DatasetExpectations expectations;
+    /** spec 198 §A / T561：宽松档（未过只 WARN 不拦）。 */
+    private volatile boolean expectationsWarnOnly;
 
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
@@ -50,6 +52,14 @@ public final class EvalRunner {
     /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
     public void setExpectations(DatasetExpectations expectations) {
         this.expectations = expectations;
+        this.expectationsWarnOnly = false;
+    }
+
+    /** 宽松档（spec 198 §A / T561：未过只 WARN 不拦——灰度期「看到脏但照跑」，
+     * 门禁日志仍带 summary + 前三条发现）。 */
+    public void setExpectations(DatasetExpectations expectations, boolean warnOnly) {
+        this.expectations = expectations;
+        this.expectationsWarnOnly = warnOnly;
     }
 
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
@@ -75,8 +85,16 @@ public final class EvalRunner {
                 gate.findings().stream().limit(3)
                         .forEach(f -> detail.append("\n  - ").append(f.expectation())
                                 .append(" #").append(f.itemIndex()).append(" ").append(f.detail()));
-                throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
-                        "数据集期望门禁未过（dataset=" + datasetName + "）：" + detail);
+                if (expectationsWarnOnly) {
+                    // spec 198 / T561：宽松档——WARN 带 full detail 但不拦（灰度期照跑）
+                    System.getLogger(EvalRunner.class.getName()).log(
+                            System.Logger.Level.WARNING,
+                            "数据集期望未过（warn-only，照跑。dataset={0}）：{1}",
+                            datasetName, detail);
+                } else {
+                    throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
+                            "数据集期望门禁未过（dataset=" + datasetName + "）：" + detail);
+                }
             }
         }
         String runId = "r" + System.currentTimeMillis() + "-"

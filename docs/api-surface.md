@@ -1486,3 +1486,10 @@
   工具侧」看板）+ `TurnHeartbeat.stalledSince`（单会话停滞时长查询——
   超阈 Duration/未超未注册 null，与批量 stalled 互补）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #143 新增公共面（spec 198 / impl-310，@since 1.0.0）
+
+- `EvalRunner.setExpectations(suite, warnOnly)`（门禁宽松档：未过 WARN 带
+  full detail 照跑——灰度期「看到脏但照跑」；单参严格档零变化，
+  spec 150 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
