@@ -1293,3 +1293,10 @@
   候选制检测 quiet 降序最长停滞优先 + stalled-detected 计数——「活着但不动」
   卡死面可见，Temporal Activity heartbeat 借鉴）
 - 类型级快照：+1（+Stalled record）；yml 键：**零新增**
+
+## effort #115 新增公共面（spec 140 / impl-282，@since 1.0.0）
+
+- `skill/SkillUsageStats`（技能使用统计：LoadSkillTool 成功打点 + topUsed
+  排行稳定排序 + unused 零使用清单治理证据面 + reset 窗口清零 + 1024 封顶折
+  __overflow__——Backstage catalog score 借鉴）
+- 类型级快照：+1（buzhou-skills + SkillUsage record）；yml 键：**零新增**
