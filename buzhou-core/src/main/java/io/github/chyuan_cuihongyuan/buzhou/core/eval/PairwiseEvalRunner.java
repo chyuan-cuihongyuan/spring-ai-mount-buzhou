@@ -197,6 +197,20 @@ public final class PairwiseEvalRunner {
         return out;
     }
 
+    /**
+     * spec 114 §A / T409：按数据集<b>内容版本</b>查 A/B run（spec 113 的 AB 面
+     * 同构）：同指纹的历史对比一查即得——B 换版验收的「同基线版本对比集」底座。
+     */
+    public static List<AbRunSummary> abRunsOfVersion(SessionStateStore stateStore,
+            String fingerprint) {
+        if (fingerprint == null || fingerprint.isBlank()) {
+            return List.of();
+        }
+        return abRuns(stateStore, null).stream()
+                .filter(s -> fingerprint.equals(s.datasetFingerprint()))
+                .toList();
+    }
+
     private static int num(Map<?, ?> map, String key) {
         return map.get(key) instanceof Number n ? n.intValue() : 0;
     }

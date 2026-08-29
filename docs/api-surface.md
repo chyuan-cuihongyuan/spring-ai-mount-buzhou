@@ -1174,3 +1174,9 @@
   + `EvalRunSummary.datasetFingerprint` 列（8 参旧构造兼容）——spec 82/100 组合
   收口：snapshotDataset → runsOfVersion → EvalRunDiff 版本回归全链路）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #76 新增公共面（spec 114 / impl-261，@since 1.0.0）
+
+- `PairwiseEvalRunner.abRunsOfVersion(store, fingerprint)`（AB run 按数据集内容
+  版本聚合查询——spec 113 的 AB 面同构；同基线版本对比集零胶水）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

@@ -131,6 +131,30 @@ class PairwiseEvalRunnerTest {
     }
 
     /** spec 74 §B / T300：run 落盘 + 查询（dataset 过滤 / startedAt 倒序）；不落盘构造零变化。 */
+    /** spec 114 §B / T410：AB 面按版本查——同指纹聚合；演化分流；空诚实。 */
+    @Test
+    void abRunsOfVersionAggregatesSameFingerprint() {
+        BuzhouStores stores = Buzhou.inMemoryStores();
+        EvalDatasetStore ds = new EvalDatasetStore(stores.sessionStateStore());
+        ds.createDataset("abv", null);
+        ds.addItem("abv", "q1", "e1", null, null);
+        AgentRuntime runtimeA = Buzhou.runtime(new EchoModel("gold-"), stores, RuntimeConfig.defaults());
+        AgentRuntime runtimeB = Buzhou.runtime(new EchoModel("plain-"), stores, RuntimeConfig.defaults());
+        PairwiseEvalRunner runner = new PairwiseEvalRunner(ds,
+                new PairwiseJudge(new GoldContentJudge()), stores.sessionStateStore());
+
+        String v1 = ds.fingerprint("abv").orElseThrow();
+        var first = runner.compare("abv", runtimeA, runtimeB, 1);
+        ds.addItem("abv", "q2", "e2", null, null); // 演化 → v2
+        runner.compare("abv", runtimeA, runtimeB, 1);
+
+        var v1Runs = PairwiseEvalRunner.abRunsOfVersion(stores.sessionStateStore(), v1);
+        assertThat(v1Runs).hasSize(1);
+        assertThat(v1Runs.getFirst().runId()).isEqualTo(first.runId());
+        assertThat(PairwiseEvalRunner.abRunsOfVersion(stores.sessionStateStore(), null))
+                .isEmpty();
+    }
+
     /** spec 93 §B / T352：A/B run 指纹——入档/回读等值，旧记录不误报。 */
     @Test
     void abRunCarriesDatasetFingerprint() {
