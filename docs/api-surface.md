@@ -1160,3 +1160,10 @@
   （完成点计时复用既有时间值——数据集规模感知的时长回归信号；LangSmith run
   latency 借鉴）
 - 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #74 新增公共面（spec 112 / impl-259，@since 1.0.0）
+
+- `ErrorSignaturesJsonl.export(registry, Writer)`（错误签名 OLAP JSONL 导出：
+  snapshot 全量一行一 JSON count 降序——错误族趋势进数仓量化治理效果；
+  spec 83 fog 收口，导出五族补齐）
+- 类型级快照：+1；yml 键：**零新增**
