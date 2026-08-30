@@ -4,6 +4,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException;
 import io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SummaryStore;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -97,6 +98,10 @@ public class JdbcSummaryStore implements SummaryStore {
                         () -> saveWithNextVersion(sessionId, summary));
             } catch (DuplicateKeyException e) {
                 // 并发窗口撞唯一索引 idx_summary_session_version——重取新版本号重试
+            } catch (CannotAcquireLockException e) {
+                // 悲观轨空会话首插窗口：双方 FOR UPDATE 间隙锁彼此兼容，先后 INSERT 互等
+                // 成死锁（MySQL ER_LOCK_DEADLOCK 回滚一方）/锁等待超时——均为瞬时态，
+                // 重试重读必见幸存者已提交行，与撞键同轨收敛
             }
         }
         throw new BuzhouException(ErrorCode.STORE_WRITE_FAILED,
