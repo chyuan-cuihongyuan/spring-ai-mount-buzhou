@@ -286,13 +286,17 @@ public final class SchemaMigrator {
     }
 
     private boolean businessTableExists(Connection connection) throws SQLException {
-        DatabaseMetaData metaData = connection.getMetaData();
-        // H2 默认将未加引号标识符存为大写、PG/MySQL 存为小写，两种形态都探测
-        return tableExists(metaData, BASELINE_ANCHOR_TABLE) || tableExists(metaData, BASELINE_ANCHOR_TABLE.toUpperCase());
+        // 探测必须限定当前库：getTables(catalog=null) 会扫到同实例其他库的同名表——
+        // 高权限连接（root/跨库授权用户）下空库会被误判为存量库而误走基线，
+        // V1 建表被跳过后 V2 增量脚本对不存在的表执行必炸
+        return tableExists(connection, BASELINE_ANCHOR_TABLE)
+                || tableExists(connection, BASELINE_ANCHOR_TABLE.toUpperCase());
     }
 
-    private boolean tableExists(DatabaseMetaData metaData, String tableName) throws SQLException {
-        try (ResultSet tables = metaData.getTables(null, null, tableName, new String[] {"TABLE"})) {
+    private boolean tableExists(Connection connection, String tableName) throws SQLException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        try (ResultSet tables = metaData.getTables(connection.getCatalog(), null,
+                tableName, new String[] {"TABLE"})) {
             return tables.next();
         }
     }
