@@ -30,7 +30,11 @@ class MySqlSchemaMigrationTest {
     private static final String LEGACY_DATABASE = "buzhou_legacy_upgrade";
 
     @Container
-    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
+    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
+            // TC 2.0 起普通测试用户仅对默认库有权限，另建 legacy 库须 root（TC 对 root 模式
+            // 设 MYSQL_ROOT_PASSWORD=getPassword()；官方镜像 root 默认仅 localhost，须放开远程）
+            .withUsername("root")
+            .withEnv("MYSQL_ROOT_HOST", "%");
 
     private static DataSource dataSource(String database) {
         SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
@@ -63,7 +67,7 @@ class MySqlSchemaMigrationTest {
         assertThatCode(() -> SchemaMigrator.migrate(dataSource, Dialect.MYSQL))
                 .doesNotThrowAnyException();
 
-        assertThat(appliedVersions(dataSource)).containsExactly(1, 2);
+        assertThat(appliedVersions(dataSource)).containsExactly(1, 2, 3);
         assertThat(new JdbcTemplate(dataSource).queryForObject(
                 "SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS"
                         + " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'buzhou_message'",
@@ -78,8 +82,8 @@ class MySqlSchemaMigrationTest {
 
         int version = SchemaMigrator.migrate(legacy, Dialect.MYSQL);
 
-        assertThat(version).isEqualTo(2);
-        assertThat(appliedVersions(legacy)).containsExactly(1, 2);
+        assertThat(version).isEqualTo(3);
+        assertThat(appliedVersions(legacy)).containsExactly(1, 2, 3);
         JdbcTemplate jdbc = new JdbcTemplate(legacy);
         // V1 行为基线采纳（不重跑建表脚本），V2 行为真实补列——旧数据保留
         assertThat(jdbc.queryForObject(

@@ -45,7 +45,7 @@ class PostgreSqlSchemaMigrationConcurrentTest {
                     pool.submit(() -> SchemaMigrator.migrate(dataSource, Dialect.POSTGRESQL)));
             for (Future<Integer> result : results) {
                 assertThat(result.get(CONCURRENT_MIGRATION_TIMEOUT_SECONDS, TimeUnit.SECONDS))
-                        .isEqualTo(2);
+                        .isEqualTo(3);
             }
         } finally {
             pool.shutdownNow();
@@ -54,6 +54,6 @@ class PostgreSqlSchemaMigrationConcurrentTest {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         assertThat(jdbc.queryForList(
                 "SELECT version FROM buzhou_schema_version ORDER BY version", Integer.class))
-                .containsExactly(1, 2);
+                .containsExactly(1, 2, 3);
     }
 }
