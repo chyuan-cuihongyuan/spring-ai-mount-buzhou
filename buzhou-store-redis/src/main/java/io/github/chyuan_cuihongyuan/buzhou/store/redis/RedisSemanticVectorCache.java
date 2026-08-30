@@ -37,8 +37,9 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
     private record Entry(float[] emb, String payload, long expireAtMillis, long seq) {
     }
 
-    private final StatefulRedisConnection<String, String> connection;
-    private final RedisCommands<String, String> commands;
+    /** 惰性建连源（公开构造注入 client 时非 null；注入现成连接的构造路径为 null）。 */
+    private final RedisClient client;
+    private volatile StatefulRedisConnection<String, String> connection;
     private final String keyPrefix;
     private final int maxEntriesPerBucket;
     private final double threshold;
@@ -52,11 +53,9 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
      */
     public RedisSemanticVectorCache(RedisClient client, String keyPrefix,
                                     int maxEntriesPerBucket, double threshold) {
-        this(client.connect(), keyPrefix, maxEntriesPerBucket, threshold);
-    }
-
-    RedisSemanticVectorCache(StatefulRedisConnection<String, String> connection, String keyPrefix,
-                             int maxEntriesPerBucket, double threshold) {
+        // 惰性建连：后端不可达不在构造器炸——fail-open 旁路语义由操作层 catch 统一表达
+        this.client = client;
+        this.connection = null;
         if (maxEntriesPerBucket < 1) {
             throw new IllegalArgumentException(
                     "maxEntriesPerBucket 必须 >= 1（当前 " + maxEntriesPerBucket + "）");
@@ -64,11 +63,39 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
         if (!(threshold > 0.0 && threshold <= 1.0)) {
             throw new IllegalArgumentException("threshold 必须在 (0,1]（当前 " + threshold + "）");
         }
-        this.connection = connection;
-        this.commands = connection.sync();
         this.keyPrefix = keyPrefix == null || keyPrefix.isBlank() ? "buzhou:semvec:" : keyPrefix;
         this.maxEntriesPerBucket = maxEntriesPerBucket;
         this.threshold = threshold;
+    }
+
+    RedisSemanticVectorCache(StatefulRedisConnection<String, String> connection, String keyPrefix,
+                             int maxEntriesPerBucket, double threshold) {
+        this.client = null;
+        this.connection = connection;
+        if (maxEntriesPerBucket < 1) {
+            throw new IllegalArgumentException(
+                    "maxEntriesPerBucket 必须 >= 1（当前 " + maxEntriesPerBucket + "）");
+        }
+        if (!(threshold > 0.0 && threshold <= 1.0)) {
+            throw new IllegalArgumentException("threshold 必须在 (0,1]（当前 " + threshold + "）");
+        }
+        this.keyPrefix = keyPrefix == null || keyPrefix.isBlank() ? "buzhou:semvec:" : keyPrefix;
+        this.maxEntriesPerBucket = maxEntriesPerBucket;
+        this.threshold = threshold;
+    }
+
+    /** 首次使用才建连（已建则复用；sync() 为廉价缓存桩）；建连失败按操作层旁路语义处理。 */
+    private RedisCommands<String, String> commands() {
+        StatefulRedisConnection<String, String> conn = connection;
+        if (conn == null) {
+            synchronized (this) {
+                if (connection == null) {
+                    connection = client.connect();
+                }
+                conn = connection;
+            }
+        }
+        return conn.sync();
     }
 
     /**
@@ -82,7 +109,7 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
         }
         String key = bucketKey(bucket);
         try {
-            Map<String, String> all = commands.hgetall(key);
+            Map<String, String> all = commands().hgetall(key);
             long now = System.currentTimeMillis();
             // 惰性清过期 + 找最低 seq
             long minSeq = Long.MAX_VALUE;
@@ -90,7 +117,7 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
             for (Map.Entry<String, String> e : all.entrySet()) {
                 Entry entry = decode(e.getValue());
                 if (entry == null || entry.expireAtMillis() <= now) {
-                    commands.hdel(key, e.getKey());
+                    commands().hdel(key, e.getKey());
                     continue;
                 }
                 if (entry.seq() < minSeq) {
@@ -99,14 +126,14 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
                 }
             }
             if (all.size() >= maxEntriesPerBucket && minField != null) {
-                commands.hdel(key, minField);
+                commands().hdel(key, minField);
             }
             Entry fresh = new Entry(embedding.clone(),
                     payload == null ? "" : payload,
                     now + ttl.toMillis(),
                     nextSeq());
-            commands.hset(key, entryId, RedisJson.write(fresh));
-            commands.expire(key, Math.max(1, ttl.toSeconds()));
+            commands().hset(key, entryId, RedisJson.write(fresh));
+            commands().expire(key, Math.max(1, ttl.toSeconds()));
         } catch (RuntimeException e) {
             BuzhouMetricsHolder.metrics().counter("buzhou.semantic.redis.bypass", 1);
         }
@@ -123,7 +150,7 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
         }
         String key = bucketKey(bucket);
         try {
-            Map<String, String> all = commands.hgetall(key);
+            Map<String, String> all = commands().hgetall(key);
             long now = System.currentTimeMillis();
             String bestField = null;
             Entry best = null;
@@ -134,7 +161,7 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
                     continue;
                 }
                 if (entry.expireAtMillis() <= now) {
-                    commands.hdel(key, e.getKey());
+                    commands().hdel(key, e.getKey());
                     continue;
                 }
                 double sim = cosine(queryEmbedding, entry.emb());
@@ -159,7 +186,7 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
     /** 桶内条目数（诊断用；后端不可达 = -1）。 */
     public long size(String bucket) {
         try {
-            return commands.hlen(bucketKey(bucket));
+            return commands().hlen(bucketKey(bucket));
         } catch (RuntimeException e) {
             return -1;
         }
@@ -167,7 +194,10 @@ public final class RedisSemanticVectorCache implements AutoCloseable {
 
     /** 连接生命周期出口（宿主显式关闭；client.shutdown() 亦可覆盖）。 */
     public void close() {
-        connection.close();
+        StatefulRedisConnection<String, String> conn = connection;
+        if (conn != null) {
+            conn.close();
+        }
     }
 
     private String bucketKey(String bucket) {

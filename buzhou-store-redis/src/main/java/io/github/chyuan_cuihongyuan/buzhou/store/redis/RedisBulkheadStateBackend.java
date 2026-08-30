@@ -19,8 +19,9 @@ import java.util.Map;
  */
 public final class RedisBulkheadStateBackend implements BulkheadStateBackend, AutoCloseable {
 
-    private final StatefulRedisConnection<String, String> connection;
-    private final RedisCommands<String, String> commands;
+    /** 惰性建连源（公开构造注入 client 时非 null；注入现成连接的构造路径为 null）。 */
+    private final RedisClient client;
+    private volatile StatefulRedisConnection<String, String> connection;
     private final String key;
 
     /**
@@ -28,19 +29,42 @@ public final class RedisBulkheadStateBackend implements BulkheadStateBackend, Au
      * @param keyPrefix 键前缀（空则 {@code buzhou:}；键 = prefix + {@code bulkheart}）
      */
     public RedisBulkheadStateBackend(RedisClient client, String keyPrefix) {
-        this(client.connect(), keyPrefix);
+        // 惰性建连：后端不可达不在构造器炸——降级空快照语义由操作层 catch 统一表达
+        this.client = client;
+        this.connection = null;
+        this.key = prefixOf(keyPrefix) + "bulkheart";
     }
 
     RedisBulkheadStateBackend(StatefulRedisConnection<String, String> connection, String keyPrefix) {
+        this.client = null;
         this.connection = connection;
-        this.commands = connection.sync();
-        String prefix = keyPrefix == null || keyPrefix.isBlank() ? "buzhou:" : keyPrefix;
-        this.key = prefix + "bulkheart";
+        this.key = prefixOf(keyPrefix) + "bulkheart";
+    }
+
+    private static String prefixOf(String keyPrefix) {
+        return keyPrefix == null || keyPrefix.isBlank() ? "buzhou:" : keyPrefix;
+    }
+
+    /** 首次使用才建连（已建则复用；sync() 为廉价缓存桩）；建连失败按操作层降级语义处理。 */
+    private RedisCommands<String, String> commands() {
+        StatefulRedisConnection<String, String> conn = connection;
+        if (conn == null) {
+            synchronized (this) {
+                if (connection == null) {
+                    connection = client.connect();
+                }
+                conn = connection;
+            }
+        }
+        return conn.sync();
     }
 
     /** 连接生命周期出口（宿主显式关闭；client.shutdown() 亦可覆盖）。 */
     public void close() {
-        connection.close();
+        StatefulRedisConnection<String, String> conn = connection;
+        if (conn != null) {
+            conn.close();
+        }
     }
 
     @Override
@@ -60,10 +84,10 @@ public final class RedisBulkheadStateBackend implements BulkheadStateBackend, Au
                     "limit", occupancy.limit(),
                     "at", occupancy.at().toEpochMilli(),
                     "expireAt", expireAt);
-            commands.hset(key, occupancy.agentName() + "|" + occupancy.instanceId(),
+            commands().hset(key, occupancy.agentName() + "|" + occupancy.instanceId(),
                     RedisJson.write(value));
             // 键 TTL 兜底：最迟一个心跳窗后整键回收（无实例也回收）
-            commands.expire(key, Math.max(1, ttl.toSeconds() * 2));
+            commands().expire(key, Math.max(1, ttl.toSeconds() * 2));
         } catch (RuntimeException e) {
             warnDegraded("heartbeat", e);
         }
@@ -87,7 +111,7 @@ public final class RedisBulkheadStateBackend implements BulkheadStateBackend, Au
     /** 一次 HGETALL 聚合：mode=true 求占用和 / false 求实例数（过期条目惰性剔除）。 */
     private Map<String, Integer> aggregate(boolean sumOccupancy) {
         try {
-            Map<String, String> all = commands.hgetall(key);
+            Map<String, String> all = commands().hgetall(key);
             long now = System.currentTimeMillis();
             Map<String, Integer> out = new HashMap<>();
             for (Map.Entry<String, String> e : all.entrySet()) {
@@ -96,7 +120,7 @@ public final class RedisBulkheadStateBackend implements BulkheadStateBackend, Au
                     continue;
                 }
                 if (((Number) value.getOrDefault("expireAt", 0L)).longValue() <= now) {
-                    commands.hdel(key, e.getKey());
+                    commands().hdel(key, e.getKey());
                     continue;
                 }
                 String agent = e.getKey().substring(0, e.getKey().indexOf('|'));
