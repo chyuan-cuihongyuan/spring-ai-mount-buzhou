@@ -29,11 +29,12 @@ public final class RedisRateLimitBackend implements RateLimitBackend, AutoClosea
     /** 窗口键 TTL（61s = 分钟窗 + 1s 覆盖时差）。 */
     private static final long WINDOW_TTL_SECONDS = 61;
 
-    private final StatefulRedisConnection<String, String> connection;
+    /** 惰性建连源（公开构造注入 client 时非 null；注入现成连接的构造路径为 null）。 */
+    private final RedisClient client;
+    private volatile StatefulRedisConnection<String, String> connection;
     private final String keyPrefix;
     private final double rpmCapacity;
     private final double tpmCapacity;
-    private final RedisCommands<String, String> commands;
 
     /**
      * @param client    Lettuce 客户端（本类独占派生连接；调用方拥有 client 生命周期，
@@ -43,21 +44,44 @@ public final class RedisRateLimitBackend implements RateLimitBackend, AutoClosea
      * @param tpm       TPM 容量（null/≤0 = 维度关闭）
      */
     public RedisRateLimitBackend(RedisClient client, String keyPrefix, Integer rpm, Integer tpm) {
-        this(client.connect(), keyPrefix, rpm, tpm);
+        // 惰性建连：后端不可达不在构造器炸（死库下构造 + 首操作才见故障是共享 Redis
+        // 冷启动的真实形态），fail-fast 语义由操作层 catch 统一表达
+        this.client = client;
+        this.connection = null;
+        this.keyPrefix = keyPrefix == null || keyPrefix.isBlank() ? "buzhou:rl:" : keyPrefix;
+        this.rpmCapacity = rpm != null && rpm > 0 ? rpm : 0;
+        this.tpmCapacity = tpm != null && tpm > 0 ? tpm : 0;
     }
 
     RedisRateLimitBackend(StatefulRedisConnection<String, String> connection, String keyPrefix,
             Integer rpm, Integer tpm) {
+        this.client = null;
         this.connection = connection;
         this.keyPrefix = keyPrefix == null || keyPrefix.isBlank() ? "buzhou:rl:" : keyPrefix;
         this.rpmCapacity = rpm != null && rpm > 0 ? rpm : 0;
         this.tpmCapacity = tpm != null && tpm > 0 ? tpm : 0;
-        this.commands = connection.sync();
+    }
+
+    /** 首次使用才建连（已建则复用；sync() 为廉价缓存桩）；建连失败按操作层故障语义处理。 */
+    private RedisCommands<String, String> commands() {
+        StatefulRedisConnection<String, String> conn = connection;
+        if (conn == null) {
+            synchronized (this) {
+                if (connection == null) {
+                    connection = client.connect();
+                }
+                conn = connection;
+            }
+        }
+        return conn.sync();
     }
 
     /** 连接生命周期出口（宿主显式关闭；client.shutdown() 亦可覆盖）。 */
     public void close() {
-        connection.close();
+        StatefulRedisConnection<String, String> conn = connection;
+        if (conn != null) {
+            conn.close();
+        }
     }
 
     @Override
@@ -71,13 +95,13 @@ public final class RedisRateLimitBackend implements RateLimitBackend, AutoClosea
             if (amount <= 0) {
                 return available(modelName, dimension) > 0;
             }
-            long newCount = commands.incrby(key, (long) Math.ceil(amount));
+            long newCount = commands().incrby(key, (long) Math.ceil(amount));
             if (newCount <= (long) Math.ceil(cap)) {
                 touchTtl(key, newCount, amount);
                 return true;
             }
             // 超限回滚（固定窗 INCR-then-rollback 模式；竞争窗口内瞬时偏差诚实入档）
-            commands.decrby(key, (long) Math.ceil(amount));
+            commands().decrby(key, (long) Math.ceil(amount));
             return false;
         } catch (RuntimeException e) {
             throw redisFailure(e);
@@ -92,7 +116,7 @@ public final class RedisRateLimitBackend implements RateLimitBackend, AutoClosea
         }
         String key = windowKey(modelName, dimension);
         try {
-            long newCount = commands.incrby(key, (long) Math.ceil(amount));
+            long newCount = commands().incrby(key, (long) Math.ceil(amount));
             touchTtl(key, newCount, amount);
         } catch (RuntimeException e) {
             throw redisFailure(e);
@@ -106,7 +130,7 @@ public final class RedisRateLimitBackend implements RateLimitBackend, AutoClosea
             return 0;
         }
         try {
-            String raw = commands.get(windowKey(modelName, dimension));
+            String raw = commands().get(windowKey(modelName, dimension));
             long count = raw == null ? 0 : Long.parseLong(raw);
             return Math.max(0, cap - count);
         } catch (RuntimeException e) {
@@ -148,7 +172,7 @@ public final class RedisRateLimitBackend implements RateLimitBackend, AutoClosea
     private void touchTtl(String key, long newCount, double amount) {
         if (Math.ceil(amount) >= newCount) {
             // 首写（newCount == amount）：设窗口 TTL
-            commands.expire(key, WINDOW_TTL_SECONDS);
+            commands().expire(key, WINDOW_TTL_SECONDS);
         }
     }
 
