@@ -1,6 +1,6 @@
 # 12 对标开源最优·做完美：core / memory / spill / guard Tier-2/3 落地 Spec
 
-> 本 Spec 由 wayfinder2 图（[MAP](../../.wayfinder2/MAP.md) + [T29–T54](../../.wayfinder2/README.md)）综合而成，事实源 = [docs/research/oss-perfect-tier23.md](../research/oss-perfect-tier23.md)（[T28](../../.wayfinder2/tickets/T28-oss-perfect-tier23-verification.md)，4 并行 research 子 agent 2026-08-14 核验）。遵守仓库铁律 **「改机制先改 Spec」**：落地时须同步修订 [01 记忆压缩](01-memory-compaction.md) / [02 Spill](02-spill.md) / [05 并行工具](05-parallel-tools.md) / [07 Hook 护栏](07-hooks.md) 对应章节，恢复与审计类新增能力落位后可在 `docs/spec/` 增篇或并入最贴近机制篇。领域术语以根目录 `CONTEXT.md` 为准。
+> 本 Spec 由 effort #2 图（[MAP](../../.wayfinder/maps/effort-02.md) + [T29–T54](../../.wayfinder/tickets/)）综合而成，事实源 = [docs/research/oss-perfect-tier23.md](../research/oss-perfect-tier23.md)（[T28](../../.wayfinder/tickets/T28-oss-perfect-tier23-verification.md)，4 并行 research 子 agent 2026-08-14 核验）。遵守仓库铁律 **「改机制先改 Spec」**：落地时须同步修订 [01 记忆压缩](01-memory-compaction.md) / [02 Spill](02-spill.md) / [05 并行工具](05-parallel-tools.md) / [07 Hook 护栏](07-hooks.md) 对应章节，恢复与审计类新增能力落位后可在 `docs/spec/` 增篇或并入最贴近机制篇。领域术语以根目录 `CONTEXT.md` 为准。
 > **用户常设授权（2026-08-14）**：全程不需询问意见、按研究推荐迭代（可推翻）。
 
 ## Problem Statement
@@ -153,7 +153,7 @@ Tier-1（docs/spec/11）已把四机制抬到「对标开源最优」，但横�
 ## Further Notes
 
 - **事实来源**：`docs/research/oss-perfect-tier23.md`（T28，star 数为 2026-08-14 GitHub API 精确值）；相对第一轮研究的 8 项关键修正已吸收（superstep 语义、Codex 头尾各半、poll_token 非标准、OPA 无 JVM 内嵌、org 迁移、Letta 唯一性检查、Spring AI 不达标、graphiti/E2B/promptfoo 达标）。
-- **决策票据**：wayfinder2 [T29–T54](../../.wayfinder2/MAP.md) 随本 Spec 批准而闭合（用户常设授权 ratify、可推翻）；执行切片 = `/to-tickets` → `.wayfinder2/impl/`。
+- **决策票据**：effort #2 [T29–T54](../../.wayfinder/maps/effort-02.md) 随本 Spec 批准而闭合（用户常设授权 ratify、可推翻）；执行切片 = `/to-tickets` → `.wayfinder/impl/`。
 - **Spec 同步义务**：落地时同步修订 `01-memory-compaction.md`（evictRatio/整理器/自愈工具/检查点/保真 eval/三模搜/episodic）、`02-spill.md`（窗口风味/clearing/hash 校验/语义回读/AST 切片）、`05-parallel-tools.md`(校验重试/CancelMode/批提交/interrupt/fork)、`07-hooks.md`（taint/policy/审计链/分类器/沙箱）；恢复链（Run 注册表/事件溯源）可增篇或并入 05。
 - **测试接缝确认**：沿用 spec 11 判定（examples 端到端主接缝 + 既有模块单测次接缝），新增 FakeChatModel 为基建——用户常设授权下免问询采纳（可推翻）。
 - **语言与许可**：文档与注释主语言中文；坐标 `io.github.chyuan-cuihongyuan:buzhou-*`，Apache-2.0。
@@ -161,7 +161,7 @@ Tier-1（docs/spec/11）已把四机制抬到「对标开源最优」，但横�
 
 ## 落地记录（2026-08-14）
 
-**27/27 实现纵切片全部落地**（wayfinder2 impl-01..27；`.wayfinder2/impl/README.md` 索引含逐片状态）。本地 `mvn -B -ntp clean verify` **16 模块 BUILD SUCCESS**（576 tests / 0 failures / 0 errors / 30 skipped——skip 为 MySQL/PG/Redis 门控与既有 gated 用例）。
+**27/27 实现纵切片全部落地**（effort #2 impl-01..27；`.wayfinder/impl/README.md` 索引含逐片状态）。本地 `mvn -B -ntp clean verify` **16 模块 BUILD SUCCESS**（576 tests / 0 failures / 0 errors / 30 skipped——skip 为 MySQL/PG/Redis 门控与既有 gated 用例）。
 
 - **core**：FakeChatModel+record/replay 测试基建（01）；参数 schema 校验+retryBudget/REASK_FAILED（04）；CancelMode 三档+取消令牌（05）；Run 注册表+lease 门（06）+事件溯源 ToolCallLog exactly-once 回放（07）；interrupt/resume 按 toolCallId 注入式恢复（08）；SessionForks 检查点分叉（09）；BatchFeedbackPolicy 批提交语义（10）。
 - **memory**：sleep-time 后台整理（11）；revise_summary_section 自愈+防投毒（12）；压缩前检查点三档回滚（13，按 Turn 对齐修复多次 get 撕裂）；保真 eval 确定性 judge（14）；recall_search 四模模糊召回（15，消息台账单源+provider 降级）；EpisodeLedger episodic few-shot（26）。

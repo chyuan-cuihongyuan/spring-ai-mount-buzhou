@@ -1,6 +1,6 @@
 # 「做完美」第二轮 best-of-breed 核验（Tier-2/3）
 
-> **来源**：wayfinder2 研究票 [T28](../../.wayfinder2/tickets/T28-oss-perfect-tier23-verification.md)，4 个并行 research 子 agent（core / memory / spill / guard）web + GitHub API 核验，2026-08-14。
+> **来源**：effort #2 研究票 [T28](../../.wayfinder/tickets/T28-oss-perfect-tier23-verification.md)，4 个并行 research 子 agent（core / memory / spill / guard）web + GitHub API 核验，2026-08-14。
 > **用途**：spec 12 的事实源；把第一轮 [oss-best-of-breed.md](oss-best-of-breed.md) 的 Tier-2/3 backlog 按 **「stars ≥ 10K 开源项目」硬门槛**重新核验并深挖实现细节。
 > **口径**：采纳事实源只认 GitHub stars ≥ 10K 的 OSS 项目；非 OSS 标准/论文（MSRC FIDES、IETF AAT、Anthropic 文档、Claude Code 文档镜像）只作辅助注记。star 数为 GitHub REST API 当日精确值。
 > **上游**：第一轮 Tier-1 已全部落地（docs/spec/11，wayfinder T16–T27 闭合）；本轮对象 = Tier-2 全量 + Tier-3 精选。

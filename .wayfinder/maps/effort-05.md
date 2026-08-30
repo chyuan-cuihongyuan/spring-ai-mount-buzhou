@@ -1,0 +1,76 @@
+# Wayfinder Map — Buzhou 生产级纵深（effort #5）
+
+> effort #5，延续 [effort #1](effort-01.md)（#1）、[effort #2](effort-02.md)（#2）、[effort #3](effort-03.md)（#3：core/memory/spill/guard，impl 28–43）、[effort #4](effort-04.md)（#4：外围六模块收口 + 基建，impl 44–55）。
+
+## Destination
+
+把 effort #4 终验后仍开放的生产级缺口**全部闭合**：韧性与成本纵深（模型熔断、备模型降级链、token/成本预算、per-session 配额）、run_command↔CommandSandbox 合流、MCP 工具集漂移检测、结构化输出、会话 fork、事件外发 webhook、四模块配置正规化、供应链（SBOM/依赖扫描）、性能基准、红队数值化、质量门卡线、运维 runbook 与 API 稳定性审计。到达 = 20+ 轮「wayfinder→to-spec→to-tickets→implement」自迭代全部落地、全仓 verify 绿、硬门与文档齐备、知识库同步收口。
+
+## Notes
+
+- **领域**：Spring AI 2.0.0 之上的单 Agent 运行时 Harness（JDK 21 / Spring Boot 4.1 / 虚拟线程）。术语见 `CONTEXT.md`，机制详设见 `docs/spec/`。
+- **用户常设授权（2026-08-15）**：全程「不需询问、全部自决、按推荐迭代」——决策票以 AFK 方式闭合（Resolution 注明可推翻）；to-spec 的 seam 确认与 to-tickets 的 breakdown quiz 同样按推荐自决；20–25 轮完整流程自迭代。
+- **10K★ 政策**：借鉴对象只认 ≥10K★ OSS（LangChain/LangGraph ~100K★、OpenHands ~50K★、AutoGen ~40K★、Dify ~100K★、CrewAI ~30K★、aider ~30K★、Spring AI 生态本身等）；**语义借鉴优先、不轻易引新依赖**；不达标依赖不得进 runtime classpath（构建/测试插件单独注记）。事实源：2026-08-15 本地全仓勘察（Top10 硬缺口清单见 [T81](../tickets/T81-circuit-breaker.md) 前置勘察记录）+ 既往 [docs/research/](../../docs/research/) 四份。
+- **测试哲学不变**：好测试只测外部行为；主接缝 = examples 端到端（FakeChatModel/ScriptedChatModel 驱动）；store 契约测试沿用 `AbstractBuzhouStoresContractTest`；测试不得 import 他模块 `internal` 包。
+- **每轮流程**：解 1 张决策票 → /to-spec 增量（spec 15 扩展 + 新 16–23 号 spec）→ /to-tickets 切片 → /implement → 模块级测试 → emoji 规范 commit；里程碑（第 11、22 轮）全仓 `mvn clean verify`。
+- **tracker 约定**：见 [README.md](readme-effort-05.md)；票号 T81 起全局续用；impl 切片 56 起续用。
+
+## Decisions so far
+
+- [模型熔断器](../tickets/T81-circuit-breaker.md) — 手写 CB（不引 resilience4j）：三态结果计数口径（FAILURE=NETWORK/SERVER/TIMEOUT，RATE_LIMIT/CONTENT/AUTH/UNKNOWN IGNORED）、计数窗口失败率跳闸、冷却后半开单探测、进程级注册表按 modelName 分桶、open 时 fail-fast 异常直上 onModelError、circuit.* 配置默认开 + fail-fast 校验。
+- [备模型降级链](../tickets/T82-fallback-model-chain.md) — 降级发生在 ResilienceAdvisor 逻辑调用内部（外层 advisor 不可见）；fallback.models bean 名列表（Spring 按名解析 fail-fast / 编程式 NamedFallbackModel）；触发=终态失败 category（默认 NETWORK/SERVER/TIMEOUT/AUTH）+ 主模型熔断 OPEN 恒触发；无粘性（每调用先主后备，OPEN 时零成本直达备模型）；备模型各一次尝试、独立熔断记账；全败上抛主因；M1 流式不降级。
+- [Token/成本预算](../tickets/T83-token-cost-budget.md) — core 新 budget 包 TokenBudgetHook（order 1100）：afterModel 从 usage 累计会话 token/成本进 SessionStateStore（micro-USD long 无浮点）；价目 buzhou.token-budget.pricing.<model>.*（无价=零成本）；硬顶 max-session-prompt/total-tokens/cost-usd（cost 上限无价目 fail-fast），beforeModel 超限 block + 双写事件；safe-by-default null=不限。
+- [per-session 配额](../tickets/T84-session-quota.md) — 限流器修正为进程级（configure() 创建）；SessionQuotaHook（order 1150）三维度/UTC 日窗：turns/tool-calls/tokens-per-day，单键 `epochDay:count` 读时重置（免清理），超配额 Block + quota.exceeded 事件；tokens 不复用 T83 键（生命周期累计≠日窗）；分布式配额 out-of-scope。
+- [沙箱合流](../tickets/T85-sandbox-convergence.md) — core 新 SPI `CommandBackend`（自含 CommandOutcome record）；RunCommandTool 可选委托（前置校验留 tools、执行走沙箱，无委托回退 ProcessBuilder）；guard `SandboxCommandBackend` 桥接（@ConditionalOnBean(CommandSandbox)，档位选择归应用）；`buzhou.tools.command.backend=builtin|sandbox`（默认 builtin，sandbox 缺实现 fail-fast，沙箱不可用不静默回退）。
+- [MCP 漂移检测](../tickets/T86-mcp-drift.md) — SDK 2.0.0 toolsChangeConsumer 协议订阅（无轮询兜底）；connect(spec, listener) default 方法 + McpConnection.listToolNames() 基线；Entry 基线差量（added/removed，非空发 mcp.tools-drift Event+WARN+指标，基线推进）；M1 仅告警不热替换（回调会话装配期绑定，文档明示）。
+- [结构化输出](../tickets/T87-structured-output.md) — AgentSession.chatForEntity(input, Class)（default 抛 UOE）；BeanOutputConverter.getFormat() 注入 schema；解析失败发 structured.reask 事件后 REASK 一次完整 turn（复用 doChat 全管线、诚实计预算）→ 再失败抛 StructuredOutputException（STRUCTURED_OUTPUT_FAILED/NON_RETRYABLE）；流式 M1 不做。
+- [会话 fork](../tickets/T88-session-fork.md) — AgentRuntime.fork（default UOE）：Message 全量复制 + Summary 只复制最新一版 + SessionState 不复制（预算重置=重试语义）；走完整 spawn 管线；spill/evidence 共享只读（源删除级联为已知边界）；session.forked 事件；M1 不做指定 messageId 截断（fog）。
+- [事件 webhook](../tickets/T89-event-webhook.md) — core WebhookEventForwarder（url 才装配默认关）：at-least-once + 幂等键头 + HMAC-SHA256 签名头 + 5xx/IO 退避重试（4xx 不重试）+ 有界队列满丢弃计数 + JDK HttpClient 零新依赖；core 全局监听挂点 addGlobalEventListener。
+- [手动 compact/导出](../tickets/T90-manual-compact-export.md) — memory ManualCompactor（compact/exportSummary/exportSummaryMarkdown）；CompactNowTool 委托同一管线（行为零变化）；无锁并发安全（版本化+幂等集）；MemoryModule.manualCompactor() + bean。
+- [配置正规化](../tickets/T91-config-regularization.md) — map→fromYml 契约 by-design 保留（模块自有解析）；真缺口=auto-config 散键直读：BuzhouSkillsProperties/BuzhouMcpProperties 转正；键零变化；全仓 verify 里程碑绿（揭露并修复 impl-60 假绿遗留）。
+- [供应链](../tickets/T92-supply-chain.md) — CycloneDX SBOM（supply-chain profile，构建插件注记）+ OWASP dependency-check 观测档（NVD key 可选）+ Dependabot（maven+actions，小版本聚合）；SBOM 随 release 留 fog。
+- [性能基准](../tickets/T93-perf-baseline.md) — 不引 JMH；PerfBaselineTest @Tag(perf) 三哨兵（微压缩/百轮开销/存储 round-trip，10 倍宽幅硬顶）；默认排除、perf-nightly 激活；基线落档 docs/perf（实测每轮 P95 0.55ms）。
+- [红队数值化](../tickets/T94-redteam-f1.md) — metrics.mjs 硬门裁决（dangerous-executed=0 + 拦截率≥95%）+ plugins 扩 pii/harmful；F1=R（FP 通道=examples 授权闭环）；nightly 卡 job。
+- [质量门](../tickets/T95-quality-gates.md) — jaCoCo LINE≥70% 统一硬门（实测 77.1–90.9%，BOM/starter/examples 豁免）；SpotBugs High 升硬门（排除须 exclude+issue 注记）；本地=CI 同门槛。
+- [skills 深化](../tickets/T96-skills-cache.md) — 清单 TTL 缓存（DB 路径正/负缓存，默认 30s 可配）+ admin 变更即时失效 + 直改 store 需手动失效契约；预热/变更事件/句柄复用核实后不做。
+- [ops runbook](../tickets/T97-ops-runbook.md) — docs/ops-runbook.md 七节（部署/排查树 10 症状/调优表 11 键/容量/升级回滚/多实例边界/告警清单 9 指标），全部锚定真实事件与指标名。
+- [examples 扩充](../tickets/T98-examples-expansion.md) — NewCapabilitiesDemoTest 7 用例（降级链/预算/fork/webhook 签名/REASK/配额）+ resilience test 依赖；README 更新归收口轮。
+- [多实例语义](../tickets/T99-multi-instance-semantics.md) — runbook §6 文档化 + resilience 启动 WARN（store 共享且单进程机制启用）；RunawayCounters 会话累计已持久化不在此列。
+- [API 稳定性](../tickets/T100-api-stability.md) — api-surface.md 404 类型清单（可重跑脚本）；36 public-in-internal 契约声明；@since 1.0.0 起；CONTRIBUTING 政策（语义化版本/废弃≥2 minor）。
+- [全仓终验](../tickets/T101-final-verification.md) — 18 模块 clean verify 全绿（含覆盖率硬门）、1021 测试 0 失败；impl 56–76 逐票 done；远端门（SpotBugs/redteam/SBOM/perf）入口记录。
+- [知识库同步与收口](../tickets/T102-kb-sync-closing.md) — .Knowledge 不扩业务主题（定位流程知识库；业务语义由 docs/spec 00–23 + api-surface 承载，双处维护无净收益——决策记录）；README 增「生产级纵深」段 + CONTEXT 增韧性成本术语；MAP 闭合。
+
+## Not yet specified
+
+（收口清空——四项开放问题转后续 effort 候选，见收口记录。）
+
+## Out of scope
+
+- **多实例分布式接管、分布式限流/配额**（沿用 #2/#3/#4 边界；单进程组件在 T99 显式文档化）。
+- **Firecracker/E2E 沙箱完整档、FIDES 二期、sub-agent、跨 agent 共享记忆**（沿用 #2 边界）。
+- **多 agent 编排/workflow 引擎**（本仓定位单 Agent harness；LangGraph 式图编排不做）。
+- **LLM-as-judge 强制 CI 门禁**（保持可选方法论，不进硬门）。
+- **dashboard 前端工程化、观测 OLAP、MCP server 侧、发布流程改造**（沿用 #4 边界）。
+
+## Tickets
+
+22 张决策票 T81–T102 **全部闭合**（2026-08-15）；impl 切片 56–77 全部落地并合入 main。
+**Frontier**：∅——effort #5 到达目的地。
+
+## 收口记录（2026-08-15）
+
+- **22 轮完整自迭代**（wayfinder 决策 → to-spec → to-tickets → implement → 验证 → commit）全部落地：
+  韧性纵深（熔断 T81 / 降级链 T82）、成本治理（预算 T83 / 日配额 T84）、工具面（沙箱合流 T85 /
+  MCP 漂移 T86）、会话能力（结构化输出 T87 / fork T88 / webhook T89 / 手动压缩 T90）、
+  基建（配置正规化 T91 / 供应链 T92 / 性能基准 T93 / 红队数值化 T94 / 质量门 T95 / skills 缓存 T96 /
+  runbook T97 / examples T98 / 多实例 T99 / API 审计 T100）、终验与收口（T101 / T102）。
+- **终验**：18 模块 `mvn clean verify` 全绿（jaCoCo LINE≥70% 硬门生效）；全仓 **1021 测试** 0 失败；
+  覆盖率 77.1%–90.9%；性能基线每轮 P95 0.55ms。
+- **远端门**（workflow 承载）：SpotBugs High 硬门 / 红队双硬门（拦截率≥95% + dangerous-executed=0）/
+  CycloneDX SBOM + 依赖扫描 / perf 哨兵 / Dependabot。
+- **文档面**：spec 增 15–23 号 + 16/17/18/19/20/21/22/23 新篇；ops-runbook；api-surface（404 类型）；
+  perf baseline；README「生产级纵深」段；CONTEXT 术语增补。
+- **后续 effort 候选**（fog 毕业）：熔断半开参数自适应；fork 后 evidence-id 归属与生命周期；
+  webhook exactly-once；分布式配额/限流（长期 out-of-scope，需重绘 destination）。
+- **过程教训**（记录在案）：本机增量编译不可信（impl-60 假绿教训）——一律 clean test/verify；
+  Mimosa 安全钩子对 shell 工具类注入启发式恒拦（合流改道：装配期二选一 + 入参解析抽离）。

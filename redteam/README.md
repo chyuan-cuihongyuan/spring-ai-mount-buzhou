@@ -1,4 +1,4 @@
-# 红队门（wayfinder2 impl-20 / T48）
+# 红队门（effort #2 impl-20 / T48）
 
 事实源：**promptfoo**（24,206★——红队唯一 ≥10K 达标源；PyRIT 4.3K★/garak 8.8K★ 不达标换源）。
 任何 guard 上线前须红队（2025 研究：自动红队成功率 ~69.5%）。

@@ -5,7 +5,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.spi;
  *
  * @param appId      精确匹配（null = 全部）
  * @param agentName  精确匹配（null = 全部）
- * @param status     {@link SessionInfo} 状态常量（null = 全部）
+ * @param status     {@link SessionInfo} 状态常量（null = 非 DELETED——spec 33 §B 口径，三实现一致排除已删）
  * @param tagKey     标签键（配 tagValue 精确匹配；单独指定无效——需成对）
  * @param tagValue   标签值
  * @param offset     分页偏移

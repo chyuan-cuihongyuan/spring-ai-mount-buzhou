@@ -1,7 +1,7 @@
 # Spec 14 — 外围模块生产级收口（perimeter hardening）
 
 > effort #4 建造 Spec（/to-spec 产出，ready-for-agent）。
-> 决策依据：`.wayfinder4/` T69–T79 决议 + [docs/research/oss-perimeter-hardening.md](../research/oss-perimeter-hardening.md)。
+> 决策依据：effort #4（[map](../../.wayfinder/maps/effort-04.md)）T69–T79 决议 + [docs/research/oss-perimeter-hardening.md](../research/oss-perimeter-hardening.md)。
 > 前置：spec 13（core/memory/spill/guard 收口）已全部落地（impl 28–43）。
 
 ## Problem Statement
@@ -177,5 +177,5 @@ core/memory/spill/guard 四机制模块已达生产级标准（生命周期、�
 ## Further Notes
 
 - 10K★ 政策执行记录见研究文档；micrometer/MCP SDK/promptfoo 本体 star 不足，经 Spring Boot（75K+）/LangChain（100K+）/官方文档间接采纳。
-- impl 切片序：resilience 移植 → runaway/SpawnGate → observability → otel → dashboard → tools → mcp → skills → 装配基建 → redteam → CI → 文档终验（依赖顺序见 `.wayfinder4/impl/`）。
+- impl 切片序：resilience 移植 → runaway/SpawnGate → observability → otel → dashboard → tools → mcp → skills → 装配基建 → redteam → CI → 文档终验（依赖顺序见 `.wayfinder/impl/`）。
 - 全部决议可推翻（用户常设授权按推荐迭代）。

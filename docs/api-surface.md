@@ -113,6 +113,7 @@
 - `public record BuzhouRunawayProperties`
 - `public record BuzhouStores`
 - `public record BuzhouTokenBudgetProperties`
+- `public record BuzhouToolsProperties`
 - `public record BuzhouWebhookProperties`
 - `public record ClosedSession`
 - `public record EventBusStats`
@@ -448,10 +449,6 @@
 
 ## buzhou-spring-boot-starter
 
-
-
-## buzhou-spring-boot-starter
-
 - （纯依赖聚合模块：无 src/main 代码，无公开类型；引入即得全部机制自装配）
 
 ## internal 包审计（public 修饰但非公开 API）
@@ -669,7 +666,7 @@
 **buzhou-spring-boot-starter（测试面防线，非运行时 API）**
 
 - `ConfigBindingsMatrixTest`（93 键绑定矩阵；新键必须登记）
-- `ApiSurfaceSnapshotTest` + `docs/api-surface.snapshot.txt`（449 类型黄金快照）
+- `ApiSurfaceSnapshotTest` + `docs/api-surface.snapshot.txt`（466 类型黄金快照）
 - **配置键破坏性改名（pre-1.0，原键本就静默无效——修复性改名）**：
   `buzhou.runaway.per-turn.max-wall-clock` → `per-turn.wall-clock`；
   `buzhou.runaway.session.*` → `runaway.per-session.*`；

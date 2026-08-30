@@ -42,6 +42,8 @@
 
 ### 16 模块清单
 
+> 【回写 2026-08-17】effort #4 新增 `buzhou-resilience`（spec 15）：reactor 现状 = 根 + 16 子模块（`buzhou-*` 15 个 + examples）。本文「16 模块含根」为设计期口径快照，下表不再逐行回编。
+
 > 【推演】ticket 03 原表含 `buzhou-dashboard`；ticket 15 将可视化后台定名为 `buzhou-observe-dashboard`（与 `buzhou-observe-otel` 对齐）。本文为对齐「14→16」的票数定案，按「`buzhou-dashboard` 更名为 `buzhou-observe-dashboard`（不占新名额）+ 根聚合父 POM 计入模块数」还原 16：父 POM 是 Maven 物理存在的模块，承担聚合与继承双职。若社区认为父 POM 不应计数，则备选是 examples 拆为场景示例 + 评测脚本两模块（ticket 28/30 已有独立目录伏笔），留「开放问题」。
 
 | # | 模块 | 职责 | 依赖方向 |

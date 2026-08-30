@@ -1,6 +1,6 @@
 # 13 生产级收口：core / memory / spill / guard 运行时库外围防护层
 
-> 本 Spec 由 wayfinder3 图（[MAP](../../.wayfinder3/MAP.md) + [T55–T68](../../.wayfinder3/README.md)）综合而成，事实源 = [docs/research/oss-production-grade.md](../research/oss-production-grade.md)（6 并行子 agent 2026-08-14：2 本地勘察 + 4 外部研究，载荷性结论已复核）。遵守仓库铁律「**改机制先改 Spec**」：本轮以新增防护层为主，凡触及机制语义变更处须同步修订 docs/spec 对应篇（文末「Spec 同步义务」）。领域术语以根目录 [CONTEXT.md](../../CONTEXT.md) 为准。
+> 本 Spec 由 effort #3 图（[MAP](../../.wayfinder/maps/effort-03.md) + [T55–T68](../../.wayfinder/tickets/)）综合而成，事实源 = [docs/research/oss-production-grade.md](../research/oss-production-grade.md)（6 并行子 agent 2026-08-14：2 本地勘察 + 4 外部研究，载荷性结论已复核）。遵守仓库铁律「**改机制先改 Spec**」：本轮以新增防护层为主，凡触及机制语义变更处须同步修订 docs/spec 对应篇（文末「Spec 同步义务」）。领域术语以根目录 [CONTEXT.md](../../CONTEXT.md) 为准。
 > **用户常设授权（2026-08-14）**：全程不需询问意见、按研究推荐迭代（可推翻）。
 
 ## Problem Statement
@@ -127,7 +127,7 @@
 ## Further Notes
 
 - **事实来源**：`docs/research/oss-production-grade.md`（star 数 2026-08-14 GitHub API 实测；五项载荷性本地结论已由主 agent 复核证实）。
-- **决策票据**：wayfinder3 [T55–T68](../../.wayfinder3/MAP.md) 随本 Spec 批准而闭合（用户常设授权 ratify、可推翻）；执行切片 = `/to-tickets` → `.wayfinder3/impl/`。
+- **决策票据**：effort #3 [T55–T68](../../.wayfinder/maps/effort-03.md) 随本 Spec 批准而闭合（用户常设授权 ratify、可推翻）；执行切片 = `/to-tickets` → `.wayfinder/impl/`。
 - **Spec 同步义务**：优雅停机/Deadline/租约 → 修订 `05-parallel-tools.md`（或恢复链篇）；保留/清理/配额/迁移 → `09-modules-engineering.md` 增「存储运维」节 + `01-memory-compaction.md`（熔断半开）；审计/密钥/policy/沙箱限额 → `07-hooks.md`；配置/健康/指标 → `00-overview.md` 附录级提及 + 各机制篇配置节。
 - **反模式（勿踩）**：停机只 shutdownNow 不排空；deadline 每层重新计时；续租失败静默继续写；逐出碰事实台账；清理挂写路径；迁移靠手工 DDL；字符串前缀当协议；泄漏只在生产发现；默认值变更破坏既有契约；丢弃不可见。
 - **语言与许可**：文档与注释主语言中文；坐标 `io.github.chyuan-cuihongyuan:buzhou-*`，Apache-2.0。
