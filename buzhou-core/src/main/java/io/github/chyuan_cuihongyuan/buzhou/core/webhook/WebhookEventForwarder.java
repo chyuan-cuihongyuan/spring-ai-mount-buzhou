@@ -83,6 +83,8 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     private final AtomicLong dropped = new AtomicLong();
     private final AtomicLong failed = new AtomicLong();
     private final AtomicLong deadLettered = new AtomicLong();
+    /** spec 159 / T517：信封投递序（进程内单调；重启复位=新纪元，接收方 fence 据此 RESET）。 */
+    private final AtomicLong deliverySeq = new AtomicLong();
     volatile boolean closing;
 
     public WebhookEventForwarder(BuzhouWebhookProperties props, SessionStateStore stateStore) {
@@ -93,18 +95,32 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         this.dispatcher.start();
     }
 
+    /** spec 105 §A / T387：订阅类型过滤（空集 = 全投递——默认零变化）。 */
+    private volatile java.util.Set<String> includeTypes = java.util.Set.of();
+
+    /** 限定投递的事件类型集（null/空 = 全投递；BuzhouWebhookProperties 不扩——record 兼容）。 */
+    public void setIncludeTypes(java.util.Collection<String> types) {
+        this.includeTypes = types == null ? java.util.Set.of() : java.util.Set.copyOf(types);
+    }
+
     @Override
     public void onEvent(SessionEvent event) {
         if (closing) {
             return;
         }
+        // spec 105 §A / T387：类型过滤在入队前（不占 outbox 容量——被滤事件不是待投事件）
+        if (!includeTypes.isEmpty() && !includeTypes.contains(event.type())) {
+            BuzhouMetricsHolder.metrics().counter("buzhou.webhook.filtered");
+            return;
+        }
         String eventId = UUID.randomUUID().toString();
         String body;
         try {
-            Map<String, Object> envelope = new LinkedHashMap<>();
-            envelope.put("eventId", eventId);
-            envelope.put("type", event.type());
-            envelope.put("payload", event.payload());
+                    Map<String, Object> envelope = new LinkedHashMap<>();
+                    envelope.put("eventId", eventId);
+                    envelope.put("type", event.type());
+                    envelope.put("seq", deliverySeq.incrementAndGet());
+                    envelope.put("payload", event.payload());
             envelope.put("occurredAt", event.occurredAt().toString());
             Object sessionId = event.payload().get("sessionId");
             if (sessionId != null) {
@@ -154,7 +170,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
             Outcome outcome = attemptOnce(record);
             switch (outcome) {
                 case DELIVERED -> {
-                    outbox.delete(record.eventId());
+                    outbox.delete(record);
                     delivered.incrementAndGet();
                     BuzhouMetricsHolder.metrics().counter("buzhou.webhook.delivered");
                 }
@@ -173,8 +189,10 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
             return;
         }
         long backoff = jitteredBackoffMillis(attempts, jitterRandom);
-        outbox.update(new WebhookOutbox.OutboxRecord(record.eventId(), record.type(), record.body(),
-                record.seq(), attempts, System.currentTimeMillis() + backoff, record.createdAtEpochMs()));
+        // spec 79：索引键随迁需要旧记录（旧 due 键删除依据）
+        outbox.update(record, new WebhookOutbox.OutboxRecord(record.eventId(), record.type(),
+                record.body(), record.seq(), attempts,
+                System.currentTimeMillis() + backoff, record.createdAtEpochMs()));
     }
 
     private void markDead(WebhookOutbox.OutboxRecord record, String reason) {

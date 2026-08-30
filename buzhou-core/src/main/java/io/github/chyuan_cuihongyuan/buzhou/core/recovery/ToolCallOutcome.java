@@ -10,5 +10,10 @@ public enum ToolCallOutcome {
     TIMEOUT,
     CANCELLED,
     /** 参数未过 schema、工具未执行（impl-04 通道）。 */
-    VALIDATION_REJECTED
+    VALIDATION_REJECTED,
+    /**
+     * 本调用合法但因同批同伴前检未过而整批未派发（spec 122 / impl-271 superstep
+     * 原子批）——「未执行因同伴」，与「执行了但失败」可区分。
+     */
+    BATCH_ABORTED
 }

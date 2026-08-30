@@ -76,6 +76,7 @@ public class LoadSkillTool implements ToolCallback {
         if (skill.isEmpty()) {
             return "技能不存在或未绑定：" + name;
         }
+        SkillUsageStats.global().recordLoad(name); // spec 140 / T465：使用打点
         return formatResult(skill.get());
     }
 

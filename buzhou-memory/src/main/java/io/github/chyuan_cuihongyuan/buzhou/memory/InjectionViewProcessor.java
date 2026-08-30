@@ -53,6 +53,30 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     private java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink;
     /** spec 34 §A / spec 38 §A：压缩结果监听器（sessionId + 结果 + 当前逐出比例；MemoryModule 接观测双写）。 */
     private io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener compactionListener;
+    /** spec 66 §A / T283：前缀稳定注入序（默认关——稳定块前置最大化 KV-cache 前缀命中）。 */
+    private boolean prefixStableInjection = false;
+
+    /** spec 66 §A / T283：前缀稳定注入序开关（true = 清单块前置：catalog→summary→facts→recent）。 */
+    public void setPrefixStableInjection(boolean prefixStableInjection) {
+        this.prefixStableInjection = prefixStableInjection;
+    }
+
+    /** spec 70 §A / T291：边界机会压缩阈值（待摘积压 ≥ N 提前摘要；默认 0=关）。 */
+    public void setBoundaryCompactBacklog(int boundaryCompactBacklog) {
+        this.boundaryCompactBacklog = boundaryCompactBacklog;
+    }
+
+    /** spec 90 §A / T343：语义漂移触发边界压缩（null=关——默认零变化）。 */
+    public void setSemanticDriftDetector(
+            io.github.chyuan_cuihongyuan.buzhou.memory.compact.SemanticDriftDetector detector) {
+        this.semanticDriftDetector = detector;
+    }
+
+    /** spec 90 §A / T343：漂移检测器（null=关；有摘要基准且话题漂移时提前边界压缩）。 */
+    private io.github.chyuan_cuihongyuan.buzhou.memory.compact.SemanticDriftDetector semanticDriftDetector;
+
+    /** spec 70 §A / T291：边界机会压缩积压阈值（0=关）。 */
+    private int boundaryCompactBacklog = 0;
 
     /** impl-02：默认逐出比例（保留 30% 最新候选原文内联续接）。 */
     public static final double DEFAULT_EVICT_RATIO = 0.7d;
@@ -181,8 +205,9 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         // 先渲染事实块（maxInjectChars 截断 + 指针），供预算入账与注入共用（spec 07：先渲染后评估；
         // system-reminder 块与摘要 Current State 追加两通道共享同一文本，不重复超额）
         String factsBlock = renderFacts(sessionId, currentTurn);
-        // 渲染技能清单块（spec 04：每轮现取，上架/解绑下一轮即生效；系统侧固定扣除计入预算）
-        String catalogBlock = renderCatalog(sessionId);
+        // 渲染技能清单块（spec 04：每轮现取，上架/解绑下一轮即生效；系统侧固定扣除计入预算；
+        // spec 59 §A / T264：携带本轮问法（最新 USER 文本）——实现方可用作语义排序 hint）
+        String catalogBlock = renderCatalog(sessionId, latestUserText(stored));
         if (summaryModel == null) {
             // 无摘要模型时事实/清单仍需注入（注入闭环不依赖摘要链路）
             return (factsBlock == null && catalogBlock == null) ? compacted
@@ -213,7 +238,26 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
         }
         // T23：摘要 token 预算（动态拆解为每段字符预算页脚渲染给模型）
         int summaryTokenBudget = Math.max(budget.historyBudget(), 1000);
-        if (!budget.compactionNeeded()) {
+        // spec 70 §A / T291：边界机会压缩（Letta「自然边界压缩」的 Completed-Turn 代理）——
+        // 待摘积压达阈值时在干净轮边界提前走增量摘要路径（预算尚宽松：摘要质量更高、
+        // 豁免梯子紧急态）；默认 0=关零变化；无摘要模型时不适用（无摘要链路可提前）。
+        boolean backlogTrigger = false;
+        if (!budget.compactionNeeded() && boundaryCompactBacklog > 0 && summaryModel != null) {
+            final int cutoffTurn = currentTurn - keepRecentTurns;
+            final int alreadyCovered = previous == null ? 0 : previous.coversUpToTurn();
+            final NineSectionSummary backlogPrevious = previous;
+            backlogTrigger = compacted.stream()
+                    .filter(m -> m.turnSeq() <= cutoffTurn && m.turnSeq() > alreadyCovered)
+                    .filter(m -> backlogPrevious == null
+                            || !backlogPrevious.summarizedMessageIds().contains(m.id()))
+                    .count() >= boundaryCompactBacklog;
+        }
+        // spec 90 §A / T343：语义漂移触发（与积压触发同路径不同判据）——话题已漂移时
+        // 旧话题轮次近期大概率不再被引用，是比积压计数更贴近「自然边界」的提前时机；
+        // 需有摘要基准（previous 非空）才可比对；无待摘消息时走下游空折入自然无害。
+        boolean driftTrigger = semanticDriftDetector != null && previous != null
+                && semanticDriftDetector.drifted(latestUserText(stored), previous.render());
+        if (!budget.compactionNeeded() && !backlogTrigger && !driftTrigger) {
             return injectSummaryOnly(compacted, previous, factsBlock, catalogBlock,
                     currentTurn, sessionId, summaryTokenBudget);
         }
@@ -231,6 +275,12 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 .toList();
 
         NineSectionSummary merged = previous;
+        if (!toSummarize.isEmpty() && !breaker.allows(sessionId)) {
+            // spec 99 §A / T369：breaker 开路跳过折入——观测 counter（tag trigger 有界）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.memory.summary.fold-skipped", "trigger",
+                            budget.compactionNeeded() ? "budget" : (driftTrigger ? "drift" : "backlog"));
+        }
         if (!toSummarize.isEmpty() && breaker.allows(sessionId)) {
             try {
                 // impl-13 / T40：折叠提交前保存压缩前检查点（护栏：事故可回滚）
@@ -254,6 +304,18 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                 }
                 summaryBridge.save(sessionId, merged);
                 breaker.onSuccess(sessionId);
+                // spec 95 §A / T355 + spec 99 §A / T369：折入通知 + 速率 counter
+                String trigger = budget.compactionNeeded() ? "budget"
+                        : (driftTrigger ? "drift" : "backlog");
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.memory.summary.folded", "trigger", trigger);
+                if (compactionListener != null) {
+                    try {
+                        compactionListener.onSummaryFolded(sessionId, merged, trigger);
+                    } catch (RuntimeException ignored) {
+                        // 观测双写失败不影响视图主链（lenient——同 notifyCompaction）
+                    }
+                }
                 // impl-13 / T40：重新压缩成功 → 清除摘要失效标记（新一轮摘要生效）
                 if (summaryInvalidated && sessionStateStore != null) {
                     io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints
@@ -279,11 +341,25 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
     }
 
     /** 渲染当前会话可见的技能清单为注入文本；无渲染器/无 sessionId/无可见技能时返回 null。 */
-    private String renderCatalog(String sessionId) {
+    private String renderCatalog(String sessionId, String queryHint) {
         if (skillCatalogRenderer == null || sessionId == null) {
             return null;
         }
-        return skillCatalogRenderer.renderCatalog(sessionId).orElse(null);
+        return skillCatalogRenderer.renderCatalog(sessionId, queryHint).orElse(null);
+    }
+
+    /** spec 59 §A / T264：stored 尾部最新 USER 消息文本（无 = null——无问法语义）。 */
+    private static String latestUserText(List<BuzhouMessage> stored) {
+        if (stored == null) {
+            return null;
+        }
+        for (int i = stored.size() - 1; i >= 0; i--) {
+            BuzhouMessage m = stored.get(i);
+            if (m.role() == Role.USER && m.content() != null && !m.content().isBlank()) {
+                return m.content();
+            }
+        }
+        return null;
     }
 
     private BudgetReport evaluateBudget(List<BuzhouMessage> compacted, NineSectionSummary summary,
@@ -341,6 +417,12 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
                                                     int currentTurn, String sessionId,
                                                     int summaryTokenBudget) {
         List<BuzhouMessage> result = new ArrayList<>();
+        // spec 66 §A / T283：前缀稳定序（默认关）——最稳定块（技能清单）前置，最大化
+        // provider 端 KV-cache 前缀命中（Anthropic prompt caching 最佳实践：稳定内容在前、
+        // 易变内容在后）；默认序保持 spec 04 口径（摘要→事实→清单）零变化。
+        if (prefixStableInjection && catalogBlock != null) {
+            result.add(catalogMessage(catalogBlock, currentTurn));
+        }
         if (summary != null) {
             // 把未过期事实追加到 CURRENT_STATE 段（P0 死保，压缩不丢现场）
             NineSectionSummary enriched = enrichWithFacts(summary, factsBlock);
@@ -363,18 +445,21 @@ public class InjectionViewProcessor implements MemoryViewProcessor {
             result.add(factBlock);
         }
         // 技能清单 Catalog 块（spec 04：系统提示词尾部，事实块之后、近期原文之前）
-        if (catalogBlock != null) {
-            BuzhouMessage catalogMsg = new BuzhouMessage(
-                    UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
-                    "<system-reminder>\n" + catalogBlock + "\n</system-reminder>",
-                    List.of(), null, null, null, Map.of("skill-catalog", true), Instant.now());
-            result.add(catalogMsg);
+        if (catalogBlock != null && !prefixStableInjection) {
+            result.add(catalogMessage(catalogBlock, currentTurn));
         }
         if (result.isEmpty()) {
             return recent;
         }
         result.addAll(recent);
         return result;
+    }
+
+    private static BuzhouMessage catalogMessage(String catalogBlock, int currentTurn) {
+        return new BuzhouMessage(
+                UUID.randomUUID().toString(), "", currentTurn, 0, Role.SYSTEM,
+                "<system-reminder>\n" + catalogBlock + "\n</system-reminder>",
+                List.of(), null, null, null, Map.of("skill-catalog", true), Instant.now());
     }
 
     /** 把未过期事实追加到摘要 CURRENT_STATE 段（保证压缩后事实仍保留，P0 不丢）。 */

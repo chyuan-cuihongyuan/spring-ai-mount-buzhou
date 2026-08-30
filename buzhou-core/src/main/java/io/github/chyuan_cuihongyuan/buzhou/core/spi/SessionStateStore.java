@@ -22,6 +22,24 @@ public interface SessionStateStore {
     boolean deleteIfValueMatches(String sessionId, String key, String expectedValue);
 
     /**
+     * 条件写（CAS，spec 56 §A / T249）：仅当当前 value 与 {@code expectedValue} 相等时以
+     * {@code update} 覆写，返回是否成功。{@code expectedValue == null} 表示键当前不存在才写
+     * （日翻越首写竞态钉住）。跨实例原子扣减（配额计数等）依赖本方法。
+     *
+     * <p>默认实现 get+比对+put <b>非原子</b>（check-then-write 竞窗存在）——仅单实例语义；
+     * 真原子由各实现覆写：内存 compute、JDBC 条件单语句、Redis Lua（同
+     * {@link #deleteIfValueMatches} 先例）。
+     */
+    default boolean compareAndSwap(String sessionId, String key, String expectedValue, StateEntry update) {
+        String current = get(sessionId, key).map(StateEntry::value).orElse(null);
+        if (!java.util.Objects.equals(current, expectedValue)) {
+            return false;
+        }
+        put(sessionId, update);
+        return true;
+    }
+
+    /**
      * impl-35 / spec 13 §stores-6：删除该会话的全部 state 条目（含键集合索引）。幂等——
      * 会话不存在时无操作。默认 no-op（既有实现二进制兼容，由各实现补齐语义）。
      */
@@ -32,7 +50,7 @@ public interface SessionStateStore {
      * 键前缀扫描（spec 33 §C / T114 / impl-89）：返回该会话键以 prefix 开头的条目。
      * 默认实现 = getAll 过滤（正确但全量读）；JDBC/Redis 覆写为下推扫描（键条件/集合
      * 侧匹配），供 outbox 等高频前缀键空间消全量读放大。prefix 不得含 LIKE/通配元字符
-     *（内部常量约定：webhook outbox 的 {@code outbox.} / {@code dead.}）。
+     *（内部常量约定：webhook outbox 的 {@code outbox.} / {@code dead.} / {@code due.}）。
      */
     default Map<String, StateEntry> scanByPrefix(String sessionId, String prefix) {
         Map<String, StateEntry> result = new java.util.LinkedHashMap<>();
@@ -41,6 +59,41 @@ public interface SessionStateStore {
                 result.put(k, v);
             }
         });
+        return result;
+    }
+
+    /**
+     * 前缀键计数（spec 58 §A / T259）：容量检查等「只要数量不要值」的调用方用本方法，
+     * 避免全量值读放大。默认 = {@link #scanByPrefix} 取 size（正确但全量读）；
+     * JDBC 覆写 COUNT(*)（零行传输）、Redis 覆写键集侧计数（零值读）、内存覆写键迭代。
+     */
+    default int countByPrefix(String sessionId, String prefix) {
+        return scanByPrefix(sessionId, prefix).size();
+    }
+
+    /**
+     * spec 78 §A / T309：前缀内<b>键序区间</b>扫描——键字典序升序、{@code fromKeyInclusive}
+     * 含界（null = 前缀起点）、{@code toKeyExclusive} 排他上界（null = 无上界）、limit
+     * 截断（&le;0 = 空）。与 {@link #scanByPrefix} 的关键差异：<b>结果顺序有保证</b>（键序
+     * 即时间序的结构——如 outbox due-time 索引 spec 79——依赖本面消全量读放大）。
+     * 默认 = scanByPrefix 过滤 + 排序 + 截断（正确但全量读）；JDBC/内存覆写下推。
+     */
+    default Map<String, StateEntry> scanByKeyRange(String sessionId, String prefix,
+            String fromKeyInclusive, String toKeyExclusive, int limit) {
+        if (limit <= 0) {
+            return Map.of();
+        }
+        String from = fromKeyInclusive == null ? prefix : fromKeyInclusive;
+        java.util.Map<String, StateEntry> all = scanByPrefix(sessionId, prefix);
+        java.util.TreeMap<String, StateEntry> sorted = new java.util.TreeMap<>();
+        all.forEach((k, v) -> {
+            if (k.compareTo(from) >= 0
+                    && (toKeyExclusive == null || k.compareTo(toKeyExclusive) < 0)) {
+                sorted.put(k, v);
+            }
+        });
+        Map<String, StateEntry> result = new java.util.LinkedHashMap<>();
+        sorted.entrySet().stream().limit(limit).forEach(e -> result.put(e.getKey(), e.getValue()));
         return result;
     }
 }

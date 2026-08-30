@@ -122,9 +122,15 @@ public final class RedisBuzhouStores {
         return new BuzhouStores(
                 new RedisMessageStore(sync, keys),
                 new RedisSummaryStore(sync, keys),
-                new RedisSessionStateStore(sync, keys),
+                new RedisSessionStateStore(sync, keys, unitOfWorkCasPool(unitOfWork)),
                 new RedisSessionLeaseStore(sync, keys),
                 observability,
                 unitOfWork);
+    }
+
+    /** spec 56 §A：池化 UoW 的连接池复用为 state store 的 CAS 专用池（旧直连路径无池 → null）。 */
+    private static GenericObjectPool<StatefulRedisConnection<String, String>> unitOfWorkCasPool(
+            RedisUnitOfWork unitOfWork) {
+        return unitOfWork.casConnectionPool();
     }
 }

@@ -23,6 +23,12 @@
       "type": "java.time.Duration",
       "defaultValue": "30s",
       "description": "清单 TTL 缓存（spec 21 / T96）：admin 变更即时失效。"
+    },
+    {
+      "name": "buzhou.skills.semantic-ranking.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "目录语义排序（spec 59 / T266）：按当前问法与「技能名+描述」的 embedding cosine 相似度排序后应用目录预算——预算内保最相关技能；需要 EmbeddingModel bean（缺失启动 fail-fast）；嵌入失败回退注册序（bypass 计数）。"
     }
   ]
 }

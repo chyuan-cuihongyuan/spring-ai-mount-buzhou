@@ -161,6 +161,12 @@
       "type": "java.time.Duration",
       "defaultValue": "1h",
       "description": "语义缓存条目 TTL（惰性过期——命中路径检查）。"
+    },
+    {
+      "name": "buzhou.resilience.fallback.latency-aware",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "备模型延迟感知排序（spec 64 / T279）：按 EMA 延迟升序尝试备模型（未知延迟取已知中位数=中性）；备模型/金丝雀调用计时入 EMA（α=0.3）。"
     }
   ],
   "hints": [

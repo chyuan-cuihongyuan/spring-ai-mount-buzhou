@@ -45,7 +45,8 @@ import java.util.List;
         BuzhouRunawayProperties.class, BuzhouBackpressureProperties.class,
         BuzhouTokenBudgetProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
-        BuzhouToolsProperties.class})
+        BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
+        BuzhouVirtualKeyProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -73,11 +74,20 @@ public class BuzhouCoreAutoConfiguration {
     @ConditionalOnProperty(prefix = "buzhou.webhook", name = "url")
     public io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder webhookEventForwarder(
             io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties props,
-            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> storesProvider) {
+            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> storesProvider,
+            org.springframework.core.env.Environment env) {
         io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores = storesProvider.getIfAvailable();
-        return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props,
-                stores != null ? stores.sessionStateStore()
-                        : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore());
+        io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder forwarder =
+                new io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder(props,
+                        stores != null ? stores.sessionStateStore()
+                                : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore());
+        // spec 105 §A / T387：订阅类型过滤（buzhou.webhook.include-types——空/缺省 = 全投递）
+        java.util.List<String> include = org.springframework.boot.context.properties.bind.Binder
+                .get(env).bind("buzhou.webhook.include-types",
+                        org.springframework.boot.context.properties.bind.Bindable.listOf(String.class))
+                .orElse(java.util.List.of());
+        forwarder.setIncludeTypes(include);
+        return forwarder;
     }
 
     /**
@@ -140,11 +150,44 @@ public class BuzhouCoreAutoConfiguration {
     public BuzhouHook tokenBudgetHook(
             BuzhouTokenBudgetProperties tokenBudgetProperties,
             ObjectProvider<BuzhouStores> stores,
-            org.springframework.core.env.Environment env) {
+            org.springframework.core.env.Environment env,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys> virtualKeys) {
         BuzhouStores available = stores.getIfAvailable();
+        // spec 158 / T511：active-key 配置时接 key 级预算闸（省缺 = 既有零变化）
+        String activeKey = env.getProperty("buzhou.virtual-keys.active-key");
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys = activeKey == null
+                ? null : virtualKeys.getIfAvailable();
         return new io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook(
                 tokenBudgetProperties, env.getProperty("buzhou.model-name", "unknown"),
-                available == null ? null : available.observabilityStore());
+                available == null ? null : available.observabilityStore(), keys, activeKey);
+    }
+
+    /**
+     * spec 158 / T511：虚拟 key 注册表（active-key 配置时装配；limits 空表 +
+     * active-key 组合在装配期 fail-fast——不带病上线）。健康段经
+     * {@code @ConditionalOnBean(VirtualKeys)} 随之出现。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.virtual-keys", name = "active-key")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys buzhouVirtualKeys(
+            BuzhouVirtualKeyProperties props) {
+        if (props.limits() == null || props.limits().isEmpty()) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.virtual-keys.active-key 配置了但 limits 为空——key 闸无从扣减",
+                    "请补 buzhou.virtual-keys.limits.<key>=<token 硬顶>，或删除 active-key");
+        }
+        if (!props.limits().containsKey(props.activeKey())) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.virtual-keys.active-key=[" + props.activeKey()
+                            + "] 不在 limits 表里——省缺 key 的扣减是静默直通（诚实边界反被误用）",
+                    "请在 limits 里给它设硬顶，或改 active-key");
+        }
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys =
+                io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys.create();
+        props.limits().forEach(keys::register);
+        return keys;
     }
 
     /**
@@ -288,10 +331,19 @@ public class BuzhouCoreAutoConfiguration {
         @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
                 io.micrometer.core.instrument.MeterRegistry.class)
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
-                buzhouMetricsHolderInstaller(io.micrometer.core.instrument.MeterRegistry registry) {
-            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.install(
+                buzhouMetricsHolderInstaller(io.micrometer.core.instrument.MeterRegistry registry,
+                                             org.springframework.core.env.Environment env) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics metrics =
                     new io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics(
-                            registry));
+                            registry);
+            // spec 160 / T513：tag 基数守卫 opt-in（默认关零变化；开 = 装饰后安装——
+            // per-(名,键) 值集封顶越限折 __overflow__，Loki cardinality limit 借鉴）
+            if (env.getProperty("buzhou.metrics.cardinality-guard.enabled", Boolean.class,
+                    Boolean.FALSE)) {
+                metrics = io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
+                        .wrap(metrics);
+            }
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.install(metrics);
             return new io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller();
         }
     }
@@ -311,6 +363,48 @@ public class BuzhouCoreAutoConfiguration {
                 ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> contributors) {
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint(
                     contributors.orderedStream().toList());
+        }
+
+        /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth buzhouErrorSignaturesHealth() {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth(
+                    io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global());
+        }
+
+        /** spec 92 §A / T349：隔离舱健康段（未配置 UNKNOWN；配置后 per-agent 详情）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BulkheadHealth buzhouBulkheadHealth() {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BulkheadHealth(
+                    io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.global());
+        }
+
+        /** spec 102 §A / T379：会话归档健康段（stores 缺席 = UNKNOWN-disabled，不抢 store 校验报错优先级）。 */
+        @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth buzhouVirtualKeysHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys) {
+        // spec 154 / T507：宿主声明 VirtualKeys bean 时健康段自动出现（编程面默认无）
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth(keys);
+    }
+
+    /** spec 192 / T553：模型成本健康段（台账全局恒在 + 预算钩子自动入账——恒有段）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth buzhouModelCostHealth() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth();
+    }
+
+    @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth buzhouArchiveHealth(
+                org.springframework.beans.factory.ObjectProvider<BuzhouStores> stores) {
+            BuzhouStores available = stores.getIfAvailable();
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth(
+                    available == null ? null : available.sessionStateStore());
         }
     }
 
@@ -423,6 +517,87 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 84 §A / T323：agent 并发 Turn 隔离舱（opt-in {@code buzhou.bulkhead.enabled=true}
+     * + {@code buzhou.bulkhead.agents.<agent>=<maxConcurrentTurns>}，默认关——全 NOOP 零行为；
+     * resilience4j Bulkhead 思想：spawn 闸限会话数，本舱限在飞 Turn 数，正交）。未配
+     * agents 表时开启也是 NOOP（诚实：无上限可执行）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.bulkhead", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead buzhouAgentBulkhead(
+            org.springframework.core.env.Environment env) {
+        java.util.Map<String, Integer> limits = org.springframework.boot.context.properties.bind.Binder
+                .get(env).bind("buzhou.bulkhead.agents",
+                        org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                String.class, Integer.class))
+                .orElse(java.util.Map.of());
+        java.time.Duration timeout = org.springframework.boot.context.properties.bind.Binder
+                .get(env).bind("buzhou.bulkhead.acquire-timeout",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .of(java.time.Duration.class))
+                .orElse(java.time.Duration.ZERO);
+        io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead bulkhead =
+                io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.of(limits, timeout);
+        io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.install(bulkhead);
+        return bulkhead;
+    }
+
+    /**
+     * spec 91 §A / T345 + spec 107 §A / T391：配置体检（opt-in
+     * {@code buzhou.config-doctor.enabled=true}，默认关；Spring Shell doctor 思想）——
+     * 就绪事件跑一次 ConfigDoctor：发现走日志 + 报告缓存进健康段（/actuator/buzhou
+     * 的 config-doctor 段：errors/warnings/checkedKeys）。只读不写——报告不改行为。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.config-doctor", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.ConfigDoctorHealth buzhouConfigDoctorHealth(
+            org.springframework.core.env.Environment env) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.ConfigDoctorHealth(env);
+    }
+
+    /**
+     * spec 69 §A / T290：崩溃自愈 watchdog（opt-in {@code buzhou.recovery.auto-resume=true}，
+     * 默认关；Temporal crash-watchdog 思想）——启动完成后枚举 RUNNING 快照逐一续跑
+     * （steal=false：他方活跃实例持锁即跳过，仅接管疑似崩溃者）。无 RunRegistry bean
+     * 或未开启时零操作。SmartLifecycle start 一次（幂等；续跑历史加载触发悬空修复 +
+     * 事件日志回放——与手工 restart 同语义）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.recovery", name = "auto-resume", havingValue = "true")
+    public org.springframework.context.SmartLifecycle buzhouCrashResumeWatchdog(
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry,
+            DefaultAgentRuntime runtime) {
+        io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry registry =
+                runRegistry.getIfAvailable();
+        return new org.springframework.context.SmartLifecycle() {
+            private boolean running;
+
+            @Override
+            public void start() {
+                running = true;
+                if (registry != null) {
+                    new io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService(
+                            registry, runtime).autoResumeAll();
+                }
+            }
+
+            @Override
+            public void stop() {
+                running = false;
+            }
+
+            @Override
+            public boolean isRunning() {
+                return running;
+            }
+        };
+    }
+
+    /**
      * impl-37 / spec 13 §stores-6：保留策略族后台执行器（{@code buzhou.retention.*}）。
      * bean 恒在（{@code enabled=false} 只关自启动调度——各策略仍可手动
      * {@code RetentionSweeper#sweepOnce()} 触发）。恢复设施（ToolCallLog/RunRegistry）
@@ -458,5 +633,39 @@ public class BuzhouCoreAutoConfiguration {
                 retention.sweepInterval(),
                 null,
                 retention.enabled());
+    }
+
+    /**
+     * spec 127 / T455：会话归档器 bean（宿主未自建时兜底——spec 97 归档冷层的
+     * 自动装配面；SessionCleaner 与 sweeper 各持实例，装配参数同源）。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver buzhouSessionArchiver(
+            BuzhouStores stores,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog> toolCallLog,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver(
+                stores,
+                new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner(
+                        stores, runRegistry.getIfAvailable(), toolCallLog.getIfAvailable()));
+    }
+
+    /**
+     * spec 127 / T455：归档 TTL 定时清理（{@code buzhou.session-archive.purge-enabled}
+     * 默认关——删除动作必须显式开启；开启后单线程 scheduleWithFixedDelay 兑现
+     * purgeTtl；多实例各跑一份，幂等无害）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "buzhou.session-archive", name = "purge-enabled",
+            havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob buzhouArchivePurgeJob(
+            io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver archiver,
+            BuzhouArchiveProperties archive) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob(
+                archiver, archive.getPurgeTtl(), archive.getPurgeInterval(),
+                archive.isPurgeEnabled());
     }
 }

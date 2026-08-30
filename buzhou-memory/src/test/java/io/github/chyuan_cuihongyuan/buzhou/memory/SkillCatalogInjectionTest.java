@@ -72,6 +72,31 @@ class SkillCatalogInjectionTest {
                 && m.content().contains("sql-tuning"));
     }
 
+    /** spec 59 §A / T264：渲染器收到本轮问法 hint（stored 尾部最新 USER 文本；无 USER = null）。 */
+    @Test
+    void rendererReceivesLatestUserTextAsHint() {
+        java.util.concurrent.atomic.AtomicReference<String> hint = new java.util.concurrent.atomic.AtomicReference<>("unset");
+        SkillCatalogRenderer capturing = new SkillCatalogRenderer() {
+            @Override
+            public Optional<String> renderCatalog(String sessionId) {
+                return Optional.of("## 可用技能\n- x: y");
+            }
+
+            @Override
+            public Optional<String> renderCatalog(String sessionId, String queryHint) {
+                hint.set(queryHint);
+                return renderCatalog(sessionId);
+            }
+        };
+        InjectionViewProcessor ivp = newProcessor(capturing, null);
+
+        ivp.process("s1", List.of(userMsg(1, "早期问法"), asstMsg(1, "a"), userMsg(2, "最新问法")), 3);
+        assertThat(hint.get()).isEqualTo("最新问法"); // 尾部最新 USER（非首个/非 ASSISTANT）
+
+        ivp.process("s1", List.of(userMsg(1, "q"), asstMsg(1, "a")), 2);
+        assertThat(hint.get()).isEqualTo("q");
+    }
+
     @Test
     void catalogTokensCountedAsSystemSideBudgetDeduction() {
         // spec 04：清单 token 计 BudgetInput.systemPrompt 固定扣除（与事实块同口径）

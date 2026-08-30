@@ -294,12 +294,24 @@ public class RunawayHook implements BuzhouHook {
      * 计数随会话删除而清除（store 生命周期）；AUTO_RESUME 重驱动时计数不重置（避免崩溃-恢复循环重烧预算）。
      */
     private int incrementSessionCounter(io.github.chyuan_cuihongyuan.buzhou.core.hook.HookContext ctx, String key) {
-        // 同步：工具扇出可并行调用 beforeTool，会话级计数 RMW 需按会话加锁防竞争（undercount）
+        // 同步：工具扇出可并行调用 beforeTool，会话级计数 RMW 需按会话加锁防竞争（undercount）；
+        // spec 62 / T275：CAS 写统一走 AtomicStateCounters（跨实例原子 + 进度检测重试）
         synchronized (counters.sessionLock(ctx.sessionId())) {
-            int current = ctx.state().get(key, String.class).map(Integer::valueOf).orElse(0);
-            int next = current + 1;
-            ctx.state().put(key, next);
-            return next;
+            String next = io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters
+                    .swapValue(ctx.state(), key,
+                            raw -> Integer.toString(parseCounter(raw) + 1), null);
+            return parseCounter(next);
+        }
+    }
+
+    private static int parseCounter(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 

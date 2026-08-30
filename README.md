@@ -75,6 +75,148 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | **工具结果限幅** | 结果入上下文前 20K 字符护栏（截断+提示尾+per-tool 豁免） | [spec 31](docs/spec/31-tool-result-limit.md) |
 | **黄金轨迹回归集** | 六大机制「脚本化输入→事件序列断言」行为回归防线 | [spec 32](docs/spec/32-golden-trajectories.md) |
 
+## 生产级纵深（effort #7–#35 增量）
+
+> 此后各 effort 的精选主线（全量见 [docs/spec/](docs/spec/) 与 [运维手册](docs/ops-runbook.md)；每项默认零行为变化或 opt-in）。
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 共享与原子性 | 共享限流闸 | Redis 分钟固定窗——全实例同一份 RPM/TPM 额度 | [spec 54](docs/spec/54-shared-rate-limit.md) |
+| | 原子计数写 | state store CAS 原语（内存/JDBC/Redis WATCH）+ 配额/runaway/budget 三处统一——多实例不丢计数 | [spec 56](docs/spec/56-shared-quota-atomic.md) / [62](docs/spec/62-counter-atomicity-spread.md) |
+| | 共享熔断闸 | 任一实例跳闸全实例 OPEN（TTL 标记）；探测达标任一实例清除恢复 | [spec 57](docs/spec/57-shared-circuit-breaker.md) |
+| 缓存与前缀 | 精确响应缓存 | 终态答案键值命中零模型调用（LRU-TTL + 流式重放） | [spec 53](docs/spec/53-response-cache.md) |
+| | 语义缓存 | 同义问法 embedding 相似度命中（FAQ 型负载省模型调用） | [spec 55](docs/spec/55-semantic-cache.md) |
+| | 技能目录语义排序/检索语义面 | 注入与检索按当前问法相似度排序（预算内保最相关；零命中近邻提示） | [spec 59](docs/spec/59-skill-semantic-ranking.md) / [73](docs/spec/73-skill-search-semantic.md) |
+| | 前缀稳定注入序 | 稳定块前置最大化 provider KV-cache 前缀命中 | [spec 66](docs/spec/66-prefix-stable-injection.md) |
+| | 延迟感知备模型排序 | 降级链按 EMA 延迟升序尝试（快者优先） | [spec 64](docs/spec/64-latency-aware-fallback.md) |
+| 评估闭环 | 评估数据集/runner/查询 | 数据集 + 隔离执行 + 三态记录 + 回流（负反馈/会话轨迹建集） | [spec 52](docs/spec/52-eval-loop.md) / [72](docs/spec/72-trajectory-importer.md) |
+| | LLM-as-judge / 成对对比 | judge 评分协议 + A/B 双向裁定消位置偏差 + 一键 A/B 胜率（run 落盘可回溯 + 完成事件） | [spec 61](docs/spec/61-llm-judge-evaluator.md) / [63](docs/spec/63-pairwise-judge.md) / [71](docs/spec/71-pairwise-eval-runner.md) / [74](docs/spec/74-ab-run-persistence.md) / [75](docs/spec/75-ab-run-events.md) |
+| | 评估并行执行 | 虚拟线程并行 + 项序聚合确定性 | [spec 68](docs/spec/68-parallel-eval.md) |
+| 观测与分析 | 观测 OLAP JSONL 导出 | spans/events 一行一 JSON（DuckDB/ClickHouse 直装）+ 增量水位 | [spec 60](docs/spec/60-observability-jsonl-export.md) / [67](docs/spec/67-olap-incremental-export.md) |
+| | outbox 读放大消减 | 容量计数下推 + Redis 流水线批量读 | [spec 58](docs/spec/58-outbox-scan-amplification.md) |
+| 恢复与压缩 | 崩溃自愈 watchdog | 启动自动接管疑似崩溃 run（租约门不打扰活跃实例） | [spec 69](docs/spec/69-crash-resume-watchdog.md) |
+| | 边界机会压缩 | 待摘积压达阈值在轮边界提前摘要（宽松态生成） | [spec 70](docs/spec/70-boundary-compaction.md) |
+| 成本归因 | agent 级成本台账 | 按 agentName 跨会话累计 tokens/microUsd（CAS 原子） | [spec 65](docs/spec/65-agent-cost-ledger.md) |
+
+## 生产级纵深（effort #36–#55 增量）
+
+50 轮自迭代会话前半程的精选主线（详设 spec 75–94；每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 评估闭环 | A/B run 完成事件 + 明细查询 | `ab.run.completed` 家族事件（与落盘正交）+ `abRun(runId)` verdict 面回读 | [spec 75](docs/spec/75-ab-run-events.md) / [76](docs/spec/76-ab-run-detail-query.md) |
+| | 活跃 run gauge | `buzhou.eval.runs.active`（tag kind）在飞计数，runId/close 双幂等 | [spec 77](docs/spec/77-run-registry-gauge.md) |
+| | 评估回归门 | `EvalGate.enforce`——CI 一行判定（error 计入分母从严 + 失败预览） | [spec 80](docs/spec/80-eval-gate.md) |
+| | run 对比 diff | 四态迁移（REGRESSION/FIX/稳定态）+ 数据集漂移显形 + netDelta | [spec 81](docs/spec/81-run-diff.md) / [82](docs/spec/82-dataset-fingerprint.md) |
+| | Ragas/G-Eval 数值评估 | faithfulness/answerRelevancy 连续分 + 自定义维度打分（S x/y 协议） | [spec 87](docs/spec/87-ragas-evaluators.md) / [89](docs/spec/89-geval-dimension.md) |
+| | run JSONL 导出（eval+AB） | 汇总列反规范化一行一 JSON——质量-行为 OLAP 联合分析 | [spec 88](docs/spec/88-eval-run-jsonl-export.md) / [94](docs/spec/94-ab-run-jsonl-export.md) |
+| 存储与索引 | 键序区间扫描 SPI | `scanByKeyRange` 三栈下推（JDBC ORDER BY / Redis 键侧过滤）——时间编键结构底座 | [spec 78](docs/spec/78-key-range-scan.md) / [98](docs/spec/98-redis-key-range.md) |
+| | outbox due 索引 | `due.<零垫ts>` 双写 + 键序区间调度 + 自愈 + 审计（投递停摆提前可见） | [spec 79](docs/spec/79-outbox-due-index.md) / [96](docs/spec/96-due-index-audit.md) |
+| 韧性与隔离 | agent 并发 Turn 隔离舱 | per-agent 信号量（spawn 闸限会话数、本舱限 Turn 数正交）；resilience4j Bulkhead 借鉴 | [spec 84](docs/spec/84-agent-bulkhead.md) |
+| 观测与运维 | 错误签名聚类 + 健康面 | 归一化折叠成有界族（Sentry fingerprint）+ `/actuator/buzhou` top 段 | [spec 83](docs/spec/83-error-signatures.md) / [85](docs/spec/85-error-signatures-health.md) / [92](docs/spec/92-bulkhead-health.md) |
+| | 配置体检 doctor | 拼错键近邻建议 + 值域越界 ERROR（启动期一次，只读） | [spec 91](docs/spec/91-config-doctor.md) |
+| | 会话归档冷层 | 删除前三槽快照冷存 + restore 回放（fail-fast 不删安全网） | [spec 97](docs/spec/97-session-archiver.md) |
+| 护栏 | 工具输出 PII 脱敏 | 5 型规则式（校验位收窄误报）+ `[PII:TYPE]` 占位符（Presidio 借鉴） | [spec 86](docs/spec/86-pii-redaction.md) |
+| 记忆 | 语义漂移触发压缩 | 话题漂移提前折入摘要（词面 SPI 可换 embedding）；trigger 溯源事件 | [spec 90](docs/spec/90-semantic-drift-compaction.md) / [95](docs/spec/95-summary-folded-trigger.md) |
+
+## 生产级纵深（effort #56–#83 增量）
+
+50 轮自迭代会话后半程的精选主线（详设 spec 99–121）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 评估闭环 | A/B 胜率门 + 版本查询 | 换版验收一行判定（error 不入分母）+ run/AB run 按数据集版本聚合 | [spec 101](docs/spec/101-ab-win-rate-gate.md) / [113](docs/spec/113-runs-of-version.md) / [114](docs/spec/114-ab-runs-of-version.md) |
+| | 数据集快照 + run 对比 | 冻结版本（原 id 复制指纹一致）+ 四态迁移 diff | [spec 100](docs/spec/100-dataset-snapshot.md) / [81](docs/spec/81-run-diff.md) |
+| 护栏 | 用户输入 PII 脱敏 + 自定义规则 | beforeTurn 占位符化 + 领域命名正则（Presidio PatternRecognizer） | [spec 106](docs/spec/106-pii-input-redaction.md) / [118](docs/spec/118-custom-pii-rules.md) |
+| 运维与治理 | 配置体检 v2 + 健康段 | 跨键矛盾规则（NOOP 空转/孤儿依赖）+ config-doctor 健康缓存 | [spec 115](docs/spec/115-doctor-cross-key-rules.md) / [107](docs/spec/107-config-doctor-health.md) |
+| | 会话归档治理 | 删除前三槽冷存 + restore 回放 + TTL 清理 + 审计详情 | [spec 97](docs/spec/97-session-archiver.md) / [103](docs/spec/103-archive-ttl-purge.md) / [120](docs/spec/120-archive-detail-query.md) |
+| | 一致性工具 | outbox due 索引审计（孤儿/陈旧/缺失）——投递停摆提前可见 | [spec 96](docs/spec/96-due-index-audit.md) |
+| | webhook 订阅过滤 | include-types 命中才入队（被滤不占容量） | [spec 105](docs/spec/105-webhook-type-filter.md) |
+| 观测 | 错误签名闭环 | tool+model 双族 + 健康段 + JSONL 导出 + 窗口化清零 | [spec 83](docs/spec/83-error-signatures.md)–[85](docs/spec/85-error-signatures-health.md) / [112](docs/spec/112-signatures-jsonl-export.md) / [121](docs/spec/121-signatures-reset.md) |
+| | gzip 导出族 + 时长遥测 | 观测 gzip 三入口（全量/增量/单会话）+ 工具/评估 run 时长 timer | [spec 109](docs/spec/109-observability-gzip-export.md) / [119](docs/spec/119-session-gzip-export.md) / [108](docs/spec/108-tool-duration-timer.md) / [111](docs/spec/111-eval-run-duration-timer.md) |
+| | 技能双遥测 | 目录注入（截断率）+ skill_search 三态命中率 | [spec 110](docs/spec/110-catalog-telemetry.md) / [116](docs/spec/116-skill-search-telemetry.md) |
+| 韧性 | bulkhead 拒绝计数 | per-agent 进程内表 + 健康 topRejected——限流风暴定位 | [spec 117](docs/spec/117-bulkhead-rejection-stats.md) |
+
+## 生产级纵深 II（effort #86–#144 增量）
+
+第二期自迭代会话（双会话并行 A/B 分工）的精选主线（详设 spec 122–200）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 并发与背压 | superstep 原子批 + spawn 优先级 | harness 前检整批不派发（BATCH_ABORTED 可区分未执行）+ 三级抢占排队 / 完成序快速失败通用原语 | [spec 122](docs/spec/122-atomic-superstep-batch.md) / [123](docs/spec/123-spawn-priority.md) / [122A](docs/spec/122-superstep-batch.md) |
+| | 重试预算 | 配额随流量百分比累积——上游故障时重试自动勒紧防雪崩（Finagle） | [spec 178](docs/spec/178-retry-budget.md) |
+| 预算与成本 | 虚拟 key 配额闭环 | yml 两键装配 + 跨会话扣减 + 耗尽拦截 + 健康段（LiteLLM） | [spec 124](docs/spec/124-virtual-keys.md) / [148](docs/spec/148-key-budget-gate.md) / [158](docs/spec/158-vkeys-yml.md) / [154](docs/spec/154-vkeys-health.md) |
+| | 模型成本台账 | 零配置自动入账 + 排行/总数/JSONL 双口径账单 + 健康段（WandB/Langfuse） | [spec 174](docs/spec/174-model-cost-ledger.md) / [176](docs/spec/176-ledger-wiring.md) / [188](docs/spec/188-cost-export.md) / [190](docs/spec/190-cost-health.md) |
+| 韧性观测 | 轮次心跳三件套 | 表 + 钩子自动打点 + 巡检犬（「活着但不动」可见，Temporal/K8s） | [spec 138](docs/spec/138-turn-heartbeat.md) / [152](docs/spec/152-heartbeat-hook.md) / [162](docs/spec/162-stall-watchdog.md) |
+| | 多实例单跑 | 文件咨询锁（抢/还/陈旧回收）+ 清理与巡检犬接锁档（ShedLock） | [spec 182](docs/spec/182-advisory-file-lock.md) / [184](docs/spec/184-purge-lock.md) / [186](docs/spec/186-watchdog-lock.md) |
+| 评估与合规 | 数据集期望门禁 | 四内置 + 自定义行级期望，run 前脏数据零 token 出局 + 宽松档（Great Expectations） | [spec 134](docs/spec/134-dataset-expectations.md) / [150](docs/spec/150-runner-expectation-gate.md) / [198](docs/spec/198-warn-gate.md) |
+| | PII 合规三面 | 双侧命中排行 + JSONL 报表 + 输入侧接线（Presidio 口径） | [spec 144](docs/spec/144-pii-hit-stats.md) / [166](docs/spec/166-pii-report-export.md) / [164](docs/spec/164-input-pii-stats.md) |
+| 观测治理 | 尾采样 + 清单导出 | 错误/慢会话全留 + 确定性哈希留样（OTel）+ manifest 六列目录（git pack） | [spec 136](docs/spec/136-tail-sampling-export.md) / [146](docs/spec/146-export-manifest.md) |
+| | tag 基数守卫 + 目录渲染缓存 | 「tag 有界」从纪律变机制（opt-in 装配，Loki）+ 内容寻址渲染命中（vLLM radix） | [spec 132](docs/spec/132-tag-cardinality-guard.md) / [160](docs/spec/160-guard-install.md) / [168](docs/spec/168-render-cache.md) |
+| | 技能热度账 | load 打点 + 排行/零使用清单 + 窗口报表（Backstage catalog score） | [spec 140](docs/spec/140-skill-usage-stats.md) / [170](docs/spec/170-skill-report-export.md) |
+| 基础设施 | 租户隔离 + 归档定时 | tenants/<t> 沙箱严格收窄 + purge 三键默认关定时清理（Milvus/S3） | [spec 125](docs/spec/125-tenant-sandbox.md) / [130](docs/spec/130-archive-purge-job.md) |
+| 质量 | 性质测试层 | 五不变量 × 随机输入（jqwik 思想零依赖）+ starter 全量验证轮 | [spec 180](docs/spec/180-property-invariants.md) / [200](docs/spec/200-starter-verify.md) |
+
+## 生产级纵深 III（B 会话 200 系增量）
+
+B 会话（.wayfinder200+ 号段）的精选主线（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 工具韧性 | 工具级熔断 + 幂等重试 | 失败率滑窗跳闸/冷却/半开探测（resilience4j）+ 只读工具异常静默退避重试（Temporal） | [spec 131](docs/spec/131-tool-circuit-breaker.md) / [133](docs/spec/133-idempotent-tool-retry.md) |
+| | 在飞合并 + 轮内 memo | 同键并发折叠一次执行扇出（Hystrix collapsing）+ 同轮复读秒回首轮值（request caching） | [spec 139](docs/spec/139-tool-call-coalescer.md) / [147](docs/spec/147-turn-memo.md) |
+| | 工具健康探测 | 宿主探针周期探活，翻转才通知——挂了提前知道（Consul） | [spec 165](docs/spec/165-tool-health-probe.md) |
+| 模型韧性 | 对冲请求 + 端点离群驱逐 | 长尾并发押注先回先得（gRPC hedging）+ 连错端点逐出备选池窗口复池（Envoy） | [spec 137](docs/spec/137-hedged-model.md) / [149](docs/spec/149-model-outlier-ejection.md) |
+| 会话治理 | 会话检疫 + 优雅排水 | 连败指数退避隔离（Erlang supervisor）+ 维护下线拒新等旧排空（K8s drain） | [spec 143](docs/spec/143-session-quarantine.md) / [155](docs/spec/155-session-drain.md) |
+| | spawn 优先级 + 自适应舱 | 三级抢占排队同级 FIFO（OS 多级队列）+ AIMD 动态并发上限（TCP/HPA） | [spec 123](docs/spec/123-spawn-priority.md) / [145](docs/spec/145-adaptive-bulkhead.md) |
+| 缓存与去重 | 共享 Redis 语义缓存 | 桶 HASH + 客户端 cosine 最近邻跨实例命中（RediSearch 语义可移植实现） | [spec 125](docs/spec/125-redis-semantic-vector-cache.md) |
+| 护栏 | PII yml 声明式 + 角色权限 | custom-rules 两形态装配期 fail-fast + 角色通配面 fail-closed（K8s RBAC） | [spec 129](docs/spec/129-pii-yml-custom-rules.md) / [141](docs/spec/141-tool-role-permissions.md) |
+| | 凭证租约 | 密钥 TTL 签发/续租/吊销——泄漏面从永久缩到 TTL 内（Vault） | [spec 153](docs/spec/153-secret-leases.md) |
+| 投递可靠 | outbox 滞后面 + 序号围栏 | 最老积压 age（含退避中）stalled 判定 + 信封单调 seq 缺口显形（Kafka） | [spec 135](docs/spec/135-outbox-lag.md) / [159](docs/spec/159-delivery-seq-fence.md) |
+| | 多 sink 扇出 | N 目的地独立投递语义/outbox 隔离/类型路由（Kafka 多消费组） | [spec 151](docs/spec/151-webhook-fanout.md) |
+| 观测与预算 | 舱集群聚合 + 会话特征 | 心跳共享事实双列快照（spec57 范式）+ 行为侧写一次定义多处消费（Feast） | [spec 127](docs/spec/127-bulkhead-cluster-aggregation.md) / [161](docs/spec/161-session-features.md) |
+| | 弹性预算池 + 配置热重载 | 保底配额+surplus 借用（Spark AQE）+ volatile 换引用版本化订阅（Caddy） | [spec 157](docs/spec/157-elastic-budget-pool.md) / [163](docs/spec/163-reloadable-config.md) |
+| 防泛洪 | 输入泛洪防护 + per-tool 配额 | 相同输入窗口计数超阈拦（网关风暴防护）+ 单工具会话内上限（per-API quota） | [spec 167](docs/spec/167-input-flood-guard.md) / [185](docs/spec/185-tool-session-quota.md) |
+| 工具治理 | 结果裁剪 + 跨轮 TTL 缓存 | fail-open 变换提炼字段（VRL/jq）+ 只读工具 maxAge 复用窗（HTTP max-age） | [spec 169](docs/spec/169-tool-result-transform.md) / [183](docs/spec/183-tool-ttl-cache.md) |
+| | 工具泳道 + 目录漂移看门狗 | 慢工具独立泳道许可（Hystrix 舱）+ 指纹基线变化即事件（SBOM 闭环） | [spec 173](docs/spec/173-tool-lanes.md) / [201](docs/spec/201-catalog-drift-watcher.md) |
+| 模型路由 | 平滑加权分流 + 影子读 | Nginx smooth WRR 比例精确分布平滑 + 采样旁路对照主影子（Istio mirror） | [spec 199](docs/spec/199-weighted-router.md) / [189](docs/spec/189-shadow-probe.md) |
+| | 降级链演练 + 目录指纹 | 备胎主动验证持证上岗（Envoy 健康检查）+ 工具面 SBOM 对账 | [spec 195](docs/spec/195-fallback-drill.md) / [175](docs/spec/175-tool-catalog-fingerprint.md) |
+| 可靠性闭环 | 导出防篡改清单 + 事件去重 | 逐项摘要+总摘要 verify 三列（OCI manifest）+ 发射侧指纹环拦截重复 | [spec 193](docs/spec/193-export-manifest.md) / [203](docs/spec/203-event-dedup.md) |
+| | 序号围栏 + 凭证租约 | 信封单调 seq 缺口显形（Kafka）+ 密钥 TTL 签发续租吊销（Vault） | [spec 159](docs/spec/159-delivery-seq-fence.md) / [153](docs/spec/153-secret-leases.md) |
+| 观测治理 | 轮时延计时 + 上下文水位 | 端到端轮 timer+滚动窗读数 + 低水位翻转事件预警线 | [spec 191](docs/spec/191-turn-timing.md) / [181](docs/spec/181-context-watermark.md) |
+| | 空闲水位 + 配置指纹 | 特征仓事实驱动的空闲判定（Flink watermark）+ 配置面漂移对账 | [spec 179](docs/spec/179-idle-session-monitor.md) / [187](docs/spec/187-config-fingerprint.md) |
+| 运行闸 | 模型调用循环闸 + 维护模式门 | 轮内调用总闸费用硬顶 + 全局温和拒新维护窗（K8s cordon） | [spec 197](docs/spec/197-model-call-cap.md) / [205](docs/spec/205-maintenance-gate.md) |
+| 治理与验证 | 降级链单窗 + 事件 schema 门 | 三源合成备胎全景（Grafana 单窗）+ payload 必备键 fail-closed | [spec 207](docs/spec/207-fallback-chain-view.md) / [209](docs/spec/209-event-schema-check.md) |
+| | webhook 全链 E2E + spec 覆盖门 | 五件叠链五联断言（集成证明）+ README↔spec 双向完整性测试 | [spec 211](docs/spec/211-webhook-pipeline-e2e.md) / [213](docs/spec/213-spec-coverage-gate.md) |
+
+### spec 全量索引补录
+
+分组表按「精选不穷举」引用；其余详设全清单在此按文件名可寻（覆盖门 213 保证
+本索引与 docs/spec 双向一致）：
+
+[23-ops-api-final](docs/spec/23-ops-api-final.md)、[33-index-hardening](docs/spec/33-index-hardening.md)、
+[34-golden-and-compaction-events](docs/spec/34-golden-and-compaction-events.md)、[35-resilience-skills-input](docs/spec/35-resilience-skills-input.md)、
+[36-export-extensions-dashboard](docs/spec/36-export-extensions-dashboard.md)、[37-search-replay-retention](docs/spec/37-search-replay-retention.md)、
+[38-migrator-golden-redteam](docs/spec/38-migrator-golden-redteam.md)、[39-observability-health-redteam](docs/spec/39-observability-health-redteam.md)、
+[40-static-security-determinism](docs/spec/40-static-security-determinism.md)、[41-audit-rotation-clock](docs/spec/41-audit-rotation-clock.md)、
+[42-migrator-guard-read-degrade](docs/spec/42-migrator-guard-read-degrade.md)、[43-command-limits-config-validation](docs/spec/43-command-limits-config-validation.md)、
+[44-drain-and-observability](docs/spec/44-drain-and-observability.md)、[45-golden-redteam-perf](docs/spec/45-golden-redteam-perf.md)、
+[46-stream-observability](docs/spec/46-stream-observability.md)、[47-mdc-feedback](docs/spec/47-mdc-feedback.md)、
+[48-feedback-export-canary](docs/spec/48-feedback-export-canary.md)、[49-shadow-pool-quota](docs/spec/49-shadow-pool-quota.md)、
+[50-error-codes-jitter](docs/spec/50-error-codes-jitter.md)、[51-defenses-4](docs/spec/51-defenses-4.md)、
+[93-ab-run-fingerprint](docs/spec/93-ab-run-fingerprint.md)、[99-summary-fold-counters](docs/spec/99-summary-fold-counters.md)、
+[102-archive-health](docs/spec/102-archive-health.md)、[104-model-error-signatures](docs/spec/104-model-error-signatures.md)、
+[126-prefix-cache](docs/spec/126-prefix-cache.md)、[142-doctor-staleness](docs/spec/142-doctor-staleness.md)、
+[171-summary-provenance](docs/spec/171-summary-provenance.md)、[172-archive-matrix](docs/spec/172-archive-matrix.md)、
+[177-event-payload-redaction](docs/spec/177-event-payload-redaction.md)、[192-cost-health-bean](docs/spec/192-cost-health-bean.md)、
+[194-gzip-resetall](docs/spec/194-gzip-resetall.md)、[196-topkind-stalledsince](docs/spec/196-topkind-stalledsince.md)、
+[202-readme-archive](docs/spec/202-readme-archive.md)、[204-fold-counter](docs/spec/204-fold-counter.md)、
+[206-bulk-deposit](docs/spec/206-bulk-deposit.md)、[208-properties-2](docs/spec/208-properties-2.md)、
+[210-runbook](docs/spec/210-runbook.md)、[212-common-defaults](docs/spec/212-common-defaults.md)、
+[214-clearall-usageall](docs/spec/214-clearall-usageall.md)、[216-fog-ledger](docs/spec/216-fog-ledger.md)、
+[218-ab-ledger](docs/spec/218-ab-ledger.md)、[220-preverify](docs/spec/220-preverify.md)、
+[222-session-close](docs/spec/222-session-close.md)。
+
 ## 技术基线
 
 | 依赖 | 版本 |
@@ -262,6 +404,7 @@ try (AgentSession session = runtime.spawn("app", "agent", "session-1")) {
 - [13 生产收口](docs/spec/13-production-hardening.md) — core/memory/spill/guard 生产级收口（生命周期/错误分类/泄漏检测/健康指标/配置校验）
 - [14 外围收口](docs/spec/14-perimeter-hardening.md) — 观测三模块安全化 + mcp/skills/tools 收口 + resilience/runaway/容量闸移植 + 配置元数据/红队/CI 基建
 - [15 模型韧性与失控防护](docs/spec/15-model-resilience.md) — 重试/退避/错误分类/限流/失控检测四层硬顶/会话容量闸机制详设
+- **spec 16–74（effort #5–#35 增量纵深）** — 共享与原子性 / 缓存与前缀 / 评估闭环 / 观测与分析 / 恢复与压缩 / 成本归因（精选主线见上方「生产级纵深（effort #7–#35 增量）」表；全量清单在 [docs/spec/](docs/spec/)，运维口径在 [docs/ops-runbook.md](docs/ops-runbook.md)）
 - [RELEASING.md](RELEASING.md) — 发布到 Maven Central 的流程
 
 ## 兼容矩阵

@@ -32,6 +32,8 @@ final class WebhookOutbox {
     static final String SESSION_ID = "__buzhou.webhook__";
     static final String OUTBOX_PREFIX = "outbox.";
     static final String DEAD_PREFIX = "dead.";
+    /** spec 79 §A / T311：due-time 索引前缀（键 = due.<16 位零垫 nextAttemptAt>.<eventId>）。 */
+    static final String DUE_PREFIX = "due.";
     private static final String META_KEY = "meta.initialized";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final System.Logger LOGGER = System.getLogger(WebhookOutbox.class.getName());
@@ -65,12 +67,18 @@ final class WebhookOutbox {
         this.store = Objects.requireNonNull(store, "store");
         this.capacity = capacity;
         long maxSeq = 0;
-        for (String prefix : new String[]{OUTBOX_PREFIX, DEAD_PREFIX}) {
-            for (StateEntry entry : store.scanByPrefix(SESSION_ID, prefix).values()) {
-                OutboxRecord r = parse(entry.value());
-                if (r != null) {
-                    maxSeq = Math.max(maxSeq, r.seq());
-                }
+        for (StateEntry entry : store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).values()) {
+            OutboxRecord r = parse(entry.value());
+            if (r != null) {
+                maxSeq = Math.max(maxSeq, r.seq());
+                // spec 79 §A / T311：存量记录 due 索引回填（幂等——旧版无索引数据迁移）
+                store.put(SESSION_ID, indexEntry(dueKey(r), r.eventId()));
+            }
+        }
+        for (StateEntry entry : store.scanByPrefix(SESSION_ID, DEAD_PREFIX).values()) {
+            OutboxRecord r = parse(entry.value());
+            if (r != null) {
+                maxSeq = Math.max(maxSeq, r.seq());
             }
         }
         this.seq = new AtomicLong(maxSeq);
@@ -86,45 +94,98 @@ final class WebhookOutbox {
         long now = System.currentTimeMillis();
         OutboxRecord record = new OutboxRecord(eventId, type, body, seq.incrementAndGet(), 0, now, now);
         store.put(SESSION_ID, entry(record));
+        store.put(SESSION_ID, indexEntry(dueKey(record), eventId));
         return true;
     }
 
-    /** 到期记录（nextAttemptAt <= now，按 seq 升序，limit 截断）。损坏记录就地隔离为死信。 */
+    /**
+     * 到期记录（nextAttemptAt <= now，按 seq 升序，limit 截断）。spec 79 §A / T311：
+     * 经 due-time 索引键序区间读（scanByKeyRange）取最早到期者——退避积压不再全量
+     * 读值；索引自愈：孤儿（记录已删）与陈旧（记录已后移）就地清键。损坏记录隔离
+     * 死信。limit 按到期序先取（重退避者不再被挤饿——与旧全量扫的 seq 优先差异
+     * 显性化于此，spec 79 §A 定案）。
+     */
     List<OutboxRecord> due(Instant now, int limit) {
-        return store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).entrySet().stream()
-                .map(e -> Map.entry(e.getKey(), parse(e.getValue().value())))
-                .filter(e -> {
-                    if (e.getValue() == null) {
-                        quarantine(e.getKey());
-                        return false;
+        List<OutboxRecord> out = new java.util.ArrayList<>();
+        store.scanByKeyRange(SESSION_ID, DUE_PREFIX, null,
+                DUE_PREFIX + pad(now.toEpochMilli() + 1), limit)
+                .forEach((indexKey, indexEntry) -> {
+                    String eventId = eventIdOf(indexKey);
+                    java.util.Optional<StateEntry> recordEntry =
+                            store.get(SESSION_ID, OUTBOX_PREFIX + eventId);
+                    if (recordEntry.isEmpty()) {
+                        store.delete(SESSION_ID, indexKey); // 孤儿索引：自愈清键
+                        return;
                     }
-                    return e.getValue().dueAt(now);
-                })
-                .map(Map.Entry::getValue)
-                .sorted(Comparator.comparingLong(OutboxRecord::seq))
-                .limit(limit)
-                .toList();
+                    OutboxRecord r = parse(recordEntry.get().value());
+                    if (r == null) {
+                        quarantine(OUTBOX_PREFIX + eventId);
+                        store.delete(SESSION_ID, indexKey);
+                        return;
+                    }
+                    if (!r.dueAt(now)) {
+                        store.delete(SESSION_ID, indexKey); // 陈旧索引：记录已后移，新键在位
+                        return;
+                    }
+                    out.add(r);
+                });
+        out.sort(Comparator.comparingLong(OutboxRecord::seq));
+        return out;
     }
 
-    /** 投递成功即删（幂等键头已让消费端可去重，端上不留窗口——spec 24 定案）。 */
-    void delete(String eventId) {
-        store.delete(SESSION_ID, OUTBOX_PREFIX + eventId);
+    /** 投递成功即删（幂等键头已让消费端可去重，端上不留窗口——spec 24 定案；索引键同删）。 */
+    void delete(OutboxRecord record) {
+        store.delete(SESSION_ID, OUTBOX_PREFIX + record.eventId());
+        store.delete(SESSION_ID, dueKey(record));
     }
 
-    /** 退避状态回写（attempts/nextAttemptAt 持久化，重启后自然续跑）。 */
-    void update(OutboxRecord record) {
-        store.put(SESSION_ID, entry(record));
+    /** 退避状态回写（attempts/nextAttemptAt 持久化，重启后自然续跑；索引键随迁）。 */
+    void update(OutboxRecord previous, OutboxRecord updated) {
+        store.put(SESSION_ID, entry(updated));
+        store.delete(SESSION_ID, dueKey(previous));
+        store.put(SESSION_ID, indexEntry(dueKey(updated), updated.eventId()));
     }
 
-    /** 死信隔离：outbox 键迁移 dead 键，容量随之释放。 */
+    /** 死信隔离：outbox 键迁移 dead 键，容量随之释放（索引键同删）。 */
     void markDead(OutboxRecord record) {
         store.delete(SESSION_ID, OUTBOX_PREFIX + record.eventId());
+        store.delete(SESSION_ID, dueKey(record));
         store.put(SESSION_ID, new StateEntry(DEAD_PREFIX + record.eventId(),
                 toJson(record), "webhook-outbox", 0, null, Instant.now()));
     }
 
+    /** spec 58 §A / T259：容量计数走 countByPrefix 下推（append 热路径不再全量读值）。 */
     int pendingCount() {
-        return store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).size();
+        return store.countByPrefix(SESSION_ID, OUTBOX_PREFIX);
+    }
+
+    /**
+     * spec 135 / T483：最老待投记录（全量扫含<b>退避中</b>——due() 只见到期者；
+     * 取 createdAt 最早）。损坏记录跳过（隔离归 due() 路径既有语义）；无积压 = empty。
+     */
+    java.util.Optional<OutboxRecord> pendingOldest(int scanLimit) {
+        OutboxRecord oldest = null;
+        for (Map.Entry<String, StateEntry> e
+                : store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).entrySet()) {
+            if (scanLimit-- <= 0) {
+                break;
+            }
+            OutboxRecord r = parse(e.getValue().value());
+            if (r == null) {
+                continue;
+            }
+            if (oldest == null || r.createdAtEpochMs() < oldest.createdAtEpochMs()
+                    || (r.createdAtEpochMs() == oldest.createdAtEpochMs()
+                            && r.seq() < oldest.seq())) {
+                oldest = r;
+            }
+        }
+        return java.util.Optional.ofNullable(oldest);
+    }
+
+    /** 死信计数（spec 135 lag 面）。 */
+    int deadCount() {
+        return store.countByPrefix(SESSION_ID, DEAD_PREFIX);
     }
 
     /** spec 37 §B / T133 / impl-106：死信迁回 outbox（attempts=0、立即可投递）；容量满则停。 */
@@ -140,13 +201,34 @@ final class WebhookOutbox {
                 continue; // 损坏死信：丢弃（已在隔离期暴露过）
             }
             long now = System.currentTimeMillis();
+            OutboxRecord revived = new OutboxRecord(dead.eventId(), dead.type(), dead.body(),
+                    seq.incrementAndGet(), 0, now, dead.createdAtEpochMs());
             store.put(SESSION_ID, new StateEntry(OUTBOX_PREFIX + dead.eventId(),
-                    toJson(new OutboxRecord(dead.eventId(), dead.type(), dead.body(),
-                            seq.incrementAndGet(), 0, now, dead.createdAtEpochMs())),
-                    "webhook-outbox", 0, null, Instant.now()));
+                    toJson(revived), "webhook-outbox", 0, null, Instant.now()));
+            store.put(SESSION_ID, indexEntry(dueKey(revived), dead.eventId()));
             requeued++;
         }
         return requeued;
+    }
+
+    // ---- spec 79 §A / T311：due-time 索引键工具 ----
+
+    private static String dueKey(OutboxRecord record) {
+        return DUE_PREFIX + pad(record.nextAttemptAtEpochMs()) + "." + record.eventId();
+    }
+
+    /** 16 位零垫十进制（字典序 = 数值序；epoch millis 13 位，3 位余量到 ~2286 年）。 */
+    private static String pad(long epochMs) {
+        return String.format("%016d", epochMs);
+    }
+
+    private static String eventIdOf(String indexKey) {
+        String rest = indexKey.substring(DUE_PREFIX.length());
+        return rest.substring(rest.indexOf('.') + 1);
+    }
+
+    private static StateEntry indexEntry(String dueKey, String eventId) {
+        return new StateEntry(dueKey, eventId, "webhook-outbox", 0, null, Instant.now());
     }
 
     private StateEntry entry(OutboxRecord record) {

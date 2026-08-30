@@ -87,6 +87,9 @@ public class ResilienceAdvisor implements BaseAdvisor {
     /** 候选级限流闸（spec 49 §B / T177）：null = 未配置（候选调用不限流，既有行为）。 */
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter candidateLimiter;
 
+    /** spec 64 §A / T279：延迟感知排序追踪（null = 不计时；12 参构造二次注入故非 final）。 */
+    private volatile io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackLatencyTracker latencyTracker;
+
     public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
                              Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
                              ModelCallInFlight inFlight) {
@@ -154,6 +157,35 @@ public class ResilienceAdvisor implements BaseAdvisor {
         this.fallback = fallback;
         this.shadow = shadow;
         this.candidateLimiter = candidateLimiter;
+        this.latencyTracker = null;
+    }
+
+    /** spec 64 §A / T279：带延迟追踪的全参构造（tracker 非 null 时备模型调用计时入 EMA）。 */
+    public ResilienceAdvisor(ResilienceProperties config, ProviderErrorClassifier classifier,
+                             Consumer<SessionEvent> emitter, ExecutorService deadlineExecutor,
+                             ModelCallInFlight inFlight, ResilienceStats stats,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker circuit,
+                             String modelName,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter candidateLimiter,
+                             io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackLatencyTracker latencyTracker) {
+        this(config, classifier, emitter, deadlineExecutor, inFlight, stats, circuit, modelName,
+                fallback, shadow, candidateLimiter);
+        this.latencyTracker = latencyTracker;
+    }
+
+    /** spec 64 §A / T279：模型级调用计时（备模型/金丝雀目标；纯模型延迟不含 advisor 链）。 */
+    private ChatClientResponse timedModelCall(String name,
+            org.springframework.ai.chat.model.ChatModel model, ChatClientRequest request) {
+        long start = System.nanoTime();
+        try {
+            return new ChatClientResponse(model.call(request.prompt()), request.context());
+        } finally {
+            if (latencyTracker != null) {
+                latencyTracker.record(name, (System.nanoTime() - start) / 1_000_000);
+            }
+        }
     }
 
     @Override
@@ -266,7 +298,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
         }
         try {
             ChatClientResponse response = callWithDeadline(
-                    () -> new ChatClientResponse(target.model().call(request.prompt()), request.context()));
+                    () -> timedModelCall(targetName, target.model(), request));
             if (circuit != null) {
                 circuit.recordSuccess(targetName, emitter);
             }
@@ -336,7 +368,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 continue;
             }
             candidates.add(new Candidate(fb.name(),
-                    () -> new ChatClientResponse(fb.model().call(request.prompt()), request.context())));
+                    () -> timedModelCall(fb.name(), fb.model(), request)));
         }
         for (Candidate candidate : candidates) {
             if (!tryAcquireCandidateQuota(candidate.name())) {
@@ -411,7 +443,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
             }
             try {
                 ChatClientResponse response = callWithDeadline(
-                        () -> new ChatClientResponse(fb.model().call(request.prompt()), request.context()));
+                        () -> timedModelCall(fb.name(), fb.model(), request));
                 if (circuit != null) {
                     circuit.recordSuccess(fb.name(), emitter);
                 }

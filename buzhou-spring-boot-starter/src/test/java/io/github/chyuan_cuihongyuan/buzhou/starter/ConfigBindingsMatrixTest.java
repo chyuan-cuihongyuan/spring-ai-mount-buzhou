@@ -24,6 +24,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRunawayProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsProperties;
+import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouArchiveProperties;
 import io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouResilienceAutoConfiguration;
@@ -71,6 +72,7 @@ class ConfigBindingsMatrixTest {
             Map.entry("buzhou.runaway", BuzhouRunawayProperties.class),
             Map.entry("buzhou.backpressure", BuzhouBackpressureProperties.class),
             Map.entry("buzhou.tools", BuzhouToolsProperties.class),
+            Map.entry("buzhou.session-archive", BuzhouArchiveProperties.class),
             Map.entry("buzhou", BuzhouCoreProperties.class));
 
     /** env 直读键（guard / memory 模块——无 properties record，装配链走 Environment）。 */
@@ -80,23 +82,52 @@ class ConfigBindingsMatrixTest {
             "buzhou.guard.policy.enabled", "buzhou.guard.policy.source",
             "buzhou.guard.policy.refresh-interval",
             "buzhou.memory.enabled", "buzhou.memory.embedding-cache-capacity",
+            // effort#26 / spec 66 / T284：前缀稳定注入序（fromYml env 直读路径）
+            "buzhou.memory.prefix-stable-injection",
+            // effort#30 / spec 70 / T292：边界机会压缩积压阈值（fromYml env 直读路径）
+            "buzhou.memory.boundary-compact-backlog",
+            // effort#29 / spec 69 / T290：崩溃自愈 watchdog（core autoconfig env 直读路径）
+            "buzhou.recovery.auto-resume",
+            // effort#45 / spec 84 / T324：agent 并发 Turn 隔离舱（Binder 路径；agents 为结构化 map 走 SKIPPED）
+            "buzhou.bulkhead.enabled", "buzhou.bulkhead.acquire-timeout",
+            // effort#51 / spec 90 / T344：语义漂移触发（fromYml env 直读路径）
+            "buzhou.memory.semantic-drift", "buzhou.memory.semantic-drift-threshold",
+            // effort#52/#69 / spec 91/107：配置体检（@ConditionalOnProperty env 直读）
+            "buzhou.config-doctor.enabled",
+            // effort#68 / spec 106：输入侧 PII（guard fromYml env 直读）
+            "buzhou.guard.pii.input-redaction",
             "buzhou.tools.run-command.max-output-bytes",
             "buzhou.leak.level", "buzhou.leak.lease-age-threshold",
             "buzhou.mcp.grace-period", "buzhou.mcp.force-close-timeout", "buzhou.mcp.poll-interval",
             "buzhou.store.jdbc.dialect", "buzhou.store.redis.snapshot-ttl",
             "buzhou.skills.catalog-max-entries", "buzhou.skills.catalog-cache-ttl",
-            "buzhou.spill.enabled");
+            // effort#19 / spec 59 / T268：语义排序键走 fromYml env 直读路径（无 properties record 字段）
+            "buzhou.skills.semantic-ranking.enabled",
+            "buzhou.spill.enabled",
+            // effort#123 / spec 158：虚拟 key 闸（env 直读 active-key；limits 为结构化 map 走 SKIPPED）
+            "buzhou.virtual-keys.active-key",
+            // effort#124 / spec 160：tag 基数守卫 opt-in（env 直读 Boolean）
+            "buzhou.metrics.cardinality-guard.enabled",
+            // effort#130 / spec 130 补登记：归档 TTL 定时清理三键（properties Binder 面）
+            "buzhou.session-archive.purge-enabled", "buzhou.session-archive.purge-ttl",
+            "buzhou.session-archive.purge-interval");
 
     /** 复杂结构化键（List<KeyFile> 等）——样例值需文件/结构，跳过并显式登记（不静默）。 */
     private static final List<String> SKIPPED_KEYS = List.of(
+            "buzhou.bulkhead.agents", // Map<String,Integer>：Binder 结构化面（spec 84 / T324）
+            "buzhou.webhook.include-types", // List<String>：Binder 结构化面（spec 105 / T390）
             "buzhou.guard.audit.signing.keys", // List<KeyFile>：需 PEM 文件，结构化装配面
-            "buzhou.guard.audit.signing.key-dir"); // 目录扫描副作用键（防真扫）
+            "buzhou.guard.audit.signing.key-dir", // 目录扫描副作用键（防真扫）
+            "buzhou.guard.pii.custom-rules", // List<Map>：guard fromYml 结构化面（spec 129 / T475）
+            "buzhou.virtual-keys.limits"); // Map<String,Long>：Binder 结构化面（spec 158 / T511）
 
     /** 无默认值键的样例（其余按 defaultValue 或类型默认）。 */
     private static final Map<String, String> SAMPLE_OVERRIDES = Map.ofEntries(
             Map.entry("buzhou.resilience.rate-limit.requests-per-minute", "1000"),
             Map.entry("buzhou.resilience.rate-limit.tokens-per-minute", "100000"),
             Map.entry("buzhou.resilience.shadow.models", "shadowModel"),
+            // effort#24 / spec 64：延迟感知排序 enabled=true 全路径（无备模型时 tracker 不建，零行为）
+            Map.entry("buzhou.resilience.fallback.latency-aware", "true"),
             Map.entry("buzhou.spill.max-total-bytes", "1048576"),
             Map.entry("buzhou.spill.max-files-per-session", "100"),
             Map.entry("buzhou.observe.dashboard.auth-token", "sample-token"),
@@ -105,6 +136,10 @@ class ConfigBindingsMatrixTest {
             // effort#15 / spec 55：语义缓存 enabled=true 全路径（矩阵上下文配 stub EmbeddingModel
             // ——见 MatrixStubEmbeddingModel；无 bean 时 fail-fast 由红队测试覆盖）
             Map.entry("buzhou.resilience.semantic-cache.enabled", "true"),
+            // effort#19 / spec 59：技能目录语义排序 enabled=true 全路径（同上 stub 嵌入上下文；
+            // 无 bean fail-fast 由 skills 模块红队覆盖）
+            Map.entry("buzhou.skills.semantic-ranking.enabled", "true"),
+            Map.entry("buzhou.virtual-keys.active-key", "app-key"),
             Map.entry("buzhou.tools.result-limit-overrides", "sampleTool"),
             Map.entry("buzhou.runaway.per-turn.max-steps", "50"),
             Map.entry("buzhou.runaway.per-turn.max-tool-calls", "50"),
@@ -140,6 +175,9 @@ class ConfigBindingsMatrixTest {
         properties.put("buzhou.observe.otel.headers.k", "v");
         properties.put("buzhou.resilience.fallback.weights.m", "3");
         properties.put("buzhou.tools.result-limit-overrides.t", "100");
+        // effort#123 / spec 158：active-key 样例配套的 limits 子键（active-key=app-key），
+        // 否则装配期 fail-fast「limits 为空」会正确地拒掉矩阵上下文
+        properties.put("buzhou.virtual-keys.limits.app-key", "100000");
 
         java.nio.file.Path spillDir = Files.createTempDirectory("buzhou-matrix-spill");
         ScriptedChatModel model = new ScriptedChatModel();

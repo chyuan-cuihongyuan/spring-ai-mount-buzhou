@@ -29,6 +29,7 @@
 - **Span** — 有始有终、可嵌套的执行区间（会话 ⊃ 轮次 ⊃ 模型调用/工具调用）。
 - **Event** — Span 内部的关键瞬间：思维链（Thinking）、最终回复、工具入参/出参、错误。
 - **认知可观测（Cognitive Observability）** — 记录模型基于什么证据、做出什么推理、得到什么结论，而不只是"调用发生了"。
+- **观测 OLAP 导出（Observability JSONL Export）** — spans/events 平铺为一行一 JSON 对象的 JSONL 只读出口（单会话/全量分页驱动）；JSON Lines 合规可直接装载 DuckDB/ClickHouse；坏值列降级 + skipped 计数（Langfuse/Helicone 摄取面思想）。
 
 ## 能力供给
 
@@ -48,9 +49,11 @@
 ## 韧性与成本（effort #5）
 
 - **熔断（Circuit Breaker）** — 按 modelName 分桶的进程级失败率闸门：CLOSED/OPEN/HALF_OPEN 三态，OPEN 期调用零重试快速失败，冷却后单探测恢复。
+- **共享熔断闸（Shared Circuit Gate）** — Redis TTL 标记跨实例共享跳闸事实：任一实例跳闸全实例 OPEN、冷却期满首见实例探测、达标任一实例清除恢复；窗口与探测留本地（LiteLLM deployment cooldown 思想）。
 - **备模型降级链（Fallback Chain）** — 主模型终态失败或熔断 OPEN 后，在同一逻辑调用内按序切换备模型；全败上抛主因。
 - **会话预算（Session Budget）** — 会话生命周期累计的 token/成本硬顶（microUsd 整数口径），超限拦截下一次模型调用。
 - **日配额（Daily Quota）** — per-session 的 turns/tool-calls/tokens 每日限额，UTC 自然日窗口重置。
+- **原子配额扣减（Atomic Quota Deduction）** — 日配额计数写经 state store CAS 原语（compareAndSwap）原子完成：多实例共享 store 下并发递增不丢计数；日翻越竞争只重置一次；停滞耗尽回退覆写并以 quotaCasFallbacks 暴露。
 - **REASK** — 结构化输出解析失败后携带解析错误反馈的重问一次语义（诚实计入轮次预算）。
 - **会话分支（Fork）** — 复制源会话全部历史开新会话；State 不复制（预算重置 = 重试语义）。
 - **事件外发（Webhook Forwarder）** — 会话事件 at-least-once HTTP 投递（HMAC-SHA256 签名 + 事件幂等键）。
@@ -59,6 +62,7 @@
 ## 数据生命周期与可移植（effort #6）
 
 - **持久化 Outbox** — 事件外发前的持久暂存队列（state store 合成会话）：跨重启不丢、记录级退避、死信隔离；at-least-once + 幂等键契约。
+- **前缀计数下推（countByPrefix）** — 「只要数量不要值」的键空间计数面：JDBC COUNT(*) / Redis 键集侧计数 / 内存键迭代——容量检查等热路径零值读放大。
 - **冷却自适应退避** — 熔断连续跳闸驱动的冷却指数放缓（×2^(trips-1) 封顶 backoff-cap）；探测成功即复位。
 - **证据引用计数（Evidence Refcount）** — fork 对源会话 spill 证据的引用登记：源删除被引用证据保留，最后引用者关闭才物理删（EVIDENCE_GONE 容错悬垂读）。
 - **媒体引用（MediaRef）** — 多模态输入的 URI 引用形态（mimeType + uri）；只随最近一条带媒体消息重发，历史轮降级文本标记。
@@ -72,6 +76,7 @@
 
 - **探测槽位不变量** — 熔断半开「在飞探测数 + 已成功数 ≥ 阈值」即占位满员（每成功永久占一槽；连续 N 成功才恢复）。
 - **目录注入预算** — skills 清单注入上限（默认 64）+ 溢出提示（「另有 N 个未列出」）。
+- **目录语义排序（Semantic Catalog Ranking）** — 注入前按当前问法与「技能名+描述」的 embedding cosine 相似度排序再应用预算（预算内保最相关）；技能向量缓存、失败回退注册序、默认关闭（Claude Code skills 按需加载 + LiteLLM semantic routing 思想）。
 - **媒体摄取（MediaIntake）** — 字节 → spill 落盘 → MediaRef URI 的闭环（Latin-1 双向无损）。
 - **导出扩展段（Export Extension）** — SessionExport.extensions 模块自定义段（如 memory.facts）；导入回放最终一致。
 - **DELETED 索引态** — 会话删除级联把索引行置 DELETED（审计留存；默认列表排除，显式过滤可查）。

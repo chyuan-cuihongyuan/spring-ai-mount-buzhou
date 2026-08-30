@@ -32,6 +32,26 @@ public class FileSandbox {
                 .stream().map(FileSandbox::realpathOrAbsolute).toList();
     }
 
+    /**
+     * 租户隔离沙箱（spec 125 §A / T451，Milvus partition-key / OS chroot-per-tenant
+     * 思想）：root 下 {@code tenants/<tenant>} 子根，<b>不带任何追加白名单</b>——
+     * 租户面严格窄于宿主面，跨租户路径（{@code ../tenants/<他租户>}）被既有边界
+     * 检查拒绝。
+     *
+     * <p>租户 id 白名单：{@code [a-z0-9][a-z0-9-]{0,31}}（DNS 标签风——无分隔符、
+     * 无 {@code ..}、无大小写折叠歧义；越界即 fail-fast，租户维度天生进路径，不
+     * 校验就是穿越漏洞）。
+     */
+    public static FileSandbox forTenant(Path root, String tenant) {
+        if (tenant == null || !tenant.matches("[a-z0-9][a-z0-9-]{0,31}")) {
+            throw new IllegalArgumentException(
+                    "tenant id must match [a-z0-9][a-z0-9-]{0,31}: " + tenant);
+        }
+        Path base = root == null ? Path.of(".").toAbsolutePath().normalize()
+                : root.toAbsolutePath().normalize();
+        return new FileSandbox(base.resolve("tenants").resolve(tenant), List.of());
+    }
+
     public Path root() {
         return root;
     }

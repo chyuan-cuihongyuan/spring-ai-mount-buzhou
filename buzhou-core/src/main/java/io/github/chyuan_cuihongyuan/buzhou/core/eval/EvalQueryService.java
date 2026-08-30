@@ -18,13 +18,21 @@ public final class EvalQueryService {
         this.stateStore = stateStore;
     }
 
-    /** run 摘要行（无 items 明细——明细走 {@link #run(String)}）。 */
+    /** run 摘要行（无 items 明细——明细走 {@link #run(String)}；指纹 spec 113 §A）。 */
     public record EvalRunSummary(String runId, String datasetName, java.time.Instant startedAt,
-                                 int total, int passed, int failed, int errored, double passRate) {
+                                 int total, int passed, int failed, int errored, double passRate,
+                                 String datasetFingerprint) {
+
+        /** 8 参兼容构造（spec 113 前旧形态：无指纹）。 */
+        public EvalRunSummary(String runId, String datasetName, java.time.Instant startedAt,
+                              int total, int passed, int failed, int errored, double passRate) {
+            this(runId, datasetName, startedAt, total, passed, failed, errored, passRate, null);
+        }
 
         static EvalRunSummary of(EvalRunResult r) {
             return new EvalRunSummary(r.runId(), r.datasetName(), r.startedAt(),
-                    r.total(), r.passed(), r.failed(), r.errored(), r.passRate());
+                    r.total(), r.passed(), r.failed(), r.errored(), r.passRate(),
+                    r.datasetFingerprint());
         }
     }
 
@@ -32,6 +40,21 @@ public final class EvalQueryService {
     public List<EvalRunSummary> runs(String datasetName) {
         return allRuns().stream()
                 .filter(r -> r.datasetName().equals(datasetName))
+                .sorted(Comparator.comparing(EvalRunSummary::startedAt).reversed())
+                .toList();
+    }
+
+    /**
+     * spec 113 §A / T407：按数据集<b>内容版本</b>查 run（指纹 = EvalDatasetStore
+     * .fingerprint 内容寻址——跨数据集名）：快照/演化前的全部历史 run 一查即得
+     * （A/B 结论同款指纹在 AbRunSummary——两侧对齐同一版本锚）。
+     */
+    public List<EvalRunSummary> runsOfVersion(String fingerprint) {
+        if (fingerprint == null || fingerprint.isBlank()) {
+            return List.of();
+        }
+        return allRuns().stream()
+                .filter(r -> fingerprint.equals(r.datasetFingerprint()))
                 .sorted(Comparator.comparing(EvalRunSummary::startedAt).reversed())
                 .toList();
     }

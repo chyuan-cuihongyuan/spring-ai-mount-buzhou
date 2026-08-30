@@ -8,33 +8,38 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 /**
- * spawn 闸（spec「背压与多层限流 · 维度① spawn 并发会话上限」）。
+ * spawn 闸（spec「背压与多层限流 · 维度① spawn 并发会话上限」+ spec 123 优先级排队）。
  *
  * <p>复用 {@code DefaultAgentRuntime.liveSessions} 台账计数源，在租约获取<b>之前</b>裁决：
  * <ul>
- *   <li>{@link OverloadPolicy#FAIL_FAST FAIL_FAST} —— {@code tryAcquire()} 立即裁决，失败即抛
- *       {@link SessionCapacityExceededException}；</li>
- *   <li>{@link OverloadPolicy#QUEUE QUEUE}（默认）—— {@code tryAcquire(timeout)} 有界等待空位，
- *       超时抛 {@link SessionCapacityExceededException}；drain 置位时唤醒等待者并抛
+ *   <li>{@link OverloadPolicy#FAIL_FAST FAIL_FAST} —— 立即裁决，无空位即抛
+ *       {@link SessionCapacityExceededException}（不排队，优先级无意义）；</li>
+ *   <li>{@link OverloadPolicy#QUEUE QUEUE}（默认）—— 有界等待空位，超时抛
+ *       {@link SessionCapacityExceededException}；drain 置位时唤醒等待者并抛
  *       {@link io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeDrainingException RuntimeDrainingException}。</li>
  * </ul>
  *
+ * <p><b>优先级排队（spec 123 / T445）</b>：{@link SpawnPriority} 三级（HIGH/NORMAL/LOW，
+ * 默认 NORMAL——既有单参调用零行为变化）。释放的空位<b>有向交接</b>给最高非空级的
+ * 队首票据：高级抢占低级排队者、同级严格 FIFO、新到同级者不插队（票据队列杜绝
+ * 唤醒抢跑——原公平信号量 {@code tryAcquire} 竞争窗的加塞可能就此修正）。
+ * 借鉴：OS 调度多级队列 + Envoy 优先级面。
+ *
  * <p>排队不持有租约——拿到空位后才走既有 {@code doSpawn} 全流程（租约 → 装配 → 注册）。
- * 空位由会话 close 释放时通知（经 {@link #releaseSlot()}）；drain 置位时经 {@link #signalDrainStarted()}
- * 唤醒全部等待者。禁止轮询 sleep——用信号量 + 条件变量。
+ * 空位由会话 close 释放时通知（经 {@link #releaseSlot()}）；drain 置位时经
+ * {@link #signalDrainStarted()} 唤醒全部等待者。
  *
  * <p>事件：{@code backpressure.spawn-queued}（当前活跃/上限）/ {@code backpressure.spawn-rejected}
- * （原因：timeout / fail-fast）经运行时级事件通道发出（会话建立前，经
+ * （原因：timeout / fail-fast / drain / interrupted）经运行时级事件通道发出（会话建立前，经
  * {@code DefaultAgentRuntime.runtimeEmit}）。
  *
  * <p>{@code spawn(steal=true)} 是已活跃会话的接管路径（易主续接），<b>不占新容量</b>——
@@ -54,13 +59,15 @@ public final class SpawnGate {
     private final int limit;
     private final Duration queueTimeout;
     private final OverloadPolicy policy;
-    private final Semaphore capacitySemaphore;
     private final Consumer<SessionEvent> emitter;
 
-    /** drain 唤醒锁 + 条件：drain 置位时唤醒全部排队等待者（不睡死在信号量上）。 */
-    private final ReentrantLock drainWakeLock = new ReentrantLock();
-    private final java.util.concurrent.locks.Condition drainStarted = drainWakeLock.newCondition();
-    /** drain 状态镜像（volatile 读，避免每次排队都读 AtomicReference）。 */
+    /** spec 123：锁 + 每级票据队列（替代公平信号量——有向交接可排序）。 */
+    private final ReentrantLock gateLock = new ReentrantLock();
+    private final Condition[] priorityConditions;
+    private final Deque<PriorityTicket>[] queues;
+    /** 空闲空位数。不变量：{@code available > 0} ⇒ 所有队列为空（释放仅在无排队者时回增）。 */
+    private int available;
+    /** drain 状态镜像（volatile 读，避免每次排队都加锁探测）。 */
     private volatile boolean draining = false;
 
     /**
@@ -69,6 +76,7 @@ public final class SpawnGate {
      * @param policy     过载策略
      * @param emitter    运行时级事件发射器（{@code DefaultAgentRuntime::runtimeEmit}）
      */
+    @SuppressWarnings("unchecked")
     public SpawnGate(int limit, Duration queueTimeout, OverloadPolicy policy,
                      Consumer<SessionEvent> emitter) {
         if (limit <= 0) {
@@ -77,13 +85,25 @@ public final class SpawnGate {
         this.limit = limit;
         this.queueTimeout = queueTimeout == null ? Duration.ofSeconds(30) : queueTimeout;
         this.policy = policy == null ? OverloadPolicy.QUEUE : policy;
-        this.capacitySemaphore = new Semaphore(limit, true);
         this.emitter = emitter == null ? event -> {} : emitter;
+        this.available = limit;
+        int levels = SpawnPriority.values().length;
+        this.priorityConditions = new Condition[levels];
+        this.queues = new Deque[levels];
+        for (SpawnPriority priority : SpawnPriority.values()) {
+            priorityConditions[priority.ordinal()] = gateLock.newCondition();
+            queues[priority.ordinal()] = new ArrayDeque<>();
+        }
     }
 
-    /** 当前活跃会话数（上限 - 可用许可）。 */
+    /** 当前活跃会话数（上限 - 空闲；交接在飞的过渡态不敏感）。 */
     public int currentCount() {
-        return limit - capacitySemaphore.availablePermits();
+        gateLock.lock();
+        try {
+            return limit - available;
+        } finally {
+            gateLock.unlock();
+        }
     }
 
     /** 上限。 */
@@ -93,95 +113,122 @@ public final class SpawnGate {
 
     /**
      * 获取容量空位（slot），超限 / 超时 / drain 唤醒时抛对应异常。
-     *
-     * <p>调用方在进入此方法<b>之前</b>已判定 drain 未开始（{@code drainFuture.get() == null}）与
-     * steal=false（接管路径绕过本闸）。本方法内部会再次检查 drain 状态（排队期间 drain 可能置位）。
+     * 既有单参入口 = {@link SpawnPriority#NORMAL}（零行为变化）。
      *
      * @param sessionId 被裁决的会话 id（异常 message / 事件 payload 用）
      * @throws SessionCapacityExceededException 容量超限（FAIL_FAST 立即 / QUEUE 超时）
      * @throws BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED) 排队期间停机置位（与 main 既有 spawn 拒新语义同型）
      */
     public void acquireSlotOrThrow(String sessionId) {
+        acquireSlotOrThrow(sessionId, SpawnPriority.NORMAL);
+    }
+
+    /**
+     * spec 123：按优先级获取容量空位——QUEUE 档下高优先级排队者先得空位、
+     * 同级 FIFO；FAIL_FAST 档不排队（优先级无意义）。
+     *
+     * @param sessionId 被裁决的会话 id
+     * @param priority  排队优先级（null = NORMAL）
+     */
+    public void acquireSlotOrThrow(String sessionId, SpawnPriority priority) {
+        SpawnPriority prio = priority == null ? SpawnPriority.NORMAL : priority;
         if (policy == OverloadPolicy.FAIL_FAST) {
-            if (!capacitySemaphore.tryAcquire()) {
+            gateLock.lock();
+            try {
+                if (available > 0) {
+                    available--;
+                    // 获取后再次检查 drain（drain 可能在此瞬间置位）
+                    if (draining) {
+                        releaseUnderLock();
+                        throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
+                                "Runtime 正在停机，拒绝排队中的新会话（sessionId=" + sessionId + "）");
+                    }
+                    return;
+                }
                 emitRejected(sessionId, REASON_FAIL_FAST, Duration.ZERO);
                 throw new SessionCapacityExceededException(sessionId, currentCount(), limit, Duration.ZERO);
+            } finally {
+                gateLock.unlock();
             }
-            // 获取后再次检查 drain（drain 可能在此瞬间置位）
-            if (draining) {
-                capacitySemaphore.release();
-                throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
-                        "Runtime 正在停机，拒绝排队中的新会话（sessionId=" + sessionId + "）");
-            }
-            return;
         }
 
-        // QUEUE 档：有界排队
+        // QUEUE 档：有界排队（优先级票据队列）
         Instant start = Instant.now();
-        // 先快速尝试一次（无空位时才进排队，避免无竞争场景发 queued 事件）
-        if (capacitySemaphore.tryAcquire()) {
-            if (draining) {
-                capacitySemaphore.release();
-                throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
-                        "Runtime 正在停机，拒绝排队中的新会话（sessionId=" + sessionId + "）");
-            }
-            return;
-        }
-
-        // 进入排队——发 queued 事件
-        emitQueued(sessionId);
-        drainWakeLock.lock();
+        gateLock.lock();
         try {
+            // 先快速尝试一次（无空位时才进排队，避免无竞争场景发 queued 事件）
+            if (available > 0) {
+                available--;
+                if (draining) {
+                    releaseUnderLock();
+                    throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
+                            "Runtime 正在停机，拒绝排队中的新会话（sessionId=" + sessionId + "）");
+                }
+                return;
+            }
+            // 进入排队——发 queued 事件 + 落票据
+            emitQueued(sessionId);
+            PriorityTicket ticket = new PriorityTicket();
+            Deque<PriorityTicket> queue = queues[prio.ordinal()];
+            queue.addLast(ticket);
             while (true) {
                 if (draining) {
+                    queue.remove(ticket);
                     emitRejected(sessionId, "drain", Duration.between(start, Instant.now()));
                     throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
                         "Runtime 正在停机，拒绝排队中的新会话（sessionId=" + sessionId + "）");
                 }
-                if (capacitySemaphore.tryAcquire()) {
-                    // 拿到空位——再次检查 drain（drain 可能在此瞬间置位）
-                    if (draining) {
-                        capacitySemaphore.release();
-                        emitRejected(sessionId, "drain", Duration.between(start, Instant.now()));
-                        throw new BuzhouException(ErrorCode.SHUTDOWN_INTERRUPTED,
-                        "Runtime 正在停机，拒绝排队中的新会话（sessionId=" + sessionId + "）");
-                    }
+                if (ticket.granted) {
+                    // 空位已由 releaseSlot 有向交接（available 不经手）
                     return;
                 }
                 Duration remaining = queueTimeout.minus(Duration.between(start, Instant.now()));
                 if (remaining.isZero() || remaining.isNegative()) {
+                    queue.remove(ticket);
                     emitRejected(sessionId, REASON_TIMEOUT, Duration.between(start, Instant.now()));
                     throw new SessionCapacityExceededException(sessionId, currentCount(), limit,
                             Duration.between(start, Instant.now()));
                 }
                 try {
-                    drainStarted.await(remaining.toMillis(), TimeUnit.MILLISECONDS);
+                    priorityConditions[prio.ordinal()].await(remaining.toMillis(), TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
+                    queue.remove(ticket);
                     Thread.currentThread().interrupt();
                     emitRejected(sessionId, "interrupted", Duration.between(start, Instant.now()));
                     throw new SessionCapacityExceededException(sessionId, currentCount(), limit,
                             Duration.between(start, Instant.now()));
                 }
+                // 唤醒后重检：票据被授予即放行，否则继续等待（正确性不依赖抢跑顺序）
             }
         } finally {
-            drainWakeLock.unlock();
+            gateLock.unlock();
         }
     }
 
     /**
-     * 释放容量空位（会话 close 时调用）。
-     *
-     * <p>信号量 release 后唤醒一个排队等待者（{@code signalAll} 保证 drain 唤醒不漏——
-     * 排队等待者被唤醒后重新尝试 {@code tryAcquire}，成功即放行、失败继续等待）。
+     * 释放容量空位（会话 close 时调用）——有向交接：最高非空级队首票据置 granted
+     * 并唤醒该级；无排队者时回增空闲计数。
      */
     public void releaseSlot() {
-        capacitySemaphore.release();
-        drainWakeLock.lock();
+        gateLock.lock();
         try {
-            drainStarted.signalAll();
+            releaseUnderLock();
         } finally {
-            drainWakeLock.unlock();
+            gateLock.unlock();
         }
+    }
+
+    /** 锁内释放：先交接给最高非空级队首，无排队者才回增 available。 */
+    private void releaseUnderLock() {
+        for (SpawnPriority priority : SpawnPriority.values()) {
+            PriorityTicket head = queues[priority.ordinal()].pollFirst();
+            if (head != null) {
+                head.granted = true;
+                priorityConditions[priority.ordinal()].signalAll();
+                return;
+            }
+        }
+        available++;
     }
 
     /**
@@ -192,11 +239,13 @@ public final class SpawnGate {
      */
     public void signalDrainStarted() {
         draining = true;
-        drainWakeLock.lock();
+        gateLock.lock();
         try {
-            drainStarted.signalAll();
+            for (Condition condition : priorityConditions) {
+                condition.signalAll();
+            }
         } finally {
-            drainWakeLock.unlock();
+            gateLock.unlock();
         }
     }
 
@@ -215,5 +264,10 @@ public final class SpawnGate {
                         "currentActive", currentCount(), "limit", limit,
                         "waitedMs", waited.toMillis()),
                 Instant.now()));
+    }
+
+    /** spec 123：排队票据（granted = 空位已被有向交接）。 */
+    private static final class PriorityTicket {
+        boolean granted;
     }
 }

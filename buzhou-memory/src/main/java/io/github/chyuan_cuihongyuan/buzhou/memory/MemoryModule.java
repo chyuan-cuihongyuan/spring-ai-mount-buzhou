@@ -112,20 +112,69 @@ public final class MemoryModule {
             ivp.setAttachmentRenderer(attachmentRenderer);
             ivp.setSkillCatalogRenderer(skillCatalogRenderer);
             ivp.setEvictRatio(evictRatio);
+            // spec 66 §A / T283：前缀稳定注入序（默认关——稳定块前置最大化 KV-cache 前缀命中）
+            Object prefixStable = ymlConfig == null ? null : ymlConfig.get("prefix-stable-injection");
+            ivp.setPrefixStableInjection(Boolean.TRUE.equals(prefixStable)
+                    || (prefixStable instanceof String ps && Boolean.parseBoolean(ps.trim())));
+            // spec 70 §A / T291：边界机会压缩积压阈值（默认 0=关——积压达标提前摘要）
+            Object backlog = ymlConfig == null ? null : ymlConfig.get("boundary-compact-backlog");
+            if (backlog instanceof Number n) {
+                ivp.setBoundaryCompactBacklog(n.intValue());
+            } else if (backlog instanceof String bs && !bs.isBlank()) {
+                ivp.setBoundaryCompactBacklog(Integer.parseInt(bs.trim()));
+            }
+            // spec 90 §A / T343：语义漂移触发（semantic-drift=true 开 + 可调阈值；默认关）
+            Object driftEnabled = ymlConfig == null ? null : ymlConfig.get("semantic-drift");
+            boolean driftOn = Boolean.TRUE.equals(driftEnabled)
+                    || (driftEnabled instanceof String ds && Boolean.parseBoolean(ds.trim()));
+            if (driftOn) {
+                Object driftThreshold = ymlConfig.get("semantic-drift-threshold");
+                double threshold = io.github.chyuan_cuihongyuan.buzhou.memory.compact
+                        .LexicalDriftDetector.DEFAULT_THRESHOLD;
+                if (driftThreshold instanceof Number tn) {
+                    threshold = tn.doubleValue();
+                } else if (driftThreshold instanceof String ts && !ts.isBlank()) {
+                    threshold = Double.parseDouble(ts.trim());
+                }
+                ivp.setSemanticDriftDetector(
+                        new io.github.chyuan_cuihongyuan.buzhou.memory.compact.LexicalDriftDetector(
+                                threshold));
+            }
             // impl-13 / T40：压缩前检查点与三档回滚
             ivp.setCheckpoints(new io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints(
                     stores.sessionStateStore()));
             // spec 34 §A / T115 / impl-90：压缩事件观测双写（memory.compacted——视图读路径无
-            // 会话事件通道，走 ObservabilityStore 侧写，RunawayCounters 同款通道）
-            ivp.setCompactionListener((sessionId, result, ratio) ->
+            // 会话事件通道，走 ObservabilityStore 侧写，RunawayCounters 同款通道）；
+            // spec 95 §A / T355：摘要折入双写（memory.summary.folded——trigger 溯源字段）
+            ivp.setCompactionListener(new io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener() {
+                @Override
+                public void onCompacted(String sessionId,
+                        io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult result,
+                        double ratio) {
                     stores.observabilityStore().saveEvents(
-                    java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
-                            java.util.UUID.randomUUID().toString(), null, sessionId,
-                            "memory.compacted", java.time.Instant.now(),
-                            java.util.Map.of(
-                                    "compactedCount", result.compactedMessageIds().size(),
-                                    "reclaimedChars", result.reclaimedChars(),
-                                    "evictRatio", ratio)))));
+                            java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
+                                    java.util.UUID.randomUUID().toString(), null, sessionId,
+                                    "memory.compacted", java.time.Instant.now(),
+                                    java.util.Map.of(
+                                            "compactedCount", result.compactedMessageIds().size(),
+                                            "reclaimedChars", result.reclaimedChars(),
+                                            "evictRatio", ratio))));
+                }
+
+                @Override
+                public void onSummaryFolded(String sessionId,
+                        io.github.chyuan_cuihongyuan.buzhou.memory.summary.NineSectionSummary summary,
+                        String trigger) {
+                    stores.observabilityStore().saveEvents(
+                            java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
+                                    java.util.UUID.randomUUID().toString(), null, sessionId,
+                                    "memory.summary.folded", java.time.Instant.now(),
+                                    java.util.Map.of(
+                                            "trigger", trigger,
+                                            "generation", summary.generation(),
+                                            "coversUpToTurn", summary.coversUpToTurn()))));
+                }
+            });
             // T25/T26：事实对账 + 双时序台账（会话状态；对账默认开、韧性 NOOP）
             ivp.setSessionStateStore(stores.sessionStateStore());
             ivp.setFactReconciliation(factReconciliation(ymlConfig));

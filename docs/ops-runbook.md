@@ -119,6 +119,35 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
 每实例独立额度**（限流已升级为可选共享闸，见下）。可行部署：粘性路由（会话归同实例）+
 租约独占（跨实例接管走 steal）。分布式熔断/配额为显式 out-of-scope（spec 23）。
 
+**A/B 胜率门（effort #63 / spec 101）**：`new PairwiseGate(runner).enforce(...)`——
+换版验收一行判定（winRateA ≥ 阈值；error 不入分母）。
+**归档治理（effort #65/#82 / spec 103/120）**：`purgeExpired(ttl, now)` 到期清理
+（cron 驱动）+ `archivedDetailed()` 审计详情。
+**错误签名管线（effort #74/#83 / spec 112/121）**：`ErrorSignaturesJsonl.export` →
+`reset()` 窗口化循环——错误族时序进数仓。
+**outbox due 审计（effort #57 / spec 96）**：`WebhookOutboxAudit.audit(store)` 只读
+对账（孤儿/陈旧/缺失——缺失=投递停摆须修）。
+**观测 gzip 导出（effort #71/#81 / spec 109/119）**：exportAllGzip /
+exportAllSinceGzip / exportSessionGzip 三入口——归档/跨网体积降一个量级。
+
+**配置体检（effort #52 / spec 91）**：`buzhou.config-doctor.enabled=true`（默认关）
+——就绪事件对 buzhou.* 配置面做一次键拼写（近邻建议）与值域体检，发现走日志；
+只读不改行为。
+**错误签名观测（effort #44/#46 / spec 83/85）**：`/actuator/buzhou` 的
+error-signatures 段给 top-5 错误族（Sentry fingerprint 借鉴）——排障先看族不看日志。
+**会话归档（effort #58 / spec 97）**：`new SessionArchiver(stores, cleaner)
+.archive(sid)` 删除前冷存三槽（`__buzhou.archive__` 合成会话）——retention 清理
+建议走归档版而非裸 delete。
+**PII 脱敏（effort #47 / spec 86）**：`buzhou.guard.pii.enabled=true` +
+`pii.types`——工具输出 PII 占位符化后再进 prompt/日志（Presidio 规则式）。
+**语义漂移压缩（effort #51 / spec 90）**：`buzhou.memory.semantic-drift=true`——
+话题漂移提前折入摘要（`memory.summary.folded` 事件带 trigger 溯源——spec 95）。
+
+**agent 并发 Turn 隔离舱（effort #45 / spec 84）**：`buzhou.bulkhead.enabled=true` +
+`buzhou.bulkhead.agents.<agent>=<maxConcurrentTurns>`（默认关——全 NOOP 零行为）；
+舱满 fail-fast 抛 QUOTA_EXCEEDED（`acquire-timeout` 可设等待）；计数器
+`buzhou.bulkhead.rejected`；spawn 闸限会话数、本舱限在飞 Turn 数——正交双层。
+
 **共享限流闸（effort #14 / spec 54）**：`buzhou.store.type=redis` 且配置
 `buzhou.resilience.rate-limit.requests-per-minute / tokens-per-minute` 时，限流自动从
 进程内令牌桶切换为 **Redis 分钟固定窗**（INCR/EXPIRE，LiteLLM Router 同款）——全实例
@@ -132,13 +161,78 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   TTL 61s 自动滚动；无需人工清理。
 - 单进程部署（无 store.type=redis）行为零变化（内存令牌桶默认）。
 
+**配额原子扣减（effort #16 / spec 56）**：per-session 日配额（turns/tool-calls/tokens）
+计数写经 state store 的 `compareAndSwap` 原语原子完成——多实例共享 store（JDBC/Redis/
+内存）时并发递增**不丢计数**（配额上限不被并发穿透）；UTC 日翻越并发只重置一次。分层
+诚实边界：
+
+- 内存 store：per-key compute 原子（始终真原子）；JDBC：条件单语句（UPDATE 带值匹配 /
+  INSERT 带 NOT EXISTS）；**Redis：仅池化装配（`createPooled` / starter 自动装配）为真
+  原子**（WATCH/MULTI/EXEC 专用连接），旧直连装配（已废弃路径）退化为单实例语义。
+- 极端竞争（值停滞 16 次重试，仅存储异常/对抗场景可达）回退 last-write 覆写并暴露
+  `quotaCasFallbacks` 计数（resilience 健康详情）——出现非零值即原子路径长期抢败，
+  应排查 store 延迟/正确性，而非调大配额。
+- 配额拦截点/事件/文案零变化；零新配置键。
+- **计数原子化推广（effort #22 / spec 62）**：runaway 会话累计（steps/tool-calls）与
+  budget 累计（prompt/completion-tokens、cost-micro-usd）同走 CAS 助手——多实例共享
+  store 下预算/失控防护上限不被并发穿透；回退语义与配额一致（停滞 16 次才回退）。
+
+**延迟感知备模型排序（effort #24 / spec 64）**：`buzhou.resilience.fallback.latency-aware=true`
+（默认关）时，备模型/金丝雀调用延迟入进程级 EMA（α=0.3），降级遍历序按 EMA 升序——
+快者优先、慢化趋势数次调用内传导；未知延迟取已知中位数（新上链模型中性：不插队不
+饿死）；并列保配置序。运维须知：排序只改「先试谁」，金丝雀/限流/熔断跳过语义不变；
+EMA 进程级（重启清零冷启动）；无备模型时开启零效果。
+
+**skill_search 语义面（effort #33 / spec 73）**：`semantic-ranking.enabled=true` 时检索
+同样受益——命中集按 query 相似度排序（20 条上限内保最相关）；零子串命中给语义最近
+3 条提示（无阈值——判别力归嵌入模型，与目录注入共享同一 ranker 与向量缓存）。
+
+**前缀稳定注入序（effort #26 / spec 66）**：`buzhou.memory.prefix-stable-injection=true`
+（默认关）时注入块序切换 catalog→summary→facts——技能清单（跨轮最稳定）前置，
+最大化 provider KV-cache 前缀命中（Anthropic prompt caching 最佳实践）。诚实边界：
+摘要轮间更新仍会断其后前缀（只优化清单稳定段）；命中增益归 provider 计费行为。
+
+**共享熔断闸（effort #17 / spec 57）**：`buzhou.store.type=redis` 且熔断启用（默认开）时，
+熔断从进程级升级为「跳闸事实共享、探测与窗口留本地」：任一实例跳闸即写 Redis TTL 标记
+（键 `buzhou:cb:<模型净化名>`，TTL = 生效冷却含退避倍数）——存活期内**全实例**对该模型按
+OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；冷却期满（键自然过期）首见实例
+转本地半开探测（既有槽位/逃生/阈值语义原样）；探测达标任一实例清除标记 → 全实例同步
+恢复（不存在「A 已恢复 B 仍拒绝」）。运维须知：
+
+- **分层语义**：失败窗口样本与在飞探测是实例本地事实——共享只放大跳闸事实（保守方向
+  正确）；连续跳闸退避倍数跨实例延续（共享标记携带 trips）。
+- **故障语义降级**（与共享限流的 fail-fast 刻意不同）：Redis 不可达时熔断**退回本地语义**
+  继续裁决（WARN + 继续）——观测面故障不放大为服务故障；标记清除失败随 TTL 自然过期兜底。
+- 单进程 / JDBC / 内存部署行为零变化（无共享后端 bean = 进程语义；多实例告警文案已
+  区分「熔断——无共享后端」）。
+- 键无 TTL 残留（运维手工 SET 等异常态）按可探测处理——绝不因残键把模型永久锁死 OPEN。
+
 **webhook outbox（spec 24）**：outbox 落共享 state store（JDBC/Redis）时事件跨重启不丢，
 但多实例分发器可能**双投递**——at-least-once 契约内，消费端以 `X-Buzhou-Event-Id` 幂等
 去重是契约责任；内存 store 部署等价旧进程内暂存（重启丢在途）。
 
+**outbox 读放大已消（effort #18 / spec 58）**：入队容量检查（每次事件触发）走
+`countByPrefix` 下推——JDBC `COUNT(*)`（零行传输）、Redis 键集侧计数（零 HGETALL）；
+`scanByPrefix`（投递调度每拍）Redis 侧改**一次流水线批量值读**（N 次往返 → 1 次批量）。
+2k pending 量级哨兵入档（nightly perf 组）。容量仍为软上限（并发竞差 1 条级，语义不变）。
+**due 调度读也已消（effort #40 / spec 79）**：投递调度每拍的 `due()` 改走 due-time
+索引键序区间读（`scanByKeyRange`——spec 78 底座），退避积压不再放大读；孤儿/陈旧
+索引读路径自愈；limit 按到期序取（重退避者不被挤饿）；旧版数据构造期幂等回填。
+
 **健康端点新维度（effort #8）**：`webhook-outbox`（pending/deadLetters/delivered/dropped
 水位——恒 UP，告警走指标面）与 `session-index`（wired/hasRows 采样探测——未装配时该面
 不注册，属预期降级非故障）。
+
+**边界机会压缩（effort #30 / spec 70）**：`buzhou.memory.boundary-compact-backlog=N`
+（默认 0=关）：待摘消息积压 ≥ N 时在干净轮边界提前增量摘要——预算宽松态生成（摘要
+质量更高、豁免逐出梯子紧急态；Letta「自然边界压缩」的 Completed-Turn 代理——真语义
+检测 fog 留位）。成本口径：提前摘要 = 一次摘要调用换梯子豁免；无摘要模型时不适用。
+
+**崩溃自愈 watchdog（effort #29 / spec 69）**：`buzhou.recovery.auto-resume=true`（默认关）
++ RunRegistry bean 时，启动完成后自动枚举 RUNNING 快照逐一续跑（steal=false——他方
+活跃实例持锁即跳过不打扰；Temporal crash-watchdog 思想）。运维须知：三态计数
+（resumed/leaseHeld/failed）入启动日志；坏快照失败隔离（一个不阻断其余）；周期巡检
+不做（启动时一次 + 租约门是保守正确形态——接管风暴防护 fog 留位）。
 
 ## 7. 告警项清单（指标 → 阈值 → 动作）
 
@@ -196,6 +290,24 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   logback pattern 加 `%X{buzhou.sessionId:-}` 即与会话对齐（流式路径不支持，结构性限制
   见 spec 47 §A）。
 
+## 8.5 观测数据 OLAP 导出（effort #20 / spec 60）
+
+- **面**：`ObservabilityJsonlExporter`（core）——spans/events 平铺为一行一 JSON 对象的
+  JSONL：单会话（`exportSession`）/ 单类（`exportSpans`/`exportEvents`）/ 全量
+  （`exportAll`，会话枚举分页驱动）。
+- **装载**：JSON Lines 规范合规（每行独立可解析、负载内换行转义）——DuckDB
+  `read_json_auto('spans.jsonl')` / ClickHouse JSONEachRow 直接装载；跨会话分析
+  （最慢模型/工具失败率/turn 深度）不再逐会话手搬。
+- **列**：span 行含 `duration_ms` 派生列（未关闭 span 为 null）；`attributes`/`payload`
+  为对象列（read_json 自动推断）。
+- **容错**：坏值条目降级该列为 null + `skipped` 计数（返回面暴露），不阻断 dump；
+  快照语义（运行中会话 = 当前已落库部分）。
+- 零配置键、零行为变化（纯新增只读出口）。
+- **增量导出（effort #27 / spec 67）**：`exportAllSince(out, since)` 只导出
+  lastActivityAt ≥ since 的会话，返回 `waterline`（本次最大活跃时刻）作下次水位
+  （空结果水位原样）——周级 pipeline 断点续传。会话粒度 at-least-once：有新数据的
+  会话全量重导，OLAP 端按 spanId/eventId 主键 upsert 去重（Langfuse cursor 水位语义）。
+
 ## 9. 评估运营（effort #11 / spec 52）
 
 ### 评估数据集治理
@@ -206,6 +318,65 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   `<领域>-<类型>`（如 `support-badcases`、`sales-regression`）。
 - 溯源：回流项带 sourceSessionId/sourceTurnSeq——评估项可回查原始会话定位上下文。
 - 删除：deleteDataset 不级联删 run 记录（run 自带 datasetName 快照，审计保留）。
+
+### 并行执行（effort #28 / spec 68）
+
+- `runner.run(dataset, evaluator, parallelism)`：虚拟线程池并行执行评估项（每项仍
+  独占隔离 eval 会话）；**结果按数据集项序聚合**（与串行同序——断言/diff 不漂移）；
+  并行度 clamp 1..32；默认 `run(dataset, evaluator)` = 1 零变化。
+- 诚实边界：共享模型端点的吞吐/限流是外部约束——高并行度可能触发宿主限流（错误
+  三态如实入账）；项内异常既有三态收敛（不炸整跑）。
+
+### LLM-as-judge（effort #21 / spec 61）
+
+- 内置 `LlmJudgeEvaluator`（注入 judge ChatModel + 可选 rubric）：语义质量断言
+  （「是否解决问题/事实一致」）——PASS/FAIL 首词协议；不可解析/judge 异常记该条
+  error（passRate 不被协议失败污染，单条 API 抖动不炸整跑）。
+- 诚实边界：判别力与抗提示注入归 judge 模型；无温度控制（ChatModel 宿主配置）；
+  CI 不强制（沿用本节「LLM-judge + 20% 人工抽检」口径）。
+- 确定性三件（EXACT/CONTAINS/REGEX）行为零变化。
+
+### agent 级成本归集（effort #25 / spec 65）
+
+- `AgentCostLedgerHook`（宿主显式挂载，`new AgentCostLedgerHook(pricingProps, modelName,
+  stateStore)` 后注册进 Hook 链）：按 agentName 跨会话累计 prompt/completion tokens 与
+  定价 microUsd 至合成会话 `__buzhou.cost__`（CAS 原子——多实例共享 store 下总额正确）。
+- 查询：`AgentCostLedgerHook.query(store)` → per-agent 台账行；重置 = 删合成会话键。
+- 只记账不拦截（预算硬顶仍归 budget）；不挂载零行为零写；无价目模型 microUsd 记 0
+  （tokens 仍归集）；appId/tag 维度 fog 留位（LiteLLM spend tracking 思想）。
+
+### 成对对比（effort #23 / spec 63）
+
+- **A/B 一键对比（effort #31 / spec 71）**：`PairwiseEvalRunner.compare(dataset,
+  runtimeA, runtimeB, parallelism)`——同数据集双 runtime 逐项执行 + 双向裁定 + 胜率
+  汇总（error 不入分母——基础设施故障与质量判定诚实分离）；Ragas pairwise eval /
+  LiteLLM model-compare 思想；3 参构造注入 state store 时 run 记录落
+  `ab.run.<runId>`（`abRuns(store, dataset?)` 摘要查询，startedAt 倒序——spec 74）；
+  完成即发 `ab.run.completed` 事件（total>0 门，与落盘正交——spec 75，
+  eval.run.completed 家族口径，webhook/看板订阅面同前缀过滤）；
+  `abRun(store, runId)` 单 run 明细回读（verdict 面，spec 76）。
+- **评估回归门（effort #41 / spec 80）**：`EvalGate.enforce(dataset, evaluator,
+  threshold)`——CI 里「跑数据集 → 低于阈值即红」一步收口（error 计入分母从严；
+  `GateResult.summary()` 单行人读；exit-code 映射归宿主 CI）。
+- **run 对比（effort #42 / spec 81）**：`EvalRunDiff.diff(base, head)` 两 run 逐项
+  迁移（REGRESSION/FIX/稳定态 + 单侧项=数据集漂移 + netDelta）——改 prompt/模型后
+  回归项一眼可见；输入从 `EvalQueryService.run(runId)` 回读；`datasetDrift` 显形
+  就地改项型漂移（数据集指纹——spec 82，`EvalDatasetStore.fingerprint` 内容寻址）。
+- **活跃 run 观测（effort #38 / spec 77）**：gauge `buzhou.eval.runs.active`
+  （tag kind=eval|ab）——run 生命周期内在飞计数（runId 幂等；close 幂等）；
+  未装 micrometer 时 no-op 零开销。
+
+- `PairwiseJudge.compare(input, outputA, outputB, rubric?)` → WINNER_A/WINNER_B/TIE：
+  **双向评判消位置偏差**（(A,B) 与 (B,A) 各评一次，两方向同赢家才裁；翻转判
+  position-bias TIE——LLM judge 首位展示偏好显性化，不冒充裁决）。宿主自行驱动两次
+  运行后调用（不做 A/B 编排）；成本 = 每对 2 次 judge 调用。
+
+### 轨迹建集（effort #32 / spec 72）
+
+- `SessionTrajectoryImporter.importFromSession(sessionId, datasetName)`：既有会话完整
+  轮（问→答）一键转评估项（带会话+轮次溯源；同溯源去重；缺问缺答跳过计数）——
+  LangSmith session 转 dataset 思想。golden 与否归调用方筛会话（机制不预设）；与
+  负反馈回流互补（正例建集 + 负例回流）。
 
 ### 回流策略
 
@@ -275,3 +446,96 @@ DB/Redis at-rest 属部署层盘加密职责（TLS + 磁盘加密），不归本
   疑似键不生效时跑绑定矩阵定位（新键必须同时落 metadata + 矩阵登记）。
 - **新键检查单**：metadata 入档 → 矩阵 SAMPLE_OVERRIDES/ENV_READ_KEYS 登记 → runbook §3
   调优表按需补录 → 多构造器 record 需 @ConstructorBinding（T187 教训）。
+
+## 22. 多实例治理与预算观测（effort #86-#148 增量）
+
+- **归档定时清理**：`buzhou.session-archive.purge-enabled`（默认关）+ `purge-ttl`（默认 7d）+
+  `purge-interval`（默认 1h）——开启后单线程 scheduleWithFixedDelay 兑现 TTL；多实例各跑一份
+  幂等无害，接 `AdvisoryFileLock`（5 参构造）即单实例执行（未获锁轮返回 -1）。
+- **停滞巡检**：TurnHeartbeat 三件套（表/钩子/巡检犬）——挂 `TurnHeartbeatHook` 后模型与工具
+  四点自动打点；`TurnStallWatchdog` listener 收 quiet 超阈清单（每轮都报——去重归告警端）；
+  接锁后未获锁轮零通知 + `skippedForLock()` 计数。
+- **虚拟 key 配额**：`buzhou.virtual-keys.active-key` + `limits.<key>=<token 顶>` 两键即得
+  key 级预算闸全链（registry → 预算钩子 → 健康段）；耗尽拦截下一次模型调用（模型零调用），
+  窗口 `reset()`/`resetAll()` 恢复；active-key 不在 limits 装配期 fail-fast。
+- **模型成本账**：预算钩子默认自动入账 `ModelCostLedger`（零配置）——健康段 `model-cost` top-8
+  烧钱榜实时看；`ModelCostLedgerJsonl` 按窗口导出（microUsd 精确 + usd 人读双列）。
+- **tag 基数守卫**：`buzhou.metrics.cardinality-guard.enabled=true` 全局装饰——per-(名,键) 64
+  值封顶越限折 `__overflow__`（样本不丢丢维度）；折入计 `buzhou.metrics.tag-overflow` 可告警。
+- **导出窗口纪律**：观测/签名/PII/技能/成本五族 export → reset 循环 = 每窗口一份、表永有界；
+  尾采样 `exportAllSampled`（错误/慢全留 + 确定性留样）控导出体积；`exportManifest` 六列目录
+  不解析数据体即可核对。
+
+### 工具熔断与重试调参（B 侧 / spec 131+133）
+
+- **熔断**：`ToolCircuitBreaker(Config)` 挂 `ToolCircuitBreakerHook`（order 240）——窗 20/
+  阈值 50%/冷却 60s/半开 3 为默认；调参看 `snapshot()` 的 state 与窗内败率：频繁误跳阈值调高、
+  坏工具摘牌慢则窗调小。拒绝文案带冷却提示（模型可改道），计数 `buzhou.tool-breaker.blocked`。
+- **重试**：`RetryingToolCallback.wrap(只读工具, policy)`——默认 3 次/50ms/500ms 指数退避；
+  **只包幂等工具**（写工具重试有重复副作用风险，契约归声明方）；`buzhou.tool-retry.retries`
+  高 = 下游在抖，与熔断互补（重试管毫秒级抖动、熔断管持续故障）。
+- **健康探测**：`ToolHealthProber` 注册轻量探针（异常=DOWN 不上抛），翻转才通知——DOWN 在
+  模型撞墙前暴露；consecutiveDown 接自动摘牌（留档）。
+
+### 模型对冲与端点驱逐（B 侧 / spec 137+149）
+
+- **对冲**：`HedgedChatModel(主, 备, hedgeDelay, executor)` 当主模型挂 ChatClient——建议
+  hedgeDelay 设主模型 p95 之上（早了 = 对冲率虚高双倍成本）；`buzhou.hedge.fired/won`
+  两计数定调参：fired 高 win 低 = 阈值太早；win 高 = 对冲在救场。stream 不对冲（委派主）。
+- **驱逐**：`ModelOutlierEjection` 连错 N（默认 5）逐出备选池一个窗口（默认 30s）——
+  `filter(FallbackChain.models())` 后即健康池视图；`ejectedModels()` 名单即最可疑端点，
+  排障入口；复池后再观察新窗（计数重置）。
+
+### PII yml 规则与角色权限（B 侧 / spec 129+141）
+
+- **custom-rules**：`buzhou.guard.pii.custom-rules: - name: ORDER_ID / pattern: "ORD-\d{6,}"`
+  （或 name→pattern map 紧凑形态）——name 须 `[A-Z0-9_]{2,32}`、坏正则**启动即失败**不带病
+  上线；输出/输入两侧共用叠加；ReDoS 风险归声明方（正则自己写的）。
+- **角色面**：`ToolRoleGuardHook` 读会话态 `buzhou.tool-role`（未设=default 角色）——通配三形
+  精确/前缀`log*`/全放`*`；**未定义角色 fail-closed 全拒**（拼错不是放行理由）；会话中途
+  改角色即时生效（无缓存）。与 HITL 正交：角色管面、HITL 管次。
+
+### 会话检疫与排水维护（B 侧 / spec 143+155）
+
+- **检疫**：`SessionQuarantineHook`——连败 3 跳闸冷却 30s 起指数翻倍封顶 10min；隔离期
+  beforeTurn block（文案带剩余秒数）；到时自动放行试探，再闹更冷；健康轮调
+  `recordTurnSuccess` 复位连败（公共 API——hook 面看不到健康轮全貌，不谎装）。
+- **排水**：维护下线序列 `beginDrain` → `awaitDrained(预算)` → 归档/关闭——排水期新 Turn
+  拒（SESSION_DRAINING），在飞轮走完才继续；超时 false = 有长轮卡住，升级硬关归运维决策。
+
+### 预算池与热重载（B 侧 / spec 157+163）
+
+- **弹性池**：`ElasticBudgetPool(容量, base表)`——Σbase≤C 构造期校验；忙会话自动借
+  surplus（`C−Σmax(base,held)`——他人保底永不被借穿）；`surplus()` 曲线 = 弹性余量，
+  归还靠 `release`（借走不召回——在飞完整性优先）。
+- **热重载**：`ReloadableConfig.of(初值)` 包住任意参数 record——调参面 `replace(新值)` 即
+  热生效（版本自增、订阅者通知在锁外）；watcher（文件/配置中心轮询）归宿主实现，本原语只管
+  「换与通知」。
+
+### 防泛洪与 per-tool 配额（B 侧 / spec 167+185）
+
+- **输入泛洪**：`InputFloodGuardHook`（默认 5 次/60s 相同输入拦）——只拦 SHA-256(strip) 全同输入，
+  改写重试不误伤；blocked 计数即「循环/重放风暴」信号，客户端缺陷定位入口。
+- **per-tool 配额**：`ToolQuotaHook(Map<工具,上限> + 可选 "*")`——贵工具标 10 次/会话即拦，
+  会话态生命周期即窗自然清零；blocked 按 tool 分标签即「哪个工具被爆」侧写。
+
+### 工具泳道与 TTL 缓存（B 侧 / spec 173+183）
+
+- **泳道**：`LaneLimitingToolCallback.wrap(工具, 泳道名, 许可数, registry, 等待超时)`——慢查询标
+  `slow-db:2`，快工具许可不被挤占；超时文案指明泳道满即容量调参入口；异常也归还许可。
+- **TTL 缓存**：`TtlCachingToolCallback.wrap(只读工具, maxAge, maxEntries)`——窗内复读回同引用零
+  下游执行；只包时效钝感工具（时效敏感/写工具不包——契约归声明方）；hit/miss 比=复读率×窗收益。
+
+### 影子读与降级演练（B 侧 / spec 189+195）
+
+- **影子读**：`ShadowProbe(rate)`——确定性哈希采样同 key 同判定；换模型前 5% 影子一周，diverged
+  率即真实分布行为差异面；影子异常全吞主路零感知；分歧样本环形 32 可回放定位。
+- **降级演练**：`FallbackDrill`——每 10 分钟演练备链一次，凭证过期/配额耗尽在真降级前暴露；
+  `filter(chain.models(), maxAge)` 只留近期验证过的备胎——「存在」升级为「验证过」。
+
+### 维护门与事件去重（B 侧 / spec 205+203）
+
+- **维护模式**：`gate.begin(reason, 预计恢复)` → 新 Turn 温和拒绝（可读文案）→ 逐会话
+  `drain.beginDrain + awaitDrained` 排存量 → 维护 → `gate.end()`——计划内维护的标准序列。
+- **事件去重**：`EventDeduplicator` 包在 fanout 前——完全相同重复（type+键排序 payload 指纹）
+  发射侧即拦；deduped 计数高 = 宿主双发 bug 显影剂。

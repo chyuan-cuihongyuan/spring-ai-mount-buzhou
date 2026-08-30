@@ -11,6 +11,18 @@
       "type": "java.lang.Integer",
       "defaultValue": 512,
       "description": "impl-38 embedding 缓存 LRU 容量（embed once；memory/spill/语义回读三方共享）。"
+    },
+    {
+      "name": "buzhou.memory.prefix-stable-injection",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "前缀稳定注入序（spec 66 / T283）：技能清单块（最稳定）前置为 catalog→summary→facts——最大化 provider 端 KV-cache 前缀命中（Anthropic prompt caching 最佳实践）；默认 false 保持 spec 04 口径（摘要→事实→清单）。"
+    },
+    {
+      "name": "buzhou.memory.boundary-compact-backlog",
+      "type": "java.lang.Integer",
+      "defaultValue": 0,
+      "description": "边界机会压缩积压阈值（spec 70 / T291，Letta 自然边界压缩思想的 Completed-Turn 代理）：待摘消息积压 ≥ N 时在轮边界提前增量摘要（预算宽松态生成、豁免梯子紧急态）；默认 0=关。"
     }
   ]
 }

@@ -27,6 +27,8 @@ public final class FallbackChain {
     /** spec 48 §B / T175：金丝雀开关与候选权重（配置态；null=默认关/权重 1）。 */
     private final boolean canaryEnabled;
     private final Map<String, Integer> weights;
+    /** spec 64 §A / T279：延迟感知排序（null = 静态配置序；便捷构造二次注入故非 final）。 */
+    private volatile FallbackLatencyTracker latencyTracker;
 
     public FallbackChain(List<NamedFallbackModel> models, ResilienceProperties.Fallback config) {
         this.models = models == null ? List.of() : List.copyOf(models);
@@ -44,6 +46,14 @@ public final class FallbackChain {
             });
         }
         this.weights = Map.copyOf(normalized);
+        this.latencyTracker = null;
+    }
+
+    /** spec 64 §A / T279：延迟感知构造（tracker 非 null 时 models() 返回 EMA 升序排序视图）。 */
+    public FallbackChain(List<NamedFallbackModel> models, ResilienceProperties.Fallback config,
+            FallbackLatencyTracker latencyTracker) {
+        this(models, config);
+        this.latencyTracker = latencyTracker;
     }
 
     /** 是否存在可用备模型。 */
@@ -51,9 +61,9 @@ public final class FallbackChain {
         return models.isEmpty();
     }
 
-    /** 有序备模型列表（调用方按序逐个尝试）。 */
+    /** 有序备模型列表（调用方按序逐个尝试；延迟感知开启时按 EMA 升序稳定排序视图）。 */
     public List<NamedFallbackModel> models() {
-        return models;
+        return latencyTracker == null ? models : latencyTracker.sorted(models);
     }
 
     /** spec 48 §B / T175：金丝雀是否启用。 */
@@ -64,6 +74,11 @@ public final class FallbackChain {
     /** spec 48 §B / T175：候选权重（未列名默认 1）。 */
     public int weightOf(String name) {
         return weights.getOrDefault(name, 1);
+    }
+
+    /** spec 64 §A / T279：延迟追踪器（未开启 = null）。 */
+    public FallbackLatencyTracker latencyTracker() {
+        return latencyTracker;
     }
 
     /** 按名取备模型条目（不存在返回 null）。 */

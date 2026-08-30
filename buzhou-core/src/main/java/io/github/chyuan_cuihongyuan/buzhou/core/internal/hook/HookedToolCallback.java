@@ -59,6 +59,7 @@ public class HookedToolCallback implements ToolCallback {
 
         String result;
         Throwable error = null;
+        long startedAt = System.nanoTime();
         try {
             result = delegate.call(serializeArguments(ctx.arguments()), toolContext);
         } catch (RuntimeException e) {
@@ -67,10 +68,20 @@ public class HookedToolCallback implements ToolCallback {
             result = ToolErrorFeedback.format(toolName, toolInput,
                     "执行失败：" + e.getMessage());
         }
+        // spec 108 §A / T395：工具调用时长 timer（tag outcome——慢工具/失败工具延迟可分）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .timer("buzhou.tool.duration",
+                        java.time.Duration.ofNanos(System.nanoTime() - startedAt),
+                        "outcome", error == null ? "ok" : "failed");
         ctx.markExecuted(result, error);
         // impl-41 / spec 13 §T66：工具调用指标（全部机制的工具都经本回调执行）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.tool.calls", "outcome", error == null ? "ok" : "failed");
+        if (error != null) {
+            // spec 83 §A / T321：错误签名聚类（top 错误族——看板/健康面；不进 micrometer tag）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global()
+                    .record("tool", error);
+        }
 
         HookResult after = chain.afterTool(ctx);
         if (after instanceof HookResult.Block) {

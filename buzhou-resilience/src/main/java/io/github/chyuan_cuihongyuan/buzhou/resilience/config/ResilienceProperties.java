@@ -221,7 +221,8 @@ public record ResilienceProperties(
             List<String> models,
             List<String> triggerCategories,
             Boolean canaryEnabled,
-            Map<String, Integer> weights) {
+            Map<String, Integer> weights,
+            Boolean latencyAware) {
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察修复——缺注解时 yml 键静默不生效）。 */
         @org.springframework.boot.context.properties.bind.ConstructorBinding
@@ -235,9 +236,20 @@ public record ResilienceProperties(
             weights = weights == null ? Map.of() : Map.copyOf(weights);
         }
 
-        /** 既有 2 参构造兼容（金丝雀关、无权重）。 */
+        /** 既有 2 参构造兼容（金丝雀关、无权重、延迟感知关）。 */
         public Fallback(List<String> models, List<String> triggerCategories) {
-            this(models, triggerCategories, null, null);
+            this(models, triggerCategories, null, null, null);
+        }
+
+        /** 4 参构造兼容（spec 64 前）——延迟感知关。 */
+        public Fallback(List<String> models, List<String> triggerCategories,
+                Boolean canaryEnabled, Map<String, Integer> weights) {
+            this(models, triggerCategories, canaryEnabled, weights, null);
+        }
+
+        /** spec 64 §A / T279：延迟感知排序（默认关；null = false）。 */
+        public boolean effectiveLatencyAware() {
+            return Boolean.TRUE.equals(latencyAware);
         }
 
         /** 是否配置了备模型。 */

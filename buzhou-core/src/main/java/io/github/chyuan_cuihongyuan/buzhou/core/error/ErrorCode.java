@@ -42,6 +42,12 @@ public enum ErrorCode {
     /** 会话已关闭（关闭后拒绝 chat / 注册资源等生命周期误用）。 */
     SESSION_CLOSED(RetryCategory.NON_RETRYABLE, "会话已关闭"),
 
+    /** 会话隔离检疫中（连败跳闸冷却；spec 143——到时自动解除）。 */
+    SESSION_QUARANTINED(RetryCategory.NON_RETRYABLE, "会话隔离检疫中"),
+
+    /** 会话排水维护中（拒新 Turn 等在飞排空；spec 155）。 */
+    SESSION_DRAINING(RetryCategory.NON_RETRYABLE, "会话排水维护中"),
+
     /** 沙箱违规（路径越界 / 解析失败；同一路径重试必然再被拒）。 */
     SANDBOX_VIOLATION(RetryCategory.NON_RETRYABLE, "沙箱边界违规"),
 
@@ -62,6 +68,9 @@ public enum ErrorCode {
 
     /** 评估操作非法（数据集重名/未建、条目字段非法、run 请求不合法；spec 52 §A / T190）。 */
     EVAL_OPERATION_INVALID(RetryCategory.NON_RETRYABLE, "评估操作非法"),
+
+    /** 并行批失败（superstep 任一任务失败即整批失败；单任务重试无意义，需整批重放。spec 122 / T443）。 */
+    SUPERSTEP_FAILED(RetryCategory.NON_RETRYABLE, "并行批执行失败"),
 
     // ---- FATAL：环境或数据根因，需人工介入 ----
 

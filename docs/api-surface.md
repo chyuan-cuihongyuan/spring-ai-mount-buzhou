@@ -713,3 +713,780 @@
   （metadata 已入档 + 绑定矩阵登记——enabled=true 全路径含 stub EmbeddingModel）
 - **破坏性变更（pre-1.0）**：`ResilienceProperties` canonical 构造组件数 14→15
   （兼容构造保留源码兼容；反射绑定按 canonical 的调用方需核对）
+
+## effort #16 新增公共面（spec 56 / impl-196–198，@since 1.0.0）
+
+- `SessionStateStore.compareAndSwap(sessionId, key, expected, update)`（default 方法：
+  非原子 check-then-write；内存 compute / JDBC 条件单语句 / 池化 Redis WATCH 事务覆写真原子）
+- `SessionStateHandle.compareAndSwap(key, expected, update)`（default 同上；HookEnvironment
+  覆写透传 store CAS）
+- `ResilienceStats`：`recordQuotaCasFallback()` / `quotaCasFallbacks()`（回退可观测）
+- 类型级快照：**零新增类型**（方法级增补不入快照）；yml 键：**零新增**
+
+## effort #17 新增公共面（spec 57 / impl-199–201，@since 1.0.0）
+
+**buzhou-core（core.spi 包）**
+
+- `CircuitBreakerStateBackend`（共享熔断闸后端 SPI：recordTrip/activeTrip/clear/kind +
+  TripMarker(openedAt, cooldownMs, consecutiveTrips)；默认全 no-op = 进程语义零变化）
+
+**buzhou-resilience（circuit 包）**
+
+- `ModelCircuitBreaker` 新增 backend 注入构造（四参重载；旧构造保留 = 进程默认）
+- `ResilienceModule.configure` 增 CircuitBreakerStateBackend 尾参重载（旧签名委托）
+- `BuzhouResilienceAutoConfiguration`：ObjectProvider 消费共享后端；多实例告警区分
+  「熔断——无共享后端」
+
+**buzhou-store-redis**
+
+- `RedisCircuitBreakerStateBackend`（TTL 键跳闸标记：键存活 = 全实例 OPEN、过期 =
+  可探测免清理；AutoCloseable；故障降级本地语义 WARN 继续；模型名净化入键）
+- `BuzhouRedisStoreAutoConfiguration` 新增 `buzhouSharedCircuitBreakerBackend` bean
+  （store.type=redis 且熔断启用即供；destroyMethod=close）
+- 类型级快照：+2（CircuitBreakerStateBackend / RedisCircuitBreakerStateBackend）；
+  yml 键：**零新增**（复用 `buzhou.store.type` + `buzhou.resilience.circuit.enabled`）
+
+## effort #18 新增公共面（spec 58 / impl-202–203，@since 1.0.0）
+
+- `SessionStateStore.countByPrefix(sessionId, prefix)`（default 方法：scanByPrefix().size()
+  兼容第三方；JDBC COUNT(*) 下推 / Redis 键集侧计数 / 内存键迭代覆写）
+- 类型级快照：**零新增类型**；yml 键：**零新增**
+- `RedisSync.batchHgetAll`（包内：共享连接 async 流水线批量 HGETALL；事务绑定线程退化逐键）
+
+## effort #19 新增公共面（spec 59 / impl-204–205，@since 1.0.0）
+
+**buzhou-skills**
+
+- `SemanticSkillRanker`（目录语义排序：cosine 降序 + 原序稳定并列；技能向量缓存
+  name 键 + 文本变更失效；嵌入失败回退原序 + bypassCount() 观测）
+- `SkillCatalogRendererImpl` 四参构造（ranker + catalogMaxEntries；null ranker = 旧行为）
+- `SkillModule.Builder`：`semanticRankingEnabled` / `embeddingModel`（enabled 无 bean
+  → build() fail-fast 带修法）
+- `SkillCatalogRenderer#renderCatalog(sessionId, queryHint)`（core default 方法——旧签名委托）
+- yml 键：`buzhou.skills.semantic-ranking.enabled`（默认 false；metadata + 绑定矩阵
+  enabled=true 全路径登记）
+- 类型级快照：+1（SemanticSkillRanker）
+
+## effort #20 新增公共面（spec 60 / impl-206，@since 1.0.0）
+
+**buzhou-core（session 包）**
+
+- `ObservabilityJsonlExporter`（观测 OLAP JSONL 导出：单会话/单类/全量分页驱动；
+  一行一 JSON 对象、字段序稳定、duration_ms 派生、换行转义、坏值列降级 + skipped 计数；
+  `JsonlExportResult(sessions, spans, events, skipped)` 返回面）
+- 类型级快照：+1；yml 键：**零新增**（纯新增只读出口）
+
+## effort #21 新增公共面（spec 61 / impl-207，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `LlmJudgeEvaluator`（LLM-as-judge：judge ChatModel + 可选 rubric + PASS/FAIL 首词
+  协议解析；`JudgeProtocolException`（不可解析 → runner 记该条 error）；DeepEval/Ragas
+  G-Eval 借鉴；诚实边界：判别力/抗注入归 judge 模型、CI 不强制）
+- `EvalRunner` 评估器异常收敛为该条 error（不再炸整跑）
+- 类型级快照：+1；yml 键：**零新增**（宿主显式构造传入 run）
+
+## effort #22 新增公共面（spec 62 / impl-208，@since 1.0.0）
+
+- `AtomicStateCounters`（core.internal.hook——非公开面：值形态无关的进度检测 CAS 计数
+  写助手；TokenBudgetHook / RunawayHook / SessionQuotaHook 三处计数统一）
+- 类型级快照：**零新增**（internal 包不入公共面）；yml 键：**零新增**
+
+## effort #23 新增公共面（spec 63 / impl-209，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `PairwiseJudge`（成对 A/B 对比：双向评判消位置偏差——两方向同赢家才裁，翻转判
+  position-bias TIE；协议失败 protocol TIE；`PairwiseVerdict(winner, reason)`；Ragas
+  pairwise / Chatbot Arena 借鉴）
+- 类型级快照：+1（外部类；内部枚举/record 随类不入）；yml 键：**零新增**
+
+## effort #24 新增公共面（spec 64 / impl-210，@since 1.0.0）
+
+**buzhou-resilience（fallback 包）**
+
+- `FallbackLatencyTracker`（备模型延迟 EMA 追踪：α=0.3、未知取已知中位数中性、
+  稳定排序视图；LiteLLM latency-based routing 借鉴）
+- `FallbackChain` 3 参构造（tracker 注入）与 `latencyTracker()` 出口；`models()`
+  排序视图
+- `ResilienceAdvisor` 12 参构造（tracker 计时接线：备模型/金丝雀三处调用）
+- `ResilienceProperties.Fallback` 第 5 组件 `latencyAware`（4 参兼容构造保留）
+- yml 键：`buzhou.resilience.fallback.latency-aware`（默认 false；metadata + 矩阵
+  enabled=true 全路径）
+- **破坏性变更（pre-1.0）**：`Fallback` canonical 构造组件数 4→5（兼容构造保留源码
+  兼容；反射绑定按 canonical 的调用方需核对）
+- 类型级快照：+1（FallbackLatencyTracker）
+
+## effort #25 新增公共面（spec 65 / impl-211，@since 1.0.0）
+
+**buzhou-resilience（budget 包）**
+
+- `AgentCostLedgerHook`（agent 级成本归集：afterModel usage→agentName 台账；合成会话
+  `__buzhou.cost__`；CAS 原子跨实例；`query(store)` per-agent 行；LiteLLM spend
+  tracking 借鉴；显式挂载不自动装配）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #26 新增公共面（spec 66 / impl-212，@since 1.0.0）
+
+- `InjectionViewProcessor.setPrefixStableInjection(boolean)`（前缀稳定注入序开关：
+  catalog→summary→facts 稳定块前置；默认 false 保持 spec 04 口径）
+- 类型级快照：**零新增**；yml 键：`buzhou.memory.prefix-stable-injection`（默认 false；
+  metadata + 矩阵 env-read 登记）
+
+## effort #27 新增公共面（spec 67 / impl-213，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportAllSince(Writer, Instant)`（增量水位导出：
+  lastActivityAt 过滤 + waterline 返回；空结果水位不变；Langfuse cursor 语义）
+- `JsonlExportResult` 第 5 组件 `waterline`（4 参兼容构造保留；全量导出 = null）
+- 类型级快照：**零新增**；yml 键：**零新增**
+
+## effort #28 新增公共面（spec 68 / impl-214，@since 1.0.0）
+
+- `EvalRunner.run(dataset, evaluator, parallelism)` 三参重载（虚拟线程并行 + 项序
+  聚合 + clamp 1..32；LangSmith/DeepEval 并行评估借鉴；默认路径零变化）
+- 类型级快照：**零新增**；yml 键：**零新增**（API 参数非配置）
+
+## effort #29 新增公共面（spec 69 / impl-215，@since 1.0.0）
+
+- `RunRecoveryService.autoResumeAll()`（崩溃自愈 watchdog：枚举 RUNNING 逐一续跑，
+  steal=false 租约门跳过；`AutoResumeResult(resumed, leaseHeld, failed)` 三态计数；
+  失败 per-run 隔离；Temporal crash-watchdog 借鉴）
+- `BuzhouCoreAutoConfiguration` 新增 `buzhouCrashResumeWatchdog` SmartLifecycle bean
+  （opt-in `buzhou.recovery.auto-resume=true`，默认关）
+- yml 键：`buzhou.recovery.auto-resume`（默认 false；metadata + 矩阵 env-read 登记）
+- 类型级快照：**零新增**
+
+## effort #30 新增公共面（spec 70 / impl-216，@since 1.0.0）
+
+- `InjectionViewProcessor.setBoundaryCompactBacklog(int)`（边界机会压缩：积压 ≥ N
+  提前走增量摘要路径；Letta 自然边界压缩的 Completed-Turn 代理；默认 0=关）
+- yml 键：`buzhou.memory.boundary-compact-backlog`（默认 0；metadata + 矩阵 env-read）
+- 类型级快照：**零新增**
+
+## effort #31 新增公共面（spec 71 / impl-217，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `PairwiseEvalRunner`（A/B 成对评估：双 runtime 逐项执行 + PairwiseJudge 双向裁定 +
+  胜率汇总（error 不入分母）+ 并行 clamp；`PairwiseItemResult` / `PairwiseSummary` /
+  `PairwiseEvalResult` 返回面；Ragas pairwise eval / LiteLLM model-compare 借鉴）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #32 新增公共面（spec 72 / impl-218，@since 1.0.0）
+
+**buzhou-core（eval 包）**
+
+- `SessionTrajectoryImporter`（会话轨迹→评估数据集回流：完整轮入集 + 溯源去重 +
+  三态计数；LangSmith session-to-dataset 借鉴；golden 筛选归调用方）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #33 新增公共面（spec 73 / impl-219，@since 1.0.0）
+
+- `SkillSearchTool` 3 参构造（SemanticSkillRanker 注入：命中语义排序 + 零命中近邻
+  提示 3 条；与目录注入共享 ranker/向量缓存；无 ranker 行为零变化）
+- 类型级快照：**零新增**；yml 键：**零新增**（复用 semantic-ranking.enabled）
+
+## effort #34 新增公共面（spec 74 / impl-220，@since 1.0.0）
+
+- `PairwiseEvalRunner` 3 参构造（SessionStateStore 落盘：`ab.run.<runId>` 记录）与
+  `abRuns(store, dataset?)` 摘要查询（startedAt 倒序；`AbRunSummary` 行）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #36 新增公共面（spec 75 / impl-222，@since 1.0.0）
+
+- `PairwiseEvalRunner.compare` 完成事件 `ab.run.completed`（eval.run.completed 家族
+  扩展，LangSmith run 事件面借鉴；total>0 门；与落盘正交）
+- 类型级快照：**零新增**（行为面）；yml 键：**零新增**
+
+## effort #37 新增公共面（spec 76 / impl-223，@since 1.0.0）
+
+- `PairwiseEvalRunner.abRun(store, runId)` 单 run 明细回读（`Optional<
+  PairwiseEvalResult>`，verdict 面；LangSmith run detail API 借鉴；与 abRuns 共用
+  `mapToResult` 解码底座）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #38 新增公共面（spec 77 / impl-224，@since 1.0.0）
+
+- `EvalRunRegistry`（活跃评估 run 注册表：eval/ab 两 kind 在飞计数 + gauge
+  `buzhou.eval.runs.active`（tag kind）；runId 幂等 + Registration close 幂等；
+  LangSmith active-runs 观测面借鉴；BuzhouMetricsHolder 同款全局旋钮模式）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #39 新增公共面（spec 78 / impl-225，@since 1.0.0）
+
+- `SessionStateStore.scanByKeyRange(sessionId, prefix, fromKeyInclusive,
+  toKeyExclusive, limit)`（键序区间扫描：字典序升序 + 含界下界 + 排他上界 + limit
+  截断；JDBC ORDER BY/LIMIT 下推、内存键迭代覆写、默认排序兜底；Kafka log 有序读
+  借鉴——「时间编进键」结构的公共底座）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #40 新增公共面（spec 79 / impl-226，@since 1.0.0）
+
+- `WebhookOutbox` due-time 索引（键 `due.<零垫 nextAttemptAt>.<eventId>` 双写 +
+  `due()` 键序区间读最早到期 + 孤儿/陈旧自愈 + 构造期回填；Kafka log+index 借鉴；
+  spec 78 scanByKeyRange 的首个消费方——退避积压不再放大调度读）
+- 类型级快照：**零新增**（内部结构）；yml 键：**零新增**
+
+## effort #41 新增公共面（spec 80 / impl-227，@since 1.0.0）
+
+- `EvalGate.enforce(dataset, evaluator, threshold[, parallelism])` → `GateResult`
+  （评估回归门：passRate ≥ 阈值判过 + error 计入分母从严 + 失败项预览截 10 条 +
+  CI 单行 summary；Promptfoo eval CI gate / LangSmith eval-as-gate 借鉴；执行复用
+  EvalRunner 管线）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #42 新增公共面（spec 81 / impl-228，@since 1.0.0）
+
+- `EvalRunDiff.diff(base, head)` 两 run 逐项对比（四态迁移 REGRESSION/FIX/
+  STABLE_PASS/STABLE_FAIL + 单侧项（数据集漂移）单独计数 + netDelta + 项序确定；
+  LangSmith run compare 借鉴；纯函数不触 store；`runOf` 便捷构造）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #43 新增公共面（spec 82 / impl-229，@since 1.0.0）
+
+- `EvalDatasetStore.fingerprint(name)`（数据集内容指纹 SHA-256——内容寻址名无关，
+  LangSmith dataset versioning 借鉴）+ `EvalRunResult.datasetFingerprint`（run 执行
+  时刻指纹入档，9 参旧构造兼容）+ `EvalRunDiff.DiffResult.datasetDrift`（就地改项
+  型漂移显形——单侧项只显形增删）
+- 类型级快照：**零新增**（字段级）；yml 键：**零新增**
+
+## effort #44 新增公共面（spec 83 / impl-230，@since 1.0.0）
+
+- `ErrorSignatures`（错误签名聚类：异常简名+归一化首行（数字/十六进制折叠）成
+  有界族，256 条封顶折 `<kind>:__overflow__`，top(n)/snapshot() 供看板与健康面；
+  Sentry fingerprint 借鉴；进程内有界 Map 不进 micrometer tag；工具错误路径已接线）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #45 新增公共面（spec 84 / impl-231，@since 1.0.0）
+
+- `AgentBulkhead`（agent 并发 Turn 隔离舱：per-agent 信号量上限 + NOOP 零开销默认 +
+  chat/chatForEntity/stream 三入口接线（stream 名额横跨流生命周期）+ QUOTA_EXCEEDED
+  fail-fast/超时两档 + `buzhou.bulkhead.enabled/agents/acquire-timeout` 三键默认关；
+  resilience4j Bulkhead 借鉴——spawn 闸限会话数、本舱限在飞 Turn 数，正交）
+- 类型级快照：+1；yml 键：+3（buzhou.bulkhead.*，默认关）
+
+## effort #46 新增公共面（spec 85 / impl-232，@since 1.0.0）
+
+- `ErrorSignaturesHealth`（`/actuator/buzhou` 快照的 error-signatures 段：恒 UP +
+  top-5 错误族有界详情 + distinct 数；#44 fog 毕业生——进程内 top 表接健康面）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #47 新增公共面（spec 86 / impl-233，@since 1.0.0）
+
+- `guard/pii` 三件套（Presidio 规则式子集借鉴）：`PiiType`（5 型）+
+  `PiiDetector`（GB 11643 校验位/Luhn/IPv4 段验证收窄误报 + 重叠去重）+
+  `PiiRedactionHook`（afterTool `[PII:TYPE]` 占位符改写，order 70 先于 spotlight、
+  幂等 + 计数器 tag type）；装配 `GuardModule.builder().piiRedaction(types?)` /
+  `buzhou.guard.pii.enabled`（默认关）+ `types`
+- 类型级快照：+3；yml 键：+2（buzhou.guard.pii.enabled/types，默认关）
+
+## effort #48 新增公共面（spec 87 / impl-234，@since 1.0.0）
+
+- `RagasEvaluators`（Ragas 系数值评估器：faithfulness 断言支持率（幻觉面）+
+  answerRelevancy 针对性 0-10（跑题面）；S x/y 协议 + clamp + 协议失败走 error
+  收敛 + 分母 0 从严；与二值 LlmJudgeEvaluator 互补的连续分面）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #49 新增公共面（spec 88 / impl-235，@since 1.0.0）
+
+- `EvalRunJsonlExporter`（eval run OLAP JSONL 导出：item+summary 行 + 汇总列反规范
+  化（单表免 join）+ 指纹列 + 诚实零行；与观测导出 spec 60/67 同族——质量-行为
+  联合分析补齐）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #50 新增公共面（spec 89 / impl-236，@since 1.0.0）
+
+- `RagasEvaluators.gEval(judge, dimension, rubric[, threshold])`（G-Eval 自定义维度
+  打分：维度名进 detail 前缀（OLAP 分组锚点）+ BOTH 参照系（输入与黄金答案齐进
+  prompt）+ 空维度名 fail-fast；DeepEval G-Eval 借鉴——评分标准是数据不是代码）
+- 类型级快照：**零新增**（方法级 + Reference 枚举内部化）；yml 键：**零新增**
+
+## effort #51 新增公共面（spec 90 / impl-237，@since 1.0.0）
+
+- `memory/compact` 漂移双件套：`SemanticDriftDetector`（函数接口——词面/嵌入/
+  模型实现自由）+ `LexicalDriftDetector`（字符 bigram Jaccard 默认实现，阈值 0.15
+  保守档）；InjectionViewProcessor 边界压缩并联 driftTrigger（与积压判据同管线）；
+  MemoryModule 键 `buzhou.memory.semantic-drift`（默认关）+ `-threshold`；
+  Letta 语义触发压缩借鉴——spec 70 双信号化（计数+漂移）
+- 类型级快照：+2；yml 键：+2（buzhou.memory.semantic-drift/-threshold，默认关）
+
+## effort #52 新增公共面（spec 91 / impl-238，@since 1.0.0）
+
+- `ConfigDoctor`（配置体检：classpath metadata json 聚合键宇宙 + 未知键 WARN 近邻
+  建议（编辑距离 ≤2）+ 值域越界 ERROR（Boolean 严格白名单）+ 有界报告 + 单行
+  summary + `examine(Environment)` 聚合入口；`buzhou.config-doctor.enabled` 默认关
+  就绪事件日志一次；Spring Shell doctor 借鉴——#52 插曲产品化）
+- 类型级快照：+1；yml 键：+1（buzhou.config-doctor.enabled，默认关）
+
+## effort #53 新增公共面（spec 92 / impl-239，@since 1.0.0）
+
+- `BulkheadHealth`（/actuator/buzhou 的 bulkhead 段：未配置 UNKNOWN + disabled
+  详情；配置后 UP + per-agent inFlight/limit 有界详情 16 条截断；#84 fog 毕业生）
+  + `AgentBulkhead.configuredAgents()`（agent → limit 只读视图）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #54 新增公共面（spec 93 / impl-240，@since 1.0.0）
+
+- `PairwiseEvalResult.datasetFingerprint` / `AbRunSummary.datasetFingerprint`（A/B
+  run 执行时刻数据集指纹入档——与 spec 82 同语义，7 参 record + 6 参旧构造兼容，
+  null 不写键；数据集演进后 A/B 结论适用性可验）
+- 类型级快照：**零新增**（字段级）；yml 键：**零新增**
+
+## effort #55 新增公共面（spec 94 / impl-241，@since 1.0.0）
+
+- `AbRunJsonlExporter`（A/B run OLAP JSONL 导出静态面：verdict item 行 + summary 行
+  + 汇总列反规范化 + 指纹列 + 未知 runId 诚实零行 + exportAll 倒序；spec 88 的
+  AB 面同构——四导出面族补齐）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #56 新增公共面（spec 95 / impl-242，@since 1.0.0）
+
+- `CompactionListener.onSummaryFolded(sessionId, summary, trigger)`（摘要折入通知
+  default 方法——trigger ∈ budget/backlog/drift 溯源；lambda 兼容）+ MemoryModule
+  装配双写 `memory.summary.folded` 事件（payload: trigger/generation/coversUpToTurn；
+  spec 90 fog 收口——压缩观测双事件族补齐）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #57 新增公共面（spec 96 / impl-243，@since 1.0.0）
+
+- `WebhookOutboxAudit`（outbox due 索引一致性审计：孤儿/陈旧/缺失三类失真只读
+  对账 + 计数样本 + `repair` 按项清/补（默认全 false safe-by-default）+ 纯静态
+  不触写路径；StoreFsck 同思想第三域——spec 79 fog 收口，投递停摆提前可见）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #58 新增公共面（spec 97 / impl-244，@since 1.0.0）
+
+- `SessionArchiver`（会话归档冷层：三槽快照落 `__buzhou.archive__` 合成会话 +
+  SessionCleaner 级联删除 + restore 原键原值回放 + archived() 清单 + 编码失败
+  fail-fast 不删 + Instant SimpleModule 编解码无 jsr310 依赖；删除前置安全网——
+  #35 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #59 新增公共面（spec 98 / impl-245，@since 1.0.0）
+
+- `RedisSessionStateStore.scanByKeyRange` 覆写（SMEMBERS 键侧过滤 + TreeMap 排序
+  截断 + 命中键 batchHgetAll 一次往返——spec 78 三栈下推补齐 Redis 侧；#39 fog
+  收口；jedis-mock 内嵌单测）
+- 类型级快照：**零新增**（覆写级）；yml 键：**零新增**
+
+## effort #61 新增公共面（spec 99 / impl-246，@since 1.0.0）
+
+- 折入速率指标：counter `buzhou.memory.summary.folded` / `fold-skipped`
+  （tag trigger=budget/backlog/drift 有界——成功与熔断跳过双面；spec 95 fog 收口）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #62 新增公共面（spec 100 / impl-247，@since 1.0.0）
+
+- `EvalDatasetStore.snapshotDataset(source, target)`（数据集快照副本：原 id 复制
+  指纹与源一致 + target 不可覆盖 + 快照可续 addItem 分叉——冻结版本底座；
+  LangSmith dataset versioning 借鉴，spec 82 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #63 新增公共面（spec 101 / impl-248，@since 1.0.0）
+
+- `PairwiseGate.enforce(...)` → `AbGateResult`（A/B 胜率门：winRateA ≥ 阈值判定 +
+  逐项预览截 10 + CI 单行 summary + error 不入分母 spec 71 口径；Promptfoo
+  model-compare 借鉴——与 EvalGate 组成双门族，spec 80 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #64 新增公共面（spec 102 / impl-249，@since 1.0.0）
+
+- `ArchiveHealth`（/actuator/buzhou 的 session-archive 段：恒 UP + 在册数
+  countByPrefix 下推）+ `SessionArchiver.ARCHIVE_PREFIX` 公共化（spec 97 fog 前半场）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #65 新增公共面（spec 103 / impl-250，@since 1.0.0）
+
+- `SessionArchiver.purgeExpired(ttl, now)`（归档 TTL 清理：到期删/损坏跳过不阻断/
+  ttl≤0 显式全清/幂等；now 外注同 SessionHistoryPolicy 签名纪律；S3 lifecycle
+  借鉴——spec 102 fog 后半场，归档治理闭环「可见→治理」补齐）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #66 新增公共面（spec 104 / impl-251，@since 1.0.0）
+
+- 模型失败签名接线（DefaultAgentSession 直调/守护双路径旁路 record("model", …)，
+  抛出语义零变化——ErrorSignatures tool+model 双族补齐，spec 83 fog 收口）+
+  ArchiveHealth 装配修正（ObjectProvider + store 缺席 UNKNOWN-disabled，不抢
+  启动 store 校验报错优先级）
+- 类型级快照：**零新增**（接线级）；yml 键：**零新增**
+
+## effort #67 新增公共面（spec 105 / impl-252，@since 1.0.0）
+
+- `WebhookEventForwarder.setIncludeTypes(...)` + `buzhou.webhook.include-types`
+  （订阅类型过滤：命中才入队、被滤不占 outbox 容量 + `buzhou.webhook.filtered`
+  计数；空/缺省 = 全投递零变化；GitHub/Stripe webhook 订阅面借鉴）
+- 类型级快照：**零新增**（方法级）；yml 键：+1（buzhou.webhook.include-types，默认全投递）
+
+## effort #68 新增公共面（spec 106 / impl-253，@since 1.0.0）
+
+- `PiiInputRedactionHook`（用户输入 PII 脱敏：beforeTurn replaceInput 占位符化 +
+  幂等 + 类型集与输出侧共用 + `buzhou.guard.pii.input-redaction` 独立开关默认关；
+  spec 86 fog 收口——输入/输出双侧防线闭环）
+- 类型级快照：+1；yml 键：+1（buzhou.guard.pii.input-redaction，默认关）
+
+## effort #69 新增公共面（spec 107 / impl-254，@since 1.0.0）
+
+- `ConfigDoctorHealth`（/actuator/buzhou 的 config-doctor 段：就绪一次体检缓存 +
+  UNKNOWN(pending)→UP + errors/warnings/checkedKeys 有界详情；listener+health
+  复合 bean 替换原装配——spec 91 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**（复用 buzhou.config-doctor.enabled）
+
+## effort #70 新增公共面（spec 108 / impl-255，@since 1.0.0）
+
+- 工具调用时长 timer：`buzhou.tool.duration`（tag outcome=ok|failed——delegate
+  调用本体 nanoTime 计时；既有计数/错误反馈/签名通道零变化；P95 慢工具告警底座）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #71 新增公共面（spec 109 / impl-256，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportAllGzip / exportAllSinceGzip`（gzip 压缩导出：
+  GZIP+UTF-8 Writer 复用既有管线，解压与明文逐字节一致；水位/计数语义不变；
+  spec 88 fog 收口——归档/跨网体积降一个量级）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #72 新增公共面（spec 110 / impl-257，@since 1.0.0）
+
+- 技能目录注入遥测：counter `buzhou.skills.catalog-injected` +
+  `catalog-overflow`（tag outcome=truncated|fit——截断率即 catalog-max-entries
+  调优信号；双注入路径同源计数；空目录零计数）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #73 新增公共面（spec 111 / impl-258，@since 1.0.0）
+
+- 评估 run 时长 timer：`buzhou.eval.run.duration` / `buzhou.eval.ab-run.duration`
+  （完成点计时复用既有时间值——数据集规模感知的时长回归信号；LangSmith run
+  latency 借鉴）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #74 新增公共面（spec 112 / impl-259，@since 1.0.0）
+
+- `ErrorSignaturesJsonl.export(registry, Writer)`（错误签名 OLAP JSONL 导出：
+  snapshot 全量一行一 JSON count 降序——错误族趋势进数仓量化治理效果；
+  spec 83 fog 收口，导出五族补齐）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #75 新增公共面（spec 113 / impl-260，@since 1.0.0）
+
+- `EvalQueryService.runsOfVersion(fingerprint)`（按数据集内容版本跨名聚合查 run
+  + `EvalRunSummary.datasetFingerprint` 列（8 参旧构造兼容）——spec 82/100 组合
+  收口：snapshotDataset → runsOfVersion → EvalRunDiff 版本回归全链路）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #76 新增公共面（spec 114 / impl-261，@since 1.0.0）
+
+- `PairwiseEvalRunner.abRunsOfVersion(store, fingerprint)`（AB run 按数据集内容
+  版本聚合查询——spec 113 的 AB 面同构；同基线版本对比集零胶水）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #77 新增公共面（spec 115 / impl-262，@since 1.0.0）
+
+- ConfigDoctor v2 跨键规则表（四规则：NOOP 空转 / 孤儿依赖静默空转 ×2 / 开关联
+  矛盾——单键合法但组合矛盾的配置启动期点名；spec 91 fog 收口，IDE inspections
+  借鉴）
+- 类型级快照：**零新增**（规则级）；yml 键：**零新增**
+
+## effort #78 新增公共面（spec 116 / impl-263，@since 1.0.0）
+
+- skill_search 遥测：counter `buzhou.skills.search`（tag outcome=hit|miss|
+  miss-semantic 三值——命中率即技能可发现性信号，语义救回单列；文案/排序零变化）
+- 类型级快照：**零新增**（指标级）；yml 键：**零新增**
+
+## effort #79 新增公共面（spec 117 / impl-264，@since 1.0.0）
+
+- `AgentBulkhead.topRejections(n)`（per-agent 拒绝计数进程内有界表：256 封顶折
+  overflow + 稳定排序 + NOOP agent 零计数；BulkheadHealth 增 topRejected 3 条
+  ——限流风暴一屏定位，spec 84 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #80 新增公共面（spec 118 / impl-265，@since 1.0.0）
+
+- `CustomPiiRules`（自定义 PII 规则：命名正则 [A-Z0-9_]{2,32} fail-fast + 命中
+  [PII:NAME] 占位符与内置同形态 + 叠加不短路；`PiiRedactionHook` 3 参构造——
+  Presidio PatternRecognizer 对应物，spec 86 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**（编程面——yml 声明式 fog 记账）
+
+## effort #81 新增公共面（spec 119 / impl-266，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportSessionGzip`（单会话 gzip 导出——工单附件/
+  事故取证场景；与明文逐字节一致；gzip 三入口族完整：全量/增量/单会话）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #82 新增公共面（spec 120 / impl-267，@since 1.0.0）
+
+- `SessionArchiver.archivedDetailed()`（归档详情：sessionId/archivedAt/messageCount/
+  stateCount 倒序——合规审计零解析；损坏归档 -1 占位行可见不静默）
+- 类型级快照：**零新增**（方法级 + 内部 record）；yml 键：**零新增**
+
+## effort #83 新增公共面（spec 121 / impl-268，@since 1.0.0）
+
+- `ErrorSignatures.reset()`（窗口化清零：export → reset 循环 = 每窗口一份 JSONL、
+  进程内表永有界——spec 112 fog 收口，错误族时序管线补齐）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #86 A 侧新增公共面（spec 122 / impl-272，@since 1.0.0）
+
+- `SuperstepBatch.runAll`（concurrent 包事务性并行批原语：完成序感知首败即中止
+  在途 + 部分结果不可见 + 每任务去向入异常；`SUPERSTEP_FAILED` 新错误码——
+  与 B 侧 harness 原子前检同轮 A/B 分工，MAP 登记）
+- 类型级快照：+1（concurrent 包静态工具类）；yml 键：**零新增**
+
+## effort #88 新增公共面（spec 124 / impl-274，@since 1.0.0）
+
+- `budget/VirtualKeys`（虚拟 key 配额：per-key token 硬顶 + AtomicLong CAS 原子
+  扣减越限整体拒绝 + usage/topUsage 井读 + reset 窗口清零——LiteLLM virtual-key
+  budgets 借鉴，未注册 key 直通）
+- 类型级快照：+1（budget 包 final 类 + KeyUsage record）；yml 键：**零新增**
+
+## effort #89 新增公共面（spec 125 / impl-275，@since 1.0.0）
+
+- `FileSandbox.forTenant(root, tenant)`（租户隔离沙箱：tenants/<tenant> 子根 +
+  零追加白名单严格收窄 + id 白名单 [a-z0-9][a-z0-9-]{0,31} fail-fast——跨租户
+  遍历复用既有边界检查拒绝，Milvus partition-key/chroot-per-tenant 借鉴）
+- 类型级快照：**零新增**（静态工厂方法级）；yml 键：**零新增**
+
+## effort #90 新增公共面（spec 126 / impl-276，@since 1.0.0）
+
+- `cache/PromptPrefixCache`（提示前缀缓存：规范形 sha256 键有界 LRU + 命中续命
+  + 逐出诚实计数 + getOrLoad 惰性装载 + Stats 四计数 hitRate——vLLM/SGLang
+  radix prefix-cache 借鉴，不猜语义相似与向量面正交）
+- 类型级快照：+1（新 cache 包 final 类 + Stats record）；yml 键：**零新增**
+
+## effort #92 新增公共面（spec 130 / impl-277，@since 1.0.0）
+
+- `retention/ArchivePurgeJob`（归档 TTL 定时清理：SmartLifecycle 单线程
+  scheduleWithFixedDelay + purgeOnce 手动面 + listener 删除数可观测 0 也通知 +
+  单轮异常不杀调度线程——S3 lifecycle 借鉴，spec 103 fog 收口）
+- `config/BuzhouArchiveProperties` + autoconfig：`SessionArchiver` 兜底 bean +
+  purge job（purge-enabled 默认关）
+- 类型级快照：+2；yml 键：+3（buzhou.session-archive.purge-enabled/purge-ttl/
+  purge-interval）
+
+## effort #111 新增公共面（spec 132 / impl-278，@since 1.0.0）
+
+- `metrics/TagCardinalityGuard`（tag 基数守卫：装饰任意 BuzhouMetrics——
+  per-(名,键) 去重值集 64 封顶越限折 __overflow__ 样本不丢 + 指标名空间 512
+  满则新名全折 + folds() 守卫面 + 畸形键值透传不放大故障，Loki cardinality
+  limit 借鉴——「tag 有界」从纪律变机制）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #112 新增公共面（spec 134 / impl-279，@since 1.0.0）
+
+- `eval/DatasetExpectations`（数据集期望套件：四内置期望 + named 自定义行级 +
+  只读 validate 带行号发现样本封顶 10 + 共 N 处诚实计数 + 单行 summary——
+  Great Expectations 借鉴，脏数据 run 前 fail-fast）
+- 类型级快照：+1（+Finding/Result/Expectation 内部 record）；yml 键：**零新增**
+
+## effort #113 新增公共面（spec 136 / impl-280，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportAllSampled`（尾采样导出：错误/慢会话 100%
+  保留 + 健康快会话确定性哈希比率留样——同 id 重导同判定；会话粒度完整叙事；
+  TailSamplingPolicy + SampledExportResult kept/notSampled 分列 + 单行 summary，
+  OTel tail sampling 借鉴）
+- 类型级快照：**零新增**（方法级 + 嵌套 record）；yml 键：**零新增**
+
+## effort #114 新增公共面（spec 138 / impl-281，@since 1.0.0）
+
+- `runaway/TurnHeartbeat`（轮次心跳：注册制在飞表 + beat 进展打点 + stalled
+  候选制检测 quiet 降序最长停滞优先 + stalled-detected 计数——「活着但不动」
+  卡死面可见，Temporal Activity heartbeat 借鉴）
+- 类型级快照：+1（+Stalled record）；yml 键：**零新增**
+
+## effort #115 新增公共面（spec 140 / impl-282，@since 1.0.0）
+
+- `skill/SkillUsageStats`（技能使用统计：LoadSkillTool 成功打点 + topUsed
+  排行稳定排序 + unused 零使用清单治理证据面 + reset 窗口清零 + 1024 封顶折
+  __overflow__——Backstage catalog score 借鉴）
+- 类型级快照：+1（buzhou-skills + SkillUsage record）；yml 键：**零新增**
+
+## effort #116 新增公共面（spec 142 / impl-283，@since 1.0.0）
+
+- `ConfigDoctorHealth(env, freshnessTtl)` + `reexamine()`（体检陈旧度：报告
+  超 TTL 转 UNKNOWN(stale)——旧快照不冒充现在；手动刷新面恒可用；默认无 TTL
+  零变化；details 增 examinedAt/freshnessTtlMs/stale，Consul TTL check 借鉴）
+- 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**
+
+## effort #117 新增公共面（spec 144 / impl-284，@since 1.0.0）
+
+- `guard/pii/PiiHitStats`（PII 命中统计：内置类型 + 自定义规则名统一排行 +
+  PiiRedactionHook 双点接线自定义补盲 + 自定义名 64 封顶折 __overflow__ +
+  reset 窗口清零——Presidio anonymizer 统计口径借鉴）
+- 类型级快照：+1（buzhou-guard + Hit record）；yml 键：**零新增**
+
+## effort #118 新增公共面（spec 146 / impl-285，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportManifest`（导出清单：一行一会话六列
+  id/首末活动/轮次/span/event 计数——eventCount 现算与数据体互核，git pack
+  索引借鉴；列序稳定行序无承诺）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #119 新增公共面（spec 148 / impl-286，@since 1.0.0）
+
+- `TokenBudgetHook(props, model, store, virtualKeys, virtualKey)` + 
+  `EVENT_KEY_HARD_STOP`（key 级预算闸：afterModel 跨会话扣减 + 越限即刻观测
+  事件 + beforeModel 耗尽拦截模型零调用 + `VirtualKeys.isExhausted` 越限锁定
+  至 reset——LiteLLM virtual-key 闸位语义；null = 零变化）
+- 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**（编程面）
+
+## effort #120 新增公共面（spec 150 / impl-287，@since 1.0.0）
+
+- `EvalRunner.setExpectations`（run 前期望门禁：脏数据集 fail-fast 模型零
+  调用零 token 成本——message 带 summary + 前三条发现；null = 零变化，
+  spec 134 账本的闸位接线）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #121 新增公共面（spec 152 / impl-288，@since 1.0.0）
+
+- `runaway/TurnHeartbeatHook`（心跳接线：轮次起止自动注册/清除 + 模型与工具
+  四点自动 beat + order 50 先留痕后裁决 + 永续 CONTINUE 观测不干预 +
+  heartbeat() 共享视图——spec 138 的接线面）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #122 新增公共面（spec 154 / impl-289，@since 1.0.0）
+
+- `health/VirtualKeysHealth`（虚拟 key 健康面：恒 UP 观测不裁决 + distinct/
+  exhausted 全量计数 + top-8 用量行 used/limit/exhausted 行内标记 +
+  @ConditionalOnBean 按需装配——spec 148 key 配额的观测闭环）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #123 新增公共面（spec 158 / impl-290，@since 1.0.0）
+
+- `config/BuzhouVirtualKeyProperties` + autoconfig `buzhouVirtualKeys` bean
+  （虚拟 key yml 装配：active-key + limits.<key> 两键即得 key 级预算闸全链——
+  registry → tokenBudgetHook → VirtualKeysHealth 自动出现；bind/装配分期
+  校验不带病上线）
+- 类型级快照：+1；yml 键：+2（buzhou.virtual-keys.active-key/limits——后者
+  Map 结构化面矩阵 SKIPPED 登记）
+
+## effort #124 新增公共面（spec 160 / impl-291，@since 1.0.0）
+
+- `buzhou.metrics.cardinality-guard.enabled`（tag 基数守卫 opt-in 装配：
+  开 = Holder 安装面装饰 TagCardinalityGuard 全局生效；默认关零变化——
+  spec 132 的装配面收口）
+- 类型级快照：**零新增**；yml 键：+1
+
+## effort #125 新增公共面（spec 162 / impl-292，@since 1.0.0）
+
+- `runaway/TurnStallWatchdog`（停滞巡检犬：registered 全集低频轮询 + quiet
+  超阈值按停滞时长降序交付 listener + 每轮重复告警诚实语义——去重归接收端 +
+  空表也通知 + 单轮异常不杀调度；TurnHeartbeat 增 registered() 全集视图，
+  K8s liveness probe 借鉴）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #126 新增公共面（spec 164 / impl-293，@since 1.0.0）
+
+- `PiiInputRedactionHook` 双点接线 PiiHitStats + `PiiHitStats
+  .extractCustomRuleNames`（输入侧命中进同一张合规报表——自定义占位符提取
+  上移双钩共用，内置类型名剔除防双计；spec 144 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #127 新增公共面（spec 166 / impl-294，@since 1.0.0）
+
+- `guard/pii/PiiHitStatsJsonl.export`（PII 命中报表 JSONL：与 top 同序平铺
+  + export→reset 每窗口一份合规报表 + 转义纪律 + 空表零行诚实——导出族
+  第六员，spec 164 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #128 新增公共面（spec 168 / impl-295，@since 1.0.0）
+
+- `SkillCatalogRendererImpl` 渲染缓存 + `renderCacheStats()`（目录渲染按
+  name|description 规范形 sha256 内容寻址——同目录命中复用、上架/改文案即换键
+  自然失效、输出零变化；PromptPrefixCache 首个内置消费方，vLLM radix
+  prefix-cache 借鉴）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #129 新增公共面（spec 170 / impl-296，@since 1.0.0）
+
+- `skill/SkillUsageStatsJsonl.export`（技能使用报表 JSONL：与 topUsed 同序
+  平铺 + export→reset 每窗口一份热度榜 + 空表零行诚实——导出族第七员，
+  spec 140 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #130 新增公共面（spec 172 / impl-297，@since 1.0.0）
+
+- 归档清理三键登记补齐（additional-metadata +3 + 矩阵 Binder 面 +
+  PREFIX_TO_BEAN 归属 BuzhouArchiveProperties——spec 130 漏面收口，
+  T187 静默失防线闭环）
+- 类型级快照：**零新增**；yml 键：**零新增**（既有键补登记）
+
+## effort #131 新增公共面（spec 174 / impl-298，@since 1.0.0）
+
+- `budget/ModelCostLedger`（模型成本台账：per-model micro-USD 整数累计 +
+  topByCost 稳定排行 + totalMicroUsd 总数含 overflow + reset 窗口——
+  WandB/Langfuse cost tracking 借鉴，只记账不拦截）
+- 类型级快照：+1（+ModelCost record）；yml 键：**零新增**
+
+## effort #131 新增公共面（spec 174 / impl-298，@since 1.0.0）
+
+- `budget/ModelCostLedger`（模型成本台账：per-model micro-USD 整数累计 +
+  topByCost 稳定排行 + totalMicroUsd 总数含 overflow + reset 窗口——
+  WandB/Langfuse cost tracking 借鉴，只记账不拦截）
+- 类型级快照：+1（+ModelCost record）；yml 键：**零新增**
+
+## effort #132 新增公共面（spec 176 / impl-299，@since 1.0.0）
+
+- `TokenBudgetHook.afterModel` 成本台账单点入账（价目换算处直入
+  ModelCostLedger.global——零配置全局成本账；无价目零值在册诚实；
+  只记账不拦截，spec 174 fog 收口）
+- 类型级快照：**零新增**（接线级）；yml 键：**零新增**
+
+## effort #133 新增公共面（spec 178 / impl-300，@since 1.0.0）
+
+- `backpressure/RetryBudget`（重试预算：流量百分比毫单位连续累积 + CAS 支取
+  不足即拒 + denied 风暴压制证据面 + 冷启动底数 + refill 逃逸——Finagle
+  retry budget 借鉴，防重试风暴）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #135 新增公共面（spec 182 / impl-302，@since 1.0.0）
+
+- `retention/AdvisoryFileLock`（文件咨询锁：createNewFile 原子抢锁 + 仅持有者
+  释放他者拒 + stale 陈旧判定 + forceRelease 处置——多实例单跑通用底座，
+  ShedLock 借鉴，spec127/162「多实例节流」fog 起步）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #136 新增公共面（spec 184 / impl-303，@since 1.0.0）
+
+- `ArchivePurgeJob(…, AdvisoryFileLock)` + `SKIPPED_LOCKED`（清理接锁档：每轮
+  抢锁未获跳过通知 -1「别的实例在跑」+ finally 用后即还 + IO 失败 fail-safe
+  跳过；null = 零变化——spec 127 多实例节流 fog 落地）
+- 类型级快照：**零新增**（构造器 + 常量）；yml 键：**零新增**（编程面）
+
+## effort #137 新增公共面（spec 186 / impl-304，@since 1.0.0）
+
+- `TurnStallWatchdog(…, AdvisoryFileLock)` + `skippedForLock()`（巡检犬接锁：
+  未获锁零通知——null 哨兵与空表「跑过没事」严格区分 + 跳过计数证据面 +
+  finally 用后即还；null = 零变化，spec 182 第二站接线）
+- 类型级快照：**零新增**（构造器 + 方法级）；yml 键：**零新增**
+
+## effort #138 新增公共面（spec 188 / impl-305，@since 1.0.0）
+
+- `budget/ModelCostLedgerJsonl.export`（成本账单 JSONL：与 topByCost 同序 +
+  双口径列 microUsd 精确/usd 6 位小数人读 + export→reset 每窗口一份 + 空表
+  零行诚实——导出族第八员，spec 174 fog 收口）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #139 新增公共面（spec 190 / impl-306，@since 1.0.0）
+
+- `health/ModelCostHealth`（模型成本健康面：恒 UP 观测 + distinct/total 双
+  口径 + top-8 烧钱行有界——台账/JSONL/健康段三面齐）
+- 类型级快照：+1；yml 键：**零新增**
+
+## effort #141 新增公共面（spec 194 / impl-308，@since 1.0.0）
+
+- `ObservabilityJsonlExporter.exportManifestGzip`（清单 gzip 面：解压与明文
+  逐字节一致——gzip 族管线合流）+ `VirtualKeys.resetAll`（整窗换窗：用量+
+  耗尽态同清、限额保留）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #142 新增公共面（spec 196 / impl-309，@since 1.0.0）
+
+- `ErrorSignatures.top(kind, n)`（按 kind 分面的错误族排行——「只看模型侧/
+  工具侧」看板）+ `TurnHeartbeat.stalledSince`（单会话停滞时长查询——
+  超阈 Duration/未超未注册 null，与批量 stalled 互补）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #143 新增公共面（spec 198 / impl-310，@since 1.0.0）
+
+- `EvalRunner.setExpectations(suite, warnOnly)`（门禁宽松档：未过 WARN 带
+  full detail 照跑——灰度期「看到脏但照跑」；单参严格档零变化，
+  spec 150 fog 收口）
+- 类型级快照：**零新增**（方法级）；yml 键：**零新增**

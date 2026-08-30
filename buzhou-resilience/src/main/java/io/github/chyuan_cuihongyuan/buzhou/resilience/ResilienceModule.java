@@ -106,6 +106,21 @@ public final class ResilienceModule {
                                           List<NamedFallbackModel> shadowModels,
                                           io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend rateLimitBackend,
                                           org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel) {
+        return configure(properties, modelName, stats, fallbacks, shadowModels, rateLimitBackend,
+                semanticEmbeddingModel, null);
+    }
+
+    /**
+     * 带共享熔断闸后端的完整入口（spec 57 §A / T255 / effort#17）：circuitBackend 非 null
+     * 时熔断跳闸事实跨实例共享（Redis TTL 标记——任一实例跳闸全实例拒绝，冷却期满首见
+     * 实例探测，达标任一实例清除恢复）；null = 进程语义（默认零变化）。
+     */
+    public static RuntimeConfig configure(ResilienceProperties properties, String modelName, ResilienceStats stats,
+                                          List<NamedFallbackModel> fallbacks,
+                                          List<NamedFallbackModel> shadowModels,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend rateLimitBackend,
+                                          org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel,
+                                          io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend circuitBackend) {
         if (!properties.enabled()) {
             return RuntimeConfig.defaults();
         }
@@ -115,7 +130,7 @@ public final class ResilienceModule {
         // 进程级事实，configure 每 context 一次、经 customizer 闭包注入全部会话
         // （此前限流器在 customize() 内建，N 会话 = N 倍限额）。
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
-                ? new ModelCircuitBreaker(properties.circuit(), stats)
+                ? new ModelCircuitBreaker(properties.circuit(), stats, java.time.Clock.systemUTC(), circuitBackend)
                 : null;
         ModelRateLimiter limiter = null;
         ResilienceProperties.RateLimit rl = properties.rateLimit();
@@ -150,8 +165,15 @@ public final class ResilienceModule {
                 }
             }
         }
+        // spec 64 §A / T279：延迟感知排序（进程级 EMA 追踪；默认关 = null 零计时零排序）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackLatencyTracker latencyTracker =
+                fallbacks != null && !fallbacks.isEmpty()
+                        && properties.fallback() != null
+                        && properties.fallback().effectiveLatencyAware()
+                        ? new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackLatencyTracker()
+                        : null;
         FallbackChain fallbackChain = fallbacks != null && !fallbacks.isEmpty()
-                ? new FallbackChain(fallbacks, properties.fallback())
+                ? new FallbackChain(fallbacks, properties.fallback(), latencyTracker)
                 : null;
         // spec 49 §A / T176：shadow 探测控制器（进程级共享——并发信号量与日预算都是进程级事实）
         io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow =
@@ -292,7 +314,9 @@ public final class ResilienceModule {
             ModelCallInFlight inFlight = new ModelCallInFlight();
             ResilienceAdvisor advisor = new ResilienceAdvisor(
                     properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName,
-                    fallback, shadow, limiter);
+                    fallback, shadow, limiter,
+                    // spec 64 §A / T279：延迟追踪经链携带（链未建/未开启 = null 零计时）
+                    fallback == null ? null : fallback.latencyTracker());
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

@@ -56,6 +56,11 @@ public class RedisUnitOfWork implements UnitOfWork {
         this.sync = sync;
     }
 
+    /** spec 56 §A / T249：CAS 专用连接池透出（null = 旧直连路径，state store CAS 退化非原子）。 */
+    GenericObjectPool<StatefulRedisConnection<String, String>> casConnectionPool() {
+        return connectionPool;
+    }
+
     @Override
     public <T> T executeInTransaction(Supplier<T> work) {
         return connectionPool != null ? executePooled(work) : executeWithFreshConnection(work);

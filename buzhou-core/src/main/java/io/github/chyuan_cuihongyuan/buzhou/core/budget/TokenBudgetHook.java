@@ -50,14 +50,28 @@ public class TokenBudgetHook implements BuzhouHook {
     private static final String KEY_COMPLETION = "buzhou.budget.completion-tokens";
     private static final String KEY_COST_MICRO_USD = "buzhou.budget.cost-micro-usd";
 
+    /** key 级 token 硬顶终止（spec 148 §A / T501：跨会话共享预算耗尽——payload 含 limit/value）。 */
+    public static final String EVENT_KEY_HARD_STOP = "budget.key-hard-stop";
+
     private final BuzhouTokenBudgetProperties props;
     private final String defaultModelName;
     private final io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore;
     private final Map<String, Object> sessionLocks = new ConcurrentHashMap<>();
+    /** key 级预算（可选——spec 124 注册表接线，spec 148 / T501；null = 无 key 面）。 */
+    private final VirtualKeys virtualKeys;
+    private final String virtualKey;
 
     public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
                            io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore) {
+        this(props, defaultModelName, observabilityStore, null, null);
+    }
+
+    public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
+                           io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore,
+                           VirtualKeys virtualKeys, String virtualKey) {
         this.props = props;
+        this.virtualKeys = virtualKeys;
+        this.virtualKey = virtualKey;
         this.defaultModelName = defaultModelName == null || defaultModelName.isBlank()
                 ? "unknown" : defaultModelName;
         this.observabilityStore = observabilityStore;
@@ -100,6 +114,26 @@ public class TokenBudgetHook implements BuzhouHook {
         BuzhouMetricsHolder.metrics().counter("buzhou.budget.prompt-tokens", prompt);
         BuzhouMetricsHolder.metrics().counter("buzhou.budget.completion-tokens", completion);
 
+        // spec 176 / T531：全局成本台账（per-model micro-USD——零成本也记：
+        // 「跑过零成本」是账单事实；只记账不拦截）
+        ModelCostLedger.global().record(model, costMicroUsd);
+
+        if (virtualKeys != null && virtualKey != null
+                && !virtualKeys.trySpend(virtualKey, prompt + completion)) {
+            // spec 148 / T501：key 级扣减越限——观测事件即刻发（本响应已生成），
+            // 拦截发生在下一次 beforeModel（与会话硬顶同「不可逆预算」纪律）
+            VirtualKeys.KeyUsage keyUsage = virtualKeys.usage(virtualKey);
+            emit(ctx, EVENT_KEY_HARD_STOP, Map.of(
+                    "sessionId", ctx.sessionId(),
+                    "turn", ctx.turn(),
+                    "reason", "virtual-key-tokens",
+                    "limit", keyUsage == null ? -1L : keyUsage.limitTokens(),
+                    "value", keyUsage == null ? -1L : keyUsage.usedTokens(),
+                    "partialResultRef", "messageStore:" + ctx.sessionId()));
+            BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.budget.hard-stops", "reason", "virtual-key-tokens");
+        }
+
         Map<String, Object> payload = new java.util.LinkedHashMap<>();
         payload.put("sessionId", ctx.sessionId());
         payload.put("turn", ctx.turn());
@@ -119,7 +153,26 @@ public class TokenBudgetHook implements BuzhouHook {
     /** 闸门：beforeModel 检查会话累计硬顶，超限拦截本次模型调用。 */
     @Override
     public HookResult beforeModel(ModelCallContext ctx) {
-        if (!props.enabled() || !props.anyCapConfigured()) {
+        if (!props.enabled()) {
+            return HookResult.CONTINUE;
+        }
+        if (virtualKeys != null && virtualKey != null && virtualKeys.isExhausted(virtualKey)) {
+            VirtualKeys.KeyUsage usage = virtualKeys.usage(virtualKey);
+            long limit = usage == null ? -1L : usage.limitTokens();
+            long value = usage == null ? -1L : usage.usedTokens();
+            emit(ctx, EVENT_KEY_HARD_STOP, Map.of(
+                    "sessionId", ctx.sessionId(),
+                    "turn", ctx.turn(),
+                    "reason", "virtual-key-tokens",
+                    "limit", limit,
+                    "value", value,
+                    "partialResultRef", "messageStore:" + ctx.sessionId()));
+            BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.budget.hard-stops", "reason", "virtual-key-tokens");
+            return HookResult.block("虚拟 key [" + virtualKey + "] token 预算已耗尽（限额 "
+                    + limit + "，已消耗 " + value + "），本轮终止。窗口 reset 后恢复。");
+        }
+        if (!props.anyCapConfigured()) {
             return HookResult.CONTINUE;
         }
         long sessionPrompt = stateGet(ctx, KEY_PROMPT);
@@ -172,10 +225,22 @@ public class TokenBudgetHook implements BuzhouHook {
     }
 
     private long stateAdd(HookContext ctx, String key, long delta) {
-        long current = stateGet(ctx, key);
-        long next = current + delta;
-        ctx.state().put(key, Long.toString(next));
-        return next;
+        // spec 62 / T275：CAS 写统一走 AtomicStateCounters（跨实例原子 + 进度检测重试；
+        // 调用方按需持会话锁——默认非原子 CAS 的单实例兜底）
+        String next = io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters
+                .swapValue(ctx.state(), key, raw -> Long.toString(stateGetRaw(raw) + delta), null);
+        return stateGetRaw(next);
+    }
+
+    private static long stateGetRaw(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return 0L;
+        }
+        try {
+            return Long.parseLong(raw.trim());
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
     }
 
     private long stateGet(HookContext ctx, String key) {
