@@ -113,7 +113,7 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- 真实 LLM 集成测试（impl/06）：凭据门控、CI 跳过、仅本地带 key 跑。
