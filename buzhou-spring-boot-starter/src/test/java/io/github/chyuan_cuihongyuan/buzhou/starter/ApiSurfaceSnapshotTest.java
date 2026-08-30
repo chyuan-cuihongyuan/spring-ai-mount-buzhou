@@ -118,7 +118,11 @@ class ApiSurfaceSnapshotTest {
     private static String moduleNameOf(String entry) {
         File f = new File(entry);
         String name = f.getName();
-        if (name.endsWith(".jar") && name.startsWith("buzhou-")) {
+        // 审计口径（da1b125）：testsupport/contract 测试类不属公开面。test-classes 目录
+        // 天然不匹配 "/classes" 后缀；core 的 test-jar（-tests.jar）在全量 reactor 构建
+        // 时会进依赖方测试 classpath，不过滤则扫描集被污染，黄金快照无法在全量构建下
+        // 幂等再生（漂移假红）
+        if (name.endsWith(".jar") && name.startsWith("buzhou-") && !name.endsWith("-tests.jar")) {
             return name.replaceAll("-[0-9].*\\.jar$", "");
         }
         // /path/buzhou-core/target/classes
