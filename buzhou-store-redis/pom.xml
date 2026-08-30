@@ -83,7 +83,7 @@
     <!-- 真实 Redis 集成（CI 环境 Docker 可用时跑；本机无 Docker 自动跳过，与 jdbc 模块同口径） -->
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

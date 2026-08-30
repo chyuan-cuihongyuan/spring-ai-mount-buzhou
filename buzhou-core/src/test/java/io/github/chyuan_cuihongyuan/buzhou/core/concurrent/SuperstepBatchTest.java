@@ -13,7 +13,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -53,7 +52,7 @@ class SuperstepBatchTest {
     @Test
     void firstFailureAbortsInFlightAndHidesPartialResults() throws Exception {
         CountDownLatch slowStarted = new CountDownLatch(1);
-        AtomicBoolean slowInterrupted = new AtomicBoolean(false);
+        CountDownLatch slowInterrupted = new CountDownLatch(1);
         Map<String, Callable<String>> tasks = new LinkedHashMap<>();
         tasks.put("quick-ok", () -> "done");
         tasks.put("slow-inflight", () -> {
@@ -62,7 +61,7 @@ class SuperstepBatchTest {
                 Thread.sleep(5_000);
                 return "late";
             } catch (InterruptedException e) {
-                slowInterrupted.set(true);
+                slowInterrupted.countDown();
                 throw e;
             }
         });
@@ -78,9 +77,11 @@ class SuperstepBatchTest {
                     .hasMessageContaining("aborted=[slow-inflight]")
                     .satisfies(e -> assertThat(((BuzhouException) e).errorCode())
                             .isEqualTo(ErrorCode.SUPERSTEP_FAILED));
-            // 首败不等慢同伴：slow 被中断（5s 任务在毫秒级内结束）
+            // 首败不等慢同伴：slow 被中断（5s 任务在毫秒级内结束）。中断是异步信号——
+            // 慢线程从被唤醒到执行 catch 需调度时间（CI 少核高载下主线程可能先跑到断言），
+            // 故对中断回执同样有界等待，不可立即读。
             assertThat(slowStarted.await(2, TimeUnit.SECONDS)).isTrue();
-            assertThat(slowInterrupted).isTrue();
+            assertThat(slowInterrupted.await(2, TimeUnit.SECONDS)).isTrue();
         }
         // 首败入错误签名族（kind=superstep；Throwable 面 = 简名:归一消息）
         assertThat(ErrorSignatures.global().snapshot())
