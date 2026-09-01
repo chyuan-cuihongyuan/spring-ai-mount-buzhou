@@ -68,7 +68,7 @@ class ExportBundleTest {
     }
 
     @Test
-    void sha256MatchesEntryContent() throws IOException {
+    void sha256MatchesEntryContent() throws Exception {
         Path zip = tempDir.resolve("hash-bundle.zip");
         LinkedHashMap<String, ExportBundle.ExportSource> sources = new LinkedHashMap<>();
         sources.put("s.jsonl", out -> writeLines(out, "abc"));
