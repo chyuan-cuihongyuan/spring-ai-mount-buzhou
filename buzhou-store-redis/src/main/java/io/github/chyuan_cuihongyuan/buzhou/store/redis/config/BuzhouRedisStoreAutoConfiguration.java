@@ -106,6 +106,19 @@ public class BuzhouRedisStoreAutoConfiguration {
                 client, props.keyPrefix() + "vk:");
     }
 
+    /**
+     * 共享泳道许可后端（spec 316 / T624）：store.type=redis 时恒供 LaneStateBackend
+     * bean（Lua 原子取/还——慢工具道跨实例互斥）；消费方 opt-in（BackendLanePermit
+     * 包装走共享路径，默认 Semaphore 进程内零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.LaneStateBackend buzhouSharedLaneStateBackend(
+            RedisClient client, RedisStoreProperties props) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLaneStateBackend(
+                client, props.keyPrefix() + "lane:");
+    }
+
     private static Integer positiveOrNull(String value) {
         if (value == null || value.isBlank()) {
             return null;

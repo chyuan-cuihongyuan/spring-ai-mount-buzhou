@@ -238,6 +238,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 护栏 | PII 命中分侧 | 输入（预防提示面）与输出（脱敏规则面）分列统计+JSONL 双列（Presidio 分侧深化） | [spec 313](docs/spec/313-pii-hit-sides.md) |
 | 成本预算 | 价目快照随单 | 账单行自含记账时单价两列——调价后旧账可离线复算（复式记账审计口径） | [spec 314](docs/spec/314-pricing-snapshot.md) |
 | 成本预算 | 虚拟 key 配额共享 | Lua 原子扣减跨实例一份额度、后端不可达 fail-closed（Redisson 分布式限额——N 实例≠N 倍烧钱） | [spec 315](docs/spec/315-virtual-keys-redis.md) |
+| 工具治理 | 泳道许可共享 | Lua 原子取/还跨实例一套泳道容量、满道超时同词汇（Redisson 分布式信号量——fog 227 共享族收口） | [spec 316](docs/spec/316-lane-redis-shared.md) |
 
 ## 技术基线
 

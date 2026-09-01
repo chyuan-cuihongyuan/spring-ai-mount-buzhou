@@ -19,12 +19,20 @@ public final class LaneLimitingToolCallback implements ToolCallback {
     private final ToolCallback delegate;
     private final Semaphore lane;
     private final Duration acquireTimeout;
+    /** spec 316 / T623：后端泳道许可（非 null 时走共享路径——Semaphore 路径零变化）。 */
+    private final BackendLanePermit backendPermit;
 
     private LaneLimitingToolCallback(ToolCallback delegate, Semaphore lane,
                                      Duration acquireTimeout) {
+        this(delegate, lane, acquireTimeout, null);
+    }
+
+    private LaneLimitingToolCallback(ToolCallback delegate, Semaphore lane,
+                                     Duration acquireTimeout, BackendLanePermit backendPermit) {
         this.delegate = delegate;
         this.lane = lane;
         this.acquireTimeout = acquireTimeout;
+        this.backendPermit = backendPermit;
     }
 
     public static LaneLimitingToolCallback wrap(ToolCallback delegate, String laneName,
@@ -38,6 +46,22 @@ public final class LaneLimitingToolCallback implements ToolCallback {
         }
         return new LaneLimitingToolCallback(delegate,
                 registry.lane(laneName, permits), acquireTimeout);
+    }
+
+    /**
+     * 共享泳道包装（spec 316 / T623）：许可面走 {@link BackendLanePermit}（跨实例
+     * 共享——多实例一套泳道容量）；超时/异常词汇与 Semaphore 路径一致。
+     */
+    public static LaneLimitingToolCallback wrap(ToolCallback delegate,
+                                                BackendLanePermit backendPermit,
+                                                Duration acquireTimeout) {
+        if (delegate == null || backendPermit == null) {
+            throw new IllegalArgumentException("delegate/backendPermit 必须非空");
+        }
+        if (acquireTimeout == null || acquireTimeout.isZero() || acquireTimeout.isNegative()) {
+            throw new IllegalArgumentException("acquireTimeout 为正");
+        }
+        return new LaneLimitingToolCallback(delegate, null, acquireTimeout, backendPermit);
     }
 
     @Override
@@ -58,7 +82,11 @@ public final class LaneLimitingToolCallback implements ToolCallback {
     private String withLane(java.util.concurrent.Callable<String> execution) {
         boolean acquired = false;
         try {
-            acquired = lane.tryAcquire(acquireTimeout.toMillis(), TimeUnit.MILLISECONDS);
+            if (backendPermit != null) {
+                acquired = backendPermit.tryAcquire(acquireTimeout);
+            } else {
+                acquired = lane.tryAcquire(acquireTimeout.toMillis(), TimeUnit.MILLISECONDS);
+            }
             if (!acquired) {
                 throw new IllegalStateException("工具泳道许可等待超时（泳道满——容量调参入口）");
             }
@@ -72,7 +100,11 @@ public final class LaneLimitingToolCallback implements ToolCallback {
             throw new IllegalStateException("工具执行失败", e);
         } finally {
             if (acquired) {
-                lane.release();
+                if (backendPermit != null) {
+                    backendPermit.release();
+                } else {
+                    lane.release();
+                }
             }
         }
     }
