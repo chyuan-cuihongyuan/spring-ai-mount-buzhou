@@ -48,7 +48,19 @@ public record ResilienceProperties(
         @Valid SessionQuota sessionQuota,
         @Valid Shadow shadow,
         @Valid ResponseCache responseCache,
-        @Valid SemanticCache semanticCache) {
+        @Valid SemanticCache semanticCache,
+        @Valid Hedge hedge) {
+
+    /** 15 参兼容构造（spec 301 之前调用方；hedge = 未配置）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, responseCache, semanticCache, null);
+    }
 
     /** 14 参兼容构造（spec 55 之前调用方；semantic-cache = 未配置）。 */
     public ResilienceProperties(
@@ -425,6 +437,7 @@ public record ResilienceProperties(
         shadow = shadow == null ? new Shadow(null, null, null, null) : shadow;
         responseCache = responseCache == null ? new ResponseCache(null, null, null) : responseCache;
         semanticCache = semanticCache == null ? new SemanticCache(null, null, null, null) : semanticCache;
+        hedge = hedge == null ? new Hedge(null, null, null, null) : hedge;
         if (responseCache.maxEntries() < 1) {
             throw configError("response-cache.max-entries",
                     String.valueOf(responseCache.maxEntries()), "设为 >= 1 的整数");
@@ -437,6 +450,43 @@ public record ResilienceProperties(
     private static BuzhouConfigurationException configError(String key, String value, String action) {
         return new BuzhouConfigurationException(
                 "buzhou.resilience." + key + "（" + value + "）非法", action);
+    }
+
+    /**
+     * 模型对冲装配参数组（spec 301 / T593，gRPC hedging——spec 137 原语的装配面）。
+     * 前缀 {@code buzhou.resilience.hedge}。默认关（false = 零装配零行为变化）。
+     *
+     * @param enabled      开关（开启即注册 {@code @Primary} 的 {@code buzhouHedgedChatModel}）
+     * @param primaryModel 主模型 ChatModel bean 名（开启时必填——长尾等待的押注主体）
+     * @param model        对冲模型 ChatModel bean 名（开启时必填；不得与主模型同名）
+     * @param delay        对冲触发延迟（默认 200ms；主模型超此未回即并发押注，建议设在主模型 p95 之上）
+     */
+    public record Hedge(Boolean enabled, String primaryModel, String model, Duration delay) {
+
+        public Hedge {
+            delay = delay == null ? Duration.ofMillis(200) : delay;
+            if (delay.isZero() || delay.isNegative()) {
+                throw configError("hedge.delay", delay.toString(), "设为正时长，如 200ms");
+            }
+            if (Boolean.TRUE.equals(enabled)) {
+                if (primaryModel == null || primaryModel.isBlank()) {
+                    throw configError("hedge.primary-model", String.valueOf(primaryModel),
+                            "hedge.enabled=true 时必填主模型 bean 名");
+                }
+                if (model == null || model.isBlank()) {
+                    throw configError("hedge.model", String.valueOf(model),
+                            "hedge.enabled=true 时必填对冲模型 bean 名");
+                }
+                if (model.equals(primaryModel)) {
+                    throw configError("hedge.model", model, "对冲模型不得与主模型同名（自冲无意义）");
+                }
+            }
+        }
+
+        /** 生效开关（显式开启）。 */
+        public boolean effectiveEnabled() {
+            return Boolean.TRUE.equals(enabled);
+        }
     }
 
     /** 全默认（装配测试 / 兜底用）。 */

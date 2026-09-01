@@ -115,6 +115,48 @@ public class BuzhouResilienceAutoConfiguration {
         return resolved;
     }
 
+    /**
+     * spec 301 / impl-324：对冲专用虚拟线程执行器（对冲竞速线程；随容器关闭 shutdown）。
+     */
+    @Bean(destroyMethod = "shutdown")
+    @ConditionalOnProperty(prefix = "buzhou.resilience.hedge", name = "enabled", havingValue = "true")
+    public java.util.concurrent.ExecutorService buzhouHedgeExecutor() {
+        return java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    /**
+     * spec 301 / impl-324：对冲装配（spec 137 原语 → 装配面）——{@code hedge.enabled=true}
+     * 时注册 {@code @Primary} 的 {@code buzhouHedgedChatModel}：主模型超 delay 未回即并发
+     * 押注对冲模型，先回先得。按名解析主/冲 bean（未命中 fail-fast 带可用名清单）；
+     * 按类型取 ChatModel 的注入位（含 Spring AI ChatClient.Builder 装配）升为对冲装饰器，
+     * 按名注入（fallback/shadow 解析）不受影响。诚实边界：开启后宿主不得再自标
+     * {@code @Primary} ChatModel（对冲位即事实主位）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Primary
+    @ConditionalOnProperty(prefix = "buzhou.resilience.hedge", name = "enabled", havingValue = "true")
+    public ChatModel buzhouHedgedChatModel(ResilienceProperties properties,
+            java.util.concurrent.ExecutorService buzhouHedgeExecutor,
+            Map<String, ChatModel> chatModels) {
+        ResilienceProperties.Hedge hedge = properties.hedge();
+        ChatModel primary = chatModels.get(hedge.primaryModel());
+        if (primary == null) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.resilience.hedge.primary-model（" + hedge.primaryModel()
+                            + "）未命中任何 ChatModel bean",
+                    "检查 bean 名拼写；容器内可用 ChatModel bean：" + chatModels.keySet());
+        }
+        ChatModel hedgeModel = chatModels.get(hedge.model());
+        if (hedgeModel == null) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.resilience.hedge.model（" + hedge.model()
+                            + "）未命中任何 ChatModel bean",
+                    "检查 bean 名拼写；容器内可用 ChatModel bean：" + chatModels.keySet());
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.HedgedChatModel(
+                primary, hedgeModel, hedge.delay(), buzhouHedgeExecutor);
+    }
+
     /** spec 49 §A / T176：按 bean 名解析 shadow 模型（未命中 fail-fast；未启用返回 null）。 */
     private static List<NamedFallbackModel> resolveShadows(ResilienceProperties properties,
             Map<String, ChatModel> chatModels) {

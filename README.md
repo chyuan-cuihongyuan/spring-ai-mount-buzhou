@@ -224,6 +224,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 分组 | 能力 | 一句话 | 详设 |
 |------|------|--------|------|
 | 执行脊柱 | 批内工具合并接线 | 批内同工具同参执行一次、全位共享值逐位重写 id（Hystrix collapsing 装配收尾） | [spec 300](docs/spec/300-batch-coalescing.md) |
+| 模型韧性 | 对冲装配面 | yml 三行声明长尾并发押注（gRPC hedging——137 原语装配收尾，@Primary 升位） | [spec 301](docs/spec/301-hedge-assembly.md) |
 
 ## 技术基线
 
