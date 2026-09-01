@@ -90,6 +90,22 @@ public class BuzhouRedisStoreAutoConfiguration {
                 client, props.keyPrefix() + "cb:");
     }
 
+    /**
+     * 共享虚拟 key 配额后端（spec 315 / T622）：store.type=redis 且配置虚拟 key
+     * （buzhou.virtual-keys.active-key）时供 VirtualKeyBudgetBackend bean（Lua 原子
+     * 扣减——多实例共享额度）；core auto-config 经 ObjectProvider 优先消费（无 bean
+     * = 进程内计数默认零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression(
+            "#{environment['buzhou.virtual-keys.active-key'] != null}")
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend buzhouSharedVirtualKeyBudgetBackend(
+            RedisClient client, RedisStoreProperties props) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisVirtualKeyBudgetBackend(
+                client, props.keyPrefix() + "vk:");
+    }
+
     private static Integer positiveOrNull(String value) {
         if (value == null || value.isBlank()) {
             return null;

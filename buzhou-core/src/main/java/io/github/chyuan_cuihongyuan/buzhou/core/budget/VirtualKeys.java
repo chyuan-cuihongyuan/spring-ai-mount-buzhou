@@ -34,13 +34,32 @@ public final class VirtualKeys {
     private final Map<String, Long> limits = new ConcurrentHashMap<>();
     /** 耗尽态：一次超额尝试后锁定（部分消耗永远凑不满限额——诚实表达「下次也不行」）。 */
     private final java.util.Set<String> exhausted = ConcurrentHashMap.newKeySet();
+    /** spec 315 / T621：共享计数后端（null = 进程内既有行为逐位不变）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend backend;
 
     private VirtualKeys() {
+        this(null);
+    }
+
+    private VirtualKeys(io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend backend) {
+        this.backend = backend;
     }
 
     /** 独立实例（宿主自管作用域用）。 */
     public static VirtualKeys create() {
         return new VirtualKeys();
+    }
+
+    /**
+     * 共享后端实例（spec 315 / T621）：计数面委托后端（多实例共享额度）；
+     * 限额声明（register）仍本地。后端不可达时 trySpend fail-closed（宁可拒绝不可超支）。
+     */
+    public static VirtualKeys withBackend(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend backend) {
+        if (backend == null) {
+            throw new IllegalArgumentException("backend 非空（无后端请用 create()）");
+        }
+        return new VirtualKeys(backend);
     }
 
     /**
@@ -72,10 +91,13 @@ public final class VirtualKeys {
      */
     public boolean trySpend(String key, long tokens) {
         if (tokens < 0) {
-            throw new IllegalArgumentException("tokens must not be negative: " + tokens);
+            throw new IllegalArgumentException("tokens must not be negative");
         }
         if (tokens == 0) {
             return true;
+        }
+        if (backend != null) {
+            return trySpendShared(key, tokens);
         }
         AtomicLong spent = used.get(key);
         Long limit = limits.get(key);
@@ -97,21 +119,50 @@ public final class VirtualKeys {
         }
     }
 
+    /** spec 315 / T621：共享后端路径——未注册直通（与进程内口径一致）；后端异常 fail-closed。 */
+    private boolean trySpendShared(String key, long tokens) {
+        Long limit = limits.get(key);
+        if (limit == null) {
+            return true; // 未注册 key：直通
+        }
+        boolean spent;
+        try {
+            spent = backend.trySpend(key, tokens, limit);
+        } catch (RuntimeException e) {
+            BuzhouMetricsHolder.metrics().counter("buzhou.virtual-keys.rejected");
+            exhausted.add(key); // fail-closed：后端不可达宁可拒绝（诚实表达「下次也可能不行」）
+            return false;
+        }
+        if (!spent) {
+            BuzhouMetricsHolder.metrics().counter("buzhou.virtual-keys.rejected");
+            exhausted.add(key);
+        }
+        return spent;
+    }
+
     /**
      * 扣减或抛 {@link QuotaExceededException}（宿主 ingress/预算闸用）。
      */
     public void spendOrThrow(String key, long tokens) {
         if (!trySpend(key, tokens)) {
+            KeyUsage current = usage(key);
             throw new QuotaExceededException("virtual key \"" + key + "\" token quota exceeded: used "
-                    + used.get(key).get() + " + " + tokens + " > limit " + limits.get(key));
+                    + (current == null ? "?" : current.usedTokens()) + " + " + tokens
+                    + " > limit " + (current == null ? "?" : current.limitTokens()));
         }
     }
 
     /** 单 key 用量快照（未注册返回 null——诚实空值）。 */
     public KeyUsage usage(String key) {
-        AtomicLong spent = used.get(key);
         Long limit = limits.get(key);
-        if (spent == null || limit == null) {
+        if (limit == null) {
+            return null;
+        }
+        if (backend != null) {
+            return new KeyUsage(key, backendUsed(key), limit);
+        }
+        AtomicLong spent = used.get(key);
+        if (spent == null) {
             return null;
         }
         return new KeyUsage(key, spent.get(), limit);
@@ -124,6 +175,16 @@ public final class VirtualKeys {
 
     /** 用量 top-N（used 降序，同 used key 字典序——输出稳定；未动用的 key 也可见）。 */
     public List<KeyUsage> topUsage(int n) {
+        if (backend != null) {
+            return limits.entrySet().stream()
+                    .map(e -> new KeyUsage(e.getKey(), backendUsed(e.getKey()), e.getValue()))
+                    .sorted((a, b) -> {
+                        int byUsed = Long.compare(b.usedTokens(), a.usedTokens());
+                        return byUsed != 0 ? byUsed : a.key().compareTo(b.key());
+                    })
+                    .limit(Math.max(0, n))
+                    .toList();
+        }
         return used.entrySet().stream()
                 .map(e -> new KeyUsage(e.getKey(), e.getValue().get(), limits.get(e.getKey())))
                 .filter(u -> u.limitTokens() > 0)
@@ -135,8 +196,24 @@ public final class VirtualKeys {
                 .toList();
     }
 
+    /** 后端已用读取（异常按 0——观测面不放大后端故障）。 */
+    private long backendUsed(String key) {
+        try {
+            return backend.usedTokens(key);
+        } catch (RuntimeException e) {
+            return 0L;
+        }
+    }
+
     /** 窗口清零（export → reset 循环每窗口一份账；未注册 key no-op；耗尽态同清）。 */
     public void reset(String key) {
+        if (backend != null && limits.containsKey(key)) {
+            try {
+                backend.reset(key);
+            } catch (RuntimeException ignored) {
+                // 观测/换窗面不放大后端故障——下次 reset 再试
+            }
+        }
         AtomicLong spent = used.get(key);
         if (spent != null) {
             spent.set(0);
@@ -146,6 +223,15 @@ public final class VirtualKeys {
 
     /** 全量窗口清零（spec 194 §A / T556：整窗换窗——所有 key 用量与耗尽态同清；限额表保留）。 */
     public void resetAll() {
+        if (backend != null) {
+            limits.keySet().forEach(key -> {
+                try {
+                    backend.reset(key);
+                } catch (RuntimeException ignored) {
+                    // 同 reset：换窗面不放大
+                }
+            });
+        }
         used.values().forEach(counter -> counter.set(0));
         exhausted.clear();
     }
@@ -158,8 +244,11 @@ public final class VirtualKeys {
         if (exhausted.contains(key)) {
             return true;
         }
-        AtomicLong spent = used.get(key);
         Long limit = limits.get(key);
+        if (backend != null) {
+            return limit != null && backendUsed(key) >= limit;
+        }
+        AtomicLong spent = used.get(key);
         return spent != null && limit != null && spent.get() >= limit;
     }
 

@@ -323,7 +323,9 @@ public class BuzhouCoreAutoConfiguration {
             prefix = "buzhou.virtual-keys", name = "active-key")
     @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
     public io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys buzhouVirtualKeys(
-            BuzhouVirtualKeyProperties props) {
+            BuzhouVirtualKeyProperties props,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend> sharedBackend) {
         if (props.limits() == null || props.limits().isEmpty()) {
             throw new BuzhouConfigurationException(
                     "buzhou.virtual-keys.active-key 配置了但 limits 为空——key 闸无从扣减",
@@ -335,8 +337,13 @@ public class BuzhouCoreAutoConfiguration {
                             + "] 不在 limits 表里——省缺 key 的扣减是静默直通（诚实边界反被误用）",
                     "请在 limits 里给它设硬顶，或改 active-key");
         }
-        io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys =
-                io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys.create();
+        // spec 315 / T621：共享后端在场（store.type=redis）→ 计数面跨实例共享；
+        // 无 bean = 进程内计数（默认零变化）
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend backend =
+                sharedBackend.getIfAvailable();
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys keys = backend == null
+                ? io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys.create()
+                : io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys.withBackend(backend);
         props.limits().forEach(keys::register);
         return keys;
     }
