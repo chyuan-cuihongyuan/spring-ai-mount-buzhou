@@ -50,6 +50,48 @@ import java.util.List;
 public class BuzhouCoreAutoConfiguration {
 
     /**
+     * spec 305 / T601：工具健康探测装配（{@code buzhou.tools.health.enabled=true}，Consul
+     * health check 装配收尾）——ToolHealthProber bean + 周期自调度（interval 可配默认 30s），
+     * 探针注册归宿主（框架不知道怎么探——分层诚实）；状态翻转计数；容器关闭停调度。
+     */
+    @Bean(destroyMethod = "stop")
+    @ConditionalOnProperty(prefix = "buzhou.tools.health", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealthProber buzhouToolHealthProber(
+            BuzhouToolsProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealthProber prober =
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealthProber();
+        prober.onChange((tool, status) ->
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.tools.health.flipped", 1,
+                                "tool", tool, "to", status.status().name()));
+        prober.start(properties.health().interval());
+        return prober;
+    }
+
+    /** spec 305 / T601：探测健康面（严格口径：外部工具 DOWN 不拉低机制整体，详情显形 down 列表）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealthProber.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth buzhouToolHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealthProber prober) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealth(prober);
+    }
+
+    /**
+     * spec 306 / T603：工具熔断 yml 装配（{@code buzhou.tools.circuit.enabled=true}，resilience4j
+     * ——spec 131/165 原语装配面，fog 227「新 hook 配置面族」首项）。BuzhouHook bean
+     * 由 {@code List<BuzhouHook>} 自动收集进 RuntimeConfig；默认关 = 零行为变化。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.tools.circuit", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreakerHook buzhouToolCircuitBreakerHook(
+            BuzhouToolsProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreakerHook(
+                new io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreaker(
+                        properties.circuit().toConfig(), java.time.Clock.systemUTC()));
+    }
+
+    /**
      * spec 302 / T596：进程级重试预算装配——{@code buzhou.backpressure.retry-budget} 任一键
      * 配置即启用（percent/min-balance，组内默认见 {@link BuzhouBackpressureProperties.RetryBudgetParams}），
      * 设定 {@code RetryBudgetHolder} 供模型重试（ResilienceAdvisor）与工具重试
