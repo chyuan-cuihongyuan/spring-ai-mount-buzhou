@@ -38,18 +38,38 @@ public final class RetryingToolCallback implements ToolCallback {
     }
 
     private static final String RETRY_COUNTER = "buzhou.tool-retry.retries";
+    private static final String BUDGET_DENIED_COUNTER = "buzhou.tool-retry.retry-budget-denied";
 
     private final ToolCallback delegate;
     private final RetryPolicy policy;
+    /** spec 302 / impl-325：进程级重试预算（null = 未启用——行为逐位不变）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget retryBudget;
 
     private RetryingToolCallback(ToolCallback delegate, RetryPolicy policy) {
-        this.delegate = delegate;
-        this.policy = policy;
+        this(delegate, policy, null);
     }
 
-    /** 包装（policy null = 默认 3 次/50ms/500ms）。 */
+    private RetryingToolCallback(ToolCallback delegate, RetryPolicy policy,
+            io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget retryBudget) {
+        this.delegate = delegate;
+        this.policy = policy;
+        this.retryBudget = retryBudget;
+    }
+
+    /** 包装（policy null = 默认 3 次/50ms/500ms；预算默认取进程 holder——spec 302）。 */
     public static RetryingToolCallback wrap(ToolCallback delegate, RetryPolicy policy) {
-        return new RetryingToolCallback(delegate, policy == null ? RetryPolicy.defaults() : policy);
+        return new RetryingToolCallback(delegate, policy == null ? RetryPolicy.defaults() : policy,
+                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder.current());
+    }
+
+    /**
+     * 包装（显式预算——测试/编程式覆盖用；null = 本装饰器不参与预算）。
+     *
+     * @param budget 进程级重试预算（每次 call 存入、每次重试前支取；余额不足即止）
+     */
+    public static RetryingToolCallback wrap(ToolCallback delegate, RetryPolicy policy,
+            io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget budget) {
+        return new RetryingToolCallback(delegate, policy == null ? RetryPolicy.defaults() : policy, budget);
     }
 
     @Override
@@ -68,9 +88,18 @@ public final class RetryingToolCallback implements ToolCallback {
     }
 
     private String withRetries(String toolInput, ToolContext toolContext) {
+        if (retryBudget != null) {
+            retryBudget.deposit(); // 流量即预算：每次逻辑调用存入（spec 302）
+        }
         RuntimeException last = null;
         for (int attempt = 1; attempt <= policy.maxAttempts(); attempt++) {
             if (attempt > 1) {
+                if (retryBudget != null && !retryBudget.tryAcquire()) {
+                    // 预算不足即止（spec 302）：不重试、最后异常上抛——预算的意义就是少打一枪
+                    BuzhouMetricsHolder.metrics().counter(BUDGET_DENIED_COUNTER, 1,
+                            "tool", delegate.getToolDefinition().name());
+                    throw last;
+                }
                 BuzhouMetricsHolder.metrics().counter(RETRY_COUNTER, 1,
                         "tool", delegate.getToolDefinition().name());
                 sleep(backoffMillis(attempt));

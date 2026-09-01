@@ -50,6 +50,24 @@ import java.util.List;
 public class BuzhouCoreAutoConfiguration {
 
     /**
+     * spec 302 / T596：进程级重试预算装配——{@code buzhou.backpressure.retry-budget} 任一键
+     * 配置即启用（percent/min-balance，组内默认见 {@link BuzhouBackpressureProperties.RetryBudgetParams}），
+     * 设定 {@code RetryBudgetHolder} 供模型重试（ResilienceAdvisor）与工具重试
+     * （RetryingToolCallback）动态读取；未配置 = holder 保持 null（零行为变化）。
+     * 容器关闭清 holder（防 ApplicationContextRunner 跨上下文静态残留）。
+     */
+    @Bean
+    public org.springframework.beans.factory.DisposableBean buzhouRetryBudgetAdapter(
+            BuzhouBackpressureProperties backpressureProperties) {
+        BuzhouBackpressureProperties.RetryBudgetParams params = backpressureProperties.retryBudget();
+        io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget budget = params == null ? null
+                : io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget
+                        .of(params.percent(), params.minBalance());
+        io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder.set(budget);
+        return () -> io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder.set(null);
+    }
+
+    /**
      * 事件外发 webhook（spec 20 / T89；outbox 持久化 spec 24 / T103 / impl-78）：配置
      * {@code buzhou.webhook.url} 才装配（默认关、零开销）。事件经持久化 outbox 投递
      * （stateStore 合成会话，重启恢复）；forwarder 经全局监听挂点挂全部会话（见 buzhouAgentRuntime）。

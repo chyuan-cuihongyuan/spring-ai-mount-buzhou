@@ -27,7 +27,15 @@ public record BuzhouBackpressureProperties(
         Integer maxConcurrentSessions,
         Duration spawnQueueTimeout,
         String spawnOverloadPolicy,
-        Tool tool) {
+        Tool tool,
+        RetryBudgetParams retryBudget) {
+
+    /** 5 参兼容构造（spec 302 之前调用方；retry-budget = 未配置）。 */
+    public BuzhouBackpressureProperties(
+            Boolean enabled, Integer maxConcurrentSessions, Duration spawnQueueTimeout,
+            String spawnOverloadPolicy, Tool tool) {
+        this(enabled, maxConcurrentSessions, spawnQueueTimeout, spawnOverloadPolicy, tool, null);
+    }
 
     /** spawn 排队超时保守默认（未配置时兜底）。 */
     public static final Duration DEFAULT_SPAWN_QUEUE_TIMEOUT = Duration.ofSeconds(30);
@@ -47,6 +55,34 @@ public record BuzhouBackpressureProperties(
             String overloadPolicy) {
     }
 
+    /**
+     * 进程级重试预算参数组（spec 302 / T596，Finagle retry budget——spec 178 原语装配面）。
+     * 前缀 {@code buzhou.backpressure.retry-budget}。<b>两个键全未配置 = 关</b>（两条重试
+     * 路径行为逐位不变）；配置任一键即启用（另一个取默认）。
+     *
+     * @param percent    每请求存入百分比 (0,1000]（默认 20——重试量自适应压到流量占比内）
+     * @param minBalance 初始/下限重试次数（默认 10；0 = 冷启动零重试裸奔——慎用）
+     */
+    public record RetryBudgetParams(
+            Double percent,
+            Long minBalance) {
+
+        public RetryBudgetParams {
+            percent = percent == null ? 20.0 : percent;
+            minBalance = minBalance == null ? 10L : minBalance;
+            if (!(percent > 0 && percent <= 1000)) {
+                throw configError("backpressure.retry-budget.percent",
+                        String.valueOf(percent), "(0,1000]（默认 20）");
+            }
+            if (minBalance < 0) {
+                throw configError("backpressure.retry-budget.min-balance",
+                        String.valueOf(minBalance), ">= 0（默认 10）");
+            }
+        }
+    }
+
+    /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察同款——缺注解时 yml 键静默不生效）。 */
+    @org.springframework.boot.context.properties.bind.ConstructorBinding
     public BuzhouBackpressureProperties {
         enabled = enabled == null || enabled;
         // spec 43 §B / T158 / impl-129：越界值 fail-fast（宽容只留给「未配置」null）

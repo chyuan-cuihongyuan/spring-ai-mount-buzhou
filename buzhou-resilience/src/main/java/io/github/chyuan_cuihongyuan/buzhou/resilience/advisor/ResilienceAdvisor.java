@@ -491,6 +491,12 @@ public class ResilienceAdvisor implements BaseAdvisor {
         // 但那会重放外层 advisor，不符合本层语义）。
         CallAdvisor modelTerminal = modelTerminal(callChain);
         int maxAttempts = config.maxAttempts();
+        // spec 302 / impl-325：进程级重试预算——每逻辑调用存入（流量即预算；null = 未启用零变化）
+        io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget retryBudget =
+                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder.current();
+        if (retryBudget != null) {
+            retryBudget.deposit();
+        }
         int attempt = 0;
         while (true) {
             attempt++;
@@ -547,6 +553,23 @@ public class ResilienceAdvisor implements BaseAdvisor {
                     LOGGER.log(System.Logger.Level.ERROR,
                             "模型调用重试耗尽/不可重试：category=" + c.category().name()
                                     + ", attempts=" + attempt + ", error=" + e.getMessage());
+                    throw e;
+                }
+                // spec 302 / impl-325：预算不足即止——不重试、原错上抛（少打一枪正是预算的意义）
+                if (retryBudget != null && !retryBudget.tryAcquire()) {
+                    emit(new SessionEvent(EVENT_RETRY_EXHAUSTED,
+                            Map.of("category", c.category().name(), "attempts", attempt,
+                                    "reason", "retry-budget-denied"),
+                            Instant.now()));
+                    if (stats != null) {
+                        stats.recordRetryExhausted();
+                    }
+                    metrics().counter("buzhou.resilience.retry-budget-denied",
+                            "category", c.category().name());
+                    LOGGER.log(System.Logger.Level.WARNING,
+                            "重试预算拒绝：进程级重试被压制（category=" + c.category().name()
+                                    + ", attempt=" + attempt + ", denied=" + retryBudget.denied()
+                                    + "）——原错误上抛");
                     throw e;
                 }
                 Duration backoff = c.retryAfter() != null
