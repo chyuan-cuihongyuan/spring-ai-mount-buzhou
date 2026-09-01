@@ -77,6 +77,18 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** spec 31 / T110 / impl-85：工具结果尺寸防护（Holder 默认 20K + read_range 豁免）。 */
     private volatile ToolResultLimiter resultLimiter = ToolResultLimiterHolder.current();
 
+    /** spec 300 / impl-323：批内/在飞合并器（默认 null = 关，既有 per-tool 行为零变化；139 原语接线）。 */
+    private volatile ToolCallCoalescer batchCoalescer;
+
+    /**
+     * spec 300 / impl-323：启用/停用批内合并（经 {@code SessionAssemblyContext.toolManager()}
+     * 注入，与 batchFeedbackPolicy / atomicBatchValidation 同通道）。开启后批内同工具同参
+     * 调用执行一次、全部位共享值（合并位回喂逐位重写 id）；{@code null} = 停用。
+     */
+    public void setBatchCoalescer(ToolCallCoalescer coalescer) {
+        this.batchCoalescer = coalescer;
+    }
+
     /** spec 31：per-session 覆盖限幅器（经 SessionAssemblyContext.toolManager() 注入）。 */
     public void setResultLimiter(ToolResultLimiter limiter) {
         this.resultLimiter = limiter == null ? ToolResultLimiter.disabled() : limiter;
@@ -282,8 +294,16 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         List<Future<ToolResponseMessage.ToolResponse>> futures = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> responses = new ArrayList<>();
         boolean returnDirect = false;
+        ToolCallCoalescer coalescer = this.batchCoalescer;
         for (AssistantMessage.ToolCall toolCall : toolCalls) {
-            futures.add(executor.submit(() -> executeOne(toolCall, callbacksByName, toolContext)));
+            if (coalescer == null) {
+                futures.add(executor.submit(() -> executeOne(toolCall, callbacksByName, toolContext)));
+            } else {
+                // spec 300 / impl-323：键 = 工具名 + 全参串（零碰撞——合并正确性优先于键紧凑）
+                String key = toolCall.name() + "#" + toolCall.arguments();
+                futures.add(coalescer.submit(key,
+                        () -> executeOne(toolCall, callbacksByName, toolContext), executor));
+            }
         }
         for (int i = 0; i < futures.size(); i++) {
             AssistantMessage.ToolCall toolCall = toolCalls.get(i);
@@ -297,6 +317,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 response = new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
                         ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
                                 "执行失败：" + cause));
+            }
+            // spec 300 / impl-323：合并位共享值、独占 id——协议要求每个调用位有 id 一致回喂
+            if (!toolCall.id().equals(response.id())) {
+                response = new ToolResponseMessage.ToolResponse(
+                        toolCall.id(), toolCall.name(), response.responseData());
             }
             responses.add(resultLimiter.apply(response));
             returnDirect |= isReturnDirect(callbacksByName.get(response.name()));

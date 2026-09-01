@@ -217,6 +217,14 @@ B 会话（.wayfinder200+ 号段）的精选主线（每项默认零行为变化
 [218-ab-ledger](docs/spec/218-ab-ledger.md)、[220-preverify](docs/spec/220-preverify.md)、
 [222-session-close](docs/spec/222-session-close.md)。
 
+## 生产级纵深 IV（C 会话 300 系增量）
+
+C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 执行脊柱 | 批内工具合并接线 | 批内同工具同参执行一次、全位共享值逐位重写 id（Hystrix collapsing 装配收尾） | [spec 300](docs/spec/300-batch-coalescing.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |
