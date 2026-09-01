@@ -64,7 +64,7 @@ class ExportBundleTest {
         assertThat(parsed.get(0).get("sha256").asText()).hasSize(64);
         // 条目内容读回
         assertThat(entryOf(zip, "pii-hits.jsonl")).contains("EMAIL");
-        assertThat(entryOf(zip, "model-cost.jsonl")).split("\n").hasSize(2);
+        assertThat(entryOf(zip, "model-cost.jsonl").split("\n")).hasSize(2);
     }
 
     @Test
