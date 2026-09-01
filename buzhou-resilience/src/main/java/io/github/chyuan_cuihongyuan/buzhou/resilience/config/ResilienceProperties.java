@@ -276,24 +276,35 @@ public record ResilienceProperties(
     }
 
     /**
-     * shadow 探测参数组（spec 49 §A / T176）。前缀 {@code buzhou.resilience.shadow}。
+     * shadow 探测参数组（spec 49 §A / T176；spec 309 / T609 补 detail-path）。
+     * 前缀 {@code buzhou.resilience.shadow}。
      *
      * @param enabled       开关（默认 false——未启用零提交零事件零计数）
      * @param models        shadow ChatModel bean 名列表（未命中启动失败；空 = 不探测）
      * @param maxConcurrent 进程级并发上限（默认 2；超限提交计 skipped-concurrency）
      * @param dailyBudget   进程级 UTC 日预算（提交次数口径；默认 1000；池尽计 skipped-budget）
+     * @param detailPath    对照明细 JSONL 落盘路径（spec 309；声明即装配导出监听——
+     *                      shadow.compared 事件逐条追加；null = 不导出）
      */
     public record Shadow(
             Boolean enabled,
             List<String> models,
             Integer maxConcurrent,
-            Long dailyBudget) {
+            Long dailyBudget,
+            String detailPath) {
 
-        public Shadow {
-            models = models == null || models.isEmpty() ? null : List.copyOf(models);
-            maxConcurrent = maxConcurrent == null || maxConcurrent <= 0 ? 2 : maxConcurrent;
-            dailyBudget = dailyBudget == null || dailyBudget < 0 ? 1000L : dailyBudget;
-        }
+    /** 4 参兼容构造（spec 309 之前调用方；detail-path = 未配置）。 */
+    public Shadow(Boolean enabled, List<String> models, Integer maxConcurrent, Long dailyBudget) {
+        this(enabled, models, maxConcurrent, dailyBudget, null);
+    }
+
+    @org.springframework.boot.context.properties.bind.ConstructorBinding
+    public Shadow {
+        models = models == null || models.isEmpty() ? null : List.copyOf(models);
+        maxConcurrent = maxConcurrent == null || maxConcurrent <= 0 ? 2 : maxConcurrent;
+        dailyBudget = dailyBudget == null || dailyBudget < 0 ? 1000L : dailyBudget;
+        detailPath = detailPath == null || detailPath.isBlank() ? null : detailPath;
+    }
 
         /** 生效开关：显式开启（模型来源由装配面校验——Spring 路径看 models 名单，编程式路径看注入列表）。 */
         public boolean effectiveEnabled() {

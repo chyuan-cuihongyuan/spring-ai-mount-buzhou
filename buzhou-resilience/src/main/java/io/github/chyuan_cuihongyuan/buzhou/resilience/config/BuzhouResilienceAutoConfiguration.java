@@ -116,6 +116,19 @@ public class BuzhouResilienceAutoConfiguration {
     }
 
     /**
+     * spec 309 / T609：影子对照明细 JSONL 导出——{@code buzhou.resilience.shadow.detail-path}
+     * 声明即装配（shadow.compared 事件逐条追加；SessionEventListener 类型由 core 全局
+     * 挂点自动收集）。打开失败 fail-fast（坏路径该红）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "buzhou.resilience.shadow", name = "detail-path")
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl
+    buzhouShadowComparisonJsonl(ResilienceProperties properties) throws java.io.IOException {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl(
+                java.nio.file.Path.of(properties.shadow().detailPath()));
+    }
+
+    /**
      * spec 301 / impl-324：对冲专用虚拟线程执行器（对冲竞速线程；随容器关闭 shutdown）。
      */
     @Bean(destroyMethod = "shutdown")
