@@ -116,7 +116,12 @@ public class TokenBudgetHook implements BuzhouHook {
 
         // spec 176 / T531：全局成本台账（per-model micro-USD——零成本也记：
         // 「跑过零成本」是账单事实；只记账不拦截）
-        ModelCostLedger.global().record(model, costMicroUsd);
+        // spec 314 / T620：价目快照随单（记账时单价入册——调价后旧账可复算）
+        BuzhouTokenBudgetProperties.Pricing usedPricing =
+                props.pricing() == null ? null : props.pricing().get(model);
+        ModelCostLedger.global().record(model, costMicroUsd,
+                usedPricing == null ? null : new ModelCostLedger.PricingSnapshot(
+                        usedPricing.inputPerMillion(), usedPricing.outputPerMillion()));
 
         if (virtualKeys != null && virtualKey != null
                 && !virtualKeys.trySpend(virtualKey, prompt + completion)) {

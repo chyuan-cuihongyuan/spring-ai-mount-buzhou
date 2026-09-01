@@ -236,6 +236,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 会话分支 | 时间旅行 fork | 从任意轮重走分支：历史前缀复制、摘要不复制防未来泄漏（LangGraph checkpointer time-travel） | [spec 311](docs/spec/311-time-travel-fork.md) |
 | 运维 | 健康告警规则 | yml 声明「机制 DOWN 持续 for 窗即通知」双向触发/恢复、flap 吸收（Grafana ruler） | [spec 312](docs/spec/312-alert-rules.md) |
 | 护栏 | PII 命中分侧 | 输入（预防提示面）与输出（脱敏规则面）分列统计+JSONL 双列（Presidio 分侧深化） | [spec 313](docs/spec/313-pii-hit-sides.md) |
+| 成本预算 | 价目快照随单 | 账单行自含记账时单价两列——调价后旧账可离线复算（复式记账审计口径） | [spec 314](docs/spec/314-pricing-snapshot.md) |
 
 ## 技术基线
 
