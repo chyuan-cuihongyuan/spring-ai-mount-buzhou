@@ -28,6 +28,11 @@ public final class PiiHitStatsJsonl {
                 gen.writeStartObject();
                 gen.writeStringField("name", hit.name());
                 gen.writeNumberField("count", hit.count());
+                // spec 313 / T618：分侧列（输入=预防提示面 / 输出=脱敏规则面）
+                gen.writeNumberField("inputCount",
+                        stats.countOf(hit.name(), PiiHitStats.Side.INPUT));
+                gen.writeNumberField("outputCount",
+                        stats.countOf(hit.name(), PiiHitStats.Side.OUTPUT));
                 gen.writeEndObject();
                 gen.flush();
                 out.write('\n');
