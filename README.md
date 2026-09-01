@@ -232,6 +232,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 投递可靠 | 事件 schema yml 声明 | per-type 必备键 yml 化 + fail-open 观察模式 + 挂点去重防双投（JSON Schema required——209 装配收尾） | [spec 307](docs/spec/307-event-schema-yml.md) |
 | 执行脊柱 | deadline 跨工具传播 | ToolContext 携带 TurnDeadline 动态视图——自限工具读实时剩余收敛（gRPC 逐跳传播） | [spec 308](docs/spec/308-deadline-propagation.md) |
 | 模型韧性 | 影子对照明细 JSONL | shadow.compared 事件逐条落盘、节选封顶、IO 吞计（W&B lineage——detail-path 声明即导出） | [spec 309](docs/spec/309-shadow-jsonl-export.md) |
+| 记忆治理 | 空闲会话后台压缩 | 索引 lastActiveAt 事实驱动的空闲窗口自动瘦身（LSM compaction 思想——限批+隔离+默认关） | [spec 310](docs/spec/310-idle-compaction.md) |
 
 ## 技术基线
 

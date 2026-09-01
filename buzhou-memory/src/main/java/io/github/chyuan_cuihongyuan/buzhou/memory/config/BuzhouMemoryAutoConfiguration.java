@@ -35,7 +35,31 @@ import java.util.Map;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.memory", name = "enabled", matchIfMissing = true)
+@org.springframework.boot.context.properties.EnableConfigurationProperties(IdleCompactionProperties.class)
 public class BuzhouMemoryAutoConfiguration {
+
+    /**
+     * spec 310 / T612：空闲会话后台压缩（{@code buzhou.memory.idle-compaction.enabled=true}
+     * 且依赖齐备——摘要模型（ManualCompactor）+ 会话索引——才装配；依赖缺返回 null
+     * （NullBean，空闲压缩无从谈起）。SmartLifecycle 随容器起停。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.memory.idle-compaction", name = "enabled",
+            havingValue = "true")
+    public org.springframework.context.SmartLifecycle idleCompactionHousekeeper(
+            IdleCompactionProperties properties,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor> compactor,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> indexStore) {
+        io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor compactorBean =
+                compactor.getIfAvailable();
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore index = indexStore.getIfAvailable();
+        if (compactorBean == null || index == null) {
+            return null;
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.memory.compact.IdleCompactionHousekeeper(
+                index, compactorBean::compact, properties.idleThreshold(),
+                properties.interval(), properties.maxPerSweep());
+    }
 
     /**
      * impl-30 / spec 13 §core-1：memory 生命周期 bean——构建装配产出的同时收集模块自有
