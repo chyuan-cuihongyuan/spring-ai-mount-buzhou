@@ -228,6 +228,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 背压 | 重试预算接线 | 模型/工具重试前进程级预算支取、拒即原错上抛（Finagle retry budget——178 原语装配收尾） | [spec 302](docs/spec/302-retry-budget-wiring.md) |
 | 投递可靠 | 序号围栏持久纪元 | 发送方每启持久递增 epoch 显式声明重启（Kafka producer epoch——RESET 不再靠猜，旧纪元迟到判 STALE） | [spec 303](docs/spec/303-sequence-fence-epoch.md) |
 | 持久化 | 事务批补偿 | 跨步多写 saga 倒序补偿、补偿失败即停（归档条目即 undo log——部分失败净回原状） | [spec 304](docs/spec/304-compensating-batch.md) |
+| 工具治理 | 健康探测装配 + 熔断 yml 面 | 探测原语 165 装配收尾（bean+周期+健康面，Consul）；熔断 hook 四参 yml 化（resilience4j，配置面族首项） | [spec 305](docs/spec/305-tool-health-assembly.md) / [306](docs/spec/306-tool-circuit-yml.md) |
 
 ## 技术基线
 
