@@ -83,14 +83,17 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     private final AtomicLong dropped = new AtomicLong();
     private final AtomicLong failed = new AtomicLong();
     private final AtomicLong deadLettered = new AtomicLong();
-    /** spec 159 / T517：信封投递序（进程内单调；重启复位=新纪元，接收方 fence 据此 RESET）。 */
+    /** spec 159 / T517 + spec 303 / T597：信封投递序（进程内单调；重启=新纪元——epoch 字段显式声明，接收方 fence 不再猜）。 */
     private final AtomicLong deliverySeq = new AtomicLong();
+    /** spec 303 / T597：本进程投递纪元（outbox 启动期持久递增）。 */
+    private final long deliveryEpoch;
     volatile boolean closing;
 
     public WebhookEventForwarder(BuzhouWebhookProperties props, SessionStateStore stateStore) {
         this.props = props;
         this.http = HttpClient.newBuilder().connectTimeout(props.timeout()).build();
         this.outbox = new WebhookOutbox(stateStore, props.outboxCapacity());
+        this.deliveryEpoch = outbox.epoch();
         this.dispatcher = Thread.ofVirtual().name("buzhou-webhook-dispatcher").unstarted(this::dispatchLoop);
         this.dispatcher.start();
     }
@@ -119,6 +122,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                     Map<String, Object> envelope = new LinkedHashMap<>();
                     envelope.put("eventId", eventId);
                     envelope.put("type", event.type());
+                    envelope.put("epoch", deliveryEpoch);
                     envelope.put("seq", deliverySeq.incrementAndGet());
                     envelope.put("payload", event.payload());
             envelope.put("occurredAt", event.occurredAt().toString());
