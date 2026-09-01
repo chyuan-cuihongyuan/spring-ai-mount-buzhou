@@ -50,6 +50,52 @@ import java.util.List;
 public class BuzhouCoreAutoConfiguration {
 
     /**
+     * spec 307 / T605：事件 schema yml 声明装配（{@code buzhou.webhook.schema.required-keys.<type>}
+     * + fail-open）——包装 forwarder 的 checker（缺键 fail-closed 丢弃 / 违规计数）。
+     * 空声明返回 null（NullBean——类型收集自动跳过，零变化）。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener buzhouEventSchemaChecker(
+            io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties props,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder> forwarderProvider) {
+        io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder forwarder =
+                forwarderProvider.getIfAvailable();
+        if (forwarder == null) {
+            return null; // 无投递面（未配 url）——契约无从谈起
+        }
+        io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.Schema schema =
+                props.schema();
+        if (schema == null || !schema.declared()) {
+            return null; // NullBean：未声明契约 = 不拦截（零变化）
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.core.webhook.EventSchemaChecker(
+                forwarder, schema.requiredKeySets(), schema.failOpen());
+    }
+
+    /**
+     * spec 307 / T605：全局监听挂点去重——被 EventSchemaChecker 包装的 delegate
+     * 不再直挂（防同一事件双投：一次经 checker 过滤、一次裸投）。
+     */
+    public static java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener>
+    effectiveGlobalListeners(
+            java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener> listeners) {
+        java.util.Set<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener> wrapped =
+                new java.util.HashSet<>();
+        for (io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener listener : listeners) {
+            if (listener instanceof io.github.chyuan_cuihongyuan.buzhou.core.webhook.EventSchemaChecker checker) {
+                wrapped.add(checker.delegate());
+            }
+        }
+        if (wrapped.isEmpty()) {
+            return listeners;
+        }
+        return listeners.stream()
+                .filter(listener -> !wrapped.contains(listener))
+                .toList();
+    }
+
+    /**
      * spec 305 / T601：工具健康探测装配（{@code buzhou.tools.health.enabled=true}，Consul
      * health check 装配收尾）——ToolHealthProber bean + 周期自调度（interval 可配默认 30s），
      * 探针注册归宿主（框架不知道怎么探——分层诚实）；状态翻转计数；容器关闭停调度。
@@ -557,8 +603,9 @@ public class BuzhouCoreAutoConfiguration {
                 properties.lifecycle().timeoutPerShutdownPhase(),
                 eventDispatch.isBuffered() ? eventDispatch : null,
                 spawnGate);
-        // spec 20 / T89 / impl-64：全局事件监听 bean（如 WebhookEventForwarder）挂全部会话
-        globalEventListeners.stream()
+        // spec 20 / T89 / impl-64：全局事件监听 bean（如 WebhookEventForwarder）挂全部会话；
+        // spec 307 / T605：schema checker 在场时其 delegate 去重（防双投）
+        effectiveGlobalListeners(globalEventListeners.stream().toList())
                 .forEach(runtime::addGlobalEventListener);
         // spec 36 §A / T121：导出扩展 bean（模块自有段进 SessionExport.extensions）
         runtime.setExportExtensions(exportExtensionsProvider.orderedStream().toList());

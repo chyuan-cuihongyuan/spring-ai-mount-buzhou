@@ -28,12 +28,50 @@ public record BuzhouWebhookProperties(
         Integer maxAttempts,
         Integer outboxCapacity,
         Integer queueCapacity,
-        Duration closeDrainTimeout) {
+        Duration closeDrainTimeout,
+        Schema schema) {
+
+    /** 7 参兼容构造（spec 307 之前调用方；schema = 未配置）。 */
+    public BuzhouWebhookProperties(String url, String secret, Duration timeout,
+            Integer maxAttempts, Integer outboxCapacity, Integer queueCapacity,
+            Duration closeDrainTimeout) {
+        this(url, secret, timeout, maxAttempts, outboxCapacity, queueCapacity, closeDrainTimeout, null);
+    }
 
     /** 兼容构造（close-drain-timeout 未配置面）。 */
     public BuzhouWebhookProperties(String url, String secret, Duration timeout,
             Integer maxAttempts, Integer outboxCapacity, Integer queueCapacity) {
         this(url, secret, timeout, maxAttempts, outboxCapacity, queueCapacity, null);
+    }
+
+    /**
+     * 事件 payload 契约声明组（spec 307 / T605，JSON Schema required——spec 209
+     * 原语装配面）。前缀 {@code buzhou.webhook.schema}。
+     *
+     * @param requiredKeys per-type 必备键（{@code required-keys.<type>=k1,k2}；空 = 不装配 checker）
+     * @param failOpen     观察模式（违规放行 + 计数——调查期；默认 false = fail-closed 丢弃）
+     */
+    public record Schema(java.util.Map<String, java.util.List<String>> requiredKeys,
+                         Boolean failOpen) {
+
+        public Schema {
+            requiredKeys = requiredKeys == null
+                    ? java.util.Map.of() : java.util.Map.copyOf(requiredKeys);
+            failOpen = failOpen == null ? false : failOpen;
+        }
+
+        /** 转换为 checker 所需 Map&lt;type, Set&lt;key&gt;&gt;（装配用）。 */
+        public java.util.Map<String, java.util.Set<String>> requiredKeySets() {
+            java.util.Map<String, java.util.Set<String>> out = new java.util.LinkedHashMap<>();
+            requiredKeys.forEach((type, keys) ->
+                    out.put(type, java.util.Set.copyOf(keys == null ? java.util.List.of() : keys)));
+            return java.util.Collections.unmodifiableMap(out);
+        }
+
+        /** 是否有声明（有才装配 checker）。 */
+        public boolean declared() {
+            return !requiredKeys.isEmpty();
+        }
     }
 
     /** spec 44 §A：close 排空预算生效值（null/非正 → 默认 5s）。 */
