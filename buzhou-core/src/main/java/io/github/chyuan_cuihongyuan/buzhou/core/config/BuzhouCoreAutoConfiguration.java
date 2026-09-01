@@ -46,8 +46,53 @@ import java.util.List;
         BuzhouTokenBudgetProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
         BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
-        BuzhouVirtualKeyProperties.class})
+        BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class})
 public class BuzhouCoreAutoConfiguration {
+
+    /**
+     * spec 312 / T616：健康告警规则装配（{@code buzhou.alert.rules} 声明即装配；
+     * 无规则 = NullBean 零变化）。健康 bean 集在 start() 期解析（SmartLifecycle 晚于
+     * 全部 bean 创建——规避同配置类条件可见性坑）；引用缺失机制启动即红。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.AlertRulesPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine buzhouAlertRuleEngine(
+            BuzhouAlertProperties properties,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> healthBeans) {
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine.AlertRule> rules =
+                properties.rules().stream()
+                        .map(r -> new io.github.chyuan_cuihongyuan.buzhou.core.health
+                                .AlertRuleEngine.AlertRule(r.name(), r.mechanism(), r.forDuration()))
+                        .toList();
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine(rules,
+                () -> {
+                    java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> map =
+                            new java.util.LinkedHashMap<>();
+                    healthBeans.orderedStream()
+                            .forEach(health -> map.put(health.mechanism(), health));
+                    return map;
+                }, properties.interval());
+    }
+
+    /** spec 312：rules 非空才装配（Binder 预绑判定——列表条件注解表达不了）。 */
+    static final class AlertRulesPresentCondition implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return !org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.alert.rules",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .listOf(BuzhouAlertProperties.RuleSpec.class))
+                        .orElse(java.util.List.of()).isEmpty();
+            } catch (RuntimeException e) {
+                return false; // 绑定失败交由属性校验层报错
+            }
+        }
+    }
 
     /**
      * spec 307 / T605：事件 schema yml 声明装配（{@code buzhou.webhook.schema.required-keys.<type>}

@@ -234,6 +234,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 模型韧性 | 影子对照明细 JSONL | shadow.compared 事件逐条落盘、节选封顶、IO 吞计（W&B lineage——detail-path 声明即导出） | [spec 309](docs/spec/309-shadow-jsonl-export.md) |
 | 记忆治理 | 空闲会话后台压缩 | 索引 lastActiveAt 事实驱动的空闲窗口自动瘦身（LSM compaction 思想——限批+隔离+默认关） | [spec 310](docs/spec/310-idle-compaction.md) |
 | 会话分支 | 时间旅行 fork | 从任意轮重走分支：历史前缀复制、摘要不复制防未来泄漏（LangGraph checkpointer time-travel） | [spec 311](docs/spec/311-time-travel-fork.md) |
+| 运维 | 健康告警规则 | yml 声明「机制 DOWN 持续 for 窗即通知」双向触发/恢复、flap 吸收（Grafana ruler） | [spec 312](docs/spec/312-alert-rules.md) |
 
 ## 技术基线
 
