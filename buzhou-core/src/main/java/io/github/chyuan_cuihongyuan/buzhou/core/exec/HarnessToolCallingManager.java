@@ -33,6 +33,9 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** ToolContext 中携带当前会话 id 的键（供内置工具做会话级解析，如 load_skill 绑定校验）。 */
     public static final String SESSION_ID_KEY = "buzhou.sessionId";
 
+    /** spec 308 / T607：ToolContext 中携带当前 Turn Deadline（动态视图——工具读实时剩余自我收敛）。 */
+    public static final String TURN_DEADLINE_KEY = "buzhou.turnDeadline";
+
     /** 从 ToolContext 取当前会话 id（无则 null；内置工具的会话级解析统一经此读取）。 */
     public static String sessionIdOf(org.springframework.ai.chat.model.ToolContext toolContext) {
         if (toolContext == null || toolContext.getContext() == null) {
@@ -40,6 +43,22 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         }
         Object value = toolContext.getContext().get(SESSION_ID_KEY);
         return value instanceof String s ? s : null;
+    }
+
+    /**
+     * spec 308 / T607：从 ToolContext 取当前 Turn Deadline（gRPC deadline 逐跳传播——
+     * 自限型工具读 {@code remainingMillis()} 实时剩余决定收敛步数）。缺键/异型值
+     * 返回 {@code none()} 哨兵（无界 = 工具自由放行，既有语义）。
+     */
+    public static io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline turnDeadlineOf(
+            org.springframework.ai.chat.model.ToolContext toolContext) {
+        if (toolContext == null || toolContext.getContext() == null) {
+            return io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none();
+        }
+        Object value = toolContext.getContext().get(TURN_DEADLINE_KEY);
+        return value instanceof io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline
+                ? deadline
+                : io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none();
     }
 
     private final DefaultToolCallingManager delegate;
@@ -270,6 +289,8 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         // impl-05 / T31：取消令牌贯穿工具执行链（协作式取消：长任务轮询提前中止）
         toolContextMap.put(CancellationToken.KEY,
                 CancellationToken.of(() -> pendingCancel.get() != null));
+        // spec 308 / T607：Turn Deadline 动态视图入 context（自限工具读实时剩余）
+        toolContextMap.put(TURN_DEADLINE_KEY, this.turnDeadline);
         ToolContext toolContext = new ToolContext(toolContextMap);
         // spec 122 / impl-271：superstep 原子批前检——任一未过则整批不派发（零锁零许可零副作用）。
         if (atomicBatchValidation) {
