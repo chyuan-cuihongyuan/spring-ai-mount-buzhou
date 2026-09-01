@@ -46,8 +46,47 @@ import java.util.List;
         BuzhouTokenBudgetProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
         BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
-        BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class})
+        BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
+        SessionDisruptionBudgetProperties.class})
 public class BuzhouCoreAutoConfiguration {
+
+    /**
+     * spec 318 / T628：会话扰乱预算装配（{@code buzhou.session.disruption-budget.min-available}
+     * 配置即装配——K8s PDB 思想：voluntary 排水领额度，保底可用数不穿）。配置了但
+     * 无会话索引（计数源）启动即红（fail-fast 带修法）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.session.disruption-budget", name = "min-available")
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.SessionDisruptionBudget
+    buzhouSessionDisruptionBudget(
+            SessionDisruptionBudgetProperties properties,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> indexStore) {
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore index = indexStore.getIfAvailable();
+        if (index == null) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.session.disruption-budget.min-available 配置了但无会话索引（ACTIVE 计数源）",
+                    "引入 store 模块（store.type 配置）或删除该配置");
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionDisruptionBudget(
+                () -> countActive(index), properties.minAvailable() == null
+                        ? 0L : properties.minAvailable());
+    }
+
+    /** ACTIVE 计数（分页枚举上限 50 页——大舰队截断诚实入档）。 */
+    private static long countActive(io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore index) {
+        long count = 0;
+        for (int page = 0; page < 50; page++) {
+            var batch = index.list(new io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery(
+                    null, null, io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo.STATUS_ACTIVE,
+                    null, null, page * 200, 200));
+            count += batch.size();
+            if (batch.size() < 200) {
+                break;
+            }
+        }
+        return count;
+    }
 
     /**
      * spec 312 / T616：健康告警规则装配（{@code buzhou.alert.rules} 声明即装配；
