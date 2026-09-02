@@ -24,9 +24,12 @@ class SpillHealthTest {
     }
 
     @Test
-    void downWhenRootNotCreatable() {
-        // 根目录指向不可创建的路径（/dev/null/x —— ENOTDIR，跨平台成立）
-        assertThat(new SpillHealth(true, Path.of("/dev/null/buzhou")).status())
+    void downWhenRootNotCreatable() throws java.io.IOException {
+        // 根目录指向「文件之下」的子路径——createDirectories 双平台必败
+        // （spec 329 跨平台修：原 /dev/null/x 在 Windows 解析为 E:\dev\null\x
+        // 且可真创建——假红；文件下建目录 ENOTDIR 语义双平台成立）
+        Path blocker = java.nio.file.Files.createTempFile(tempDir, "blocker", ".tmp");
+        assertThat(new SpillHealth(true, blocker.resolve("buzhou")).status())
                 .isEqualTo(BuzhouHealth.Status.DOWN);
     }
 

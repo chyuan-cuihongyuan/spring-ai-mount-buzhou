@@ -1490,3 +1490,43 @@
   full detail 照跑——灰度期「看到脏但照跑」；单参严格档零变化，
   spec 150 fog 收口）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #300–#328 新增公共面（C 会话 R1–R29 / spec 300–328 / impl-323–351，@since 1.0.0）
+
+> 一次性入档 38 型（B 尾巴 + C 会话 R1–R29 攒量）；快照机同步修跨平台
+> （File.pathSeparator + `\`→`/` 归一——Windows 本机首次真比对/再生，
+> 此前 split(":") 在 Windows 切碎 classpath 且 `\classes` 不匹配 `/classes`，
+> 门恒跳过、regenerate 写空文件）。
+
+**buzhou-core**
+
+- 运维弧线：`SessionDisruptionBudget` + `SessionDisruptionBudgetProperties`（318 排水预算——K8s PDB）；
+  `BulkheadScalingAdvisor` + `BulkheadScalingProperties`（319 伸缩建议——K8s HPA）；
+  `BuzhouConfigRefreshEvent` + `BulkheadHotReload`（320 容量热调整——Spring Cloud rebind）
+- 告警/观测：`AlertRuleEngine` + `BuzhouAlertProperties`（312——Grafana ruler）；
+  `ErrorBudget` + `ErrorBudgetHook` + `ErrorBudgetHealth` + `ErrorBudgetProperties`（321——Google SRE burn）；
+  `ExportBundle`（317——OCI artifact 合流打包）
+- 演练/事故：`ChaosMonkeyHook` + `ChaosProperties`（322——Chaos Monkey）；
+  `DryRunHook` + `DryRunProperties` + `DryRunPlanJsonl`（323/328——Terraform plan/apply）；
+  `ToolKillSwitchHook` + `ToolKillSwitchHotReload` + `ToolKillSwitchProperties`（325——kill switch）
+- 失控防护：`TurnRepetitionDetector` + `RepetitionDetectorHook` + `RepetitionProperties`（326——context rot）；
+  `ToolLoopBreakerHook` + `ToolLoopProperties`（327——调用形态断路）
+- 流量/共享族：`CanaryToolCallback`（324——Istio/Flagger canary）；
+  `LaneStateBackend` + `BackendLanePermit`（core.exec，316 共享泳道 SPI）；
+  `VirtualKeyBudgetBackend`（core.spi，315 共享配额 SPI）
+- B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
+  `ToolHealth`（305 工具健康）
+
+**buzhou-memory**
+
+- `IdleCompactionHousekeeper` + `IdleCompactionProperties`（310——LSM 空闲压缩）
+
+**buzhou-resilience**
+
+- `ShadowComparisonJsonl`（309——W&B 影子对照明细）
+
+**buzhou-store-redis**
+
+- `RedisLaneStateBackend`（316——Lua 原子泳道共享）/ `RedisVirtualKeyBudgetBackend`（315——Lua 原子配额共享）
+
+- 类型级快照：**+38**（收口再生，Windows 首次本机可用）；yml 键：随各 spec 入档
