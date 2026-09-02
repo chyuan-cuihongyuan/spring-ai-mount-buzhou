@@ -742,6 +742,23 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 320 / T632：舱容量热重载监听（舱开即装配）：宿主改完
+     * {@code buzhou.bulkhead.agents} 后发布 {@link BuzhouConfigRefreshEvent}
+     * ——重读 yml → resize 全局舱，容量热生效不重启（Spring Cloud rebind 思想，
+     * 事件自持不引依赖）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.bulkhead", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReload
+    buzhouBulkheadHotReload(
+            io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead bulkhead,
+            org.springframework.core.env.Environment env) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReload(
+                bulkhead, env);
+    }
+
+    /**
      * spec 319 / T630：舱压伸缩建议装配（{@code buzhou.bulkhead.scaling.scale-up-threshold}
      * 配置且舱开启才装配——K8s HPA 思想：窗口拒绝增量 → 实例倍率建议，只建议不执行）。
      * 舱未开（NOOP 舱拒绝恒 0，建议恒 1）不装配；复合条件 Binder 预绑判定
