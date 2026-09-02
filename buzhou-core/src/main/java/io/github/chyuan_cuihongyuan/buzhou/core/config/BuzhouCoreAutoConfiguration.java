@@ -48,7 +48,8 @@ import java.util.List;
         BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
         BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
         SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
-        ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class})
+        ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class,
+        ToolKillSwitchProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -152,6 +153,32 @@ public class BuzhouCoreAutoConfiguration {
                 properties.tools() == null ? java.util.Set.of()
                         : java.util.Set.copyOf(properties.tools()),
                 true);
+    }
+
+    /**
+     * spec 325 / T641：工具紧急停用（LaunchDarkly kill switch / K8s cordon）：
+     * <b>装配恒在</b>（空集直通零变化——事故按钮必须预先存在才有用）；hook
+     * 自动收集（order 15）；yml 列表启动预停用且是刷新事件的事实源。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHook buzhouToolKillSwitchHook(
+            ToolKillSwitchProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHook hook =
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHook();
+        if (properties.tools() != null && !properties.tools().isEmpty()) {
+            hook.disableTools(java.util.Set.copyOf(properties.tools()));
+        }
+        return hook;
+    }
+
+    /** spec 325：停用集热重载（320 刷新事件通道——yml 整体覆盖）。 */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHotReload
+    buzhouToolKillSwitchHotReload(
+            io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHook hook,
+            org.springframework.core.env.Environment env) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHotReload(
+                hook, env);
     }
 
     /**
