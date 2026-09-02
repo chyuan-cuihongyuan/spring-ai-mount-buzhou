@@ -48,7 +48,7 @@ import java.util.List;
         BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
         BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
         SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
-        ErrorBudgetProperties.class, ChaosProperties.class})
+        ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -136,6 +136,22 @@ public class BuzhouCoreAutoConfiguration {
                 properties.tools() == null ? java.util.Set.of()
                         : java.util.Set.copyOf(properties.tools()),
                 true, java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
+    }
+
+    /**
+     * spec 323 / T637：干跑拦截（opt-in {@code buzhou.dry-run.enabled=true}
+     * ——Terraform plan 思想：拦入计划不执行，计划面可审阅；非错误标记，
+     * 熔断/错误预算不被演练污染）。hook 自动收集（order 290 HITL 前）；
+     * include 清单空 = 全量拦。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.dry-run", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook buzhouDryRunHook(
+            DryRunProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook(
+                properties.tools() == null ? java.util.Set.of()
+                        : java.util.Set.copyOf(properties.tools()),
+                true);
     }
 
     /**
