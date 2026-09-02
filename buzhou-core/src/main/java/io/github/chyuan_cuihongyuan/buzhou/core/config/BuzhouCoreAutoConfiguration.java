@@ -48,7 +48,7 @@ import java.util.List;
         BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
         BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
         SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
-        ErrorBudgetProperties.class})
+        ErrorBudgetProperties.class, ChaosProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -117,6 +117,25 @@ public class BuzhouCoreAutoConfiguration {
     public io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth buzhouErrorBudgetHealth(
             io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget budget) {
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth(budget);
+    }
+
+    /**
+     * spec 322 / T635：工具混沌注入（opt-in {@code buzhou.chaos.enabled=true}
+     * ——Netflix Chaos Monkey：按概率注入延迟/故障，平时演练熔断/重试预算/
+     * 舱/错误预算。hook 自动收集进 RuntimeConfig（order 235 熔断前）；概率源
+     * ThreadLocalRandom（装配非确定，测试注入确定源）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.chaos", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosMonkeyHook buzhouChaosMonkeyHook(
+            ChaosProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosMonkeyHook(
+                properties.latencyPercent() == null ? 0.0 : properties.latencyPercent(),
+                properties.latencyMillis() == null ? 0L : properties.latencyMillis(),
+                properties.exceptionPercent() == null ? 0.0 : properties.exceptionPercent(),
+                properties.tools() == null ? java.util.Set.of()
+                        : java.util.Set.copyOf(properties.tools()),
+                true, java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
     }
 
     /**
