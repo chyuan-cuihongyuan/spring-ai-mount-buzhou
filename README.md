@@ -246,6 +246,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 观测治理 | SLO 错误预算燃尽率 | 桶环窗错误率→burn=rate/(1−SLO)、min-samples 防噪、观察钩子喂数、健康面接告警 for 窗（Google SRE 错误预算） | [spec 321](docs/spec/321-error-budget-burn-rate.md) |
 | 韧性演练 | 工具混沌注入 | 按概率延迟/故障袭击（结构化标记模型可改道）、include 清单、运行时启停（Netflix Chaos Monkey——熔断/预算/舱平时真枪演练） | [spec 322](docs/spec/322-tool-chaos-injection.md) |
 | 韧性演练 | 干跑拦截/执行计划 | 拦入计划不执行（非错误标记不污染熔断/预算）、args 快照有界计划面、运行时启停（Terraform plan/apply——先计划后执行） | [spec 323](docs/spec/323-dry-run-plan.md) |
+| 流量治理 | 工具金丝雀发布 | 同名两实现按权重分流真跑、劣化超容差一次性粘性自动回滚（Istio/Flagger canary——小流量真曝+自动退） | [spec 324](docs/spec/324-tool-canary.md) |
 
 ## 技术基线
 
