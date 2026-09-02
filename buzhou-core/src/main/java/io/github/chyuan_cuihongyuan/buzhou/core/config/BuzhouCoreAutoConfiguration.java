@@ -49,7 +49,8 @@ import java.util.List;
         BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
         SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
         ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class,
-        ToolKillSwitchProperties.class, RepetitionProperties.class})
+        ToolKillSwitchProperties.class, RepetitionProperties.class,
+        ToolLoopProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -194,6 +195,20 @@ public class BuzhouCoreAutoConfiguration {
                 properties.window(),
                 properties.similarityPercent() == null ? 80.0 : properties.similarityPercent(),
                 Boolean.TRUE.equals(properties.unstick()));
+    }
+
+    /**
+     * spec 327 / T645：工具循环断路器（{@code buzhou.runaway.tool-loop.window}
+     * 配置即装配且<b>装配即干预</b>——同工具同参数连续达窗 block 带三选一
+     * 出路；与熔断正交：熔断按错误率，本闸按调用形态）。hook 自动收集
+     * （order 245 熔断后）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.runaway.tool-loop", name = "window")
+    public io.github.chyuan_cuihongyuan.buzhou.core.runaway.ToolLoopBreakerHook
+    buzhouToolLoopBreakerHook(ToolLoopProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.runaway.ToolLoopBreakerHook(
+                properties.window());
     }
 
     /**
