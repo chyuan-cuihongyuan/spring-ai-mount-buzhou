@@ -241,6 +241,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 工具治理 | 泳道许可共享 | Lua 原子取/还跨实例一套泳道容量、满道超时同词汇（Redisson 分布式信号量——fog 227 共享族收口） | [spec 316](docs/spec/316-lane-redis-shared.md) |
 | 观测治理 | 导出族合流打包 | 多 JSONL 报表一个 ZIP + manifest 行数/sha256 清单、单源故障隔离（tarball/OCI artifact——窗口一揽子） | [spec 317](docs/spec/317-export-bundle.md) |
 | 运维 | 会话扰乱预算 | voluntary 排水领额度、min-available 保底防全排（K8s PodDisruptionBudget——维护三件套齐） | [spec 318](docs/spec/318-session-disruption-budget.md) |
+| 运维 | 舱压伸缩建议 | 舱拒绝窗口增量→实例倍率建议（clamp/回零回落/只建议不执行——K8s HPA custom metrics） | [spec 319](docs/spec/319-bulkhead-scaling-advisor.md) |
 
 ## 技术基线
 

@@ -47,7 +47,7 @@ import java.util.List;
         io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
         BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
         BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
-        SessionDisruptionBudgetProperties.class})
+        SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -739,6 +739,44 @@ public class BuzhouCoreAutoConfiguration {
                 io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.of(limits, timeout);
         io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead.install(bulkhead);
         return bulkhead;
+    }
+
+    /**
+     * spec 319 / T630：舱压伸缩建议装配（{@code buzhou.bulkhead.scaling.scale-up-threshold}
+     * 配置且舱开启才装配——K8s HPA 思想：窗口拒绝增量 → 实例倍率建议，只建议不执行）。
+     * 舱未开（NOOP 舱拒绝恒 0，建议恒 1）不装配；复合条件 Binder 预绑判定
+     * （312 同法——条件注解表达不了「另一开关 + 本键」）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.BulkheadScalingCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor
+    buzhouBulkheadScalingAdvisor(
+            BulkheadScalingProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead bulkhead) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor(
+                bulkhead, properties.scaleUpThreshold(),
+                properties.maxMultiplier() == null
+                        ? BulkheadScalingProperties.DEFAULT_MAX_MULTIPLIER
+                        : properties.maxMultiplier());
+    }
+
+    /** spec 319：threshold 配置且 {@code buzhou.bulkhead.enabled=true} 才装配。 */
+    static final class BulkheadScalingCondition implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            boolean bulkheadEnabled = org.springframework.boot.context.properties.bind.Binder
+                    .get(context.getEnvironment())
+                    .bind("buzhou.bulkhead.enabled", Boolean.class).orElse(false);
+            if (!bulkheadEnabled) {
+                return false;
+            }
+            return org.springframework.boot.context.properties.bind.Binder
+                    .get(context.getEnvironment())
+                    .bind("buzhou.bulkhead.scaling.scale-up-threshold", Long.class)
+                    .isBound();
+        }
     }
 
     /**
