@@ -49,7 +49,7 @@ import java.util.List;
         BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
         SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
         ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class,
-        ToolKillSwitchProperties.class})
+        ToolKillSwitchProperties.class, RepetitionProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -179,6 +179,21 @@ public class BuzhouCoreAutoConfiguration {
             org.springframework.core.env.Environment env) {
         return new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHotReload(
                 hook, env);
+    }
+
+    /**
+     * spec 326 / T643：轮次重复检测（{@code buzhou.runaway.repetition.window}
+     * 配置即装配——LLM 打转 content rot 早信号：afterModel 喂文本，相邻
+     * Jaccard run 达窗 fire；unstick=true 时 block 回填解困指令替换复读输出）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.runaway.repetition", name = "window")
+    public io.github.chyuan_cuihongyuan.buzhou.core.runaway.RepetitionDetectorHook
+    buzhouRepetitionDetectorHook(RepetitionProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.runaway.RepetitionDetectorHook(
+                properties.window(),
+                properties.similarityPercent() == null ? 80.0 : properties.similarityPercent(),
+                Boolean.TRUE.equals(properties.unstick()));
     }
 
     /**

@@ -248,6 +248,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 韧性演练 | 干跑拦截/执行计划 | 拦入计划不执行（非错误标记不污染熔断/预算）、args 快照有界计划面、运行时启停（Terraform plan/apply——先计划后执行） | [spec 323](docs/spec/323-dry-run-plan.md) |
 | 流量治理 | 工具金丝雀发布 | 同名两实现按权重分流真跑、劣化超容差一次性粘性自动回滚（Istio/Flagger canary——小流量真曝+自动退） | [spec 324](docs/spec/324-tool-canary.md) |
 | 事故响应 | 工具紧急停用开关 | 一键全局停/恢复不重启、非错误标记零污染、刷新事件 yml 事实源整体覆盖（LaunchDarkly kill switch / K8s cordon） | [spec 325](docs/spec/325-tool-kill-switch.md) |
+| 失控防护 | 轮次重复检测 | 相邻输出词元 Jaccard run 达窗即fire 一次、opt-in 解困回填替换复读输出（context rot / LLM 打转早信号） | [spec 326](docs/spec/326-turn-repetition.md) |
 
 ## 技术基线
 
