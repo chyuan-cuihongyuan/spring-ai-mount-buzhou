@@ -47,7 +47,8 @@ import java.util.List;
         io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties.class,
         BuzhouToolsProperties.class, BuzhouArchiveProperties.class,
         BuzhouVirtualKeyProperties.class, BuzhouAlertProperties.class,
-        SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class})
+        SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
+        ErrorBudgetProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -86,6 +87,36 @@ public class BuzhouCoreAutoConfiguration {
             }
         }
         return count;
+    }
+
+    /**
+     * spec 321 / T633：SLO 错误预算（{@code buzhou.error-budget.slo} 配置即装配
+     * ——Google SRE burn rate：窗错误率/(1−SLO)，超阈走健康面 DOWN，312 告警
+     * 引擎的 for 持续窗吸收瞬态）。hook 纯观察（order 250），健康面自动进
+     * 机制集。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.error-budget", name = "slo")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget buzhouErrorBudget(
+            ErrorBudgetProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget(
+                properties.toConfig(), java.time.Clock.systemDefaultZone());
+    }
+
+    /** spec 321：喂数 hook（BuzhouHook 自动收集进 RuntimeConfig——不挂零变化）。 */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.error-budget", name = "slo")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHook buzhouErrorBudgetHook(
+            io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget budget) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHook(budget);
+    }
+
+    /** spec 321：健康面（BuzhouHealth——DOWN=燃尽超阈 SLO 失守；无样本 UNKNOWN）。 */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.error-budget", name = "slo")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth buzhouErrorBudgetHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget budget) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth(budget);
     }
 
     /**
