@@ -64,6 +64,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.SessionDisruptionBud
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ToolKillSwitchProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ToolLoopProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingMessageStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingSummaryStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.EnvelopeCipher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouDataCorruptionException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException

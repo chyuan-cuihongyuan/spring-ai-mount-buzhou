@@ -1518,7 +1518,8 @@
   `LaneStateBackend` + `BackendLanePermit`（core.exec，316 共享泳道 SPI）；
   `VirtualKeyBudgetBackend`（core.spi，315 共享配额 SPI）
 - 安全：`EnvelopeCipher` + `EncryptingMessageStore` + `BuzhouMessageEncryptionProperties`
-  （333——Vault transit/KMS envelope：消息静态信封加密，AAD 绑定+双钥轮换）
+  （333——Vault transit/KMS envelope：消息静态信封加密，AAD 绑定+双钥轮换）；
+  `EncryptingSummaryStore`（336——同通道扩散摘要槽，state 槽 CAS 比值面为诚实边界）
 - 背压：`SpawnAdmissionFloor` + `ErrorBudgetPolicy` + `ErrorBudgetFreezeProperties`
   （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/

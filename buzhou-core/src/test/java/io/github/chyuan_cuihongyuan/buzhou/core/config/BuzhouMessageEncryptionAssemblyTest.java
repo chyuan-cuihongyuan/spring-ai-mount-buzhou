@@ -39,8 +39,11 @@ class BuzhouMessageEncryptionAssemblyTest {
                     assertThat(context).hasNotFailed();
                     BuzhouStores stores = context.getBean(BuzhouStores.class);
                     assertThat(stores.messageStore()).isInstanceOf(EncryptingMessageStore.class);
-                    // 其余五槽原样（与未包装基线同一实例）
-                    assertThat(stores.summaryStore()).isSameAs(base.summaryStore());
+                    // spec 336：单开关双槽——summary 同换装
+                    assertThat(stores.summaryStore()).isInstanceOf(
+                            io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingSummaryStore.class);
+                    // 其余四槽原样（与未包装基线同一实例；state 槽 CAS 比值面不加密——诚实边界）
+                    assertThat(stores.sessionStateStore()).isSameAs(base.sessionStateStore());
                     assertThat(stores.observabilityStore()).isSameAs(base.observabilityStore());
                     // 容器内行为往返
                     MessageStore messageStore = stores.messageStore();
@@ -62,6 +65,9 @@ class BuzhouMessageEncryptionAssemblyTest {
                     assertThat(context).hasNotFailed();
                     assertThat(context.getBean(BuzhouStores.class).messageStore())
                             .isNotInstanceOf(EncryptingMessageStore.class);
+                    assertThat(context.getBean(BuzhouStores.class).summaryStore())
+                            .isNotInstanceOf(
+                                    io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingSummaryStore.class);
                 });
     }
 

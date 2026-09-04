@@ -31,8 +31,14 @@ final class BuzhouMessageEncryptionPostProcessor implements BeanPostProcessor {
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         if (bean instanceof BuzhouStores stores
                 && !(stores.messageStore() instanceof EncryptingMessageStore)) {
-            MessageStore encrypted = new EncryptingMessageStore(stores.messageStore(), cipher);
-            return new BuzhouStores(encrypted, stores.summaryStore(), stores.sessionStateStore(),
+            // spec 336 / T664：单开关双槽扩散——message + summary 同钥同通道
+            // （SessionStateStore 不加密：CAS 比值面与密文不兼容——spec 336 诚实边界）
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStore encrypted =
+                    new EncryptingMessageStore(stores.messageStore(), cipher);
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.SummaryStore encryptedSummary =
+                    new io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingSummaryStore(
+                            stores.summaryStore(), cipher);
+            return new BuzhouStores(encrypted, encryptedSummary, stores.sessionStateStore(),
                     stores.sessionLeaseStore(), stores.observabilityStore(), stores.unitOfWork());
         }
         return bean;
