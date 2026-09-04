@@ -36,6 +36,8 @@ public final class IdleCompactionHousekeeper implements SmartLifecycle {
     private final Duration idleThreshold;
     private final Duration interval;
     private final int maxPerSweep;
+    /** spec 341 / T674：可选选主门（331 扩散——null = 零变化）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector elector;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicLong compacted = new AtomicLong();
     private final AtomicLong skipped = new AtomicLong();
@@ -53,6 +55,18 @@ public final class IdleCompactionHousekeeper implements SmartLifecycle {
     public IdleCompactionHousekeeper(SessionIndexStore index,
                                      Function<String, ManualCompactor.CompactResult> action,
                                      Duration idleThreshold, Duration interval, int maxPerSweep) {
+        this(index, action, idleThreshold, interval, maxPerSweep, null);
+    }
+
+    /**
+     * spec 341 / T674：带选主门构造（331 扩散——调度周期先取续，非 leader
+     * 跳周期留计数；手动 sweepOnce 不设门；stop 让位）。elector null =
+     * 既有每实例各跑语义零变化。
+     */
+    public IdleCompactionHousekeeper(SessionIndexStore index,
+                                     Function<String, ManualCompactor.CompactResult> action,
+                                     Duration idleThreshold, Duration interval, int maxPerSweep,
+                                     io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector elector) {
         if (index == null || action == null) {
             throw new IllegalArgumentException("index/action 必须非空");
         }
@@ -70,6 +84,7 @@ public final class IdleCompactionHousekeeper implements SmartLifecycle {
         this.idleThreshold = idleThreshold;
         this.interval = interval;
         this.maxPerSweep = maxPerSweep;
+        this.elector = elector;
     }
 
     /** 单轮：枚举 ACTIVE（分页上限内）→ 空闲候选（最久优先）→ 限批压缩。返回本轮压缩数。 */
@@ -129,8 +144,22 @@ public final class IdleCompactionHousekeeper implements SmartLifecycle {
         if (running.compareAndSet(false, true)) {
             scheduler = Executors.newSingleThreadScheduledExecutor(
                     BuzhouThreadFactory.platform("buzhou-idle-compaction"));
-            scheduler.scheduleAtFixedRate(() -> sweepOnce(Instant.now()),
+            scheduler.scheduleAtFixedRate(this::gatedSweep,
                     interval.toMillis(), interval.toMillis(), TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /** spec 341 / T674：调度周期先取续——非 leader 跳周期留计数（手动 sweepOnce 不设门）。 */
+    private void gatedSweep() {
+        try {
+            if (elector != null && !elector.tryAcquireOrRenew().leader()) {
+                BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.idle-compaction.skipped-not-leader", 1);
+                return;
+            }
+            sweepOnce(Instant.now());
+        } catch (RuntimeException e) {
+            // 逐会话失败已隔离；此处只防调度线程被意外异常杀死（331 同法）
         }
     }
 
@@ -141,6 +170,13 @@ public final class IdleCompactionHousekeeper implements SmartLifecycle {
             if (current != null) {
                 current.shutdownNow();
                 scheduler = null;
+            }
+            if (elector != null) {
+                try {
+                    elector.resign(); // spec 341：停机让位——快速故障转移
+                } catch (RuntimeException ignored) {
+                    // TTL 自然过期兜底
+                }
             }
         }
     }

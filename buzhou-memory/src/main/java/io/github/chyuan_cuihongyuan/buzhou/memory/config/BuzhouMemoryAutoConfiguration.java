@@ -49,7 +49,8 @@ public class BuzhouMemoryAutoConfiguration {
     public org.springframework.context.SmartLifecycle idleCompactionHousekeeper(
             IdleCompactionProperties properties,
             ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor> compactor,
-            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> indexStore) {
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> indexStore,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector> leaderElector) {
         io.github.chyuan_cuihongyuan.buzhou.memory.compact.ManualCompactor compactorBean =
                 compactor.getIfAvailable();
         io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore index = indexStore.getIfAvailable();
@@ -58,7 +59,8 @@ public class BuzhouMemoryAutoConfiguration {
         }
         return new io.github.chyuan_cuihongyuan.buzhou.memory.compact.IdleCompactionHousekeeper(
                 index, compactorBean::compact, properties.idleThreshold(),
-                properties.interval(), properties.maxPerSweep());
+                properties.interval(), properties.maxPerSweep(),
+                leaderElector.getIfAvailable()); // spec 341：无 bean = 零变化
     }
 
     /**

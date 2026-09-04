@@ -39,6 +39,8 @@ public class ArchivePurgeJob implements SmartLifecycle, AutoCloseable {
     private final boolean enabled;
     /** spec 184 / T542：可选咨询锁（多实例单跑档）。 */
     private final AdvisoryFileLock lock;
+    /** spec 341 / T673：可选选主门（331 扩散——null = 零变化）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector elector;
     /** 抢锁持有者标识（进程内单持有——hostName 派生，不必配置）。 */
     private final String lockOwner = "archive-purge@"
             + ManagementFactory.getRuntimeMXBean().getName().replace('@', '-');
@@ -59,6 +61,17 @@ public class ArchivePurgeJob implements SmartLifecycle, AutoCloseable {
      */
     public ArchivePurgeJob(SessionArchiver archiver, Duration ttl, Duration interval,
                            boolean enabled, AdvisoryFileLock lock) {
+        this(archiver, ttl, interval, enabled, lock, null);
+    }
+
+    /**
+     * spec 341 / T673：带选主门构造（331 扩散——调度周期先取续，非 leader
+     * 跳周期留计数；手动 purgeOnce 不设门；stop 让位）。elector null =
+     * 既有语义零变化。
+     */
+    public ArchivePurgeJob(SessionArchiver archiver, Duration ttl, Duration interval,
+                           boolean enabled, AdvisoryFileLock lock,
+                           io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector elector) {
         if (ttl == null || interval == null) {
             throw new IllegalArgumentException("ttl and interval must not be null");
         }
@@ -70,6 +83,7 @@ public class ArchivePurgeJob implements SmartLifecycle, AutoCloseable {
         this.interval = interval;
         this.enabled = enabled;
         this.lock = lock;
+        this.elector = elector;
     }
 
     /** 单轮清理（手动/调度共用；返回删除数——损坏归档跳过语义沿用 purgeExpired；
@@ -121,9 +135,23 @@ public class ArchivePurgeJob implements SmartLifecycle, AutoCloseable {
         }
         scheduler = Executors.newSingleThreadScheduledExecutor(
                 BuzhouThreadFactory.platform("archive-purge"));
-        scheduler.scheduleWithFixedDelay(this::purgeOnceSafe, interval.toMillis(),
+        scheduler.scheduleWithFixedDelay(this::gatedPurge, interval.toMillis(),
                 interval.toMillis(), TimeUnit.MILLISECONDS);
         running = true;
+    }
+
+    /** spec 341 / T673：调度周期先取续——非 leader 跳周期留计数（手动 purgeOnce 不设门）。 */
+    private void gatedPurge() {
+        try {
+            if (elector != null && !elector.tryAcquireOrRenew().leader()) {
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
+                        .metrics().counter("buzhou.archive.skipped-not-leader", 1);
+                return;
+            }
+            purgeOnce();
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.ERROR, "归档清理单轮失败（下一轮照常）", e);
+        }
     }
 
     @Override
@@ -133,6 +161,13 @@ public class ArchivePurgeJob implements SmartLifecycle, AutoCloseable {
         if (current != null) {
             current.shutdownNow();
             scheduler = null;
+        }
+        if (elector != null) {
+            try {
+                elector.resign(); // spec 341：停机让位——快速故障转移
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.WARNING, "选主让位失败（TTL 自然过期兜底）", e);
+            }
         }
     }
 
@@ -149,14 +184,5 @@ public class ArchivePurgeJob implements SmartLifecycle, AutoCloseable {
     @Override
     public void close() {
         stop();
-    }
-
-    /** 调度面安全壳：单轮异常只记日志不杀调度线程（下一轮照常）。 */
-    private void purgeOnceSafe() {
-        try {
-            purgeOnce();
-        } catch (RuntimeException e) {
-            LOGGER.log(System.Logger.Level.ERROR, "归档清理单轮失败（下一轮照常）", e);
-        }
     }
 }

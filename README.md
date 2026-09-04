@@ -261,6 +261,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 成本预算 | 预算软预警线 | 会话总量/成本/虚拟 key 三维消耗达硬顶 80% 即发预警事件（一次一发仅事件不拦截，-1 关闭——AWS Budgets 到墙之前先叫人） | [spec 338](docs/spec/338-budget-warning.md) |
 | 模型韧性 | 多模型加权路由 | 199 平滑加权原语装配收尾——逐调用按权重分流多模型（比例精确时间平滑 5:1:1 不连五爆发）、yml 按 bean 名配权、@Primary 透明接入（LiteLLM Router） | [spec 339](docs/spec/339-model-routing.md) |
 | 运维 | 路由权重热调整 | 刷新事件重读 yml 逐路热调（WRR 动量保留自然收敛）、面外名字跳过不红、运行时 setWeight API（Spring Cloud rebind/320 同模式） | [spec 340](docs/spec/340-routing-weights-hot-reload.md) |
+| 运维 | 选主扩散：归档清理与空闲压缩 | 331 选主门接 ArchivePurgeJob 与 IdleCompactionHousekeeper——家务族三任务一个 leader（K8s leader election 扩散轮：不重复扫/不竞写摘要版本） | [spec 341](docs/spec/341-leader-diffusion.md) |
 | 成本预算 | 成本归因台账 | 同一笔 microUsd 双维入账（model+虚拟 key）——chargeback 有账面；无 key 诚实桶、万分比 share、JSONL 报表（Kubecost/OpenCost 按标签归因） | [spec 334](docs/spec/334-cost-attribution.md) |
 | 背压 | 错误预算政策·烧穿自动降级 | 预算烧穿→spawn 准入地板抬 HIGH（冻结 NORMAL/LOW 只保关键通道）、连续两轮清明解冻防抖（Google SRE error budget policy——从「知道」到「行动」） | [spec 335](docs/spec/335-error-budget-freeze.md) |
 

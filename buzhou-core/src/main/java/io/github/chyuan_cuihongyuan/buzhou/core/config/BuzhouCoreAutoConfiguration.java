@@ -1196,9 +1196,11 @@ public class BuzhouCoreAutoConfiguration {
             havingValue = "true")
     public io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob buzhouArchivePurgeJob(
             io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver archiver,
-            BuzhouArchiveProperties archive) {
+            BuzhouArchiveProperties archive,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector> leaderElector) {
         return new io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob(
                 archiver, archive.getPurgeTtl(), archive.getPurgeInterval(),
-                archive.isPurgeEnabled());
+                archive.isPurgeEnabled(), null,
+                leaderElector.getIfAvailable()); // spec 341：无 bean = 零变化
     }
 }
