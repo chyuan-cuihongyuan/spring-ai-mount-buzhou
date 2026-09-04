@@ -27,7 +27,8 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @ConditionalOnClass(RedisClient.class)
 @ConditionalOnProperty(prefix = "buzhou.store", name = "type", havingValue = "redis")
-@EnableConfigurationProperties({RedisStoreProperties.class, WriteFailurePolicyProperties.class})
+@EnableConfigurationProperties({RedisStoreProperties.class, WriteFailurePolicyProperties.class,
+        LeaderElectionProperties.class})
 public class BuzhouRedisStoreAutoConfiguration {
 
     @Bean(destroyMethod = "shutdown")
@@ -117,6 +118,25 @@ public class BuzhouRedisStoreAutoConfiguration {
             RedisClient client, RedisStoreProperties props) {
         return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLaneStateBackend(
                 client, props.keyPrefix() + "lane:");
+    }
+
+    /**
+     * 共享选主后端（spec 331 / T654）：store.type=redis 且
+     * {@code buzhou.leader-election.enabled=true} 时供 LeaderElector bean
+     * （Lua 原子取/续/让 + 单调纪元围栏——家务族跨实例单执行者）；
+     * core auto-config 经 ObjectProvider 优先消费（无 bean = sweeper 无门
+     * 零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.leader-election", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector buzhouLeaderElector(
+            RedisClient client, RedisStoreProperties props,
+            LeaderElectionProperties leaderElection) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLeaderElector(
+                client, props.keyPrefix() + "leader:housekeeping",
+                leaderElection.holderId(), leaderElection.ttl());
     }
 
     private static Integer positiveOrNull(String value) {

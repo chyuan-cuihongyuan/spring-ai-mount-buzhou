@@ -1502,7 +1502,8 @@
 
 - 运维弧线：`SessionDisruptionBudget` + `SessionDisruptionBudgetProperties`（318 排水预算——K8s PDB）；
   `BulkheadScalingAdvisor` + `BulkheadScalingProperties`（319 伸缩建议——K8s HPA）；
-  `BuzhouConfigRefreshEvent` + `BulkheadHotReload`（320 容量热调整——Spring Cloud rebind）
+  `BuzhouConfigRefreshEvent` + `BulkheadHotReload`（320 容量热调整——Spring Cloud rebind）；
+  `LeaderElector` SPI + `InMemoryLeaderElector`（331 选主——K8s leader election/etcd lease）
 - 告警/观测：`AlertRuleEngine` + `BuzhouAlertProperties`（312——Grafana ruler）；
   `AlertGate`（330——Alertmanager 静默窗+抑制规则，嵌套 `Silence`/`InhibitRule`/`Silenced`）；
   `ErrorBudget` + `ErrorBudgetHook` + `ErrorBudgetHealth` + `ErrorBudgetProperties`（321——Google SRE burn）；
@@ -1529,5 +1530,6 @@
 **buzhou-store-redis**
 
 - `RedisLaneStateBackend`（316——Lua 原子泳道共享）/ `RedisVirtualKeyBudgetBackend`（315——Lua 原子配额共享）
+- `RedisLeaderElector` + `LeaderElectionProperties`（331——Lua 原子选主：TTL 租约+单调纪元围栏，K8s leader election）
 
 - 类型级快照：**+38**（收口再生，Windows 首次本机可用）；yml 键：随各 spec 入档

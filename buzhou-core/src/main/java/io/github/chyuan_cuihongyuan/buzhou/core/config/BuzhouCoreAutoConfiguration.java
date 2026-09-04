@@ -1041,7 +1041,9 @@ public class BuzhouCoreAutoConfiguration {
             org.springframework.beans.factory.ObjectProvider<
                     io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog> toolCallLog,
             org.springframework.beans.factory.ObjectProvider<
-                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry) {
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector> leaderElector) {
         io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog tcl = toolCallLog.getIfAvailable();
         io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry registry = runRegistry.getIfAvailable();
         return new io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper(
@@ -1062,7 +1064,8 @@ public class BuzhouCoreAutoConfiguration {
                         retention.trigger().cap(), retention.trigger().hardFloor()),
                 retention.sweepInterval(),
                 null,
-                retention.enabled());
+                retention.enabled(),
+                leaderElector.getIfAvailable()); // spec 331：无 bean = 无门零变化
     }
 
     /**

@@ -25,6 +25,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReloa
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SuperstepBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreaker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreakerHook
@@ -250,6 +251,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LaneStateBackend
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseInfo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor
@@ -573,6 +575,7 @@ buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBulkhead
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBuzhouStores
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisCircuitBreakerStateBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLaneStateBackend
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLeaderElector
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisMessageStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisObservabilityStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisRateLimitBackend
@@ -585,6 +588,7 @@ buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisUnitOfWo
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisVirtualKeyBudgetBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.WriteFailurePolicy
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.config.BuzhouRedisStoreAutoConfiguration
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.config.LeaderElectionProperties
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.config.RedisStoreProperties
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.config.WriteFailurePolicyProperties
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.LongContentParamDecl
