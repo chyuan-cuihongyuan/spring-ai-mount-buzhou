@@ -263,6 +263,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 运维 | 路由权重热调整 | 刷新事件重读 yml 逐路热调（WRR 动量保留自然收敛）、面外名字跳过不红、运行时 setWeight API（Spring Cloud rebind/320 同模式） | [spec 340](docs/spec/340-routing-weights-hot-reload.md) |
 | 运维 | 选主扩散：归档清理与空闲压缩 | 331 选主门接 ArchivePurgeJob 与 IdleCompactionHousekeeper——家务族三任务一个 leader（K8s leader election 扩散轮：不重复扫/不竞写摘要版本） | [spec 341](docs/spec/341-leader-diffusion.md) |
 | 运维 | 维护窗口 cordon | 地板多源合成（与 335 冻结正交不互踩）+ yml 声明窗自动 cordon/解除 + 运行时按钮（K8s cordon——窗内不接新会话在途排空，过期窗不追溯） | [spec 342](docs/spec/342-maintenance-cordon.md) |
+| 工程治理 | 生效配置自描述端点 | /actuator/buzhou-config 一屏全部 buzhou.* 生效值（含 env 覆盖）、密钥类键宽匹配掩码宁掩勿漏（actuator configprops+sanitization） | [spec 343](docs/spec/343-config-endpoint.md) |
 | 成本预算 | 成本归因台账 | 同一笔 microUsd 双维入账（model+虚拟 key）——chargeback 有账面；无 key 诚实桶、万分比 share、JSONL 报表（Kubecost/OpenCost 按标签归因） | [spec 334](docs/spec/334-cost-attribution.md) |
 | 背压 | 错误预算政策·烧穿自动降级 | 预算烧穿→spawn 准入地板抬 HIGH（冻结 NORMAL/LOW 只保关键通道）、连续两轮清明解冻防抖（Google SRE error budget policy——从「知道」到「行动」） | [spec 335](docs/spec/335-error-budget-freeze.md) |
 

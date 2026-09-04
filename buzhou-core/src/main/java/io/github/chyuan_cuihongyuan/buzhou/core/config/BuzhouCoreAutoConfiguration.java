@@ -849,6 +849,15 @@ public class BuzhouCoreAutoConfiguration {
                     list, probes);
         }
 
+        /** spec 343 / T678：生效配置自描述端点（密钥掩码宁掩勿漏）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouConfigSnapshotEndpoint
+        buzhouConfigSnapshotEndpoint(org.springframework.core.env.Environment environment) {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouConfigSnapshotEndpoint(
+                    environment);
+        }
+
         /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */
         @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
