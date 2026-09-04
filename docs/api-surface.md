@@ -1521,6 +1521,8 @@
   （333——Vault transit/KMS envelope：消息静态信封加密，AAD 绑定+双钥轮换）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
   `ToolHealth`（305 工具健康）
+- 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost
+  按标签归因：双维 chargeback 台账，嵌套 `Dimension`/`Attribution`）
 
 **buzhou-memory**
 

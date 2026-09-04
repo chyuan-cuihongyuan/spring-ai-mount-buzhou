@@ -6,6 +6,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnPriority
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ElasticBudgetPool
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedgerJsonl

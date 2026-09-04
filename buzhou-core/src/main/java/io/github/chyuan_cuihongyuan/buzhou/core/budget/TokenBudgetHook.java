@@ -123,6 +123,10 @@ public class TokenBudgetHook implements BuzhouHook {
                 usedPricing == null ? null : new ModelCostLedger.PricingSnapshot(
                         usedPricing.inputPerMillion(), usedPricing.outputPerMillion()));
 
+        // spec 334 / T659：成本归因台账（双维同笔——model + virtualKey 恰在此同点；
+        // 无 key 归 __unattributed__ 诚实桶，只记账不拦截）
+        CostAttributionLedger.global().record(model, virtualKey, costMicroUsd);
+
         if (virtualKeys != null && virtualKey != null
                 && !virtualKeys.trySpend(virtualKey, prompt + completion)) {
             // spec 148 / T501：key 级扣减越限——观测事件即刻发（本响应已生成），
