@@ -50,7 +50,7 @@ import java.util.List;
         SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
         ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class,
         ToolKillSwitchProperties.class, RepetitionProperties.class,
-        ToolLoopProperties.class})
+        ToolLoopProperties.class, BuzhouProbeProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -737,6 +737,33 @@ public class BuzhouCoreAutoConfiguration {
                 ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> contributors) {
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint(
                     contributors.orderedStream().toList());
+        }
+
+        /**
+         * spec 332 / T656：探针归类 + 裁决端点（K8s probes——liveness 失败→重启 /
+         * readiness 失败→摘流量（缺省归类）/ startup 失败→等待）。点名机制在端点
+         * 装配期 fail-fast 校验（机制集已知——晚于全部健康 bean 创建）。
+         */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbes buzhouProbes(
+                BuzhouProbeProperties properties) {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbes(
+                    properties.livenessMechanisms(), properties.startupMechanisms());
+        }
+
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbesEndpoint buzhouProbesEndpoint(
+                ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> contributors,
+                io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbes probes) {
+            java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> list =
+                    contributors.orderedStream().toList();
+            probes.validateMechanisms(list.stream()
+                    .map(io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth::mechanism)
+                    .toList());
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbesEndpoint(
+                    list, probes);
         }
 
         /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */
