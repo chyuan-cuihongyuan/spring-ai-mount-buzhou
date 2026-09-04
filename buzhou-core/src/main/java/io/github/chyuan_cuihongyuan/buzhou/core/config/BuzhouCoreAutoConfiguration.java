@@ -868,6 +868,17 @@ public class BuzhouCoreAutoConfiguration {
                     engine.getIfAvailable(), gate.getIfAvailable());
         }
 
+        /** spec 346 / T684：会话面板端点（活跃计数+地板多源+cordon——面板三部曲之三）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint buzhouSessionsEndpoint(
+                ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> index,
+                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor floor,
+                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon cordon) {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint(
+                    index.getIfAvailable(), floor, cordon);
+        }
+
         /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */
         @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

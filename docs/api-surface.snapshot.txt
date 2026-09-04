@@ -140,6 +140,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbes
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbesEndpoint
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ConfigDoctorHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth
