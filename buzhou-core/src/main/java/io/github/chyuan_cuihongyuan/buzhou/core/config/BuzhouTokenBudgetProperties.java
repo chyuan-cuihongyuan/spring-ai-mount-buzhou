@@ -16,6 +16,8 @@ import java.util.Map;
  * @param maxSessionTotalTokens  会话累计总 token（prompt+completion）硬顶（null = 不限）
  * @param maxSessionCostUsd      会话累计成本硬顶（USD；null = 不限；<b>必须配 pricing，否则启动失败</b>）
  * @param pricing                价目表：model → 每百万 token 单价（USD）；无该模型条目 = 零成本
+ * @param warningPercent         软预警线（spec 338：消耗达硬顶该百分比即发预警事件——
+ *                               默认 80；-1 关闭；仅事件不拦截——硬顶闸照旧）
  */
 @ConfigurationProperties(prefix = "buzhou.token-budget")
 public record BuzhouTokenBudgetProperties(
@@ -23,10 +25,24 @@ public record BuzhouTokenBudgetProperties(
         Long maxSessionPromptTokens,
         Long maxSessionTotalTokens,
         BigDecimal maxSessionCostUsd,
-        Map<String, Pricing> pricing) {
+        Map<String, Pricing> pricing,
+        Integer warningPercent) {
 
+    /** 5 参兼容构造（spec 338 之前调用方；warningPercent = 默认）。 */
+    public BuzhouTokenBudgetProperties(Boolean enabled, Long maxSessionPromptTokens,
+            Long maxSessionTotalTokens, BigDecimal maxSessionCostUsd, Map<String, Pricing> pricing) {
+        this(enabled, maxSessionPromptTokens, maxSessionTotalTokens, maxSessionCostUsd,
+                pricing, null);
+    }
+
+    /** 多构造器场景：显式指定规范构造器为绑定构造器（BuzhouToolsProperties 同法）。 */
+    @org.springframework.boot.context.properties.bind.ConstructorBinding
     public BuzhouTokenBudgetProperties {
         enabled = enabled == null || enabled;
+        warningPercent = warningPercent == null ? 80 : warningPercent;
+        if (warningPercent != -1 && (warningPercent < 1 || warningPercent > 100)) {
+            throw configError("warning-percent", "设为 1..100 的整数（默认 80），或 -1（关闭软预警）");
+        }
         if (maxSessionPromptTokens != null && maxSessionPromptTokens < 1) {
             throw configError("max-session-prompt-tokens", "设为正整数，或删除该键（不限）");
         }
@@ -54,7 +70,12 @@ public record BuzhouTokenBudgetProperties(
 
     /** 全默认（装配测试用；全部 null = 不限，等价现状）。 */
     public static BuzhouTokenBudgetProperties defaults() {
-        return new BuzhouTokenBudgetProperties(null, null, null, null, null);
+        return new BuzhouTokenBudgetProperties(null, null, null, null, null, null);
+    }
+
+    /** 软预警是否启用（spec 338）。 */
+    public boolean warningEnabled() {
+        return warningPercent != null && warningPercent > 0;
     }
 
     /** 是否配置了任何硬顶（都没有 = 计量仍累计，闸门空转）。 */

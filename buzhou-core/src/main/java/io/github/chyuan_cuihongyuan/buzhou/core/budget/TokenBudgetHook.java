@@ -53,6 +53,12 @@ public class TokenBudgetHook implements BuzhouHook {
     /** key 级 token 硬顶终止（spec 148 §A / T501：跨会话共享预算耗尽——payload 含 limit/value）。 */
     public static final String EVENT_KEY_HARD_STOP = "budget.key-hard-stop";
 
+    /** 软预警（spec 338 / T667，AWS Budgets 借鉴：消耗达硬顶 warning-percent 即预警——
+     *  一次一发（消耗单调，warned 即终局）；仅事件不拦截，硬顶闸照旧）。 */
+    public static final String EVENT_BUDGET_WARNING = "budget.warning";
+
+    private static final int WARNED_BOUND = 1024;
+
     private final BuzhouTokenBudgetProperties props;
     private final String defaultModelName;
     private final io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore;
@@ -60,6 +66,8 @@ public class TokenBudgetHook implements BuzhouHook {
     /** key 级预算（可选——spec 124 注册表接线，spec 148 / T501；null = 无 key 面）。 */
     private final VirtualKeys virtualKeys;
     private final String virtualKey;
+    /** spec 338：已预警标记（会话/键两域；消耗单调——warned 即终局，1024 上限诚实降级）。 */
+    private final java.util.Set<String> warned = ConcurrentHashMap.newKeySet();
 
     public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
                            io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore) {
@@ -156,7 +164,57 @@ public class TokenBudgetHook implements BuzhouHook {
             payload.put("sessionCostUsd", microUsdToUsdString(sessionCost));
         }
         emit(ctx, EVENT_TOKENS_ACCUMULATED, payload);
+
+        // spec 338 / T667：软预警线（AWS Budgets——到墙之前先叫人；一次一发，不拦截）
+        warnIfCrossing(ctx, sessionPrompt + sessionCompletion, sessionCost);
         return HookResult.CONTINUE;
+    }
+
+    private void warnIfCrossing(HookContext ctx, long sessionTotal, long sessionCostMicro) {
+        if (!props.warningEnabled()) {
+            return;
+        }
+        String sessionId = ctx.sessionId();
+        if (props.maxSessionTotalTokens() != null
+                && crosses(sessionTotal, props.maxSessionTotalTokens())) {
+            warnOnce(ctx, "session:" + sessionId, "total-tokens",
+                    props.maxSessionTotalTokens(), sessionTotal);
+        }
+        if (props.maxSessionCostUsd() != null && sessionCostMicro > 0
+                && crosses(sessionCostMicro, usdToMicroUsd(props.maxSessionCostUsd()))) {
+            warnOnce(ctx, "session:" + sessionId, "cost-usd",
+                    props.maxSessionCostUsd(), BigDecimal.valueOf(sessionCostMicro, 6));
+        }
+        if (virtualKeys != null && virtualKey != null && virtualKeys.isExhausted(virtualKey)) {
+            return; // 已耗尽走 hard-stop 语义——预警无意义
+        }
+        if (virtualKeys != null && virtualKey != null) {
+            VirtualKeys.KeyUsage usage = virtualKeys.usage(virtualKey);
+            if (usage != null && usage.limitTokens() > 0
+                    && crosses(usage.usedTokens(), usage.limitTokens())) {
+                warnOnce(ctx, "key:" + virtualKey, "virtual-key-tokens",
+                        usage.limitTokens(), usage.usedTokens());
+            }
+        }
+    }
+
+    private boolean crosses(long value, long limit) {
+        return limit > 0 && value * 100L >= limit * props.warningPercent();
+    }
+
+    private void warnOnce(HookContext ctx, String warnKey, String dimension,
+            Number limit, Number value) {
+        if (warned.size() >= WARNED_BOUND || !warned.add(warnKey + ":" + dimension)) {
+            return; // 已预警（消耗单调——一次即终局）或达标记上限（诚实降级）
+        }
+        emit(ctx, EVENT_BUDGET_WARNING, Map.of(
+                "sessionId", ctx.sessionId(),
+                "turn", ctx.turn(),
+                "dimension", dimension,
+                "warningPercent", props.warningPercent(),
+                "limit", limit,
+                "value", value));
+        BuzhouMetricsHolder.metrics().counter("buzhou.budget.warnings", "dimension", dimension);
     }
 
     /** 闸门：beforeModel 检查会话累计硬顶，超限拦截本次模型调用。 */
