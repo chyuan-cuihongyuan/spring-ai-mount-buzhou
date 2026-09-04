@@ -70,6 +70,20 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 337 / T666：工具上下文行李（W3C Baggage——tenant/env 等路由元数据
+     * 经 ToolContext 带外直达工具不进提示词）。bean 恒在（325 事故按钮同纪律：
+     * 运行时 put API 必须预先在场，不依赖 yml）；yml buzhou.tools.baggage.<k>=<v>
+     * 静态播种，越限值启动红（fail-fast 带修法）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage buzhouToolBaggage(
+            BuzhouToolsProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage(
+                properties.baggage());
+    }
+
+    /**
      * spec 318 / T628：会话扰乱预算装配（{@code buzhou.session.disruption-budget.min-available}
      * 配置即装配——K8s PDB 思想：voluntary 排水领额度，保底可用数不穿）。配置了但
      * 无会话索引（计数源）启动即红（fail-fast 带修法）。
@@ -884,7 +898,9 @@ public class BuzhouCoreAutoConfiguration {
                                            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension>
                                                    exportExtensionsProvider,
                                            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor>
-                                                   spawnAdmissionFloorProvider) {
+                                                   spawnAdmissionFloorProvider,
+                                           org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage>
+                                                   toolBaggageProvider) {
         List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
         // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
         if (!hooks.isEmpty()) {
@@ -948,7 +964,9 @@ public class BuzhouCoreAutoConfiguration {
                 new HarnessAssembler().withToolTimeout(properties.core().toolTimeout())
                         // spec 46 §B / T171：流累计上限（buzhou.core.stream-total-timeout；
                         // 属性层已归一：正值生效 / ZERO 显式关闭 / 未配默认 10m）
-                        .withStreamTotalTimeout(properties.core().streamTotalTimeout()), merged,
+                        .withStreamTotalTimeout(properties.core().streamTotalTimeout())
+                        // spec 337 / T666：工具上下文行李（bean 恒在——运行时 API 必须预先在场）
+                        .withToolBaggage(toolBaggageProvider.getIfAvailable()), merged,
                 properties.leaseTtl(), properties.effectiveLeaseRenewInterval(),
                 properties.lifecycle().timeoutPerShutdownPhase(),
                 eventDispatch.isBuffered() ? eventDispatch : null,

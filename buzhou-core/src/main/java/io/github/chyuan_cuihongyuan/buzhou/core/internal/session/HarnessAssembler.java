@@ -47,6 +47,9 @@ public class HarnessAssembler {
     /** spec 46 §B / T171：流累计上限；null = 会话层默认 10m，ZERO = 显式关闭。 */
     private Duration streamTotalTimeout;
 
+    /** spec 337 / T666：工具上下文行李（null = 无行李零注入）。 */
+    private io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage toolBaggage;
+
     /** impl-49：流式设超时（builder 风格）。 */
     public HarnessAssembler withToolTimeout(Duration timeout) {
         if (timeout != null && !timeout.isZero() && !timeout.isNegative()) {
@@ -58,6 +61,13 @@ public class HarnessAssembler {
     /** spec 46 §B / T171：流累计上限（builder 风格；ZERO/负 = 关闭，null = 默认 10m）。 */
     public HarnessAssembler withStreamTotalTimeout(Duration cap) {
         this.streamTotalTimeout = cap;
+        return this;
+    }
+
+    /** spec 337 / T666：工具上下文行李（builder 风格；W3C Baggage 带外传播）。 */
+    public HarnessAssembler withToolBaggage(
+            io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage baggage) {
+        this.toolBaggage = baggage;
         return this;
     }
 
@@ -174,6 +184,10 @@ public class HarnessAssembler {
                 org.springframework.ai.model.tool.DefaultToolCallingManager.builder().build(),
                 executor, DEFAULT_MAX_CONCURRENCY_PER_TURN, toolTimeout,
                 serialGroups, spanContextCarrier, sessionId);
+        // spec 337 / T666：工具上下文行李接入（null = 无行李零注入）
+        if (toolBaggage != null) {
+            toolManager.setToolBaggage(toolBaggage);
+        }
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
                 appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager, env::emit);
         assemblyCtx.wrapToolCallbacks(t -> (ToolCallback) new HookedToolCallback(t, chain, env));

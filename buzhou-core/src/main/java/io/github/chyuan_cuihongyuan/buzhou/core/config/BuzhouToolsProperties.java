@@ -21,11 +21,18 @@ public record BuzhouToolsProperties(
         Integer resultLimitChars,
         Map<String, Integer> resultLimitOverrides,
         Health health,
-        Circuit circuit) {
+        Circuit circuit,
+        Map<String, String> baggage) {
 
-    /** 2 参兼容构造（spec 305 之前调用方；health/circuit = 未配置）。 */
+    /** 2 参兼容构造（spec 305 之前调用方；health/circuit/baggage = 未配置）。 */
     public BuzhouToolsProperties(Integer resultLimitChars, Map<String, Integer> resultLimitOverrides) {
-        this(resultLimitChars, resultLimitOverrides, null, null);
+        this(resultLimitChars, resultLimitOverrides, null, null, null);
+    }
+
+    /** 4 参兼容构造（spec 337 之前调用方；baggage = 未配置）。 */
+    public BuzhouToolsProperties(Integer resultLimitChars, Map<String, Integer> resultLimitOverrides,
+            Health health, Circuit circuit) {
+        this(resultLimitChars, resultLimitOverrides, health, circuit, null);
     }
 
     /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察同款）。 */
@@ -50,6 +57,7 @@ public record BuzhouToolsProperties(
                                 "每项设为 >= 0 的整数或 -1（该工具不限）");
                     });
         }
+        baggage = baggage == null ? java.util.Map.of() : java.util.Map.copyOf(baggage);
     }
 
     /**

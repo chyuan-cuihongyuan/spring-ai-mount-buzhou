@@ -108,6 +108,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.MemoizedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolArgsValidator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCallCoalescer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolErrorFeedback

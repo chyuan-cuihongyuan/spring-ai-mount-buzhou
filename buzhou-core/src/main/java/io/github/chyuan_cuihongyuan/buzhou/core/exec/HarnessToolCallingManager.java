@@ -83,6 +83,15 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** impl-04 / T30：本 Turn 累计校验反馈次数（BoundedToolCallingAdvisor 在 Turn 开始时复位）。 */
     private final java.util.concurrent.atomic.AtomicInteger validationFailures =
             new java.util.concurrent.atomic.AtomicInteger();
+
+    /** spec 337：工具上下文行李（null = 无行李零注入）。 */
+    private volatile ToolBaggage toolBaggage;
+
+    /** spec 337 / T666：接入行李面（HarnessAssembler 装配期调；null = 无行李）。 */
+    public void setToolBaggage(ToolBaggage baggage) {
+        this.toolBaggage = baggage;
+    }
+
     /** impl-05 / T31：待生效的取消请求（BoundedToolCallingAdvisor 在 Turn 开始时清零）。 */
     private final java.util.concurrent.atomic.AtomicReference<
             io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode> pendingCancel =
@@ -291,6 +300,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 CancellationToken.of(() -> pendingCancel.get() != null));
         // spec 308 / T607：Turn Deadline 动态视图入 context（自限工具读实时剩余）
         toolContextMap.put(TURN_DEADLINE_KEY, this.turnDeadline);
+        // spec 337 / T666：工具上下文行李（W3C Baggage——带外路由元数据直达
+        // 工具不进提示词；空行李零注入零开销；注入快照非活引用）
+        if (toolBaggage != null && !toolBaggage.isEmpty()) {
+            toolContextMap.put(ToolBaggage.KEY, toolBaggage.view());
+        }
         ToolContext toolContext = new ToolContext(toolContextMap);
         // spec 122 / impl-271：superstep 原子批前检——任一未过则整批不派发（零锁零许可零副作用）。
         if (atomicBatchValidation) {
