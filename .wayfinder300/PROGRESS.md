@@ -43,10 +43,13 @@
 | 32 | #331 | 331 | T653-T654 | 354 | 后台任务选主（K8s leader election） | 6b782ee |
 | 33 | #332 | 332 | T655-T656 | 355 | 健康三探针分层（K8s probes） | 72a73da |
 | 34 | #333 | 333 | T657-T658 | 356 | 消息静态信封加密（Vault/KMS envelope） | 1fa3b78 |
+| 35 | #334 | 334 | T659-T660 | 357 | 成本归因台账（Kubecost 标签归因） | 902e2ed |
 
 ## 纪律修正（R18 教训）
 - **验证命令一律 `mvn ... > /tmp/rN.log 2>&1; echo "MVN_EXIT=$?"` 后看日志**——
   管道 grep 匹配即退 0 会掩盖 BUILD FAILURE（R18 曾两次带红提交，教训入账）。
+- **R36 修正**：R35 曾误建 `.wayfinder335/`（应为 `.wayfinder334`——目录号=
+  effort 号），已 `git mv` 归位并随 R36 提交；后续轮开工前先对表号段。
 
 ## 备忘（更新）
 - jedismock 实测支持 EVAL——Redis Lua 后端可本地全测（R16 发现）。

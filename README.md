@@ -257,6 +257,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 运维 | 健康三探针分层 | 机制归 liveness（重启能治）/readiness（摘流量能治，缺省归类）/startup（等待热身）三类独立裁决+端点（K8s probes——探针用错轻则无效重则重启风暴） | [spec 332](docs/spec/332-probe-classes.md) |
 | 安全 | 消息静态信封加密 | AES-GCM 应用层加密——密钥不出进程存储只见密文、AAD 绑定标识防剪贴、双钥轮换窗口、旧明文透传（Vault transit/KMS envelope） | [spec 333](docs/spec/333-message-encryption.md) |
 | 成本预算 | 成本归因台账 | 同一笔 microUsd 双维入账（model+虚拟 key）——chargeback 有账面；无 key 诚实桶、万分比 share、JSONL 报表（Kubecost/OpenCost 按标签归因） | [spec 334](docs/spec/334-cost-attribution.md) |
+| 背压 | 错误预算政策·烧穿自动降级 | 预算烧穿→spawn 准入地板抬 HIGH（冻结 NORMAL/LOW 只保关键通道）、连续两轮清明解冻防抖（Google SRE error budget policy——从「知道」到「行动」） | [spec 335](docs/spec/335-error-budget-freeze.md) |
 
 ## 技术基线
 

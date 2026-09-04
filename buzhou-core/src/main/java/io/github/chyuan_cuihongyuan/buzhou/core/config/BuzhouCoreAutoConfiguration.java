@@ -51,7 +51,7 @@ import java.util.List;
         ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class,
         ToolKillSwitchProperties.class, RepetitionProperties.class,
         ToolLoopProperties.class, BuzhouProbeProperties.class,
-        BuzhouMessageEncryptionProperties.class})
+        BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -135,6 +135,41 @@ public class BuzhouCoreAutoConfiguration {
     public io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth buzhouErrorBudgetHealth(
             io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget budget) {
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth(budget);
+    }
+
+    /**
+     * spec 335 / T662：错误预算政策（Google SRE error budget policy——烧穿自动
+     * 冻结低优先级 spawn）。{@code buzhou.backpressure.error-budget-freeze.enabled=true}
+     * 才装配；无 ErrorBudget 喂数（未配 buzhou.error-budget.slo）启动红——无观察面
+     * 的政策是盲动。地板槽恒供（政策驱动、gate 读取——解耦装配顺序）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.backpressure.error-budget-freeze",
+            name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor
+    buzhouSpawnAdmissionFloor() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.backpressure.error-budget-freeze",
+            name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
+    buzhouErrorBudgetPolicy(
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget> budgetProvider,
+            io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor floor,
+            ErrorBudgetFreezeProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget budget =
+                budgetProvider.getIfAvailable();
+        if (budget == null) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.backpressure.error-budget-freeze.enabled=true 但无 ErrorBudget bean"
+                            + "——先配 buzhou.error-budget.slo（无观察面的政策是盲动）",
+                    "buzhou.error-budget.slo=99.9 等先行配置");
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy(
+                budget, floor, properties.interval());
     }
 
     /**
@@ -847,7 +882,9 @@ public class BuzhouCoreAutoConfiguration {
                                            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore>
                                                    indexStoreProvider,
                                            org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension>
-                                                   exportExtensionsProvider) {
+                                                   exportExtensionsProvider,
+                                           org.springframework.beans.factory.ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor>
+                                                   spawnAdmissionFloorProvider) {
         List<RuntimeConfig> all = new ArrayList<>(moduleConfigs);
         // 用户自定义扩展 bean（按组件类型包成单维度 RC 后并入 merge；模块产出已在 moduleConfigs 内）
         if (!hooks.isEmpty()) {
@@ -897,13 +934,15 @@ public class BuzhouCoreAutoConfiguration {
         // impl-45 / spec 14 §A：spawn 容量闸（buzhou.backpressure.max-concurrent-sessions 配置且
         // 机制启用时构建；未配置 / 关闭 = null 不限，既有行为不变）
         BuzhouBackpressureProperties bp = backpressureProperties;
+        io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor freezeFloor =
+                spawnAdmissionFloorProvider.getIfAvailable(); // spec 335：政策驱动、gate 读取
         io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate spawnGate =
                 bp != null && bp.enabled() && bp.maxConcurrentSessions() != null
                         && bp.maxConcurrentSessions() > 0
                         ? new io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate(
                                 bp.maxConcurrentSessions(), bp.effectiveSpawnQueueTimeout(),
                                 bp.effectiveSpawnOverloadPolicy(), event -> {
-                                })
+                                }, freezeFloor)
                         : null;
         DefaultAgentRuntime runtime = new DefaultAgentRuntime(chatModel, stores,
                 new HarnessAssembler().withToolTimeout(properties.core().toolTimeout())

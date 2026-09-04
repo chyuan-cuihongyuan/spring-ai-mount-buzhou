@@ -1,9 +1,11 @@
 # api-surface 黄金快照（impl-179 生成；模块|全限定名，字典序）
 # 更新流程：regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnPriority
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionJsonl
@@ -54,6 +56,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDoctor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.DryRunProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ErrorBudgetFreezeProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ErrorBudgetProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ReloadableConfig
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.RepetitionProperties
