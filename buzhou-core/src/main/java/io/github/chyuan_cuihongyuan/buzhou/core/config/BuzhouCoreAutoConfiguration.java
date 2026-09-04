@@ -50,8 +50,24 @@ import java.util.List;
         SessionDisruptionBudgetProperties.class, BulkheadScalingProperties.class,
         ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class,
         ToolKillSwitchProperties.class, RepetitionProperties.class,
-        ToolLoopProperties.class, BuzhouProbeProperties.class})
+        ToolLoopProperties.class, BuzhouProbeProperties.class,
+        BuzhouMessageEncryptionProperties.class})
 public class BuzhouCoreAutoConfiguration {
+
+    /**
+     * spec 333 / T658：消息静态信封加密（{@code buzhou.security.message-encryption.master-key}
+     * 声明即启用——Vault transit / KMS envelope 思想：密钥不出进程、存储只见
+     * 密文、AAD 绑定标识防剪贴、previous-master-key 双钥轮换窗口）。BPP 捕获
+     * BuzhouStores 重建（仅换 messageStore 槽）；未配 master-key = 零行为变化。
+     * 静态声明：BPP 须早于普通 bean 就绪（不被本配置类代理依赖拖晚）。
+     */
+    @org.springframework.context.annotation.Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.security.message-encryption", name = "master-key")
+    public static BuzhouMessageEncryptionPostProcessor buzhouMessageEncryptionPostProcessor(
+            org.springframework.core.env.Environment environment) {
+        return new BuzhouMessageEncryptionPostProcessor(environment);
+    }
 
     /**
      * spec 318 / T628：会话扰乱预算装配（{@code buzhou.session.disruption-budget.min-available}

@@ -1517,6 +1517,8 @@
 - 流量/共享族：`CanaryToolCallback`（324——Istio/Flagger canary）；
   `LaneStateBackend` + `BackendLanePermit`（core.exec，316 共享泳道 SPI）；
   `VirtualKeyBudgetBackend`（core.spi，315 共享配额 SPI）
+- 安全：`EnvelopeCipher` + `EncryptingMessageStore` + `BuzhouMessageEncryptionProperties`
+  （333——Vault transit/KMS envelope：消息静态信封加密，AAD 绑定+双钥轮换）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
   `ToolHealth`（305 工具健康）
 

@@ -255,6 +255,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 运维 | 告警静默窗与抑制规则 | 维护窗/事故一键静默（机制匹配+惰性过期）、根因 firing 遮蔽衍生通知（吞通知不吞事实+留痕计数——Alertmanager silence/inhibit） | [spec 330](docs/spec/330-alert-silence-inhibit.md) |
 | 运维 | 后台任务选主 | 家务族（保留清理）跨实例单执行者：TTL 租约+续期+单调纪元围栏+停机让位（K8s leader election/etcd lease——失联宁可少做不可抢做） | [spec 331](docs/spec/331-leader-election.md) |
 | 运维 | 健康三探针分层 | 机制归 liveness（重启能治）/readiness（摘流量能治，缺省归类）/startup（等待热身）三类独立裁决+端点（K8s probes——探针用错轻则无效重则重启风暴） | [spec 332](docs/spec/332-probe-classes.md) |
+| 安全 | 消息静态信封加密 | AES-GCM 应用层加密——密钥不出进程存储只见密文、AAD 绑定标识防剪贴、双钥轮换窗口、旧明文透传（Vault transit/KMS envelope） | [spec 333](docs/spec/333-message-encryption.md) |
 
 ## 技术基线
 
