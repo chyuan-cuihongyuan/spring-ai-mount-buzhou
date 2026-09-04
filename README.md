@@ -269,6 +269,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 观测治理 | 会话面板端点 | /actuator/buzhou-sessions 活跃会话计数（索引分页 50k 封顶）+准入地板多源（谁抬着）+cordon 态（面板三部曲之三） | [spec 346](docs/spec/346-sessions-dashboard.md) |
 | 运维 | 告警注解随发 | 规则声明 runbook-url/summary 等注解随触发/恢复通知与面板直达值班端（Alertmanager annotations——收到即可行动） | [spec 347](docs/spec/347-alert-annotations.md) |
 | 背压 | 重试预算健康面 | 恒 UP（拦截=保护生效非故障）+余量/已取/被拦快照入聚合健康面（Finagle 预算水位——背压族观测收口：denied 增长=重试风暴被挡的可见信号） | [spec 348](docs/spec/348-retry-budget-health.md) |
+| 工程治理 | C 会话收官终验 | 全 reactor 串行终验+快照/覆盖门复验+台账归档（50/50——R30 半程收口同型） | [spec 349](docs/spec/349-session-closeout.md) |
 | 成本预算 | 成本归因台账 | 同一笔 microUsd 双维入账（model+虚拟 key）——chargeback 有账面；无 key 诚实桶、万分比 share、JSONL 报表（Kubecost/OpenCost 按标签归因） | [spec 334](docs/spec/334-cost-attribution.md) |
 | 背压 | 错误预算政策·烧穿自动降级 | 预算烧穿→spawn 准入地板抬 HIGH（冻结 NORMAL/LOW 只保关键通道）、连续两轮清明解冻防抖（Google SRE error budget policy——从「知道」到「行动」） | [spec 335](docs/spec/335-error-budget-freeze.md) |
 

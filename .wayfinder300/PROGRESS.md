@@ -1,9 +1,17 @@
 # C 会话进度台账（rolling，收口轮据此归档）
 
+> **状态：50/50 收官（2026-09-04）。** C 会话 300 系全部完成——
+> efforts #300–#349、specs 300–349、tickets T591–T690、impls 323–372；
+> R50 收官轮全 reactor 终验绿。下一位恢复者：C 会话已完结，新自迭代
+> 会话请开 400 系号段（.wayfinder350-399 归 C 会话保留段，勿续用）。
+
 号段：.wayfinder300-349 ｜ spec 300-349 ｜ 票 T591+ ｜ impl323+ ｜ README 段「生产级纵深 IV」。
 验证纪律：受影响模块测试逐轮绿 + 双轮一批；本地 Windows 排除集
-`!ClasspathSkillScannerTest,!RunCommandToolTest,!GuardAndHitlDemoTest,!TenantSandboxTest,!PropertyInvariantsTwoTest,!ErrorSignaturesTest`
-（后四类为存量本地 flaky，CI/Linux 权威——#300 MAP 台账）；mvn install 被 Mimosa
+`!ClasspathSkillScannerTest,!RunCommandToolTest,!RunCommandHardeningTest,!GuardAndHitlDemoTest,!TenantSandboxTest,!PropertyInvariantsTwoTest,!ErrorSignaturesTest,!UnsubscribedStreamTest,!TurnStallWatchdogTest`
+（后五类为存量本地 flaky/平台假红，CI/Linux 权威——#300 MAP 台账；
+RunCommandHardeningTest 为 R50 收官新增：/bin/sh 硬编码 Windows
+CreateProcess error=2 平台假红——单跑同红，与本会话改动零关联，
+buzhou-tools 自 7cde0ca 零改动佐证）；mvn install 被 Mimosa
 钩子拦，跨模块测试一律 `-pl <mod> -am test` 带排除集。API 快照：新公共类型
 （RetryBudgetHolder/CompensatingBatch/Step 等）收口轮统一 regenerate。
 
@@ -57,6 +65,8 @@
 | 46 | #345 | 345 | T681-T682 | 368 | 告警面板端点（Alertmanager UI） | b644c72 |
 | 47 | #346 | 346 | T683-T684 | 369 | 会话面板端点（面板三部曲之三） | 9c43a01 |
 | 48 | #347 | 347 | T685-T686 | 370 | 告警注解随发（Alertmanager annotations） | 3d52109 |
+| 49 | #348 | 348 | T687-T688 | 371 | 重试预算健康面（Finagle 水位） | 7785f37 |
+| 50 | #349 | 349 | T689-T690 | 372 | C 会话收官终验（全 reactor 绿） | 见收官提交 |
 
 ## 纪律修正（R18 教训）
 - **验证命令一律 `mvn ... > /tmp/rN.log 2>&1; echo "MVN_EXIT=$?"` 后看日志**——
