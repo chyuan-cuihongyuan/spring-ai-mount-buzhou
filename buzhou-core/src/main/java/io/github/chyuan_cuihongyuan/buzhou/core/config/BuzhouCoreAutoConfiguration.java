@@ -222,7 +222,9 @@ public class BuzhouCoreAutoConfiguration {
     public io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine buzhouAlertRuleEngine(
             BuzhouAlertProperties properties,
             org.springframework.beans.factory.ObjectProvider<
-                    io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> healthBeans) {
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> healthBeans,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate> gateProvider) {
         java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine.AlertRule> rules =
                 properties.rules().stream()
                         .map(r -> new io.github.chyuan_cuihongyuan.buzhou.core.health
@@ -235,7 +237,59 @@ public class BuzhouCoreAutoConfiguration {
                     healthBeans.orderedStream()
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
-                }, properties.interval());
+                }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 330 / T652：告警通知策略门装配（{@code buzhou.alert.silences[]} 或
+     * {@code buzhou.alert.inhibit-rules[]} 声明即装配；两键全空 = 不建门，引擎
+     * 通知路径零变化）。yml 声明窗的 until = 装配时刻 + duration；机制引用在
+     * 引擎 start() 期统一校验（与规则同口径 fail-fast）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.AlertGatePresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate buzhouAlertGate(
+            BuzhouAlertProperties properties) {
+        java.time.Instant now = java.time.Instant.now();
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate.Silence> silences =
+                new java.util.ArrayList<>();
+        java.util.List<BuzhouAlertProperties.SilenceSpec> specs = properties.silences();
+        for (int i = 0; i < specs.size(); i++) {
+            BuzhouAlertProperties.SilenceSpec spec = specs.get(i);
+            silences.add(io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate.ymlSilence(
+                    "yml-" + (i + 1), new java.util.LinkedHashSet<>(spec.mechanisms()),
+                    spec.duration(), spec.comment(), spec.createdBy(), now));
+        }
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate.InhibitRule> inhibits =
+                properties.inhibitRules().stream()
+                        .map(r -> new io.github.chyuan_cuihongyuan.buzhou.core.health
+                                .AlertGate.InhibitRule(r.sourceMechanism(), r.targetMechanism()))
+                        .toList();
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate(inhibits, silences, null);
+    }
+
+    /** spec 330：silences 或 inhibit-rules 非空才建门（Binder 预绑判定）。 */
+    static final class AlertGatePresentCondition implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                org.springframework.boot.context.properties.bind.Binder binder =
+                        org.springframework.boot.context.properties.bind.Binder.get(context.getEnvironment());
+                boolean silences = !binder.bind("buzhou.alert.silences",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .listOf(BuzhouAlertProperties.SilenceSpec.class))
+                        .orElse(java.util.List.of()).isEmpty();
+                boolean inhibits = !binder.bind("buzhou.alert.inhibit-rules",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .listOf(BuzhouAlertProperties.InhibitSpec.class))
+                        .orElse(java.util.List.of()).isEmpty();
+                return silences || inhibits;
+            } catch (RuntimeException e) {
+                return false; // 绑定失败交由属性校验层报错
+            }
+        }
     }
 
     /** spec 312：rules 非空才装配（Binder 预绑判定——列表条件注解表达不了）。 */

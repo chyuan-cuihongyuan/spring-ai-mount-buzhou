@@ -252,6 +252,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 失控防护 | 工具循环断路器 | 同工具同参数连续调用达窗即拦、持续干预直到换参/换工具、三选一出路回填（与熔断正交——按调用形态断路） | [spec 327](docs/spec/327-tool-loop-breaker.md) |
 | 观测治理 | 干跑计划 JSONL 导出 | 一行一 PlannedCall、args 字符串快照人审口径、dropped 截断尾行（导出族新员——计划单落盘流转） | [spec 328](docs/spec/328-dry-run-plan-export.md) |
 | 工程治理 | API 快照收口 | 快照机跨平台修复（Windows 首次真比对/再生）+38 型全量入档 api-surface（半程防线补齐） | [spec 329](docs/spec/329-api-snapshot-closure.md) |
+| 运维 | 告警静默窗与抑制规则 | 维护窗/事故一键静默（机制匹配+惰性过期）、根因 firing 遮蔽衍生通知（吞通知不吞事实+留痕计数——Alertmanager silence/inhibit） | [spec 330](docs/spec/330-alert-silence-inhibit.md) |
 
 ## 技术基线
 

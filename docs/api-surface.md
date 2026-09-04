@@ -1504,6 +1504,7 @@
   `BulkheadScalingAdvisor` + `BulkheadScalingProperties`（319 伸缩建议——K8s HPA）；
   `BuzhouConfigRefreshEvent` + `BulkheadHotReload`（320 容量热调整——Spring Cloud rebind）
 - 告警/观测：`AlertRuleEngine` + `BuzhouAlertProperties`（312——Grafana ruler）；
+  `AlertGate`（330——Alertmanager 静默窗+抑制规则，嵌套 `Silence`/`InhibitRule`/`Silenced`）；
   `ErrorBudget` + `ErrorBudgetHook` + `ErrorBudgetHealth` + `ErrorBudgetProperties`（321——Google SRE burn）；
   `ExportBundle`（317——OCI artifact 合流打包）
 - 演练/事故：`ChaosMonkeyHook` + `ChaosProperties`（322——Chaos Monkey）；

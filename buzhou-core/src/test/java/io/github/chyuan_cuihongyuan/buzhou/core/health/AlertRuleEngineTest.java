@@ -114,4 +114,45 @@ class AlertRuleEngineTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ghost");
     }
+
+    /** spec 330 / impl-353：引擎挂门后吞的只是通知——flap/恢复状态机照常。 */
+    @Test
+    void gateSwallowsNotification_stateMachineUnaffected() {
+        StubHealth memory = new StubHealth();
+        AlertGate gate = new AlertGate(List.of(), List.of(AlertGate.ymlSilence(
+                "yml-1", java.util.Set.of("memory"), Duration.ofMinutes(10), "", "", T0)),
+                () -> T0);
+        AlertRuleEngine engine = new AlertRuleEngine(
+                List.of(new AlertRuleEngine.AlertRule("memory-down", "memory", null)),
+                () -> sourceOf(memory), Duration.ofSeconds(30), gate);
+        List<AlertRuleEngine.AlertFiring> fired = new CopyOnWriteArrayList<>();
+        engine.onAlert(fired::add);
+        engine.validateMechanisms();
+
+        memory.status = BuzhouHealth.Status.DOWN;
+        engine.evaluate(T0);
+        assertThat(fired).isEmpty(); // 触发被静默吞下
+        memory.status = BuzhouHealth.Status.UP;
+        engine.evaluate(T0.plusSeconds(30));
+        assertThat(fired).isEmpty(); // 恢复同吞
+
+        memory.status = BuzhouHealth.Status.DOWN; // 状态机照常——再 DOWN 再触发仍走门
+        engine.evaluate(T0.plusSeconds(60));
+        assertThat(fired).isEmpty();
+        assertThat(gate.firingMechanisms()).containsExactly("memory"); // 事实在门里
+    }
+
+    /** spec 330：无门构造与旧三参构造等价（未配置零行为变化）。 */
+    @Test
+    void engineWithoutGateBehavesAsBefore() {
+        StubHealth memory = new StubHealth();
+        AlertRuleEngine engine = new AlertRuleEngine(
+                List.of(new AlertRuleEngine.AlertRule("memory-down", "memory", null)),
+                () -> sourceOf(memory), Duration.ofSeconds(30), null);
+        List<AlertRuleEngine.AlertFiring> fired = new CopyOnWriteArrayList<>();
+        engine.onAlert(fired::add);
+        memory.status = BuzhouHealth.Status.DOWN;
+        engine.evaluate(T0);
+        assertThat(fired).hasSize(1); // 通知直通
+    }
 }

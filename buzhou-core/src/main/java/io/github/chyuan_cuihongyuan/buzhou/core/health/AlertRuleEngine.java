@@ -14,6 +14,9 @@ import java.util.function.Supplier;
  * 数据源即健康面、通道即回调）：周期评估机制健康，DOWN 持续满 {@code for}
  * 窗 → FIRING；恢复 UP → RECOVERED（双向通知宿主回调 + 计数 + WARN）。
  * flap 被 for 窗吸收；UNKNOWN ≠ DOWN（未启用机制不告警）。
+ *
+ * <p>spec 330 / T652：通知路径可挂 {@link AlertGate}（静默窗 + 抑制规则）——
+ * 未挂时通知行为与 312 完全一致；挂上时被吞的只是通知，状态机照常推进。
  */
 public final class AlertRuleEngine implements org.springframework.context.SmartLifecycle {
 
@@ -39,6 +42,7 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
     private final List<AlertRule> rules;
     private final Supplier<Map<String, BuzhouHealth>> healthSource;
     private final Duration interval;
+    private final AlertGate gate; // 可选——null = 无策略门（312 原语义）
     private final List<Consumer<AlertFiring>> listeners = new CopyOnWriteArrayList<>();
     private final Map<String, Instant> downSince = new ConcurrentHashMap<>();
     private final Map<String, Boolean> firing = new ConcurrentHashMap<>();
@@ -52,6 +56,12 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
 
     public AlertRuleEngine(List<AlertRule> rules, Supplier<Map<String, BuzhouHealth>> healthSource,
             Duration interval) {
+        this(rules, healthSource, interval, null);
+    }
+
+    /** spec 330：带通知策略门的构造（gate 为 null 时与上方构造完全一致）。 */
+    public AlertRuleEngine(List<AlertRule> rules, Supplier<Map<String, BuzhouHealth>> healthSource,
+            Duration interval, AlertGate gate) {
         if (rules == null || rules.isEmpty()) {
             throw new IllegalArgumentException("rules 非空——无规则不建引擎");
         }
@@ -61,6 +71,7 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
         this.rules = List.copyOf(rules);
         this.healthSource = healthSource;
         this.interval = interval;
+        this.gate = gate;
     }
 
     /** 通知通道（分页/webhook 归宿主）。 */
@@ -116,6 +127,9 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
     }
 
     private void notify(AlertFiring firing0) {
+        if (gate != null && !gate.observe(firing0)) {
+            return; // 被静默/抑制吞下（门已留痕）——状态机照常，仅不通知
+        }
         System.getLogger(AlertRuleEngine.class.getName()).log(
                 System.Logger.Level.WARNING,
                 "健康告警{0}：rule={1} mechanism={2} details={3}",
@@ -145,6 +159,9 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
     public void start() {
         if (running.compareAndSet(false, true)) {
             validateMechanisms(); // 启动期 fail-fast：yml 引用错机制该红
+            if (gate != null) {
+                gate.validateMechanisms(healthSource.get()); // 静默/抑制引用同口径校验
+            }
             scheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(
                     io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
                             .platform("buzhou-alert"));

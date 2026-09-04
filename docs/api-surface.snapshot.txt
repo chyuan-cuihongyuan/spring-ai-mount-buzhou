@@ -116,6 +116,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BulkheadHealth
