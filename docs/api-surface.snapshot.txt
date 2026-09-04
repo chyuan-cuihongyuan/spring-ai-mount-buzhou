@@ -147,6 +147,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ContextWatermarkHook

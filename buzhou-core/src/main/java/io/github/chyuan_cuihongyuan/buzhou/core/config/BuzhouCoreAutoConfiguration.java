@@ -168,6 +168,13 @@ public class BuzhouCoreAutoConfiguration {
         return new io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor();
     }
 
+    /** spec 348 / T688：重试预算健康面（恒 UP——拦截是保护生效；holder 空自报 UNKNOWN）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth buzhouRetryBudgetHealth() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth();
+    }
+
     /**
      * spec 342 / T676：维护窗 cordon（K8s cordon——窗内不接新会话、在途排空）。
      * bean 恒在（325 纪律——运行时 cordon/uncordon 按钮必须预先在场）。

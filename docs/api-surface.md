@@ -1531,7 +1531,8 @@
 - 背压：`SpawnAdmissionFloor` + `ErrorBudgetPolicy` + `ErrorBudgetFreezeProperties`
   （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）；
   `MaintenanceCordon` + `BuzhouMaintenanceProperties`（342——K8s cordon：
-  维护窗/运行时按钮 cordon，地板多源合成与冻结正交）
+  维护窗/运行时按钮 cordon，地板多源合成与冻结正交）；
+  `RetryBudgetHealth`（348——Finagle 预算水位：恒 UP+余量/被拦快照，背压族观测收口）
 - 执行脊柱：`ToolBaggage`（337——W3C Baggage/OTel：工具上下文行李，
   yml 播种+运行时 API+有界封顶）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
