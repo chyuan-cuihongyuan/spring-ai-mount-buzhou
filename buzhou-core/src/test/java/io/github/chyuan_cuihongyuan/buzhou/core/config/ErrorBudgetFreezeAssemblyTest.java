@@ -33,11 +33,12 @@ class ErrorBudgetFreezeAssemblyTest {
     }
 
     @Test
-    void disabledByDefault_assemblesNothing() {
+    void disabledByDefault_policyAssemblesNothing_floorAlwaysPresent() {
+        // spec 342 起：地板槽恒供（cordon 与冻结共用多源槽）——policy 仍条件装配
         runner.withPropertyValues("buzhou.error-budget.slo=99.9")
                 .run(context -> {
                     assertThat(context).hasNotFailed();
-                    assertThat(context).doesNotHaveBean(SpawnAdmissionFloor.class);
+                    assertThat(context).hasSingleBean(SpawnAdmissionFloor.class);
                     assertThat(context).doesNotHaveBean(ErrorBudgetPolicy.class);
                 });
     }

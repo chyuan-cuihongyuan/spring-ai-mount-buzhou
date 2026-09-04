@@ -51,7 +51,8 @@ import java.util.List;
         ErrorBudgetProperties.class, ChaosProperties.class, DryRunProperties.class,
         ToolKillSwitchProperties.class, RepetitionProperties.class,
         ToolLoopProperties.class, BuzhouProbeProperties.class,
-        BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class})
+        BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
+        BuzhouMaintenanceProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -157,12 +158,29 @@ public class BuzhouCoreAutoConfiguration {
      * 才装配；无 ErrorBudget 喂数（未配 buzhou.error-budget.slo）启动红——无观察面
      * 的政策是盲动。地板槽恒供（政策驱动、gate 读取——解耦装配顺序）。
      */
+    /**
+     * spec 342 / T676：准入地板槽恒供（335 冻结与 342 cordon 共用——多源合成
+     * 正交；单 bean 免歧义）。
+     */
     @Bean
-    @ConditionalOnProperty(prefix = "buzhou.backpressure.error-budget-freeze",
-            name = "enabled", havingValue = "true")
     public io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor
     buzhouSpawnAdmissionFloor() {
         return new io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor();
+    }
+
+    /**
+     * spec 342 / T676：维护窗 cordon（K8s cordon——窗内不接新会话、在途排空）。
+     * bean 恒在（325 纪律——运行时 cordon/uncordon 按钮必须预先在场）。
+     * 过期窗启动 no-op。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
+    buzhouMaintenanceCordon(
+            io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor floor,
+            BuzhouMaintenanceProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon(
+                floor, properties.from(), properties.until(), properties.reason(),
+                properties.pollInterval(), null);
     }
 
     @Bean

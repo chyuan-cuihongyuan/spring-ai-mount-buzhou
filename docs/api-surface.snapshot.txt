@@ -2,6 +2,7 @@
 # 更新流程：regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder
@@ -43,6 +44,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationE
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMessageEncryptionProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouProbeProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRetentionProperties

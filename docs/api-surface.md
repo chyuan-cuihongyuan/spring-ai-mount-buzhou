@@ -1521,7 +1521,9 @@
   （333——Vault transit/KMS envelope：消息静态信封加密，AAD 绑定+双钥轮换）；
   `EncryptingSummaryStore`（336——同通道扩散摘要槽，state 槽 CAS 比值面为诚实边界）
 - 背压：`SpawnAdmissionFloor` + `ErrorBudgetPolicy` + `ErrorBudgetFreezeProperties`
-  （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）
+  （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）；
+  `MaintenanceCordon` + `BuzhouMaintenanceProperties`（342——K8s cordon：
+  维护窗/运行时按钮 cordon，地板多源合成与冻结正交）
 - 执行脊柱：`ToolBaggage`（337——W3C Baggage/OTel：工具上下文行李，
   yml 播种+运行时 API+有界封顶）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
