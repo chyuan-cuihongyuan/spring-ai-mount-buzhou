@@ -1508,6 +1508,7 @@
   `AlertGate`（330——Alertmanager 静默窗+抑制规则，嵌套 `Silence`/`InhibitRule`/`Silenced`）；
   `BuzhouProbes` + `BuzhouProbesEndpoint` + `BuzhouProbeProperties`（332——K8s 三探针分层，嵌套 `ProbeClass`/`Verdict`）；
   `BuzhouConfigSnapshotEndpoint`（343——生效配置自描述+密钥掩码，actuator configprops 思想）；
+  `BuzhouAlertsEndpoint`（345——告警面板：312 firing 视图+330 静默/抑制聚合，Alertmanager UI 思想）；
   `ErrorBudget` + `ErrorBudgetHook` + `ErrorBudgetHealth` + `ErrorBudgetProperties`（321——Google SRE burn）；
   `ExportBundle`（317——OCI artifact 合流打包）
 - 演练/事故：`ChaosMonkeyHook` + `ChaosProperties`（322——Chaos Monkey）；

@@ -265,6 +265,7 @@ C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-i
 | 运维 | 维护窗口 cordon | 地板多源合成（与 335 冻结正交不互踩）+ yml 声明窗自动 cordon/解除 + 运行时按钮（K8s cordon——窗内不接新会话在途排空，过期窗不追溯） | [spec 342](docs/spec/342-maintenance-cordon.md) |
 | 工程治理 | 生效配置自描述端点 | /actuator/buzhou-config 一屏全部 buzhou.* 生效值（含 env 覆盖）、密钥类键宽匹配掩码宁掩勿漏（actuator configprops+sanitization） | [spec 343](docs/spec/343-config-endpoint.md) |
 | 护栏 | 审计链完整性巡检 | 可读≠完整——链哈希/签名断链即 DOWN 定位首断点、超窗 UNKNOWN 带修法、自动入 312 告警/332 探针（CT log/区块链全节点验证——事实源失守不被绿掩盖） | [spec 344](docs/spec/344-audit-chain-health.md) |
+| 观测治理 | 告警面板端点 | /actuator/buzhou-alerts 一屏 firing 规则+生效静默窗+抑制视图（312/330 状态聚合，缺席段诚实空——Alertmanager UI） | [spec 345](docs/spec/345-alerts-dashboard.md) |
 | 成本预算 | 成本归因台账 | 同一笔 microUsd 双维入账（model+虚拟 key）——chargeback 有账面；无 key 诚实桶、万分比 share、JSONL 报表（Kubecost/OpenCost 按标签归因） | [spec 334](docs/spec/334-cost-attribution.md) |
 | 背压 | 错误预算政策·烧穿自动降级 | 预算烧穿→spawn 准入地板抬 HIGH（冻结 NORMAL/LOW 只保关键通道）、连续两轮清明解冻防抖（Google SRE error budget policy——从「知道」到「行动」） | [spec 335](docs/spec/335-error-budget-freeze.md) |
 

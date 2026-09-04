@@ -134,6 +134,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BulkheadHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouAlertsEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouConfigSnapshotEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint

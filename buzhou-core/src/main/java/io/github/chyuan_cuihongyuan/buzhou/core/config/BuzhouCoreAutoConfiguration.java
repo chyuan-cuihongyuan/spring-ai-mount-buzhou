@@ -858,6 +858,16 @@ public class BuzhouCoreAutoConfiguration {
                     environment);
         }
 
+        /** spec 345 / T682：告警面板端点（312 引擎 + 330 门状态聚合；缺席段空）。 */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouAlertsEndpoint buzhouAlertsEndpoint(
+                ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine> engine,
+                ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate> gate) {
+            return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouAlertsEndpoint(
+                    engine.getIfAvailable(), gate.getIfAvailable());
+        }
+
         /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */
         @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

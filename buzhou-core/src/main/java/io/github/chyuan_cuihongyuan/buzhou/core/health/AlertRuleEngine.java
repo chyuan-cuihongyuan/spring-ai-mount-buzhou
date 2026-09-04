@@ -153,6 +153,13 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
         return rules;
     }
 
+    /** spec 345 / T681：firing 视图（规则名 → 是否 firing——只读副本，面板端点用）。 */
+    public Map<String, Boolean> firingView() {
+        Map<String, Boolean> view = new java.util.LinkedHashMap<>();
+        firing.forEach(view::put);
+        return view;
+    }
+
     // ---- SmartLifecycle：start 期校验（晚于全部 bean 创建）+ 周期评估 ----
 
     @Override
