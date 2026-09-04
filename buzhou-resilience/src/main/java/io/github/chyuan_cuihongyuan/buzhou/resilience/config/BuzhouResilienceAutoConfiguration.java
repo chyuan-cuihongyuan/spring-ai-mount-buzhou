@@ -28,12 +28,56 @@ import java.util.Map;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.resilience", name = "enabled", matchIfMissing = true)
-@EnableConfigurationProperties(ResilienceProperties.class)
+@EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean
     public ResilienceStats resilienceStats() {
         return new ResilienceStats();
+    }
+
+    /**
+     * spec 339 / T670：多模型加权路由（LiteLLM Router 借鉴——199 平滑加权
+     * 原语装配收尾）。{@code buzhou.routing.weights.<beanName>} ≥2 项才装配
+     * @Primary 路由器（按名取 ChatModel bean，缺名启动红带修法——与 fallback
+     * 同 fail-fast 口径）；未配/单项 = 零变化（条件不满足不建 bean）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Primary
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.RoutingConfiguredCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
+    buzhouWeightedChatModel(BuzhouRoutingProperties routing, Map<String, ChatModel> chatModels) {
+        java.util.Map<String, ChatModel> candidates = new java.util.LinkedHashMap<>();
+        routing.weights().keySet().forEach(name -> {
+            ChatModel model = chatModels.get(name);
+            if (model == null) {
+                throw new BuzhouConfigurationException(
+                        "buzhou.routing.weights 引用 ChatModel bean「" + name + "」不存在",
+                        "可用 ChatModel bean：" + chatModels.keySet());
+            }
+            candidates.put(name, model);
+        });
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel(
+                candidates, routing.weights());
+    }
+
+    /** spec 339：weights ≥2 路才建路由器（Binder 预绑判定——未配零变化）。 */
+    static final class RoutingConfiguredCondition implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.routing.weights",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Integer.class))
+                        .orElse(java.util.Map.of()).size() >= 2;
+            } catch (RuntimeException e) {
+                return false; // 绑定失败交由属性校验层报错
+            }
+        }
     }
 
     @Bean

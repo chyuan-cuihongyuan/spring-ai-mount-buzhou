@@ -481,6 +481,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCi
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouResilienceAutoConfiguration
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouResilienceHealthAutoConfiguration
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouRoutingProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceStats
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain
@@ -496,6 +497,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMem
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.DefaultSkillRegistry

@@ -1536,6 +1536,8 @@
 **buzhou-resilience**
 
 - `ShadowComparisonJsonl`（309——W&B 影子对照明细）
+- `WeightedChatModel` + `BuzhouRoutingProperties`（339——LiteLLM Router：
+  多模型平滑加权路由，199 原语装配收尾）
 
 **buzhou-store-redis**
 
