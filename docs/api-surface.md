@@ -1521,6 +1521,11 @@
 - 安全：`EnvelopeCipher` + `EncryptingMessageStore` + `BuzhouMessageEncryptionProperties`
   （333——Vault transit/KMS envelope：消息静态信封加密，AAD 绑定+双钥轮换）；
   `EncryptingSummaryStore`（336——同通道扩散摘要槽，state 槽 CAS 比值面为诚实边界）
+
+**buzhou-guard**
+
+- `AuditChainHealth`（344——CT log/链全节点验证：审计链完整性巡检，
+  断链 DOWN 定位首断点、超窗 UNKNOWN 带修法）
 - 背压：`SpawnAdmissionFloor` + `ErrorBudgetPolicy` + `ErrorBudgetFreezeProperties`
   （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）；
   `MaintenanceCordon` + `BuzhouMaintenanceProperties`（342——K8s cordon：
