@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 健康告警装配属性（spec 312 / T616 + spec 330 / T652，前缀 {@code buzhou.alert}）。
@@ -32,10 +33,22 @@ public record BuzhouAlertProperties(
         inhibitRules = inhibitRules == null ? List.of() : List.copyOf(inhibitRules);
     }
 
-    /** 规则声明形态（for 为 Java 关键字——yml 键 {@code for} 经 @Name 绑到 forDuration）。 */
+    /**
+     * 规则声明形态（for 为 Java 关键字——yml 键 {@code for} 经 @Name 绑到 forDuration）。
+     * spec 347：annotations 注解随发（runbook-url/summary 等——键语义归宿主）。
+     */
     public record RuleSpec(String name, String mechanism,
-            @org.springframework.boot.context.properties.bind.Name("for") Duration forDuration) {
+            @org.springframework.boot.context.properties.bind.Name("for") Duration forDuration,
+            Map<String, String> annotations) {
 
+        /** 3 参兼容构造（spec 347 之前调用方；注解 = 空 map）。 */
+        public RuleSpec(String name, String mechanism,
+                @org.springframework.boot.context.properties.bind.Name("for") Duration forDuration) {
+            this(name, mechanism, forDuration, Map.of());
+        }
+
+        /** 多构造器场景：显式指定规范构造器为绑定构造器。 */
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public RuleSpec {
             if (name == null || name.isBlank() || mechanism == null || mechanism.isBlank()) {
                 throw new BuzhouConfigurationException(
@@ -43,6 +56,7 @@ public record BuzhouAlertProperties(
                         "两键必填——name 规则名、mechanism 健康面机制名");
             }
             forDuration = forDuration == null ? Duration.ZERO : forDuration;
+            annotations = annotations == null ? Map.of() : Map.copyOf(annotations);
         }
     }
 

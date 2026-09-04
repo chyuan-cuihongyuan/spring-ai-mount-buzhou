@@ -46,6 +46,9 @@ public final class BuzhouAlertsEndpoint {
             entry.put("name", rule.name());
             entry.put("mechanism", rule.mechanism());
             entry.put("for", String.valueOf(rule.forDuration()));
+            if (!rule.annotations().isEmpty()) {
+                entry.put("annotations", rule.annotations()); // spec 347：面板同步注解
+            }
             rules.add(entry);
         }
         section.put("rules", rules);

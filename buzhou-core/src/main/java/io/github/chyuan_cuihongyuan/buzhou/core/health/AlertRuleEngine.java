@@ -20,8 +20,14 @@ import java.util.function.Supplier;
  */
 public final class AlertRuleEngine implements org.springframework.context.SmartLifecycle {
 
-    /** 告警规则（yml 声明形态）。 */
-    public record AlertRule(String name, String mechanism, Duration forDuration) {
+    /** 告警规则（yml 声明形态；spec 347 增注解——3 参兼容构造保留）。 */
+    public record AlertRule(String name, String mechanism, Duration forDuration,
+            Map<String, String> annotations) {
+
+        /** 3 参兼容构造（spec 347 之前调用方；注解 = 空 map）。 */
+        public AlertRule(String name, String mechanism, Duration forDuration) {
+            this(name, mechanism, forDuration, Map.of());
+        }
 
         public AlertRule {
             if (name == null || name.isBlank() || mechanism == null || mechanism.isBlank()) {
@@ -31,12 +37,29 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
             if (forDuration.isNegative()) {
                 throw new IllegalArgumentException("for 为非负时长（rule=" + name + "）");
             }
+            annotations = annotations == null ? Map.of() : Map.copyOf(annotations);
         }
     }
 
-    /** 一次触发/恢复（通知载荷）。 */
+    /**
+     * 一次触发/恢复（通知载荷）。spec 347：注解随发（Alertmanager
+     * annotations——runbook-url/summary 等直达通知端；键语义归宿主）；
+     * 5 参兼容构造保留（330 门等既有构造零改动）。
+     */
     public record AlertFiring(String ruleName, String mechanism, boolean recovered,
-                              Instant at, Map<String, Object> details) {
+                              Instant at, Map<String, Object> details,
+                              Map<String, String> annotations) {
+
+        /** 5 参兼容构造（注解 = 空 map）。 */
+        public AlertFiring(String ruleName, String mechanism, boolean recovered,
+                Instant at, Map<String, Object> details) {
+            this(ruleName, mechanism, recovered, at, details, Map.of());
+        }
+
+        public AlertFiring {
+            details = details == null ? Map.of() : Map.copyOf(details);
+            annotations = annotations == null ? Map.of() : Map.copyOf(annotations);
+        }
     }
 
     private final List<AlertRule> rules;
@@ -107,7 +130,7 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
                 downSince.remove(key);
                 if (Boolean.TRUE.equals(firing.remove(key))) {
                     notify(new AlertFiring(rule.name(), rule.mechanism(), true,
-                            now, health.details()));
+                            now, health.details(), rule.annotations()));
                 }
                 continue;
             }
@@ -121,7 +144,7 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
                 io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
                         .metrics().counter("buzhou.alert.fired", 1, "rule", rule.name());
                 notify(new AlertFiring(rule.name(), rule.mechanism(), false,
-                        now, health.details()));
+                        now, health.details(), rule.annotations()));
             }
         }
     }

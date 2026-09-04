@@ -311,7 +311,8 @@ public class BuzhouCoreAutoConfiguration {
         java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine.AlertRule> rules =
                 properties.rules().stream()
                         .map(r -> new io.github.chyuan_cuihongyuan.buzhou.core.health
-                                .AlertRuleEngine.AlertRule(r.name(), r.mechanism(), r.forDuration()))
+                                .AlertRuleEngine.AlertRule(r.name(), r.mechanism(), r.forDuration(),
+                                r.annotations())) // spec 347：注解随发
                         .toList();
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine(rules,
                 () -> {
