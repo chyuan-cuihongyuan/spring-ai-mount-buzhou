@@ -84,4 +84,17 @@ public final class WeightedChatModel implements ChatModel {
                 view.put(name, router.weights().getOrDefault(model, 0)));
         return view;
     }
+
+    /**
+     * spec 340 / T671：运行时调权——WRR 动量（current）保留不清零，比例
+     * 自然收敛到新配比；未知 beanName 拒绝（候选面构造期定死——面变更须重启）。
+     */
+    public void setWeight(String beanName, int weight) {
+        ChatModel model = candidates.get(beanName);
+        if (model == null) {
+            throw new IllegalArgumentException(
+                    "路由候选无「" + beanName + "」——已知路：" + candidates.keySet());
+        }
+        router.setWeight(model, weight);
+    }
 }

@@ -62,6 +62,21 @@ public class BuzhouResilienceAutoConfiguration {
                 candidates, routing.weights());
     }
 
+    /**
+     * spec 340 / T672：路由权重热重载（路由器在场即挂——320 舱容量同模式；
+     * refresh 事件重读 yml 逐路 setWeight，WRR 动量保留自然收敛）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.RoutingConfiguredCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload
+    buzhouRoutingWeightsHotReload(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel router,
+            org.springframework.core.env.Environment environment) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload(
+                router, environment);
+    }
+
     /** spec 339：weights ≥2 路才建路由器（Binder 预绑判定——未配零变化）。 */
     static final class RoutingConfiguredCondition implements org.springframework.context.annotation.Condition {
         @Override
