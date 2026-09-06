@@ -27,7 +27,7 @@ jobs:
         run: ./mvnw -B -Psupply-chain -DskipTests package
 
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: |
@@ -47,7 +47,7 @@ jobs:
 
       - name: Upload dependency-check report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dependency-check-report
           path: target/dependency-check-report.*
