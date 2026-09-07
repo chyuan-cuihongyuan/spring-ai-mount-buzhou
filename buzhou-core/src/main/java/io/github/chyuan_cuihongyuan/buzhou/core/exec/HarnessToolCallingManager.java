@@ -33,6 +33,9 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** ToolContext 中携带当前会话 id 的键（供内置工具做会话级解析，如 load_skill 绑定校验）。 */
     public static final String SESSION_ID_KEY = "buzhou.sessionId";
 
+    /** spec 308 / T607：ToolContext 中携带当前 Turn Deadline（动态视图——工具读实时剩余自我收敛）。 */
+    public static final String TURN_DEADLINE_KEY = "buzhou.turnDeadline";
+
     /** 从 ToolContext 取当前会话 id（无则 null；内置工具的会话级解析统一经此读取）。 */
     public static String sessionIdOf(org.springframework.ai.chat.model.ToolContext toolContext) {
         if (toolContext == null || toolContext.getContext() == null) {
@@ -40,6 +43,22 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         }
         Object value = toolContext.getContext().get(SESSION_ID_KEY);
         return value instanceof String s ? s : null;
+    }
+
+    /**
+     * spec 308 / T607：从 ToolContext 取当前 Turn Deadline（gRPC deadline 逐跳传播——
+     * 自限型工具读 {@code remainingMillis()} 实时剩余决定收敛步数）。缺键/异型值
+     * 返回 {@code none()} 哨兵（无界 = 工具自由放行，既有语义）。
+     */
+    public static io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline turnDeadlineOf(
+            org.springframework.ai.chat.model.ToolContext toolContext) {
+        if (toolContext == null || toolContext.getContext() == null) {
+            return io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none();
+        }
+        Object value = toolContext.getContext().get(TURN_DEADLINE_KEY);
+        return value instanceof io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline
+                ? deadline
+                : io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none();
     }
 
     private final DefaultToolCallingManager delegate;
@@ -64,6 +83,15 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** impl-04 / T30：本 Turn 累计校验反馈次数（BoundedToolCallingAdvisor 在 Turn 开始时复位）。 */
     private final java.util.concurrent.atomic.AtomicInteger validationFailures =
             new java.util.concurrent.atomic.AtomicInteger();
+
+    /** spec 337：工具上下文行李（null = 无行李零注入）。 */
+    private volatile ToolBaggage toolBaggage;
+
+    /** spec 337 / T666：接入行李面（HarnessAssembler 装配期调；null = 无行李）。 */
+    public void setToolBaggage(ToolBaggage baggage) {
+        this.toolBaggage = baggage;
+    }
+
     /** impl-05 / T31：待生效的取消请求（BoundedToolCallingAdvisor 在 Turn 开始时清零）。 */
     private final java.util.concurrent.atomic.AtomicReference<
             io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode> pendingCancel =
@@ -76,6 +104,18 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private volatile boolean atomicBatchValidation = false;
     /** spec 31 / T110 / impl-85：工具结果尺寸防护（Holder 默认 20K + read_range 豁免）。 */
     private volatile ToolResultLimiter resultLimiter = ToolResultLimiterHolder.current();
+
+    /** spec 300 / impl-323：批内/在飞合并器（默认 null = 关，既有 per-tool 行为零变化；139 原语接线）。 */
+    private volatile ToolCallCoalescer batchCoalescer;
+
+    /**
+     * spec 300 / impl-323：启用/停用批内合并（经 {@code SessionAssemblyContext.toolManager()}
+     * 注入，与 batchFeedbackPolicy / atomicBatchValidation 同通道）。开启后批内同工具同参
+     * 调用执行一次、全部位共享值（合并位回喂逐位重写 id）；{@code null} = 停用。
+     */
+    public void setBatchCoalescer(ToolCallCoalescer coalescer) {
+        this.batchCoalescer = coalescer;
+    }
 
     /** spec 31：per-session 覆盖限幅器（经 SessionAssemblyContext.toolManager() 注入）。 */
     public void setResultLimiter(ToolResultLimiter limiter) {
@@ -258,6 +298,13 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         // impl-05 / T31：取消令牌贯穿工具执行链（协作式取消：长任务轮询提前中止）
         toolContextMap.put(CancellationToken.KEY,
                 CancellationToken.of(() -> pendingCancel.get() != null));
+        // spec 308 / T607：Turn Deadline 动态视图入 context（自限工具读实时剩余）
+        toolContextMap.put(TURN_DEADLINE_KEY, this.turnDeadline);
+        // spec 337 / T666：工具上下文行李（W3C Baggage——带外路由元数据直达
+        // 工具不进提示词；空行李零注入零开销；注入快照非活引用）
+        if (toolBaggage != null && !toolBaggage.isEmpty()) {
+            toolContextMap.put(ToolBaggage.KEY, toolBaggage.view());
+        }
         ToolContext toolContext = new ToolContext(toolContextMap);
         // spec 122 / impl-271：superstep 原子批前检——任一未过则整批不派发（零锁零许可零副作用）。
         if (atomicBatchValidation) {
@@ -282,8 +329,16 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         List<Future<ToolResponseMessage.ToolResponse>> futures = new ArrayList<>();
         List<ToolResponseMessage.ToolResponse> responses = new ArrayList<>();
         boolean returnDirect = false;
+        ToolCallCoalescer coalescer = this.batchCoalescer;
         for (AssistantMessage.ToolCall toolCall : toolCalls) {
-            futures.add(executor.submit(() -> executeOne(toolCall, callbacksByName, toolContext)));
+            if (coalescer == null) {
+                futures.add(executor.submit(() -> executeOne(toolCall, callbacksByName, toolContext)));
+            } else {
+                // spec 300 / impl-323：键 = 工具名 + 全参串（零碰撞——合并正确性优先于键紧凑）
+                String key = toolCall.name() + "#" + toolCall.arguments();
+                futures.add(coalescer.submit(key,
+                        () -> executeOne(toolCall, callbacksByName, toolContext), executor));
+            }
         }
         for (int i = 0; i < futures.size(); i++) {
             AssistantMessage.ToolCall toolCall = toolCalls.get(i);
@@ -297,6 +352,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 response = new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(),
                         ToolErrorFeedback.format(toolCall.name(), toolCall.arguments(),
                                 "执行失败：" + cause));
+            }
+            // spec 300 / impl-323：合并位共享值、独占 id——协议要求每个调用位有 id 一致回喂
+            if (!toolCall.id().equals(response.id())) {
+                response = new ToolResponseMessage.ToolResponse(
+                        toolCall.id(), toolCall.name(), response.responseData());
             }
             responses.add(resultLimiter.apply(response));
             returnDirect |= isReturnDirect(callbacksByName.get(response.name()));

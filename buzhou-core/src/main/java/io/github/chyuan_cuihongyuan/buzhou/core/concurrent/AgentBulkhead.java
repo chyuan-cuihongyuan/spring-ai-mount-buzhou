@@ -30,15 +30,15 @@ public final class AgentBulkhead {
     private static final AtomicReference<AgentBulkhead> GLOBAL =
             new AtomicReference<>(unlimited());
 
-    private final Map<String, Semaphore> semaphores = new ConcurrentHashMap<>();
-    private final Map<String, Integer> limits;
+    private final Map<String, ResizableSemaphore> semaphores = new ConcurrentHashMap<>();
+    private Map<String, Integer> limits;
     private final Duration acquireTimeout;
 
     private AgentBulkhead(Map<String, Integer> limits, Duration acquireTimeout) {
         this.limits = Map.copyOf(limits);
         this.acquireTimeout = acquireTimeout == null ? Duration.ZERO : acquireTimeout;
         limits.forEach((agent, limit) ->
-                semaphores.put(agent, new Semaphore(Math.max(1, limit), true)));
+                semaphores.put(agent, new ResizableSemaphore(Math.max(1, limit))));
     }
 
     /** 按上限表构造（agent → 并发 Turn 上限；acquireTimeout null/0 = fail-fast）。 */
@@ -138,6 +138,51 @@ public final class AgentBulkhead {
                 .limit(Math.max(0, n))
                 .map(e -> Map.entry(e.getKey(), e.getValue().get()))
                 .toList();
+    }
+
+    /**
+     * 热调整上限表（spec 320 / T631，resilience4j ResizableSemaphore 同款）：
+     * 扩容补 permit / 缩容 reducePermits——<b>在飞不受扰</b>，瞬时可超新限，
+     * 释放到限内（inFlight &lt; 新限）才放新请求，不抢占。新 agent 建舱；移除的
+     * agent 摘舱（在飞 Lease 释放到已摘对象——无害；新 acquire = NOOP）。拒绝
+     * 计数不清零（单调——伸缩建议器窗口增量依赖，spec 319）。
+     */
+    public synchronized void resize(Map<String, Integer> newLimits) {
+        Map<String, Integer> target = newLimits == null ? Map.of() : newLimits;
+        for (Map.Entry<String, Integer> entry : target.entrySet()) {
+            int limit = Math.max(1, entry.getValue());
+            ResizableSemaphore existing = semaphores.get(entry.getKey());
+            if (existing == null) {
+                semaphores.put(entry.getKey(), new ResizableSemaphore(limit));
+                continue;
+            }
+            int diff = limit - limits.getOrDefault(entry.getKey(), limit);
+            if (diff > 0) {
+                existing.grow(diff);
+            } else if (diff < 0) {
+                existing.shrink(-diff);
+            }
+        }
+        semaphores.keySet().retainAll(target.keySet());
+        limits = Map.copyOf(target);
+        BuzhouMetricsHolder.metrics().counter("buzhou.bulkhead.resized");
+    }
+
+    /** 公平可调信号量（Semaphore.reducePermits 是 protected——子类公开化，resilience4j 同法）。 */
+    static final class ResizableSemaphore extends Semaphore {
+
+        ResizableSemaphore(int permits) {
+            super(permits, true);
+        }
+
+        void grow(int permits) {
+            release(permits);
+        }
+
+        /** 缩 permit（可为负——在飞超新限瞬时共存，释放自然收敛）。 */
+        void shrink(int permits) {
+            reducePermits(permits);
+        }
     }
 
     /** Turn 名额（close 释放；NOOP 单例零开销）。 */

@@ -32,10 +32,13 @@ class ApiSurfaceSnapshotTest {
     void publicTypeUniverseMatchesSnapshot() throws Exception {
         // classpath 形态门：单模块跑（依赖走 ~/.m2 旧 jar）扫描集不完整必假红——
         // 防线在 reactor 联编（全仓 verify / CI）生效；单跑跳过（诚实边界入档）。
-        String cp = System.getProperty("surefire.test.class.path",
-                System.getProperty("java.class.path"));
+        // spec 329：分隔符走 File.pathSeparator（Windows ";" / Linux ":"）+ 路径
+        // 归一化——本机 Windows 也能真比对/再生（此前 split(":") 在 Windows 把
+        // 整条 classpath 切成碎片且 \classes 不匹配 /classes，门恒跳过、
+        // regenerate 写空文件）。
+        String cp = normalizedClasspath();
         org.junit.jupiter.api.Assumptions.assumeTrue(
-                java.util.Arrays.stream(cp.split(":")).anyMatch(e -> e.endsWith("/classes")
+                java.util.Arrays.stream(splitClasspath(cp)).anyMatch(e -> e.endsWith("/classes")
                         && e.contains("buzhou-")),
                 "非 reactor classpath（单模块跑）——快照比对跳过");
         Map<String, String> actual = scanPublicTypes();
@@ -67,9 +70,8 @@ class ApiSurfaceSnapshotTest {
     /** 扫描 buzhou 模块 main 面：classpath 条目（jar 或 classes 目录）→ 非 internal public 类型。 */
     private static Map<String, String> scanPublicTypes() throws Exception {
         Map<String, String> result = new TreeMap<>();
-        String classpath = System.getProperty("surefire.test.class.path",
-                System.getProperty("java.class.path"));
-        for (String entry : classpath.split(":")) {
+        String classpath = normalizedClasspath();
+        for (String entry : splitClasspath(classpath)) {
             String moduleName = moduleNameOf(entry);
             if (moduleName == null) {
                 continue;
@@ -89,7 +91,8 @@ class ApiSurfaceSnapshotTest {
                 try (Stream<Path> files = Files.walk(dir)) {
                     files.filter(p -> p.toString().endsWith(".class") && !p.getFileName().toString().contains("$"))
                             .forEach(p -> collect(result, moduleName, entry,
-                                    dir.relativize(p).toString().replace('/', '.')
+                                    dir.relativize(p).toString().replace('\\', '/')
+                                            .replace('/', '.')
                                             .replaceAll("\\.class$", "")));
                 }
             }
@@ -125,11 +128,24 @@ class ApiSurfaceSnapshotTest {
         if (name.endsWith(".jar") && name.startsWith("buzhou-") && !name.endsWith("-tests.jar")) {
             return name.replaceAll("-[0-9].*\\.jar$", "");
         }
-        // /path/buzhou-core/target/classes
+        // /path/buzhou-core/target/classes（spec 329：normalizedClasspath 已归一 \→/）
         if (entry.contains("buzhou-") && entry.endsWith("/classes")) {
             String dir = f.getParentFile().getParentFile().getName();
             return dir.startsWith("buzhou-") ? dir : null;
         }
         return null;
+    }
+
+    /** classpath 原文（spec 329：路径分隔符归一 \→/，扫描/门/模块名判定共用于双平台）。 */
+    private static String normalizedClasspath() {
+        String cp = System.getProperty("surefire.test.class.path",
+                System.getProperty("java.class.path"));
+        return cp.replace('\\', '/');
+    }
+
+    /** 按平台分隔符切（Linux ":" / Windows ";"——quote 防正则元字符）。 */
+    private static String[] splitClasspath(String classpath) {
+        return classpath.split(java.util.regex.Pattern.quote(
+                System.getProperty("path.separator")));
     }
 }

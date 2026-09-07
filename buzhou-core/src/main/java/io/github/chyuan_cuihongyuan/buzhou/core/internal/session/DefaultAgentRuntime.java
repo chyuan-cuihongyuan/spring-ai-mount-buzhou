@@ -206,6 +206,47 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         return session;
     }
 
+    /**
+     * 时间旅行 fork（spec 311 / T613，LangGraph checkpointer time-travel）：复制
+     * {@code turnSeq <= upToTurn} 历史前缀到新会话。Summary 不复制（最新摘要可能
+     * 覆盖 upToTurn 之后轮次——未来泄漏防护）；fork 监听器与 session.forked 事件
+     * 管线复用（payload 加 upToTurn）。
+     */
+    @Override
+    public AgentSession forkFromTurn(String sourceSessionId, String appId, String agentName,
+            String newSessionId, int upToTurn) {
+        if (upToTurn < 1) {
+            throw new IllegalArgumentException("upToTurn >= 1（当前 " + upToTurn + "）");
+        }
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage> upTo =
+                stores.messageStore().load(sourceSessionId).stream()
+                        .filter(m -> m.turnSeq() <= upToTurn)
+                        .toList();
+        if (upTo.isEmpty()) {
+            throw new IllegalArgumentException("时间旅行源会话在第 " + upToTurn
+                    + " 轮前无历史（sessionId=" + sourceSessionId + "）：无可回放前缀");
+        }
+        AgentSession session = spawn(appId, agentName, newSessionId);
+        stores.messageStore().append(newSessionId, upTo);
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.session.time-travels");
+        for (io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener listener
+                : config.forkListeners()) {
+            try {
+                listener.onForked(sourceSessionId, newSessionId);
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "时间旅行 fork 监听器登记失败（listener=" + listener.getClass().getSimpleName()
+                                + "，source=" + sourceSessionId + "）：" + e.getMessage());
+            }
+        }
+        if (session instanceof DefaultAgentSession concrete) {
+            concrete.dispatchEventInternal(SessionEvent.of("session.forked",
+                    java.util.Map.of("sourceSessionId", sourceSessionId, "upToTurn", upToTurn)));
+        }
+        return session;
+    }
+
     /** spec 36 §A / T121 / impl-96：导出扩展（模块自有段；auto-config 注入，可空）。 */
     private volatile java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension>
             exportExtensions = java.util.List.of();

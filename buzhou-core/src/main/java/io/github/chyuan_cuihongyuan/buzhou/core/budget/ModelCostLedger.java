@@ -27,10 +27,20 @@ public final class ModelCostLedger {
     public record ModelCost(String model, long microUsd) {
     }
 
+    /**
+     * 价目快照（spec 314 / T619，复式记账——账单自含计价事实）：该模型最近一次
+     * 记账时的单价（每百万 token USD，BigDecimal 原口径）。null 字段 = 无价目
+     * （零成本行不被伪价污染）。
+     */
+    public record PricingSnapshot(java.math.BigDecimal inputPerMillion,
+                                  java.math.BigDecimal outputPerMillion) {
+    }
+
     private static final AtomicReference<ModelCostLedger> GLOBAL =
             new AtomicReference<>(new ModelCostLedger());
 
     private final Map<String, AtomicLong> microUsd = new ConcurrentHashMap<>();
+    private final Map<String, PricingSnapshot> pricingByModel = new ConcurrentHashMap<>();
 
     private ModelCostLedger() {
     }
@@ -50,8 +60,16 @@ public final class ModelCostLedger {
         GLOBAL.set(ledger == null ? new ModelCostLedger() : ledger);
     }
 
-    /** 记一次模型调用成本（microUsd ≥ 0；0 也记——「跑过零成本」是事实）。 */
+    /** 记一次模型调用成本（microUsd ≥ 0；0 也记——「跑过零成本」是事实；无价目快照）。 */
     public void record(String model, long costMicroUsd) {
+        record(model, costMicroUsd, null);
+    }
+
+    /**
+     * 记一次模型调用成本 + 价目快照随单（spec 314）：快照 = 本次记账时该模型单价
+     * （覆盖式——行示「最近一次记账时」的单价；行级逐笔记价归事件流，聚合面诚实边界）。
+     */
+    public void record(String model, long costMicroUsd, PricingSnapshot pricingSnapshot) {
         if (model == null || model.isBlank()) {
             throw new IllegalArgumentException("model must not be blank");
         }
@@ -61,13 +79,23 @@ public final class ModelCostLedger {
         AtomicLong counter = microUsd.get(model);
         if (counter != null) {
             counter.addAndGet(costMicroUsd);
-            return;
-        }
-        if (microUsd.size() >= MAX_MODELS) {
+        } else if (microUsd.size() >= MAX_MODELS) {
             microUsd.computeIfAbsent(OVERFLOW, k -> new AtomicLong()).addAndGet(costMicroUsd);
+            if (pricingSnapshot != null) {
+                pricingByModel.put(OVERFLOW, pricingSnapshot);
+            }
             return;
+        } else {
+            microUsd.computeIfAbsent(model, k -> new AtomicLong()).addAndGet(costMicroUsd);
         }
-        microUsd.computeIfAbsent(model, k -> new AtomicLong()).addAndGet(costMicroUsd);
+        if (pricingSnapshot != null) {
+            pricingByModel.put(model, pricingSnapshot);
+        }
+    }
+
+    /** 该模型最近一次记账时的价目快照（未记价 = null——诚实空值）。 */
+    public PricingSnapshot pricingOf(String model) {
+        return pricingByModel.get(model);
     }
 
     /** 单模型累计（未见过 0——诚实空值）。 */
@@ -98,8 +126,9 @@ public final class ModelCostLedger {
         return microUsd.values().stream().mapToLong(AtomicLong::get).sum();
     }
 
-    /** 窗口清零（export → reset 循环——每窗口一份账单）。 */
+    /** 窗口清零（export → reset 循环——每窗口一份账单；价目快照同清）。 */
     public void reset() {
         microUsd.clear();
+        pricingByModel.clear();
     }
 }

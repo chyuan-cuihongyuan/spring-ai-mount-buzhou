@@ -64,6 +64,8 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
     private final Duration sweepInterval;
     /** impl-37：SmartLifecycle 自启动开关（false = bean 存在但不排程——手动 sweepOnce 仍可用）。 */
     private final boolean autoStartup;
+    /** spec 331：可选选主门——null = 无门（每实例照旧各自扫，零变化）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector elector;
     private final List<Consumer<RetentionSweepReport>> listeners = new CopyOnWriteArrayList<>();
 
     private final AtomicBoolean running = new AtomicBoolean();
@@ -84,7 +86,7 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
                             Clock clock) {
         this(cleaner, observability, summaries, toolCallLog, runRegistry, sessionHistory,
                 observabilityTtl, summaryKeepVersions, toolCallLogRetention, runCompletedRetention,
-                trigger, sweepInterval, clock, true);
+                trigger, sweepInterval, clock, true, null);
     }
 
     public RetentionSweeper(SessionCleaner cleaner,
@@ -101,6 +103,27 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
                             Duration sweepInterval,
                             Clock clock,
                             boolean autoStartup) {
+        this(cleaner, observability, summaries, toolCallLog, runRegistry, sessionHistory,
+                observabilityTtl, summaryKeepVersions, toolCallLogRetention, runCompletedRetention,
+                trigger, sweepInterval, clock, autoStartup, null);
+    }
+
+    /** spec 331 / T654：带选主门的构造（elector 为 null 时与上方构造完全一致）。 */
+    public RetentionSweeper(SessionCleaner cleaner,
+                            ObservabilityStore observability,
+                            SummaryStore summaries,
+                            ToolCallLog toolCallLog,
+                            RunRegistry runRegistry,
+                            SessionHistoryPolicy sessionHistory,
+                            ObservabilityTtl observabilityTtl,
+                            int summaryKeepVersions,
+                            Duration toolCallLogRetention,
+                            Duration runCompletedRetention,
+                            MaintenanceTrigger trigger,
+                            Duration sweepInterval,
+                            Clock clock,
+                            boolean autoStartup,
+                            io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector elector) {
         this.cleaner = cleaner;
         this.observability = observability;
         this.summaries = summaries;
@@ -121,6 +144,7 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
                 ? Duration.ofHours(1) : sweepInterval;
         this.clock = clock == null ? Clock.systemUTC() : clock;
         this.autoStartup = autoStartup;
+        this.elector = elector;
     }
 
     /** 清理动作监听者（每周期一份报告；可观测不静默）。 */
@@ -244,6 +268,13 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
 
     private void sweepQuietly() {
         try {
+            if (elector != null && !elector.tryAcquireOrRenew().leader()) {
+                // spec 331：非 leader 本周期不扫（留痕不静默）；取续异常同样落
+                // 到这里下方 catch——失联宁可少做不可抢做
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
+                        .metrics().counter("buzhou.retention.skipped-not-leader", 1);
+                return;
+            }
             sweepOnce();
         } catch (RuntimeException e) {
             // sweepOnce 内部已逐项隔离；此处只防调度线程被意外异常杀死
@@ -258,6 +289,13 @@ public class RetentionSweeper implements SmartLifecycle, AutoCloseable {
             if (current != null) {
                 current.shutdownNow();
                 scheduler = null;
+            }
+            if (elector != null) {
+                try {
+                    elector.resign(); // spec 331：停机让位——快速故障转移不等 TTL
+                } catch (RuntimeException e) {
+                    LOGGER.log(System.Logger.Level.WARNING, "选主让位失败（TTL 自然过期兜底）", e);
+                }
             }
         }
     }

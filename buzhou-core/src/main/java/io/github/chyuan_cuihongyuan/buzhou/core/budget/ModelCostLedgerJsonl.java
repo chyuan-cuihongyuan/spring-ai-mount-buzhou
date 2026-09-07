@@ -29,6 +29,12 @@ public final class ModelCostLedgerJsonl {
                 gen.writeNumberField("microUsd", cost.microUsd());
                 gen.writeStringField("usd", java.math.BigDecimal
                         .valueOf(cost.microUsd(), 6).toPlainString());
+                // spec 314 / T620：价目快照随单（最近一次记账时单价——调价后旧账可复算）
+                ModelCostLedger.PricingSnapshot pricing = ledger.pricingOf(cost.model());
+                if (pricing != null) {
+                    gen.writeNumberField("inputPerMillion", pricing.inputPerMillion());
+                    gen.writeNumberField("outputPerMillion", pricing.outputPerMillion());
+                }
                 gen.writeEndObject();
                 gen.flush();
                 out.write('\n');

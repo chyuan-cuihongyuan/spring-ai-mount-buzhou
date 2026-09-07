@@ -27,7 +27,8 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @ConditionalOnClass(RedisClient.class)
 @ConditionalOnProperty(prefix = "buzhou.store", name = "type", havingValue = "redis")
-@EnableConfigurationProperties({RedisStoreProperties.class, WriteFailurePolicyProperties.class})
+@EnableConfigurationProperties({RedisStoreProperties.class, WriteFailurePolicyProperties.class,
+        LeaderElectionProperties.class})
 public class BuzhouRedisStoreAutoConfiguration {
 
     @Bean(destroyMethod = "shutdown")
@@ -88,6 +89,54 @@ public class BuzhouRedisStoreAutoConfiguration {
             RedisClient client, RedisStoreProperties props) {
         return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisCircuitBreakerStateBackend(
                 client, props.keyPrefix() + "cb:");
+    }
+
+    /**
+     * 共享虚拟 key 配额后端（spec 315 / T622）：store.type=redis 且配置虚拟 key
+     * （buzhou.virtual-keys.active-key）时供 VirtualKeyBudgetBackend bean（Lua 原子
+     * 扣减——多实例共享额度）；core auto-config 经 ObjectProvider 优先消费（无 bean
+     * = 进程内计数默认零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression(
+            "#{environment['buzhou.virtual-keys.active-key'] != null}")
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend buzhouSharedVirtualKeyBudgetBackend(
+            RedisClient client, RedisStoreProperties props) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisVirtualKeyBudgetBackend(
+                client, props.keyPrefix() + "vk:");
+    }
+
+    /**
+     * 共享泳道许可后端（spec 316 / T624）：store.type=redis 时恒供 LaneStateBackend
+     * bean（Lua 原子取/还——慢工具道跨实例互斥）；消费方 opt-in（BackendLanePermit
+     * 包装走共享路径，默认 Semaphore 进程内零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.LaneStateBackend buzhouSharedLaneStateBackend(
+            RedisClient client, RedisStoreProperties props) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLaneStateBackend(
+                client, props.keyPrefix() + "lane:");
+    }
+
+    /**
+     * 共享选主后端（spec 331 / T654）：store.type=redis 且
+     * {@code buzhou.leader-election.enabled=true} 时供 LeaderElector bean
+     * （Lua 原子取/续/让 + 单调纪元围栏——家务族跨实例单执行者）；
+     * core auto-config 经 ObjectProvider 优先消费（无 bean = sweeper 无门
+     * 零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.leader-election", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector buzhouLeaderElector(
+            RedisClient client, RedisStoreProperties props,
+            LeaderElectionProperties leaderElection) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLeaderElector(
+                client, props.keyPrefix() + "leader:housekeeping",
+                leaderElection.holderId(), leaderElection.ttl());
     }
 
     private static Integer positiveOrNull(String value) {

@@ -217,6 +217,62 @@ B 会话（.wayfinder200+ 号段）的精选主线（每项默认零行为变化
 [218-ab-ledger](docs/spec/218-ab-ledger.md)、[220-preverify](docs/spec/220-preverify.md)、
 [222-session-close](docs/spec/222-session-close.md)。
 
+## 生产级纵深 IV（C 会话 300 系增量）
+
+C 会话（.wayfinder300+ 号段）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 执行脊柱 | 批内工具合并接线 | 批内同工具同参执行一次、全位共享值逐位重写 id（Hystrix collapsing 装配收尾） | [spec 300](docs/spec/300-batch-coalescing.md) |
+| 模型韧性 | 对冲装配面 | yml 三行声明长尾并发押注（gRPC hedging——137 原语装配收尾，@Primary 升位） | [spec 301](docs/spec/301-hedge-assembly.md) |
+| 背压 | 重试预算接线 | 模型/工具重试前进程级预算支取、拒即原错上抛（Finagle retry budget——178 原语装配收尾） | [spec 302](docs/spec/302-retry-budget-wiring.md) |
+| 投递可靠 | 序号围栏持久纪元 | 发送方每启持久递增 epoch 显式声明重启（Kafka producer epoch——RESET 不再靠猜，旧纪元迟到判 STALE） | [spec 303](docs/spec/303-sequence-fence-epoch.md) |
+| 持久化 | 事务批补偿 | 跨步多写 saga 倒序补偿、补偿失败即停（归档条目即 undo log——部分失败净回原状） | [spec 304](docs/spec/304-compensating-batch.md) |
+| 工具治理 | 健康探测装配 + 熔断 yml 面 | 探测原语 165 装配收尾（bean+周期+健康面，Consul）；熔断 hook 四参 yml 化（resilience4j，配置面族首项） | [spec 305](docs/spec/305-tool-health-assembly.md) / [306](docs/spec/306-tool-circuit-yml.md) |
+| 投递可靠 | 事件 schema yml 声明 | per-type 必备键 yml 化 + fail-open 观察模式 + 挂点去重防双投（JSON Schema required——209 装配收尾） | [spec 307](docs/spec/307-event-schema-yml.md) |
+| 执行脊柱 | deadline 跨工具传播 | ToolContext 携带 TurnDeadline 动态视图——自限工具读实时剩余收敛（gRPC 逐跳传播） | [spec 308](docs/spec/308-deadline-propagation.md) |
+| 模型韧性 | 影子对照明细 JSONL | shadow.compared 事件逐条落盘、节选封顶、IO 吞计（W&B lineage——detail-path 声明即导出） | [spec 309](docs/spec/309-shadow-jsonl-export.md) |
+| 记忆治理 | 空闲会话后台压缩 | 索引 lastActiveAt 事实驱动的空闲窗口自动瘦身（LSM compaction 思想——限批+隔离+默认关） | [spec 310](docs/spec/310-idle-compaction.md) |
+| 会话分支 | 时间旅行 fork | 从任意轮重走分支：历史前缀复制、摘要不复制防未来泄漏（LangGraph checkpointer time-travel） | [spec 311](docs/spec/311-time-travel-fork.md) |
+| 运维 | 健康告警规则 | yml 声明「机制 DOWN 持续 for 窗即通知」双向触发/恢复、flap 吸收（Grafana ruler） | [spec 312](docs/spec/312-alert-rules.md) |
+| 护栏 | PII 命中分侧 | 输入（预防提示面）与输出（脱敏规则面）分列统计+JSONL 双列（Presidio 分侧深化） | [spec 313](docs/spec/313-pii-hit-sides.md) |
+| 成本预算 | 价目快照随单 | 账单行自含记账时单价两列——调价后旧账可离线复算（复式记账审计口径） | [spec 314](docs/spec/314-pricing-snapshot.md) |
+| 成本预算 | 虚拟 key 配额共享 | Lua 原子扣减跨实例一份额度、后端不可达 fail-closed（Redisson 分布式限额——N 实例≠N 倍烧钱） | [spec 315](docs/spec/315-virtual-keys-redis.md) |
+| 工具治理 | 泳道许可共享 | Lua 原子取/还跨实例一套泳道容量、满道超时同词汇（Redisson 分布式信号量——fog 227 共享族收口） | [spec 316](docs/spec/316-lane-redis-shared.md) |
+| 观测治理 | 导出族合流打包 | 多 JSONL 报表一个 ZIP + manifest 行数/sha256 清单、单源故障隔离（tarball/OCI artifact——窗口一揽子） | [spec 317](docs/spec/317-export-bundle.md) |
+| 运维 | 会话扰乱预算 | voluntary 排水领额度、min-available 保底防全排（K8s PodDisruptionBudget——维护三件套齐） | [spec 318](docs/spec/318-session-disruption-budget.md) |
+| 运维 | 舱压伸缩建议 | 舱拒绝窗口增量→实例倍率建议（clamp/回零回落/只建议不执行——K8s HPA custom metrics） | [spec 319](docs/spec/319-bulkhead-scaling-advisor.md) |
+| 运维 | 舱容量热调整 | resize 扩/缩/热加/摘在飞不扰、配置刷新事件热重读 yml 容量不重启（Spring Cloud rebind / resilience4j ResizableSemaphore） | [spec 320](docs/spec/320-bulkhead-hot-resize.md) |
+| 观测治理 | SLO 错误预算燃尽率 | 桶环窗错误率→burn=rate/(1−SLO)、min-samples 防噪、观察钩子喂数、健康面接告警 for 窗（Google SRE 错误预算） | [spec 321](docs/spec/321-error-budget-burn-rate.md) |
+| 韧性演练 | 工具混沌注入 | 按概率延迟/故障袭击（结构化标记模型可改道）、include 清单、运行时启停（Netflix Chaos Monkey——熔断/预算/舱平时真枪演练） | [spec 322](docs/spec/322-tool-chaos-injection.md) |
+| 韧性演练 | 干跑拦截/执行计划 | 拦入计划不执行（非错误标记不污染熔断/预算）、args 快照有界计划面、运行时启停（Terraform plan/apply——先计划后执行） | [spec 323](docs/spec/323-dry-run-plan.md) |
+| 流量治理 | 工具金丝雀发布 | 同名两实现按权重分流真跑、劣化超容差一次性粘性自动回滚（Istio/Flagger canary——小流量真曝+自动退） | [spec 324](docs/spec/324-tool-canary.md) |
+| 事故响应 | 工具紧急停用开关 | 一键全局停/恢复不重启、非错误标记零污染、刷新事件 yml 事实源整体覆盖（LaunchDarkly kill switch / K8s cordon） | [spec 325](docs/spec/325-tool-kill-switch.md) |
+| 失控防护 | 轮次重复检测 | 相邻输出词元 Jaccard run 达窗即fire 一次、opt-in 解困回填替换复读输出（context rot / LLM 打转早信号） | [spec 326](docs/spec/326-turn-repetition.md) |
+| 失控防护 | 工具循环断路器 | 同工具同参数连续调用达窗即拦、持续干预直到换参/换工具、三选一出路回填（与熔断正交——按调用形态断路） | [spec 327](docs/spec/327-tool-loop-breaker.md) |
+| 观测治理 | 干跑计划 JSONL 导出 | 一行一 PlannedCall、args 字符串快照人审口径、dropped 截断尾行（导出族新员——计划单落盘流转） | [spec 328](docs/spec/328-dry-run-plan-export.md) |
+| 工程治理 | API 快照收口 | 快照机跨平台修复（Windows 首次真比对/再生）+38 型全量入档 api-surface（半程防线补齐） | [spec 329](docs/spec/329-api-snapshot-closure.md) |
+| 运维 | 告警静默窗与抑制规则 | 维护窗/事故一键静默（机制匹配+惰性过期）、根因 firing 遮蔽衍生通知（吞通知不吞事实+留痕计数——Alertmanager silence/inhibit） | [spec 330](docs/spec/330-alert-silence-inhibit.md) |
+| 运维 | 后台任务选主 | 家务族（保留清理）跨实例单执行者：TTL 租约+续期+单调纪元围栏+停机让位（K8s leader election/etcd lease——失联宁可少做不可抢做） | [spec 331](docs/spec/331-leader-election.md) |
+| 运维 | 健康三探针分层 | 机制归 liveness（重启能治）/readiness（摘流量能治，缺省归类）/startup（等待热身）三类独立裁决+端点（K8s probes——探针用错轻则无效重则重启风暴） | [spec 332](docs/spec/332-probe-classes.md) |
+| 安全 | 消息静态信封加密 | AES-GCM 应用层加密——密钥不出进程存储只见密文、AAD 绑定标识防剪贴、双钥轮换窗口、旧明文透传（Vault transit/KMS envelope） | [spec 333](docs/spec/333-message-encryption.md) |
+| 安全 | 摘要槽信封加密 | 333 同通道扩散——长期记忆浓缩面（sections 全量密文、版本以底层 UPSERT 为准）；state 槽 CAS 比值面不兼容为诚实边界 | [spec 336](docs/spec/336-summary-encryption.md) |
+| 执行脊柱 | 工具上下文行李 | tenant/env 等路由元数据经 ToolContext 带外直达工具（不进提示词模型不可见）、yml 播种+运行时 API、有界封顶（W3C Baggage/OTel baggage） | [spec 337](docs/spec/337-tool-baggage.md) |
+| 成本预算 | 预算软预警线 | 会话总量/成本/虚拟 key 三维消耗达硬顶 80% 即发预警事件（一次一发仅事件不拦截，-1 关闭——AWS Budgets 到墙之前先叫人） | [spec 338](docs/spec/338-budget-warning.md) |
+| 模型韧性 | 多模型加权路由 | 199 平滑加权原语装配收尾——逐调用按权重分流多模型（比例精确时间平滑 5:1:1 不连五爆发）、yml 按 bean 名配权、@Primary 透明接入（LiteLLM Router） | [spec 339](docs/spec/339-model-routing.md) |
+| 运维 | 路由权重热调整 | 刷新事件重读 yml 逐路热调（WRR 动量保留自然收敛）、面外名字跳过不红、运行时 setWeight API（Spring Cloud rebind/320 同模式） | [spec 340](docs/spec/340-routing-weights-hot-reload.md) |
+| 运维 | 选主扩散：归档清理与空闲压缩 | 331 选主门接 ArchivePurgeJob 与 IdleCompactionHousekeeper——家务族三任务一个 leader（K8s leader election 扩散轮：不重复扫/不竞写摘要版本） | [spec 341](docs/spec/341-leader-diffusion.md) |
+| 运维 | 维护窗口 cordon | 地板多源合成（与 335 冻结正交不互踩）+ yml 声明窗自动 cordon/解除 + 运行时按钮（K8s cordon——窗内不接新会话在途排空，过期窗不追溯） | [spec 342](docs/spec/342-maintenance-cordon.md) |
+| 工程治理 | 生效配置自描述端点 | /actuator/buzhou-config 一屏全部 buzhou.* 生效值（含 env 覆盖）、密钥类键宽匹配掩码宁掩勿漏（actuator configprops+sanitization） | [spec 343](docs/spec/343-config-endpoint.md) |
+| 护栏 | 审计链完整性巡检 | 可读≠完整——链哈希/签名断链即 DOWN 定位首断点、超窗 UNKNOWN 带修法、自动入 312 告警/332 探针（CT log/区块链全节点验证——事实源失守不被绿掩盖） | [spec 344](docs/spec/344-audit-chain-health.md) |
+| 观测治理 | 告警面板端点 | /actuator/buzhou-alerts 一屏 firing 规则+生效静默窗+抑制视图（312/330 状态聚合，缺席段诚实空——Alertmanager UI） | [spec 345](docs/spec/345-alerts-dashboard.md) |
+| 观测治理 | 会话面板端点 | /actuator/buzhou-sessions 活跃会话计数（索引分页 50k 封顶）+准入地板多源（谁抬着）+cordon 态（面板三部曲之三） | [spec 346](docs/spec/346-sessions-dashboard.md) |
+| 运维 | 告警注解随发 | 规则声明 runbook-url/summary 等注解随触发/恢复通知与面板直达值班端（Alertmanager annotations——收到即可行动） | [spec 347](docs/spec/347-alert-annotations.md) |
+| 背压 | 重试预算健康面 | 恒 UP（拦截=保护生效非故障）+余量/已取/被拦快照入聚合健康面（Finagle 预算水位——背压族观测收口：denied 增长=重试风暴被挡的可见信号） | [spec 348](docs/spec/348-retry-budget-health.md) |
+| 工程治理 | C 会话收官终验 | 全 reactor 串行终验+快照/覆盖门复验+台账归档（50/50——R30 半程收口同型） | [spec 349](docs/spec/349-session-closeout.md) |
+| 成本预算 | 成本归因台账 | 同一笔 microUsd 双维入账（model+虚拟 key）——chargeback 有账面；无 key 诚实桶、万分比 share、JSONL 报表（Kubecost/OpenCost 按标签归因） | [spec 334](docs/spec/334-cost-attribution.md) |
+| 背压 | 错误预算政策·烧穿自动降级 | 预算烧穿→spawn 准入地板抬 HIGH（冻结 NORMAL/LOW 只保关键通道）、连续两轮清明解冻防抖（Google SRE error budget policy——从「知道」到「行动」） | [spec 335](docs/spec/335-error-budget-freeze.md) |
+
 ## 技术基线
 
 | 依赖 | 版本 |

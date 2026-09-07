@@ -75,12 +75,12 @@ public class PiiRedactionHook implements BuzhouHook {
             if (enabledTypes.contains(m.type())) {
                 BuzhouMetricsHolder.metrics().counter("buzhou.guard.pii.redactions",
                         "type", m.type().name());
-                PiiHitStats.global().record(m.type()); // spec 144 / T469：命中统计
+                PiiHitStats.global().record(m.type(), PiiHitStats.Side.OUTPUT); // spec 144/313：输出侧命中统计
             }
         }
         if (customRules != null && !customRules.isEmpty()) {
             for (String ruleName : customRuleHits(redacted)) {
-                PiiHitStats.global().recordCustom(ruleName);
+                PiiHitStats.global().recordCustom(ruleName, PiiHitStats.Side.OUTPUT);
             }
         }
         ctx.replaceResult(redacted);

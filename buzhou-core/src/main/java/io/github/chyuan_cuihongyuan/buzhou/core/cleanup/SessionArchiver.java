@@ -69,6 +69,11 @@ public final class SessionArchiver {
     /**
      * 归档并删除（快照 → 级联清理）。快照编码失败 fail-fast（不删——宁可保留原会话
      * 也不冒数据丢失风险）；空会话返回 false。
+     *
+     * <p>spec 304 / T600：saga 两步（写归档 → 级联删活数据）——级联<b>部分失败上抛</b>
+     * （诚实化：不再吞掉返回 true），已成步倒序补偿（归档条目即 undo log：从条目
+     * 写回 消息/摘要/状态 三槽）；补偿失败即停止回退——归档键保留（唯一完整副本，
+     * 人工介入重试）。
      */
     public boolean archive(String sessionId) {
         List<BuzhouMessage> messages = stores.messageStore().load(sessionId);
@@ -79,11 +84,54 @@ public final class SessionArchiver {
         ArchiveEntry entry = new ArchiveEntry(sessionId, Instant.now(), messages,
                 summary.orElse(null), stores.sessionStateStore().getAll(sessionId));
         String json = encode(entry);
-        stores.sessionStateStore().put(ARCHIVE_SESSION_ID,
-                new StateEntry(ARCHIVE_PREFIX + sessionId, json, "session-archiver",
-                        0, null, Instant.now()));
-        cleaner.deleteSession(sessionId);
-        return true;
+        // 级联删除非原子（部分失败有残余）——残余效果由已成步（archive-write）的补偿
+        // 承担：liveTouched 标记后步已动活数据，则从条目写回（undo log）再撤归档键。
+        java.util.concurrent.atomic.AtomicBoolean liveTouched =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
+        return io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.run(
+                stores.unitOfWork(),
+                List.of(
+                        io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.Step.of(
+                                "archive-write",
+                                () -> {
+                                    stores.sessionStateStore().put(ARCHIVE_SESSION_ID,
+                                            new StateEntry(ARCHIVE_PREFIX + sessionId, json,
+                                                    "session-archiver", 0, null, Instant.now()));
+                                    return entry;
+                                },
+                                written -> {
+                                    if (liveTouched.get()) {
+                                        writeBackLive(entry);
+                                    }
+                                    stores.sessionStateStore()
+                                            .delete(ARCHIVE_SESSION_ID, ARCHIVE_PREFIX + sessionId);
+                                }),
+                        io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.Step.of(
+                                "live-delete",
+                                () -> {
+                                    liveTouched.set(true);
+                                    SessionCleanupResult result = cleaner.deleteSession(sessionId);
+                                    if (!result.failures().isEmpty()) {
+                                        throw new IllegalStateException("归档级联清理部分失败（sessionId="
+                                                + sessionId + "，失败目标=" + result.failures().keySet() + "）");
+                                    }
+                                    return result;
+                                },
+                                null))) != null;
+    }
+
+    /** saga 补偿：从归档条目写回活数据三槽（消息/摘要/状态——undo log 重放）。 */
+    private void writeBackLive(ArchiveEntry entry) {
+        String sessionId = entry.sessionId();
+        if (!entry.messages().isEmpty()) {
+            stores.messageStore().append(sessionId, entry.messages());
+        }
+        if (entry.summary() != null) {
+            stores.summaryStore().save(sessionId, entry.summary());
+        }
+        for (StateEntry state : entry.states().values()) {
+            stores.sessionStateStore().put(sessionId, state);
+        }
     }
 
     /** 从归档回放三槽（原键原值）；归档键随后删除。无归档 = false。 */

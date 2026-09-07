@@ -52,6 +52,11 @@ public final class EventSchemaChecker implements SessionEventListener {
                 .toList();
     }
 
+    /** 被包装的下游监听（spec 307 / T605：全局挂点去重依据——delegate 不再直挂）。 */
+    public SessionEventListener delegate() {
+        return delegate;
+    }
+
     @Override
     public void onEvent(SessionEvent event) {
         List<String> violations = violations(event);

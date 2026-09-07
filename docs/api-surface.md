@@ -1490,3 +1490,71 @@
   full detail 照跑——灰度期「看到脏但照跑」；单参严格档零变化，
   spec 150 fog 收口）
 - 类型级快照：**零新增**（方法级）；yml 键：**零新增**
+
+## effort #300–#328 新增公共面（C 会话 R1–R29 / spec 300–328 / impl-323–351，@since 1.0.0）
+
+> 一次性入档 38 型（B 尾巴 + C 会话 R1–R29 攒量）；快照机同步修跨平台
+> （File.pathSeparator + `\`→`/` 归一——Windows 本机首次真比对/再生，
+> 此前 split(":") 在 Windows 切碎 classpath 且 `\classes` 不匹配 `/classes`，
+> 门恒跳过、regenerate 写空文件）。
+
+**buzhou-core**
+
+- 运维弧线：`SessionDisruptionBudget` + `SessionDisruptionBudgetProperties`（318 排水预算——K8s PDB）；
+  `BulkheadScalingAdvisor` + `BulkheadScalingProperties`（319 伸缩建议——K8s HPA）；
+  `BuzhouConfigRefreshEvent` + `BulkheadHotReload`（320 容量热调整——Spring Cloud rebind）；
+  `LeaderElector` SPI + `InMemoryLeaderElector`（331 选主——K8s leader election/etcd lease）
+- 告警/观测：`AlertRuleEngine` + `BuzhouAlertProperties`（312——Grafana ruler）；
+  `AlertGate`（330——Alertmanager 静默窗+抑制规则，嵌套 `Silence`/`InhibitRule`/`Silenced`）；
+  `BuzhouProbes` + `BuzhouProbesEndpoint` + `BuzhouProbeProperties`（332——K8s 三探针分层，嵌套 `ProbeClass`/`Verdict`）；
+  `BuzhouConfigSnapshotEndpoint`（343——生效配置自描述+密钥掩码，actuator configprops 思想）；
+  `BuzhouAlertsEndpoint`（345——告警面板：312 firing 视图+330 静默/抑制聚合，Alertmanager UI 思想）；
+  `BuzhouSessionsEndpoint`（346——会话面板：活跃计数+准入地板多源+cordon 态，面板三部曲之三）；
+  `ErrorBudget` + `ErrorBudgetHook` + `ErrorBudgetHealth` + `ErrorBudgetProperties`（321——Google SRE burn）；
+  `ExportBundle`（317——OCI artifact 合流打包）
+- 演练/事故：`ChaosMonkeyHook` + `ChaosProperties`（322——Chaos Monkey）；
+  `DryRunHook` + `DryRunProperties` + `DryRunPlanJsonl`（323/328——Terraform plan/apply）；
+  `ToolKillSwitchHook` + `ToolKillSwitchHotReload` + `ToolKillSwitchProperties`（325——kill switch）
+- 失控防护：`TurnRepetitionDetector` + `RepetitionDetectorHook` + `RepetitionProperties`（326——context rot）；
+  `ToolLoopBreakerHook` + `ToolLoopProperties`（327——调用形态断路）
+- 流量/共享族：`CanaryToolCallback`（324——Istio/Flagger canary）；
+  `LaneStateBackend` + `BackendLanePermit`（core.exec，316 共享泳道 SPI）；
+  `VirtualKeyBudgetBackend`（core.spi，315 共享配额 SPI）
+- 安全：`EnvelopeCipher` + `EncryptingMessageStore` + `BuzhouMessageEncryptionProperties`
+  （333——Vault transit/KMS envelope：消息静态信封加密，AAD 绑定+双钥轮换）；
+  `EncryptingSummaryStore`（336——同通道扩散摘要槽，state 槽 CAS 比值面为诚实边界）
+
+**buzhou-guard**
+
+- `AuditChainHealth`（344——CT log/链全节点验证：审计链完整性巡检，
+  断链 DOWN 定位首断点、超窗 UNKNOWN 带修法）
+- 背压：`SpawnAdmissionFloor` + `ErrorBudgetPolicy` + `ErrorBudgetFreezeProperties`
+  （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）；
+  `MaintenanceCordon` + `BuzhouMaintenanceProperties`（342——K8s cordon：
+  维护窗/运行时按钮 cordon，地板多源合成与冻结正交）；
+  `RetryBudgetHealth`（348——Finagle 预算水位：恒 UP+余量/被拦快照，背压族观测收口）
+- 执行脊柱：`ToolBaggage`（337——W3C Baggage/OTel：工具上下文行李，
+  yml 播种+运行时 API+有界封顶）
+- B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
+  `ToolHealth`（305 工具健康）
+- 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost
+  按标签归因：双维 chargeback 台账，嵌套 `Dimension`/`Attribution`）
+
+**buzhou-memory**
+
+- `IdleCompactionHousekeeper` + `IdleCompactionProperties`（310——LSM 空闲压缩）
+
+**buzhou-resilience**
+
+- `ShadowComparisonJsonl`（309——W&B 影子对照明细）
+- `WeightedChatModel` + `BuzhouRoutingProperties`（339——LiteLLM Router：
+  多模型平滑加权路由，199 原语装配收尾）；
+  `RoutingWeightsHotReload`（340——权重热调：refresh 事件逐路 setWeight，
+  320 rebind 同模式）
+
+**buzhou-store-redis**
+
+- `RedisLaneStateBackend`（316——Lua 原子泳道共享）/ `RedisVirtualKeyBudgetBackend`（315——Lua 原子配额共享）
+- `RedisLeaderElector` + `LeaderElectionProperties`（331——Lua 原子选主：TTL 租约+单调纪元围栏，K8s leader election）
+
+- 类型级快照：**+38**（收口再生，Windows 首次本机可用）；yml 键：随各 spec 入档

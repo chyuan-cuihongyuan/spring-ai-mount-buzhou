@@ -60,6 +60,8 @@ public final class SpawnGate {
     private final Duration queueTimeout;
     private final OverloadPolicy policy;
     private final Consumer<SessionEvent> emitter;
+    /** spec 335：准入地板（null = 恒 LOW 全放行——存量构造器零变化）。 */
+    private final java.util.function.Supplier<SpawnPriority> admissionFloor;
 
     /** spec 123：锁 + 每级票据队列（替代公平信号量——有向交接可排序）。 */
     private final ReentrantLock gateLock = new ReentrantLock();
@@ -79,6 +81,19 @@ public final class SpawnGate {
     @SuppressWarnings("unchecked")
     public SpawnGate(int limit, Duration queueTimeout, OverloadPolicy policy,
                      Consumer<SessionEvent> emitter) {
+        this(limit, queueTimeout, policy, emitter, null);
+    }
+
+    /**
+     * spec 335 / T661：带准入地板的构造（地板先于容量/排队判定——低于地板的
+     * 优先级立即拒；null = 恒 LOW 全放行，与四参构造完全一致）。
+     *
+     * @param admissionFloor 准入地板供给（如 {@link SpawnAdmissionFloor}）
+     */
+    @SuppressWarnings("unchecked")
+    public SpawnGate(int limit, Duration queueTimeout, OverloadPolicy policy,
+                     Consumer<SessionEvent> emitter,
+                     java.util.function.Supplier<SpawnPriority> admissionFloor) {
         if (limit <= 0) {
             throw new IllegalArgumentException("limit must be positive: " + limit);
         }
@@ -86,6 +101,7 @@ public final class SpawnGate {
         this.queueTimeout = queueTimeout == null ? Duration.ofSeconds(30) : queueTimeout;
         this.policy = policy == null ? OverloadPolicy.QUEUE : policy;
         this.emitter = emitter == null ? event -> {} : emitter;
+        this.admissionFloor = admissionFloor;
         this.available = limit;
         int levels = SpawnPriority.values().length;
         this.priorityConditions = new Condition[levels];
@@ -132,6 +148,17 @@ public final class SpawnGate {
      */
     public void acquireSlotOrThrow(String sessionId, SpawnPriority priority) {
         SpawnPriority prio = priority == null ? SpawnPriority.NORMAL : priority;
+        // spec 335 / T661：准入地板最先裁决（先于容量/排队/drain——语义顺序即
+        // 保护优先级；SRE 冻结期只放行 >= 地板的优先级）
+        SpawnPriority floor = admissionFloor == null ? SpawnPriority.LOW : admissionFloor.get();
+        if (floor == null) {
+            floor = SpawnPriority.LOW;
+        }
+        if (prio.ordinal() > floor.ordinal()) { // 语义低于地板才拒（HIGH 序数最小语义最高）
+            emitRejected(sessionId, "admission-floor", Duration.ZERO);
+            throw new SessionCapacityExceededException(sessionId, currentCount(), limit,
+                    Duration.ZERO);
+        }
         if (policy == OverloadPolicy.FAIL_FAST) {
             gateLock.lock();
             try {

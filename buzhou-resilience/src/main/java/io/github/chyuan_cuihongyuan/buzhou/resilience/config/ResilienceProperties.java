@@ -48,7 +48,19 @@ public record ResilienceProperties(
         @Valid SessionQuota sessionQuota,
         @Valid Shadow shadow,
         @Valid ResponseCache responseCache,
-        @Valid SemanticCache semanticCache) {
+        @Valid SemanticCache semanticCache,
+        @Valid Hedge hedge) {
+
+    /** 15 参兼容构造（spec 301 之前调用方；hedge = 未配置）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, responseCache, semanticCache, null);
+    }
 
     /** 14 参兼容构造（spec 55 之前调用方；semantic-cache = 未配置）。 */
     public ResilienceProperties(
@@ -264,24 +276,35 @@ public record ResilienceProperties(
     }
 
     /**
-     * shadow 探测参数组（spec 49 §A / T176）。前缀 {@code buzhou.resilience.shadow}。
+     * shadow 探测参数组（spec 49 §A / T176；spec 309 / T609 补 detail-path）。
+     * 前缀 {@code buzhou.resilience.shadow}。
      *
      * @param enabled       开关（默认 false——未启用零提交零事件零计数）
      * @param models        shadow ChatModel bean 名列表（未命中启动失败；空 = 不探测）
      * @param maxConcurrent 进程级并发上限（默认 2；超限提交计 skipped-concurrency）
      * @param dailyBudget   进程级 UTC 日预算（提交次数口径；默认 1000；池尽计 skipped-budget）
+     * @param detailPath    对照明细 JSONL 落盘路径（spec 309；声明即装配导出监听——
+     *                      shadow.compared 事件逐条追加；null = 不导出）
      */
     public record Shadow(
             Boolean enabled,
             List<String> models,
             Integer maxConcurrent,
-            Long dailyBudget) {
+            Long dailyBudget,
+            String detailPath) {
 
-        public Shadow {
-            models = models == null || models.isEmpty() ? null : List.copyOf(models);
-            maxConcurrent = maxConcurrent == null || maxConcurrent <= 0 ? 2 : maxConcurrent;
-            dailyBudget = dailyBudget == null || dailyBudget < 0 ? 1000L : dailyBudget;
-        }
+    /** 4 参兼容构造（spec 309 之前调用方；detail-path = 未配置）。 */
+    public Shadow(Boolean enabled, List<String> models, Integer maxConcurrent, Long dailyBudget) {
+        this(enabled, models, maxConcurrent, dailyBudget, null);
+    }
+
+    @org.springframework.boot.context.properties.bind.ConstructorBinding
+    public Shadow {
+        models = models == null || models.isEmpty() ? null : List.copyOf(models);
+        maxConcurrent = maxConcurrent == null || maxConcurrent <= 0 ? 2 : maxConcurrent;
+        dailyBudget = dailyBudget == null || dailyBudget < 0 ? 1000L : dailyBudget;
+        detailPath = detailPath == null || detailPath.isBlank() ? null : detailPath;
+    }
 
         /** 生效开关：显式开启（模型来源由装配面校验——Spring 路径看 models 名单，编程式路径看注入列表）。 */
         public boolean effectiveEnabled() {
@@ -425,6 +448,7 @@ public record ResilienceProperties(
         shadow = shadow == null ? new Shadow(null, null, null, null) : shadow;
         responseCache = responseCache == null ? new ResponseCache(null, null, null) : responseCache;
         semanticCache = semanticCache == null ? new SemanticCache(null, null, null, null) : semanticCache;
+        hedge = hedge == null ? new Hedge(null, null, null, null) : hedge;
         if (responseCache.maxEntries() < 1) {
             throw configError("response-cache.max-entries",
                     String.valueOf(responseCache.maxEntries()), "设为 >= 1 的整数");
@@ -437,6 +461,43 @@ public record ResilienceProperties(
     private static BuzhouConfigurationException configError(String key, String value, String action) {
         return new BuzhouConfigurationException(
                 "buzhou.resilience." + key + "（" + value + "）非法", action);
+    }
+
+    /**
+     * 模型对冲装配参数组（spec 301 / T593，gRPC hedging——spec 137 原语的装配面）。
+     * 前缀 {@code buzhou.resilience.hedge}。默认关（false = 零装配零行为变化）。
+     *
+     * @param enabled      开关（开启即注册 {@code @Primary} 的 {@code buzhouHedgedChatModel}）
+     * @param primaryModel 主模型 ChatModel bean 名（开启时必填——长尾等待的押注主体）
+     * @param model        对冲模型 ChatModel bean 名（开启时必填；不得与主模型同名）
+     * @param delay        对冲触发延迟（默认 200ms；主模型超此未回即并发押注，建议设在主模型 p95 之上）
+     */
+    public record Hedge(Boolean enabled, String primaryModel, String model, Duration delay) {
+
+        public Hedge {
+            delay = delay == null ? Duration.ofMillis(200) : delay;
+            if (delay.isZero() || delay.isNegative()) {
+                throw configError("hedge.delay", delay.toString(), "设为正时长，如 200ms");
+            }
+            if (Boolean.TRUE.equals(enabled)) {
+                if (primaryModel == null || primaryModel.isBlank()) {
+                    throw configError("hedge.primary-model", String.valueOf(primaryModel),
+                            "hedge.enabled=true 时必填主模型 bean 名");
+                }
+                if (model == null || model.isBlank()) {
+                    throw configError("hedge.model", String.valueOf(model),
+                            "hedge.enabled=true 时必填对冲模型 bean 名");
+                }
+                if (model.equals(primaryModel)) {
+                    throw configError("hedge.model", model, "对冲模型不得与主模型同名（自冲无意义）");
+                }
+            }
+        }
+
+        /** 生效开关（显式开启）。 */
+        public boolean effectiveEnabled() {
+            return Boolean.TRUE.equals(enabled);
+        }
     }
 
     /** 全默认（装配测试 / 兜底用）。 */

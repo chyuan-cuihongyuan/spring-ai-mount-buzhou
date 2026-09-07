@@ -18,6 +18,18 @@ public interface AgentRuntime {
     }
 
     /**
+     * 时间旅行 fork（spec 311 / T613，LangGraph checkpointer time-travel 借鉴）：
+     * 从源会话第 {@code upToTurn} 轮（含）之前的历史前缀复制到新会话——回到过去某轮
+     * 重走分支。Summary 不复制（最新摘要可能覆盖 upToTurn 之后的轮次——未来泄漏防护）；
+     * State 不复制（预算重置，同 fork）。走完整 spawn 管线。
+     * 默认抛 UnsupportedOperationException（实现按需提供）。
+     */
+    default AgentSession forkFromTurn(String sourceSessionId, String appId, String agentName,
+            String newSessionId, int upToTurn) {
+        throw new UnsupportedOperationException("本 AgentRuntime 实现不支持时间旅行 fork");
+    }
+
+    /**
      * 会话导出（spec 28 / T107 / impl-82）：messages + 最新 Summary + State 打包为可移植
      * 文档（{@link SessionExport#toJson()} JSON 跨环境）。spill 证据不内嵌（引用随消息
      * metadata 导出，内容走 spill 侧运维导出——runbook）；空会话拒绝。

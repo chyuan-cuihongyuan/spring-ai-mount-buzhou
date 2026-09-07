@@ -108,6 +108,17 @@ public final class ToolHealthProber {
                 interval.toMillis(), TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * 最近已知状态快照（不主动探测——健康面/观测读取用；spec 305 / impl-328）。
+     * 未探测过的注册项记 UP（未探视同可用——诚实边界：探测前无 DOWN 证据）。
+     */
+    public synchronized Map<String, ToolStatus> lastKnown() {
+        Map<String, ToolStatus> out = new TreeMap<>();
+        probes.forEach((name, holder) -> out.put(name,
+                new ToolStatus(holder.probed ? holder.last : Status.UP, holder.consecutiveDown)));
+        return out;
+    }
+
     /** 停调度（幂等）。 */
     public synchronized void stop() {
         if (scheduler != null) {

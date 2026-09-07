@@ -35,12 +35,16 @@ final class WebhookOutbox {
     /** spec 79 §A / T311：due-time 索引前缀（键 = due.<16 位零垫 nextAttemptAt>.<eventId>）。 */
     static final String DUE_PREFIX = "due.";
     private static final String META_KEY = "meta.initialized";
+    /** spec 303 / T597：持久投递纪元键（发送方每次启动递增——重启显式化，接收方 fence 据此 RESET）。 */
+    static final String META_EPOCH_KEY = "meta.epoch";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final System.Logger LOGGER = System.getLogger(WebhookOutbox.class.getName());
 
     private final SessionStateStore store;
     private final int capacity;
     private final AtomicLong seq;
+    /** spec 303 / T597：本进程投递纪元（启动期持久递增；恒正）。 */
+    private final long epoch;
 
     /** 待投递记录（持久化形态）。body = 完整信封 JSON 字符串；时间 epoch millis。 */
     record OutboxRecord(String eventId, String type, String body, long seq,
@@ -82,8 +86,31 @@ final class WebhookOutbox {
             }
         }
         this.seq = new AtomicLong(maxSeq);
+        // spec 303 / T597：持久纪元递增——max(持久值+1, 启动墙钟毫秒) 防快启同毫秒撞号；
+        // 回写失败降级墙钟值（不持久但实际不撞），纪元恒正。
+        long persisted = 0;
+        try {
+            StateEntry epochEntry = store.get(SESSION_ID, META_EPOCH_KEY).orElse(null);
+            if (epochEntry != null) {
+                persisted = Long.parseLong(epochEntry.value());
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING, "投递纪元读取失败，降级墙钟纪元", e);
+        }
+        this.epoch = Math.max(Math.max(persisted + 1, 1), System.currentTimeMillis());
+        try {
+            store.put(SESSION_ID, new StateEntry(META_EPOCH_KEY, String.valueOf(epoch),
+                    "webhook-outbox", 0, null, Instant.now()));
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING, "投递纪元回写失败（本进程纪元仍生效，下次启动可能复用墙钟）", e);
+        }
         // 占位键：内存实现 maxSessions 准入在此 fail-fast（启动期配置错误，而非首事件静默丢）
         store.put(SESSION_ID, new StateEntry(META_KEY, "1", "webhook-outbox", 0, null, Instant.now()));
+    }
+
+    /** 本进程投递纪元（恒正；信封 epoch 字段来源——spec 303）。 */
+    long epoch() {
+        return epoch;
     }
 
     /** 入队（容量满返回 false，由调用方计 dropped；attempts=0、立即可投递）。 */

@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.guard.pii;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,10 +29,18 @@ public final class PiiHitStats {
     public record Hit(String name, long count) {
     }
 
+    /**
+     * 命中侧（spec 313 / T617，Presidio 统计分侧深化）：用户输入（预防提示面）vs
+     * 工具输出（脱敏规则面）是两个策略面——分侧列拆开调优。UNSPECIFIED = 旧调用方
+     * 单参 record 兜底（兼容未升级宿主）。
+     */
+    public enum Side { INPUT, OUTPUT, UNSPECIFIED }
+
     private static final AtomicReference<PiiHitStats> GLOBAL =
             new AtomicReference<>(new PiiHitStats());
 
     private final Map<String, AtomicLong> counts = new ConcurrentHashMap<>();
+    private final Map<String, EnumMap<Side, AtomicLong>> sideCounts = new ConcurrentHashMap<>();
 
     private PiiHitStats() {
     }
@@ -51,29 +60,69 @@ public final class PiiHitStats {
         GLOBAL.set(stats == null ? new PiiHitStats() : stats);
     }
 
-    /** 记一次内置类型命中。 */
+    /** 记一次内置类型命中（side = UNSPECIFIED——旧调用方兼容）。 */
     public void record(PiiType type) {
+        record(type, Side.UNSPECIFIED);
+    }
+
+    /** 记一次内置类型命中（分侧——spec 313）。 */
+    public void record(PiiType type, Side side) {
         if (type == null) {
             throw new IllegalArgumentException("type must not be null");
         }
         counts.computeIfAbsent(type.name(), k -> new AtomicLong()).incrementAndGet();
+        sideCount(type.name(), side).incrementAndGet();
     }
 
-    /** 记一次自定义规则命中（封顶折 overflow；空白名拒绝）。 */
+    /** 记一次自定义规则命中（封顶折 overflow；空白名拒绝；side = UNSPECIFIED）。 */
     public void recordCustom(String ruleName) {
+        recordCustom(ruleName, Side.UNSPECIFIED);
+    }
+
+    /** 记一次自定义规则命中（分侧——封顶判定同总量口径）。 */
+    public void recordCustom(String ruleName, Side side) {
         if (ruleName == null || ruleName.isBlank()) {
             throw new IllegalArgumentException("ruleName must not be blank");
         }
         AtomicLong counter = counts.get(ruleName);
         if (counter != null) {
             counter.incrementAndGet();
+            sideCount(ruleName, side).incrementAndGet();
             return;
         }
         if (customNameCount() >= MAX_CUSTOM_RULES) {
             counts.computeIfAbsent(OVERFLOW, k -> new AtomicLong()).incrementAndGet();
+            sideCount(OVERFLOW, side).incrementAndGet();
             return;
         }
         counts.computeIfAbsent(ruleName, k -> new AtomicLong()).incrementAndGet();
+        sideCount(ruleName, side).incrementAndGet();
+    }
+
+    private AtomicLong sideCount(String name, Side side) {
+        return sideCounts.computeIfAbsent(name, k -> new EnumMap<>(Side.class))
+                .computeIfAbsent(side == null ? Side.UNSPECIFIED : side, k -> new AtomicLong());
+    }
+
+    /** 分侧排行 top-N（count 降序 + 名字典序——与 top() 同稳定序；spec 313）。 */
+    public List<Hit> topBySide(Side side, int n) {
+        return sideCounts.entrySet().stream()
+                .filter(e -> e.getValue().containsKey(side))
+                .sorted((a, b) -> {
+                    int byCount = Long.compare(
+                            b.getValue().get(side).get(), a.getValue().get(side).get());
+                    return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
+                })
+                .limit(Math.max(0, n))
+                .map(e -> new Hit(e.getKey(), e.getValue().get(side).get()))
+                .toList();
+    }
+
+    /** 分侧点查（未见过 0——诚实空值）。 */
+    public long countOf(String name, Side side) {
+        EnumMap<Side, AtomicLong> bySide = sideCounts.get(name);
+        AtomicLong counter = bySide == null ? null : bySide.get(side);
+        return counter == null ? 0L : counter.get();
     }
 
     /** 命中排行 top-N（count 降序，同 count 名字典序——报表稳定序）。 */
@@ -99,9 +148,10 @@ public final class PiiHitStats {
         return counts.size();
     }
 
-    /** 窗口清零（export → reset 循环——每窗口一份合规报表）。 */
+    /** 窗口清零（export → reset 循环——每窗口一份合规报表；分侧同清）。 */
     public void reset() {
         counts.clear();
+        sideCounts.clear();
     }
 
     /** 自定义名计数（内置枚举名之外的键——封顶判定用）。 */

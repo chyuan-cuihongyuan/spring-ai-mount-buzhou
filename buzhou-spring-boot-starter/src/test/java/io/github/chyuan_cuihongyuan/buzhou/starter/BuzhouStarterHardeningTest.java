@@ -90,7 +90,12 @@ class BuzhouStarterHardeningTest {
             throws Exception {
         // T214：-am 联编（reactor）时依赖是 classes 目录而非 jar——退化为目录内 additional
         // 元数据断言（processor 生成面在 packaged verify 全流程另有覆盖；两条路都断关键键）。
-        String jarPath = java.util.Arrays.stream(classpath.split(":"))
+        // R50 收口：跨平台修（R30 快照机同款）——File.pathSeparator 切分 + 反斜杠归一；
+        // 原 split(":") 在 Windows 被盘符冒号切碎 classpath，且 \classes 不匹配 /endsWith("/classes")。
+        String[] entries = classpath.split(
+                java.util.regex.Pattern.quote(java.io.File.pathSeparator));
+        String jarPath = java.util.Arrays.stream(entries)
+                .map(BuzhouStarterHardeningTest::normalizePath)
                 .filter(p -> p.contains(jarNameFragment) && p.endsWith(".jar"))
                 .findFirst()
                 .orElse(null);
@@ -105,7 +110,8 @@ class BuzhouStarterHardeningTest {
             }
             return;
         }
-        String classesDir = java.util.Arrays.stream(classpath.split(":"))
+        String classesDir = java.util.Arrays.stream(entries)
+                .map(BuzhouStarterHardeningTest::normalizePath)
                 .filter(p -> p.contains(jarNameFragment) && p.endsWith("/classes"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError(
@@ -116,5 +122,10 @@ class BuzhouStarterHardeningTest {
         assertThat(generated).as(jarNameFragment + " 缺生成元数据（processor 回退？）").exists();
         String json = java.nio.file.Files.readString(generated);
         assertThat(json).as(jarNameFragment + " 元数据缺键 " + key).contains(key);
+    }
+
+    /** 反斜杠归一（Windows 路径 → 正斜杠；endsWith("/classes") 等判定跨平台成立）。 */
+    private static String normalizePath(String path) {
+        return path.replace('\\', '/');
     }
 }

@@ -28,12 +28,71 @@ import java.util.Map;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.resilience", name = "enabled", matchIfMissing = true)
-@EnableConfigurationProperties(ResilienceProperties.class)
+@EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean
     public ResilienceStats resilienceStats() {
         return new ResilienceStats();
+    }
+
+    /**
+     * spec 339 / T670：多模型加权路由（LiteLLM Router 借鉴——199 平滑加权
+     * 原语装配收尾）。{@code buzhou.routing.weights.<beanName>} ≥2 项才装配
+     * @Primary 路由器（按名取 ChatModel bean，缺名启动红带修法——与 fallback
+     * 同 fail-fast 口径）；未配/单项 = 零变化（条件不满足不建 bean）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Primary
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.RoutingConfiguredCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
+    buzhouWeightedChatModel(BuzhouRoutingProperties routing, Map<String, ChatModel> chatModels) {
+        java.util.Map<String, ChatModel> candidates = new java.util.LinkedHashMap<>();
+        routing.weights().keySet().forEach(name -> {
+            ChatModel model = chatModels.get(name);
+            if (model == null) {
+                throw new BuzhouConfigurationException(
+                        "buzhou.routing.weights 引用 ChatModel bean「" + name + "」不存在",
+                        "可用 ChatModel bean：" + chatModels.keySet());
+            }
+            candidates.put(name, model);
+        });
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel(
+                candidates, routing.weights());
+    }
+
+    /**
+     * spec 340 / T672：路由权重热重载（路由器在场即挂——320 舱容量同模式；
+     * refresh 事件重读 yml 逐路 setWeight，WRR 动量保留自然收敛）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.RoutingConfiguredCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload
+    buzhouRoutingWeightsHotReload(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel router,
+            org.springframework.core.env.Environment environment) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload(
+                router, environment);
+    }
+
+    /** spec 339：weights ≥2 路才建路由器（Binder 预绑判定——未配零变化）。 */
+    static final class RoutingConfiguredCondition implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.routing.weights",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Integer.class))
+                        .orElse(java.util.Map.of()).size() >= 2;
+            } catch (RuntimeException e) {
+                return false; // 绑定失败交由属性校验层报错
+            }
+        }
     }
 
     @Bean
@@ -113,6 +172,61 @@ public class BuzhouResilienceAutoConfiguration {
             resolved.add(new NamedFallbackModel(name, model));
         }
         return resolved;
+    }
+
+    /**
+     * spec 309 / T609：影子对照明细 JSONL 导出——{@code buzhou.resilience.shadow.detail-path}
+     * 声明即装配（shadow.compared 事件逐条追加；SessionEventListener 类型由 core 全局
+     * 挂点自动收集）。打开失败 fail-fast（坏路径该红）。
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "buzhou.resilience.shadow", name = "detail-path")
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl
+    buzhouShadowComparisonJsonl(ResilienceProperties properties) throws java.io.IOException {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl(
+                java.nio.file.Path.of(properties.shadow().detailPath()));
+    }
+
+    /**
+     * spec 301 / impl-324：对冲专用虚拟线程执行器（对冲竞速线程；随容器关闭 shutdown）。
+     */
+    @Bean(destroyMethod = "shutdown")
+    @ConditionalOnProperty(prefix = "buzhou.resilience.hedge", name = "enabled", havingValue = "true")
+    public java.util.concurrent.ExecutorService buzhouHedgeExecutor() {
+        return java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    /**
+     * spec 301 / impl-324：对冲装配（spec 137 原语 → 装配面）——{@code hedge.enabled=true}
+     * 时注册 {@code @Primary} 的 {@code buzhouHedgedChatModel}：主模型超 delay 未回即并发
+     * 押注对冲模型，先回先得。按名解析主/冲 bean（未命中 fail-fast 带可用名清单）；
+     * 按类型取 ChatModel 的注入位（含 Spring AI ChatClient.Builder 装配）升为对冲装饰器，
+     * 按名注入（fallback/shadow 解析）不受影响。诚实边界：开启后宿主不得再自标
+     * {@code @Primary} ChatModel（对冲位即事实主位）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Primary
+    @ConditionalOnProperty(prefix = "buzhou.resilience.hedge", name = "enabled", havingValue = "true")
+    public ChatModel buzhouHedgedChatModel(ResilienceProperties properties,
+            java.util.concurrent.ExecutorService buzhouHedgeExecutor,
+            Map<String, ChatModel> chatModels) {
+        ResilienceProperties.Hedge hedge = properties.hedge();
+        ChatModel primary = chatModels.get(hedge.primaryModel());
+        if (primary == null) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.resilience.hedge.primary-model（" + hedge.primaryModel()
+                            + "）未命中任何 ChatModel bean",
+                    "检查 bean 名拼写；容器内可用 ChatModel bean：" + chatModels.keySet());
+        }
+        ChatModel hedgeModel = chatModels.get(hedge.model());
+        if (hedgeModel == null) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.resilience.hedge.model（" + hedge.model()
+                            + "）未命中任何 ChatModel bean",
+                    "检查 bean 名拼写；容器内可用 ChatModel bean：" + chatModels.keySet());
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.HedgedChatModel(
+                primary, hedgeModel, hedge.delay(), buzhouHedgeExecutor);
     }
 
     /** spec 49 §A / T176：按 bean 名解析 shadow 模型（未命中 fail-fast；未启用返回 null）。 */

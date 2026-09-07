@@ -36,11 +36,18 @@ public final class ToolCallCoalescer {
         CompletableFuture<Object> created = new CompletableFuture<>();
         CompletableFuture<Object> mine = created;
         CompletableFuture<Object> shared = inFlight.computeIfAbsent(key, k -> {
-            executor.submit(() -> {
+            java.util.concurrent.Future<?> underlying = executor.submit(() -> {
                 try {
                     mine.complete(task.call());
                 } catch (Throwable t) {
                     mine.completeExceptionally(t);
+                }
+            });
+            // spec 300 / impl-323：取消桥接——CompletableFuture.cancel 不触达底层任务，
+            // 须显式中断（Turn 超时路径 awaitCompletion.cancel(true) 依赖此语义不降级）。
+            mine.whenComplete((r, e) -> {
+                if (e instanceof java.util.concurrent.CancellationException) {
+                    underlying.cancel(true);
                 }
             });
             return mine;
