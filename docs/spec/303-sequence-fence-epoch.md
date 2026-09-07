@@ -1,6 +1,6 @@
 # Spec 303 — 序号围栏跨重启持久纪元（effort #303）
 
-> wayfinder map：`.wayfinder303/MAP.md`（T597–T598）。借鉴：Kafka producer
+> wayfinder map：`.wayfinder/maps/effort-303.md`（T597–T598）。借鉴：Kafka producer
 > epoch（idempotent producer generation——重启显式化，重启不再靠猜）。
 
 ## Problem Statement

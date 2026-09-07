@@ -1,6 +1,6 @@
 # Spec 80 — 评估回归门 EvalGate（effort #41）
 
-> wayfinder map：`.wayfinder41/MAP.md`（T313–T314）。借鉴：Promptfoo eval CI gate
+> wayfinder map：`.wayfinder/maps/effort-41.md`（T313–T314）。借鉴：Promptfoo eval CI gate
 > （`--eval-min-pass-rate`）/ LangSmith eval-as-gate。
 
 ## Problem Statement

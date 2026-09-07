@@ -1,6 +1,6 @@
 # Spec 184 — 归档清理接锁（effort #136）
 
-> wayfinder map：`.wayfinder136/MAP.md`（T543–T544）。spec 182（咨询锁）的
+> wayfinder map：`.wayfinder/maps/effort-136.md`（T543–T544）。spec 182（咨询锁）的
 > 首个接线站；spec 127 fog「多实例节流」落地。
 
 ## Problem Statement

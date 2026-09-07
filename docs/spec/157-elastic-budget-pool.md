@@ -1,6 +1,6 @@
 # Spec 157 — 弹性预算池（effort #107）
 
-> wayfinder map：`.wayfinder107/MAP.md`（T515–T516）。借鉴：Spark AQE
+> wayfinder map：`.wayfinder/maps/effort-107.md`（T515–T516）。借鉴：Spark AQE
 > （运行时空闲资源再分配）——静态配额在负载不均时一半沉睡一半撞墙。
 
 ## Problem Statement

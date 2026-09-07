@@ -1,6 +1,6 @@
 # Spec 307 — 事件 schema yml 声明（effort #307）
 
-> wayfinder map：`.wayfinder307/MAP.md`（T605–T606）。借鉴：JSON Schema
+> wayfinder map：`.wayfinder/maps/effort-307.md`（T605–T606）。借鉴：JSON Schema
 > required（spec 209 原语装配收尾——fog 227「事件 schema 声明 yml 化」项）。
 
 ## Problem Statement

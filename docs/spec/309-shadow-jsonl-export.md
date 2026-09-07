@@ -1,6 +1,6 @@
 # Spec 309 — 影子对照明细 JSONL 导出（effort #309）
 
-> wayfinder map：`.wayfinder309/MAP.md`（T609–T610）。借鉴：W&B lineage
+> wayfinder map：`.wayfinder/maps/effort-309.md`（T609–T610）。借鉴：W&B lineage
 > （spec 171 同族——对照数据落盘可溯；fog 227「影子读对照明细 JSONL 导出」项）。
 
 ## Problem Statement

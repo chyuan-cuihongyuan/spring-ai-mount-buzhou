@@ -1,6 +1,6 @@
 # Spec 193 — 导出防篡改清单（effort #215）
 
-> wayfinder map：`.wayfinder215/MAP.md`（T565–T566）。借鉴：OCI manifest /
+> wayfinder map：`.wayfinder/maps/effort-215.md`（T565–T566）。借鉴：OCI manifest /
 > TUF——分发物带摘要清单，接收方可验完整性。
 
 ## Problem Statement

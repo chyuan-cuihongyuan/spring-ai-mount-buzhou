@@ -1,6 +1,6 @@
 # Spec 336 — 摘要槽信封加密（effort #336）
 
-> wayfinder map：`.wayfinder336/MAP.md`（T663–T664）。C 会话第 37 轮，
+> wayfinder map：`.wayfinder/maps/effort-336.md`（T663–T664）。C 会话第 37 轮，
 > 333 的扩散轮。
 
 ## Problem Statement

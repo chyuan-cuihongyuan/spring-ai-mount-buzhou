@@ -1,6 +1,6 @@
 # Spec 70 — 边界机会压缩（effort #30）
 
-> wayfinder map：`.wayfinder30/MAP.md`（T291–T292）。OSS 借鉴：Letta「在自然边界
+> wayfinder map：`.wayfinder/maps/effort-30.md`（T291–T292）。OSS 借鉴：Letta「在自然边界
 > 压缩」（research Tier2 遗留项）。
 
 ## Problem Statement

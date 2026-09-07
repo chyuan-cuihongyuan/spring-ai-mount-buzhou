@@ -1,6 +1,6 @@
 # Spec 123 — spawn 优先级调度（effort #87）
 
-> wayfinder map：`.wayfinder87/MAP.md`（T445–T446）。#85 收口 fog 种子②
+> wayfinder map：`.wayfinder/maps/effort-87.md`（T445–T446）。#85 收口 fog 种子②
 > 「优先级调度（SpawnGate）」。借鉴：OS 调度多级队列（priority classes）、
 > Envoy 优先级面（高优先级流量先得连接）。
 

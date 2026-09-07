@@ -1,6 +1,6 @@
 # Spec 312 — 健康告警规则（effort #312）
 
-> wayfinder map：`.wayfinder312/MAP.md`（T615–T616）。借鉴：Grafana ruler
+> wayfinder map：`.wayfinder/maps/effort-312.md`（T615–T616）。借鉴：Grafana ruler
 > （规则即声明、数据源即健康面、通道即回调）。
 
 ## Problem Statement

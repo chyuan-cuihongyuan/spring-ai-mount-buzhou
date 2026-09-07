@@ -1,6 +1,6 @@
 # Spec 333 — 消息静态信封加密（effort #333）
 
-> wayfinder map：`.wayfinder333/MAP.md`（T657–T658）。C 会话第 34 轮。
+> wayfinder map：`.wayfinder/maps/effort-333.md`（T657–T658）。C 会话第 34 轮。
 
 ## Problem Statement
 

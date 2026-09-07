@@ -1,6 +1,6 @@
 # Spec 124 — 虚拟 key 配额（effort #88）
 
-> wayfinder map：`.wayfinder88/MAP.md`（T449–T450）。#85 fog 种子⑨「虚拟 key
+> wayfinder map：`.wayfinder/maps/effort-88.md`（T449–T450）。#85 fog 种子⑨「虚拟 key
 > 配额」收口。借鉴：LiteLLM virtual-key budgets。
 
 ## Problem Statement

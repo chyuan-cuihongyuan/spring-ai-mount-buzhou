@@ -1,6 +1,6 @@
 # Spec 337 — 工具上下文行李（effort #337）
 
-> wayfinder map：`.wayfinder337/MAP.md`（T665–T666）。C 会话第 38 轮。
+> wayfinder map：`.wayfinder/maps/effort-337.md`（T665–T666）。C 会话第 38 轮。
 
 ## Problem Statement
 

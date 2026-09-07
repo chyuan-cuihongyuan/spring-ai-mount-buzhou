@@ -1,6 +1,6 @@
 # Spec 87 — Ragas 系数值评估器（effort #48）
 
-> wayfinder map：`.wayfinder48/MAP.md`（T335–T336）。借鉴：Ragas faithfulness /
+> wayfinder map：`.wayfinder/maps/effort-48.md`（T335–T336）。借鉴：Ragas faithfulness /
 > answer-relevancy。
 
 ## Problem Statement

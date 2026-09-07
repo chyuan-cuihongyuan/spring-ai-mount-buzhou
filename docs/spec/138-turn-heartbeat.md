@@ -1,6 +1,6 @@
 # Spec 138 — 轮次心跳（effort #114）
 
-> wayfinder map：`.wayfinder114/MAP.md`（T463–T464）。借鉴：Temporal
+> wayfinder map：`.wayfinder/maps/effort-114.md`（T463–T464）。借鉴：Temporal
 > Activity heartbeat（长活动周期性报活，静默即异常信号）。
 
 ## Problem Statement

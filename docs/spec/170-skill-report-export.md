@@ -1,6 +1,6 @@
 # Spec 170 — 技能使用报表导出（effort #129）
 
-> wayfinder map：`.wayfinder129/MAP.md`（T524–T525）。spec 140 fog「导出半边」
+> wayfinder map：`.wayfinder/maps/effort-129.md`（T524–T525）。spec 140 fog「导出半边」
 > 收口。导出族第七员（观测/评估/A-B/错误签名/清单/PII 之后）。
 
 ## Problem Statement

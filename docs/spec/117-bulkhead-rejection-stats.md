@@ -1,6 +1,6 @@
 # Spec 117 — bulkhead 拒绝计数（effort #79）
 
-> wayfinder map：`.wayfinder79/MAP.md`（T421–T422）。spec 84 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-79.md`（T421–T422）。spec 84 fog 项收口。
 
 ## Problem Statement
 

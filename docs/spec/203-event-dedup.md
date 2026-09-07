@@ -1,6 +1,6 @@
 # Spec 203 — 事件去重抑制（effort #220）
 
-> wayfinder map：`.wayfinder220/MAP.md`（T575–T576）。发射方防线——重复
+> wayfinder map：`.wayfinder/maps/effort-220.md`（T575–T576）。发射方防线——重复
 > 事件不出门，接收方幂等键从「必须」变「双保险」。
 
 ## Problem Statement

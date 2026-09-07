@@ -1,6 +1,6 @@
 # Spec 105 — webhook 订阅类型过滤（effort #67）
 
-> wayfinder map：`.wayfinder67/MAP.md`（T389–T390）。借鉴：GitHub/Stripe webhook
+> wayfinder map：`.wayfinder/maps/effort-67.md`（T389–T390）。借鉴：GitHub/Stripe webhook
 > 事件订阅面。
 
 ## Problem Statement

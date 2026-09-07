@@ -1,6 +1,6 @@
 # Spec 95 — 摘要折入 trigger 溯源（effort #56）
 
-> wayfinder map：`.wayfinder56/MAP.md`（T359–T360）。spec 90 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-56.md`（T359–T360）。spec 90 fog 项收口。
 
 ## Problem Statement
 

@@ -1,6 +1,6 @@
 # Spec 165 — 工具健康探测（effort #111）
 
-> wayfinder map：`.wayfinder111/MAP.md`（T527–T528）。借鉴：Consul health
+> wayfinder map：`.wayfinder/maps/effort-111.md`（T527–T528）。借鉴：Consul health
 > check——周期探活 + 状态翻转事件（工具可用性从「调了才知道」变「提前知道」）。
 
 ## Problem Statement

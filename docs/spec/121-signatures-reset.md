@@ -1,6 +1,6 @@
 # Spec 121 — 错误签名窗口化清零（effort #83）
 
-> wayfinder map：`.wayfinder83/MAP.md`（T435–T436）。spec 112 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-83.md`（T435–T436）。spec 112 fog 项收口。
 
 ## Problem Statement
 

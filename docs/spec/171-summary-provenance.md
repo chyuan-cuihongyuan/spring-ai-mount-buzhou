@@ -1,6 +1,6 @@
 # Spec 171 — 摘要溯源台账（effort #204）
 
-> wayfinder map：`.wayfinder204/MAP.md`（T537–T538）。借鉴：W&B artifact
+> wayfinder map：`.wayfinder/maps/effort-204.md`（T537–T538）。借鉴：W&B artifact
 > lineage——产物（摘要）到源（原始消息）的证据链可回查。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 163 — 配置热重载原语（effort #110）
 
-> wayfinder map：`.wayfinder110/MAP.md`（T521–T522）。借鉴：Caddy config
+> wayfinder map：`.wayfinder/maps/effort-110.md`（T521–T522）。借鉴：Caddy config
 > reload（原子换引用 + 变更广播）/ Spring Cloud refresh。
 
 ## Problem Statement

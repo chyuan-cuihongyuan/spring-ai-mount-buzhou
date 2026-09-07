@@ -1,6 +1,6 @@
 # Spec 126 — 提示前缀缓存（effort #90）
 
-> wayfinder map：`.wayfinder90/MAP.md`（T453–T454）。#85 fog 种子⑦「前缀缓存
+> wayfinder map：`.wayfinder/maps/effort-90.md`（T453–T454）。#85 fog 种子⑦「前缀缓存
 > 命中率（provider 侧）」收口。借鉴：vLLM / SGLang radix prefix-cache。
 
 ## Problem Statement

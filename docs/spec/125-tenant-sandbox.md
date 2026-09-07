@@ -1,6 +1,6 @@
 # Spec 125 — 租户隔离沙箱（effort #89）
 
-> wayfinder map：`.wayfinder89/MAP.md`（T451–T452）。#85 fog 种子⑧「多租户
+> wayfinder map：`.wayfinder/maps/effort-89.md`（T451–T452）。#85 fog 种子⑧「多租户
 > tenant scope」文件面首片。借鉴：Milvus partition-key / OS chroot-per-tenant。
 
 ## Problem Statement

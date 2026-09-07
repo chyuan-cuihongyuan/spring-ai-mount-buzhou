@@ -1,6 +1,6 @@
 # Spec 164 — 输入侧 PII 命中统计接线（effort #126）
 
-> wayfinder map：`.wayfinder126/MAP.md`（T517–T518）。spec 144 fog「输入侧
+> wayfinder map：`.wayfinder/maps/effort-126.md`（T517–T518）。spec 144 fog「输入侧
 > 钩子同款接线」收口。
 
 ## Problem Statement

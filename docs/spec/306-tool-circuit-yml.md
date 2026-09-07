@@ -1,6 +1,6 @@
 # Spec 306 — 工具熔断 yml 装配（effort #306）
 
-> wayfinder map：`.wayfinder306/MAP.md`（T603–T604）。借鉴：resilience4j
+> wayfinder map：`.wayfinder/maps/effort-306.md`（T603–T604）。借鉴：resilience4j
 > （spec 131/165 原语装配面——fog 227「新 hook 配置面族」首项）。
 
 ## Problem Statement

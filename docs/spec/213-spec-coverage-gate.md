@@ -1,6 +1,6 @@
 # Spec 213 — spec 文档覆盖门（effort #226）
 
-> wayfinder map：`.wayfinder226/MAP.md`（T587–T588）。绑定矩阵先例——
+> wayfinder map：`.wayfinder/maps/effort-226.md`（T587–T588）。绑定矩阵先例——
 > 把「新能力必须入 README 表」的纪律变成 CI 红/绿。
 
 ## Problem Statement

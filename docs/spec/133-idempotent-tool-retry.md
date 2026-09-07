@@ -1,6 +1,6 @@
 # Spec 133 — 幂等工具重试（effort #95）
 
-> wayfinder map：`.wayfinder95/MAP.md`（T479–T480）。借鉴：Temporal Activity
+> wayfinder map：`.wayfinder/maps/effort-95.md`（T479–T480）。借鉴：Temporal Activity
 > retry policy（幂等 Activity 框架级重试）+ Failsafe 指数退避。
 
 ## Problem Statement

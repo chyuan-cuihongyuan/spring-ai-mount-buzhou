@@ -1,6 +1,6 @@
 # Spec 72 — 会话轨迹→数据集回流（effort #32）
 
-> wayfinder map：`.wayfinder32/MAP.md`（T295–T296）。OSS 借鉴：LangSmith
+> wayfinder map：`.wayfinder/maps/effort-32.md`（T295–T296）。OSS 借鉴：LangSmith
 > session/trace 转 dataset。
 
 ## Problem Statement

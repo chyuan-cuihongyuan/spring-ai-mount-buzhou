@@ -1,6 +1,6 @@
 # Spec 160 — 基数守卫装配（effort #124）
 
-> wayfinder map：`.wayfinder124/MAP.md`（T513–T514）。spec 132 fog「默认装配
+> wayfinder map：`.wayfinder/maps/effort-124.md`（T513–T514）。spec 132 fog「默认装配
 > 接入（opt-in 键）」收口。
 
 ## Problem Statement

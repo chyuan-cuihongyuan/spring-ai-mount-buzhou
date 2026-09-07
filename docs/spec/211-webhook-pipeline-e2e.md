@@ -1,6 +1,6 @@
 # Spec 211 — webhook 族组合 E2E（effort #225）
 
-> wayfinder map：`.wayfinder225/MAP.md`（T585–T586）。集成轮——五件叠成
+> wayfinder map：`.wayfinder/maps/effort-225.md`（T585–T586）。集成轮——五件叠成
 > 一条链，一根测试钉住组合语义。
 
 ## Problem Statement

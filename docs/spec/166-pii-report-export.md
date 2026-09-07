@@ -1,6 +1,6 @@
 # Spec 166 — PII 命中报表导出（effort #127）
 
-> wayfinder map：`.wayfinder127/MAP.md`（T519–T520）。spec 164 fog「报表
+> wayfinder map：`.wayfinder/maps/effort-127.md`（T519–T520）。spec 164 fog「报表
 > JSONL 导出」收口。
 
 ## Problem Statement

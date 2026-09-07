@@ -1,6 +1,6 @@
 # Spec 153 — 凭证租约（effort #105）
 
-> wayfinder map：`.wayfinder105/MAP.md`（T511–T512）。借鉴：HashiCorp Vault
+> wayfinder map：`.wayfinder/maps/effort-105.md`（T511–T512）。借鉴：HashiCorp Vault
 > dynamic secrets（租约式凭证——TTL 内有效、到期自动失效、可续租可吊销）。
 
 ## Problem Statement

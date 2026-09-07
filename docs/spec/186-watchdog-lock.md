@@ -1,6 +1,6 @@
 # Spec 186 — 巡检犬接锁（effort #137）
 
-> wayfinder map：`.wayfinder137/MAP.md`（T546–T547）。spec 182 接线第二站
+> wayfinder map：`.wayfinder/maps/effort-137.md`（T546–T547）。spec 182 接线第二站
 > （首站 spec 184 清理任务）。
 
 ## Problem Statement

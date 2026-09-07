@@ -1,6 +1,6 @@
 # Spec 64 — 延迟感知备模型排序（effort #24）
 
-> wayfinder map：`.wayfinder24/MAP.md`（T279–T280）。OSS 借鉴：LiteLLM Router
+> wayfinder map：`.wayfinder/maps/effort-24.md`（T279–T280）。OSS 借鉴：LiteLLM Router
 > latency-based routing。
 
 ## Problem Statement

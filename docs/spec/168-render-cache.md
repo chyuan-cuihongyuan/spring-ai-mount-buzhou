@@ -1,6 +1,6 @@
 # Spec 168 — 目录渲染缓存（effort #128）
 
-> wayfinder map：`.wayfinder128/MAP.md`（T522–T523）。PromptPrefixCache
+> wayfinder map：`.wayfinder/maps/effort-128.md`（T522–T523）。PromptPrefixCache
 > （spec 126）的首个内置消费方。借鉴：vLLM radix prefix-cache 内容寻址。
 
 ## Problem Statement

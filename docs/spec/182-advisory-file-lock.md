@@ -1,6 +1,6 @@
 # Spec 182 — 文件咨询锁（effort #135）
 
-> wayfinder map：`.wayfinder135/MAP.md`（T540–T541）。借鉴：ShedLock
+> wayfinder map：`.wayfinder/maps/effort-135.md`（T540–T541）。借鉴：ShedLock
 > （定时任务多实例单执行）。
 
 ## Problem Statement

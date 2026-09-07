@@ -1,6 +1,6 @@
 # Spec 59 — 技能目录语义排序注入（effort #19）
 
-> wayfinder map：`.wayfinder19/MAP.md`（T264–T268）。OSS 借鉴：Claude Code skills
+> wayfinder map：`.wayfinder/maps/effort-19.md`（T264–T268）。OSS 借鉴：Claude Code skills
 > 按需加载纪律 + LiteLLM semantic routing 的 embedding 相似度选路思想。
 
 ## Problem Statement

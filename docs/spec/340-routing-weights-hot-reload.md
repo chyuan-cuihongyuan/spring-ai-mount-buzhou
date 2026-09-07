@@ -1,6 +1,6 @@
 # Spec 340 — 路由权重热调整（effort #340）
 
-> wayfinder map：`.wayfinder340/MAP.md`（T671–T672）。C 会话第 41 轮，
+> wayfinder map：`.wayfinder/maps/effort-340.md`（T671–T672）。C 会话第 41 轮，
 > 339 的运维收尾。
 
 ## Problem Statement

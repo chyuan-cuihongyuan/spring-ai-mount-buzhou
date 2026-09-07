@@ -1,6 +1,6 @@
 # Spec 89 — G-Eval 自定义维度打分（effort #50）
 
-> wayfinder map：`.wayfinder50/MAP.md`（T341–T342）。借鉴：DeepEval G-Eval。
+> wayfinder map：`.wayfinder/maps/effort-50.md`（T341–T342）。借鉴：DeepEval G-Eval。
 
 ## Problem Statement
 

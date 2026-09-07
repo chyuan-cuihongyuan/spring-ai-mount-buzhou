@@ -1,6 +1,6 @@
 # Spec 190 — 模型成本健康面（effort #139）
 
-> wayfinder map：`.wayfinder139/MAP.md`（T551–T552）。
+> wayfinder map：`.wayfinder/maps/effort-139.md`（T551–T552）。
 
 ## Problem Statement
 

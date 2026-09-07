@@ -1,6 +1,6 @@
 # Spec 319 — 舱压伸缩建议（effort #319）
 
-> wayfinder map：`.wayfinder319/MAP.md`（T629–T630）。借鉴：Kubernetes HPA
+> wayfinder map：`.wayfinder/maps/effort-319.md`（T629–T630）。借鉴：Kubernetes HPA
 > custom metrics——desired = current × metric/target；Buzhou 的 utilization
 > = 舱拒绝率（持续拒绝 = 容量不足）。
 

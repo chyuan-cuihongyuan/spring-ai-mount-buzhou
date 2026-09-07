@@ -1,6 +1,6 @@
 # Spec 90 — 语义漂移触发压缩（effort #51）
 
-> wayfinder map：`.wayfinder51/MAP.md`（T343–T344）。#35 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-51.md`（T343–T344）。#35 fog 项收口。
 > 借鉴：Letta 语义触发压缩 / Phoenix 漂移检测。
 
 ## Problem Statement

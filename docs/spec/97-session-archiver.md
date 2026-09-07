@@ -1,6 +1,6 @@
 # Spec 97 — 会话归档冷层（effort #58）
 
-> wayfinder map：`.wayfinder58/MAP.md`（T363–T364）。#35 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-58.md`（T363–T364）。#35 fog 项收口。
 
 ## Problem Statement
 

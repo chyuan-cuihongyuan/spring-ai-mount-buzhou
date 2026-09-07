@@ -1,6 +1,6 @@
 # Spec 325 — 工具紧急停用开关（effort #325）
 
-> wayfinder map：`.wayfinder325/MAP.md`（T641–T642）。借鉴：LaunchDarkly
+> wayfinder map：`.wayfinder/maps/effort-325.md`（T641–T642）。借鉴：LaunchDarkly
 > kill switch / K8s cordon——人工标记式隔离，不重启。
 
 ## Problem Statement

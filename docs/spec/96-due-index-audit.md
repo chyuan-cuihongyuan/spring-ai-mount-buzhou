@@ -1,6 +1,6 @@
 # Spec 96 — outbox due 索引审计（effort #57）
 
-> wayfinder map：`.wayfinder57/MAP.md`（T361–T362）。spec 79 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-57.md`（T361–T362）。spec 79 fog 项收口。
 
 ## Problem Statement
 

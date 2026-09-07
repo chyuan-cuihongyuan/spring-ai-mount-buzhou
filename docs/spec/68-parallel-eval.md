@@ -1,6 +1,6 @@
 # Spec 68 — 评估并行执行（effort #28）
 
-> wayfinder map：`.wayfinder28/MAP.md`（T287–T288）。OSS 借鉴：LangSmith / DeepEval
+> wayfinder map：`.wayfinder/maps/effort-28.md`（T287–T288）。OSS 借鉴：LangSmith / DeepEval
 > 并行评估执行。
 
 ## Problem Statement

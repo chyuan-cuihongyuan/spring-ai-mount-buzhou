@@ -1,6 +1,6 @@
 # Spec 71 — A/B 成对评估 runner（effort #31）
 
-> wayfinder map：`.wayfinder31/MAP.md`（T293–T294）。OSS 借鉴：Ragas pairwise eval /
+> wayfinder map：`.wayfinder/maps/effort-31.md`（T293–T294）。OSS 借鉴：Ragas pairwise eval /
 > LiteLLM model-compare。组合 #21（judge）/ #23（pairwise）/ #28（并行）三件。
 
 ## Problem Statement

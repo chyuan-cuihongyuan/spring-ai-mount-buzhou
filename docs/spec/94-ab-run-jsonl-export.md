@@ -1,6 +1,6 @@
 # Spec 94 — A/B run JSONL 导出（effort #55）
 
-> wayfinder map：`.wayfinder55/MAP.md`（T355–T356）。spec 88 fog 项收口（AB 面同构）。
+> wayfinder map：`.wayfinder/maps/effort-55.md`（T355–T356）。spec 88 fog 项收口（AB 面同构）。
 
 ## Problem Statement
 

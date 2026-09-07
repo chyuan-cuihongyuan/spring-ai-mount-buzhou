@@ -1,6 +1,6 @@
 # Spec 66 — 前缀稳定注入序（effort #26）
 
-> wayfinder map：`.wayfinder26/MAP.md`（T283–T284）。OSS 借鉴：Anthropic prompt
+> wayfinder map：`.wayfinder/maps/effort-26.md`（T283–T284）。OSS 借鉴：Anthropic prompt
 > caching 最佳实践 / OpenAI automatic prefix caching。
 
 ## Problem Statement

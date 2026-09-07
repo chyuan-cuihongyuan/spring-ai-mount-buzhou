@@ -1,6 +1,6 @@
 # Spec 82 — 数据集指纹（effort #43）
 
-> wayfinder map：`.wayfinder43/MAP.md`（T319–T320）。借鉴：LangSmith dataset
+> wayfinder map：`.wayfinder/maps/effort-43.md`（T319–T320）。借鉴：LangSmith dataset
 > versioning；git tree hash 同思想。
 
 ## Problem Statement

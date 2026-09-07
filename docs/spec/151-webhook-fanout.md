@@ -1,6 +1,6 @@
 # Spec 151 — 多 sink webhook 扇出（effort #104）
 
-> wayfinder map：`.wayfinder104/MAP.md`（T507–T508）。借鉴：Kafka 多消费者组
+> wayfinder map：`.wayfinder/maps/effort-104.md`（T507–T508）。借鉴：Kafka 多消费者组
 > （同事件流多组独立消费）/ CloudEvents 多协议分发。
 
 ## Problem Statement

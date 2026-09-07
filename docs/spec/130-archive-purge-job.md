@@ -1,6 +1,6 @@
 # Spec 130 — 归档定时清理（effort #91）
 
-> wayfinder map：`.wayfinder92/MAP.md`（T455–T456，A 会话 #92）。spec 103 fog「归档
+> wayfinder map：`.wayfinder/maps/effort-92.md`（T455–T456，A 会话 #92）。spec 103 fog「归档
 > autoconfig 定时」收口。借鉴：S3 lifecycle 触发（到期规则自动兑现）。
 
 ## Problem Statement

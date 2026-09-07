@@ -1,6 +1,6 @@
 # Spec 146 — 导出清单（effort #118）
 
-> wayfinder map：`.wayfinder118/MAP.md`（T471–T472）。借鉴：git pack 索引
+> wayfinder map：`.wayfinder/maps/effort-118.md`（T471–T472）。借鉴：git pack 索引
 > （pack 与 idx 分立——内容审计先看目录再按需下钻）。
 
 ## Problem Statement

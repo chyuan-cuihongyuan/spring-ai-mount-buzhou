@@ -1,6 +1,6 @@
 # Spec 131 — 工具级熔断（effort #94）
 
-> wayfinder map：`.wayfinder94/MAP.md`（T477–T478）。主题池轮换（原 fog ⑥⑦ 被
+> wayfinder map：`.wayfinder/maps/effort-94.md`（T477–T478）。主题池轮换（原 fog ⑥⑦ 被
 > A 会话收口，改选）。借鉴：resilience4j CircuitBreaker（失败率滑窗 + 半开探测），
 > 与 spec 15 模型熔断（模型面）正交——本轮补工具面。
 

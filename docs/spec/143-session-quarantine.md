@@ -1,6 +1,6 @@
 # Spec 143 — 会话隔离检疫（effort #100）
 
-> wayfinder map：`.wayfinder100/MAP.md`（T495–T496）。借鉴：Erlang/OTP
+> wayfinder map：`.wayfinder/maps/effort-100.md`（T495–T496）。借鉴：Erlang/OTP
 > supervisor「let it crash + 指数退避重启」——反复失败的会话隔离冷却，
 > 越闹冷却越长。
 

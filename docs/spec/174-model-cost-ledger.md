@@ -1,6 +1,6 @@
 # Spec 174 — 模型成本台账（effort #131）
 
-> wayfinder map：`.wayfinder131/MAP.md`（T529–T530）。借鉴：WandB/Langfuse
+> wayfinder map：`.wayfinder/maps/effort-131.md`（T529–T530）。借鉴：WandB/Langfuse
 > cost tracking（账单按模型分组、窗口对比）。
 
 ## Problem Statement

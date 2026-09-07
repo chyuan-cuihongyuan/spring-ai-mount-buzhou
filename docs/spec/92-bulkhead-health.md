@@ -1,6 +1,6 @@
 # Spec 92 — 隔离舱健康面（effort #53）
 
-> wayfinder map：`.wayfinder53/MAP.md`（T349–T350）。#84 fog 毕业生。
+> wayfinder map：`.wayfinder/maps/effort-53.md`（T349–T350）。#84 fog 毕业生。
 
 ## Problem Statement
 

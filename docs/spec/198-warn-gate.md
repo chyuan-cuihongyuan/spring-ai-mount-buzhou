@@ -1,6 +1,6 @@
 # Spec 198 — 门禁宽松档（effort #143）
 
-> wayfinder map：`.wayfinder143/MAP.md`（T562–T563）。spec 150 fog「宽严
+> wayfinder map：`.wayfinder/maps/effort-143.md`（T562–T563）。spec 150 fog「宽严
 > 两档」收口。
 
 ## Solution

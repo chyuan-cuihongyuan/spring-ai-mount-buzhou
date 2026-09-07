@@ -1,6 +1,6 @@
 # Spec 331 — 后台任务选主（effort #331）
 
-> wayfinder map：`.wayfinder331/MAP.md`（T653–T654）。C 会话第 32 轮。
+> wayfinder map：`.wayfinder/maps/effort-331.md`（T653–T654）。C 会话第 32 轮。
 
 ## Problem Statement
 

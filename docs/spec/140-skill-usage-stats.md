@@ -1,6 +1,6 @@
 # Spec 140 — 技能使用统计（effort #115）
 
-> wayfinder map：`.wayfinder115/MAP.md`（T465–T466）。借鉴：Backstage
+> wayfinder map：`.wayfinder/maps/effort-115.md`（T465–T466）。借鉴：Backstage
 > catalog score / Caffeine hitRate 观测面（目录价值以使用证据说话）。
 
 ## Problem Statement

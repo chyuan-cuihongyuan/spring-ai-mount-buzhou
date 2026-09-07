@@ -1,6 +1,6 @@
 # Spec 57 — 共享熔断闸（effort #17）
 
-> wayfinder map：`.wayfinder17/MAP.md`（T254–T258）。OSS 借鉴：LiteLLM Router
+> wayfinder map：`.wayfinder/maps/effort-17.md`（T254–T258）。OSS 借鉴：LiteLLM Router
 > deployment cooldown 跨实例共享（实例标记冷却 → 全实例可见，恢复由探测驱动）。
 
 ## Problem Statement

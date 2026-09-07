@@ -1,6 +1,6 @@
 # Spec 178 — 重试预算（effort #133）
 
-> wayfinder map：`.wayfinder133/MAP.md`（T535–T536）。借鉴：Twitter Finagle
+> wayfinder map：`.wayfinder/maps/effort-133.md`（T535–T536）。借鉴：Twitter Finagle
 > retry budget（重试配额 = 流量百分比，防重试风暴）。
 
 ## Problem Statement

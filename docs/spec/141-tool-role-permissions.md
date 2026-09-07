@@ -1,6 +1,6 @@
 # Spec 141 — 角色工具权限（effort #99）
 
-> wayfinder map：`.wayfinder99/MAP.md`（T491–T492）。借鉴：K8s RBAC
+> wayfinder map：`.wayfinder/maps/effort-99.md`（T491–T492）。借鉴：K8s RBAC
 > （role → 规则集）/ Casbin RBAC 面——「谁能用哪些工具」的面级管控。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 308 — deadline 跨工具传播（effort #308）
 
-> wayfinder map：`.wayfinder308/MAP.md`（T607–T608）。借鉴：gRPC deadline
+> wayfinder map：`.wayfinder/maps/effort-308.md`（T607–T608）。借鉴：gRPC deadline
 > 逐跳传播（deadline 属于调用链，每一跳可见剩余）。
 
 ## Problem Statement

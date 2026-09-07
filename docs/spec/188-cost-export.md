@@ -1,6 +1,6 @@
 # Spec 188 — 成本账单导出（effort #138）
 
-> wayfinder map：`.wayfinder138/MAP.md`（T548–T549）。导出族第八员
+> wayfinder map：`.wayfinder/maps/effort-138.md`（T548–T549）。导出族第八员
 > （spec 174 fog「JSONL 账单导出」收口）。
 
 ## Problem Statement

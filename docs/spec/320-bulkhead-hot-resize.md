@@ -1,6 +1,6 @@
 # Spec 320 — 舱容量热调整（effort #320）
 
-> wayfinder map：`.wayfinder320/MAP.md`（T631–T632）。借鉴：Spring Cloud
+> wayfinder map：`.wayfinder/maps/effort-320.md`（T631–T632）。借鉴：Spring Cloud
 > Context（EnvironmentChangeEvent → rebind）+ resilience4j ResizableSemaphore。
 
 ## Problem Statement

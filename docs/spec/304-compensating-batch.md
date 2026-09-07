@@ -1,6 +1,6 @@
 # Spec 304 — 事务批补偿（effort #304）
 
-> wayfinder map：`.wayfinder304/MAP.md`（T599–T600）。借鉴：saga 模式
+> wayfinder map：`.wayfinder/maps/effort-304.md`（T599–T600）。借鉴：saga 模式
 > （Seata 长事务补偿族；fog 152「事务批回滚/补偿」项）。
 
 ## Problem Statement

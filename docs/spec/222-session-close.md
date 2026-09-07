@@ -1,6 +1,6 @@
 # Spec 222 — 第二期会话收口（effort #155）
 
-> wayfinder map：`.wayfinder155/MAP.md`（T587–T588）。50 loops 达成。
+> wayfinder map：`.wayfinder/maps/effort-155.md`（T587–T588）。50 loops 达成。
 
 ## Solution
 

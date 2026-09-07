@@ -1,6 +1,6 @@
 # Spec 113 — 按数据集版本查 run（effort #75）
 
-> wayfinder map：`.wayfinder75/MAP.md`（T409–T410）。spec 82/100 组合收口；
+> wayfinder map：`.wayfinder/maps/effort-75.md`（T409–T410）。spec 82/100 组合收口；
 > git ls-tree by hash 思想。
 
 ## Problem Statement

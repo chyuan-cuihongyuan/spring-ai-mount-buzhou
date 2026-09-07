@@ -1,6 +1,6 @@
 # Spec 197 — 轮内模型调用循环闸（effort #217）
 
-> wayfinder map：`.wayfinder217/MAP.md`（T569–T570）。runaway 管工具步数循环、
+> wayfinder map：`.wayfinder/maps/effort-217.md`（T569–T570）。runaway 管工具步数循环、
 > 检疫管跨轮失败循环——<b>轮内模型调用次数</b>这个总闸缺位。
 
 ## Problem Statement

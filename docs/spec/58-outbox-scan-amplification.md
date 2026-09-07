@@ -1,6 +1,6 @@
 # Spec 58 — outbox SCAN 读放大消减（effort #18）
 
-> wayfinder map：`.wayfinder18/MAP.md`（T259–T263）。OSS 借鉴：Helicone / Langfuse
+> wayfinder map：`.wayfinder/maps/effort-18.md`（T259–T263）。OSS 借鉴：Helicone / Langfuse
 > 高吞吐事件摄取面的批量 pipeline 与计数下推思想。
 
 ## Problem Statement

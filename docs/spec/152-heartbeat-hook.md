@@ -1,6 +1,6 @@
 # Spec 152 — 心跳钩子（effort #121）
 
-> wayfinder map：`.wayfinder121/MAP.md`（T505–T506）。spec 138（TurnHeartbeat
+> wayfinder map：`.wayfinder/maps/effort-121.md`（T505–T506）。spec 138（TurnHeartbeat
 > 注册表）的接线面。
 
 ## Problem Statement

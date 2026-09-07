@@ -1,6 +1,6 @@
 # Spec 135 — outbox 积压滞后面（effort #96）
 
-> wayfinder map：`.wayfinder96/MAP.md`（T483–T484）。借鉴：Kafka consumer lag
+> wayfinder map：`.wayfinder/maps/effort-96.md`（T483–T484）。借鉴：Kafka consumer lag
 > （`consumergroup_lag` 面板直觉）——「积压多少 / 最老的等了多久」一读即知
 > 投递是否停摆。
 

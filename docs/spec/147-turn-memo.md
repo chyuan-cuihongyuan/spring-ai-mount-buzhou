@@ -1,6 +1,6 @@
 # Spec 147 — turn 内工具结果 memo（effort #102）
 
-> wayfinder map：`.wayfinder102/MAP.md`（T501–T502）。借鉴：Hystrix request
+> wayfinder map：`.wayfinder/maps/effort-102.md`（T501–T502）。借鉴：Hystrix request
 > caching（请求作用域缓存）——同一轮内复读工具调用直接复用首轮结果。
 
 ## Problem Statement

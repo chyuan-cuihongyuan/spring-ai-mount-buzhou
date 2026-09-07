@@ -1,6 +1,6 @@
 # Spec 69 — 崩溃自愈 watchdog（effort #29）
 
-> wayfinder map：`.wayfinder29/MAP.md`（T289–T290）。OSS 借鉴：Temporal worker crash
+> wayfinder map：`.wayfinder/maps/effort-29.md`（T289–T290）。OSS 借鉴：Temporal worker crash
 > 自动接管（research 批判「无 crash watchdog」缺口的正面回应）。
 
 ## Problem Statement

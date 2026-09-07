@@ -1,6 +1,6 @@
 # Spec 305 — 工具健康探测装配（effort #305）
 
-> wayfinder map：`.wayfinder305/MAP.md`（T601–T602）。借鉴：Consul health
+> wayfinder map：`.wayfinder/maps/effort-305.md`（T601–T602）。借鉴：Consul health
 > check（spec 165 原语装配收尾——探测原语 standalone 无装配面）。
 
 ## Problem Statement

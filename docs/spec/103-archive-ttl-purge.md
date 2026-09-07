@@ -1,6 +1,6 @@
 # Spec 103 — 归档 TTL 治理（effort #65）
 
-> wayfinder map：`.wayfinder65/MAP.md`（T383–T384）。spec 102 fog 后半场。
+> wayfinder map：`.wayfinder/maps/effort-65.md`（T383–T384）。spec 102 fog 后半场。
 > 借鉴：S3 lifecycle expiration。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 329 — API 快照收口（effort #329）
 
-> wayfinder map：`.wayfinder329/MAP.md`（T649–T650）。C 会话半程收口轮。
+> wayfinder map：`.wayfinder/maps/effort-329.md`（T649–T650）。C 会话半程收口轮。
 
 ## Problem Statement
 

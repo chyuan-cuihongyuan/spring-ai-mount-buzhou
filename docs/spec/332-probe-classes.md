@@ -1,6 +1,6 @@
 # Spec 332 — 健康三探针分层（effort #332）
 
-> wayfinder map：`.wayfinder332/MAP.md`（T655–T656）。C 会话第 33 轮。
+> wayfinder map：`.wayfinder/maps/effort-332.md`（T655–T656）。C 会话第 33 轮。
 
 ## Problem Statement
 

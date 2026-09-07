@@ -1,6 +1,6 @@
 # Spec 205 — 维护模式门（effort #221）
 
-> wayfinder map：`.wayfinder221/MAP.md`（T577–T578）。借鉴：K8s cordon /
+> wayfinder map：`.wayfinder/maps/effort-221.md`（T577–T578）。借鉴：K8s cordon /
 > 维护窗口——标记即拒新，存量自然排空。
 
 ## Problem Statement

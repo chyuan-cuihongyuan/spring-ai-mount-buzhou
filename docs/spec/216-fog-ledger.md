@@ -1,6 +1,6 @@
 # Spec 216 — 会话雾账本（effort #152）
 
-> wayfinder map：`.wayfinder152/MAP.md`（T581–T582）。文档轮。
+> wayfinder map：`.wayfinder/maps/effort-152.md`（T581–T582）。文档轮。
 
 ## Solution
 

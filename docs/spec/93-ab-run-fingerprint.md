@@ -1,6 +1,6 @@
 # Spec 93 — A/B run 指纹（effort #54）
 
-> wayfinder map：`.wayfinder54/MAP.md`（T351–T352）。spec 82 fog 项收口
+> wayfinder map：`.wayfinder/maps/effort-54.md`（T351–T352）。spec 82 fog 项收口
 > （「ab.run 记录同字段是零成本扩展」）。
 
 ## Problem Statement

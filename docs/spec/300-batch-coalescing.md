@@ -1,6 +1,6 @@
 # Spec 300 — 批内工具调用合并接线（effort #300）
 
-> wayfinder map：`.wayfinder300/MAP.md`（T591–T592）。借鉴：Hystrix request
+> wayfinder map：`.wayfinder/maps/effort-300.md`（T591–T592）。借鉴：Hystrix request
 > collapsing（spec 139 原语的装配收尾——B 会话 fog 种子第 1 项）。
 
 ## Problem Statement

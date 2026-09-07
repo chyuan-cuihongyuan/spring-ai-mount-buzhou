@@ -1,6 +1,6 @@
 # Spec 77 — 活跃 run 注册表 gauge（effort #38）
 
-> wayfinder map：`.wayfinder38/MAP.md`（T307–T308）。#37 fog 毕业生。
+> wayfinder map：`.wayfinder/maps/effort-38.md`（T307–T308）。#37 fog 毕业生。
 > 借鉴：LangSmith active-runs 观测面。
 
 ## Problem Statement

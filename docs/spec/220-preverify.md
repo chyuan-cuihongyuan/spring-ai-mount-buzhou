@@ -1,6 +1,6 @@
 # Spec 220 — 收口预检（effort #154）
 
-> wayfinder map：`.wayfinder154/MAP.md`（T585–T586）。验证轮。
+> wayfinder map：`.wayfinder/maps/effort-154.md`（T585–T586）。验证轮。
 
 ## Solution
 

@@ -1,6 +1,6 @@
 # Spec 61 — LLM-as-judge 评估器（effort #21）
 
-> wayfinder map：`.wayfinder21/MAP.md`（T273–T274）。OSS 借鉴：LangSmith G-Eval /
+> wayfinder map：`.wayfinder/maps/effort-21.md`（T273–T274）。OSS 借鉴：LangSmith G-Eval /
 > DeepEval / Ragas 的 judge 评分协议。
 
 ## Problem Statement

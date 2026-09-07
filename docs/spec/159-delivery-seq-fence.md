@@ -1,6 +1,6 @@
 # Spec 159 — 投递序列号围栏（effort #108）
 
-> wayfinder map：`.wayfinder108/MAP.md`（T517–T518）。借鉴：Kafka producer
+> wayfinder map：`.wayfinder/maps/effort-108.md`（T517–T518）。借鉴：Kafka producer
 > sequence numbers + consumer gap detection——at-least-once 之上让<b>丢包显形</b>。
 
 ## Problem Statement

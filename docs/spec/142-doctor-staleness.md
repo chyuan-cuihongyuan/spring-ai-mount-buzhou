@@ -1,6 +1,6 @@
 # Spec 142 — 体检陈旧度（effort #116）
 
-> wayfinder map：`.wayfinder116/MAP.md`（T467–T468）。借鉴：Consul TTL
+> wayfinder map：`.wayfinder/maps/effort-116.md`（T467–T468）。借鉴：Consul TTL
 > health check（健康自报必须周期续约，静默即降级）。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 327 — 工具循环断路器（effort #327）
 
-> wayfinder map：`.wayfinder327/MAP.md`（T645–T646）。借鉴：326 重复检测
+> wayfinder map：`.wayfinder/maps/effort-327.md`（T645–T646）。借鉴：326 重复检测
 > 的工具面平移——LLM agent 最烧钱的失控形态。
 
 ## Problem Statement

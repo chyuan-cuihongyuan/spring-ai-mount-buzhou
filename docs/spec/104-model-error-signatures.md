@@ -1,6 +1,6 @@
 # Spec 104 — 模型失败签名接线（effort #66）
 
-> wayfinder map：`.wayfinder66/MAP.md`（T385–T386）。spec 83 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-66.md`（T385–T386）。spec 83 fog 项收口。
 
 ## Problem Statement
 

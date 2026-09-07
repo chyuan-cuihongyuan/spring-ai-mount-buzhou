@@ -1,6 +1,6 @@
 # Spec 206 — 预算批量存入（effort #147）
 
-> wayfinder map：`.wayfinder147/MAP.md`（T570–T571）。
+> wayfinder map：`.wayfinder/maps/effort-147.md`（T570–T571）。
 
 ## Solution
 

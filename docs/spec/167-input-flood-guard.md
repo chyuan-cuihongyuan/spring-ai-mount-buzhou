@@ -1,6 +1,6 @@
 # Spec 167 — 同输入泛洪防护（effort #202）
 
-> wayfinder map：`.wayfinder202/MAP.md`（T531–T532）。借鉴：API 网关
+> wayfinder map：`.wayfinder/maps/effort-202.md`（T531–T532）。借鉴：API 网关
 > idempotency-key 重复风暴防护——完全相同输入的窗口内重复计数超阈值即拦。
 
 ## Problem Statement

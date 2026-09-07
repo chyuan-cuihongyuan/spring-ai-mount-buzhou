@@ -1,6 +1,6 @@
 # Spec 321 — SLO 错误预算燃尽率（effort #321）
 
-> wayfinder map：`.wayfinder321/MAP.md`（T633–T634）。借鉴：Google SRE
+> wayfinder map：`.wayfinder/maps/effort-321.md`（T633–T634）。借鉴：Google SRE
 > workbook 错误预算 / burn rate（alert on burn, not on raw error）。
 
 ## Problem Statement

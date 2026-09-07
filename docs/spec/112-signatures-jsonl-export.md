@@ -1,6 +1,6 @@
 # Spec 112 — 错误签名 JSONL 导出（effort #74）
 
-> wayfinder map：`.wayfinder74/MAP.md`（T407–T408）。spec 83 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-74.md`（T407–T408）。spec 83 fog 项收口。
 
 ## Problem Statement
 

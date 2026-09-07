@@ -1,6 +1,6 @@
 # Spec 81 — run 对比 diff（effort #42）
 
-> wayfinder map：`.wayfinder42/MAP.md`（T317–T318）。借鉴：LangSmith run compare /
+> wayfinder map：`.wayfinder/maps/effort-42.md`（T317–T318）。借鉴：LangSmith run compare /
 > Promptfoo trend diff。
 
 ## Problem Statement

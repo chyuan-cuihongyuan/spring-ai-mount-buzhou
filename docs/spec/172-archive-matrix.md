@@ -1,6 +1,6 @@
 # Spec 172 — 归档清理键矩阵登记（effort #130）
 
-> wayfinder map：`.wayfinder130/MAP.md`（T526–T527）。spec 130 fog：三键落了
+> wayfinder map：`.wayfinder/maps/effort-130.md`（T526–T527）。spec 130 fog：三键落了
 > properties 与 autoconfig，但 metadata/矩阵未登记——T187 类静默失防线缺口。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 311 — 时间旅行 fork（effort #311）
 
-> wayfinder map：`.wayfinder311/MAP.md`（T613–T614）。借鉴：LangGraph
+> wayfinder map：`.wayfinder/maps/effort-311.md`（T613–T614）。借鉴：LangGraph
 > checkpointer time-travel（从任意检查点重放分支）。
 
 ## Problem Statement

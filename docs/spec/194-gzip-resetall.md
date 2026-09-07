@@ -1,6 +1,6 @@
 # Spec 194 — manifestGzip + resetAll（effort #141）
 
-> wayfinder map：`.wayfinder141/MAP.md`（T556–T557）。组合小轮。
+> wayfinder map：`.wayfinder/maps/effort-141.md`（T556–T557）。组合小轮。
 
 ## Solution
 

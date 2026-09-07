@@ -1,6 +1,6 @@
 # Spec 324 — 工具金丝雀发布（effort #324）
 
-> wayfinder map：`.wayfinder324/MAP.md`（T639–T640）。借鉴：Istio 权重
+> wayfinder map：`.wayfinder/maps/effort-324.md`（T639–T640）。借鉴：Istio 权重
 > 分流 + Flagger canary 分析回滚。
 
 ## Problem Statement

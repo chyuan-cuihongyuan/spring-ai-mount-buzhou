@@ -1,6 +1,6 @@
 # Spec 335 — 错误预算政策·烧穿自动降级（effort #335）
 
-> wayfinder map：`.wayfinder335/MAP.md`（T661–T662）。C 会话第 36 轮。
+> wayfinder map：`.wayfinder/maps/effort-335.md`（T661–T662）。C 会话第 36 轮。
 
 ## Problem Statement
 

@@ -1,8 +1,8 @@
 # Wayfinder Tracker（本地 markdown · 单一目录）
 
-本目录是**全部 effort** 的 wayfinder 图。**总索引 map = [`MAP.md`](MAP.md)**；**各 effort 的 map = `maps/effort-<NN>.md`**（其运行期约定存档 = `maps/readme-effort-<NN>.md`）；**决策票 = `tickets/T<n>-<slug>.md`**（票号 **T1–T248 全局连续**，T231–T239 跳号未用，下一张 = **T249**）；**实现纵切片 = `impl/<NN>-<slug>.md`**（索引与编号史见 [`impl/README.md`](impl/README.md)，下一片 = **196**）；**总纲 spec = [`SPEC.md`](SPEC.md)**（effort #1 的 `/to-spec` 产物；effort #2 起总纲落 `docs/spec/12+`）。
+本目录是**全部 effort** 的 wayfinder 图。**总索引 map = [`MAP.md`](MAP.md)**；**各 effort 的 map = `maps/effort-<N>.md`**（其运行期约定存档 = `maps/readme-effort-<NN>.md`，C 会话进度台账 = `maps/progress-effort-300.md`）；**决策票 = `tickets/T<n>-<slug>.md`**（票号 **T1–T690 全局连续**，T231–T239 跳号未用，下一张 = **T691**）；**实现纵切片 = `impl/<NN>-<slug>.md`**（实体文件 01–184，#14 起 impl 记录随票、票内编号累计至 372；索引与编号史见 [`impl/README.md`](impl/README.md)）；**总纲 spec = [`SPEC.md`](SPEC.md)**（effort #1 的 `/to-spec` 产物；effort #2 起总纲落 `docs/spec/12+`）。
 
-> 2026-08-17 前每个 effort 一个独立目录（`.wayfinder/`、`.wayfinder2/` … `.wayfinder15/`），现已融合为本单一目录——**新 effort 只加 `maps/effort-<NN>.md`，勿再新建 `.wayfinderN/`**。
+> 2026-08-17 前每个 effort 一个独立目录（`.wayfinder/`、`.wayfinder2/` … `.wayfinder15/`），现已融合为本单一目录；2026-09-07 二次融合，其后又分裂出的 `.wayfinder16/` … `.wayfinder349/` 共 217 个目录同样并入（map → `maps/effort-<N>.md`，票 → 全局 `tickets/`）——**新 effort 只加 `maps/effort-<N>.md`，勿再新建 `.wayfinderN/`**。
 > 这是 fallback 的「local-markdown tracker」——没有 GitHub Issues / `gh`，全在仓内文件。
 
 ## Ticket 文件约定
