@@ -130,6 +130,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolArgsValidator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCallCoalescer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogFingerprint
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogLinter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolErrorFeedback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolFeedbackType
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealth

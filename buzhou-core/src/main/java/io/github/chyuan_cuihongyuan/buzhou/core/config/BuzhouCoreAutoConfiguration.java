@@ -368,6 +368,35 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 420 / T732：工具目录 lint（ESLint 构建期 lint 借鉴——只报不改）。
+     * {@code buzhou.tools.catalog-lint.enabled=true} 声明即装配：装配期
+     * wrapToolCallbacks 一遍扫三规则（名字约定/描述长度/跨源重名）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.tools.catalog-lint", name = "enabled", havingValue = "true")
+    public RuntimeConfig buzhouToolCatalogLintRuntimeConfig() {
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> {
+                    io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogLinter linter =
+                            new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogLinter(
+                                    ctx::emitEvent);
+                    java.util.List<org.springframework.ai.tool.ToolCallback> seen =
+                            new java.util.ArrayList<>();
+                    java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogLinter.Finding>
+                            findings = new java.util.ArrayList<>();
+                    ctx.wrapToolCallbacks(cb -> {
+                        findings.addAll(linter.lint(cb, seen));
+                        seen.add(cb);
+                        return cb; // 只报不改
+                    });
+                    linter.announce(ctx.sessionId(), findings);
+                }),
+                null);
+    }
+
+    /**
      * spec 409 / T710：工具结果 schema 校验（MCP outputSchema 借鉴——复用
      * ToolArgsValidator 同一校验器）。{@code buzhou.tools.result-schemas.<name>}
      * 声明即装配（Binder 预绑判 map 非空——406 同法）。

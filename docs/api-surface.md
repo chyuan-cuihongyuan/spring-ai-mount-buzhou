@@ -1559,7 +1559,8 @@
   （410——mem0：跨会话共享事实 deny-by-default ACL，键即所有权）
 - 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`
   （407——Honeycomb head sampling：确定性 hash 采样入集 fail-soft）
-- 工具治理：`ToolResultSchemaHook` + `BuzhouToolResultSchemasProperties`
+- 工具治理：`ToolCatalogLinter`（嵌套 `Finding`）（420——ESLint：装配期
+  三规则体检只报不改）/ `ToolResultSchemaHook` + `BuzhouToolResultSchemasProperties`
   （409——MCP outputSchema：结果契约复用入参校验器、违例转结构化反馈）/
   `DeprecatedToolCallback`（嵌套 `Deprecation`）+
   `BuzhouToolDeprecationProperties`（406——K8s API deprecation：描述前缀随
