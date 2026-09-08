@@ -259,6 +259,7 @@
 | #415 | 会话黏性路由提示 | [maps/effort-415.md](maps/effort-415.md) | T721–T722 | 388 |
 | #416 | 时间桶延迟分位数 | [maps/effort-416.md](maps/effort-416.md) | T723–T724 | 389 |
 | #417 | 价目热更新 | [maps/effort-417.md](maps/effort-417.md) | T725–T726 | 390 |
+| #418 | 秘密命中统计与导出 | [maps/effort-418.md](maps/effort-418.md) | T727–T728 | 391 |
 
 ## 跨 effort 悬留
 

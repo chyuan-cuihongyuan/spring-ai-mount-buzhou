@@ -31,6 +31,8 @@ public class SecretScanHook implements BuzhouHook {
     public static final int ORDER = 40;
 
     private final SecretScanner scanner;
+    /** spec 418：当前缝对应侧（hook 链单线程顺序执行——实例字段安全）。 */
+    private SecretHitStats.Side currentSide = SecretHitStats.Side.OUTPUT;
 
     public SecretScanHook() {
         this(null);
@@ -52,6 +54,7 @@ public class SecretScanHook implements BuzhouHook {
 
     @Override
     public HookResult beforeTurn(TurnContext ctx) {
+        currentSide = SecretHitStats.Side.INPUT; // spec 418：缝→侧
         String input = ctx.input();
         if (input == null || input.isEmpty()) {
             return HookResult.CONTINUE;
@@ -67,6 +70,7 @@ public class SecretScanHook implements BuzhouHook {
 
     @Override
     public HookResult beforeTool(ToolCallContext ctx) {
+        currentSide = SecretHitStats.Side.OUTBOUND; // spec 418：缝→侧
         Map<String, Object> args = ctx.arguments();
         if (args == null || args.isEmpty()) {
             return HookResult.CONTINUE;
@@ -93,6 +97,7 @@ public class SecretScanHook implements BuzhouHook {
 
     @Override
     public HookResult afterTool(ToolCallContext ctx) {
+        currentSide = SecretHitStats.Side.OUTPUT; // spec 418：缝→侧
         if (ctx.error() != null || ctx.result() == null) {
             return HookResult.CONTINUE;
         }
@@ -110,6 +115,7 @@ public class SecretScanHook implements BuzhouHook {
         for (SecretScanner.SecretMatch m : matches) {
             BuzhouMetricsHolder.metrics().counter("buzhou.guard.secret.redactions",
                     "type", m.type().name());
+            SecretHitStats.global().record(m.type(), currentSide);
         }
     }
 }
