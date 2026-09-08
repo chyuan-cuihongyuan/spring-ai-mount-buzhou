@@ -31,4 +31,14 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 轮 | effort | spec | 票 | impl | 主题 | 提交 |
 |----|--------|------|----|------|------|------|
 | 1 | #400 | 400 | T691-692 | 373 | 密钥扫描护栏（gitleaks；勘察换题：原拟回退链已存在） | 51378ee |
-| 2 | #401 | 401 | T693-694 | 374 | 提示词注册表（Langfuse） | |
+| 2 | #401 | 401 | T693-694 | 374 | 提示词注册表（Langfuse） | d5fb233 |
+| 3 | #402 | 402 | T695-696 | 375 | 结构化输出执法（instructor） | |
+
+## 备忘
+- R3 观察到 WebhookOutboxLagTest.backedOffRecordStillCountsTowardAge 顺序型
+  假红一次（NoSuchElement @ getFirst，重跑同命令即绿；与当轮改动零交集）——
+  持续观察，复现再入排除集。
+- R3 关键机制发现：Spring AI advisor 链为**单遍弹出式 Deque**——重入
+  nextCall 必炸「No CallAdvisors available」；内层重试/修复必须直达
+  modelTerminal（getCallAdvisors() 链尾，ResilienceAdvisor.modelTerminal
+  同法）。后续凡做「模型重调」类 advisor 均循此约定。

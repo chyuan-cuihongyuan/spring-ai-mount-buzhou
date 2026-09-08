@@ -515,6 +515,10 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.Routing
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputAdvisor
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputViolationException
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.DefaultSkillRegistry
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.LoadSkillTool
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SemanticSkillRanker

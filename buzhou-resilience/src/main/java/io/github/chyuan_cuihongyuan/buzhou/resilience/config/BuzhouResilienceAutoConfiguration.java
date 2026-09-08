@@ -28,7 +28,8 @@ import java.util.Map;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.resilience", name = "enabled", matchIfMissing = true)
-@EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class})
+@EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean
@@ -116,6 +117,48 @@ public class BuzhouResilienceAutoConfiguration {
                 sharedBackend.getIfAvailable(),
                 embeddingModels.getIfAvailable(),
                 sharedCircuitBackend.getIfAvailable());
+    }
+
+    /**
+     * spec 402 / T696：结构化输出执法（instructor 借鉴——验证失败错误喂回
+     * 模型自修复）。独立 RuntimeConfig bean（assembly customizer 注 advisor，
+     * 不动 ResilienceModule 内路）；{@code buzhou.resilience.structured-output.enabled=true}
+     * 声明即装配。enabled 而 schema 全空 = 配置错误 fail-fast；声明类型不在
+     * 支持集同样 fail-fast（拼写错不静默宽容）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.resilience.structured-output", name = "enabled", havingValue = "true")
+    public RuntimeConfig structuredOutputRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties props) {
+        var spec = props.schema();
+        if (spec == null || spec.isEmpty()) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.resilience.structured-output.enabled=true 但 schema 全空",
+                    "声明 schema.required 或 schema.properties（键→类型："
+                            + io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema
+                                    .knownTypes() + "）");
+        }
+        for (String type : spec.normalizedTypes().values()) {
+            if (!io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema
+                    .knownTypes().contains(type)) {
+                throw new BuzhouConfigurationException(
+                        "buzhou.resilience.structured-output.schema.properties 声明类型「"
+                                + type + "」不在支持集",
+                        "支持：" + io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema
+                                .knownTypes());
+            }
+        }
+        io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema schema =
+                new io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema(
+                        spec.required(), spec.normalizedTypes());
+        int attempts = props.effectiveMaxRepairAttempts();
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addAdvisor(
+                        new io.github.chyuan_cuihongyuan.buzhou.resilience.structured
+                                .StructuredOutputAdvisor(schema, attempts, ctx::emitEvent))),
+                null);
     }
 
     /**

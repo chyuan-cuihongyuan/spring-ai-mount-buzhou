@@ -329,6 +329,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 |------|------|--------|------|
 | 安全 | 密钥扫描护栏 | 三缝 MASK（输入/出站工具参数/工具结果）——API key/token/JWT/PEM 七型签名占位符化，凭据不进 prompt 观测与外发（gitleaks pre-commit 思想） | [spec 400](docs/spec/400-secret-scanning.md) |
 | 工程治理 | 提示词注册表 | 版本+标签双轴——publish 单调版本、production/latest 指针可移动（晋级/回滚同一动作）、按版钉取复现历史、yml 播种重启幂等（Langfuse prompt management） | [spec 401](docs/spec/401-prompt-registry.md) |
+| 模型韧性 | 结构化输出执法 | JSON 契约（required+类型表+围栏剥离）验证失败把错误清单喂回模型自修复、耗尽抛违规、每次修复重过观测+韧性层（instructor） | [spec 402](docs/spec/402-structured-output.md) |
 
 ## 快速开始
 

@@ -1551,6 +1551,9 @@
 
 **buzhou-resilience**
 
+- `OutputSchema` + `StructuredOutputAdvisor` + `StructuredOutputViolationException` +
+  `StructuredOutputProperties`（402——instructor：JSON 契约执法+错误反馈自修复，
+  修复直达模型终端/耗尽抛违规/流式直通诚实边界）
 - `ShadowComparisonJsonl`（309——W&B 影子对照明细）
 - `WeightedChatModel` + `BuzhouRoutingProperties`（339——LiteLLM Router：
   多模型平滑加权路由，199 原语装配收尾）；
