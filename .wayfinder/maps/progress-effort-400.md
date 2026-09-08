@@ -45,7 +45,8 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 13 | #412 | 412 | T715-716 | 385 | 时间桶预聚合（M3；勘察换题：死信重放 replayDeadLetters 已有弃） | dd37a1f |
 | 14 | #413 | 413 | T717-718 | 386 | 延迟作业原语（Sidekiq delayed_jobs） | c3a391c |
 | 15 | #414 | 414 | T719-720 | 387 | 配置漂移审计（ArgoCD drift detection） | 27782e6 |
-| 16 | #415 | 415 | T721-722 | 388 | 会话黏性路由提示（Ketama 确定性键） | |
+| 16 | #415 | 415 | T721-722 | 388 | 会话黏性路由提示（Ketama 确定性键） | 0302ea1 |
+| 17 | #416 | 416 | T723-724 | 389 | 时间桶延迟分位数（#412 扩散，Prometheus histogram_quantile） | |
 
 
 ## 备忘

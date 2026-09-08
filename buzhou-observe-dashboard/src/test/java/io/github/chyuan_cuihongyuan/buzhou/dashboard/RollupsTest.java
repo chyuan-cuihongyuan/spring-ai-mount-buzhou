@@ -20,6 +20,12 @@ class RollupsTest {
 
     private static final Instant T0 = Instant.parse("2026-09-08T10:00:00Z");
 
+    /** 显式时长的 TURN span（start/end 毫秒自 T0）。 */
+    private static SpanRecord turnSpan(String id, String sid, long startMs, long durationMs) {
+        return new SpanRecord(id, null, sid, 1, "TURN", "turn",
+                T0.plusMillis(startMs), T0.plusMillis(startMs + durationMs), "OK", Map.of());
+    }
+
     private static SpanRecord span(String id, String sid, String kind, long startMs,
             String status, Map<String, Object> attrs) {
         return new SpanRecord(id, null, sid, 1, kind, kind.toLowerCase(),
@@ -65,6 +71,43 @@ class RollupsTest {
         DashboardQueryService.TimeBucket empty = buckets.get(1);
         assertThat(empty.turns()).isZero();
         assertThat(empty.promptTokens()).isZero();
+    }
+
+    @Test
+    void shouldComputeTurnLatencyPercentiles_withNullForEmptyBuckets() {
+        ObservabilityStore store = io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
+                .inMemoryStores().observabilityStore();
+        // 桶 0 内三个 TURN，时延显式 100/200/300ms（直构 span 控制起止）
+        store.saveSpans(java.util.List.of(
+                turnSpan("t1", "s1", 0, 100),
+                turnSpan("t2", "s1", 5_000, 200),
+                turnSpan("t3", "s1", 10_000, 300)));
+        DashboardQueryService service = new DashboardQueryService(store);
+
+        java.util.List<DashboardQueryService.TimeBucket> buckets = service.rollups(
+                T0, T0.plus(Duration.ofMinutes(3)), Duration.ofMinutes(1));
+
+        DashboardQueryService.TimeBucket first = buckets.get(0);
+        assertThat(first.turns()).isEqualTo(3);
+        // 三样本 100/200/300ms：p50=200（rank2）、p95=300（rank3）、p99=300
+        assertThat(first.turnP50Ms()).isEqualTo(200);
+        assertThat(first.turnP95Ms()).isEqualTo(300);
+        assertThat(first.turnP99Ms()).isEqualTo(300);
+
+        // 空桶：分位 null（诚实空值——不是 0）
+        assertThat(buckets.get(1).turns()).isZero();
+        assertThat(buckets.get(1).turnP50Ms()).isNull();
+        assertThat(buckets.get(1).turnP99Ms()).isNull();
+
+        // nearest rank 单元：已知集合验证
+        assertThat(DashboardQueryService.percentile(java.util.List.of(), 50)).isNull();
+        assertThat(DashboardQueryService.percentile(
+                java.util.List.of(10L, 20L, 30L, 40L, 50L, 60L, 70L, 80L, 90L, 100L), 50))
+                .isEqualTo(50);
+        assertThat(DashboardQueryService.percentile(
+                java.util.List.of(10L, 20L, 30L, 40L, 50L, 60L, 70L, 80L, 90L, 100L), 95))
+                .isEqualTo(100);
+        assertThat(DashboardQueryService.percentile(java.util.List.of(7L), 99)).isEqualTo(7);
     }
 
     @Test

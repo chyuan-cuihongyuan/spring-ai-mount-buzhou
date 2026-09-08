@@ -1547,7 +1547,8 @@
   `BuzhouCostForecastProperties`（403——AWS Budgets forecast：分钟桶速率环
   ×水平线线性外推 projectedOver，ModelCostLedger 监听缝喂数、恒 UP 预测面）
 - 观测治理：`DashboardQueryService.TimeBucket` + rollups API + `/api/rollups`
-  （412——M3 downsampling：epoch 对齐固定桶+空桶补齐+桶数上界）
+  （412——M3 downsampling：epoch 对齐固定桶+空桶补齐+桶数上界；416 扩散
+  TURN p50/p95/p99 exact 最近秩、空桶 null）
 - 并发原语：`PriorityLane`（411——Envoy priority levels：优先级插队信号量，
   同级 FIFO+超时让位+等待快照）；`DelayedJobQueue`（嵌套 `PendingJob`）
   （413——Sidekiq delayed_jobs：one-shot 到点执行+键即幂等锚替换+异常隔离）

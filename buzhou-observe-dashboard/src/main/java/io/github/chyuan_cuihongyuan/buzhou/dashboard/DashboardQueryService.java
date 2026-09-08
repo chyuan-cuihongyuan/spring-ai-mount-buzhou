@@ -188,9 +188,13 @@ public class DashboardQueryService {
     }
 
     /** token/耗时统计：按轮次、按模型、按工具分组，全部从 Span 属性袋聚合。 */
-    /** 时间桶预聚合行（spec 412 / T715，M3 fixed-window downsampling 借鉴）。 */
+    /**
+     * 时间桶预聚合行（spec 412 / T715，M3 fixed-window downsampling 借鉴；
+     * spec 416 / T723 增 TURN 时延分位——exact 最近秩，零样本桶 null 诚实空值）。
+     */
     public record TimeBucket(Instant start, int turns, int modelCalls, int toolCalls,
-            int errors, long promptTokens, long completionTokens) {
+            int errors, long promptTokens, long completionTokens,
+            Integer turnP50Ms, Integer turnP95Ms, Integer turnP99Ms) {
     }
 
     /** 桶数上界（payload 纪律）。 */
@@ -214,9 +218,9 @@ public class DashboardQueryService {
             throw new IllegalArgumentException("桶数 " + total + " 超上界 " + MAX_ROLLUP_BUCKETS
                     + "——加粗桶粒度或缩窗");
         }
-        Map<Long, long[]> byBucket = new java.util.TreeMap<>(); // [turns, modelCalls, toolCalls, errors, prompt, completion]
+        Map<Long, Bucket> byBucket = new java.util.TreeMap<>();
         for (long b = 0; b < total; b++) {
-            byBucket.put(floorEpoch(from, bucketMs) + b * bucketMs, new long[6]);
+            byBucket.put(floorEpoch(from, bucketMs) + b * bucketMs, new Bucket());
         }
         String cursor = null;
         while (true) {
@@ -232,57 +236,79 @@ public class DashboardQueryService {
             cursor = page.nextCursor();
         }
         List<TimeBucket> out = new java.util.ArrayList<>(byBucket.size());
-        byBucket.forEach((start, v) -> out.add(new TimeBucket(
-                Instant.ofEpochMilli(start), (int) v[0], (int) v[1], (int) v[2],
-                (int) v[3], v[4], v[5])));
+        byBucket.forEach((start, b) -> out.add(new TimeBucket(
+                Instant.ofEpochMilli(start), (int) b.counts[0], (int) b.counts[1],
+                (int) b.counts[2], (int) b.counts[3], b.counts[4], b.counts[5],
+                percentile(b.turnDurations, 50), percentile(b.turnDurations, 95),
+                percentile(b.turnDurations, 99))));
         return List.copyOf(out);
     }
 
+    /** 桶内聚合态（spec 416：counts 六槽 + TURN 时延样本）。 */
+    private static final class Bucket {
+        final long[] counts = new long[6]; // [turns, modelCalls, toolCalls, errors, prompt, completion]
+        final java.util.List<Long> turnDurations = new java.util.ArrayList<>();
+    }
+
+    /** exact 最近秩分位（nearest rank：ceil(p*n/100)-1；空样本 null 诚实空值）。 */
+    static Integer percentile(java.util.List<Long> sortedInput, int p) {
+        if (sortedInput.isEmpty()) {
+            return null;
+        }
+        List<Long> sorted = new java.util.ArrayList<>(sortedInput);
+        java.util.Collections.sort(sorted);
+        int rank = (int) Math.ceil(p * sorted.size() / 100.0);
+        int index = Math.min(sorted.size(), Math.max(1, rank)) - 1;
+        long value = sorted.get(index);
+        return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
+    }
+
     private void collectRollup(SpanRecord s, Instant from, Instant to, long bucketMs,
-            Map<Long, long[]> byBucket) {
+            Map<Long, Bucket> byBucket) {
         if (s.startedAt() == null || s.startedAt().isBefore(from) || !s.startedAt().isBefore(to)) {
             return;
         }
         boolean error = "ERROR".equals(s.status());
         switch (s.kind()) {
             case SpanKind.MODEL_CALL -> {
-                long[] v = bucketOf(s.startedAt(), bucketMs, byBucket);
+                Bucket v = bucketOf(s.startedAt(), bucketMs, byBucket);
                 if (v == null) {
                     return;
                 }
-                v[1]++;
+                v.counts[1]++;
                 if (error) {
-                    v[3]++;
+                    v.counts[3]++;
                 }
-                v[4] += attrLong(s, "usage.prompt_tokens");
-                v[5] += attrLong(s, "usage.completion_tokens");
+                v.counts[4] += attrLong(s, "usage.prompt_tokens");
+                v.counts[5] += attrLong(s, "usage.completion_tokens");
             }
             case SpanKind.TOOL_CALL -> {
-                long[] v = bucketOf(s.startedAt(), bucketMs, byBucket);
+                Bucket v = bucketOf(s.startedAt(), bucketMs, byBucket);
                 if (v == null) {
                     return;
                 }
-                v[2]++;
+                v.counts[2]++;
                 if (error) {
-                    v[3]++;
+                    v.counts[3]++;
                 }
             }
             case SpanKind.TURN -> {
-                long[] v = bucketOf(s.startedAt(), bucketMs, byBucket);
+                Bucket v = bucketOf(s.startedAt(), bucketMs, byBucket);
                 if (v == null) {
                     return;
                 }
-                v[0]++;
+                v.counts[0]++;
                 if (error) {
-                    v[3]++;
+                    v.counts[3]++;
                 }
+                v.turnDurations.add(durationMs(s)); // spec 416：时延入桶
             }
             default -> { /* SESSION/HARNESS_INTERNAL 不进桶 */
             }
         }
     }
 
-    private static long[] bucketOf(Instant at, long bucketMs, Map<Long, long[]> byBucket) {
+    private static Bucket bucketOf(Instant at, long bucketMs, Map<Long, Bucket> byBucket) {
         long key = floorEpoch(at, bucketMs);
         return byBucket.get(key);
     }
