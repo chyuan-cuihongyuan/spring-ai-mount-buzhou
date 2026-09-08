@@ -56,6 +56,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRetentionPrope
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRunawayProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouStoreFailureAnalyzer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouTokenBudgetProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolDeprecationProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouVirtualKeyProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ChaosProperties
@@ -107,6 +108,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CancellationToken
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftWatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosMonkeyHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunPlanJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager

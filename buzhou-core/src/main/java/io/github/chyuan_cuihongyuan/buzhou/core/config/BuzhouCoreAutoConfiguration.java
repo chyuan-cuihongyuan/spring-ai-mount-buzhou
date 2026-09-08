@@ -53,7 +53,8 @@ import java.util.List;
         ToolLoopProperties.class, BuzhouProbeProperties.class,
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
-        BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class})
+        BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
+        BuzhouToolDeprecationProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -330,6 +331,51 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 406 / T704：工具退役通告（K8s API deprecation 借鉴——通告随定义）。
+     * {@code buzhou.tools.deprecated.<name>.*} 声明即装配：customizer 经
+     * wrapToolCallbacks 名匹配包装（描述前缀模型可见 + 调用事件/计数）；
+     * 空表/未命中零变化。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ToolDeprecationPresentCondition.class)
+    public RuntimeConfig buzhouToolDeprecationRuntimeConfig(BuzhouToolDeprecationProperties properties) {
+        java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation>
+                declared = new java.util.LinkedHashMap<>();
+        properties.tools().forEach((name, spec) -> declared.put(name,
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation(
+                        spec.since(), spec.removalIn(), spec.successor(), spec.message())));
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.wrapToolCallbacks(cb -> {
+                    var spec = declared.get(cb.getToolDefinition().name());
+                    return spec == null ? cb
+                            : new io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback(
+                                    cb, spec, ctx::emitEvent);
+                })),
+                null);
+    }
+
+    /** spec 406：deprecated map 非空才装配（Binder 预绑判定——312 同法）。 */
+    static final class ToolDeprecationPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.tools.deprecated",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, BuzhouToolDeprecationProperties.Spec.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     /**

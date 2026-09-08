@@ -35,9 +35,12 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 3 | #402 | 402 | T695-696 | 375 | 结构化输出执法（instructor） | 4225ba5 |
 | 4 | #403 | 403 | T697-698 | 376 | 成本预测外推（AWS Budgets forecast） | fa1aa6d |
 | 5 | #404 | 404 | T699-700 | 377 | 审计 Merkle 根+包含证明（CT log） | efec052 |
-| 6 | #405 | 405 | T701-702 | 378 | 健康事件时间线（PagerDuty；勘察换题：Retry-After 已存在） | |
+| 6 | #405 | 405 | T701-702 | 378 | 健康事件时间线（PagerDuty；勘察换题：Retry-After 已存在） | e30c239 |
+| 7 | #406 | 406 | T703-704 | 379 | 工具退役通告（K8s API deprecation） | |
 
 ## 备忘
+- R7 又见 StreamTerminationMetricsTest.slowDripStreamCutByCumulativeCap 一次
+  时序假红（重跑即绿；与改动零交集——slow drip 类时序同族）。
 - R6 又见 webhook 族偶发假红（WebhookEventForwarderTest.deliversSignedJsonEnvelope
   + WebhookFanoutTest.noFanoutKeeps...，重跑同命令即绿；与改动零交集）——webhook
   族假红与 R3 WebhookOutboxLag 同族，持续观察。

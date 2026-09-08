@@ -247,6 +247,7 @@
 | #403 | 成本预测外推 | [maps/effort-403.md](maps/effort-403.md) | T697–T698 | 376 |
 | #404 | 审计 Merkle 根与包含证明 | [maps/effort-404.md](maps/effort-404.md) | T699–T700 | 377 |
 | #405 | 健康事件时间线 | [maps/effort-405.md](maps/effort-405.md) | T701–T702 | 378 |
+| #406 | 工具退役通告 | [maps/effort-406.md](maps/effort-406.md) | T703–T704 | 379 |
 
 ## 跨 effort 悬留
 
