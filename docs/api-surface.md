@@ -1541,6 +1541,10 @@
 - 成本：`SpendRateRing` + `CostForecast` + `CostForecastHealth` +
   `BuzhouCostForecastProperties`（403——AWS Budgets forecast：分钟桶速率环
   ×水平线线性外推 projectedOver，ModelCostLedger 监听缝喂数、恒 UP 预测面）
+- 运维：`HealthTimeline`（嵌套 `Entry`）+ `HealthTimelineRecorder` +
+  `HealthTimelineJsonl` + `BuzhouTimelineEndpoint` +
+  `BuzhouHealthTimelineProperties`（405——PagerDuty incident timeline：
+  diff-only 变迁环+计数辨抖动+JSONL+/actuator/buzhou-timeline）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
   `ToolHealth`（305 工具健康）
 - 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost

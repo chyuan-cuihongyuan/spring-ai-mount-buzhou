@@ -34,9 +34,13 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 2 | #401 | 401 | T693-694 | 374 | 提示词注册表（Langfuse） | d5fb233 |
 | 3 | #402 | 402 | T695-696 | 375 | 结构化输出执法（instructor） | 4225ba5 |
 | 4 | #403 | 403 | T697-698 | 376 | 成本预测外推（AWS Budgets forecast） | fa1aa6d |
-| 5 | #404 | 404 | T699-700 | 377 | 审计 Merkle 根+包含证明（CT log） | |
+| 5 | #404 | 404 | T699-700 | 377 | 审计 Merkle 根+包含证明（CT log） | efec052 |
+| 6 | #405 | 405 | T701-702 | 378 | 健康事件时间线（PagerDuty；勘察换题：Retry-After 已存在） | |
 
 ## 备忘
+- R6 又见 webhook 族偶发假红（WebhookEventForwarderTest.deliversSignedJsonEnvelope
+  + WebhookFanoutTest.noFanoutKeeps...，重跑同命令即绿；与改动零交集）——webhook
+  族假红与 R3 WebhookOutboxLag 同族，持续观察。
 - R3 观察到 WebhookOutboxLagTest.backedOffRecordStillCountsTowardAge 顺序型
   假红一次（NoSuchElement @ getFirst，重跑同命令即绿；与当轮改动零交集）——
   持续观察，复现再入排除集。

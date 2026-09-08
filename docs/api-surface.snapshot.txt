@@ -46,6 +46,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationE
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCostForecastProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouHealthTimelineProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMessageEncryptionProperties
@@ -145,12 +146,16 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealthEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbes
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbesEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouTimelineEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ConfigDoctorHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimeline
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth

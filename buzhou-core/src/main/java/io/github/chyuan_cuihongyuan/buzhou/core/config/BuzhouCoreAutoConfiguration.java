@@ -53,7 +53,7 @@ import java.util.List;
         ToolLoopProperties.class, BuzhouProbeProperties.class,
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
-        BuzhouCostForecastProperties.class})
+        BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -330,6 +330,66 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 405 / T702：健康时间线 JSONL 导出（{@code buzhou.health.timeline.export-path}
+     * 声明即装配；打开失败 fail-fast——坏路径该红）。逐变迁追加、每行 flush、
+     * IO 失败吞+计数（旁路语义）。
+     */
+    @Bean(destroyMethod = "close")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.health.timeline", name = "export-path")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl
+    buzhouHealthTimelineJsonl(BuzhouHealthTimelineProperties properties)
+            throws java.io.IOException {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl(
+                java.nio.file.Path.of(properties.exportPath()));
+    }
+
+    /**
+     * spec 405 / T702：健康时间线轮询记录器（{@code buzhou.health.timeline.enabled=true}
+     * 声明即装配）：周期轮询 health beans（与 312 告警引擎同源 supplier 口径）→
+     * diff 入环 + 可选 JSONL sink。独立调度——关时间线不影响告警引擎。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.health.timeline", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder
+    buzhouHealthTimelineRecorder(
+            BuzhouHealthTimelineProperties properties,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> healthBeans,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl> jsonl) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder(
+                () -> {
+                    java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> map =
+                            new java.util.LinkedHashMap<>();
+                    healthBeans.orderedStream()
+                            .forEach(health -> map.put(health.mechanism(), health));
+                    return map;
+                },
+                properties.interval(),
+                jsonl.getIfAvailable(),
+                new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimeline(
+                        properties.capacity()));
+    }
+
+    /**
+     * spec 405 / T702：健康时间线端点 {@code /actuator/buzhou-timeline}——
+     * 近期变迁 + per-mechanism 计数（抖动识别面）。与记录器同属性键装配
+     * （@ConditionalOnBean 同配置类可见性坑——312 注记，属性条件无序依赖）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.health.timeline", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouTimelineEndpoint
+    buzhouTimelineEndpoint(
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder> recorderProvider) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouTimelineEndpoint(
+                recorderProvider.getIfAvailable());
     }
 
     /**
