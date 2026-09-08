@@ -52,7 +52,7 @@ import java.util.List;
         ToolKillSwitchProperties.class, RepetitionProperties.class,
         ToolLoopProperties.class, BuzhouProbeProperties.class,
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
-        BuzhouMaintenanceProperties.class})
+        BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -329,6 +329,33 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 401 / T694：提示词注册表（Langfuse 借鉴——版本+标签双轴）。bean 恒在
+     * （未配置 = 空注册表零行为变化）；{@code buzhou.prompt.templates} 播种——
+     * 同 name 同 body 幂等跳过（重启不掀版本，诚实边界：note 不参与幂等口径）；
+     * 声明 label 自动指向该名当前最新。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry buzhouPromptRegistry(
+            BuzhouPromptProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry registry =
+                new io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry();
+        for (BuzhouPromptProperties.TemplateSpec t : properties.templates()) {
+            if (t.name() == null || t.name().isBlank() || t.body() == null) {
+                continue; // 播种条目不完整跳过（yml 手误不阻断启动）
+            }
+            var existing = registry.resolve(t.name());
+            if (existing.isEmpty() || !existing.get().body().equals(t.body())) {
+                registry.publish(t.name(), t.body(), "yml-seed");
+            }
+            if (t.label() != null && !t.label().isBlank()) {
+                registry.resolve(t.name())
+                        .ifPresent(latest -> registry.label(t.name(), t.label(), latest.version()));
+            }
+        }
+        return registry;
     }
 
     /**

@@ -242,6 +242,7 @@
 | #348 | 重试预算健康面 | [maps/effort-348.md](maps/effort-348.md) | T687–T688 | 371 |
 | #349 | C 会话收官终验 | [maps/effort-349.md](maps/effort-349.md) | T689–T690 | 372 |
 | #400 | 密钥扫描护栏 | [maps/effort-400.md](maps/effort-400.md) | T691–T692 | 373 |
+| #401 | 提示词注册表 | [maps/effort-401.md](maps/effort-401.md) | T693–T694 | 374 |
 
 ## 跨 effort 悬留
 

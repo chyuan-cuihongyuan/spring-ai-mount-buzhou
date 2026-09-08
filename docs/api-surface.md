@@ -1535,6 +1535,9 @@
   `RetryBudgetHealth`（348——Finagle 预算水位：恒 UP+余量/被拦快照，背压族观测收口）
 - 执行脊柱：`ToolBaggage`（337——W3C Baggage/OTel：工具上下文行李，
   yml 播种+运行时 API+有界封顶）
+- 治理：`PromptVersion` + `PromptRegistry` + `InMemoryPromptRegistry` +
+  `BuzhouPromptProperties`（401——Langfuse prompt management：版本+标签
+  双轴，publish 单调/latest 自动指针/晋级回滚同一动作/按版钉取/yml 幂等播种）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
   `ToolHealth`（305 工具健康）
 - 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost

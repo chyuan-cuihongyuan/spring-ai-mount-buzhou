@@ -47,6 +47,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhase
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMessageEncryptionProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouProbeProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouPromptProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRetentionProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRunawayProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouStoreFailureAnalyzer
@@ -190,6 +191,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatcher
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersion
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry
