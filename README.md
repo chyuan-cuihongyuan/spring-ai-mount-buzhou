@@ -339,6 +339,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 工具治理 | 工具结果 schema 校验 | per-tool 输出契约（复用入参同一校验器零新逻辑）——坏结果回灌前拦下转结构化反馈（标记词汇复用、文案区隔已执行），模型换参重试而非基于残缺数据瞎猜（MCP outputSchema） | [spec 409](docs/spec/409-tool-result-schema.md) |
 | 记忆治理 | 共享事实库 ACL | 跨会话/跨 agent 共享事实——deny-by-default（owner 恒读、显式 grant 才可读、键即所有权抢键 fail-fast）、ttl 过期、拒绝读计数防探测（mem0 共享记忆+隔离） | [spec 410](docs/spec/410-shared-facts.md) |
 | 背压 | 泳道优先级原语 | 优先级插队信号量（0-9 有界、数小者优先、同级 FIFO 防饿死、超时让位、不剥夺协作式）+等待快照饥饿可见——原语先行接线扩散候选（Envoy priority levels） | [spec 411](docs/spec/411-priority-lane.md) |
+| 观测治理 | 时间桶预聚合 | 跨会话翻页枚举+TURN/MODEL/TOOL 三类 span 按 epoch 对齐固定桶聚合（turns/calls/errors/tokens）+空桶补齐图表连续+桶数上界——小时级趋势一查询即得（M3 downsampling） | [spec 412](docs/spec/412-rollups.md) |
 
 ## 快速开始
 

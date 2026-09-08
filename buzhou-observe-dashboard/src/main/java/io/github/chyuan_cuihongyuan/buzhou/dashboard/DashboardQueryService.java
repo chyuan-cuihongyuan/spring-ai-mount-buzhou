@@ -188,6 +188,110 @@ public class DashboardQueryService {
     }
 
     /** token/耗时统计：按轮次、按模型、按工具分组，全部从 Span 属性袋聚合。 */
+    /** 时间桶预聚合行（spec 412 / T715，M3 fixed-window downsampling 借鉴）。 */
+    public record TimeBucket(Instant start, int turns, int modelCalls, int toolCalls,
+            int errors, long promptTokens, long completionTokens) {
+    }
+
+    /** 桶数上界（payload 纪律）。 */
+    public static final int MAX_ROLLUP_BUCKETS = 1000;
+
+    /**
+     * 时间桶预聚合（spec 412 / T715）：全会话翻页枚举 → TURN/MODEL_CALL/TOOL_CALL
+     * 三类入窗 → epoch 对齐分桶 → 升序 + 空桶补齐（图表连续性——Prometheus rate
+     * 需连续桶）；桶数超上界 IllegalArgumentException。只读查询零行为变化。
+     */
+    public List<TimeBucket> rollups(Instant from, Instant to, java.time.Duration bucket) {
+        if (from == null || to == null || bucket == null || !to.isAfter(from)) {
+            throw new IllegalArgumentException("from/to/bucket 非空且 to > from");
+        }
+        if (bucket.isZero() || bucket.isNegative()) {
+            throw new IllegalArgumentException("bucket 为正时长");
+        }
+        long bucketMs = bucket.toMillis();
+        long total = (to.toEpochMilli() - from.toEpochMilli() + bucketMs - 1) / bucketMs;
+        if (total > MAX_ROLLUP_BUCKETS) {
+            throw new IllegalArgumentException("桶数 " + total + " 超上界 " + MAX_ROLLUP_BUCKETS
+                    + "——加粗桶粒度或缩窗");
+        }
+        Map<Long, long[]> byBucket = new java.util.TreeMap<>(); // [turns, modelCalls, toolCalls, errors, prompt, completion]
+        for (long b = 0; b < total; b++) {
+            byBucket.put(floorEpoch(from, bucketMs) + b * bucketMs, new long[6]);
+        }
+        String cursor = null;
+        while (true) {
+            SessionPage page = listSessions(cursor, 100);
+            for (SessionSummary summary : page.items()) {
+                for (SpanRecord s : store.spansOfSession(summary.sessionId())) {
+                    collectRollup(s, from, to, bucketMs, byBucket);
+                }
+            }
+            if (page.nextCursor() == null) {
+                break;
+            }
+            cursor = page.nextCursor();
+        }
+        List<TimeBucket> out = new java.util.ArrayList<>(byBucket.size());
+        byBucket.forEach((start, v) -> out.add(new TimeBucket(
+                Instant.ofEpochMilli(start), (int) v[0], (int) v[1], (int) v[2],
+                (int) v[3], v[4], v[5])));
+        return List.copyOf(out);
+    }
+
+    private void collectRollup(SpanRecord s, Instant from, Instant to, long bucketMs,
+            Map<Long, long[]> byBucket) {
+        if (s.startedAt() == null || s.startedAt().isBefore(from) || !s.startedAt().isBefore(to)) {
+            return;
+        }
+        boolean error = "ERROR".equals(s.status());
+        switch (s.kind()) {
+            case SpanKind.MODEL_CALL -> {
+                long[] v = bucketOf(s.startedAt(), bucketMs, byBucket);
+                if (v == null) {
+                    return;
+                }
+                v[1]++;
+                if (error) {
+                    v[3]++;
+                }
+                v[4] += attrLong(s, "usage.prompt_tokens");
+                v[5] += attrLong(s, "usage.completion_tokens");
+            }
+            case SpanKind.TOOL_CALL -> {
+                long[] v = bucketOf(s.startedAt(), bucketMs, byBucket);
+                if (v == null) {
+                    return;
+                }
+                v[2]++;
+                if (error) {
+                    v[3]++;
+                }
+            }
+            case SpanKind.TURN -> {
+                long[] v = bucketOf(s.startedAt(), bucketMs, byBucket);
+                if (v == null) {
+                    return;
+                }
+                v[0]++;
+                if (error) {
+                    v[3]++;
+                }
+            }
+            default -> { /* SESSION/HARNESS_INTERNAL 不进桶 */
+            }
+        }
+    }
+
+    private static long[] bucketOf(Instant at, long bucketMs, Map<Long, long[]> byBucket) {
+        long key = floorEpoch(at, bucketMs);
+        return byBucket.get(key);
+    }
+
+    /** epoch 对齐 floor（跨实例对齐口径一致）。 */
+    private static long floorEpoch(Instant at, long bucketMs) {
+        return Math.floorDiv(at.toEpochMilli(), bucketMs) * bucketMs;
+    }
+
     public SessionStats stats(String sessionId) {
         List<SpanRecord> spans = store.spansOfSession(sessionId);
 

@@ -253,6 +253,7 @@
 | #409 | 工具结果 schema 校验 | [maps/effort-409.md](maps/effort-409.md) | T709–T710 | 382 |
 | #410 | 共享事实库 ACL | [maps/effort-410.md](maps/effort-410.md) | T711–T712 | 383 |
 | #411 | 泳道优先级原语 | [maps/effort-411.md](maps/effort-411.md) | T713–T714 | 384 |
+| #412 | 时间桶预聚合 | [maps/effort-412.md](maps/effort-412.md) | T715–T716 | 385 |
 
 ## 跨 effort 悬留
 
