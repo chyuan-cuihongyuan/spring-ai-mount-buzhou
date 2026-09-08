@@ -68,6 +68,8 @@ public class TokenBudgetHook implements BuzhouHook {
     private final String virtualKey;
     /** spec 338：已预警标记（会话/键两域；消耗单调——warned 即终局，1024 上限诚实降级）。 */
     private final java.util.Set<String> warned = ConcurrentHashMap.newKeySet();
+    /** spec 417 / T726：可变价目表（可空 = 旧行为零变化——props 静态价直查）。 */
+    private final PricingTable pricingTable;
 
     public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
                            io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore) {
@@ -77,7 +79,15 @@ public class TokenBudgetHook implements BuzhouHook {
     public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
                            io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore,
                            VirtualKeys virtualKeys, String virtualKey) {
+        this(props, defaultModelName, observabilityStore, virtualKeys, virtualKey, null);
+    }
+
+    /** spec 417 / T726：带可变价目表的构造（pricingTable null = 旧行为零变化）。 */
+    public TokenBudgetHook(BuzhouTokenBudgetProperties props, String defaultModelName,
+                           io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore observabilityStore,
+                           VirtualKeys virtualKeys, String virtualKey, PricingTable pricingTable) {
         this.props = props;
+        this.pricingTable = pricingTable;
         this.virtualKeys = virtualKeys;
         this.virtualKey = virtualKey;
         this.defaultModelName = defaultModelName == null || defaultModelName.isBlank()
@@ -276,10 +286,20 @@ public class TokenBudgetHook implements BuzhouHook {
         return defaultModelName;
     }
 
-    /** microUsd 口径：token × 每百万价（USD）恰为 microUsd/token；无价目 = 0。 */
+    /** microUsd 口径：token × 每百万价（USD）恰为 microUsd/token；无价目 = 0。
+     * spec 417：可变价目表优先（热载新价即时生效），表空回 props 静态价。 */
     private long microUsd(String model, long promptTokens, long completionTokens) {
-        BuzhouTokenBudgetProperties.Pricing p =
-                props.pricing() == null ? null : props.pricing().get(model);
+        BuzhouTokenBudgetProperties.Pricing p = null;
+        if (pricingTable != null) {
+            PricingTable.Price hot = pricingTable.of(model);
+            if (hot != null) {
+                p = new BuzhouTokenBudgetProperties.Pricing(
+                        hot.inputPerMillion(), hot.outputPerMillion());
+            }
+        }
+        if (p == null) {
+            p = props.pricing() == null ? null : props.pricing().get(model);
+        }
         if (p == null) {
             return 0L;
         }

@@ -910,7 +910,22 @@ public class BuzhouCoreAutoConfiguration {
                 ? null : virtualKeys.getIfAvailable();
         return new io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook(
                 tokenBudgetProperties, env.getProperty("buzhou.model-name", "unknown"),
-                available == null ? null : available.observabilityStore(), keys, activeKey);
+                available == null ? null : available.observabilityStore(), keys, activeKey,
+                buzhouPricingTable(tokenBudgetProperties, env));
+    }
+
+    /**
+     * spec 417 / T725：可变价目表（320/340 rebind 同模式 + Stripe 即时生效
+     * 思想）——底表取 token-budget.pricing；BuzhouConfigRefreshEvent 整表
+     * 热载覆盖层 + 逐键 WARN diff + 计数。bean 恒在（空表零行为）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable buzhouPricingTable(
+            BuzhouTokenBudgetProperties properties,
+            org.springframework.core.env.Environment environment) {
+        return io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable.of(properties, environment);
     }
 
     /**

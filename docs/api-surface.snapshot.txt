@@ -16,6 +16,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ElasticBudgetPool
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedgerJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
