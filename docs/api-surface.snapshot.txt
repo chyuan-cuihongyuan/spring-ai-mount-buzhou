@@ -11,9 +11,11 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnPriority
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionLedger
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostForecast
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ElasticBudgetPool
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedgerJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
@@ -43,6 +45,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigRefreshE
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCostForecastProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMessageEncryptionProperties
@@ -143,6 +146,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbes
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouProbesEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ConfigDoctorHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudgetHook

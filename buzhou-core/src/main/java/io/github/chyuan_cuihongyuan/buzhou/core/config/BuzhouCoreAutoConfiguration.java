@@ -52,7 +52,8 @@ import java.util.List;
         ToolKillSwitchProperties.class, RepetitionProperties.class,
         ToolLoopProperties.class, BuzhouProbeProperties.class,
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
-        BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class})
+        BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
+        BuzhouCostForecastProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -329,6 +330,26 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 403 / T698：成本预测健康面（AWS Budgets forecast 借鉴——窗口速率 ×
+     * 水平线线性外推）。{@code buzhou.budget.forecast.enabled=true} 声明即装配：
+     * 订阅 ModelCostLedger 全局记账（监听缝单点喂数）；恒 UP（预测面——超预算是
+     * 预测不是事故）；budget-micro-usd ≤ 0 半配置 → UNKNOWN（速率仍可见）。
+     * 重启历史清零（进程内观察面口径——诚实边界）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.forecast", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth buzhouCostForecastHealth(
+            BuzhouCostForecastProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing ring =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing();
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger.global()
+                .addListener(cost -> ring.record(cost.microUsd()));
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth(
+                ring, properties.window(), properties.horizon(), properties.budgetMicroUsd());
     }
 
     /**

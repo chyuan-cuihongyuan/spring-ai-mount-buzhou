@@ -244,6 +244,7 @@
 | #400 | 密钥扫描护栏 | [maps/effort-400.md](maps/effort-400.md) | T691–T692 | 373 |
 | #401 | 提示词注册表 | [maps/effort-401.md](maps/effort-401.md) | T693–T694 | 374 |
 | #402 | 结构化输出执法 | [maps/effort-402.md](maps/effort-402.md) | T695–T696 | 375 |
+| #403 | 成本预测外推 | [maps/effort-403.md](maps/effort-403.md) | T697–T698 | 376 |
 
 ## 跨 effort 悬留
 

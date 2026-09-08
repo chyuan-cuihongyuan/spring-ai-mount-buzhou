@@ -1538,6 +1538,9 @@
 - 治理：`PromptVersion` + `PromptRegistry` + `InMemoryPromptRegistry` +
   `BuzhouPromptProperties`（401——Langfuse prompt management：版本+标签
   双轴，publish 单调/latest 自动指针/晋级回滚同一动作/按版钉取/yml 幂等播种）
+- 成本：`SpendRateRing` + `CostForecast` + `CostForecastHealth` +
+  `BuzhouCostForecastProperties`（403——AWS Budgets forecast：分钟桶速率环
+  ×水平线线性外推 projectedOver，ModelCostLedger 监听缝喂数、恒 UP 预测面）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
   `ToolHealth`（305 工具健康）
 - 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost
