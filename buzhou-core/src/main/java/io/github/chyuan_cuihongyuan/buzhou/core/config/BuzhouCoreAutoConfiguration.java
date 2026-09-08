@@ -54,7 +54,8 @@ import java.util.List;
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
-        BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class})
+        BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
+        BuzhouPeriodBudgetProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -331,6 +332,42 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 408 / T708：日历周期预算（AWS Budgets calendar period 借鉴——翻页
+     * = 换 tag 隐式重置）。{@code buzhou.budget.period.enabled=true} 声明即挂；
+     * 两 limit 均未配 fail-fast（开预算闸却没限额是配置错误）。价目复用
+     * buzhou.token-budget.pricing 单一事实源（无价目成本轨记 0——诚实）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.period", name = "enabled", havingValue = "true")
+    public RuntimeConfig buzhouPeriodBudgetRuntimeConfig(
+            BuzhouPeriodBudgetProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores,
+            BuzhouTokenBudgetProperties tokenBudgetProps,
+            org.springframework.core.env.Environment env) {
+        if ((properties.tokensLimit() == null || properties.tokensLimit() <= 0)
+                && (properties.costMicroUsdLimit() == null || properties.costMicroUsdLimit() <= 0)) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.budget.period.enabled=true 但 tokens-limit/cost-micro-usd-limit 均未配",
+                    "至少声明一个正限额（翻页自动重置——unit=" + properties.unit() + "）");
+        }
+        java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook.Pricing>
+                pricing = new java.util.LinkedHashMap<>();
+        if (tokenBudgetProps.pricing() != null) {
+            tokenBudgetProps.pricing().forEach((model, price) -> pricing.put(model,
+                    new io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook.Pricing(
+                            price.inputPerMillion(), price.outputPerMillion())));
+        }
+        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook(
+                stores.sessionStateStore(), properties.unit(), properties.tokensLimit(),
+                properties.costMicroUsdLimit(), properties.warningPercent(), pricing,
+                env.getProperty("buzhou.model-name", "unknown"), null);
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
     }
 
     /**

@@ -335,6 +335,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 运维 | 健康事件时间线 | 机制状态变迁 diff-only 入环（首次初见/翻转/回归）+per-mechanism 计数辨抖动 + JSONL 落盘 + /actuator/buzhou-timeline——事故复盘「谁先坏的」有数据面（PagerDuty incident timeline） | [spec 405](docs/spec/405-health-timeline.md) |
 | 工具治理 | 工具退役通告 | 退役描述前缀随定义下发（模型可见 steering）+调用事件/计数——迁移进度由 usage 数据说话、真删除时机不猜；退役≠移除不阻断（K8s API deprecation） | [spec 406](docs/spec/406-tool-deprecation.md) |
 | 评测 | 在线采样入评测集 | 生产轮次确定性按率采样入集（hash(session:turn)%100 同轮同判可复现）、空白/短问过滤、fail-soft 绝不炸轮、provenance 与拉式回流同域天然去重（Honeycomb head sampling） | [spec 407](docs/spec/407-turn-sampling.md) |
+| 成本预算 | 预算日历周期 | 月/周/日全进程账期预算——periodTag 入键翻页即隐式重置、tokens+成本双轨计量、下调用拦截、软预警一次一发（AWS Budgets calendar period） | [spec 408](docs/spec/408-period-budget.md) |
 
 ## 快速开始
 

@@ -15,6 +15,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostForecast
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ElasticBudgetPool
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedgerJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
@@ -51,6 +52,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouHealthTimeline
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMessageEncryptionProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouPeriodBudgetProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouProbeProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouPromptProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRetentionProperties
