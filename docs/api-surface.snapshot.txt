@@ -322,6 +322,8 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AgentAuditRecord
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditChain
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditChainHealth
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditChainVerifier
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditMerkleSeal
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditMerkleTree
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditRecordStore
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditTrailCollector
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.InMemoryAuditRecordStore

@@ -331,6 +331,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 工程治理 | 提示词注册表 | 版本+标签双轴——publish 单调版本、production/latest 指针可移动（晋级/回滚同一动作）、按版钉取复现历史、yml 播种重启幂等（Langfuse prompt management） | [spec 401](docs/spec/401-prompt-registry.md) |
 | 模型韧性 | 结构化输出执法 | JSON 契约（required+类型表+围栏剥离）验证失败把错误清单喂回模型自修复、耗尽抛违规、每次修复重过观测+韧性层（instructor） | [spec 402](docs/spec/402-structured-output.md) |
 | 成本预算 | 成本预测外推 | 分钟桶速率环 + 水平线线性外推（窗内烧钱速率×horizon 对预算 projectedOver）——「会不会超预算」期中就有答案；记账监听缝喂数不二次算成本（AWS Budgets forecast） | [spec 403](docs/spec/403-cost-forecast.md) |
+| 安全 | 审计 Merkle 根与包含证明 | 时点封印出紧凑根对外发布、单条记录凭包含证明+根即可验——第三方零全链验证；叶摘要与链 prev_hash 同基互证（Certificate Transparency） | [spec 404](docs/spec/404-audit-merkle.md) |
 
 ## 快速开始
 

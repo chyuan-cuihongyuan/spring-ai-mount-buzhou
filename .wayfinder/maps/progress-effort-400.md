@@ -33,7 +33,8 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 1 | #400 | 400 | T691-692 | 373 | 密钥扫描护栏（gitleaks；勘察换题：原拟回退链已存在） | 51378ee |
 | 2 | #401 | 401 | T693-694 | 374 | 提示词注册表（Langfuse） | d5fb233 |
 | 3 | #402 | 402 | T695-696 | 375 | 结构化输出执法（instructor） | 4225ba5 |
-| 4 | #403 | 403 | T697-698 | 376 | 成本预测外推（AWS Budgets forecast） | |
+| 4 | #403 | 403 | T697-698 | 376 | 成本预测外推（AWS Budgets forecast） | fa1aa6d |
+| 5 | #404 | 404 | T699-700 | 377 | 审计 Merkle 根+包含证明（CT log） | |
 
 ## 备忘
 - R3 观察到 WebhookOutboxLagTest.backedOffRecordStillCountsTowardAge 顺序型

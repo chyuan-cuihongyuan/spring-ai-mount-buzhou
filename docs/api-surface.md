@@ -1546,7 +1546,10 @@
 - 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost
   按标签归因：双维 chargeback 台账，嵌套 `Dimension`/`Attribution`）
 - 安全：`SecretType` + `SecretScanner` + `SecretScanHook`（400——gitleaks：
-  七型凭据签名三缝 MASK，输入/出站工具参数/工具结果占位符化）
+  七型凭据签名三缝 MASK，输入/出站工具参数/工具结果占位符化）；
+  `AuditMerkleTree`（含嵌套 `InclusionProof`/`ProofStep`）+ `AuditMerkleSeal`
+  （404——CT log：时点封印出根、单条记录凭证明+根零全链验证，叶摘要与
+  prev_hash 同基互证）
 
 **buzhou-memory**
 

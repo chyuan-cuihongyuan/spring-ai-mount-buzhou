@@ -245,6 +245,7 @@
 | #401 | 提示词注册表 | [maps/effort-401.md](maps/effort-401.md) | T693–T694 | 374 |
 | #402 | 结构化输出执法 | [maps/effort-402.md](maps/effort-402.md) | T695–T696 | 375 |
 | #403 | 成本预测外推 | [maps/effort-403.md](maps/effort-403.md) | T697–T698 | 376 |
+| #404 | 审计 Merkle 根与包含证明 | [maps/effort-404.md](maps/effort-404.md) | T699–T700 | 377 |
 
 ## 跨 effort 悬留
 
