@@ -183,8 +183,8 @@ public final class PeriodBudgetHook implements BuzhouHook {
         return maxPct >= warningPercent ? dimension : null;
     }
 
-    /** 周期 tag：MONTHLY=yyyy-MM / WEEKLY=epochWeek / DAILY=epochDay。 */
-    String periodTag() {
+    /** 周期 tag：MONTHLY=yyyy-MM / WEEKLY=epochWeek / DAILY=epochDay（spec 419 健康面只读）。 */
+    public String periodTag() {
         LocalDate today = LocalDate.now(clock);
         return switch (unit) {
             case MONTHLY -> YearMonth.from(today).toString();

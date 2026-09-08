@@ -1540,7 +1540,8 @@
   `PromptVersion` + `PromptRegistry` + `InMemoryPromptRegistry` +
   `BuzhouPromptProperties`（401——Langfuse prompt management：版本+标签
   双轴，publish 单调/latest 自动指针/晋级回滚同一动作/按版钉取/yml 幂等播种）
-- 运维：`SessionAffinity`（415——Ketama 确定性键：sha256 亲和键+桶位纯函数）
+- 运维：`SessionAffinity`（415——Ketama 确定性键：sha256 亲和键+桶位纯函数）；
+  `PeriodBudgetHealth`（419——#408 扩散：恒 UP 双轨进度+resetsAt 回血时刻）
 - 成本：`PricingTable`（嵌套 `Price`）（417——320/340 rebind 同模式：
   刷新事件整表热载价目覆盖层+逐键 WARN diff）；
   `PeriodBudgetHook`（嵌套 `Unit`/`Pricing`）+ `BuzhouPeriodBudgetProperties`

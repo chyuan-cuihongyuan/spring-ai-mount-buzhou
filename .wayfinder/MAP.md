@@ -260,6 +260,7 @@
 | #416 | 时间桶延迟分位数 | [maps/effort-416.md](maps/effort-416.md) | T723–T724 | 389 |
 | #417 | 价目热更新 | [maps/effort-417.md](maps/effort-417.md) | T725–T726 | 390 |
 | #418 | 秘密命中统计与导出 | [maps/effort-418.md](maps/effort-418.md) | T727–T728 | 391 |
+| #419 | 周期预算健康面 | [maps/effort-419.md](maps/effort-419.md) | T729–T730 | 392 |
 
 ## 跨 effort 悬留
 

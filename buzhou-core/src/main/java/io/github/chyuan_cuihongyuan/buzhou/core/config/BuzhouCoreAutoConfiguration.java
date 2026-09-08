@@ -412,7 +412,7 @@ public class BuzhouCoreAutoConfiguration {
     @Bean
     @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
             prefix = "buzhou.budget.period", name = "enabled", havingValue = "true")
-    public RuntimeConfig buzhouPeriodBudgetRuntimeConfig(
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook buzhouPeriodBudgetHook(
             BuzhouPeriodBudgetProperties properties,
             io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores,
             BuzhouTokenBudgetProperties tokenBudgetProps,
@@ -430,13 +430,37 @@ public class BuzhouCoreAutoConfiguration {
                     new io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook.Pricing(
                             price.inputPerMillion(), price.outputPerMillion())));
         }
-        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook(
+        return new io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook(
                 stores.sessionStateStore(), properties.unit(), properties.tokensLimit(),
                 properties.costMicroUsdLimit(), properties.warningPercent(), pricing,
                 env.getProperty("buzhou.model-name", "unknown"), null);
+    }
+
+    /** spec 408：hook 挂 RuntimeConfig（健康面 419 独立 bean 共享 hook 实例）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook.class)
+    public RuntimeConfig buzhouPeriodBudgetRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook hook) {
         return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
                 null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
                 java.util.List.of(), null);
+    }
+
+    /**
+     * spec 419 / T730：周期预算健康面（与 period.enabled 同键——属性条件，
+     * 312 注记口径）：恒 UP 观测面（耗尽由闸拦截），details 双轨进度+
+     * exhausted+resetsAt 回血时刻。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.period", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth
+    buzhouPeriodBudgetHealth(BuzhouPeriodBudgetProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook hook) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth(
+                hook, properties.unit(), properties.tokensLimit(), properties.costMicroUsdLimit(),
+                java.time.Clock.systemUTC());
     }
 
     /**
