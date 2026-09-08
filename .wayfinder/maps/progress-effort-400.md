@@ -40,6 +40,7 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 8 | #407 | 407 | T705-706 | 380 | 在线采样入评测集（Honeycomb；勘察换题×2：并行管理器与快照 DR 均已存在） | 8e8017a |
 | 9 | #408 | 408 | T707-708 | 381 | 预算日历周期（AWS Budgets calendar） | 604268f |
 | 10 | #409 | 409 | T709-710 | 382 | 工具结果 schema 校验（MCP outputSchema） | 05a81da |
+| 11 | #410 | 410 | T711-712 | 383 | 共享事实库 ACL（mem0） | f0f5c6c |
 
 
 ## 备忘
