@@ -1539,6 +1539,8 @@
   `ToolHealth`（305 工具健康）
 - 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost
   按标签归因：双维 chargeback 台账，嵌套 `Dimension`/`Attribution`）
+- 安全：`SecretType` + `SecretScanner` + `SecretScanHook`（400——gitleaks：
+  七型凭据签名三缝 MASK，输入/出站工具参数/工具结果占位符化）
 
 **buzhou-memory**
 

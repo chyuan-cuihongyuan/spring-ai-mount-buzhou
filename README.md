@@ -321,6 +321,14 @@ buzhou-bom                 —— 全模块同版本收口
 
 > safe-by-default：多数机制默认开启；otel / dashboard 这类需要外部后端或端口的默认关闭。
 
+## 生产级纵深 V（D 会话 400 系增量）
+
+D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 安全 | 密钥扫描护栏 | 三缝 MASK（输入/出站工具参数/工具结果）——API key/token/JWT/PEM 七型签名占位符化，凭据不进 prompt 观测与外发（gitleaks pre-commit 思想） | [spec 400](docs/spec/400-secret-scanning.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

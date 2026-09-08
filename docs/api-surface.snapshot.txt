@@ -375,6 +375,9 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.LimitedCommandSan
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.SandboxCommandBackend
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.SandboxLimits
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.SandboxProcessLauncher
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanner
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintTrackingHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintWriteGateHook
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.DbToolSetProvider
