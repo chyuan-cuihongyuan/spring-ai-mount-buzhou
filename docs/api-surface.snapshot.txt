@@ -257,6 +257,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.MaintenanceGateHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.MediaRef
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.ObservabilityJsonlExporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAffinity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer

@@ -256,6 +256,7 @@
 | #412 | 时间桶预聚合 | [maps/effort-412.md](maps/effort-412.md) | T715–T716 | 385 |
 | #413 | 延迟作业原语 | [maps/effort-413.md](maps/effort-413.md) | T717–T718 | 386 |
 | #414 | 配置漂移审计 | [maps/effort-414.md](maps/effort-414.md) | T719–T720 | 387 |
+| #415 | 会话黏性路由提示 | [maps/effort-415.md](maps/effort-415.md) | T721–T722 | 388 |
 
 ## 跨 effort 悬留
 
