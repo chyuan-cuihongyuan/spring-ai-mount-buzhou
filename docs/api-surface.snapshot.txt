@@ -34,6 +34,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingA
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SuperstepBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreaker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreakerHook

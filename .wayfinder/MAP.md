@@ -252,6 +252,7 @@
 | #408 | 预算日历周期 | [maps/effort-408.md](maps/effort-408.md) | T707–T708 | 381 |
 | #409 | 工具结果 schema 校验 | [maps/effort-409.md](maps/effort-409.md) | T709–T710 | 382 |
 | #410 | 共享事实库 ACL | [maps/effort-410.md](maps/effort-410.md) | T711–T712 | 383 |
+| #411 | 泳道优先级原语 | [maps/effort-411.md](maps/effort-411.md) | T713–T714 | 384 |
 
 ## 跨 effort 悬留
 

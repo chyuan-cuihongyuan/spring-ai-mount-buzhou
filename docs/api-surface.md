@@ -1543,6 +1543,8 @@
   隐式重置）/ `SpendRateRing` + `CostForecast` + `CostForecastHealth` +
   `BuzhouCostForecastProperties`（403——AWS Budgets forecast：分钟桶速率环
   ×水平线线性外推 projectedOver，ModelCostLedger 监听缝喂数、恒 UP 预测面）
+- 并发原语：`PriorityLane`（411——Envoy priority levels：优先级插队信号量，
+  同级 FIFO+超时让位+等待快照）
 - 记忆治理：`SharedFact` + `SharedFactStore` + `InMemorySharedFactStore`
   （410——mem0：跨会话共享事实 deny-by-default ACL，键即所有权）
 - 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`

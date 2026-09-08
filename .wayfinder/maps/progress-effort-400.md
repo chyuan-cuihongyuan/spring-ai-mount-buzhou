@@ -41,6 +41,7 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 9 | #408 | 408 | T707-708 | 381 | 预算日历周期（AWS Budgets calendar） | 604268f |
 | 10 | #409 | 409 | T709-710 | 382 | 工具结果 schema 校验（MCP outputSchema） | 05a81da |
 | 11 | #410 | 410 | T711-712 | 383 | 共享事实库 ACL（mem0） | f0f5c6c |
+| 12 | #411 | 411 | T713-714 | 384 | 泳道优先级原语（Envoy priority levels；审计 WORM 勘察弃——append-only 已是设计） | |
 
 
 ## 备忘
