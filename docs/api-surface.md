@@ -1546,7 +1546,8 @@
 - 观测治理：`DashboardQueryService.TimeBucket` + rollups API + `/api/rollups`
   （412——M3 downsampling：epoch 对齐固定桶+空桶补齐+桶数上界）
 - 并发原语：`PriorityLane`（411——Envoy priority levels：优先级插队信号量，
-  同级 FIFO+超时让位+等待快照）
+  同级 FIFO+超时让位+等待快照）；`DelayedJobQueue`（嵌套 `PendingJob`）
+  （413——Sidekiq delayed_jobs：one-shot 到点执行+键即幂等锚替换+异常隔离）
 - 记忆治理：`SharedFact` + `SharedFactStore` + `InMemorySharedFactStore`
   （410——mem0：跨会话共享事实 deny-by-default ACL，键即所有权）
 - 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`

@@ -32,6 +32,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkheadRep
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReload
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
