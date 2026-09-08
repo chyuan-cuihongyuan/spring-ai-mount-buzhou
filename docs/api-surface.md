@@ -1543,6 +1543,8 @@
   隐式重置）/ `SpendRateRing` + `CostForecast` + `CostForecastHealth` +
   `BuzhouCostForecastProperties`（403——AWS Budgets forecast：分钟桶速率环
   ×水平线线性外推 projectedOver，ModelCostLedger 监听缝喂数、恒 UP 预测面）
+- 记忆治理：`SharedFact` + `SharedFactStore` + `InMemorySharedFactStore`
+  （410——mem0：跨会话共享事实 deny-by-default ACL，键即所有权）
 - 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`
   （407——Honeycomb head sampling：确定性 hash 采样入集 fail-soft）
 - 工具治理：`ToolResultSchemaHook` + `BuzhouToolResultSchemasProperties`

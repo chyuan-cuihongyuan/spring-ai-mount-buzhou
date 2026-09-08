@@ -141,6 +141,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TtlCachingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFact
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate

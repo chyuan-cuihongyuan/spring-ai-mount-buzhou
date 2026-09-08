@@ -337,6 +337,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 评测 | 在线采样入评测集 | 生产轮次确定性按率采样入集（hash(session:turn)%100 同轮同判可复现）、空白/短问过滤、fail-soft 绝不炸轮、provenance 与拉式回流同域天然去重（Honeycomb head sampling） | [spec 407](docs/spec/407-turn-sampling.md) |
 | 成本预算 | 预算日历周期 | 月/周/日全进程账期预算——periodTag 入键翻页即隐式重置、tokens+成本双轨计量、下调用拦截、软预警一次一发（AWS Budgets calendar period） | [spec 408](docs/spec/408-period-budget.md) |
 | 工具治理 | 工具结果 schema 校验 | per-tool 输出契约（复用入参同一校验器零新逻辑）——坏结果回灌前拦下转结构化反馈（标记词汇复用、文案区隔已执行），模型换参重试而非基于残缺数据瞎猜（MCP outputSchema） | [spec 409](docs/spec/409-tool-result-schema.md) |
+| 记忆治理 | 共享事实库 ACL | 跨会话/跨 agent 共享事实——deny-by-default（owner 恒读、显式 grant 才可读、键即所有权抢键 fail-fast）、ttl 过期、拒绝读计数防探测（mem0 共享记忆+隔离） | [spec 410](docs/spec/410-shared-facts.md) |
 
 ## 快速开始
 

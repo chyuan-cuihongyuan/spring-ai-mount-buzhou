@@ -251,6 +251,7 @@
 | #407 | 在线采样入评测集 | [maps/effort-407.md](maps/effort-407.md) | T705–T706 | 380 |
 | #408 | 预算日历周期 | [maps/effort-408.md](maps/effort-408.md) | T707–T708 | 381 |
 | #409 | 工具结果 schema 校验 | [maps/effort-409.md](maps/effort-409.md) | T709–T710 | 382 |
+| #410 | 共享事实库 ACL | [maps/effort-410.md](maps/effort-410.md) | T711–T712 | 383 |
 
 ## 跨 effort 悬留
 

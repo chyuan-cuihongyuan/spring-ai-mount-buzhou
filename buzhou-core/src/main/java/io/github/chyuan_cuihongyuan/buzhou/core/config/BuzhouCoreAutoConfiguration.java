@@ -335,6 +335,15 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 410 / T712：共享事实库（mem0 共享记忆+隔离借鉴——deny-by-default）。
+     * bean 恒在（空库零行为——宿主程序面注入使用；进程内诚实边界重启清零）。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore buzhouSharedFactStore() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStore();
+    }
+
+    /**
      * spec 409 / T710：工具结果 schema 校验（MCP outputSchema 借鉴——复用
      * ToolArgsValidator 同一校验器）。{@code buzhou.tools.result-schemas.<name>}
      * 声明即装配（Binder 预绑判 map 非空——406 同法）。
