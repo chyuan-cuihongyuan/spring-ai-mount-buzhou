@@ -55,7 +55,8 @@ import java.util.List;
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
-        BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class})
+        BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
+        BuzhouConfigAuditProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -332,6 +333,29 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 414 / T720：配置漂移审计（ArgoCD drift detection 借鉴）。
+     * {@code buzhou.config-audit.enabled=true} 声明即装配：周期快照 diff，
+     * 变更 WARN 日志留痕（宿主可注入增强 listener——bean 可覆盖）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor.class)
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.config-audit", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor
+    buzhouConfigDriftAuditor(BuzhouConfigAuditProperties properties,
+            org.springframework.core.env.Environment environment) {
+        System.Logger logger = System.getLogger("buzhou.config-drift");
+        return new io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor(
+                environment, properties.interval(), changes -> {
+                    for (var c : changes) {
+                        logger.log(System.Logger.Level.WARNING,
+                                "配置漂移：{0}: {1} -> {2}", c.key(), c.from(), c.to());
+                    }
+                });
     }
 
     /**

@@ -341,6 +341,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 背压 | 泳道优先级原语 | 优先级插队信号量（0-9 有界、数小者优先、同级 FIFO 防饿死、超时让位、不剥夺协作式）+等待快照饥饿可见——原语先行接线扩散候选（Envoy priority levels） | [spec 411](docs/spec/411-priority-lane.md) |
 | 观测治理 | 时间桶预聚合 | 跨会话翻页枚举+TURN/MODEL/TOOL 三类 span 按 epoch 对齐固定桶聚合（turns/calls/errors/tokens）+空桶补齐图表连续+桶数上界——小时级趋势一查询即得（M3 downsampling） | [spec 412](docs/spec/412-rollups.md) |
 | 并发原语 | 延迟作业 | one-shot 到点执行（fireAt/delay 双形态）——同键重复提交=替换不双跑（键即幂等锚）、cancel 幂等、异常隔离计数、pending 升序快照（Sidekiq delayed_jobs） | [spec 413](docs/spec/413-delayed-jobs.md) |
+| 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 
 ## 快速开始
 

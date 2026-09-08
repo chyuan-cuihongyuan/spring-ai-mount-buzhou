@@ -44,6 +44,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BulkheadScalingPrope
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouAlertProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouArchiveProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigAuditProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigRefreshEvent
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration
@@ -67,6 +68,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsPropertie
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouVirtualKeyProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ChaosProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDoctor
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.DryRunProperties

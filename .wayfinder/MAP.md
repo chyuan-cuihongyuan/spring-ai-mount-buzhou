@@ -255,6 +255,7 @@
 | #411 | 泳道优先级原语 | [maps/effort-411.md](maps/effort-411.md) | T713–T714 | 384 |
 | #412 | 时间桶预聚合 | [maps/effort-412.md](maps/effort-412.md) | T715–T716 | 385 |
 | #413 | 延迟作业原语 | [maps/effort-413.md](maps/effort-413.md) | T717–T718 | 386 |
+| #414 | 配置漂移审计 | [maps/effort-414.md](maps/effort-414.md) | T719–T720 | 387 |
 
 ## 跨 effort 悬留
 
