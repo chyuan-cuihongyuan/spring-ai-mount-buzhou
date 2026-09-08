@@ -38,7 +38,8 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 6 | #405 | 405 | T701-702 | 378 | 健康事件时间线（PagerDuty；勘察换题：Retry-After 已存在） | e30c239 |
 | 7 | #406 | 406 | T703-704 | 379 | 工具退役通告（K8s API deprecation） | 690c893 |
 | 8 | #407 | 407 | T705-706 | 380 | 在线采样入评测集（Honeycomb；勘察换题×2：并行管理器与快照 DR 均已存在） | 8e8017a |
-| 9 | #408 | 408 | T707-708 | 381 | 预算日历周期（AWS Budgets calendar） | |
+| 9 | #408 | 408 | T707-708 | 381 | 预算日历周期（AWS Budgets calendar） | 604268f |
+| 10 | #409 | 409 | T709-710 | 382 | 工具结果 schema 校验（MCP outputSchema） | |
 
 ## 备忘
 - R7 又见 StreamTerminationMetricsTest.slowDripStreamCutByCumulativeCap 一次

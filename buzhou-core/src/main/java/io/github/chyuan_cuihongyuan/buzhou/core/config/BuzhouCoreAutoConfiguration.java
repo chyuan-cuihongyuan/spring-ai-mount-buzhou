@@ -55,7 +55,7 @@ import java.util.List;
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
-        BuzhouPeriodBudgetProperties.class})
+        BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -332,6 +332,42 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 409 / T710：工具结果 schema 校验（MCP outputSchema 借鉴——复用
+     * ToolArgsValidator 同一校验器）。{@code buzhou.tools.result-schemas.<name>}
+     * 声明即装配（Binder 预绑判 map 非空——406 同法）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ResultSchemasPresentCondition.class)
+    public RuntimeConfig buzhouToolResultSchemasRuntimeConfig(
+            BuzhouToolResultSchemasProperties properties) {
+        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook(
+                properties.schemas());
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
+    }
+
+    /** spec 409：result-schemas map 非空才装配（Binder 预绑判定）。 */
+    static final class ResultSchemasPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.tools.result-schemas",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, String.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     /**
