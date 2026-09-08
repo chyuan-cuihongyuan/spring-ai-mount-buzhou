@@ -54,7 +54,7 @@ import java.util.List;
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
-        BuzhouToolDeprecationProperties.class})
+        BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -331,6 +331,39 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 407 / T706：EvalDatasetStore bean（采样声明即暴露——宿主 createDataset
+     * 建集用；集必须预建，采样不建集）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.eval.sampling", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore buzhouEvalDatasetStore(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore(
+                stores.sessionStateStore());
+    }
+
+    /**
+     * spec 407 / T706：在线采样入评测集（Honeycomb head-based deterministic
+     * sampling 借鉴）。{@code buzhou.eval.sampling.enabled=true} 声明即挂
+     * afterTurn 尾观察 hook（确定性采样 + fail-soft 入集）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.eval.sampling", name = "enabled", havingValue = "true")
+    public RuntimeConfig buzhouEvalSamplingRuntimeConfig(
+            BuzhouEvalSamplingProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore datasetStore) {
+        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook(
+                datasetStore,
+                new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook.Policy(
+                        properties.dataset(), properties.ratePercent(), properties.minInputChars()));
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
     }
 
     /**

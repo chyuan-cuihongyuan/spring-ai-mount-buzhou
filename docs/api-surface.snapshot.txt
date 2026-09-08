@@ -46,6 +46,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationE
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCostForecastProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouEvalSamplingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouHealthTimelineProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
@@ -102,6 +103,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseJudge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.RagasEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.SessionTrajectoryImporter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BackendLanePermit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CanaryToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CancellationToken

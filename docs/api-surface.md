@@ -1541,6 +1541,8 @@
 - 成本：`SpendRateRing` + `CostForecast` + `CostForecastHealth` +
   `BuzhouCostForecastProperties`（403——AWS Budgets forecast：分钟桶速率环
   ×水平线线性外推 projectedOver，ModelCostLedger 监听缝喂数、恒 UP 预测面）
+- 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`
+  （407——Honeycomb head sampling：确定性 hash 采样入集 fail-soft）
 - 工具治理：`DeprecatedToolCallback`（嵌套 `Deprecation`）+
   `BuzhouToolDeprecationProperties`（406——K8s API deprecation：描述前缀随
   定义下发+调用事件计数，迁移进度由 usage 说话）
