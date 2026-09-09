@@ -345,6 +345,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 安全 | 秘密命中统计与导出 | 类型×缝三侧计数（INPUT/OUTBOUND/OUTPUT）+快照 JSONL 追加导出——泄漏面趋势（哪类凭据/哪条缝最常出）可分析（PiiHitStats 同构镜像） | [spec 418](docs/spec/418-secret-hit-stats.md) |
 | 成本预算 | 周期预算健康面 | 恒 UP 观测面：双轨进度（used/limit/pct 截断）+exhausted 布尔+resetsAt 回血时刻（月=下月 1 日/周=epoch 周界/日=次日）——「烧到哪了/还有多久回血」一屏可答（AWS Budgets 面板） | [spec 419](docs/spec/419-period-budget-health.md) |
 | 工具治理 | 工具目录 lint | 装配期三规则体检（名字约定/描述长度/跨源重名）——只报不改 WARN+计数+首装配事件，模型选工具的静态失败面上线前可见（ESLint 构建期 lint） | [spec 420](docs/spec/420-catalog-lint.md) |
+| 安全 | 审计封印导出 | Merkle 封印逐行 JSONL 追加外存+每行即时建树 verified 比对——最新印期望 true、旧印 false 属正常（印后有新记录）、最新印 false=链被动过；宿主定时调用即 CT 式 STH 公示节奏 | [spec 421](docs/spec/421-audit-seal-export.md) |
 | 并发原语 | 延迟作业 | one-shot 到点执行（fireAt/delay 双形态）——同键重复提交=替换不双跑（键即幂等锚）、cancel 幂等、异常隔离计数、pending 升序快照（Sidekiq delayed_jobs） | [spec 413](docs/spec/413-delayed-jobs.md) |
 | 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 | 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |

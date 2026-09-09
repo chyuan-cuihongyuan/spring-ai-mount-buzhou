@@ -1579,7 +1579,8 @@
   （418——#400 扩散：三侧计数+快照 JSONL 追加导出）；
   `AuditMerkleTree`（含嵌套 `InclusionProof`/`ProofStep`）+ `AuditMerkleSeal`
   （404——CT log：时点封印出根、单条记录凭证明+根零全链验证，叶摘要与
-  prev_hash 同基互证）
+  prev_hash 同基互证）；`AuditSealJsonl`（421——#404 扩散：封印逐行 JSONL
+  追加外存+每行即时建树 verified 比对，STH 公示节奏工具面）
 
 **buzhou-memory**
 
