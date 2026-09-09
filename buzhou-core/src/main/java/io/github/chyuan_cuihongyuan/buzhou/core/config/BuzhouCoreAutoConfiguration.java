@@ -53,6 +53,7 @@ import java.util.List;
         ToolLoopProperties.class, BuzhouProbeProperties.class,
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
+        BuzhouPromptUsageProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
@@ -745,15 +746,27 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 424 / T740：提示词使用统计 holder（bean 恒在——闲置零成本；
+     * 装饰器记账的落点、宿主快照/导出取用面）。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats buzhouPromptUsageStats() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats();
+    }
+
+    /**
      * spec 401 / T694：提示词注册表（Langfuse 借鉴——版本+标签双轴）。bean 恒在
      * （未配置 = 空注册表零行为变化）；{@code buzhou.prompt.templates} 播种——
      * 同 name 同 body 幂等跳过（重启不掀版本，诚实边界：note 不参与幂等口径）；
-     * 声明 label 自动指向该名当前最新。
+     * 声明 label 自动指向该名当前最新。spec 424：usage-tracking.enabled=true
+     * 时包 UsageTrackingPromptRegistry（resolve 记账——默认关原样返回）。
      */
     @Bean
     public io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry buzhouPromptRegistry(
-            BuzhouPromptProperties properties) {
-        io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry registry =
+            BuzhouPromptProperties properties,
+            BuzhouPromptUsageProperties usageProperties,
+            io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats usageStats) {
+        io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry registry =
                 new io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry();
         for (BuzhouPromptProperties.TemplateSpec t : properties.templates()) {
             if (t.name() == null || t.name().isBlank() || t.body() == null) {
@@ -768,7 +781,10 @@ public class BuzhouCoreAutoConfiguration {
                         .ifPresent(latest -> registry.label(t.name(), t.label(), latest.version()));
             }
         }
-        return registry;
+        return Boolean.TRUE.equals(usageProperties.enabled())
+                ? new io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry(
+                        registry, usageStats)
+                : registry;
     }
 
     /**

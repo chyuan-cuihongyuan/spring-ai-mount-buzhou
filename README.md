@@ -348,6 +348,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 安全 | 审计封印导出 | Merkle 封印逐行 JSONL 追加外存+每行即时建树 verified 比对——最新印期望 true、旧印 false 属正常（印后有新记录）、最新印 false=链被动过；宿主定时调用即 CT 式 STH 公示节奏 | [spec 421](docs/spec/421-audit-seal-export.md) |
 | 背压 | 工具泳道优先级装配 | yml 声明泳道容量+per-tool 优先级即装配（0-9 数小者先拿许可、同级 FIFO）——交互工具拥挤时先于批处理工具执行，未声明泳道引用启动即红（Envoy priority levels 接线） | [spec 422](docs/spec/422-tool-lane-priority-assembly.md) |
 | 评测 | 错误偏向采样 | 错误轮观察者缝采样入候选池（错误轮不走 afterTurn——onTurnStart 记输入/onTurnError 采错）——error-rate-percent 默认 100 全保、确定性 hash 同轮同判、占位 [TURN-ERROR] 留人工判 golden（OTel tail_sampling ERROR 规则） | [spec 423](docs/spec/423-error-biased-sampling.md) |
+| 工程治理 | 提示词使用统计 | 注册表装饰器三 resolve 形态命中记账（latest/标签/钉版→name×version 次数）+快照 JSONL 追加导出——晋级/退役由使用数据说话（Langfuse prompt analytics） | [spec 424](docs/spec/424-prompt-usage-stats.md) |
 | 并发原语 | 延迟作业 | one-shot 到点执行（fireAt/delay 双形态）——同键重复提交=替换不双跑（键即幂等锚）、cancel 幂等、异常隔离计数、pending 升序快照（Sidekiq delayed_jobs） | [spec 413](docs/spec/413-delayed-jobs.md) |
 | 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 | 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |

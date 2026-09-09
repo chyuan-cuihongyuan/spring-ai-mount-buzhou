@@ -265,6 +265,7 @@
 | #421 | 审计封印导出 | [maps/effort-421.md](maps/effort-421.md) | T733–T734 | 394 |
 | #422 | 工具泳道优先级装配 | [maps/effort-422.md](maps/effort-422.md) | T735–T736 | 395 |
 | #423 | 错误偏向采样 | [maps/effort-423.md](maps/effort-423.md) | T737–T738 | 396 |
+| #424 | 提示词使用统计 | [maps/effort-424.md](maps/effort-424.md) | T739–T740 | 397 |
 
 ## 跨 effort 悬留
 

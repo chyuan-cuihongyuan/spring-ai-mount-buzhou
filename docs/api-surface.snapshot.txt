@@ -60,6 +60,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMessageEncrypt
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouPeriodBudgetProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouProbeProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouPromptProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouPromptUsageProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRetentionProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRunawayProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouStoreFailureAnalyzer
@@ -224,7 +225,10 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersion
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry
