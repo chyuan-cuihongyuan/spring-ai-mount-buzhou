@@ -396,6 +396,10 @@ public class DefaultAgentSession implements AgentSession {
             recordTurnDuration(turnStartNanos, "failed");
             throw e;
         } catch (RuntimeException e) {
+            // spec 427 / T745：非流式错误回调对称化——观察者契约 onTurnError 在此
+            // 兑现（与流式 failTurnOnce 同型；span 带 error 立即收口、423 错误采样
+            // 非流式也采得到）
+            observers.forEach(o -> o.onTurnError(turnSeq, e));
             recordTurnDuration(turnStartNanos, "failed");
             throw e;
         }

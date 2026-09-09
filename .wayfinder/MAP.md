@@ -268,6 +268,7 @@
 | #424 | 提示词使用统计 | [maps/effort-424.md](maps/effort-424.md) | T739–T740 | 397 |
 | #425 | 轮次租户限速 | [maps/effort-425.md](maps/effort-425.md) | T741–T742 | 398 |
 | #426 | 模型并发舱 | [maps/effort-426.md](maps/effort-426.md) | T743–T744 | 399 |
+| #427 | 非流式错误回调对称化 | [maps/effort-427.md](maps/effort-427.md) | T745–T746 | 400 |
 
 ## 跨 effort 悬留
 
