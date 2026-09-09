@@ -56,7 +56,7 @@ import java.util.List;
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
-        BuzhouConfigAuditProperties.class})
+        BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -563,6 +563,63 @@ public class BuzhouCoreAutoConfiguration {
                         .bind("buzhou.tools.deprecated",
                                 org.springframework.boot.context.properties.bind.Bindable
                                         .mapOf(String.class, BuzhouToolDeprecationProperties.Spec.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 422 / T736：工具泳道优先级装配（Envoy priority levels 接线——411
+     * 原语收口）。{@code buzhou.tool-lanes.lanes} 声明即装配：customizer 经
+     * wrapToolCallbacks 名匹配 → {@code PriorityLaneToolCallback}（共享
+     * {@code ToolLaneRegistry.priorityLane} 命名单例——许可跨会话共享）；
+     * 未命中工具零包装。tools 引用未声明泳道启动即红（fail-fast——拼错名
+     * 不拖到首次调用）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ToolLanePresentCondition.class)
+    public RuntimeConfig buzhouToolLaneRuntimeConfig(BuzhouToolLaneProperties properties) {
+        properties.tools().forEach((toolName, binding) -> {
+            if (!properties.lanes().containsKey(binding.lane())) {
+                throw new IllegalArgumentException("buzhou.tool-lanes.tools." + toolName
+                        + " 引用未声明泳道「" + binding.lane() + "」——先在 buzhou.tool-lanes.lanes 声明");
+            }
+        });
+        java.util.Map<String, BuzhouToolLaneProperties.ToolBinding> bindings = properties.tools();
+        java.util.Map<String, BuzhouToolLaneProperties.LaneSpec> lanes = properties.lanes();
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolLaneRegistry registry =
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolLaneRegistry();
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.wrapToolCallbacks(cb -> {
+                    BuzhouToolLaneProperties.ToolBinding binding =
+                            bindings.get(cb.getToolDefinition().name());
+                    if (binding == null) {
+                        return cb;
+                    }
+                    BuzhouToolLaneProperties.LaneSpec spec = lanes.get(binding.lane());
+                    return new io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback(
+                            cb, registry.priorityLane(binding.lane(), spec.permits()),
+                            binding.priority(), spec.acquireTimeout());
+                })),
+                null);
+    }
+
+    /** spec 422：lanes map 非空才装配（Binder 预绑判定——406 同法）。 */
+    static final class ToolLanePresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.tool-lanes.lanes",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, BuzhouToolLaneProperties.LaneSpec.class))
                         .map(m -> !m.isEmpty()).orElse(false);
             } catch (Exception e) {
                 return false;

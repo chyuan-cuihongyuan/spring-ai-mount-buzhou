@@ -64,6 +64,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouRunawayPropert
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouStoreFailureAnalyzer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouTokenBudgetProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolDeprecationProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolLaneProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolResultSchemasProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouVirtualKeyProperties
@@ -124,6 +125,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunPlanJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LaneLimitingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.MemoizedToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolArgsValidator

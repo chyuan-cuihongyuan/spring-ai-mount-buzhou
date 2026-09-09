@@ -1554,7 +1554,10 @@
   TURN p50/p95/p99 exact 最近秩、空桶 null）
 - 并发原语：`PriorityLane`（411——Envoy priority levels：优先级插队信号量，
   同级 FIFO+超时让位+等待快照）；`DelayedJobQueue`（嵌套 `PendingJob`）
-  （413——Sidekiq delayed_jobs：one-shot 到点执行+键即幂等锚替换+异常隔离）
+  （413——Sidekiq delayed_jobs：one-shot 到点执行+键即幂等锚替换+异常隔离）；
+  `PriorityLaneToolCallback` + `BuzhouToolLaneProperties`（嵌套 `LaneSpec`/
+  `ToolBinding`）（422——#411 扩散：yml 声明泳道+per-tool 优先级即装配，
+  未知泳道引用启动红；`ToolLaneRegistry.priorityLane` 命名单例）
 - 记忆治理：`SharedFact` + `SharedFactStore` + `InMemorySharedFactStore`
   （410——mem0：跨会话共享事实 deny-by-default ACL，键即所有权）
 - 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`
