@@ -266,6 +266,7 @@
 | #422 | 工具泳道优先级装配 | [maps/effort-422.md](maps/effort-422.md) | T735–T736 | 395 |
 | #423 | 错误偏向采样 | [maps/effort-423.md](maps/effort-423.md) | T737–T738 | 396 |
 | #424 | 提示词使用统计 | [maps/effort-424.md](maps/effort-424.md) | T739–T740 | 397 |
+| #425 | 轮次租户限速 | [maps/effort-425.md](maps/effort-425.md) | T741–T742 | 398 |
 
 ## 跨 effort 悬留
 

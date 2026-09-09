@@ -1532,7 +1532,10 @@
   （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）；
   `MaintenanceCordon` + `BuzhouMaintenanceProperties`（342——K8s cordon：
   维护窗/运行时按钮 cordon，地板多源合成与冻结正交）；
-  `RetryBudgetHealth`（348——Finagle 预算水位：恒 UP+余量/被拦快照，背压族观测收口）
+  `RetryBudgetHealth`（348——Finagle 预算水位：恒 UP+余量/被拦快照，背压族观测收口）；
+  `TurnRateLimitHook`（嵌套 `Policy`）+ `BuzhouTurnRateLimitProperties`
+  （425——nginx token bucket：beforeTurn 惰性令牌桶——burst+匀速回填、
+  默认 per-session 键可插拔租户帽、超限 block 不炸轮）
 - 执行脊柱：`ToolBaggage`（337——W3C Baggage/OTel：工具上下文行李，
   yml 播种+运行时 API+有界封顶）
 - 治理：`ConfigDriftAuditor`（嵌套 `Change`）+ `BuzhouConfigAuditProperties`

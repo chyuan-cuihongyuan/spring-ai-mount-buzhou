@@ -69,6 +69,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolDeprecatio
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolLaneProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolResultSchemasProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouTurnRateLimitProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouVirtualKeyProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ChaosProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDoctor
@@ -229,6 +230,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersion
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry

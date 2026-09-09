@@ -53,7 +53,7 @@ import java.util.List;
         ToolLoopProperties.class, BuzhouProbeProperties.class,
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
-        BuzhouPromptUsageProperties.class,
+        BuzhouPromptUsageProperties.class, BuzhouTurnRateLimitProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
@@ -659,6 +659,42 @@ public class BuzhouCoreAutoConfiguration {
                                 org.springframework.boot.context.properties.bind.Bindable
                                         .mapOf(String.class, BuzhouToolLaneProperties.LaneSpec.class))
                         .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 425 / T742：轮次限速（nginx token bucket 借鉴）。{@code buzhou.
+     * ratelimit.turns.burst} 与 {@code permits-per-minute} 双声明即装配
+     * （默认键 sessionId——单会话频次帽；租户整体帽由宿主手工构造常量键
+     * hook）；缺任一不装配零行为。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.TurnRateLimitPresentCondition.class)
+    public RuntimeConfig buzhouTurnRateLimitRuntimeConfig(BuzhouTurnRateLimitProperties properties) {
+        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook(
+                new io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook.Policy(
+                        properties.burst(), properties.permitsPerMinute()));
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
+    }
+
+    /** spec 425：burst 与 permits-per-minute 双声明才装配（Binder 预绑判定——406 同法）。 */
+    static final class TurnRateLimitPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.ratelimit.turns", BuzhouTurnRateLimitProperties.class)
+                        .map(p -> p.burst() != null && p.permitsPerMinute() != null)
+                        .orElse(false);
             } catch (Exception e) {
                 return false;
             }
