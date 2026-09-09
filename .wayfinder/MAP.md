@@ -267,6 +267,7 @@
 | #423 | 错误偏向采样 | [maps/effort-423.md](maps/effort-423.md) | T737–T738 | 396 |
 | #424 | 提示词使用统计 | [maps/effort-424.md](maps/effort-424.md) | T739–T740 | 397 |
 | #425 | 轮次租户限速 | [maps/effort-425.md](maps/effort-425.md) | T741–T742 | 398 |
+| #426 | 模型并发舱 | [maps/effort-426.md](maps/effort-426.md) | T743–T744 | 399 |
 
 ## 跨 effort 悬留
 

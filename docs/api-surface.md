@@ -404,6 +404,10 @@
 - `public final class FallbackChain`
 - `public final class ModelCircuitBreaker`
 - `public final class ModelCircuitOpenException`
+- `public final class ModelConcurrencyAdvisor`（426——Resilience4j SemaphoreBulkhead/
+  Uber concurrency-limits：per-model 在飞并发舱——链序 +660 许可持有跨
+  重试、流式 doFinally 释放含 CANCEL）
+- `public final class ModelConcurrencyLimiter`
 - `public final class ModelRateLimiter`
 - `public final class ResilienceModule`
 - `public final class ResilienceStats`

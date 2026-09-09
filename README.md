@@ -350,6 +350,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 评测 | 错误偏向采样 | 错误轮观察者缝采样入候选池（错误轮不走 afterTurn——onTurnStart 记输入/onTurnError 采错）——error-rate-percent 默认 100 全保、确定性 hash 同轮同判、占位 [TURN-ERROR] 留人工判 golden（OTel tail_sampling ERROR 规则） | [spec 423](docs/spec/423-error-biased-sampling.md) |
 | 工程治理 | 提示词使用统计 | 注册表装饰器三 resolve 形态命中记账（latest/标签/钉版→name×version 次数）+快照 JSONL 追加导出——晋级/退役由使用数据说话（Langfuse prompt analytics） | [spec 424](docs/spec/424-prompt-usage-stats.md) |
 | 背压 | 轮次限速 | beforeTurn 惰性令牌桶准入（burst 突发桶+每分钟匀速回填、无定时器）——默认 per-session 频次帽、可插拔键做租户整体帽，超限 block 不炸轮（nginx token bucket） | [spec 425](docs/spec/425-turn-rate-limit.md) |
+| 背压 | 模型并发舱 | per-model 在飞并发上限（advisor 链 +660：许可在重试外获取一次、持有跨重试；流式 doFinally 释放含 CANCEL）——供应商并发 tier 的 429 上游根因消除，未配置模型 NOOP 零开销（Resilience4j SemaphoreBulkhead） | [spec 426](docs/spec/426-model-concurrency.md) |
 | 并发原语 | 延迟作业 | one-shot 到点执行（fireAt/delay 双形态）——同键重复提交=替换不双跑（键即幂等锚）、cancel 幂等、异常隔离计数、pending 升序快照（Sidekiq delayed_jobs） | [spec 413](docs/spec/413-delayed-jobs.md) |
 | 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 | 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |

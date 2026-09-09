@@ -55,7 +55,8 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 23 | #422 | 422 | T735-736 | 395 | 工具泳道优先级装配（#411 扩散，Envoy 接线） | 29c9518 |
 | 24 | #423 | 423 | T737-738 | 396 | 错误偏向采样（#407 扩散，OTel tail_sampling ERROR 全保） | 87d0797 |
 | 25 | #424 | 424 | T739-740 | 397 | 提示词使用统计（#401 扩散，Langfuse analytics） | aa57282 |
-| 26 | #425 | 425 | T741-742 | 398 | 轮次租户限速（nginx token bucket） | |
+| 26 | #425 | 425 | T741-742 | 398 | 轮次租户限速（nginx token bucket） | 76485e3 |
+| 27 | #426 | 426 | T743-744 | 399 | 模型并发舱（供应商并发配额，Resilience4j Bulkhead；换题：原拟 Webhook 幂等——X-Buzhou-Event-Id 已存在弃） | |
 
 
 ## 备忘

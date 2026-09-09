@@ -29,12 +29,56 @@ import java.util.Map;
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.resilience", name = "enabled", matchIfMissing = true)
 @EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class,
-        io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties.class})
+        io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties.class,
+        BuzhouModelConcurrencyProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean
     public ResilienceStats resilienceStats() {
         return new ResilienceStats();
+    }
+
+    /**
+     * spec 426 / T744：模型并发舱（Resilience4j SemaphoreBulkhead / Uber
+     * concurrency-limits 借鉴——供应商并发配额分层）。{@code buzhou.
+     * resilience.model-concurrency.limits} 非空声明即装配：advisor 注链
+     * （+660——rate-limit 内、resilience 外：许可在重试外获取、持有跨重试；
+     * 流式 doFinally 释放）；模型名取 {@code buzhou.model-name}（默认
+     * unknown，同口径）。多实例诚实边界：每实例独立并发额度。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.ModelConcurrencyPresentCondition.class)
+    public RuntimeConfig modelConcurrencyRuntimeConfig(
+            BuzhouModelConcurrencyProperties properties, org.springframework.core.env.Environment env) {
+        var limiter = new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency
+                .ModelConcurrencyLimiter(properties.limits(), properties.acquireTimeout());
+        String modelName = env.getProperty("buzhou.model-name", "unknown");
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addAdvisor(
+                        new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency
+                                .ModelConcurrencyAdvisor(limiter, modelName))),
+                null);
+    }
+
+    /** spec 426：limits map 非空才装配（Binder 预绑判定——406 同法）。 */
+    static final class ModelConcurrencyPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.resilience.model-concurrency.limits",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Integer.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     /**
