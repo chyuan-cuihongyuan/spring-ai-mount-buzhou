@@ -353,6 +353,7 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 背压 | 模型并发舱 | per-model 在飞并发上限（advisor 链 +660：许可在重试外获取一次、持有跨重试；流式 doFinally 释放含 CANCEL）——供应商并发 tier 的 429 上游根因消除，未配置模型 NOOP 零开销（Resilience4j SemaphoreBulkhead） | [spec 426](docs/spec/426-model-concurrency.md) |
 | 观测治理 | 轮次错误回调对称化 | 非流式 chat 失败也回调 onTurnError（此前仅流式）——turn span 带 error 立即收口不悬到会话关闭、错误采样（423）非流式也采得到（OTel span status ERROR 语义正确性） | [spec 427](docs/spec/427-nondrain-error-callback.md) |
 | 安全 | Webhook 验签与防重放 | 消费端常量时间验签工具（MessageDigest.isEqual 防时序侧信道）+时间戳容差窗重放有界（forwarder 加发 X-Buzhou-Timestamp 不进 MAC 存量零破坏）——签名↔验签两侧同 crypto 路闭环（Stripe signed webhooks） | [spec 428](docs/spec/428-webhook-verify-replay.md) |
+| 背压 | 模型并发舱热更新 | refresh 事件重读 limits 热调容（扩容 grow/缩容 shrink 在飞不受扰、释放自然收敛不抢占；移除键摘舱）——供应商调并发额度改 yml 发事件即生效不重启（320/340 rebind 同模式） | [spec 429](docs/spec/429-model-concurrency-hot-reload.md) |
 | 并发原语 | 延迟作业 | one-shot 到点执行（fireAt/delay 双形态）——同键重复提交=替换不双跑（键即幂等锚）、cancel 幂等、异常隔离计数、pending 升序快照（Sidekiq delayed_jobs） | [spec 413](docs/spec/413-delayed-jobs.md) |
 | 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 | 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |

@@ -39,20 +39,29 @@ public class BuzhouResilienceAutoConfiguration {
     }
 
     /**
-     * spec 426 / T744：模型并发舱（Resilience4j SemaphoreBulkhead / Uber
-     * concurrency-limits 借鉴——供应商并发配额分层）。{@code buzhou.
-     * resilience.model-concurrency.limits} 非空声明即装配：advisor 注链
-     * （+660——rate-limit 内、resilience 外：许可在重试外获取、持有跨重试；
-     * 流式 doFinally 释放）；模型名取 {@code buzhou.model-name}（默认
-     * unknown，同口径）。多实例诚实边界：每实例独立并发额度。
+     * spec 426 / T744 + spec 429 / T750：模型并发舱（Resilience4j
+     * SemaphoreBulkhead / Uber concurrency-limits 借鉴——供应商并发配额
+     * 分层）。{@code buzhou.resilience.model-concurrency.limits} 非空声明即
+     * 装配；spec 429 拆三 bean——limiter 恒 exposed（advisor 与热更新共享
+     * 同一实例），ModelConcurrencyHotReload 随 refresh 事件热调容
+     * （320/340 rebind 同模式）。模型名取 {@code buzhou.model-name}
+     * （默认 unknown，同口径）。多实例诚实边界：每实例独立并发额度。
      */
     @Bean
     @org.springframework.context.annotation.Conditional(
             BuzhouResilienceAutoConfiguration.ModelConcurrencyPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter
+    buzhouModelConcurrencyLimiter(BuzhouModelConcurrencyProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter(
+                properties.limits(), properties.acquireTimeout());
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.ModelConcurrencyPresentCondition.class)
     public RuntimeConfig modelConcurrencyRuntimeConfig(
-            BuzhouModelConcurrencyProperties properties, org.springframework.core.env.Environment env) {
-        var limiter = new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency
-                .ModelConcurrencyLimiter(properties.limits(), properties.acquireTimeout());
+            io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter limiter,
+            org.springframework.core.env.Environment env) {
         String modelName = env.getProperty("buzhou.model-name", "unknown");
         return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
                 null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
@@ -60,6 +69,18 @@ public class BuzhouResilienceAutoConfiguration {
                         new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency
                                 .ModelConcurrencyAdvisor(limiter, modelName))),
                 null);
+    }
+
+    /** spec 429 / T750：refresh 事件热调容（limiter bean 共享实例）。 */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.ModelConcurrencyPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyHotReload
+    buzhouModelConcurrencyHotReload(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter limiter,
+            org.springframework.core.env.Environment env) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency
+                .ModelConcurrencyHotReload(limiter, env);
     }
 
     /** spec 426：limits map 非空才装配（Binder 预绑判定——406 同法）。 */

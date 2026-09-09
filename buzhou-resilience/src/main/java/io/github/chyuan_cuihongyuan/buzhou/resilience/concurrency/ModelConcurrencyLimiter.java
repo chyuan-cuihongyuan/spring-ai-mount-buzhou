@@ -25,9 +25,11 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ModelConcurrencyLimiter {
 
-    private final Map<String, Integer> limits;
+    private static final System.Logger LOGGER = System.getLogger(ModelConcurrencyLimiter.class.getName());
+
+    private volatile Map<String, Integer> limits;
     private final Duration acquireTimeout;
-    private final Map<String, Semaphore> semaphores = new ConcurrentHashMap<>();
+    private final Map<String, ResizableSemaphore> semaphores = new ConcurrentHashMap<>();
 
     /**
      * @param limits         模型名 → 并发上限（&lt;1 视为 NOOP 不限）
@@ -44,7 +46,7 @@ public final class ModelConcurrencyLimiter {
         if (limit == null || limit < 1) {
             return; // NOOP——未配置即不限（零开销）
         }
-        Semaphore semaphore = semaphores.computeIfAbsent(model, k -> new Semaphore(limit));
+        Semaphore semaphore = semaphores.computeIfAbsent(model, k -> new ResizableSemaphore(limit));
         boolean acquired;
         try {
             acquired = acquireTimeout.isZero()
@@ -72,6 +74,51 @@ public final class ModelConcurrencyLimiter {
         }
     }
 
+    /**
+     * spec 429 / T749：热调整上限表（320 AgentBulkhead.resize 同语义）：
+     * 扩容 grow / 缩容 shrink（reducePermits）——<b>在飞不受扰</b>，瞬时可
+     * 超新限，释放到限内才放新请求，不抢占。新模型建舱；移除键摘舱（在飞
+     * 释放到已摘对象无害；新 acquire=NOOP）。逐键 WARN diff 留痕（417 价目
+     * 热载同款审计面）。
+     */
+    public synchronized void resize(Map<String, Integer> newLimits) {
+        Map<String, Integer> target = newLimits == null ? Map.of() : Map.copyOf(newLimits);
+        Map<String, Integer> old = limits;
+        for (Map.Entry<String, Integer> entry : target.entrySet()) {
+            int limit = Math.max(1, entry.getValue());
+            Integer previous = old.get(entry.getKey());
+            ResizableSemaphore existing = semaphores.get(entry.getKey());
+            if (previous == null) {
+                semaphores.putIfAbsent(entry.getKey(), new ResizableSemaphore(limit));
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "模型并发舱建舱：model=" + entry.getKey() + " 上限 " + limit);
+                continue;
+            }
+            if (existing == null) {
+                continue; // 旧限已声明但从未取过（无舱）——limits 换表即生效
+            }
+            int diff = limit - previous;
+            if (diff > 0) {
+                existing.grow(diff);
+            } else if (diff < 0) {
+                existing.shrink(-diff);
+            }
+            if (diff != 0) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "模型并发舱调容：model=" + entry.getKey() + " " + previous + " → " + limit);
+            }
+        }
+        for (String removed : old.keySet()) {
+            if (!target.containsKey(removed)) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "模型并发舱摘舱：model=" + removed + "（在飞释放无害，新 acquire=NOOP）");
+            }
+        }
+        semaphores.keySet().retainAll(target.keySet());
+        limits = target;
+        BuzhouMetricsHolder.metrics().counter("buzhou.resilience.concurrency-resized");
+    }
+
     /** 各配置模型当前在飞数快照（观测面；键序=配置序）。 */
     public Map<String, Integer> inFlight() {
         Map<String, Integer> snapshot = new LinkedHashMap<>();
@@ -90,5 +137,22 @@ public final class ModelConcurrencyLimiter {
 
     private static String bounded(String model) {
         return io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags.bound(model);
+    }
+
+    /** 可调信号量（Semaphore.reducePermits 是 protected——子类公开化，resilience4j 同法）。 */
+    static final class ResizableSemaphore extends Semaphore {
+
+        ResizableSemaphore(int permits) {
+            super(permits);
+        }
+
+        void grow(int permits) {
+            release(permits);
+        }
+
+        /** 缩 permit（在飞超新限瞬时共存，释放自然收敛）。 */
+        void shrink(int permits) {
+            reducePermits(permits);
+        }
     }
 }

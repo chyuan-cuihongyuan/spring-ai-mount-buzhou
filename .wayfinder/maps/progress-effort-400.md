@@ -1,10 +1,11 @@
 # D 会话进度台账（rolling，收口轮据此归档）
 
-> **状态：0/30（2026-09-08 开工）。** D 会话 400 系自迭代——
+> **状态：30/30 收官（2026-09-09）。** D 会话 400 系自迭代——
 > /goal ≥30 轮 wayfinder→spec→tickets→implement 闭环，全自主决策。
 > 号段：efforts #400–#429 ｜ specs 400–429 ｜ 票 T691–T750 ｜ impl373–402。
 > 前情：C 会话 50 轮已收官入 main（PR #17，见
 > [progress-effort-300.md](progress-effort-300.md)）。
+> 后续会话开 500 系号段（430–499 未占用）。
 
 每轮工件配方（C 会话约定延续）：
 MAP（`maps/effort-<N>.md` + 总索引 MAP.md 登记）→ spec
@@ -58,7 +59,8 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 26 | #425 | 425 | T741-742 | 398 | 轮次租户限速（nginx token bucket） | 76485e3 |
 | 27 | #426 | 426 | T743-744 | 399 | 模型并发舱（供应商并发配额，Resilience4j Bulkhead；换题：原拟 Webhook 幂等——X-Buzhou-Event-Id 已存在弃） | c91fa30 |
 | 28 | #427 | 427 | T745-746 | 400 | 非流式错误回调对称化（#423 扩散，OTel span ERROR 语义） | ba21894 |
-| 29 | #428 | 428 | T747-748 | 401 | Webhook 验签与防重放（机动轮，Stripe signed webhooks） | |
+| 29 | #428 | 428 | T747-748 | 401 | Webhook 验签与防重放（机动轮，Stripe signed webhooks） | 9335f49 |
+| 30 | #429 | 429 | T749-750 | 402 | 模型并发舱热更新（#426 扩散，320/340 rebind；收口轮） | |
 
 
 ## 备忘

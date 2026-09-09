@@ -149,6 +149,9 @@ class ModelConcurrencyLimiterTest {
                 .run(context -> {
                     assertThat(context).hasNotFailed();
                     assertThat(context).hasBean("modelConcurrencyRuntimeConfig");
+                    // spec 429：三 bean 齐（limiter 恒 exposed + 热更新共享实例）
+                    assertThat(context).hasBean("buzhouModelConcurrencyLimiter");
+                    assertThat(context).hasBean("buzhouModelConcurrencyHotReload");
                 });
         new org.springframework.boot.test.context.runner.ApplicationContextRunner()
                 .withConfiguration(org.springframework.boot.autoconfigure.AutoConfigurations.of(
@@ -157,6 +160,61 @@ class ModelConcurrencyLimiterTest {
                 .run(context -> {
                     assertThat(context).hasNotFailed();
                     assertThat(context).doesNotHaveBean("modelConcurrencyRuntimeConfig");
+                    assertThat(context).doesNotHaveBean("buzhouModelConcurrencyLimiter");
+                    assertThat(context).doesNotHaveBean("buzhouModelConcurrencyHotReload");
                 });
+    }
+
+    @Test
+    void shouldResizeGrowShrinkAndRemoveWithoutDisturbingInFlight() {
+        ModelConcurrencyLimiter limiter = new ModelConcurrencyLimiter(Map.of("m", 1), null);
+
+        // 扩容：cap 1 → 2（在飞 1 不受扰，第二取成功）
+        limiter.acquireOrThrow("m");
+        limiter.resize(Map.of("m", 2));
+        limiter.acquireOrThrow("m");
+        assertThat(limiter.inFlight()).containsEntry("m", 2);
+
+        // 缩容低于在飞：2 → 1（在飞 2 瞬时共存）→ 新取拒 → 释放两个后恢复
+        limiter.resize(Map.of("m", 1));
+        assertThatThrownBy(() -> limiter.acquireOrThrow("m")).isInstanceOf(BuzhouException.class);
+        limiter.release("m");
+        assertThatThrownBy(() -> limiter.acquireOrThrow("m")).isInstanceOf(BuzhouException.class);
+        limiter.release("m"); // 释放到限内 → 自然收敛
+        limiter.acquireOrThrow("m");
+        assertThat(limiter.inFlight()).containsEntry("m", 1);
+
+        // 摘舱：移除键 → 新 acquire NOOP（在飞释放无害）
+        limiter.release("m");
+        limiter.resize(Map.of());
+        limiter.acquireOrThrow("m"); // NOOP 不抛
+        assertThat(limiter.inFlight()).isEmpty();
+    }
+
+    @Test
+    void shouldHotReloadLimitsOnRefreshEvent() {
+        ModelConcurrencyLimiter limiter = new ModelConcurrencyLimiter(Map.of("m", 1), null);
+        org.springframework.core.env.StandardEnvironment env =
+                new org.springframework.core.env.StandardEnvironment();
+        java.util.Map<String, Object> props = new java.util.HashMap<>();
+        props.put("buzhou.resilience.model-concurrency.limits.m", "3");
+        org.springframework.core.env.MapPropertySource source =
+                new org.springframework.core.env.MapPropertySource("hot", props);
+        env.getPropertySources().addFirst(source);
+
+        ModelConcurrencyHotReload hotReload = new ModelConcurrencyHotReload(limiter, env);
+        io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigRefreshEvent event =
+                new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigRefreshEvent(this);
+
+        hotReload.onApplicationEvent(event); // 第一跳：cap 1 → 3
+        limiter.acquireOrThrow("m");
+        limiter.acquireOrThrow("m");
+        limiter.acquireOrThrow("m");
+        assertThatThrownBy(() -> limiter.acquireOrThrow("m")).isInstanceOf(BuzhouException.class);
+
+        props.put("buzhou.resilience.model-concurrency.limits.m", "1");
+        hotReload.onApplicationEvent(event); // 第二跳：3 → 1（在飞 3 共存，新取拒）
+        assertThatThrownBy(() -> limiter.acquireOrThrow("m")).isInstanceOf(BuzhouException.class);
+        assertThat(hotReload.reloadCount()).isEqualTo(2);
     }
 }

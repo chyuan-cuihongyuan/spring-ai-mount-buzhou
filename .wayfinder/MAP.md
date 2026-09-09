@@ -270,6 +270,7 @@
 | #426 | 模型并发舱 | [maps/effort-426.md](maps/effort-426.md) | T743–T744 | 399 |
 | #427 | 非流式错误回调对称化 | [maps/effort-427.md](maps/effort-427.md) | T745–T746 | 400 |
 | #428 | Webhook 验签与防重放 | [maps/effort-428.md](maps/effort-428.md) | T747–T748 | 401 |
+| #429 | 模型并发舱热更新 | [maps/effort-429.md](maps/effort-429.md) | T749–T750 | 402 |
 
 ## 跨 effort 悬留
 

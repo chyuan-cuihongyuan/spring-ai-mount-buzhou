@@ -538,6 +538,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.Circuit
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyAdvisor
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyHotReload
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouModelConcurrencyProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.config.BuzhouResilienceAutoConfiguration
