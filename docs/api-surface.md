@@ -478,7 +478,9 @@
 - `public class StoreFsck` / `public final class StoreIntegrityReport`（cleanup；含 Finding/Severity）
 - `public record SessionInfo` / `public record SessionIndexQuery` / `public interface SessionIndexStore`（spi）
 - `public final class ToolResultLimiter` / `public final class ToolResultLimiterHolder`（exec）
-- `public record WebhookDeadLetter`（webhook）；`WebhookOutbox` 为包私有（非公开面）
+- `public record WebhookDeadLetter`（webhook）；`WebhookOutbox` 为包私有（非公开面）；
+  `WebhookSignatures`（428——Stripe signed webhooks：消费端常量时间验签
+  +时间戳容差窗防重放，forwarder 加发 X-Buzhou-Timestamp 不进 MAC）
 - **破坏性变更（pre-1.0）**：`WebhookEventForwarder` 构造改双参（props, SessionStateStore）；
   `BuzhouWebhookProperties` 增 `outboxCapacity`（6 参）；`queueCapacity` 废弃 no-op；
   `ResilienceProperties.Circuit` 增 `backoffCap`（6 参便捷构造保留）；

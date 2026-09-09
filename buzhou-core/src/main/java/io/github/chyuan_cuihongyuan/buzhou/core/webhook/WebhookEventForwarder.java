@@ -223,6 +223,10 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                     .POST(HttpRequest.BodyPublishers.ofString(record.body(), StandardCharsets.UTF_8));
             if (props.secret() != null && !props.secret().isBlank()) {
                 request.header("X-Buzhou-Signature", hmacSha256(props.secret(), record.body()));
+                // spec 428 / T748：时间戳头不进 MAC（存量验签消费端零破坏）——
+                // 消费端 WebhookSignatures 容差窗验签即得防重放
+                request.header("X-Buzhou-Timestamp",
+                        String.valueOf(Instant.now().getEpochSecond()));
             }
             HttpResponse<Void> response = http.send(request.build(), HttpResponse.BodyHandlers.discarding());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {

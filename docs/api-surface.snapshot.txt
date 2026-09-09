@@ -351,6 +351,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookFanout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxLag
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookSignatures
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.GuardModule
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AgentAuditRecord
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.audit.AuditChain

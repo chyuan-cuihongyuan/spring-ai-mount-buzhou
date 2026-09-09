@@ -57,7 +57,8 @@ OLAP预聚合(M3)/延迟作业(Sidekiq)/Retry-After(HTTP 429)/退役通告(K8s A
 | 25 | #424 | 424 | T739-740 | 397 | 提示词使用统计（#401 扩散，Langfuse analytics） | aa57282 |
 | 26 | #425 | 425 | T741-742 | 398 | 轮次租户限速（nginx token bucket） | 76485e3 |
 | 27 | #426 | 426 | T743-744 | 399 | 模型并发舱（供应商并发配额，Resilience4j Bulkhead；换题：原拟 Webhook 幂等——X-Buzhou-Event-Id 已存在弃） | c91fa30 |
-| 28 | #427 | 427 | T745-746 | 400 | 非流式错误回调对称化（#423 扩散，OTel span ERROR 语义） | |
+| 28 | #427 | 427 | T745-746 | 400 | 非流式错误回调对称化（#423 扩散，OTel span ERROR 语义） | ba21894 |
+| 29 | #428 | 428 | T747-748 | 401 | Webhook 验签与防重放（机动轮，Stripe signed webhooks） | |
 
 
 ## 备忘
