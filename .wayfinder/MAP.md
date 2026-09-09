@@ -264,6 +264,7 @@
 | #420 | 工具目录 lint | [maps/effort-420.md](maps/effort-420.md) | T731–T732 | 393 |
 | #421 | 审计封印导出 | [maps/effort-421.md](maps/effort-421.md) | T733–T734 | 394 |
 | #422 | 工具泳道优先级装配 | [maps/effort-422.md](maps/effort-422.md) | T735–T736 | 395 |
+| #423 | 错误偏向采样 | [maps/effort-423.md](maps/effort-423.md) | T737–T738 | 396 |
 
 ## 跨 effort 悬留
 

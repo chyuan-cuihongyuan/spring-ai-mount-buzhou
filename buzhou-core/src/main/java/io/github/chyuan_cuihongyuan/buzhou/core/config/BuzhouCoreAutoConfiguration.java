@@ -56,7 +56,8 @@ import java.util.List;
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
-        BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class})
+        BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class,
+        BuzhouErrorSamplingProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -494,15 +495,29 @@ public class BuzhouCoreAutoConfiguration {
 
     /**
      * spec 407 / T706：EvalDatasetStore bean（采样声明即暴露——宿主 createDataset
-     * 建集用；集必须预建，采样不建集）。
+     * 建集用；集必须预建，采样不建集）。spec 423：条件放宽为「任一采样
+     * enabled」——error-only 宿主（只开错误偏向采样）不必开基础采样。
      */
     @Bean
-    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
-            prefix = "buzhou.eval.sampling", name = "enabled", havingValue = "true")
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.AnySamplingEnabledCondition.class)
     public io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore buzhouEvalDatasetStore(
             io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores) {
         return new io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore(
                 stores.sessionStateStore());
+    }
+
+    /** spec 423：基础采样或错误采样任一 enabled=true（单 store 不双 bean）。 */
+    static final class AnySamplingEnabledCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            return "true".equalsIgnoreCase(context.getEnvironment()
+                    .getProperty("buzhou.eval.sampling.enabled"))
+                    || "true".equalsIgnoreCase(context.getEnvironment()
+                    .getProperty("buzhou.eval.error-sampling.enabled"));
+        }
     }
 
     /**
@@ -523,6 +538,28 @@ public class BuzhouCoreAutoConfiguration {
         return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
                 null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
                 java.util.List.of(), null);
+    }
+
+    /**
+     * spec 423 / T738：错误偏向采样（OTel tail_sampling「ERROR 全保」借鉴）。
+     * {@code buzhou.eval.error-sampling.enabled=true} 声明即装配：每会话经
+     * assemblyCustomizer 注册 {@code TurnErrorSampler} 观察者（错误轮不走
+     * afterTurn——观察者缝采错；sessionId 取自装配 ctx 保采样键确定性）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.eval.error-sampling", name = "enabled", havingValue = "true")
+    public RuntimeConfig buzhouErrorSamplingRuntimeConfig(
+            BuzhouErrorSamplingProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore datasetStore) {
+        var policy = new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler.Policy(
+                properties.dataset(), properties.errorRatePercent(), properties.minInputChars());
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addObserver(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler(
+                                datasetStore, policy, ctx.sessionId()))),
+                null);
     }
 
     /**

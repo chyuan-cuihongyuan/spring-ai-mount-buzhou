@@ -1561,7 +1561,10 @@
 - 记忆治理：`SharedFact` + `SharedFactStore` + `InMemorySharedFactStore`
   （410——mem0：跨会话共享事实 deny-by-default ACL，键即所有权）
 - 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`
-  （407——Honeycomb head sampling：确定性 hash 采样入集 fail-soft）
+  （407——Honeycomb head sampling：确定性 hash 采样入集 fail-soft）；
+  `TurnErrorSampler`（嵌套 `Policy`）+ `BuzhouErrorSamplingProperties`
+  （423——#407 扩散：OTel tail_sampling ERROR 全保——观察者缝采错误轮，
+  error-rate-percent 默认 100、占位 [TURN-ERROR] 留人工判 golden）
 - 工具治理：`ToolCatalogLinter`（嵌套 `Finding`）（420——ESLint：装配期
   三规则体检只报不改）/ `ToolResultSchemaHook` + `BuzhouToolResultSchemasProperties`
   （409——MCP outputSchema：结果契约复用入参校验器、违例转结构化反馈）/
