@@ -60,7 +60,7 @@ public final class BuzhouConfigSnapshotEndpoint {
      * 会误伤 buzhou.token-budget.* 等含 token 的命名空间，掩码判定只看
      * 最后一段的属性名）。
      */
-    static String maskIfNeeded(String name, String value) {
+    public static String maskIfNeeded(String name, String value) {
         String lastSegment = name.substring(name.lastIndexOf('.') + 1)
                 .toLowerCase(java.util.Locale.ROOT);
         for (String sensitive : SENSITIVE_SUBSTRINGS) {

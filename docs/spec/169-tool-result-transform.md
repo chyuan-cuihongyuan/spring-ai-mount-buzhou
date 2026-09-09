@@ -1,6 +1,6 @@
 # Spec 169 — 工具结果裁剪装饰器（effort #203）
 
-> wayfinder map：`.wayfinder203/MAP.md`（T533–T534）。借鉴：Vector VRL /
+> wayfinder map：`.wayfinder/maps/effort-203.md`（T533–T534）。借鉴：Vector VRL /
 > jq——「取你要的」：工具大 JSON 包在入上下文前提炼成模型需要的字段。
 
 ## Problem Statement

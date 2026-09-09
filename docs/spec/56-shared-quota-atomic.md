@@ -1,6 +1,6 @@
 # Spec 56 — 共享配额原子扣减（effort #16）
 
-> wayfinder map：`.wayfinder16/MAP.md`（T249–T253）。OSS 借鉴：LiteLLM Redis 限流器
+> wayfinder map：`.wayfinder/maps/effort-16.md`（T249–T253）。OSS 借鉴：LiteLLM Redis 限流器
 > 原子扣减（单脚本原子「读—判—扣」）；本仓 `deleteIfValueMatches` 三栈 CAS 先例。
 
 ## Problem Statement

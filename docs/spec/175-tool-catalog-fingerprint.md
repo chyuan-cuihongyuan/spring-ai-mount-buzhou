@@ -1,6 +1,6 @@
 # Spec 175 — 工具目录指纹（effort #206）
 
-> wayfinder map：`.wayfinder206/MAP.md`（T543–T544）。借鉴：SBOM / 锁单
+> wayfinder map：`.wayfinder/maps/effort-206.md`（T543–T544）。借鉴：SBOM / 锁单
 > inventory diff——依赖面变更是审计第一问。
 
 ## Problem Statement

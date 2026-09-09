@@ -1,6 +1,6 @@
 # Spec 341 — 选主扩散：归档清理与空闲压缩（effort #341）
 
-> wayfinder map：`.wayfinder341/MAP.md`（T673–T674）。C 会话第 42 轮，
+> wayfinder map：`.wayfinder/maps/effort-341.md`（T673–T674）。C 会话第 42 轮，
 > 331 的扩散轮。
 
 ## Problem Statement

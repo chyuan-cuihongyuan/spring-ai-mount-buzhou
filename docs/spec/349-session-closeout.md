@@ -1,6 +1,6 @@
 # Spec 349 — C 会话收官终验（effort #349）
 
-> wayfinder map：`.wayfinder349/MAP.md`（T689–T690）。C 会话第 50 轮，
+> wayfinder map：`.wayfinder/maps/effort-349.md`（T689–T690）。C 会话第 50 轮，
 > 收官轮（无新机制——R30 半程收口同型）。
 
 ## Problem Statement

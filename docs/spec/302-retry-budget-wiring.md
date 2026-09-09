@@ -1,6 +1,6 @@
 # Spec 302 — 重试预算接线（effort #302）
 
-> wayfinder map：`.wayfinder302/MAP.md`（T595–T596）。借鉴：Twitter Finagle
+> wayfinder map：`.wayfinder/maps/effort-302.md`（T595–T596）。借鉴：Twitter Finagle
 > retry budget（spec 178 原语装配收尾——fog 152「RetryBudget 接线」项）。
 
 ## Problem Statement

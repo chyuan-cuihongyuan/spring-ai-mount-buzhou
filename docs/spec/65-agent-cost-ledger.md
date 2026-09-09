@@ -1,6 +1,6 @@
 # Spec 65 — agent 级成本归集（effort #25）
 
-> wayfinder map：`.wayfinder25/MAP.md`（T281–T282）。OSS 借鉴：LiteLLM spend
+> wayfinder map：`.wayfinder/maps/effort-25.md`（T281–T282）。OSS 借鉴：LiteLLM spend
 > tracking（team/project 支出聚合）。
 
 ## Problem Statement

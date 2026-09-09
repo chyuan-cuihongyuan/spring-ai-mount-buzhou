@@ -52,7 +52,13 @@ import java.util.List;
         ToolKillSwitchProperties.class, RepetitionProperties.class,
         ToolLoopProperties.class, BuzhouProbeProperties.class,
         BuzhouMessageEncryptionProperties.class, ErrorBudgetFreezeProperties.class,
-        BuzhouMaintenanceProperties.class})
+        BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
+        BuzhouPromptUsageProperties.class, BuzhouTurnRateLimitProperties.class,
+        BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
+        BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
+        BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
+        BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class,
+        BuzhouErrorSamplingProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
     /**
@@ -329,6 +335,492 @@ public class BuzhouCoreAutoConfiguration {
                             .forEach(health -> map.put(health.mechanism(), health));
                     return map;
                 }, properties.interval(), gateProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 414 / T720：配置漂移审计（ArgoCD drift detection 借鉴）。
+     * {@code buzhou.config-audit.enabled=true} 声明即装配：周期快照 diff，
+     * 变更 WARN 日志留痕（宿主可注入增强 listener——bean 可覆盖）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor.class)
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.config-audit", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor
+    buzhouConfigDriftAuditor(BuzhouConfigAuditProperties properties,
+            org.springframework.core.env.Environment environment) {
+        System.Logger logger = System.getLogger("buzhou.config-drift");
+        return new io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor(
+                environment, properties.interval(), changes -> {
+                    for (var c : changes) {
+                        logger.log(System.Logger.Level.WARNING,
+                                "配置漂移：{0}: {1} -> {2}", c.key(), c.from(), c.to());
+                    }
+                });
+    }
+
+    /**
+     * spec 410 / T712：共享事实库（mem0 共享记忆+隔离借鉴——deny-by-default）。
+     * bean 恒在（空库零行为——宿主程序面注入使用；进程内诚实边界重启清零）。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore buzhouSharedFactStore() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStore();
+    }
+
+    /**
+     * spec 420 / T732：工具目录 lint（ESLint 构建期 lint 借鉴——只报不改）。
+     * {@code buzhou.tools.catalog-lint.enabled=true} 声明即装配：装配期
+     * wrapToolCallbacks 一遍扫三规则（名字约定/描述长度/跨源重名）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.tools.catalog-lint", name = "enabled", havingValue = "true")
+    public RuntimeConfig buzhouToolCatalogLintRuntimeConfig() {
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> {
+                    io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogLinter linter =
+                            new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogLinter(
+                                    ctx::emitEvent);
+                    java.util.List<org.springframework.ai.tool.ToolCallback> seen =
+                            new java.util.ArrayList<>();
+                    java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCatalogLinter.Finding>
+                            findings = new java.util.ArrayList<>();
+                    ctx.wrapToolCallbacks(cb -> {
+                        findings.addAll(linter.lint(cb, seen));
+                        seen.add(cb);
+                        return cb; // 只报不改
+                    });
+                    linter.announce(ctx.sessionId(), findings);
+                }),
+                null);
+    }
+
+    /**
+     * spec 409 / T710：工具结果 schema 校验（MCP outputSchema 借鉴——复用
+     * ToolArgsValidator 同一校验器）。{@code buzhou.tools.result-schemas.<name>}
+     * 声明即装配（Binder 预绑判 map 非空——406 同法）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ResultSchemasPresentCondition.class)
+    public RuntimeConfig buzhouToolResultSchemasRuntimeConfig(
+            BuzhouToolResultSchemasProperties properties) {
+        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook(
+                properties.schemas());
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
+    }
+
+    /** spec 409：result-schemas map 非空才装配（Binder 预绑判定）。 */
+    static final class ResultSchemasPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.tools.result-schemas",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, String.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 408 / T708：日历周期预算（AWS Budgets calendar period 借鉴——翻页
+     * = 换 tag 隐式重置）。{@code buzhou.budget.period.enabled=true} 声明即挂；
+     * 两 limit 均未配 fail-fast（开预算闸却没限额是配置错误）。价目复用
+     * buzhou.token-budget.pricing 单一事实源（无价目成本轨记 0——诚实）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.period", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook buzhouPeriodBudgetHook(
+            BuzhouPeriodBudgetProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores,
+            BuzhouTokenBudgetProperties tokenBudgetProps,
+            org.springframework.core.env.Environment env) {
+        if ((properties.tokensLimit() == null || properties.tokensLimit() <= 0)
+                && (properties.costMicroUsdLimit() == null || properties.costMicroUsdLimit() <= 0)) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.budget.period.enabled=true 但 tokens-limit/cost-micro-usd-limit 均未配",
+                    "至少声明一个正限额（翻页自动重置——unit=" + properties.unit() + "）");
+        }
+        java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook.Pricing>
+                pricing = new java.util.LinkedHashMap<>();
+        if (tokenBudgetProps.pricing() != null) {
+            tokenBudgetProps.pricing().forEach((model, price) -> pricing.put(model,
+                    new io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook.Pricing(
+                            price.inputPerMillion(), price.outputPerMillion())));
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook(
+                stores.sessionStateStore(), properties.unit(), properties.tokensLimit(),
+                properties.costMicroUsdLimit(), properties.warningPercent(), pricing,
+                env.getProperty("buzhou.model-name", "unknown"), null);
+    }
+
+    /** spec 408：hook 挂 RuntimeConfig（健康面 419 独立 bean 共享 hook 实例）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook.class)
+    public RuntimeConfig buzhouPeriodBudgetRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook hook) {
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
+    }
+
+    /**
+     * spec 419 / T730：周期预算健康面（与 period.enabled 同键——属性条件，
+     * 312 注记口径）：恒 UP 观测面（耗尽由闸拦截），details 双轨进度+
+     * exhausted+resetsAt 回血时刻。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.period", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth
+    buzhouPeriodBudgetHealth(BuzhouPeriodBudgetProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook hook) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth(
+                hook, properties.unit(), properties.tokensLimit(), properties.costMicroUsdLimit(),
+                java.time.Clock.systemUTC());
+    }
+
+    /**
+     * spec 407 / T706：EvalDatasetStore bean（采样声明即暴露——宿主 createDataset
+     * 建集用；集必须预建，采样不建集）。spec 423：条件放宽为「任一采样
+     * enabled」——error-only 宿主（只开错误偏向采样）不必开基础采样。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.AnySamplingEnabledCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore buzhouEvalDatasetStore(
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores stores) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore(
+                stores.sessionStateStore());
+    }
+
+    /** spec 423：基础采样或错误采样任一 enabled=true（单 store 不双 bean）。 */
+    static final class AnySamplingEnabledCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            return "true".equalsIgnoreCase(context.getEnvironment()
+                    .getProperty("buzhou.eval.sampling.enabled"))
+                    || "true".equalsIgnoreCase(context.getEnvironment()
+                    .getProperty("buzhou.eval.error-sampling.enabled"));
+        }
+    }
+
+    /**
+     * spec 407 / T706：在线采样入评测集（Honeycomb head-based deterministic
+     * sampling 借鉴）。{@code buzhou.eval.sampling.enabled=true} 声明即挂
+     * afterTurn 尾观察 hook（确定性采样 + fail-soft 入集）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.eval.sampling", name = "enabled", havingValue = "true")
+    public RuntimeConfig buzhouEvalSamplingRuntimeConfig(
+            BuzhouEvalSamplingProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore datasetStore) {
+        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook(
+                datasetStore,
+                new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook.Policy(
+                        properties.dataset(), properties.ratePercent(), properties.minInputChars()));
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
+    }
+
+    /**
+     * spec 423 / T738：错误偏向采样（OTel tail_sampling「ERROR 全保」借鉴）。
+     * {@code buzhou.eval.error-sampling.enabled=true} 声明即装配：每会话经
+     * assemblyCustomizer 注册 {@code TurnErrorSampler} 观察者（错误轮不走
+     * afterTurn——观察者缝采错；sessionId 取自装配 ctx 保采样键确定性）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.eval.error-sampling", name = "enabled", havingValue = "true")
+    public RuntimeConfig buzhouErrorSamplingRuntimeConfig(
+            BuzhouErrorSamplingProperties properties,
+            io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore datasetStore) {
+        var policy = new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler.Policy(
+                properties.dataset(), properties.errorRatePercent(), properties.minInputChars());
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addObserver(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler(
+                                datasetStore, policy, ctx.sessionId()))),
+                null);
+    }
+
+    /**
+     * spec 406 / T704：工具退役通告（K8s API deprecation 借鉴——通告随定义）。
+     * {@code buzhou.tools.deprecated.<name>.*} 声明即装配：customizer 经
+     * wrapToolCallbacks 名匹配包装（描述前缀模型可见 + 调用事件/计数）；
+     * 空表/未命中零变化。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ToolDeprecationPresentCondition.class)
+    public RuntimeConfig buzhouToolDeprecationRuntimeConfig(BuzhouToolDeprecationProperties properties) {
+        java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation>
+                declared = new java.util.LinkedHashMap<>();
+        properties.tools().forEach((name, spec) -> declared.put(name,
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation(
+                        spec.since(), spec.removalIn(), spec.successor(), spec.message())));
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.wrapToolCallbacks(cb -> {
+                    var spec = declared.get(cb.getToolDefinition().name());
+                    return spec == null ? cb
+                            : new io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback(
+                                    cb, spec, ctx::emitEvent);
+                })),
+                null);
+    }
+
+    /** spec 406：deprecated map 非空才装配（Binder 预绑判定——312 同法）。 */
+    static final class ToolDeprecationPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.tools.deprecated",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, BuzhouToolDeprecationProperties.Spec.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 422 / T736：工具泳道优先级装配（Envoy priority levels 接线——411
+     * 原语收口）。{@code buzhou.tool-lanes.lanes} 声明即装配：customizer 经
+     * wrapToolCallbacks 名匹配 → {@code PriorityLaneToolCallback}（共享
+     * {@code ToolLaneRegistry.priorityLane} 命名单例——许可跨会话共享）；
+     * 未命中工具零包装。tools 引用未声明泳道启动即红（fail-fast——拼错名
+     * 不拖到首次调用）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ToolLanePresentCondition.class)
+    public RuntimeConfig buzhouToolLaneRuntimeConfig(BuzhouToolLaneProperties properties) {
+        properties.tools().forEach((toolName, binding) -> {
+            if (!properties.lanes().containsKey(binding.lane())) {
+                throw new IllegalArgumentException("buzhou.tool-lanes.tools." + toolName
+                        + " 引用未声明泳道「" + binding.lane() + "」——先在 buzhou.tool-lanes.lanes 声明");
+            }
+        });
+        java.util.Map<String, BuzhouToolLaneProperties.ToolBinding> bindings = properties.tools();
+        java.util.Map<String, BuzhouToolLaneProperties.LaneSpec> lanes = properties.lanes();
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolLaneRegistry registry =
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolLaneRegistry();
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.wrapToolCallbacks(cb -> {
+                    BuzhouToolLaneProperties.ToolBinding binding =
+                            bindings.get(cb.getToolDefinition().name());
+                    if (binding == null) {
+                        return cb;
+                    }
+                    BuzhouToolLaneProperties.LaneSpec spec = lanes.get(binding.lane());
+                    return new io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback(
+                            cb, registry.priorityLane(binding.lane(), spec.permits()),
+                            binding.priority(), spec.acquireTimeout());
+                })),
+                null);
+    }
+
+    /** spec 422：lanes map 非空才装配（Binder 预绑判定——406 同法）。 */
+    static final class ToolLanePresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.tool-lanes.lanes",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, BuzhouToolLaneProperties.LaneSpec.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 425 / T742：轮次限速（nginx token bucket 借鉴）。{@code buzhou.
+     * ratelimit.turns.burst} 与 {@code permits-per-minute} 双声明即装配
+     * （默认键 sessionId——单会话频次帽；租户整体帽由宿主手工构造常量键
+     * hook）；缺任一不装配零行为。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.TurnRateLimitPresentCondition.class)
+    public RuntimeConfig buzhouTurnRateLimitRuntimeConfig(BuzhouTurnRateLimitProperties properties) {
+        var hook = new io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook(
+                new io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook.Policy(
+                        properties.burst(), properties.permitsPerMinute()));
+        return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(), null);
+    }
+
+    /** spec 425：burst 与 permits-per-minute 双声明才装配（Binder 预绑判定——406 同法）。 */
+    static final class TurnRateLimitPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.ratelimit.turns", BuzhouTurnRateLimitProperties.class)
+                        .map(p -> p.burst() != null && p.permitsPerMinute() != null)
+                        .orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 405 / T702：健康时间线 JSONL 导出（{@code buzhou.health.timeline.export-path}
+     * 声明即装配；打开失败 fail-fast——坏路径该红）。逐变迁追加、每行 flush、
+     * IO 失败吞+计数（旁路语义）。
+     */
+    @Bean(destroyMethod = "close")
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.health.timeline", name = "export-path")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl
+    buzhouHealthTimelineJsonl(BuzhouHealthTimelineProperties properties)
+            throws java.io.IOException {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl(
+                java.nio.file.Path.of(properties.exportPath()));
+    }
+
+    /**
+     * spec 405 / T702：健康时间线轮询记录器（{@code buzhou.health.timeline.enabled=true}
+     * 声明即装配）：周期轮询 health beans（与 312 告警引擎同源 supplier 口径）→
+     * diff 入环 + 可选 JSONL sink。独立调度——关时间线不影响告警引擎。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.health.timeline", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder
+    buzhouHealthTimelineRecorder(
+            BuzhouHealthTimelineProperties properties,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> healthBeans,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl> jsonl) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder(
+                () -> {
+                    java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth> map =
+                            new java.util.LinkedHashMap<>();
+                    healthBeans.orderedStream()
+                            .forEach(health -> map.put(health.mechanism(), health));
+                    return map;
+                },
+                properties.interval(),
+                jsonl.getIfAvailable(),
+                new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimeline(
+                        properties.capacity()));
+    }
+
+    /**
+     * spec 405 / T702：健康时间线端点 {@code /actuator/buzhou-timeline}——
+     * 近期变迁 + per-mechanism 计数（抖动识别面）。与记录器同属性键装配
+     * （@ConditionalOnBean 同配置类可见性坑——312 注记，属性条件无序依赖）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.health.timeline", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouTimelineEndpoint
+    buzhouTimelineEndpoint(
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder> recorderProvider) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouTimelineEndpoint(
+                recorderProvider.getIfAvailable());
+    }
+
+    /**
+     * spec 403 / T698：成本预测健康面（AWS Budgets forecast 借鉴——窗口速率 ×
+     * 水平线线性外推）。{@code buzhou.budget.forecast.enabled=true} 声明即装配：
+     * 订阅 ModelCostLedger 全局记账（监听缝单点喂数）；恒 UP（预测面——超预算是
+     * 预测不是事故）；budget-micro-usd ≤ 0 半配置 → UNKNOWN（速率仍可见）。
+     * 重启历史清零（进程内观察面口径——诚实边界）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.forecast", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth buzhouCostForecastHealth(
+            BuzhouCostForecastProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing ring =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing();
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger.global()
+                .addListener(cost -> ring.record(cost.microUsd()));
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth(
+                ring, properties.window(), properties.horizon(), properties.budgetMicroUsd());
+    }
+
+    /**
+     * spec 424 / T740：提示词使用统计 holder（bean 恒在——闲置零成本；
+     * 装饰器记账的落点、宿主快照/导出取用面）。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats buzhouPromptUsageStats() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats();
+    }
+
+    /**
+     * spec 401 / T694：提示词注册表（Langfuse 借鉴——版本+标签双轴）。bean 恒在
+     * （未配置 = 空注册表零行为变化）；{@code buzhou.prompt.templates} 播种——
+     * 同 name 同 body 幂等跳过（重启不掀版本，诚实边界：note 不参与幂等口径）；
+     * 声明 label 自动指向该名当前最新。spec 424：usage-tracking.enabled=true
+     * 时包 UsageTrackingPromptRegistry（resolve 记账——默认关原样返回）。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry buzhouPromptRegistry(
+            BuzhouPromptProperties properties,
+            BuzhouPromptUsageProperties usageProperties,
+            io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats usageStats) {
+        io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry registry =
+                new io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry();
+        for (BuzhouPromptProperties.TemplateSpec t : properties.templates()) {
+            if (t.name() == null || t.name().isBlank() || t.body() == null) {
+                continue; // 播种条目不完整跳过（yml 手误不阻断启动）
+            }
+            var existing = registry.resolve(t.name());
+            if (existing.isEmpty() || !existing.get().body().equals(t.body())) {
+                registry.publish(t.name(), t.body(), "yml-seed");
+            }
+            if (t.label() != null && !t.label().isBlank()) {
+                registry.resolve(t.name())
+                        .ifPresent(latest -> registry.label(t.name(), t.label(), latest.version()));
+            }
+        }
+        return Boolean.TRUE.equals(usageProperties.enabled())
+                ? new io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry(
+                        registry, usageStats)
+                : registry;
     }
 
     /**
@@ -617,7 +1109,22 @@ public class BuzhouCoreAutoConfiguration {
                 ? null : virtualKeys.getIfAvailable();
         return new io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook(
                 tokenBudgetProperties, env.getProperty("buzhou.model-name", "unknown"),
-                available == null ? null : available.observabilityStore(), keys, activeKey);
+                available == null ? null : available.observabilityStore(), keys, activeKey,
+                buzhouPricingTable(tokenBudgetProperties, env));
+    }
+
+    /**
+     * spec 417 / T725：可变价目表（320/340 rebind 同模式 + Stripe 即时生效
+     * 思想）——底表取 token-budget.pricing；BuzhouConfigRefreshEvent 整表
+     * 热载覆盖层 + 逐键 WARN diff + 计数。bean 恒在（空表零行为）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(
+            io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable buzhouPricingTable(
+            BuzhouTokenBudgetProperties properties,
+            org.springframework.core.env.Environment environment) {
+        return io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable.of(properties, environment);
     }
 
     /**

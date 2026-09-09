@@ -1,6 +1,6 @@
 # Spec 345 — 告警面板端点（effort #345）
 
-> wayfinder map：`.wayfinder345/MAP.md`（T681–T682）。C 会话第 46 轮。
+> wayfinder map：`.wayfinder/maps/effort-345.md`（T681–T682）。C 会话第 46 轮。
 
 ## Problem Statement
 

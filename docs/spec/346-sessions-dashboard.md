@@ -1,6 +1,6 @@
 # Spec 346 — 会话面板端点（effort #346）
 
-> wayfinder map：`.wayfinder346/MAP.md`（T683–T684）。C 会话第 47 轮，
+> wayfinder map：`.wayfinder/maps/effort-346.md`（T683–T684）。C 会话第 47 轮，
 > 面板三部曲之三（343 配置 / 345 告警 / 346 会话）。
 
 ## Problem Statement

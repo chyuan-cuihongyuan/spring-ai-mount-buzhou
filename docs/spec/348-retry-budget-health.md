@@ -1,6 +1,6 @@
 # Spec 348 — 重试预算健康面（effort #348）
 
-> wayfinder map：`.wayfinder348/MAP.md`（T687–T688）。C 会话第 49 轮。
+> wayfinder map：`.wayfinder/maps/effort-348.md`（T687–T688）。C 会话第 49 轮。
 
 ## Problem Statement
 

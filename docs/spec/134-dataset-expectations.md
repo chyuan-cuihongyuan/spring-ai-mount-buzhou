@@ -1,6 +1,6 @@
 # Spec 134 — 数据集期望套件（effort #112）
 
-> wayfinder map：`.wayfinder112/MAP.md`（T459–T460）。借鉴：Great Expectations
+> wayfinder map：`.wayfinder/maps/effort-112.md`（T459–T460）。借鉴：Great Expectations
 > 数据合约。
 
 ## Problem Statement

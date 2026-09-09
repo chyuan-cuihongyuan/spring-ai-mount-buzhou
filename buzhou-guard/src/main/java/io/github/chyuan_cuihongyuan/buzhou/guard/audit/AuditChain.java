@@ -36,6 +36,8 @@ import java.util.UUID;
 public final class AuditChain {
 
     private final List<AgentAuditRecord> records = new ArrayList<>();
+    /** spec 404 / T700：Merkle 时点封印（有界保留 32 印——更早归宿主持久化）。 */
+    private final java.util.ArrayDeque<AuditMerkleSeal> merkleSeals = new java.util.ArrayDeque<>();
     private final String agentId;
     private final String agentVersion;
     private final PrivateKey privateKey;
@@ -132,6 +134,26 @@ public final class AuditChain {
 
     public synchronized List<AgentAuditRecord> records() {
         return List.copyOf(records);
+    }
+
+    /**
+     * spec 404 / T700：Merkle 时点封印——对当前全部记录建树取根（快照式：
+     * 链照常生长，印描述「截至此刻」）。有界保留最近 32 印。
+     */
+    public synchronized AuditMerkleSeal sealMerkle() {
+        AuditMerkleTree tree = AuditMerkleTree.of(records);
+        AuditMerkleSeal seal = new AuditMerkleSeal(
+                System.currentTimeMillis(), records.size(), tree.rootHex());
+        merkleSeals.addLast(seal);
+        while (merkleSeals.size() > 32) {
+            merkleSeals.pollFirst();
+        }
+        return seal;
+    }
+
+    /** 封印只读快照（旧→新）。 */
+    public synchronized List<AuditMerkleSeal> merkleSeals() {
+        return List.copyOf(merkleSeals);
     }
 
     /** 全链验证（单钥模式，impl-22 兼容）：prev_hash 链一致 + 每条签名可验。 */

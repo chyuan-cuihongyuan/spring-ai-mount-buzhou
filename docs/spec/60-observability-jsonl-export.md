@@ -1,6 +1,6 @@
 # Spec 60 — 观测 OLAP JSONL 导出（effort #20）
 
-> wayfinder map：`.wayfinder20/MAP.md`（T269–T272）。OSS 借鉴：Langfuse traces 摄取
+> wayfinder map：`.wayfinder/maps/effort-20.md`（T269–T272）。OSS 借鉴：Langfuse traces 摄取
 > 平铺列 + Helicone ClickHouse 列存摄取 + JSON Lines 规范。
 
 ## Problem Statement

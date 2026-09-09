@@ -1,6 +1,6 @@
 # Spec 208 — 性质测试 II（effort #148）
 
-> wayfinder map：`.wayfinder148/MAP.md`（T572–T573）。纯测试轮，spec 180 fog
+> wayfinder map：`.wayfinder/maps/effort-148.md`（T572–T573）。纯测试轮，spec 180 fog
 > 收口。
 
 ## Solution

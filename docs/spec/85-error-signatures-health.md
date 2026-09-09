@@ -1,6 +1,6 @@
 # Spec 85 — 错误签名健康面（effort #46）
 
-> wayfinder map：`.wayfinder46/MAP.md`（T327–T328）。#44 fog 毕业生。
+> wayfinder map：`.wayfinder/maps/effort-46.md`（T327–T328）。#44 fog 毕业生。
 
 ## Problem Statement
 

@@ -1,6 +1,6 @@
 # Spec 316 — 泳道 Redis 共享（effort #316）
 
-> wayfinder map：`.wayfinder316/MAP.md`（T623–T624）。借鉴：Redisson 分布式
+> wayfinder map：`.wayfinder/maps/effort-316.md`（T623–T624）。借鉴：Redisson 分布式
 > 信号量（RPermit 语义收窄——fog 227「泳道跨实例共享」项）。
 
 ## Problem Statement

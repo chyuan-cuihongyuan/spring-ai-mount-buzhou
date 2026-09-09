@@ -1,6 +1,6 @@
 # Spec 122 — 事务性并行批 · A 侧通用原语（effort #86）
 
-> wayfinder map：`.wayfinder86/MAP.md`（T445–T446，A 会话半场）。#85 fog 种子
+> wayfinder map：`.wayfinder/maps/effort-86.md`（T445–T446，A 会话半场）。#85 fog 种子
 > 「事务性并行批（LangGraph superstep）」通用原语侧；harness 集成侧（原子前检 +
 > BATCH_ABORTED）见 `122-atomic-superstep-batch.md`（B 会话，同轮分工）。
 > 借鉴：LangGraph superstep 步内并行、失败即步失败。

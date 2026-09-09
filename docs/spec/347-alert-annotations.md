@@ -1,6 +1,6 @@
 # Spec 347 — 告警注解随发（effort #347）
 
-> wayfinder map：`.wayfinder347/MAP.md`（T685–T686）。C 会话第 48 轮。
+> wayfinder map：`.wayfinder/maps/effort-347.md`（T685–T686）。C 会话第 48 轮。
 
 ## Problem Statement
 

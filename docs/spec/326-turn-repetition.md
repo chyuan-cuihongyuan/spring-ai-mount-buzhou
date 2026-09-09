@@ -1,6 +1,6 @@
 # Spec 326 — 轮次重复检测（effort #326）
 
-> wayfinder map：`.wayfinder326/MAP.md`（T643–T644）。借鉴：LangChain/
+> wayfinder map：`.wayfinder/maps/effort-326.md`（T643–T644）。借鉴：LangChain/
 > LlamaIndex 社区 context rot / LLM 打转讨论——库内硬化。
 
 ## Problem Statement

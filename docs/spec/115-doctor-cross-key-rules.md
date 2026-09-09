@@ -1,6 +1,6 @@
 # Spec 115 — 配置体检跨键规则（effort #77）
 
-> wayfinder map：`.wayfinder77/MAP.md`（T415–T416）。spec 91 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-77.md`（T415–T416）。spec 91 fog 项收口。
 > 借鉴：IDE inspections 的跨符号检查。
 
 ## Problem Statement

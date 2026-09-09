@@ -1,6 +1,6 @@
 # Spec 100 — 数据集快照副本（effort #62）
 
-> wayfinder map：`.wayfinder62/MAP.md`（T373–T374）。spec 82 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-62.md`（T373–T374）。spec 82 fog 项收口。
 > 借鉴：LangSmith dataset versioning。
 
 ## Problem Statement

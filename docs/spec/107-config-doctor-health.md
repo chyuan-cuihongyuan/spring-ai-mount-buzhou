@@ -1,6 +1,6 @@
 # Spec 107 — 配置体检健康段（effort #69）
 
-> wayfinder map：`.wayfinder69/MAP.md`（T393–T394）。spec 91 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-69.md`（T393–T394）。spec 91 fog 项收口。
 
 ## Problem Statement
 

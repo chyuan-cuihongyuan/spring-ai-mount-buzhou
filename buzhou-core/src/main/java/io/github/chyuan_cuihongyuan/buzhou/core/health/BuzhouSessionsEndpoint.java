@@ -32,11 +32,20 @@ public final class BuzhouSessionsEndpoint {
     private final SpawnAdmissionFloor floor;            // 恒在（342）
     private final MaintenanceCordon cordon;             // 恒在（342）
 
+    /** affinity 展示桶数（spec 415：buzhou.sessions.affinity-buckets，默认 16）。 */
+    private final int affinityBuckets;
+
     public BuzhouSessionsEndpoint(SessionIndexStore index, SpawnAdmissionFloor floor,
             MaintenanceCordon cordon) {
+        this(index, floor, cordon, 16);
+    }
+
+    public BuzhouSessionsEndpoint(SessionIndexStore index, SpawnAdmissionFloor floor,
+            MaintenanceCordon cordon, int affinityBuckets) {
         this.index = index;
         this.floor = floor;
         this.cordon = cordon;
+        this.affinityBuckets = Math.max(1, affinityBuckets);
     }
 
     @ReadOperation
@@ -48,7 +57,41 @@ public final class BuzhouSessionsEndpoint {
         floorSection.put("sources", floor == null ? Map.of() : sourceNames(floor));
         payload.put("spawnFloor", floorSection);
         payload.put("maintenance", cordon == null ? Map.of() : cordon.view());
+        payload.put("affinity", affinitySection());
         return payload;
+    }
+
+    /**
+     * spec 415 / T722：黏性路由提示——活跃会话（首页封顶 50 行）的亲和键/桶位。
+     * 纯函数跨实例一致；buckets 仅展示位零行为变化。
+     */
+    private Map<String, Object> affinitySection() {
+        Map<String, Object> section = new LinkedHashMap<>();
+        section.put("buckets", affinityBuckets);
+        section.put("recipe", "LB 按 sha256(appId|sessionId) 前 8 hex 哈希（nginx: hash $arg_affinity consistent）");
+        if (index == null) {
+            section.put("available", false);
+            section.put("rows", List.of());
+            return section;
+        }
+        List<Map<String, Object>> rows = new java.util.ArrayList<>();
+        List<SessionInfo> batch = index.list(new SessionIndexQuery(
+                null, null, SessionInfo.STATUS_ACTIVE, null, null, 0, 50));
+        for (SessionInfo info : batch) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("sessionId", info.sessionId());
+            row.put("appId", info.appId());
+            row.put("affinityKey",
+                    io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAffinity.key(
+                            info.appId(), info.sessionId()));
+            row.put("affinityBucket",
+                    io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAffinity.bucket(
+                            info.appId(), info.sessionId(), affinityBuckets));
+            rows.add(row);
+        }
+        section.put("available", true);
+        section.put("rows", rows);
+        return section;
     }
 
     private Map<String, Object> activeSessionsSection() {

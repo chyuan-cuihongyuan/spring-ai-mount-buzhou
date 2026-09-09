@@ -1,6 +1,6 @@
 # Spec 207 — 降级链单窗视图（effort #223）
 
-> wayfinder map：`.wayfinder223/MAP.md`（T581–T582）。Grafana 单窗思想——
+> wayfinder map：`.wayfinder/maps/effort-223.md`（T581–T582）。Grafana 单窗思想——
 > 链/驱逐/演练三源合成一页备胎全景。
 
 ## Problem Statement

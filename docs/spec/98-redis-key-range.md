@@ -1,6 +1,6 @@
 # Spec 98 — Redis 键序区间覆写（effort #59）
 
-> wayfinder map：`.wayfinder59/MAP.md`（T365–T366）。#39 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-59.md`（T365–T366）。#39 fog 项收口。
 
 ## Problem Statement
 

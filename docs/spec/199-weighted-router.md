@@ -1,6 +1,6 @@
 # Spec 199 — 平滑加权路由（effort #218）
 
-> wayfinder map：`.wayfinder218/MAP.md`（T571–T572）。借鉴：Nginx smooth
+> wayfinder map：`.wayfinder/maps/effort-218.md`（T571–T572）。借鉴：Nginx smooth
 > weighted round-robin——按权重分流且分布平滑（5:1:1 不出现连五爆发）。
 
 ## Problem Statement

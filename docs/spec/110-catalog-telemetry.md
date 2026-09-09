@@ -1,6 +1,6 @@
 # Spec 110 — 技能目录注入遥测（effort #72）
 
-> wayfinder map：`.wayfinder72/MAP.md`（T403–T404）。
+> wayfinder map：`.wayfinder/maps/effort-72.md`（T403–T404）。
 
 ## Problem Statement
 

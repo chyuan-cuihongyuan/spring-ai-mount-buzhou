@@ -1,6 +1,6 @@
 # Spec 84 — agent 并发 Turn 隔离舱（effort #45）
 
-> wayfinder map：`.wayfinder45/MAP.md`（T323–T324）。借鉴：resilience4j Bulkhead。
+> wayfinder map：`.wayfinder/maps/effort-45.md`（T323–T324）。借鉴：resilience4j Bulkhead。
 
 ## Problem Statement
 

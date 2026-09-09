@@ -1,6 +1,6 @@
 # Spec 86 — 工具输出 PII 脱敏（effort #47）
 
-> wayfinder map：`.wayfinder47/MAP.md`（T331–T332）。借鉴：Microsoft Presidio
+> wayfinder map：`.wayfinder/maps/effort-47.md`（T331–T332）。借鉴：Microsoft Presidio
 > （规则式 recognizer 子集——无 ML 依赖）。
 
 ## Problem Statement

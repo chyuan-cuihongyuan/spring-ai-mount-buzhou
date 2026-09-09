@@ -1,6 +1,6 @@
 # Spec 114 — AB 面按版本查 run（effort #76）
 
-> wayfinder map：`.wayfinder76/MAP.md`（T411–T412）。spec 113 fog 项（AB 同构）。
+> wayfinder map：`.wayfinder/maps/effort-76.md`（T411–T412）。spec 113 fog 项（AB 同构）。
 
 ## Problem Statement
 

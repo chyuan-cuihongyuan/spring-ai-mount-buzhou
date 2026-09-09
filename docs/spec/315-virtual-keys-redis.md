@@ -1,6 +1,6 @@
 # Spec 315 — 虚拟 key 配额 Redis 共享（effort #315）
 
-> wayfinder map：`.wayfinder315/MAP.md`（T621–T622）。借鉴：Redisson 分布式
+> wayfinder map：`.wayfinder/maps/effort-315.md`（T621–T622）。借鉴：Redisson 分布式
 > 限额器（fog 152「key 配额 Redis 共享后端」项；共享族先例 54/57/200 系）。
 
 ## Problem Statement

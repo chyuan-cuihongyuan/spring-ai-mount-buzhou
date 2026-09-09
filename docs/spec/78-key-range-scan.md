@@ -1,6 +1,6 @@
 # Spec 78 — 键序区间扫描 SPI（effort #39）
 
-> wayfinder map：`.wayfinder39/MAP.md`（T309–T310）。#35 fog「outbox due-time 键序
+> wayfinder map：`.wayfinder/maps/effort-39.md`（T309–T310）。#35 fog「outbox due-time 键序
 > 结构」前置半场。借鉴：Kafka log 有序读 / LSM 区间扫描。
 
 ## Problem Statement

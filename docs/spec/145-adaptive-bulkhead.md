@@ -1,6 +1,6 @@
 # Spec 145 — 自适应并发（effort #101）
 
-> wayfinder map：`.wayfinder101/MAP.md`（T499–T500）。借鉴：TCP AIMD
+> wayfinder map：`.wayfinder/maps/effort-101.md`（T499–T500）。借鉴：TCP AIMD
 > （和性增、积性减）+ K8s HPA（按信号调容量）——静态上限的并发闸不知进退。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 108 — 工具调用时长 timer（effort #70）
 
-> wayfinder map：`.wayfinder70/MAP.md`（T397–T398）。借鉴：Micrometer timer /
+> wayfinder map：`.wayfinder/maps/effort-70.md`（T397–T398）。借鉴：Micrometer timer /
 > Prometheus histogram（P95 慢工具告警）。
 
 ## Problem Statement

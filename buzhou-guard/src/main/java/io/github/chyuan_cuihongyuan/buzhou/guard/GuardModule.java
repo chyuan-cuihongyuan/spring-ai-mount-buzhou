@@ -90,6 +90,13 @@ public final class GuardModule {
                             : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
                                     builder.piiTypes, builder.customPiiRules)));
         }
+        // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
+        if (builder.secretScanning) {
+            h.add(builder.secretTypes == null
+                    ? new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook()
+                    : new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook(
+                            builder.secretTypes));
+        }
         // impl-21 / T49：FIDES 最小 taint（读侧打标 + 写门校验；默认关，按机制开关）
         if (builder.taintTracking) {
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintTrackingHook(
@@ -158,6 +165,9 @@ public final class GuardModule {
         private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> piiTypes = null;
         // spec 129 / T475：自定义 PII 规则（yml/程序面；null = 无叠加）
         private io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules customPiiRules;
+        // spec 400 / T692：密钥扫描（默认关；null 类型集 = 全 7 型）
+        private boolean secretScanning = false;
+        private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> secretTypes = null;
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
 
@@ -216,6 +226,19 @@ public final class GuardModule {
         public Builder customPiiRules(
                 io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules rules) {
             this.customPiiRules = rules;
+            return this;
+        }
+
+        /** 开启密钥扫描（全 7 型；spec 400 / T692，gitleaks 借鉴——三缝 MASK）。 */
+        public Builder secretScanning() {
+            return secretScanning(null);
+        }
+
+        /** 开启密钥扫描并指定类型子集（null/空 = 全类型）。 */
+        public Builder secretScanning(
+                java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> types) {
+            this.secretScanning = true;
+            this.secretTypes = types;
             return this;
         }
 
@@ -330,6 +353,29 @@ public final class GuardModule {
                     this.customPiiRules = parseCustomPiiRules(rulesVal);
                 }
             }
+            // spec 400 / T692：secrets.enabled（默认 false）+ secrets.types（List/CSV，可选）
+            Object secretsVal = ymlConfig.get("secrets");
+            if (secretsVal instanceof Map<?, ?> secretsMap) {
+                Object secretsEnabled = secretsMap.get("enabled");
+                if (secretsEnabled instanceof Boolean b5) {
+                    this.secretScanning = b5;
+                }
+                Object secretTypesVal = secretsMap.get("types");
+                java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> stypes =
+                        new java.util.LinkedHashSet<>();
+                if (secretTypesVal instanceof List<?> typeList) {
+                    for (Object t : typeList) {
+                        parseSecretType(String.valueOf(t), stypes);
+                    }
+                } else if (secretTypesVal instanceof String csv) {
+                    for (String t : csv.split(",")) {
+                        parseSecretType(t.trim(), stypes);
+                    }
+                }
+                if (!stypes.isEmpty()) {
+                    this.secretTypes = stypes;
+                }
+            }
             Object tokenVal = ymlConfig.get("canary-token");
             if (tokenVal instanceof String s2 && !s2.isBlank()) {
                 this.canaryToken = s2;
@@ -352,6 +398,17 @@ public final class GuardModule {
                         raw.trim().toUpperCase(java.util.Locale.ROOT)));
             } catch (IllegalArgumentException ignored) {
                 // 未知类型忽略（有界枚举纪律——fail-soft，装配日志面另议）
+            }
+        }
+
+        /** spec 400 / T692：密钥类型解析（fail-soft 与 PII types 同口径）。 */
+        private static void parseSecretType(String raw,
+                java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> into) {
+            try {
+                into.add(io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType.valueOf(
+                        raw.trim().toUpperCase(java.util.Locale.ROOT)));
+            } catch (IllegalArgumentException ignored) {
+                // 未知类型忽略（有界枚举纪律——fail-soft，与 parsePiiType 同口径）
             }
         }
 

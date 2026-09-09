@@ -1,6 +1,6 @@
 # Spec 210 — runbook 补段（effort #149）
 
-> wayfinder map：`.wayfinder149/MAP.md`（T574–T575）。文档轮。
+> wayfinder map：`.wayfinder/maps/effort-149.md`（T574–T575）。文档轮。
 
 ## Solution
 

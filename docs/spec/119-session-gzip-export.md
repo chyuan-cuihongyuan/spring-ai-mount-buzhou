@@ -1,6 +1,6 @@
 # Spec 119 — 会话级 gzip 导出（effort #81）
 
-> wayfinder map：`.wayfinder81/MAP.md`（T427–T428）。spec 109 的单会话粒度补齐。
+> wayfinder map：`.wayfinder/maps/effort-81.md`（T427–T428）。spec 109 的单会话粒度补齐。
 
 ## Problem Statement
 

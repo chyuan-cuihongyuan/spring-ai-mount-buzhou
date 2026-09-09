@@ -1,6 +1,6 @@
 # Spec 75 — A/B run 完成事件（effort #36）
 
-> wayfinder map：`.wayfinder36/MAP.md`（T303–T304）。#35 fog 毕业生。
+> wayfinder map：`.wayfinder/maps/effort-36.md`（T303–T304）。#35 fog 毕业生。
 > 借鉴：LangSmith run 生命周期事件面。
 
 ## Problem Statement

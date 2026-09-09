@@ -1,6 +1,6 @@
 # Spec 187 — 生效配置指纹（effort #212）
 
-> wayfinder map：`.wayfinder212/MAP.md`（T559–T560）。延续 spec 175 SBOM 思想
+> wayfinder map：`.wayfinder/maps/effort-212.md`（T559–T560）。延续 spec 175 SBOM 思想
 > 到配置面——配置漂移可对账。
 
 ## Problem Statement

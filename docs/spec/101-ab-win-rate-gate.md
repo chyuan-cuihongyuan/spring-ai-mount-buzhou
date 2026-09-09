@@ -1,6 +1,6 @@
 # Spec 101 — A/B 胜率门（effort #63）
 
-> wayfinder map：`.wayfinder63/MAP.md`（T377–T378）。spec 80 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-63.md`（T377–T378）。spec 80 fog 项收口。
 > 借鉴：Promptfoo model-compare gate / LiteLLM model-router 验收。
 
 ## Problem Statement

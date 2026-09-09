@@ -1,6 +1,6 @@
 # Spec 99 — 折入速率指标（effort #61）
 
-> wayfinder map：`.wayfinder61/MAP.md`（T369–T370）。spec 95 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-61.md`（T369–T370）。spec 95 fog 项收口。
 
 ## Problem Statement
 

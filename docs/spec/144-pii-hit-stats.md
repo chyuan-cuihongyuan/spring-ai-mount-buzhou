@@ -1,6 +1,6 @@
 # Spec 144 — PII 命中统计（effort #117）
 
-> wayfinder map：`.wayfinder117/MAP.md`（T469–T470）。借鉴：Presidio
+> wayfinder map：`.wayfinder/maps/effort-117.md`（T469–T470）。借鉴：Presidio
 > anonymizer 统计口径（合规面以「哪类敏感数据最常出现」说话）。
 
 ## Problem Statement

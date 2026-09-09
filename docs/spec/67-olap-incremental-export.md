@@ -1,6 +1,6 @@
 # Spec 67 — OLAP 增量导出（effort #27）
 
-> wayfinder map：`.wayfinder27/MAP.md`（T285–T286）。OSS 借鉴：Langfuse ingestion
+> wayfinder map：`.wayfinder/maps/effort-27.md`（T285–T286）。OSS 借鉴：Langfuse ingestion
 > cursor / Helicone 水位分页。
 
 ## Problem Statement

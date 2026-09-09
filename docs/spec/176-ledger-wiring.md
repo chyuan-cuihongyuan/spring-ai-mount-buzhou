@@ -1,6 +1,6 @@
 # Spec 176 — 成本台账接线（effort #132）
 
-> wayfinder map：`.wayfinder132/MAP.md`（T532–T533）。spec 174 fog「Hook
+> wayfinder map：`.wayfinder/maps/effort-132.md`（T532–T533）。spec 174 fog「Hook
 > 打点接线」收口。
 
 ## Problem Statement

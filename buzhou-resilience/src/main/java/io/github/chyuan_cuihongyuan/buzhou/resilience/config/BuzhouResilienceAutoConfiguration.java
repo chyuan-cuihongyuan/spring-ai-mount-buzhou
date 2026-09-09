@@ -28,12 +28,78 @@ import java.util.Map;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.resilience", name = "enabled", matchIfMissing = true)
-@EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class})
+@EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties.class,
+        BuzhouModelConcurrencyProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean
     public ResilienceStats resilienceStats() {
         return new ResilienceStats();
+    }
+
+    /**
+     * spec 426 / T744 + spec 429 / T750：模型并发舱（Resilience4j
+     * SemaphoreBulkhead / Uber concurrency-limits 借鉴——供应商并发配额
+     * 分层）。{@code buzhou.resilience.model-concurrency.limits} 非空声明即
+     * 装配；spec 429 拆三 bean——limiter 恒 exposed（advisor 与热更新共享
+     * 同一实例），ModelConcurrencyHotReload 随 refresh 事件热调容
+     * （320/340 rebind 同模式）。模型名取 {@code buzhou.model-name}
+     * （默认 unknown，同口径）。多实例诚实边界：每实例独立并发额度。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.ModelConcurrencyPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter
+    buzhouModelConcurrencyLimiter(BuzhouModelConcurrencyProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter(
+                properties.limits(), properties.acquireTimeout());
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.ModelConcurrencyPresentCondition.class)
+    public RuntimeConfig modelConcurrencyRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter limiter,
+            org.springframework.core.env.Environment env) {
+        String modelName = env.getProperty("buzhou.model-name", "unknown");
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addAdvisor(
+                        new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency
+                                .ModelConcurrencyAdvisor(limiter, modelName))),
+                null);
+    }
+
+    /** spec 429 / T750：refresh 事件热调容（limiter bean 共享实例）。 */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.ModelConcurrencyPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyHotReload
+    buzhouModelConcurrencyHotReload(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyLimiter limiter,
+            org.springframework.core.env.Environment env) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency
+                .ModelConcurrencyHotReload(limiter, env);
+    }
+
+    /** spec 426：limits map 非空才装配（Binder 预绑判定——406 同法）。 */
+    static final class ModelConcurrencyPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.resilience.model-concurrency.limits",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Integer.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     /**
@@ -116,6 +182,48 @@ public class BuzhouResilienceAutoConfiguration {
                 sharedBackend.getIfAvailable(),
                 embeddingModels.getIfAvailable(),
                 sharedCircuitBackend.getIfAvailable());
+    }
+
+    /**
+     * spec 402 / T696：结构化输出执法（instructor 借鉴——验证失败错误喂回
+     * 模型自修复）。独立 RuntimeConfig bean（assembly customizer 注 advisor，
+     * 不动 ResilienceModule 内路）；{@code buzhou.resilience.structured-output.enabled=true}
+     * 声明即装配。enabled 而 schema 全空 = 配置错误 fail-fast；声明类型不在
+     * 支持集同样 fail-fast（拼写错不静默宽容）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.resilience.structured-output", name = "enabled", havingValue = "true")
+    public RuntimeConfig structuredOutputRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties props) {
+        var spec = props.schema();
+        if (spec == null || spec.isEmpty()) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.resilience.structured-output.enabled=true 但 schema 全空",
+                    "声明 schema.required 或 schema.properties（键→类型："
+                            + io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema
+                                    .knownTypes() + "）");
+        }
+        for (String type : spec.normalizedTypes().values()) {
+            if (!io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema
+                    .knownTypes().contains(type)) {
+                throw new BuzhouConfigurationException(
+                        "buzhou.resilience.structured-output.schema.properties 声明类型「"
+                                + type + "」不在支持集",
+                        "支持：" + io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema
+                                .knownTypes());
+            }
+        }
+        io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema schema =
+                new io.github.chyuan_cuihongyuan.buzhou.resilience.structured.OutputSchema(
+                        spec.required(), spec.normalizedTypes());
+        int attempts = props.effectiveMaxRepairAttempts();
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addAdvisor(
+                        new io.github.chyuan_cuihongyuan.buzhou.resilience.structured
+                                .StructuredOutputAdvisor(schema, attempts, ctx::emitEvent))),
+                null);
     }
 
     /**

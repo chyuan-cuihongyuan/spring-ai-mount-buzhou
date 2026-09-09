@@ -1,6 +1,6 @@
 # Spec 183 — 跨轮 TTL 工具缓存（effort #210）
 
-> wayfinder map：`.wayfinder210/MAP.md`（T555–T556）。借鉴：HTTP 响应缓存
+> wayfinder map：`.wayfinder/maps/effort-210.md`（T555–T556）。借鉴：HTTP 响应缓存
 > max-age——只读查询结果的跨轮复用窗。
 
 ## Problem Statement

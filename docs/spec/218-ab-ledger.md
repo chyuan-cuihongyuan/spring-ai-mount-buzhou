@@ -1,6 +1,6 @@
 # Spec 218 — A/B 撞号台账（effort #153）
 
-> wayfinder map：`.wayfinder153/MAP.md`（T583–T584）。文档轮。
+> wayfinder map：`.wayfinder/maps/effort-153.md`（T583–T584）。文档轮。
 
 ## Solution
 

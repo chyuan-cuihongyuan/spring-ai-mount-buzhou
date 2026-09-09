@@ -1,6 +1,6 @@
 # Spec 129 — PII yml 声明式规则（effort #93）
 
-> wayfinder map：`.wayfinder93/MAP.md`（T475–T476）。#85 收口 fog 种子⑤；
+> wayfinder map：`.wayfinder/maps/effort-93.md`（T475–T476）。#85 收口 fog 种子⑤；
 > spec 118 out-of-scope「yml 声明式配置；输入侧叠加」双项接续。
 
 ## Problem Statement

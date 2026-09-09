@@ -1,6 +1,6 @@
 # Spec 118 — 自定义 PII 规则（effort #80）
 
-> wayfinder map：`.wayfinder80/MAP.md`（T425–T426）。spec 86 fog「自定义 recognizer」
+> wayfinder map：`.wayfinder/maps/effort-80.md`（T425–T426）。spec 86 fog「自定义 recognizer」
 > 最小版；Presidio PatternRecognizer 对应物。
 
 ## Problem Statement

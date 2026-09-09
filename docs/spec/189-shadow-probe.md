@@ -1,6 +1,6 @@
 # Spec 189 — 影子读探针（effort #213）
 
-> wayfinder map：`.wayfinder213/MAP.md`（T561–T562）。借鉴：Istio mirror
+> wayfinder map：`.wayfinder/maps/effort-213.md`（T561–T562）。借鉴：Istio mirror
 > （shadow traffic）——生产请求旁路镜像到候选，对照不打扰主路。
 
 ## Problem Statement

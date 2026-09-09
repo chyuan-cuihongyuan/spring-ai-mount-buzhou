@@ -1,6 +1,6 @@
 # Spec 342 — 维护窗口 cordon（effort #342）
 
-> wayfinder map：`.wayfinder342/MAP.md`（T675–T676）。C 会话第 43 轮。
+> wayfinder map：`.wayfinder/maps/effort-342.md`（T675–T676）。C 会话第 43 轮。
 
 ## Problem Statement
 

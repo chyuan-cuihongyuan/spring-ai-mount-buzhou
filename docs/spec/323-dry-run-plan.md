@@ -1,6 +1,6 @@
 # Spec 323 — 干跑拦截与执行计划（effort #323）
 
-> wayfinder map：`.wayfinder323/MAP.md`（T637–T638）。借鉴：Terraform
+> wayfinder map：`.wayfinder/maps/effort-323.md`（T637–T638）。借鉴：Terraform
 > plan/apply——先计划后执行，计划可审阅。
 
 ## Problem Statement

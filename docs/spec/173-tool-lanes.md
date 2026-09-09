@@ -1,6 +1,6 @@
 # Spec 173 — 工具泳道并发闸（effort #205）
 
-> wayfinder map：`.wayfinder205/MAP.md`（T539–T540）。借鉴：Hystrix 线程池
+> wayfinder map：`.wayfinder/maps/effort-205.md`（T539–T540）。借鉴：Hystrix 线程池
 > 隔离舱——按资源类型分道，慢的一队饿不死快的一队。
 
 ## Problem Statement

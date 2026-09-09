@@ -1,6 +1,6 @@
 # Spec 74 — A/B run 落盘与查询（effort #34）
 
-> wayfinder map：`.wayfinder34/MAP.md`（T299–T300）。#31 fog 毕业生。
+> wayfinder map：`.wayfinder/maps/effort-34.md`（T299–T300）。#31 fog 毕业生。
 
 ## Problem Statement
 

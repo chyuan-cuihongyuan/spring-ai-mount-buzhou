@@ -1,6 +1,6 @@
 # Spec 136 — 观测导出尾采样（effort #113）
 
-> wayfinder map：`.wayfinder113/MAP.md`（T461–T462）。借鉴：OpenTelemetry
+> wayfinder map：`.wayfinder/maps/effort-113.md`（T461–T462）。借鉴：OpenTelemetry
 > tail sampling（尾部采样在出口裁决，保错误与慢样本）。
 
 ## Problem Statement

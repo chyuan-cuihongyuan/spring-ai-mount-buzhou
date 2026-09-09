@@ -1,6 +1,6 @@
 # Spec 154 — 虚拟 key 健康面（effort #122）
 
-> wayfinder map：`.wayfinder122/MAP.md`（T507–T508）。spec 148 fog「key 配额
+> wayfinder map：`.wayfinder/maps/effort-122.md`（T507–T508）。spec 148 fog「key 配额
 > 可观测面」收口。
 
 ## Problem Statement

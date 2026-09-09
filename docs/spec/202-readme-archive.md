@@ -1,6 +1,6 @@
 # Spec 202 — README 归档（effort #145）
 
-> wayfinder map：`.wayfinder145/MAP.md`（T566–T567）。文档轮。
+> wayfinder map：`.wayfinder/maps/effort-145.md`（T566–T567）。文档轮。
 
 ## Solution
 

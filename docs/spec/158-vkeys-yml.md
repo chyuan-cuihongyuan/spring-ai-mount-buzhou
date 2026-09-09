@@ -1,6 +1,6 @@
 # Spec 158 — 虚拟 key yml 装配（effort #123）
 
-> wayfinder map：`.wayfinder123/MAP.md`（T511–T512）。spec 148 fog「autoconfig
+> wayfinder map：`.wayfinder/maps/effort-123.md`（T511–T512）。spec 148 fog「autoconfig
 > yml 键」收口——编程面变装配面。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 83 — 错误签名聚类（effort #44）
 
-> wayfinder map：`.wayfinder44/MAP.md`（T321–T322）。借鉴：Sentry fingerprint。
+> wayfinder map：`.wayfinder/maps/effort-44.md`（T321–T322）。借鉴：Sentry fingerprint。
 
 ## Problem Statement
 

@@ -1,6 +1,6 @@
 # Spec 313 — PII 命中分侧（effort #313）
 
-> wayfinder map：`.wayfinder313/MAP.md`（T617–T618）。借鉴：Presidio
+> wayfinder map：`.wayfinder/maps/effort-313.md`（T617–T618）。借鉴：Presidio
 > anonymizer 统计口径（spec 144 原始来源分侧深化——fog 152 项）。
 
 ## Problem Statement

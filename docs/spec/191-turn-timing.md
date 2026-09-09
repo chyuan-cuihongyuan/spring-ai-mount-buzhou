@@ -1,6 +1,6 @@
 # Spec 191 — 轮次时延计时（effort #214）
 
-> wayfinder map：`.wayfinder214/MAP.md`（T563–T564）。补生产轮次的端到端
+> wayfinder map：`.wayfinder/maps/effort-214.md`（T563–T564）。补生产轮次的端到端
 > 时延读数——eval run（spec 111）与工具（108）都有 timer，轮这一层没有。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 195 — 降级链演练（effort #216）
 
-> wayfinder map：`.wayfinder216/MAP.md`（T567–T568）。借鉴：Envoy 主动健康
+> wayfinder map：`.wayfinder/maps/effort-216.md`（T567–T568）。借鉴：Envoy 主动健康
 > 检查——备胎平时验证，用时可靠。
 
 ## Problem Statement

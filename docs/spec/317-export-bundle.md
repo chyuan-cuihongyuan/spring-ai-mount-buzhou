@@ -1,6 +1,6 @@
 # Spec 317 — 导出族 gzip 合流打包（effort #317）
 
-> wayfinder map：`.wayfinder317/MAP.md`（T625–T626）。借鉴：tarball/OCI
+> wayfinder map：`.wayfinder/maps/effort-317.md`（T625–T626）。借鉴：tarball/OCI
 > artifact（多载荷一清单——fog 152「导出族合流打包」项）。
 
 ## Problem Statement

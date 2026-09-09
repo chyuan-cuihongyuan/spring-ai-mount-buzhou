@@ -1,6 +1,6 @@
 # Spec 318 — 会话扰乱预算（effort #318）
 
-> wayfinder map：`.wayfinder318/MAP.md`（T627–T628）。借鉴：Kubernetes
+> wayfinder map：`.wayfinder/maps/effort-318.md`（T627–T628）。借鉴：Kubernetes
 > PodDisruptionBudget——voluntary disruption 需预算，minAvailable 保底。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 102 — 会话归档健康面（effort #64）
 
-> wayfinder map：`.wayfinder64/MAP.md`（T379–T380）。spec 97 fog 项前半场。
+> wayfinder map：`.wayfinder/maps/effort-64.md`（T379–T380）。spec 97 fog 项前半场。
 
 ## Problem Statement
 

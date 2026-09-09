@@ -1,6 +1,6 @@
 # Spec 148 — key 级预算闸（effort #119）
 
-> wayfinder map：`.wayfinder119/MAP.md`（T501–T502）。spec 124（VirtualKeys
+> wayfinder map：`.wayfinder/maps/effort-119.md`（T501–T502）。spec 124（VirtualKeys
 > 注册表）的闸位接线。借鉴：LiteLLM virtual-key 超限即拒的闸位语义。
 
 ## Problem Statement

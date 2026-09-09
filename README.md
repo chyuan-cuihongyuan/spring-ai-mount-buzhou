@@ -321,6 +321,43 @@ buzhou-bom                 —— 全模块同版本收口
 
 > safe-by-default：多数机制默认开启；otel / dashboard 这类需要外部后端或端口的默认关闭。
 
+## 生产级纵深 V（D 会话 400 系增量）
+
+D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 安全 | 密钥扫描护栏 | 三缝 MASK（输入/出站工具参数/工具结果）——API key/token/JWT/PEM 七型签名占位符化，凭据不进 prompt 观测与外发（gitleaks pre-commit 思想） | [spec 400](docs/spec/400-secret-scanning.md) |
+| 工程治理 | 提示词注册表 | 版本+标签双轴——publish 单调版本、production/latest 指针可移动（晋级/回滚同一动作）、按版钉取复现历史、yml 播种重启幂等（Langfuse prompt management） | [spec 401](docs/spec/401-prompt-registry.md) |
+| 模型韧性 | 结构化输出执法 | JSON 契约（required+类型表+围栏剥离）验证失败把错误清单喂回模型自修复、耗尽抛违规、每次修复重过观测+韧性层（instructor） | [spec 402](docs/spec/402-structured-output.md) |
+| 成本预算 | 成本预测外推 | 分钟桶速率环 + 水平线线性外推（窗内烧钱速率×horizon 对预算 projectedOver）——「会不会超预算」期中就有答案；记账监听缝喂数不二次算成本（AWS Budgets forecast） | [spec 403](docs/spec/403-cost-forecast.md) |
+| 安全 | 审计 Merkle 根与包含证明 | 时点封印出紧凑根对外发布、单条记录凭包含证明+根即可验——第三方零全链验证；叶摘要与链 prev_hash 同基互证（Certificate Transparency） | [spec 404](docs/spec/404-audit-merkle.md) |
+| 运维 | 健康事件时间线 | 机制状态变迁 diff-only 入环（首次初见/翻转/回归）+per-mechanism 计数辨抖动 + JSONL 落盘 + /actuator/buzhou-timeline——事故复盘「谁先坏的」有数据面（PagerDuty incident timeline） | [spec 405](docs/spec/405-health-timeline.md) |
+| 工具治理 | 工具退役通告 | 退役描述前缀随定义下发（模型可见 steering）+调用事件/计数——迁移进度由 usage 数据说话、真删除时机不猜；退役≠移除不阻断（K8s API deprecation） | [spec 406](docs/spec/406-tool-deprecation.md) |
+| 评测 | 在线采样入评测集 | 生产轮次确定性按率采样入集（hash(session:turn)%100 同轮同判可复现）、空白/短问过滤、fail-soft 绝不炸轮、provenance 与拉式回流同域天然去重（Honeycomb head sampling） | [spec 407](docs/spec/407-turn-sampling.md) |
+| 成本预算 | 预算日历周期 | 月/周/日全进程账期预算——periodTag 入键翻页即隐式重置、tokens+成本双轨计量、下调用拦截、软预警一次一发（AWS Budgets calendar period） | [spec 408](docs/spec/408-period-budget.md) |
+| 工具治理 | 工具结果 schema 校验 | per-tool 输出契约（复用入参同一校验器零新逻辑）——坏结果回灌前拦下转结构化反馈（标记词汇复用、文案区隔已执行），模型换参重试而非基于残缺数据瞎猜（MCP outputSchema） | [spec 409](docs/spec/409-tool-result-schema.md) |
+| 记忆治理 | 共享事实库 ACL | 跨会话/跨 agent 共享事实——deny-by-default（owner 恒读、显式 grant 才可读、键即所有权抢键 fail-fast）、ttl 过期、拒绝读计数防探测（mem0 共享记忆+隔离） | [spec 410](docs/spec/410-shared-facts.md) |
+| 背压 | 泳道优先级原语 | 优先级插队信号量（0-9 有界、数小者优先、同级 FIFO 防饿死、超时让位、不剥夺协作式）+等待快照饥饿可见——原语先行接线扩散候选（Envoy priority levels） | [spec 411](docs/spec/411-priority-lane.md) |
+| 观测治理 | 时间桶预聚合 | 跨会话翻页枚举+TURN/MODEL/TOOL 三类 span 按 epoch 对齐固定桶聚合（turns/calls/errors/tokens）+空桶补齐图表连续+桶数上界——小时级趋势一查询即得（M3 downsampling） | [spec 412](docs/spec/412-rollups.md) |
+| 观测治理 | 时间桶延迟分位数 | 桶内 TURN 时延 p50/p95/p99 exact 最近秩——「错误率正常但变慢了」的隐蔽退化可见；零样本桶 null 诚实空值不画零假象（Prometheus histogram_quantile） | [spec 416](docs/spec/416-rollup-percentiles.md) |
+| 成本预算 | 价目热更新 | 刷新事件整表热载价目（覆盖层优先、删除键回落底表、逐键 WARN diff 留痕）——供应商调价即时生效新账用新价不重启（Spring Cloud rebind/Stripe 即时生效） | [spec 417](docs/spec/417-pricing-hot-reload.md) |
+| 安全 | 秘密命中统计与导出 | 类型×缝三侧计数（INPUT/OUTBOUND/OUTPUT）+快照 JSONL 追加导出——泄漏面趋势（哪类凭据/哪条缝最常出）可分析（PiiHitStats 同构镜像） | [spec 418](docs/spec/418-secret-hit-stats.md) |
+| 成本预算 | 周期预算健康面 | 恒 UP 观测面：双轨进度（used/limit/pct 截断）+exhausted 布尔+resetsAt 回血时刻（月=下月 1 日/周=epoch 周界/日=次日）——「烧到哪了/还有多久回血」一屏可答（AWS Budgets 面板） | [spec 419](docs/spec/419-period-budget-health.md) |
+| 工具治理 | 工具目录 lint | 装配期三规则体检（名字约定/描述长度/跨源重名）——只报不改 WARN+计数+首装配事件，模型选工具的静态失败面上线前可见（ESLint 构建期 lint） | [spec 420](docs/spec/420-catalog-lint.md) |
+| 安全 | 审计封印导出 | Merkle 封印逐行 JSONL 追加外存+每行即时建树 verified 比对——最新印期望 true、旧印 false 属正常（印后有新记录）、最新印 false=链被动过；宿主定时调用即 CT 式 STH 公示节奏 | [spec 421](docs/spec/421-audit-seal-export.md) |
+| 背压 | 工具泳道优先级装配 | yml 声明泳道容量+per-tool 优先级即装配（0-9 数小者先拿许可、同级 FIFO）——交互工具拥挤时先于批处理工具执行，未声明泳道引用启动即红（Envoy priority levels 接线） | [spec 422](docs/spec/422-tool-lane-priority-assembly.md) |
+| 评测 | 错误偏向采样 | 错误轮观察者缝采样入候选池（错误轮不走 afterTurn——onTurnStart 记输入/onTurnError 采错）——error-rate-percent 默认 100 全保、确定性 hash 同轮同判、占位 [TURN-ERROR] 留人工判 golden（OTel tail_sampling ERROR 规则） | [spec 423](docs/spec/423-error-biased-sampling.md) |
+| 工程治理 | 提示词使用统计 | 注册表装饰器三 resolve 形态命中记账（latest/标签/钉版→name×version 次数）+快照 JSONL 追加导出——晋级/退役由使用数据说话（Langfuse prompt analytics） | [spec 424](docs/spec/424-prompt-usage-stats.md) |
+| 背压 | 轮次限速 | beforeTurn 惰性令牌桶准入（burst 突发桶+每分钟匀速回填、无定时器）——默认 per-session 频次帽、可插拔键做租户整体帽，超限 block 不炸轮（nginx token bucket） | [spec 425](docs/spec/425-turn-rate-limit.md) |
+| 背压 | 模型并发舱 | per-model 在飞并发上限（advisor 链 +660：许可在重试外获取一次、持有跨重试；流式 doFinally 释放含 CANCEL）——供应商并发 tier 的 429 上游根因消除，未配置模型 NOOP 零开销（Resilience4j SemaphoreBulkhead） | [spec 426](docs/spec/426-model-concurrency.md) |
+| 观测治理 | 轮次错误回调对称化 | 非流式 chat 失败也回调 onTurnError（此前仅流式）——turn span 带 error 立即收口不悬到会话关闭、错误采样（423）非流式也采得到（OTel span status ERROR 语义正确性） | [spec 427](docs/spec/427-nondrain-error-callback.md) |
+| 安全 | Webhook 验签与防重放 | 消费端常量时间验签工具（MessageDigest.isEqual 防时序侧信道）+时间戳容差窗重放有界（forwarder 加发 X-Buzhou-Timestamp 不进 MAC 存量零破坏）——签名↔验签两侧同 crypto 路闭环（Stripe signed webhooks） | [spec 428](docs/spec/428-webhook-verify-replay.md) |
+| 背压 | 模型并发舱热更新 | refresh 事件重读 limits 热调容（扩容 grow/缩容 shrink 在飞不受扰、释放自然收敛不抢占；移除键摘舱）——供应商调并发额度改 yml 发事件即生效不重启（320/340 rebind 同模式） | [spec 429](docs/spec/429-model-concurrency-hot-reload.md) |
+| 并发原语 | 延迟作业 | one-shot 到点执行（fireAt/delay 双形态）——同键重复提交=替换不双跑（键即幂等锚）、cancel 幂等、异常隔离计数、pending 升序快照（Sidekiq delayed_jobs） | [spec 413](docs/spec/413-delayed-jobs.md) |
+| 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
+| 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

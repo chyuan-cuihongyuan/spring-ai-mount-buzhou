@@ -1,6 +1,6 @@
 # Spec 149 — 模型端点离群驱逐（effort #103）
 
-> wayfinder map：`.wayfinder103/MAP.md`（T505–T506）。借鉴：Envoy outlier
+> wayfinder map：`.wayfinder/maps/effort-103.md`（T505–T506）。借鉴：Envoy outlier
 > detection——连续错误端点逐出集群，窗口过后试探复池。
 
 ## Problem Statement

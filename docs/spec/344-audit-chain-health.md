@@ -1,6 +1,6 @@
 # Spec 344 — 审计链完整性巡检（effort #344）
 
-> wayfinder map：`.wayfinder344/MAP.md`（T679–T680）。C 会话第 45 轮。
+> wayfinder map：`.wayfinder/maps/effort-344.md`（T679–T680）。C 会话第 45 轮。
 
 ## Problem Statement
 

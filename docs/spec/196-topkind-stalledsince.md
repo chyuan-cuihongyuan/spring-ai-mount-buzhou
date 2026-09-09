@@ -1,6 +1,6 @@
 # Spec 196 — 签名分面 top + 心跳单查（effort #142）
 
-> wayfinder map：`.wayfinder142/MAP.md`（T559–T560）。双小方法轮。
+> wayfinder map：`.wayfinder/maps/effort-142.md`（T559–T560）。双小方法轮。
 
 ## Solution
 

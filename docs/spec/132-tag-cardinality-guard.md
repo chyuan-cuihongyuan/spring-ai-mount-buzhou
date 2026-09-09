@@ -1,6 +1,6 @@
 # Spec 132 — tag 基数守卫（effort #111）
 
-> wayfinder map：`.wayfinder111/MAP.md`（T457–T458）。借鉴：Grafana Loki
+> wayfinder map：`.wayfinder/maps/effort-111.md`（T457–T458）。借鉴：Grafana Loki
 > label cardinality limit。
 
 ## Problem Statement

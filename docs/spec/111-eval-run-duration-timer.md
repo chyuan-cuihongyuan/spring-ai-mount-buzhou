@@ -1,6 +1,6 @@
 # Spec 111 — 评估 run 时长 timer（effort #73）
 
-> wayfinder map：`.wayfinder73/MAP.md`（T405–T406）。LangSmith run latency 借鉴。
+> wayfinder map：`.wayfinder/maps/effort-73.md`（T405–T406）。LangSmith run latency 借鉴。
 
 ## Problem Statement
 

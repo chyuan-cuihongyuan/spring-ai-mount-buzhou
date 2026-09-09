@@ -1,6 +1,6 @@
 # Spec 127 — 跨实例舱占用聚合（effort #92）
 
-> wayfinder map：`.wayfinder92/MAP.md`（T473–T474）。#85 收口 fog 种子④
+> wayfinder map：`.wayfinder/maps/effort-92.md`（T473–T474）。#85 收口 fog 种子④
 > 「跨实例分布式舱/表聚合」。范式先例：spec 57 CircuitBreakerStateBackend
 > （共享事实、不共享状态机；观测面故障不放大为服务故障）。
 

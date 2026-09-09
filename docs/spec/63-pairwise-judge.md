@@ -1,6 +1,6 @@
 # Spec 63 — 成对对比评估（effort #23）
 
-> wayfinder map：`.wayfinder23/MAP.md`（T277–T278）。OSS 借鉴：Ragas pairwise /
+> wayfinder map：`.wayfinder/maps/effort-23.md`（T277–T278）。OSS 借鉴：Ragas pairwise /
 > Chatbot Arena 的双向评判消位置偏差。
 
 ## Problem Statement

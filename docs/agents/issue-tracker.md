@@ -1,6 +1,6 @@
 # Issue tracker: Local Markdown
 
-Issues and specs for this repo live as markdown files in **a single wayfinder directory**. Durable efforts (wayfinder maps, specs, impl slices) live in **`.wayfinder/`** (committed to git)：总索引 = `.wayfinder/MAP.md`；每 effort 一张 map = `.wayfinder/maps/effort-<NN>.md`（#1–#15 已闭合）；决策票 = `.wayfinder/tickets/`；实现切片 = `.wayfinder/impl/`。2026-08-17 前曾按 effort 分裂为 `.wayfinder/`…`.wayfinder15/` 十五个目录，已融合为单一目录——**新 effort 只加 `maps/effort-<NN>.md`，勿再新建 `.wayfinderN/`**。`.scratch/` is gitignored and only for throwaway drafts — do not put durable issues there.
+Issues and specs for this repo live as markdown files in **a single wayfinder directory**. Durable efforts (wayfinder maps, specs, impl slices) live in **`.wayfinder/`** (committed to git)：总索引 = `.wayfinder/MAP.md`；每 effort 一张 map = `.wayfinder/maps/effort-<N>.md`（#1–#349 已闭合）；决策票 = `.wayfinder/tickets/`；实现切片 = `.wayfinder/impl/`。2026-08-17 前曾按 effort 分裂为 `.wayfinder/`…`.wayfinder15/` 十五个目录，2026-09-07 又将其后分裂的 `.wayfinder16/`…`.wayfinder349/` 共 217 个目录二次融合——现全为单一目录——**新 effort 只加 `maps/effort-<N>.md`，勿再新建 `.wayfinderN/`**。`.scratch/` is gitignored and only for throwaway drafts — do not put durable issues there.
 
 ## Conventions
 
@@ -23,7 +23,7 @@ Read the file at the referenced path. The user will normally pass the path or th
 Used by `/wayfinder`. The **map** is a file with one **child** file per ticket. Current convention (see `.wayfinder/README.md` for frontmatter fields):
 
 - **Map**: 总索引 `.wayfinder/MAP.md` + 每 effort 一张 `.wayfinder/maps/effort-<NN>.md` — the Notes / Decisions-so-far / Fog body.
-- **Child ticket**: `.wayfinder/tickets/T<n>-<slug>.md`（编号跨 effort 全局连续：T1–T248，T231–T239 跳号未用，下一张 T249）, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `open`/`closed`.
+- **Child ticket**: `.wayfinder/tickets/T<n>-<slug>.md`（编号跨 effort 全局连续：T1–T690，T231–T239 跳号未用，下一张 T691）, with the question in the body. A `Type:` line records the ticket type (`research`/`prototype`/`grilling`/`task`); a `Status:` line records `open`/`closed`.
 - **Blocking**: a `blocked-by:` line in frontmatter. A ticket is unblocked when every ticket it lists is `closed`.
 - **Frontier**: scan `.wayfinder/tickets/` for files that are open, unblocked, and unclaimed; first by number wins.
 - **Claim**: set `assignee` and save before any work.

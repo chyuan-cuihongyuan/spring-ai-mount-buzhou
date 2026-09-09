@@ -1,6 +1,6 @@
 # Spec 179 — 空闲会话水位监控（effort #208）
 
-> wayfinder map：`.wayfinder208/MAP.md`（T549–T550）。借鉴：Flink watermark
+> wayfinder map：`.wayfinder/maps/effort-208.md`（T549–T550）。借鉴：Flink watermark
 > ——时间水位推进判定「谁掉队了」；空闲会话是资源水位里的掉队者。
 
 ## Problem Statement

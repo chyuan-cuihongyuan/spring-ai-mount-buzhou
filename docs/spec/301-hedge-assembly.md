@@ -1,6 +1,6 @@
 # Spec 301 — 对冲装配面（effort #301）
 
-> wayfinder map：`.wayfinder301/MAP.md`（T593–T594）。借鉴：gRPC hedging
+> wayfinder map：`.wayfinder/maps/effort-301.md`（T593–T594）。借鉴：gRPC hedging
 > （spec 137 原语的装配收尾——原语已建 standalone，yml 声明后自动生效）。
 
 ## Problem Statement

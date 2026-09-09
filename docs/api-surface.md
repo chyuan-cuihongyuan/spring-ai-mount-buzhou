@@ -404,6 +404,12 @@
 - `public final class FallbackChain`
 - `public final class ModelCircuitBreaker`
 - `public final class ModelCircuitOpenException`
+- `public final class ModelConcurrencyAdvisor`（426——Resilience4j SemaphoreBulkhead/
+  Uber concurrency-limits：per-model 在飞并发舱——链序 +660 许可持有跨
+  重试、流式 doFinally 释放含 CANCEL）
+- `public final class ModelConcurrencyHotReload`（429——320/340 rebind 同
+  模式：refresh 事件重读 limits 热调容——在飞不受扰自然收敛）
+- `public final class ModelConcurrencyLimiter`
 - `public final class ModelRateLimiter`
 - `public final class ResilienceModule`
 - `public final class ResilienceStats`
@@ -474,7 +480,9 @@
 - `public class StoreFsck` / `public final class StoreIntegrityReport`（cleanup；含 Finding/Severity）
 - `public record SessionInfo` / `public record SessionIndexQuery` / `public interface SessionIndexStore`（spi）
 - `public final class ToolResultLimiter` / `public final class ToolResultLimiterHolder`（exec）
-- `public record WebhookDeadLetter`（webhook）；`WebhookOutbox` 为包私有（非公开面）
+- `public record WebhookDeadLetter`（webhook）；`WebhookOutbox` 为包私有（非公开面）；
+  `WebhookSignatures`（428——Stripe signed webhooks：消费端常量时间验签
+  +时间戳容差窗防重放，forwarder 加发 X-Buzhou-Timestamp 不进 MAC）
 - **破坏性变更（pre-1.0）**：`WebhookEventForwarder` 构造改双参（props, SessionStateStore）；
   `BuzhouWebhookProperties` 增 `outboxCapacity`（6 参）；`queueCapacity` 废弃 no-op；
   `ResilienceProperties.Circuit` 增 `backoffCap`（6 参便捷构造保留）；
@@ -1532,13 +1540,68 @@
   （335——Google SRE error budget policy：烧穿自动冻结低优先级 spawn）；
   `MaintenanceCordon` + `BuzhouMaintenanceProperties`（342——K8s cordon：
   维护窗/运行时按钮 cordon，地板多源合成与冻结正交）；
-  `RetryBudgetHealth`（348——Finagle 预算水位：恒 UP+余量/被拦快照，背压族观测收口）
+  `RetryBudgetHealth`（348——Finagle 预算水位：恒 UP+余量/被拦快照，背压族观测收口）；
+  `TurnRateLimitHook`（嵌套 `Policy`）+ `BuzhouTurnRateLimitProperties`
+  （425——nginx token bucket：beforeTurn 惰性令牌桶——burst+匀速回填、
+  默认 per-session 键可插拔租户帽、超限 block 不炸轮）
 - 执行脊柱：`ToolBaggage`（337——W3C Baggage/OTel：工具上下文行李，
   yml 播种+运行时 API+有界封顶）
+- 治理：`ConfigDriftAuditor`（嵌套 `Change`）+ `BuzhouConfigAuditProperties`
+  （414——ArgoCD drift detection：周期快照 diff+末段掩码同判定）/
+  `PromptVersion` + `PromptRegistry` + `InMemoryPromptRegistry` +
+  `BuzhouPromptProperties`（401——Langfuse prompt management：版本+标签
+  双轴，publish 单调/latest 自动指针/晋级回滚同一动作/按版钉取/yml 幂等播种）；
+  `PromptUsageStats`（嵌套 `Row`）+ `UsageTrackingPromptRegistry` +
+  `PromptUsageJsonl` + `BuzhouPromptUsageProperties`
+  （424——#401 扩散：Langfuse prompt analytics——三 resolve 形态命中记账
+  +快照 JSONL 导出，usage-tracking=true 装饰器包注册表）
+- 运维：`SessionAffinity`（415——Ketama 确定性键：sha256 亲和键+桶位纯函数）；
+  `PeriodBudgetHealth`（419——#408 扩散：恒 UP 双轨进度+resetsAt 回血时刻）
+- 成本：`PricingTable`（嵌套 `Price`）（417——320/340 rebind 同模式：
+  刷新事件整表热载价目覆盖层+逐键 WARN diff）；
+  `PeriodBudgetHook`（嵌套 `Unit`/`Pricing`）+ `BuzhouPeriodBudgetProperties`
+  （408——AWS Budgets calendar：月/周/日账期双轨预算，periodTag 入键翻页即
+  隐式重置）/ `SpendRateRing` + `CostForecast` + `CostForecastHealth` +
+  `BuzhouCostForecastProperties`（403——AWS Budgets forecast：分钟桶速率环
+  ×水平线线性外推 projectedOver，ModelCostLedger 监听缝喂数、恒 UP 预测面）
+- 观测治理：`DashboardQueryService.TimeBucket` + rollups API + `/api/rollups`
+  （412——M3 downsampling：epoch 对齐固定桶+空桶补齐+桶数上界；416 扩散
+  TURN p50/p95/p99 exact 最近秩、空桶 null）
+- 并发原语：`PriorityLane`（411——Envoy priority levels：优先级插队信号量，
+  同级 FIFO+超时让位+等待快照）；`DelayedJobQueue`（嵌套 `PendingJob`）
+  （413——Sidekiq delayed_jobs：one-shot 到点执行+键即幂等锚替换+异常隔离）；
+  `PriorityLaneToolCallback` + `BuzhouToolLaneProperties`（嵌套 `LaneSpec`/
+  `ToolBinding`）（422——#411 扩散：yml 声明泳道+per-tool 优先级即装配，
+  未知泳道引用启动红；`ToolLaneRegistry.priorityLane` 命名单例）
+- 记忆治理：`SharedFact` + `SharedFactStore` + `InMemorySharedFactStore`
+  （410——mem0：跨会话共享事实 deny-by-default ACL，键即所有权）
+- 评测：`TurnSamplerHook`（嵌套 `Policy`）+ `BuzhouEvalSamplingProperties`
+  （407——Honeycomb head sampling：确定性 hash 采样入集 fail-soft）；
+  `TurnErrorSampler`（嵌套 `Policy`）+ `BuzhouErrorSamplingProperties`
+  （423——#407 扩散：OTel tail_sampling ERROR 全保——观察者缝采错误轮，
+  error-rate-percent 默认 100、占位 [TURN-ERROR] 留人工判 golden）
+- 工具治理：`ToolCatalogLinter`（嵌套 `Finding`）（420——ESLint：装配期
+  三规则体检只报不改）/ `ToolResultSchemaHook` + `BuzhouToolResultSchemasProperties`
+  （409——MCP outputSchema：结果契约复用入参校验器、违例转结构化反馈）/
+  `DeprecatedToolCallback`（嵌套 `Deprecation`）+
+  `BuzhouToolDeprecationProperties`（406——K8s API deprecation：描述前缀随
+  定义下发+调用事件计数，迁移进度由 usage 说话）
+- 运维：`HealthTimeline`（嵌套 `Entry`）+ `HealthTimelineRecorder` +
+  `HealthTimelineJsonl` + `BuzhouTimelineEndpoint` +
+  `BuzhouHealthTimelineProperties`（405——PagerDuty incident timeline：
+  diff-only 变迁环+计数辨抖动+JSONL+/actuator/buzhou-timeline）
 - B 尾巴补档：`RetryBudgetHolder`（302）/ `CompensatingBatch`（304 saga 补偿）/
   `ToolHealth`（305 工具健康）
 - 成本：`CostAttributionLedger` + `CostAttributionJsonl`（334——Kubecost/OpenCost
   按标签归因：双维 chargeback 台账，嵌套 `Dimension`/`Attribution`）
+- 安全：`SecretType` + `SecretScanner` + `SecretScanHook`（400——gitleaks：
+  七型凭据签名三缝 MASK，输入/出站工具参数/工具结果占位符化）；
+  `SecretHitStats`（嵌套 `Side`/`Hit`）+ `SecretHitStatsJsonl`
+  （418——#400 扩散：三侧计数+快照 JSONL 追加导出）；
+  `AuditMerkleTree`（含嵌套 `InclusionProof`/`ProofStep`）+ `AuditMerkleSeal`
+  （404——CT log：时点封印出根、单条记录凭证明+根零全链验证，叶摘要与
+  prev_hash 同基互证）；`AuditSealJsonl`（421——#404 扩散：封印逐行 JSONL
+  追加外存+每行即时建树 verified 比对，STH 公示节奏工具面）
 
 **buzhou-memory**
 
@@ -1546,6 +1609,9 @@
 
 **buzhou-resilience**
 
+- `OutputSchema` + `StructuredOutputAdvisor` + `StructuredOutputViolationException` +
+  `StructuredOutputProperties`（402——instructor：JSON 契约执法+错误反馈自修复，
+  修复直达模型终端/耗尽抛违规/流式直通诚实边界）
 - `ShadowComparisonJsonl`（309——W&B 影子对照明细）
 - `WeightedChatModel` + `BuzhouRoutingProperties`（339——LiteLLM Router：
   多模型平滑加权路由，199 原语装配收尾）；

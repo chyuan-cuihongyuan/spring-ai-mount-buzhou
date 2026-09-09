@@ -1,6 +1,6 @@
 # Spec 209 — 事件 schema 检查器（effort #224）
 
-> wayfinder map：`.wayfinder224/MAP.md`（T583–T584）。JSON Schema required
+> wayfinder map：`.wayfinder/maps/effort-224.md`（T583–T584）。JSON Schema required
 > 面的最小可用版——事件 payload 语义层契约。
 
 ## Problem Statement

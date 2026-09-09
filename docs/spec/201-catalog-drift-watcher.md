@@ -1,6 +1,6 @@
 # Spec 201 — 工具目录漂移看门狗（effort #219）
 
-> wayfinder map：`.wayfinder219/MAP.md`（T573–T574）。组合 spec 175（指纹）
+> wayfinder map：`.wayfinder/maps/effort-219.md`（T573–T574）。组合 spec 175（指纹）
 > 成自动化闭环——变化即事件，不用人工拍快照。
 
 ## Problem Statement

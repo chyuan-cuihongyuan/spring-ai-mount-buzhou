@@ -1,6 +1,6 @@
 # Spec 204 — 守卫折入指标（effort #146）
 
-> wayfinder map：`.wayfinder146/MAP.md`（T568–T569）。
+> wayfinder map：`.wayfinder/maps/effort-146.md`（T568–T569）。
 
 ## Solution
 

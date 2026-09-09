@@ -1,6 +1,6 @@
 # Spec 106 — 用户输入 PII 脱敏（effort #68）
 
-> wayfinder map：`.wayfinder68/MAP.md`（T391–T392）。spec 86 fog 项收口。
+> wayfinder map：`.wayfinder/maps/effort-68.md`（T391–T392）。spec 86 fog 项收口。
 
 ## Problem Statement
 

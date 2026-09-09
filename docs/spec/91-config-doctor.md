@@ -1,6 +1,6 @@
 # Spec 91 — 配置体检 doctor（effort #52）
 
-> wayfinder map：`.wayfinder52/MAP.md`（T347–T348）。借鉴：Spring Shell doctor /
+> wayfinder map：`.wayfinder/maps/effort-52.md`（T347–T348）。借鉴：Spring Shell doctor /
 > Spring Boot diagnostics。
 
 ## Problem Statement

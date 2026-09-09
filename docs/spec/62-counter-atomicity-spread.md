@@ -1,6 +1,6 @@
 # Spec 62 — 计数写路径原子化推广（effort #22）
 
-> wayfinder map：`.wayfinder22/MAP.md`（T275–T276）。范式来源：spec 56（#16）；
+> wayfinder map：`.wayfinder/maps/effort-22.md`（T275–T276）。范式来源：spec 56（#16）；
 > 本 effort 为推广与去重。
 
 ## Problem Statement

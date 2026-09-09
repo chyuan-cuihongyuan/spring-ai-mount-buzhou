@@ -1,6 +1,6 @@
 # Spec 310 — 空闲会话后台压缩（effort #310）
 
-> wayfinder map：`.wayfinder310/MAP.md`（T611–T612）。借鉴：RocksDB/LSM
+> wayfinder map：`.wayfinder/maps/effort-310.md`（T611–T612）。借鉴：RocksDB/LSM
 > compaction（空闲即后台维护窗口——fog 227「IdleSessionMonitor×压缩/归档
 > 动作接线」项）。
 

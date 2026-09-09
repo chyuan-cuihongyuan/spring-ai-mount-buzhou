@@ -1,6 +1,6 @@
 # Spec 162 — 停滞巡检犬（effort #125）
 
-> wayfinder map：`.wayfinder125/MAP.md`（T515–T516）。spec 152 fog「定期
+> wayfinder map：`.wayfinder/maps/effort-125.md`（T515–T516）。spec 152 fog「定期
 > stalled 查询 + 告警」收口。借鉴：K8s liveness probe 周期自检。
 
 ## Problem Statement

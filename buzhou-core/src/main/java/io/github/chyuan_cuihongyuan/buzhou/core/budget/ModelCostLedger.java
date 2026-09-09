@@ -41,6 +41,9 @@ public final class ModelCostLedger {
 
     private final Map<String, AtomicLong> microUsd = new ConcurrentHashMap<>();
     private final Map<String, PricingSnapshot> pricingByModel = new ConcurrentHashMap<>();
+    /** spec 403 / T698：记账监听缝（预测器等订阅——记账即喂数，不在 hook 二次算成本）。 */
+    private final java.util.List<java.util.function.Consumer<ModelCost>> listeners =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
 
     private ModelCostLedger() {
     }
@@ -84,12 +87,38 @@ public final class ModelCostLedger {
             if (pricingSnapshot != null) {
                 pricingByModel.put(OVERFLOW, pricingSnapshot);
             }
+            fireListeners(OVERFLOW, costMicroUsd); // spec 403：OVERFLOW 路径同样喂数
             return;
         } else {
             microUsd.computeIfAbsent(model, k -> new AtomicLong()).addAndGet(costMicroUsd);
         }
         if (pricingSnapshot != null) {
             pricingByModel.put(model, pricingSnapshot);
+        }
+        fireListeners(model, costMicroUsd);
+    }
+
+    /** spec 403 / T698：订阅记账事件（每笔 record 触发一次；返回 this 便于链式注销引用）。 */
+    public java.util.function.Consumer<ModelCost> addListener(java.util.function.Consumer<ModelCost> listener) {
+        listeners.add(listener);
+        return listener;
+    }
+
+    /** 注销（幂等）。 */
+    public void removeListener(java.util.function.Consumer<ModelCost> listener) {
+        listeners.remove(listener);
+    }
+
+    private void fireListeners(String model, long costMicroUsd) {
+        if (listeners.isEmpty()) {
+            return;
+        }
+        for (java.util.function.Consumer<ModelCost> listener : listeners) {
+            try {
+                listener.accept(new ModelCost(model, costMicroUsd));
+            } catch (RuntimeException ignored) {
+                // 监听器故障不阻断记账（观察面 fail-soft）
+            }
         }
     }
 

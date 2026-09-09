@@ -1,6 +1,6 @@
 # Spec 125 — 共享 Redis 语义向量缓存（effort #91）
 
-> wayfinder map：`.wayfinder91/MAP.md`（T471–T472）。#85 收口 fog 种子③
+> wayfinder map：`.wayfinder/maps/effort-91.md`（T471–T472）。#85 收口 fog 种子③
 > 「RediSearch 向量缓存」。借鉴：RediSearch 向量索引（index / cosine KNN / TTL）
 > ——存储层以 vanilla Redis HASH 可移植实现，服务端 FT.SEARCH 为演进路径。
 

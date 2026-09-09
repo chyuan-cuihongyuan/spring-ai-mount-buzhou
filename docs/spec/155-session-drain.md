@@ -1,6 +1,6 @@
 # Spec 155 — 会话优雅排水（effort #106）
 
-> wayfinder map：`.wayfinder106/MAP.md`（T513–T514）。借鉴：K8s pod drain
+> wayfinder map：`.wayfinder/maps/effort-106.md`（T513–T514）。借鉴：K8s pod drain
 > （Terminating 拒新 + 等端点排空再逐出）——维护下线从「硬斩」变「排空」。
 
 ## Problem Statement

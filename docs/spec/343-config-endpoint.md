@@ -1,6 +1,6 @@
 # Spec 343 — 生效配置自描述端点（effort #343）
 
-> wayfinder map：`.wayfinder343/MAP.md`（T677–T678）。C 会话第 44 轮。
+> wayfinder map：`.wayfinder/maps/effort-343.md`（T677–T678）。C 会话第 44 轮。
 
 ## Problem Statement
 

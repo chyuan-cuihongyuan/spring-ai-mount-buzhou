@@ -1,6 +1,6 @@
 # Spec 192 — 成本健康段装配（effort #140）
 
-> wayfinder map：`.wayfinder140/MAP.md`（T554–T555）。spec 190 fog 收口。
+> wayfinder map：`.wayfinder/maps/effort-140.md`（T554–T555）。spec 190 fog 收口。
 
 ## Solution
 

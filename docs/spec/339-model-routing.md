@@ -1,6 +1,6 @@
 # Spec 339 — 多模型加权路由（effort #339）
 
-> wayfinder map：`.wayfinder339/MAP.md`（T669–T670）。C 会话第 40 轮，
+> wayfinder map：`.wayfinder/maps/effort-339.md`（T669–T670）。C 会话第 40 轮，
 > 199 原语装配收尾。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 120 — 归档详情查询（effort #82）
 
-> wayfinder map：`.wayfinder82/MAP.md`（T431–T432）。
+> wayfinder map：`.wayfinder/maps/effort-82.md`（T431–T432）。
 
 ## Problem Statement
 

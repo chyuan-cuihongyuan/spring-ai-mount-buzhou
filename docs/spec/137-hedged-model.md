@@ -1,6 +1,6 @@
 # Spec 137 — 模型对冲请求（effort #97）
 
-> wayfinder map：`.wayfinder97/MAP.md`（T485–T486）。借鉴：Google tail-tolerant
+> wayfinder map：`.wayfinder/maps/effort-97.md`（T485–T486）。借鉴：Google tail-tolerant
 > RPC / gRPC hedging policy——尾延迟用「并发押注」而非「更长等待」对冲。
 > 与 spec 15 备模型降级链（终态失败后串行换人）互补：本能力管<b>长尾等待中</b>。
 

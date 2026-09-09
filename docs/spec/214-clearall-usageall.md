@@ -1,6 +1,6 @@
 # Spec 214 — clearAll + usageAll（effort #151）
 
-> wayfinder map：`.wayfinder151/MAP.md`（T579–T580）。双小方法轮。
+> wayfinder map：`.wayfinder/maps/effort-151.md`（T579–T580）。双小方法轮。
 
 ## Solution
 

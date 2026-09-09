@@ -1,6 +1,6 @@
 # Spec 330 — 告警静默窗与抑制规则（effort #330）
 
-> wayfinder map：`.wayfinder330/MAP.md`（T651–T652）。C 会话第 31 轮。
+> wayfinder map：`.wayfinder/maps/effort-330.md`（T651–T652）。C 会话第 31 轮。
 
 ## Problem Statement
 

@@ -1,6 +1,6 @@
 # Spec 328 — 干跑计划 JSONL 导出（effort #328）
 
-> wayfinder map：`.wayfinder328/MAP.md`（T647–T648）。兑现 323 的导出
+> wayfinder map：`.wayfinder/maps/effort-328.md`（T647–T648）。兑现 323 的导出
 > 后接承诺；导出族配方（ModelCostLedgerJsonl 同形）。
 
 ## Problem Statement

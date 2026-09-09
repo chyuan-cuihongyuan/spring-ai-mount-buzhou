@@ -1,6 +1,6 @@
 # Spec 338 — 预算软预警线（effort #338）
 
-> wayfinder map：`.wayfinder338/MAP.md`（T667–T668）。C 会话第 39 轮。
+> wayfinder map：`.wayfinder/maps/effort-338.md`（T667–T668）。C 会话第 39 轮。
 
 ## Problem Statement
 

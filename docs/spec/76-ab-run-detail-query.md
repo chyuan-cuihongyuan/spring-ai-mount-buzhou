@@ -1,6 +1,6 @@
 # Spec 76 — A/B run 明细查询（effort #37）
 
-> wayfinder map：`.wayfinder37/MAP.md`（T305–T306）。#36 fog 毕业生。
+> wayfinder map：`.wayfinder/maps/effort-37.md`（T305–T306）。#36 fog 毕业生。
 > 借鉴：LangSmith run detail API（list + get 两级查询面）。
 
 ## Problem Statement

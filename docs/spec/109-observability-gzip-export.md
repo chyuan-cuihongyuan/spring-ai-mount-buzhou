@@ -1,6 +1,6 @@
 # Spec 109 — 观测导出 gzip 面（effort #71）
 
-> wayfinder map：`.wayfinder71/MAP.md`（T401–T402）。spec 88 fog 项（gzip）。
+> wayfinder map：`.wayfinder/maps/effort-71.md`（T401–T402）。spec 88 fog 项（gzip）。
 
 ## Problem Statement
 

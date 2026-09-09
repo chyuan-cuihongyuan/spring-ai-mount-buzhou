@@ -1,6 +1,6 @@
 # Spec 122 — superstep 原子批（effort #86）
 
-> wayfinder map：`.wayfinder86/MAP.md`（T443–T444）。#85 收口 fog 种子①
+> wayfinder map：`.wayfinder/maps/effort-86.md`（T443–T444）。#85 收口 fog 种子①
 > 「事务性并行批（LangGraph superstep）」的最小可落地版。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 181 — 上下文余量水位（effort #209）
 
-> wayfinder map：`.wayfinder209/MAP.md`（T553–T554）。借鉴：水库低水位预警
+> wayfinder map：`.wayfinder/maps/effort-209.md`（T553–T554）。借鉴：水库低水位预警
 > ——撞线前先有预警线，运维有反应窗口。
 
 ## Problem Statement

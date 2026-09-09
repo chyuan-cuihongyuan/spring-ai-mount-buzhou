@@ -1,6 +1,6 @@
 # Spec 79 — outbox due-time 索引（effort #40）
 
-> wayfinder map：`.wayfinder40/MAP.md`（T311–T312）。#35 fog「outbox due-time 键序
+> wayfinder map：`.wayfinder/maps/effort-40.md`（T311–T312）。#35 fog「outbox due-time 键序
 > 结构」收口；spec 78（scanByKeyRange）的消费方。借鉴：Kafka log+index / LSM
 > base+index 双结构（自愈容错双写竞窗）。
 

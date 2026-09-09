@@ -1,6 +1,6 @@
 # Spec 334 — 成本归因台账（effort #334）
 
-> wayfinder map：`.wayfinder335/MAP.md`（T659–T660）。C 会话第 35 轮。
+> wayfinder map：`.wayfinder/maps/effort-335.md`（T659–T660）。C 会话第 35 轮。
 
 ## Problem Statement
 

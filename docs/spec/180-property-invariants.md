@@ -1,6 +1,6 @@
 # Spec 180 — 性质测试（effort #134）
 
-> wayfinder map：`.wayfinder134/MAP.md`（T537–T538）。纯测试轮。借鉴：
+> wayfinder map：`.wayfinder/maps/effort-134.md`（T537–T538）。纯测试轮。借鉴：
 > jqwik/QuickCheck property-based testing（随机输入 × 声称的不变量）。
 
 ## Problem Statement

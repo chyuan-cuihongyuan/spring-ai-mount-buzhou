@@ -1,6 +1,6 @@
 # Spec 139 — 在飞工具调用合并（effort #98）
 
-> wayfinder map：`.wayfinder98/MAP.md`（T487–T488）。借鉴：Hystrix request
+> wayfinder map：`.wayfinder/maps/effort-98.md`（T487–T488）。借鉴：Hystrix request
 > collapsing / CDN request coalescing——同键<b>在飞</b>请求折叠为一次执行。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 88 — eval run JSONL 导出（effort #49）
 
-> wayfinder map：`.wayfinder49/MAP.md`（T339–T340）。与观测导出 spec 60/67 同族。
+> wayfinder map：`.wayfinder/maps/effort-49.md`（T339–T340）。与观测导出 spec 60/67 同族。
 
 ## Problem Statement
 

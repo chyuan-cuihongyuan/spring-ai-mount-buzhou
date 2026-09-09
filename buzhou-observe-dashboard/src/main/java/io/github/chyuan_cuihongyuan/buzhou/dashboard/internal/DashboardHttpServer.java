@@ -200,6 +200,7 @@ public class DashboardHttpServer {
         Object body = switch (seg[0]) {
             case "sessions" -> sessionsRoute(method, seg, query);
             case "spans" -> spansRoute(method, seg);
+            case "rollups" -> rollupsRoute(method, query);
             case "skills" -> skillsRoute(method, seg, exchange);
             case "skill-bindings" -> bindingsRoute(method, query, exchange);
             default -> throw new NotFoundException("未知 API：" + path);
@@ -232,6 +233,55 @@ public class DashboardHttpServer {
                     "该轮无注入快照：" + sid + " turn=" + seg[3]));
         }
         throw new NotFoundException("未知 sessions 端点");
+    }
+
+    /** GET /api/rollups?from&to&bucket（spec 412 / T716——时间桶预聚合）。 */
+    private Object rollupsRoute(String method, Map<String, String> query) {
+        requireGet(method);
+        java.time.Instant from = parseInstant(query.get("from"), "from");
+        java.time.Instant to = parseInstant(query.get("to"), "to");
+        java.time.Duration bucket = parseBucket(query.get("bucket"));
+        try {
+            return queries.rollups(from, to, bucket);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    private static java.time.Instant parseInstant(String raw, String name) {
+        if (raw == null || raw.isBlank()) {
+            throw new BadRequestException(name + " 必填（ISO-8601，如 2026-09-08T00:00:00Z）");
+        }
+        try {
+            return java.time.Instant.parse(raw);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new BadRequestException(name + " 不是合法 ISO-8601 时间：" + raw);
+        }
+    }
+
+    /** 桶粒度：简写（5m/1h/30s/2d/ms 数字+单位）或 ISO-PT 形态。 */
+    public static java.time.Duration parseBucket(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw new BadRequestException("bucket 必填（如 5m、1h、PT30M）");
+        }
+        try {
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("^(\\d+)(ns|ms|s|m|h|d)$").matcher(raw.trim());
+            if (m.matches()) {
+                long n = Long.parseLong(m.group(1));
+                return switch (m.group(2)) {
+                    case "ns" -> java.time.Duration.ofNanos(n);
+                    case "ms" -> java.time.Duration.ofMillis(n);
+                    case "s" -> java.time.Duration.ofSeconds(n);
+                    case "m" -> java.time.Duration.ofMinutes(n);
+                    case "h" -> java.time.Duration.ofHours(n);
+                    default -> java.time.Duration.ofDays(n);
+                };
+            }
+            return java.time.Duration.parse(raw.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new BadRequestException("bucket 不是合法时长：" + raw);
+        }
     }
 
     private Object spansRoute(String method, String[] seg) {
@@ -376,6 +426,13 @@ public class DashboardHttpServer {
 
     private static final class NotFoundException extends RuntimeException {
         NotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    /** 坏参数 → 400（spec 412 / T716——挂 IllegalArgumentException 既有 400 捕获）。 */
+    static final class BadRequestException extends IllegalArgumentException {
+        BadRequestException(String message) {
             super(message);
         }
     }

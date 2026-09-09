@@ -1,6 +1,6 @@
 # Spec 116 — skill_search 遥测（effort #78）
 
-> wayfinder map：`.wayfinder78/MAP.md`（T417–T418）。
+> wayfinder map：`.wayfinder/maps/effort-78.md`（T417–T418）。
 
 ## Problem Statement
 

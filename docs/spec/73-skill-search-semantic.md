@@ -1,6 +1,6 @@
 # Spec 73 — skill_search 语义面（effort #33）
 
-> wayfinder map：`.wayfinder33/MAP.md`（T297–T298）。复用 #19 SemanticSkillRanker。
+> wayfinder map：`.wayfinder/maps/effort-33.md`（T297–T298）。复用 #19 SemanticSkillRanker。
 
 ## Problem Statement
 

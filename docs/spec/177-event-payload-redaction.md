@@ -1,6 +1,6 @@
 # Spec 177 — 事件载荷出站脱敏（effort #207）
 
-> wayfinder map：`.wayfinder207/MAP.md`（T547–T548）。PII 防线收口：输入侧
+> wayfinder map：`.wayfinder/maps/effort-207.md`（T547–T548）。PII 防线收口：输入侧
 > （106）/ 输出侧（86）/ 自定义（118/129）之后，<b>webhook 出站面</b>是最后
 > 一个未盖住的 PII 出口。
 

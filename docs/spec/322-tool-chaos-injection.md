@@ -1,6 +1,6 @@
 # Spec 322 — 工具混沌注入（effort #322）
 
-> wayfinder map：`.wayfinder322/MAP.md`（T635–T636）。借鉴：Netflix
+> wayfinder map：`.wayfinder/maps/effort-322.md`（T635–T636）。借鉴：Netflix
 > Chaos Monkey——平时按概率注入故障，演练韧性机制。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 150 — 期望门禁接线（effort #120）
 
-> wayfinder map：`.wayfinder120/MAP.md`（T503–T504）。spec 134（数据集期望
+> wayfinder map：`.wayfinder/maps/effort-120.md`（T503–T504）。spec 134（数据集期望
 > 套件）的闸位接线——账本变刹车。
 
 ## Problem Statement

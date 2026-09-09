@@ -1,6 +1,6 @@
 # Spec 212 — 期望默认组合（effort #150）
 
-> wayfinder map：`.wayfinder150/MAP.md`（T576–T577）。
+> wayfinder map：`.wayfinder/maps/effort-150.md`（T576–T577）。
 
 ## Solution
 

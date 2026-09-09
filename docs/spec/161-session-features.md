@@ -1,6 +1,6 @@
 # Spec 161 — 会话特征抽取（effort #109）
 
-> wayfinder map：`.wayfinder109/MAP.md`（T519–T520）。借鉴：Feast feature
+> wayfinder map：`.wayfinder/maps/effort-109.md`（T519–T520）。借鉴：Feast feature
 > store——特征一次定义多处消费（路由/风控/降级共享同一侧写）。
 
 ## Problem Statement

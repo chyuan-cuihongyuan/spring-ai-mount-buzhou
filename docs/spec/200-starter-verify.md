@@ -1,6 +1,6 @@
 # Spec 200 — starter 全量验证（effort #144）
 
-> wayfinder map：`.wayfinder144/MAP.md`（T564–T565）。验证轮。
+> wayfinder map：`.wayfinder/maps/effort-144.md`（T564–T565）。验证轮。
 
 ## Solution
 

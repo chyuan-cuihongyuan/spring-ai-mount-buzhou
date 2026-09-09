@@ -1,6 +1,6 @@
 # Spec 185 — per-tool 会话配额（effort #211）
 
-> wayfinder map：`.wayfinder211/MAP.md`（T557–T558）。借鉴：云厂商 per-API
+> wayfinder map：`.wayfinder/maps/effort-211.md`（T557–T558）。借鉴：云厂商 per-API
 > quota——每接口独立额度，单点爆用不拖垮总额度。
 
 ## Problem Statement

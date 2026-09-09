@@ -1,6 +1,6 @@
 # Spec 314 — 价目快照随单（effort #314）
 
-> wayfinder map：`.wayfinder314/MAP.md`（T619–T620）。借鉴：复式记账
+> wayfinder map：`.wayfinder/maps/effort-314.md`（T619–T620）。借鉴：复式记账
 > （账单自含计价事实——fog 152「价目快照随单」项）。
 
 ## Problem Statement
