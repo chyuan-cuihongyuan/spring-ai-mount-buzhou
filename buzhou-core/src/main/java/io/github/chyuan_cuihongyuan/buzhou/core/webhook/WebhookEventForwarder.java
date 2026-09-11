@@ -101,9 +101,17 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     /** spec 105 §A / T387：订阅类型过滤（空集 = 全投递——默认零变化）。 */
     private volatile java.util.Set<String> includeTypes = java.util.Set.of();
 
+    /** spec 514 / T777：投递时延记录器（可空）。 */
+    private volatile WebhookDeliveryLatency deliveryLatency;
+
     /** 限定投递的事件类型集（null/空 = 全投递；BuzhouWebhookProperties 不扩——record 兼容）。 */
     public void setIncludeTypes(java.util.Collection<String> types) {
         this.includeTypes = types == null ? java.util.Set.of() : java.util.Set.copyOf(types);
+    }
+
+    /** spec 514 / T777：投递时延分位数记录器（null=不记录——默认零变化）。 */
+    public void setDeliveryLatency(WebhookDeliveryLatency latency) {
+        this.deliveryLatency = latency;
     }
 
     @Override
@@ -177,6 +185,11 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                     outbox.delete(record);
                     delivered.incrementAndGet();
                     BuzhouMetricsHolder.metrics().counter("buzhou.webhook.delivered");
+                    // spec 514 / T777：入队→成功投递时延样本（成功才记——死信/退避中不是「送达」）
+                    WebhookDeliveryLatency latency = deliveryLatency;
+                    if (latency != null) {
+                        latency.record(System.currentTimeMillis() - record.createdAtEpochMs());
+                    }
                 }
                 case FATAL -> markDead(record, "4xx");
                 case RETRYABLE -> scheduleRetryOrDead(record);

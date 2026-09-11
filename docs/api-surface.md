@@ -1701,3 +1701,7 @@
   HELM/工业 A/A test：同指纹两 run 红绿翻转=抖动、单侧=漂移不进分母，
   纯函数 EvalRunDiff 同型）
 
+- `WebhookDeliveryLatency`（嵌套 `Snapshot`）（514——416 分位族同法：
+  成功投递时延滚动窗 exact 最近秩 p50/p95/p99 零样本 null，forwarder
+  setDeliveryLatency setter 接线默认 null 零变化）
+

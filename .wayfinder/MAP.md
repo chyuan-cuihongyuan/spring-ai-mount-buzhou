@@ -285,6 +285,7 @@
 | #511 | 归档冷存完整性校验 | [maps/effort-511.md](maps/effort-511.md) | T773–T774 | 414 |
 | #512 | 提示词模板严格渲染 | [maps/effort-512.md](maps/effort-512.md) | T775–T776 | 415 |
 | #513 | 评估 A/A 抖动检测 | [maps/effort-513.md](maps/effort-513.md) | T777–T778 | 416 |
+| #514 | 投递时延分位数 | [maps/effort-514.md](maps/effort-514.md) | T779–T780 | 417 |
 
 ## 跨 effort 悬留
 

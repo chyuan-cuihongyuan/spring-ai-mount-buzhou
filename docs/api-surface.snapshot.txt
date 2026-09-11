@@ -358,6 +358,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.EventDeduplicator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.EventSchemaChecker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.SequenceFence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookDeadLetter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookDeliveryLatency
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookEventForwarder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookFanout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookOutboxAudit
