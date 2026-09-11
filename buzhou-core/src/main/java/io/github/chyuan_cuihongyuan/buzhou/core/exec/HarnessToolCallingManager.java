@@ -529,6 +529,16 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), feedback);
             }
         }
+        // spec 506 / T763：入参限幅（opt-in 默认关）——超限不执行、回喂结构化反馈
+        //（不回显超限入参——回显即重新入上下文）；语义同校验拒绝（REASK 通道）
+        String inputViolation = io.github.chyuan_cuihongyuan.buzhou.core.exec
+                .ToolInputLimiterHolder.current().violation(toolCall.name(), toolCall.arguments());
+        if (inputViolation != null) {
+            recordOutcome(toolCall,
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.VALIDATION_REJECTED,
+                    inputViolation);
+            return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), inputViolation);
+        }
         io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline = this.turnDeadline;
         if (deadline.isExpired()) {
             // impl-28：预算已耗尽——不占组锁/许可，直接 TIMEOUT 回喂（免无谓排队）

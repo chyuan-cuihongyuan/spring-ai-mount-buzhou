@@ -57,4 +57,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 3 | #502 | 502 | T755-756 | 405 | 模型能力注册表与能力门（LiteLLM Router capabilities） | 920fcf6 |
 | 4 | #503 | 503 | T757-758 | 406 | 时段路由窗口（K8s CronJob/Argo Rollouts schedule） | d87793f |
 | 5 | #504 | 504 | T759-760 | 407 | MCP 服务器级聚合熔断（Envoy per-host；core ToolCircuitBreaker 键=server 复用） | 496f6c0 |
-| 6 | #505 | 505 | T761-762 | 408 | 在线实验分桶（GrowthBook/Statsig） | （R6 提交后回填） |
+| 6 | #505 | 505 | T761-762 | 408 | 在线实验分桶（GrowthBook/Statsig） | e231d90 |
+| 7 | #506 | 506 | T763-764 | 409 | 工具入参限幅（nginx client_max_body_size；31 入站对称面） | （R7 提交后回填） |

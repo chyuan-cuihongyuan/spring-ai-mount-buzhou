@@ -1669,3 +1669,7 @@
   Statsig：在线实验确定性分桶 sha256 mod100+字典序累积权重+未入组余量
   +曝光计数，`buzhou.experiments.<exp>.<variant>` 声明才装配）
 
+- `ToolInputLimiter` + `ToolInputLimiterHolder`（506——nginx
+  client_max_body_size：31 结果限幅的入站对称面，超限拒绝回喂结构化反馈
+  不回显入参+glob per-tool 覆盖，默认 -1 零行为变化 opt-in）
+

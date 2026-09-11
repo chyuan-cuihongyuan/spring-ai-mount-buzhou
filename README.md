@@ -370,6 +370,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 模型路由 | 时段路由窗口 | 同日时间窗自动切权重（窗权整表替换、出窗回落基础、WARN 留痕+applied/reverted 计数）——夜间切便宜模型白天回切零人工值守（K8s CronJob/Argo Rollouts schedule） | [spec 503](docs/spec/503-routing-schedule.md) |
 | 工具韧性 | MCP 服务器级聚合熔断 | 一台 server 一个键的断路状态机（复用 core ToolCircuitBreaker）——server 宕机全部工具快速失败结构化改道信号、半开探测恢复、snapshot 观测面，与 per-tool 131 正交两层（Envoy per-host 聚合） | [spec 504](docs/spec/504-mcp-server-breaker.md) |
 | 评测 | 在线实验分桶 | `buzhou.experiments.<exp>.<variant>` 权重声明——session 确定性分桶（sha256 mod100+字典序累积，跨实例零协调）+未入组余量+曝光计数（GrowthBook/Statsig） | [spec 505](docs/spec/505-experiment-buckets.md) |
+| 护栏 | 工具入参限幅 | 执行前体积门（31 结果限幅的入站对称面）——超限拒绝回喂结构化反馈（不回显入参）引导精简重试、per-tool glob 覆盖、默认关 opt-in（nginx client_max_body_size） | [spec 506](docs/spec/506-tool-input-limit.md) |
 
 ## 快速开始
 

@@ -1093,6 +1093,20 @@ public class BuzhouCoreAutoConfiguration {
         return limiter;
     }
 
+    /**
+     * 工具入参限幅器全局默认（spec 506 / T763——31 结果限幅的入站对称面）：
+     * 默认 -1 不限（零默认行为变化——显式 opt-in）；Holder 模式同结果限幅。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiter buzhouToolInputLimiter(
+            BuzhouToolsProperties props) {
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiter limiter =
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiter(
+                        props.inputLimitChars(), props.inputLimitOverrides());
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiterHolder.set(limiter);
+        return limiter;
+    }
+
     // ---- 失控检测与容量闸（impl-45 / spec 14 §A，自分支增量移植）----
 
     @Bean

@@ -142,6 +142,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolErrorFeedback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolFeedbackType
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolHealthProber
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiterHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolKillSwitchHotReload
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolLaneRegistry
