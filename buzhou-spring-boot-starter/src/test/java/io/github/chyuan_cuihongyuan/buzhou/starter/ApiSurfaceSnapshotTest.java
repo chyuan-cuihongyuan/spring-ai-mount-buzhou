@@ -53,13 +53,21 @@ class ApiSurfaceSnapshotTest {
                 .containsExactlyElementsOf(expected);
     }
 
-    /** 快照再生成（维护操作；不入常规断言路径）。 */
+    /**
+     * 快照再生成（维护操作；spec 615 / T880 硬化——<b>不再随常规套件执行</b>：此前它是
+     * 普通 @Test 先于/后于比对再生文件，比对恒自愈、门形同虚设。显式触发：
+     * {@code mvn -pl buzhou-spring-boot-starter test -Dtest=ApiSurfaceSnapshotTest#regenerateSnapshot
+     * -Dbuzhou.api-snapshot.regenerate=true}）。
+     */
+    @org.junit.jupiter.api.condition.EnabledIfSystemProperty(
+            named = "buzhou.api-snapshot.regenerate", matches = "true")
     @Test
     void regenerateSnapshot() throws Exception {
         Map<String, String> actual = scanPublicTypes();
         StringBuilder sb = new StringBuilder(
                 "# api-surface 黄金快照（impl-179 生成；模块|全限定名，字典序）\n"
-                + "# 更新流程：regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档\n");
+                + "# 更新流程：-Dbuzhou.api-snapshot.regenerate=true 跑 regenerateSnapshot"
+                + " → 人工核对 diff → api-surface.md 同步入档\n");
         actual.entrySet().stream()
                 .map(e -> e.getValue() + "|" + e.getKey())
                 .sorted()

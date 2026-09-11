@@ -1,5 +1,5 @@
 # api-surface 黄金快照（impl-179 生成；模块|全限定名，字典序）
-# 更新流程：regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
+# 更新流程：-Dbuzhou.api-snapshot.regenerate=true 跑 regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
@@ -258,6 +258,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.TurnRepetitionDetec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.TurnStallWatchdog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBusStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig
@@ -454,6 +455,7 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetReport
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.budget.DefaultBudgetCalculator
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.budget.SegmentBudgetPlanner
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionShadowEvaluator
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompletedTurnDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultCompletedTurnDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultMicroCompactor
@@ -475,6 +477,8 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTime
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeScheduler
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.episodic.EpisodeLedger
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.evaluation.CompactionFidelityEval
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.facts.DecayingFactStore
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.facts.FactDecayPolicy
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.recall.RecallSearch
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.summary.BiTemporalFactLedger
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.summary.DefaultSummaryDegrader
@@ -556,6 +560,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelO
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.GcraRateLimitBackend
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMemoryRateLimitBackend
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
@@ -569,6 +574,8 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.Stru
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputViolationException
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.DefaultSkillRegistry
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.HybridSkillRanker
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.LexicalSkillRanker
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.LoadSkillTool
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SemanticSkillRanker
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SessionBindingIndex

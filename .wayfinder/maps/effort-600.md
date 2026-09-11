@@ -42,6 +42,7 @@
 | 13 | 微压缩影子干跑评估 | istio mirroring | T874–T875 | 465 | 612 | ✅ |
 | 14 | gzip 导出压缩档位 | nginx gzip_comp_level | T876–T877 | 466 | 613 | ✅ |
 | 15 | GCRA yml 装配扩散 | D 会话装配轮模式 | T878–T879 | 467 | 614 | ✅ |
+| 16 | API 快照门硬化（regenerate 门控） | flaky-test 治理惯例 | T880–T881 | 468 | 615 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 
