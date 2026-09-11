@@ -34,7 +34,7 @@ public class SkillSearchTool implements ToolCallback {
     private final SkillRegistry registry;
     private final BindingVisibility visibility;
     /** spec 73 §A / T297：语义排序器（null = 纯子串检索，行为与历史一致）。 */
-    private final SemanticSkillRanker ranker;
+    private final SkillRanker ranker;
 
     public SkillSearchTool(SkillRegistry registry, SessionBindingIndex bindingIndex) {
         this(registry, bindingIndex, null);
@@ -42,7 +42,7 @@ public class SkillSearchTool implements ToolCallback {
 
     /** spec 73 §A / T297：带语义排序的构造（与目录注入共享同一 ranker 实例）。 */
     public SkillSearchTool(SkillRegistry registry, SessionBindingIndex bindingIndex,
-            SemanticSkillRanker ranker) {
+            SkillRanker ranker) {
         this.registry = registry;
         this.visibility = bindingIndex == null ? null : new BindingVisibility(registry, bindingIndex);
         this.ranker = ranker;

@@ -394,6 +394,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | fork 谱系进面板 | sessions 端点 `forkedActive` 段——活跃分支计数即重试/探索流量信号（spec 602+346 接线） | [spec 627](docs/spec/627-forked-sessions-panel.md) |
 | MCP 治理 | 每连接并发上限 yml 装配 | `mcp.per-connection-concurrency-limit` 声明即生效（spec 610 扩散；stdio 单线程 server 三行防护） | [spec 628](docs/spec/628-mcp-concurrency-assembly.md) |
 | Skill 体系 | 技能漂移看门狗接线 | 渲染节拍即巡查宿主（每轮清单注入顺带指纹 check——零调度，漂移最迟下一轮显形） | [spec 629](docs/spec/629-renderer-drift-watch.md) |
+| Skill 体系 | 混合排序装配 | `hybrid-ranking.enabled` 声明即 RRF 融合（SkillRanker 接口抽取双实现互换——spec 605 扩散） | [spec 630](docs/spec/630-hybrid-ranking-assembly.md) |
 
 ## 快速开始
 

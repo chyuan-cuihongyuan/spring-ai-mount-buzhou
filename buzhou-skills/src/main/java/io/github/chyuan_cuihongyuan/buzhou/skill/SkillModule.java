@@ -36,7 +36,7 @@ public final class SkillModule {
     private final SkillRegistry registry;
     private final SkillCatalogRenderer catalogRenderer;
     /** spec 629 / T908：渲染器重建用（watcher 变体共享同一 ranker）。 */
-    private final SemanticSkillRanker ranker;
+    private final SkillRanker ranker;
     /** spec 629 / T908：渲染器重建用（目录预算同档）。 */
     private final int catalogMaxEntries;
     private final LoadSkillTool loadSkillTool;
@@ -60,15 +60,20 @@ public final class SkillModule {
         this.bindingIndex = new SessionBindingIndex();
         // spec 59 §A / T266：语义排序（默认关）；enabled 而无 EmbeddingModel = 配置错误
         // fail-fast 带修法（与语义缓存 spec 55 同口径——显式开启而依赖缺失不静默失效）
-        SemanticSkillRanker ranker = null;
-        if (builder.semanticRankingEnabled) {
+        SkillRanker ranker = null;
+        if (builder.semanticRankingEnabled || builder.hybridRankingEnabled) {
             if (builder.embeddingModel == null) {
                 throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
-                        "buzhou.skills.semantic-ranking.enabled=true 但容器内无 EmbeddingModel bean",
-                        "语义排序需要一个 EmbeddingModel bean（如 spring-ai-starter-model-* 提供的实现或自建 stub）；"
-                                + "或显式设 buzhou.skills.semantic-ranking.enabled=false 关闭。");
+                        "buzhou.skills.semantic-ranking.enabled / hybrid-ranking.enabled=true 但容器内无 EmbeddingModel bean",
+                        "排序需要一个 EmbeddingModel bean（如 spring-ai-starter-model-* 提供的实现或自建 stub）；"
+                                + "或显式关闭对应开关。");
             }
-            ranker = new SemanticSkillRanker(builder.embeddingModel);
+            // spec 630 / T910：hybrid = 语义 + 词法 RRF 融合（spec 605 原语装配扩散）；
+            // hybrid 与 semantic 同开时 hybrid 胜（超集）
+            ranker = builder.hybridRankingEnabled
+                    ? new HybridSkillRanker(new SemanticSkillRanker(builder.embeddingModel),
+                            new LexicalSkillRanker(), 1.0, builder.hybridLexicalWeight)
+                    : new SemanticSkillRanker(builder.embeddingModel);
         }
         this.ranker = ranker;
         this.catalogMaxEntries = builder.catalogMaxEntries;
@@ -149,6 +154,9 @@ public final class SkillModule {
         private BindingPolicyStore bindingStore;
         /** spec 59 §A / T266：目录语义排序开关（默认 false——零行为变化）。 */
         private boolean semanticRankingEnabled = false;
+        // spec 630 / T910：混合排序（默认关；启用需 EmbeddingModel 同语义档）
+        private boolean hybridRankingEnabled = false;
+        private double hybridLexicalWeight = 1.0;
         private org.springframework.ai.embedding.EmbeddingModel embeddingModel;
 
         public Builder enabled(boolean enabled) {
@@ -201,6 +209,18 @@ public final class SkillModule {
             return this;
         }
 
+        /** spec 630 / T910：混合排序开关（与 semantic 同开时 hybrid 胜——超集）。 */
+        public Builder hybridRankingEnabled(boolean hybridRankingEnabled) {
+            this.hybridRankingEnabled = hybridRankingEnabled;
+            return this;
+        }
+
+        /** spec 630 / T910：词法路权重（默认 1:1）。 */
+        public Builder hybridLexicalWeight(double hybridLexicalWeight) {
+            this.hybridLexicalWeight = hybridLexicalWeight;
+            return this;
+        }
+
         /** spec 59 §A / T266：排序用嵌入模型（enabled=true 时必须提供，否则 build() fail-fast）。 */
         public Builder embeddingModel(org.springframework.ai.embedding.EmbeddingModel embeddingModel) {
             this.embeddingModel = embeddingModel;
@@ -226,6 +246,19 @@ public final class SkillModule {
                 this.semanticRankingEnabled = b;
             } else if (rankingVal instanceof String str && !str.isBlank()) {
                 this.semanticRankingEnabled = Boolean.parseBoolean(str.trim());
+            }
+            // spec 630 / T910：hybrid-ranking.{enabled,lexical-weight}（RRF 融合装配面）
+            Object hybridVal = ymlConfig.get("hybrid-ranking.enabled");
+            if (hybridVal instanceof Boolean b) {
+                this.hybridRankingEnabled = b;
+            } else if (hybridVal instanceof String str && !str.isBlank()) {
+                this.hybridRankingEnabled = Boolean.parseBoolean(str.trim());
+            }
+            Object weightVal = ymlConfig.get("hybrid-ranking.lexical-weight");
+            if (weightVal instanceof Number n) {
+                this.hybridLexicalWeight = n.doubleValue();
+            } else if (weightVal instanceof String str && !str.isBlank()) {
+                this.hybridLexicalWeight = Double.parseDouble(str.trim());
             }
             Object maxVal = ymlConfig.get("catalog-max-entries");
             if (maxVal instanceof Number n) {

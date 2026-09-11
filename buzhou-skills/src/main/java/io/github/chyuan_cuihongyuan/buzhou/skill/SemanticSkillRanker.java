@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 排序稳定（并列保原序）、预算语义、失败回退。任一嵌入调用失败 → 整体回退原序 +
  * {@link #bypassCount()} 可观测（注入链路不因排序降级而断）。
  */
-public final class SemanticSkillRanker {
+public final class SemanticSkillRanker implements SkillRanker {
 
     private final EmbeddingModel embeddingModel;
     private final ConcurrentHashMap<String, CachedVector> vectors = new ConcurrentHashMap<>();
@@ -41,6 +41,7 @@ public final class SemanticSkillRanker {
     /**
      * 排序（cosine 降序、并列保原序稳定）：hint 为 null/空或嵌入失败 → 原样返回。
      */
+    @Override
     public List<SkillMetadata> rank(List<SkillMetadata> candidates, String queryHint) {
         if (candidates == null || candidates.size() <= 1
                 || queryHint == null || queryHint.isBlank()) {

@@ -14,7 +14,7 @@ import java.util.List;
  * <p><b>降级</b>：语义路嵌入失败（{@link SemanticSkillRanker#bypassCount} 前后差）
  * → 纯词法序 + {@link #semanticFallbackCount()} 观测；两路都退化 → 原序。
  */
-public final class HybridSkillRanker {
+public final class HybridSkillRanker implements SkillRanker {
 
     /** RRF 平滑常数（Elasticsearch/标准实现同款 k=60）。 */
     private static final int RRF_K = 60;
@@ -50,6 +50,7 @@ public final class HybridSkillRanker {
     }
 
     /** RRF 融合排序；hint 无效 → 原样返回。 */
+    @Override
     public List<SkillMetadata> rank(List<SkillMetadata> candidates, String queryHint) {
         if (candidates == null || candidates.size() <= 1
                 || queryHint == null || queryHint.isBlank()) {

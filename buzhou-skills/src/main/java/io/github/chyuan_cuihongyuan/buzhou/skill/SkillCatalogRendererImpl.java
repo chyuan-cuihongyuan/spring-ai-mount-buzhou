@@ -20,7 +20,7 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
     private final SessionBindingIndex index;
     private final SkillRegistry registry;
     /** 语义排序器（null = 禁用——注册序，行为与历史版本一致）。 */
-    private final SemanticSkillRanker ranker;
+    private final SkillRanker ranker;
     /** 目录注入预算（排序路径本地截断用；与 registry 同值）。 */
     private final int catalogMaxEntries;
     /** spec 629 / T908：目录漂移看门狗（null = 不监测）。 */
@@ -36,7 +36,7 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
 
     /** spec 59 §A / T265：带语义排序与预算的构造（ranker null = 禁用）。 */
     public SkillCatalogRendererImpl(SessionBindingIndex index, SkillRegistry registry,
-            SemanticSkillRanker ranker, int catalogMaxEntries) {
+            SkillRanker ranker, int catalogMaxEntries) {
         this(index, registry, ranker, catalogMaxEntries, null);
     }
 
@@ -45,7 +45,7 @@ public class SkillCatalogRendererImpl implements SkillCatalogRenderer {
      * 渲染节拍即巡查宿主：每轮 render 顺带 check（目录指纹漂移即事件+计数——617 接线）。
      */
     public SkillCatalogRendererImpl(SessionBindingIndex index, SkillRegistry registry,
-            SemanticSkillRanker ranker, int catalogMaxEntries,
+            SkillRanker ranker, int catalogMaxEntries,
             SkillCatalogDriftWatcher driftWatcher) {
         this.index = index;
         this.registry = registry;
