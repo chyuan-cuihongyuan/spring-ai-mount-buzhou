@@ -567,6 +567,8 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMem
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl

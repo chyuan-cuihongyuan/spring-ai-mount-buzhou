@@ -32,6 +32,7 @@ import java.util.Map;
         io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties.class,
         BuzhouModelConcurrencyProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.resilience.capability.BuzhouModelCapabilityProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.BuzhouIdempotencyProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
@@ -196,6 +197,46 @@ public class BuzhouResilienceAutoConfiguration {
                                         String.class, io.github.chyuan_cuihongyuan.buzhou
                                                 .resilience.capability.ModelCapabilities.class))
                         .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 503 / T757：时段路由窗口（K8s CronJob / Argo Rollouts schedule
+     * 思想——时间窗驱动权重自动切换，夜间切便宜模型白天回切零人工值守）。
+     * windows 非空才装配；直依赖 WeightedChatModel（路由未配而窗已声明 =
+     * 跨键矛盾，启动红即诚实——doctor 115 同口径）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.RoutingSchedulePresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster
+    routingScheduleAdjuster(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel chatModel,
+            BuzhouRoutingProperties routing,
+            io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties
+                    schedule) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster(
+                chatModel, schedule.windows(), routing.weights(), schedule.checkInterval(), null);
+    }
+
+    /** spec 503：windows 非空才装配（Binder 预绑判定——426 同法）。 */
+    static final class RoutingSchedulePresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.routing.schedule.windows",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .listOf(io.github.chyuan_cuihongyuan.buzhou.resilience
+                                                .routing.BuzhouRoutingScheduleProperties
+                                                .RoutingWindow.class))
+                        .map(w -> !w.isEmpty()).orElse(false);
             } catch (Exception e) {
                 return false;
             }

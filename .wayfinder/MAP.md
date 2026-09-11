@@ -274,6 +274,7 @@
 | #500 | 流式回复 PII 脱敏 | [maps/effort-500.md](maps/effort-500.md) | T751–T752 | 403 |
 | #501 | 请求幂等键 | [maps/effort-501.md](maps/effort-501.md) | T753–T754 | 404 |
 | #502 | 模型能力注册表与能力门 | [maps/effort-502.md](maps/effort-502.md) | T755–T756 | 405 |
+| #503 | 时段路由窗口 | [maps/effort-503.md](maps/effort-503.md) | T757–T758 | 406 |
 
 ## 跨 effort 悬留
 

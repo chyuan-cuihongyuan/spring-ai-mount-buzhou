@@ -1653,3 +1653,7 @@
   LiteLLM Router capabilities：vision/工具请求事前拦 ARGS_VALIDATION_FAILED，
   未注册模型零门；`buzhou.resilience.model-capabilities.<model>` 声明才装配）
 
+- `RoutingScheduleAdjuster` + `BuzhouRoutingScheduleProperties`
+  （嵌套 `RoutingWindow`）（503——K8s CronJob/Argo Rollouts schedule：
+  时段窗自动切路由权重整表替换/出窗回落/同快照幂等，windows 非空才装配）
+
