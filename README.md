@@ -399,6 +399,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 排水取消原因 E2E | 停机对在途会话的 session.cancelled {SHUTDOWN_DRAIN} 真路径钉住（spec 606 补验） | [spec 632](docs/spec/632-drain-cause-e2e.md) |
 | 模型韧性 | panic/时间窗补验 | panicActivations() 编程可读面 + time-window yml 绑定用例（spec 601/620 补齐） | [spec 633](docs/spec/633-resilience-obs-gap.md) |
 | 会话分支 | 回放起点 state | forkFromTurn 写 `buzhou.fork.turn`——「fork 自谁+从哪重走」state 面可查（spec 602 补全） | [spec 634](docs/spec/634-fork-turn-state.md) |
+| 工具治理 | 变换 fail-open 可观测 | failOpenCount() + 计数 + 首次 WARN——变换常年失效不再静默（spec 169 补全） | [spec 635](docs/spec/635-transform-fail-open-observability.md) |
 
 ## 快速开始
 
