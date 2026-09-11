@@ -529,6 +529,7 @@ buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.Observabi
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.ObservabilityModule
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.advisor.ObservabilityAdvisor
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.advisor.ObservabilitySessionState
+buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.analytics.SpanStatusDistribution
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.analytics.ToolGraphAnalyzer
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.config.BuzhouObservabilityAutoConfiguration
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.micrometer.MicrometerDualWriter

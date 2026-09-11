@@ -1812,3 +1812,6 @@
 - `WebhookDeadLetterJsonl`（542——60/67 导出族同构：死信清单一行一
   JSON 转义完备单行+行数返回，源经 forwarder.deadLetters() 查询）
 
+- `SpanStatusDistribution`（543——Prometheus label 聚合：kind×status
+  计数读数（大小写归一+UNSET 兜底），纯函数+store 便捷重载）
+
