@@ -134,6 +134,10 @@ public final class ResilienceModule {
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
                 ? new ModelCircuitBreaker(properties.circuit(), stats, java.time.Clock.systemUTC(), circuitBackend)
                 : null;
+        // spec 638 / T926：时间窗生效读面（0=count 窗——声明是否生效一读便知）
+        if (stats != null) {
+            stats.updateCircuitTimeWindowMs(properties.circuit().timeWindow().toMillis());
+        }
         ModelRateLimiter limiter = null;
         ResilienceProperties.RateLimit rl = properties.rateLimit();
         if (rl != null) {

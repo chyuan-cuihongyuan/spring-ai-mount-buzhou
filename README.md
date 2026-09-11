@@ -402,6 +402,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具治理 | 变换 fail-open 可观测 | failOpenCount() + 计数 + 首次 WARN——变换常年失效不再静默（spec 169 补全） | [spec 635](docs/spec/635-transform-fail-open-observability.md) |
 | 护栏 | 衰减过滤可观测 | `filteredCount()`——衰减确实在滤陈年低置信事实的运行信号（spec 626 补全） | [spec 636](docs/spec/636-decay-filter-observability.md) |
 | 模型韧性 | 限流后端形态健康面 | `rateLimitBackend`（memory/memory-gcra/redis/none）——GCRA 声明是否生效一读便知（spec 614 补全） | [spec 637](docs/spec/637-ratelimit-backend-kind-health.md) |
+| 模型韧性 | 熔断时间窗生效读面 | `circuitTimeWindowMs`（0=count 窗/正数=声明值）——spec 620 生效确认面 | [spec 638](docs/spec/638-circuit-time-window-readout.md) |
 
 ## 快速开始
 
