@@ -392,6 +392,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 投递可靠 | 死信原因分类计数 | `buzhou.webhook.dead-reason` 计数（tag reason 有界：4xx|重试耗尽）——接收端配置错与瞬时故障治理动作分流（135 死信面观测扩散） | [spec 537](docs/spec/537-dead-reason-counter.md) |
 | 工程治理 | 提示词版本行级 diff | 行级 LCS 最小变更集（equal/insert/delete+added/removed/net）+异名 fail-fast——晋级/回滚评审只看变化（Git diff；401 扩散） | [spec 534](docs/spec/534-prompt-version-diff.md) |
 | 安全 | 跨会话泄漏金丝雀 | 会话专属确定性令牌（sha256|salt 前 8hex）+他令牌扫描探测——B 会话回复出现 A 金丝雀=跨会话污染信号，LRU 256 有界（thinkst canarytokens/honeytoken） | [spec 528](docs/spec/528-session-canary.md) |
+| 投递可靠 | 签名双密钥轮换验签 | verifyWithRotation（current→previous，blank=null）×容差窗组合——密钥轮换窗口旧签名可验，生产/消费端不必原子同步换钥（Stripe 多签名密钥） | [spec 540](docs/spec/540-signature-rotation.md) |
 | 工具韧性 | per-tool 超时预算覆盖 | glob 键 per-tool 超时替换全局值（Deadline 恒天花板）——慢工具长预算快工具紧预算差异化，Holder 默认空零变化（31 per-tool 覆盖同法） | [spec 529](docs/spec/529-tool-timeout-overrides.md) |
 | 评测 | 数据集 CSV 互操作 | RFC 4180 转义/解析（逗号/引号/多行字段往返）、表头宽松校验、Writer 导出——与表格工具双向搬运（LangSmith/HF datasets CSV 形态） | [spec 527](docs/spec/527-dataset-csv.md) |
 | 安全 | 流式回复秘密扫描 | 秘密第四缝（回复出站流）——滑动窗口跨 chunk 密钥不漏、占位符不拆分、复用 SecretScanner 7 型（500 SPI 第二消费者组合性证明） | [spec 536](docs/spec/536-secret-stream.md) |

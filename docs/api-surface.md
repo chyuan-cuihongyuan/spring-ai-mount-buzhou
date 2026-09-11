@@ -1773,6 +1773,9 @@
 - 装配绑定审计修复（531——409 result-schemas/406 deprecated/505
   experiments 单 Map 组件 record 构造绑定 prefix.<组件名> 子路径致根
   yml 绑空静默 no-op；统一改根绑定直读+内容非空回归断言）
+- WebhookSignatures verifyWithRotation 重载×2（540——Stripe 多签名密钥：
+  双密钥轮换验签 current→previous + 轮换×容差窗组合，fail-closed 不变；
+  无新类型）
 
 - webhook 载荷大小上限（533——Kafka max message size：outbox
   maxPayloadChars 超限拒入队+oversized 计数，默认 0 零变化，
