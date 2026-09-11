@@ -388,6 +388,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 导出打包落盘持久档 | Durability NONE/FILE/FILE_AND_DIR——审计归档的「返回即在盘上」FULL 语义（sqlite WAL 同步档位） | [spec 621](docs/spec/621-export-bundle-durability.md) |
 | 会话治理 | 归档/还原每会话互斥 | 同会话 archive/restore 串行——并发交错的数据丢失窗关闭（restore 旁路事务的根因收口） | [spec 622](docs/spec/622-archiver-session-mutex.md) |
 | 会话治理 | saga per-session 事务域 | CompensatingBatch 会话级锁重载——跨会话归档真并行（全局锁吞吐瓶颈解除） | [spec 623](docs/spec/623-saga-session-transaction.md) |
+| 成本预算 | 预算池借比例上限 | 单会话 held ≤ base × ratio——单借方不再吃光 surplus 饿死同伴（K8s LimitRange；默认不设限零变化） | [spec 624](docs/spec/624-budget-pool-borrow-ratio.md) |
 
 ## 快速开始
 
