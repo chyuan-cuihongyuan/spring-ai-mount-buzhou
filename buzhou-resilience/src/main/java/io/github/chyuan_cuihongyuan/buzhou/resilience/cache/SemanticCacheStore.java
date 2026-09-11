@@ -146,6 +146,12 @@ public final class SemanticCacheStore {
         return misses.get();
     }
 
+    /** spec 639 / T928：命中率（0..1；零查询 = 0.0 诚实口径）——观测便利面。 */
+    public double hitRate() {
+        long total = hits.get() + misses.get();
+        return total == 0 ? 0.0 : (double) hits.get() / total;
+    }
+
     public long evictedCount() {
         return evictions.get();
     }
