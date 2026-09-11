@@ -478,8 +478,6 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTime
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.consolidation.SleepTimeScheduler
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.episodic.EpisodeLedger
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.evaluation.CompactionFidelityEval
-buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.facts.DecayingFactStore
-buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.facts.FactDecayPolicy
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.recall.RecallSearch
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.summary.BiTemporalFactLedger
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.summary.DefaultSummaryDegrader

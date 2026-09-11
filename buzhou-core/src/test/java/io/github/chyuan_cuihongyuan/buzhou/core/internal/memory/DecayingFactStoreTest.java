@@ -1,26 +1,21 @@
-package io.github.chyuan_cuihongyuan.buzhou.memory.facts;
+package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * 事实置信度衰减测试（spec 604 / T858–T859 / impl 457）：半衰过滤边界、衰减公式、
- * 默认事实存活口径、save/delete 直通、策略与构造校验。信封兼容往返在 core 的
- * DefaultFactStoreTest 断言（模块边界：本模块不引 core internal）。
+ * 事实置信度衰减测试（spec 604 / T858–T859 / impl 457；spec 626 / T902 移驻 core 后回归）：
+ * 半衰过滤边界、衰减公式、默认事实存活口径、save/delete 直通、策略校验。
  */
 class DecayingFactStoreTest {
 
     /** 内存伪实现（TTL 过滤同 DefaultFactStore 口径——被装饰者职责的替身）。 */
     private static final class FakeFactStore implements FactStore {
-        final Map<String, Fact> facts = new ConcurrentHashMap<>();
+        final java.util.Map<String, Fact> facts = new java.util.concurrent.ConcurrentHashMap<>();
 
         @Override
         public void save(String sessionId, Fact fact) {
@@ -28,7 +23,7 @@ class DecayingFactStoreTest {
         }
 
         @Override
-        public List<Fact> activeFacts(String sessionId, int currentTurn) {
+        public java.util.List<Fact> activeFacts(String sessionId, int currentTurn) {
             return facts.values().stream()
                     .filter(f -> currentTurn - f.createdTurn() < f.ttl())
                     .sorted(java.util.Comparator.comparingInt(Fact::createdTurn))

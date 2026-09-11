@@ -1,9 +1,10 @@
-package io.github.chyuan_cuihongyuan.buzhou.memory.facts;
+package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
 
 import java.time.Duration;
 
 /**
- * 事实置信度衰减策略（spec 604 / T858，letta memory blocks 置信度衰减借鉴）：
+ * 事实置信度衰减策略（spec 604 / T858，letta memory blocks 置信度衰减借鉴；
+ * 自 memory 模块移驻 core——与 DefaultFactStore 同址供 GuardModule 装配，spec 626）：
  * 指数半衰——{@code 衰减后置信度 = confidence × 2^(−elapsedTurns / halfLifeTurns)}，
  * 低于 {@link #floor()} 即停止注入（陈年低置信事实不再占提示词预算）。
  *
@@ -30,7 +31,7 @@ public record FactDecayPolicy(double halfLifeTurns, double floor) {
         return new FactDecayPolicy(8, 0.25);
     }
 
-    /** 便捷构造（半衰用时长口径按轮≈30s 折算，仅示意用途）。 */
+    /** 便捷构造（半衰用时长口径按轮折算，仅示意用途）。 */
     public static FactDecayPolicy ofHalfLife(Duration halfLife, Duration perTurn) {
         double turns = Math.max(1, halfLife.toMillis() / (double) Math.max(1, perTurn.toMillis()));
         return new FactDecayPolicy(turns, 0.25);
