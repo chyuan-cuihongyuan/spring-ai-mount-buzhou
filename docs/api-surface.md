@@ -1809,3 +1809,6 @@
   cohen_kappa_score：双 judge 一致率 Cohen κ 修正机遇一致+Landis-Koch
   分级，纯函数 516 同型）
 
+- `WebhookDeadLetterJsonl`（542——60/67 导出族同构：死信清单一行一
+  JSON 转义完备单行+行数返回，源经 forwarder.deadLetters() 查询）
+

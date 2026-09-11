@@ -390,6 +390,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 观测治理 | 水位告警桥接 | per-session 低水位翻转态聚合为 context-watermark 机制健康面（低水位会话数≥阈值 DOWN、详情聚合读数）——312 告警规则按机制名可订阅「容量压力」（181×312 桥接） | [spec 526](docs/spec/526-watermark-health.md) |
 | 投递可靠 | webhook 载荷大小上限 | outbox 单条载荷体积门（默认不限 opt-in）——超限拒入队+oversized 计数可见，拒绝而非截断（截断 JSON 破坏消费端契约）（Kafka max message size） | [spec 533](docs/spec/533-max-payload.md) |
 | 投递可靠 | 死信原因分类计数 | `buzhou.webhook.dead-reason` 计数（tag reason 有界：4xx|重试耗尽）——接收端配置错与瞬时故障治理动作分流（135 死信面观测扩散） | [spec 537](docs/spec/537-dead-reason-counter.md) |
+| 投递可靠 | 死信 JSONL 导出 | 死信清单一行一 JSON（eventId/type/attempts/createdAt epoch，转义完备）——与 OLAP/归档管道同构搬运（60/67 导出族同构） | [spec 542](docs/spec/542-dead-letter-jsonl.md) |
 | 工程治理 | 提示词版本行级 diff | 行级 LCS 最小变更集（equal/insert/delete+added/removed/net）+异名 fail-fast——晋级/回滚评审只看变化（Git diff；401 扩散） | [spec 534](docs/spec/534-prompt-version-diff.md) |
 | 安全 | 跨会话泄漏金丝雀 | 会话专属确定性令牌（sha256|salt 前 8hex）+他令牌扫描探测——B 会话回复出现 A 金丝雀=跨会话污染信号，LRU 256 有界（thinkst canarytokens/honeytoken） | [spec 528](docs/spec/528-session-canary.md) |
 | 投递可靠 | 签名双密钥轮换验签 | verifyWithRotation（current→previous，blank=null）×容差窗组合——密钥轮换窗口旧签名可验，生产/消费端不必原子同步换钥（Stripe 多签名密钥） | [spec 540](docs/spec/540-signature-rotation.md) |
