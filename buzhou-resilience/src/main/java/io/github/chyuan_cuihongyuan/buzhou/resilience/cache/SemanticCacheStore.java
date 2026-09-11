@@ -33,12 +33,14 @@ public final class SemanticCacheStore {
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
 
-    private record Entry(String bucket, float[] embedding, ChatResponse response, Instant expireAt) {
+    // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
+    // 按 JLS 遮蔽外层同名嵌套类型，removeEldestEntry 覆盖签名在严格 javac 下名称冲突
+    private record CacheEntry(String bucket, float[] embedding, ChatResponse response, Instant expireAt) {
     }
 
-    private final LinkedHashMap<String, Entry> entries = new LinkedHashMap<>(16, 0.75f, true) {
+    private final LinkedHashMap<String, CacheEntry> entries = new LinkedHashMap<>(16, 0.75f, true) {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String, Entry> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
             boolean evict = size() > maxEntries;
             if (evict) {
                 evictions.incrementAndGet();
@@ -82,9 +84,9 @@ public final class SemanticCacheStore {
         purgeExpired();
         String bestKey = null;
         double bestScore = 0;
-        Entry best = null;
-        for (Map.Entry<String, Entry> e : entries.entrySet()) {
-            Entry entry = e.getValue();
+        CacheEntry best = null;
+        for (Map.Entry<String, CacheEntry> e : entries.entrySet()) {
+            CacheEntry entry = e.getValue();
             if (!entry.bucket().equals(bucket)) {
                 continue;
             }
@@ -109,7 +111,7 @@ public final class SemanticCacheStore {
         if (bucket == null || embedding == null || embedding.length == 0 || response == null) {
             return;
         }
-        entries.put(bucket + "#" + (seq++), new Entry(bucket, embedding, response,
+        entries.put(bucket + "#" + (seq++), new CacheEntry(bucket, embedding, response,
                 clock.instant().plus(ttl)));
     }
 

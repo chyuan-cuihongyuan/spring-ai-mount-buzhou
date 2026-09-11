@@ -29,12 +29,14 @@ public final class ResponseCacheStore {
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
 
-    private record Entry(ChatResponse response, Instant expireAt) {
+    // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
+    // 按 JLS 遮蔽外层同名嵌套类型，removeEldestEntry 覆盖签名在严格 javac 下名称冲突
+    private record CacheEntry(ChatResponse response, Instant expireAt) {
     }
 
-    private final LinkedHashMap<String, Entry> cache = new LinkedHashMap<>(16, 0.75f, true) {
+    private final LinkedHashMap<String, CacheEntry> cache = new LinkedHashMap<>(16, 0.75f, true) {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String, Entry> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
             boolean evict = size() > maxEntries;
             if (evict) {
                 evictions.incrementAndGet();
@@ -62,7 +64,7 @@ public final class ResponseCacheStore {
     /** 命中查询（惰性过期：过期即弃 + evicted 计数 + miss 口径）。 */
     public Optional<ChatResponse> get(String key) {
         synchronized (cache) {
-            Entry entry = cache.get(key);
+            CacheEntry entry = cache.get(key);
             if (entry == null) {
                 misses.incrementAndGet();
                 return Optional.empty();
@@ -84,7 +86,7 @@ public final class ResponseCacheStore {
             return;
         }
         synchronized (cache) {
-            cache.put(key, new Entry(response, clock.instant().plus(ttl)));
+            cache.put(key, new CacheEntry(response, clock.instant().plus(ttl)));
         }
     }
 
