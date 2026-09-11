@@ -434,6 +434,7 @@ buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpClientRegistry
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnection
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectionFactory
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpModule
+buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpToolHints
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.PropertiesToolSetProvider
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.SpringAiMcpConnectionFactory
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.ToolSetSpecStore
