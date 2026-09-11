@@ -461,6 +461,7 @@ buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.config.BuzhouMcpHealthAutoCon
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.config.BuzhouMcpProperties
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.store.jdbc.JdbcToolSetSpecStore
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.CompactionRatioStats
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.FactsExporter
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.InjectionViewProcessor
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.MemoryModule

@@ -288,6 +288,7 @@
 | #514 | 投递时延分位数 | [maps/effort-514.md](maps/effort-514.md) | T779–T780 | 417 |
 | #515 | 内容安全词表过滤 | [maps/effort-515.md](maps/effort-515.md) | T781–T782 | 418 |
 | #516 | judge 校准跟踪 | [maps/effort-516.md](maps/effort-516.md) | T783–T784 | 419 |
+| #517 | 记忆压缩率分布观测 | [maps/effort-517.md](maps/effort-517.md) | T785–T786 | 420 |
 
 ## 跨 effort 悬留
 

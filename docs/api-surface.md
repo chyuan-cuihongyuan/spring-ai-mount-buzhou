@@ -1713,3 +1713,9 @@
   calibration：verdict vs 金标准混淆矩阵四率，判红为正类，分母 0 null
   诚实空值，纯函数）
 
+**buzhou-memory**
+
+- `CompactionRatioStats`（嵌套 `Snapshot`）（517——416 分位族同法：
+  压缩回收字符分位+逐出比直方图+折入 trigger 计数，挂 CompactionListener
+  缝观测零干预，`MemoryModule.compactionStats()` 读数面）
+
