@@ -1752,3 +1752,7 @@
   改写候选（id 空未入库语义+人审教义），围栏剥离逐行容错，零可解析
   EVAL_OPERATION_INVALID 带预览）
 
+- `WatermarkHealth`（526——181×312 桥接：per-session 低水位翻转态聚合
+  为 context-watermark 机制健康面（低水位会话数≥阈值 DOWN），312 规则
+  按机制名可订阅）
+

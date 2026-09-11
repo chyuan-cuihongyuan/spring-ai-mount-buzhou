@@ -295,6 +295,7 @@
 | #521 | 事故复盘一键包 | [maps/effort-521.md](maps/effort-521.md) | T793–T794 | 424 |
 | #524 | MCP 建连退避重试 | [maps/effort-524.md](maps/effort-524.md) | T801–802 | 427 |
 | #525 | 评估集合成扩增 | [maps/effort-525.md](maps/effort-525.md) | T803–T804 | 428 |
+| #526 | 水位告警桥接 | [maps/effort-526.md](maps/effort-526.md) | T805–806 | 429 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
 | #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
 
