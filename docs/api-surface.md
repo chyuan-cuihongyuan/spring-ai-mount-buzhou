@@ -1815,3 +1815,6 @@
 - `SpanStatusDistribution`（543——Prometheus label 聚合：kind×status
   计数读数（大小写归一+UNSET 兜底），纯函数+store 便捷重载）
 
+- `EvalRunDurationStats`（嵌套 `DurationStats`/`SlowestItem`）（544——
+  416 分位族同法：run 项耗时 p50/p95/max+最慢 top3，纯函数读数）
+

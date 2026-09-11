@@ -111,6 +111,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalItem
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalQueryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunDiff
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunDurationStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunItemResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunJsonlExporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunRegistry
