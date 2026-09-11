@@ -443,6 +443,16 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         activeSessions.put(sessionId, tracked);
         options.listeners().forEach(session::addEventListener);
         globalListeners.forEach(session::addEventListener);
+        // spec 522 / T795：会话生命周期事件补齐——session.opened（监听器挂载后派发，
+        // 全局监听/webhook 均可达；payload 带身份三元组——全局监听无隐式会话上下文）
+        if (session instanceof DefaultAgentSession defaultSession) {
+            defaultSession.dispatchEventInternal(
+                    io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent.of(
+                            "session.opened",
+                            java.util.Map.of("appId", appId,
+                                    "agentName", agentName,
+                                    "sessionId", sessionId)));
+        }
         // 注册后可能已并发进入停机——即刻补发拒新标记，保证「拒绝新 Turn」无窗口遗漏
         if (shuttingDown) {
             tracked.rejectNewTurns();

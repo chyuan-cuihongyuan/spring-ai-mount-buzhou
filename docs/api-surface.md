@@ -1736,3 +1736,7 @@
 - `PostmortemBundle`（521——317 ExportBundle 事故域预设组合：时间线/
   错误签名/成本双维 rollup 标准 ZIP+summary 汇总，源缺席跳过）
 
+- 生命周期事件补齐（522——`session.opened` spawn 即派发：监听器挂载后
+  先于任何轮次，payload 身份三元组；与既有 session.closed 配对闭环；
+  无新类型）
+
