@@ -1805,3 +1805,7 @@
   有界样本窗+per-uri 计数降序+完整性告警计数，只观测零干预，
   DiskSpillStore.readAudit() 读数面）
 
+- `JudgeAgreement`（嵌套 `AgreementReport`）（541——scikit-learn
+  cohen_kappa_score：双 judge 一致率 Cohen κ 修正机遇一致+Landis-Koch
+  分级，纯函数 516 同型）
+

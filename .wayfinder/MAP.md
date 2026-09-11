@@ -308,6 +308,7 @@
 | #538 | store fsck 定时巡检 | [maps/effort-538.md](maps/effort-538.md) | T829–830 | 439 |
 | #539 | spill 回读审计 | [maps/effort-539.md](maps/effort-539.md) | T831–832 | 440 |
 | #540 | 签名双密钥轮换验签 | [maps/effort-540.md](maps/effort-540.md) | T833–834 | 441 |
+| #541 | 双 judge 一致率 | [maps/effort-541.md](maps/effort-541.md) | T835–836 | 442 |
 | #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
 | #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
