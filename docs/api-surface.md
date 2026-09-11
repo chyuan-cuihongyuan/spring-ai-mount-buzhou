@@ -1796,3 +1796,9 @@
   StoreFsck 只读对账定时化，findings WARN+计数不自动修复，
   `buzhou.fsck.enabled` 默认关）
 
+**buzhou-spill**
+
+- `ReadAuditTrail`（嵌套 `ReadRecord`）（539——spill 回读审计：readRange
+  有界样本窗+per-uri 计数降序+完整性告警计数，只观测零干预，
+  DiskSpillStore.readAudit() 读数面）
+
