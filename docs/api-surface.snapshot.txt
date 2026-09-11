@@ -655,6 +655,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.OnloadHook
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.RangeReadEngine
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.RangeReadRequest
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.RangeReadResult
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.ReadAuditTrail
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.ReadIntegrity
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.ReadRangeTool
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SandboxViolationException

@@ -40,7 +40,53 @@ public final class WebhookSignatures {
     }
 
     /**
+     * spec 540 / T833：双密钥轮换验签——先 current 后 previous（轮换窗口内
+     * 旧签名仍可验），两者皆不匹配 false（fail-closed）。previous 可 null
+     * （单密钥期）。
+     */
+    public static boolean verifyWithRotation(String currentSecret, String previousSecret,
+            String body, String hexSignature) {
+        if (verify(currentSecret, body, hexSignature)) {
+            return true;
+        }
+        return previousSecret != null && !previousSecret.isBlank()
+                && verify(previousSecret, body, hexSignature);
+    }
+
+    /**
+     * spec 540：轮换验签 + 时间戳容差窗（轮换 × 重放窗组合——轮换窗口内旧
+     * 密钥签名仍可验但重放窗依旧有界）。
+     */
+    public static boolean verifyWithRotation(String currentSecret, String previousSecret,
+            String body, String hexSignature, String timestampEpochSeconds, Duration tolerance) {
+        if (verify(currentSecret, body, hexSignature)) {
+            return verifyTimestamp(timestampEpochSeconds, tolerance);
+        }
+        if (previousSecret == null || previousSecret.isBlank()
+                || !verify(previousSecret, body, hexSignature)) {
+            return false;
+        }
+        return verifyTimestamp(timestampEpochSeconds, tolerance);
+    }
+
+    private static boolean verifyTimestamp(String timestampEpochSeconds, Duration tolerance) {
+        if (timestampEpochSeconds == null || timestampEpochSeconds.isBlank()) {
+            return false;
+        }
+        long ts;
+        try {
+            ts = Long.parseLong(timestampEpochSeconds.trim());
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        long now = System.currentTimeMillis() / 1000;
+        return Math.abs(now - ts) <= tolerance.toSeconds();
+    }
+
+    /**
      * 验签 + 时间戳容差窗（重放窗口有界）：{@code |now - ts| <= tolerance}
+     * 才过；时间戳缺失/非数字 → false（fail-closed）。
+     *（重放窗口有界）：{@code |now - ts| <= tolerance}
      * 才过；时间戳缺失/非数字 → false（fail-closed）。
      *
      * @param timestampHeader forwarder 加发的 {@code X-Buzhou-Timestamp}（epoch 秒）
