@@ -384,6 +384,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | Skill 体系 | 技能目录漂移看门狗 | 首拍建基线、漂移即 `skill.catalog.drifted` 事件 + 基线推进（spec 201 的 skills 镜像；含 616 diff 方向对齐修正） | [spec 617](docs/spec/617-skill-catalog-drift-watcher.md) |
 | MCP 治理 | 注解聚入健康面 | `selfReportedDestructiveToolCount` 进 MCP 健康快照——自报危险与客户端认定危险两数对照可见（spec 600 扩散） | [spec 618](docs/spec/618-mcp-hints-health.md) |
 | Spill | 预览头尾语义 | 截断预览 = 头 3/4 + 省略标注 + 尾 1/4——大结果的尾部汇总/结论可见（ripgrep context） | [spec 619](docs/spec/619-spill-headtail-preview.md) |
+| 模型韧性 | 熔断时间窗衰减 | `circuit.time-window` 老样本出率计算与 min-calls 门——低频调用下陈年失败不再永久占窗（resilience4j TIME-based；默认 0 零变化） | [spec 620](docs/spec/620-circuit-time-window.md) |
 
 ## 快速开始
 
