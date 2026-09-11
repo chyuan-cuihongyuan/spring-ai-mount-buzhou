@@ -386,6 +386,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | Spill | 预览头尾语义 | 截断预览 = 头 3/4 + 省略标注 + 尾 1/4——大结果的尾部汇总/结论可见（ripgrep context） | [spec 619](docs/spec/619-spill-headtail-preview.md) |
 | 模型韧性 | 熔断时间窗衰减 | `circuit.time-window` 老样本出率计算与 min-calls 门——低频调用下陈年失败不再永久占窗（resilience4j TIME-based；默认 0 零变化） | [spec 620](docs/spec/620-circuit-time-window.md) |
 | 观测治理 | 导出打包落盘持久档 | Durability NONE/FILE/FILE_AND_DIR——审计归档的「返回即在盘上」FULL 语义（sqlite WAL 同步档位） | [spec 621](docs/spec/621-export-bundle-durability.md) |
+| 会话治理 | 归档/还原每会话互斥 | 同会话 archive/restore 串行——并发交错的数据丢失窗关闭（restore 旁路事务的根因收口） | [spec 622](docs/spec/622-archiver-session-mutex.md) |
 
 ## 快速开始
 
