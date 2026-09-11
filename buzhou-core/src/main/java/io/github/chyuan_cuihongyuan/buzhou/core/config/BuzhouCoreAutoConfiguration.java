@@ -1400,9 +1400,13 @@ public class BuzhouCoreAutoConfiguration {
         io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint buzhouSessionsEndpoint(
                 ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> index,
                 io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor floor,
-                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon cordon) {
+                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon cordon,
+                ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> stores) {
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores bstores =
+                    stores.getIfAvailable();
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint(
-                    index.getIfAvailable(), floor, cordon);
+                    index.getIfAvailable(), floor, cordon, 16,
+                    bstores == null ? null : bstores.sessionStateStore());
         }
 
         /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */

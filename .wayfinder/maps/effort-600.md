@@ -54,6 +54,7 @@
 | 25 | 预算池借比例上限 | k8s LimitRange | T898–T899 | 477 | 624 | ✅ |
 | 26 | 启动装配摘要 | spring-boot diagnostics | T900–T901 | 478 | 625 | ✅ |
 | 27 | 事实衰减装配扩散（移驻 core） | spec 604 扩散 | T902–T903 | 479 | 626 | ✅ |
+| 28 | fork 谱系进会话面板 | spec 602+346 接线 | T904–T905 | 480 | 627 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

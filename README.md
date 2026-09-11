@@ -391,6 +391,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 成本预算 | 预算池借比例上限 | 单会话 held ≤ base × ratio——单借方不再吃光 surplus 饿死同伴（K8s LimitRange；默认不设限零变化） | [spec 624](docs/spec/624-budget-pool-borrow-ratio.md) |
 | 工程治理 | 启动装配摘要 | `buzhou.assembly-report.enabled=true` 启动后一行 INFO 生效面板（机制开关/store/模型）——「这套进程装了什么」一屏可答（Spring Boot diagnostics report） | [spec 625](docs/spec/625-assembly-report.md) |
 | 护栏 | 事实衰减 yml 装配 | `guard.fact-decay.half-life-turns` 声明即衰减（原语移驻 core 接通 GuardModule——spec 604 扩散） | [spec 626](docs/spec/626-fact-decay-assembly.md) |
+| 会话治理 | fork 谱系进面板 | sessions 端点 `forkedActive` 段——活跃分支计数即重试/探索流量信号（spec 602+346 接线） | [spec 627](docs/spec/627-forked-sessions-panel.md) |
 
 ## 快速开始
 
