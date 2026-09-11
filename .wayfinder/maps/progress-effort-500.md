@@ -75,4 +75,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 16 | #515 | 515 | T781-782 | 418 | 内容安全词表过滤（OpenAI moderation 规则子集） | 293ce2e |
 | 17 | #516 | 516 | T783-784 | 419 | judge 校准跟踪（LightEval；混淆矩阵四率） | df13de8 |
 | 18 | #517 | 517 | T785-786 | 420 | 记忆压缩率分布观测（204 分布化；416 同法） | fa9ae86 |
-| 19 | #518 | 518 | T787-788 | 421 | 会话导出脱敏（Presidio anonymize；28×86 组合） | （R19 提交后回填） |
+| 19 | #518 | 518 | T787-788 | 421 | 会话导出脱敏（Presidio anonymize；28×86 组合） | 0796cdc |
+| 20 | #519 | 519 | T789-790 | 422 | 工具调用图谱统计（LangSmith trace analytics） | （R20 提交后回填） |

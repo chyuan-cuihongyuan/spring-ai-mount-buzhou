@@ -290,6 +290,7 @@
 | #516 | judge 校准跟踪 | [maps/effort-516.md](maps/effort-516.md) | T783–T784 | 419 |
 | #517 | 记忆压缩率分布观测 | [maps/effort-517.md](maps/effort-517.md) | T785–T786 | 420 |
 | #518 | 会话导出脱敏 | [maps/effort-518.md](maps/effort-518.md) | T787–T788 | 421 |
+| #519 | 工具调用图谱统计 | [maps/effort-519.md](maps/effort-519.md) | T789–T790 | 422 |
 
 ## 跨 effort 悬留
 

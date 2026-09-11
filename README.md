@@ -378,6 +378,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 持久化 | 归档冷存完整性校验 | 写时 sha256 校验和随条目落盘（独立命名空间零污染）+verify 五态随时验（MISMATCH/存量 NO_CHECKSUM/CORRUPT 分列不冒充）——可读≠未被改，衰变/误写 restore 前发现（S3 checksum） | [spec 511](docs/spec/511-archive-integrity.md) |
 | 安全 | 内容安全词表过滤 | yml 声明违禁词表（大小写不敏感 contains——CJK 无词界正确语义）+双缝（输入/工具结果）BLOCK 结构化告示或 MASK 打码——合规黑名单本地词表面（OpenAI moderation 规则子集） | [spec 515](docs/spec/515-content-moderation.md) |
 | 安全 | 会话导出脱敏 | sanitize 不可变副本——消息/摘要/state 三内容域占位符化（86 检测器+custom rules），结构字段原样；与 510 组合先脱敏再封缄=对外分享全链（Presidio anonymize） | [spec 518](docs/spec/518-export-sanitizer.md) |
+| 观测治理 | 工具调用图谱统计 | TOOL span 同轮相邻有向边计数+per-tool calls/errors/错误率排行——「哪些工具总被连着用」「哪个工具错误集中」有数据依据（LangSmith trace analytics） | [spec 519](docs/spec/519-tool-graph.md) |
 | 工程治理 | 提示词模板严格渲染 | `{{var}}` 抽取/严格渲染（缺失变量一次列全——杜绝占位符原样漏进 prompt 的静默失败）+预检面；与 401 注册表组合消费（Jinja2 StrictUndefined） | [spec 512](docs/spec/512-prompt-template.md) |
 | 评测 | 评估 A/A 抖动检测 | 同数据集同版本跑两遍——同项红绿翻转=抖动（fail/error 同红、方向不区分），单侧项=漂移不进分母；flakyRate+抖动清单先验评估系统自身稳定性（HELM/工业 A/A test） | [spec 513](docs/spec/513-eval-aa-flakiness.md) |
 | 评测 | judge 校准跟踪 | judge verdict vs 金标准断言的混淆矩阵四率（判红为正类）+agreement/precision/recall/f1（分母 0 null）——judge 宽松倾向先于版本对比被发现（LightEval） | [spec 516](docs/spec/516-judge-calibration.md) |

@@ -1723,3 +1723,9 @@
   摘要/state 三内容域占位符化不可变副本，结构字段原样，与 510 组合
   先脱敏再封缄）
 
+**buzhou-observability**
+
+- `ToolGraphAnalyzer`（嵌套 `ToolGraphReport`/`Edge`/`ToolTotal`）（519——
+  LangSmith trace analytics：TOOL span 同轮相邻有向边计数+per-tool
+  成败错误率，纯函数+store 便捷重载）
+
