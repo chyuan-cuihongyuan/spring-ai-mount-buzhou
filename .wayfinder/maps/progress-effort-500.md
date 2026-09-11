@@ -76,4 +76,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 17 | #516 | 516 | T783-784 | 419 | judge 校准跟踪（LightEval；混淆矩阵四率） | df13de8 |
 | 18 | #517 | 517 | T785-786 | 420 | 记忆压缩率分布观测（204 分布化；416 同法） | fa9ae86 |
 | 19 | #518 | 518 | T787-788 | 421 | 会话导出脱敏（Presidio anonymize；28×86 组合） | 0796cdc |
-| 20 | #519 | 519 | T789-790 | 422 | 工具调用图谱统计（LangSmith trace analytics） | （R20 提交后回填） |
+| 20 | #519 | 519 | T789-790 | 422 | 工具调用图谱统计（LangSmith trace analytics） | b1aac28 |
+| 21 | #520 | 520 | T791-792 | 423 | 评估 run 预算闸（AWS Budgets/pytest maxfail 早停） | （R21 提交后回填） |

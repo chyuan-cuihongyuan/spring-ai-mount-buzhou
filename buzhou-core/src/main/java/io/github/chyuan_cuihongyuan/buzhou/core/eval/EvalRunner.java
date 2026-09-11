@@ -37,6 +37,9 @@ public final class EvalRunner {
     private final EvalDatasetStore datasetStore;
     private final SessionStateStore stateStore;
 
+    /** spec 520 / T791：run 预算（字符估算累计上限；0 = 关——默认零行为变化）。 */
+    private volatile long runBudgetChars;
+
     /** run 前数据集期望门禁（spec 150 §A / T503，Great Expectations 借鉴；null = 无门禁零变化）。 */
     private volatile DatasetExpectations expectations;
     /** spec 198 §A / T561：宽松档（未过只 WARN 不拦）。 */
@@ -47,6 +50,19 @@ public final class EvalRunner {
         this.runtime = runtime;
         this.datasetStore = datasetStore;
         this.stateStore = stateStore;
+    }
+
+    /**
+     * spec 520 / T791：run 预算闸（AWS Budgets/pytest maxfail 早停语义）——
+     * 逐项 input+expected 字符估算累计超上限即早停：剩余项不执行、记 error
+     * 三态（detail [RUN-BUDGET]），run 照常落盘（partial 显式可见）。
+     * 0 = 关（默认零行为变化）。
+     */
+    public void setRunBudgetChars(long chars) {
+        if (chars < 0) {
+            throw new IllegalArgumentException("run 预算非负（0 = 关；当前 " + chars + "）");
+        }
+        this.runBudgetChars = chars;
     }
 
     /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
@@ -102,11 +118,13 @@ public final class EvalRunner {
         try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_EVAL, runId)) {
         Instant startedAt = Instant.now();
         int workers = Math.max(1, Math.min(32, parallelism)); // clamp 1..32
+        java.util.concurrent.atomic.AtomicLong spent =
+                new java.util.concurrent.atomic.AtomicLong(); // spec 520：预算累计（字符估算）
         List<EvalRunItemResult> results;
         if (workers == 1 || items.size() <= 1) {
             results = new ArrayList<>();
             for (EvalItem item : items) {
-                results.add(runItem(runId, item, evaluator));
+                results.add(budgetedItem(spent, item, () -> runItem(runId, item, evaluator)));
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
@@ -115,7 +133,7 @@ public final class EvalRunner {
                 final int index = i;
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
-                    byIndex[index] = runItem(runId, item, evaluator);
+                    byIndex[index] = budgetedItem(spent, item, () -> runItem(runId, item, evaluator));
                     return null;
                 });
             }
@@ -147,6 +165,26 @@ public final class EvalRunner {
         emitRunCompleted(result, startedAt, finishedAt);
         return result;
         }
+    }
+
+    /**
+     * spec 520 / T791：预算记账包装——估算（input+expected 字符）累计超上限
+     * → 该项不执行、error 三态 [RUN-BUDGET]（errored 计数；partial 显式）。
+     * 预算关（0）= 直通零开销。共享 spent 为软上限（并行竞态容忍——早停语义）。
+     */
+    private EvalRunItemResult budgetedItem(java.util.concurrent.atomic.AtomicLong spent,
+            EvalItem item, java.util.function.Supplier<EvalRunItemResult> execute) {
+        if (runBudgetChars <= 0) {
+            return execute.get();
+        }
+        long estimate = (item.input() == null ? 0 : item.input().length())
+                + (item.expected() == null ? 0 : item.expected().length());
+        if (spent.addAndGet(estimate) > runBudgetChars) {
+            return new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_ERROR,
+                    "[RUN-BUDGET] run 预算耗尽（估算上限 " + runBudgetChars
+                            + " 字符）——本项未执行", "", 0);
+        }
+        return execute.get();
     }
 
     /**

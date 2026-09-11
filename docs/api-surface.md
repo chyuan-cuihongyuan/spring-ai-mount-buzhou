@@ -1729,3 +1729,7 @@
   LangSmith trace analytics：TOOL span 同轮相邻有向边计数+per-tool
   成败错误率，纯函数+store 便捷重载）
 
+- EvalRunner run 预算闸（520——AWS Budgets/pytest maxfail 早停语义：
+  `setRunBudgetChars` 逐项估算累计超限早停，剩余项 error [RUN-BUDGET]
+  三态显式 partial；0=关零行为变化）
+
