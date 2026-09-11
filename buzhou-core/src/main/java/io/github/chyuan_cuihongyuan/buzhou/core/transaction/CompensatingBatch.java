@@ -61,6 +61,17 @@ public final class CompensatingBatch {
      */
     @SuppressWarnings("unchecked")
     public static <T> T run(UnitOfWork uow, List<Step<?>> steps) {
+        return run(uow, null, steps);
+    }
+
+    /**
+     * spec 623 / T896：per-session 事务域重载——步集在 {@code sessionId} 的会话级锁内
+     * 执行（UnitOfWork SPI 已有 per-session 重载；无参版走全局锁是吞吐瓶颈——归档族
+     * 跨会话本可并行）。sessionId null = 全局域（既有语义）；补偿步与正向步同域
+     * （同锁序，防补偿与在途正向交错）。
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T run(UnitOfWork uow, String sessionId, List<Step<?>> steps) {
         if (uow == null) {
             throw new IllegalArgumentException("uow 必须非空");
         }
@@ -68,25 +79,32 @@ public final class CompensatingBatch {
         Object last = null;
         try {
             for (Step<?> step : steps) {
-                last = uow.executeInTransaction(step.action());
+                last = inTransaction(uow, sessionId, step.action());
                 completed.add(new Completed(step, last));
             }
         } catch (RuntimeException e) {
-            unwind(uow, completed);
+            unwind(uow, sessionId, completed);
             throw e;
         }
         return (T) last;
     }
 
+    private static <T> T inTransaction(UnitOfWork uow, String sessionId,
+            java.util.function.Supplier<T> action) {
+        return sessionId == null
+                ? uow.executeInTransaction(action)
+                : uow.executeInTransaction(sessionId, action);
+    }
+
     /** 倒序补偿；补偿失败即停止（更早步不补偿——人工介入断点）。 */
-    private static void unwind(UnitOfWork uow, List<Completed> completed) {
+    private static void unwind(UnitOfWork uow, String sessionId, List<Completed> completed) {
         for (int i = completed.size() - 1; i >= 0; i--) {
             Completed done = completed.get(i);
             if (done.step().compensation() == null) {
                 continue;
             }
             try {
-                uow.executeInTransaction(() -> {
+                inTransaction(uow, sessionId, () -> {
                     compensate(done);
                     return null;
                 });

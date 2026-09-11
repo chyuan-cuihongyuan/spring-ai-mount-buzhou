@@ -46,23 +46,38 @@ class SessionArchiverMutexTest {
         assertThat(archiver.archived()).containsExactly("s-race");
     }
 
-    /** 跨会话无死锁：两会话归档都完成（注：CompensatingBatch 走 UnitOfWork 全局锁，
-     *  archive 间本就全局串行——既有瓶颈入雾区；本用例钉「互斥不引入跨会话死锁」）。 */
+    /** 跨会话归档真并行（spec 623：per-session 事务域——两会话 deleteSession 同时在飞）。 */
     @Test
-    void differentSessionsBothCompleteWithoutDeadlock() throws Exception {
+    void differentSessionsArchiveInParallel() throws Exception {
         BuzhouStores stores = storesWithSession("s-1");
         stores.messageStore().append("s-2", List.of(
                 new io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage(
                         java.util.UUID.randomUUID().toString(), "s-2", 1, 0,
                         io.github.chyuan_cuihongyuan.buzhou.core.message.Role.USER,
                         "q", List.of(), null, null, null, java.util.Map.of(), java.time.Instant.now())));
-        SessionArchiver archiver = new SessionArchiver(stores, new SessionCleaner(stores));
+        CountDownLatch bothEntered = new CountDownLatch(2);
+        AtomicInteger inFlight = new AtomicInteger();
+        AtomicInteger maxInFlight = new AtomicInteger();
+        SessionCleaner counting = new SessionCleaner(stores).withContributor("parallel-probe", id -> {
+            int now = inFlight.incrementAndGet();
+            maxInFlight.accumulateAndGet(now, Math::max);
+            bothEntered.countDown();
+            try {
+                bothEntered.await(3, TimeUnit.SECONDS); // 两边同时在钩子内 = 真并行
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                inFlight.decrementAndGet();
+            }
+        });
+        SessionArchiver archiver = new SessionArchiver(stores, counting);
 
         CompletableFuture<Boolean> a = CompletableFuture.supplyAsync(() -> archiver.archive("s-1"));
         CompletableFuture<Boolean> b = CompletableFuture.supplyAsync(() -> archiver.archive("s-2"));
 
-        assertThat(a.get(5, TimeUnit.SECONDS)).isTrue();
-        assertThat(b.get(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(a.get(8, TimeUnit.SECONDS)).isTrue();
+        assertThat(b.get(8, TimeUnit.SECONDS)).isTrue();
+        assertThat(maxInFlight.get()).isEqualTo(2); // 全局锁时代恒 1——per-session 后并行
         assertThat(archiver.archived()).containsExactlyInAnyOrder("s-1", "s-2");
     }
 

@@ -104,8 +104,9 @@ public final class SessionArchiver {
         // 承担：liveTouched 标记后步已动活数据，则从条目写回（undo log）再撤归档键。
         java.util.concurrent.atomic.AtomicBoolean liveTouched =
                 new java.util.concurrent.atomic.AtomicBoolean(false);
+        // spec 623 / T896：per-session 事务域（跨会话归档并行；同会话已由条目锁串行）
         return io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.run(
-                stores.unitOfWork(),
+                stores.unitOfWork(), sessionId,
                 List.of(
                         io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.Step.of(
                                 "archive-write",

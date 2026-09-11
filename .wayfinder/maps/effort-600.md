@@ -50,6 +50,7 @@
 | 21 | 熔断时间窗衰减 | resilience4j TIME-based | T890–T891 | 473 | 620 | ✅ |
 | 22 | 导出打包落盘持久档 | sqlite WAL 同步档位 | T892–T893 | 474 | 621 | ✅ |
 | 23 | 归档/还原每会话互斥（丢失窗收口） | 关键段互斥惯例 | T894–T895 | 475 | 622 | ✅ |
+| 24 | saga per-session 事务域（归档并行化） | loop23 勘察兑现 | T896–T897 | 476 | 623 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 
