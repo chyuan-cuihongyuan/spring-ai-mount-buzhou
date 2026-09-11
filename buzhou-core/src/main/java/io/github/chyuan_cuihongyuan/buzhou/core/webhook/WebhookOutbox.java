@@ -108,14 +108,27 @@ final class WebhookOutbox {
         store.put(SESSION_ID, new StateEntry(META_KEY, "1", "webhook-outbox", 0, null, Instant.now()));
     }
 
+    /** spec 533 / T817：设置载荷上限（0 = 不限；forwarder 装配透传）。 */
+    void setMaxPayloadChars(int chars) {
+        this.maxPayloadChars = chars;
+    }
+
     /** 本进程投递纪元（恒正；信封 epoch 字段来源——spec 303）。 */
     long epoch() {
         return epoch;
     }
 
-    /** 入队（容量满返回 false，由调用方计 dropped；attempts=0、立即可投递）。 */
+    /** spec 533 / T817：载荷上限（0 = 不限——默认零变化；Kafka max message size 思想）。 */
+    private volatile int maxPayloadChars;
+
+    /** 入队（容量满/超载荷上限返回 false，由调用方计 dropped；attempts=0、立即可投递）。 */
     synchronized boolean append(String eventId, String type, String body) {
         if (pendingCount() >= capacity) {
+            return false;
+        }
+        if (maxPayloadChars > 0 && body != null && body.length() > maxPayloadChars) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.webhook.payload-oversized");
             return false;
         }
         long now = System.currentTimeMillis();

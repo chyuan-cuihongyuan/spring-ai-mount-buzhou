@@ -114,6 +114,11 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         this.deliveryLatency = latency;
     }
 
+    /** spec 533 / T817：载荷上限透传 outbox（0 = 不限——默认零变化）。 */
+    public void setOutboxMaxPayloadChars(int chars) {
+        outbox.setMaxPayloadChars(chars);
+    }
+
     @Override
     public void onEvent(SessionEvent event) {
         if (closing) {

@@ -1220,6 +1220,11 @@ public class BuzhouCoreAutoConfiguration {
                         org.springframework.boot.context.properties.bind.Bindable.listOf(String.class))
                 .orElse(java.util.List.of());
         forwarder.setIncludeTypes(include);
+        // spec 533 / T817：载荷大小上限（0 = 不限——默认零变化；Kafka max message size 思想）
+        Integer maxPayloadChars = env.getProperty("buzhou.webhook.max-payload-chars", Integer.class);
+        if (maxPayloadChars != null && maxPayloadChars > 0) {
+            forwarder.setOutboxMaxPayloadChars(maxPayloadChars);
+        }
         return forwarder;
     }
 

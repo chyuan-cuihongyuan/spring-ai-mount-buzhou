@@ -1774,3 +1774,7 @@
   experiments 单 Map 组件 record 构造绑定 prefix.<组件名> 子路径致根
   yml 绑空静默 no-op；统一改根绑定直读+内容非空回归断言）
 
+- webhook 载荷大小上限（533——Kafka max message size：outbox
+  maxPayloadChars 超限拒入队+oversized 计数，默认 0 零变化，
+  `buzhou.webhook.max-payload-chars`）
+
