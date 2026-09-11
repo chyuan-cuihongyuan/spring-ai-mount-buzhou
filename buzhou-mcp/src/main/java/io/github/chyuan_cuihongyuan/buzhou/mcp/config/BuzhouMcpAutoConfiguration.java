@@ -47,7 +47,8 @@ public class BuzhouMcpAutoConfiguration {
                 .recorder(recorder.getIfAvailable())
                 .policyProvider(policyProvider.getIfAvailable())
                 .dangerousToolPatterns(properties.dangerousToolPatterns())
-                .shutdownBudget(properties.shutdownBudget());
+                .shutdownBudget(properties.shutdownBudget())
+                .perConnectionConcurrencyLimit(properties.perConnectionConcurrencyLimit());
         ToolSetSpecStore store = specStore.getIfAvailable();
         if (store != null) {
             builder.store(store);

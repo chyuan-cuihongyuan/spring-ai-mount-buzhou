@@ -392,6 +392,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程治理 | 启动装配摘要 | `buzhou.assembly-report.enabled=true` 启动后一行 INFO 生效面板（机制开关/store/模型）——「这套进程装了什么」一屏可答（Spring Boot diagnostics report） | [spec 625](docs/spec/625-assembly-report.md) |
 | 护栏 | 事实衰减 yml 装配 | `guard.fact-decay.half-life-turns` 声明即衰减（原语移驻 core 接通 GuardModule——spec 604 扩散） | [spec 626](docs/spec/626-fact-decay-assembly.md) |
 | 会话治理 | fork 谱系进面板 | sessions 端点 `forkedActive` 段——活跃分支计数即重试/探索流量信号（spec 602+346 接线） | [spec 627](docs/spec/627-forked-sessions-panel.md) |
+| MCP 治理 | 每连接并发上限 yml 装配 | `mcp.per-connection-concurrency-limit` 声明即生效（spec 610 扩散；stdio 单线程 server 三行防护） | [spec 628](docs/spec/628-mcp-concurrency-assembly.md) |
 
 ## 快速开始
 

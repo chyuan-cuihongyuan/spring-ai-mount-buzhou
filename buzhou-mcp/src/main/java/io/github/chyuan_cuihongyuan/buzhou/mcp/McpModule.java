@@ -52,6 +52,10 @@ public final class McpModule implements AutoCloseable {
         DefaultMcpClientRegistry reg = new DefaultMcpClientRegistry(
                 builder.factory, builder.gracePeriod, builder.forceCloseTimeout, builder.recorder,
                 builder.policyProvider, builder.dangerousToolPatterns);
+        // spec 628 / T906：每连接并发上限（声明即启用——Entry 创建时装配信号量）
+        if (builder.perConnectionConcurrencyLimit != null) {
+            reg.setPerConnectionConcurrencyLimit(builder.perConnectionConcurrencyLimit);
+        }
         this.registry = reg;
         // 变更推送：配置源回调 → 差量刷新；坏配置（如重名）拒绝生效、注册表保持旧清单，
         // 记 ERROR Event（phase=refresh）——改配失败必须运维可见（spec 04：全部内部动作进可观测层）
@@ -125,6 +129,8 @@ public final class McpModule implements AutoCloseable {
         private SpanRecorder recorder;
         /** impl-50：客户端侧危险工具模式（装配侧挂 guard HITL 用）。 */
         private java.util.List<String> dangerousToolPatterns = java.util.List.of();
+        // spec 628 / T906：每连接并发上限（null = 不设）
+        private Integer perConnectionConcurrencyLimit;
         /** impl-50：close() 总预算（默认 35s≈grace+5s；超出放弃等待仅强杀日志留痕）。 */
         private Duration shutdownBudget = Duration.ofSeconds(35);
 
@@ -193,6 +199,12 @@ public final class McpModule implements AutoCloseable {
         /** impl-50：危险工具模式（glob，如 {@code *.delete*}）；经 registry.dangerousToolNames() 暴露。 */
         public Builder dangerousToolPatterns(java.util.List<String> patterns) {
             this.dangerousToolPatterns = patterns == null ? java.util.List.of() : patterns;
+            return this;
+        }
+
+        /** spec 628 / T906：每连接并发上限（null = 不设——零行为变化）。 */
+        public Builder perConnectionConcurrencyLimit(Integer limit) {
+            this.perConnectionConcurrencyLimit = limit;
             return this;
         }
 
