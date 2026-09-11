@@ -1689,3 +1689,7 @@
 - `EncryptedSessionExport`（510——age/OCI 加密 artifact：seal/open 封缄
   容器复用 333 EnvelopeCipher，AAD 用途域绑定防跨域剪贴，原语先行宿主组合）
 
+- SessionArchiver 完整性面（511——S3 checksum：写时 sha256 落独立
+  命名空间 `__buzhou.archive-checksum__` + verify 五态/verifyAll，
+  restore/purge/补偿级联清校验和；嵌套 `VerifyResult`/`VerifyState`）
+

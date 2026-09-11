@@ -33,6 +33,12 @@ public final class SessionArchiver {
     public static final String ARCHIVE_SESSION_ID = "__buzhou.archive__";
     /** 归档键前缀（健康面 countByPrefix 复用——spec 102 §A / T379）。 */
     public static final String ARCHIVE_PREFIX = "archive.";
+    /**
+     * spec 511 / T771：归档完整性校验和命名空间（独立 state id——不与
+     * {@code archive.} 前缀同域，countByPrefix/清单扫描语义不变；S3 checksum 思想）。
+     */
+    public static final String ARCHIVE_CHECKSUM_SESSION_ID = "__buzhou.archive-checksum__";
+    public static final String ARCHIVE_CHECKSUM_PREFIX = "checksum.";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -97,6 +103,11 @@ public final class SessionArchiver {
                                     stores.sessionStateStore().put(ARCHIVE_SESSION_ID,
                                             new StateEntry(ARCHIVE_PREFIX + sessionId, json,
                                                     "session-archiver", 0, null, Instant.now()));
+                                    // spec 511 / T771：完整性校验和随条目落盘（sha256 hex）
+                                    stores.sessionStateStore().put(ARCHIVE_CHECKSUM_SESSION_ID,
+                                            new StateEntry(ARCHIVE_CHECKSUM_PREFIX + sessionId,
+                                                    sha256Hex(json), "session-archiver", 0,
+                                                    null, Instant.now()));
                                     return entry;
                                 },
                                 written -> {
@@ -105,6 +116,8 @@ public final class SessionArchiver {
                                     }
                                     stores.sessionStateStore()
                                             .delete(ARCHIVE_SESSION_ID, ARCHIVE_PREFIX + sessionId);
+                                    stores.sessionStateStore()
+                                            .delete(ARCHIVE_CHECKSUM_SESSION_ID, ARCHIVE_CHECKSUM_PREFIX + sessionId);
                                 }),
                         io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.Step.of(
                                 "live-delete",
@@ -152,7 +165,68 @@ public final class SessionArchiver {
             stores.sessionStateStore().put(sessionId, state);
         }
         stores.sessionStateStore().delete(ARCHIVE_SESSION_ID, ARCHIVE_PREFIX + sessionId);
+        stores.sessionStateStore().delete(ARCHIVE_CHECKSUM_SESSION_ID, ARCHIVE_CHECKSUM_PREFIX + sessionId);
         return true;
+    }
+
+    /**
+     * spec 511 / T771：单会话归档完整性校验（S3 checksum 思想——可读≠未被
+     * 改）。NO_ARCHIVE=无归档；CORRUPT=JSON 不可解码；NO_CHECKSUM=存量归档
+     * （本特性前写入）；CHECKSUM_MISMATCH=内容与校验和不符（冷层被改/衰变）；
+     * OK=一致。
+     */
+    public VerifyResult verify(String sessionId) {
+        Optional<StateEntry> stored = stores.sessionStateStore()
+                .get(ARCHIVE_SESSION_ID, ARCHIVE_PREFIX + sessionId);
+        if (stored.isEmpty()) {
+            return new VerifyResult(sessionId, VerifyState.NO_ARCHIVE, null);
+        }
+        String json = stored.get().value();
+        try {
+            decode(json);
+        } catch (RuntimeException e) {
+            return new VerifyResult(sessionId, VerifyState.CORRUPT, null);
+        }
+        Optional<StateEntry> checksum = stores.sessionStateStore()
+                .get(ARCHIVE_CHECKSUM_SESSION_ID, ARCHIVE_CHECKSUM_PREFIX + sessionId);
+        if (checksum.isEmpty()) {
+            return new VerifyResult(sessionId, VerifyState.NO_CHECKSUM, null);
+        }
+        String expected = sha256Hex(json);
+        return expected.equals(checksum.get().value())
+                ? new VerifyResult(sessionId, VerifyState.OK, expected)
+                : new VerifyResult(sessionId, VerifyState.CHECKSUM_MISMATCH, checksum.get().value());
+    }
+
+    /** 全量校验（archived 清单序——校验面/健康面接用）。 */
+    public List<VerifyResult> verifyAll() {
+        List<VerifyResult> out = new ArrayList<>();
+        for (String sessionId : archived()) {
+            out.add(verify(sessionId));
+        }
+        return out;
+    }
+
+    /** 校验结论（detail = 记录在案的校验和值——MISMATCH 时可见冷层现值）。 */
+    public record VerifyResult(String sessionId, VerifyState state, String detail) {
+    }
+
+    /** 校验状态枚举。 */
+    public enum VerifyState { OK, CHECKSUM_MISMATCH, NO_CHECKSUM, CORRUPT, NO_ARCHIVE }
+
+    /** sha256 hex（spec 511 校验和口径）。 */
+    static String sha256Hex(String value) {
+        try {
+            byte[] hash = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(64);
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("SHA-256 不可用", e);
+        }
     }
 
     /** 归档清单（sessionId 字典序）。 */
@@ -184,6 +258,10 @@ public final class SessionArchiver {
             }
             if (entry.archivedAt().isBefore(cutoff)) {
                 stores.sessionStateStore().delete(ARCHIVE_SESSION_ID, e.getKey());
+                if (e.getKey().startsWith(ARCHIVE_PREFIX)) {
+                    stores.sessionStateStore().delete(ARCHIVE_CHECKSUM_SESSION_ID,
+                            ARCHIVE_CHECKSUM_PREFIX + e.getKey().substring(ARCHIVE_PREFIX.length()));
+                }
                 purged++;
             }
         }
