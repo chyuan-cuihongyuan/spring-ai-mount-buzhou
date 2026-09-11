@@ -378,6 +378,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 缓存与前缀 | 语义缓存维度漂移可见性 | 维度不匹配计数 + 首次 WARN——嵌入模型变更后命中率塌方不再静默（模型漂移监控惯例） | [spec 611](docs/spec/611-semantic-dimension-drift.md) |
 | 记忆治理 | 微压缩影子干跑 | 纯函数干跑不应用（会压哪些/省多少 + evictRatio 梯度调参表）——策略调参零风险（Istio mirroring 思想） | [spec 612](docs/spec/612-compaction-shadow-eval.md) |
 | 观测治理 | gzip 导出压缩档位 | 三个 gzip 导出面档位可配（-1 默认/[0,9]）——热导出省 CPU 冷归档求体积（nginx gzip_comp_level） | [spec 613](docs/spec/613-gzip-compression-level.md) |
+| 模型韧性 | GCRA yml 装配 | `rate-limit.smoothing: gcra` 三行声明平滑整形（spec 603 原语装配扩散；共享后端在场则共享语义优先） | [spec 614](docs/spec/614-gcra-assembly.md) |
 
 ## 快速开始
 

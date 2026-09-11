@@ -125,7 +125,25 @@ public record ResilienceProperties(
             @Min(value = 1, message = "rate-limit.requests-per-minute 必须 >= 1") Integer requestsPerMinute,
             @Min(value = 1, message = "rate-limit.tokens-per-minute 必须 >= 1") Integer tokensPerMinute,
             Duration queueTimeout,
-            String overloadPolicy) {
+            String overloadPolicy,
+            String smoothing,
+            Duration gcraBurstTolerance) {
+
+        /** 多构造绑定坑（R39 同法）：canonical 显式标注 @ConstructorBinding 供 yml 绑定。 */
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
+        public RateLimit {
+        }
+
+        /** 四参兼容构造（smoothing 默认令牌桶——既有装配零变化）。 */
+        public RateLimit(Integer requestsPerMinute, Integer tokensPerMinute,
+                Duration queueTimeout, String overloadPolicy) {
+            this(requestsPerMinute, tokensPerMinute, queueTimeout, overloadPolicy, null, null);
+        }
+
+        /** spec 614：是否声明 GCRA 平滑整形（{@code gcra}；null/空/token-bucket = 令牌桶缺省）。 */
+        public boolean isGcraSmoothing() {
+            return "gcra".equalsIgnoreCase(smoothing == null ? "" : smoothing.trim());
+        }
     }
 
     /**

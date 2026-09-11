@@ -75,6 +75,21 @@ class BuzhouResilienceAutoConfigurationTest {
         });
     }
 
+    /** spec 614 / T878：smoothing 与 gcra-burst-tolerance yml 绑定（多构造 record @ConstructorBinding）。 */
+    @Test
+    void rateLimitSmoothingYmlBinds() {
+        runner.withPropertyValues(
+                "buzhou.resilience.rate-limit.requests-per-minute=60",
+                "buzhou.resilience.rate-limit.smoothing=gcra",
+                "buzhou.resilience.rate-limit.gcra-burst-tolerance=5s"
+        ).run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.rateLimit()).isNotNull();
+            assertThat(props.rateLimit().isGcraSmoothing()).isTrue();
+            assertThat(props.rateLimit().gcraBurstTolerance()).isEqualTo(Duration.ofSeconds(5));
+        });
+    }
+
     // ---- 金丝雀 / shadow 配置绑定（spec 48 §B / 49 §A / T187 元数据入档） ----
 
     @Test
