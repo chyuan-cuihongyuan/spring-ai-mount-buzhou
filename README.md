@@ -380,6 +380,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 安全 | 会话导出脱敏 | sanitize 不可变副本——消息/摘要/state 三内容域占位符化（86 检测器+custom rules），结构字段原样；与 510 组合先脱敏再封缄=对外分享全链（Presidio anonymize） | [spec 518](docs/spec/518-export-sanitizer.md) |
 | 观测治理 | 工具调用图谱统计 | TOOL span 同轮相邻有向边计数+per-tool calls/errors/错误率排行——「哪些工具总被连着用」「哪个工具错误集中」有数据依据（LangSmith trace analytics） | [spec 519](docs/spec/519-tool-graph.md) |
 | 成本预算 | 评估 run 预算闸 | 逐项 input+expected 字符估算累计超限即早停——剩余项 error 三态 [RUN-BUDGET] 显式可见、run 照常落盘（partial 不冒充完整）；默认关（AWS Budgets/pytest maxfail） | [spec 520](docs/spec/520-eval-run-budget.md) |
+| 工程治理 | 装配绑定审计修复 | 409 result-schemas/406 deprecated/505 experiments 单 Map 组件 record 构造绑定在 prefix.组件名 子路径——根前缀 yml 绑空静默 no-op，统一改根绑定直读+内容非空回归断言（R31 发现的系统性坑） | [spec 531](docs/spec/531-assembly-binding-audit.md) |
 | 成本预算 | per-model 预算闸 | ModelCostLedger 记账面 vs yml per-model 预算（microUsd）——耗尽 beforeModel 拦截（结构化告示带修法），以记账面为准未喂账恒放行，map 非空才装配 | [spec 530](docs/spec/530-model-budget-gate.md) |
 | MCP 韧性 | MCP 建连退避重试 | 建连失败按指数退避重排（base×2^n 封顶 60s、重试耗尽收口既有失败语义）——server 暂时不可达自愈而非刷新前永久缺席，yml `connect-retry` 声明即启用（Resilience4j retry） | [spec 524](docs/spec/524-connect-retry.md) |
 | 评测 | 评估集合成扩增 | 种子用例→LLM 生成 N 条同语义改写候选（围栏剥离+逐行容错+零可解析异常带预览）——人审教义只产候选不入库（Ragas testset generation） | [spec 525](docs/spec/525-case-amplifier.md) |

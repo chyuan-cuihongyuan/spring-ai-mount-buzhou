@@ -1770,3 +1770,7 @@
   vs `buzhou.budget.model-budget.<model>` 预算，耗尽 beforeModel 拦截，
   map 非空才装配，未喂账恒放行）
 
+- 装配绑定审计修复（531——409 result-schemas/406 deprecated/505
+  experiments 单 Map 组件 record 构造绑定 prefix.<组件名> 子路径致根
+  yml 绑空静默 no-op；统一改根绑定直读+内容非空回归断言）
+
