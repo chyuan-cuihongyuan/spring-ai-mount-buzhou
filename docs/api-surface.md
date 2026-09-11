@@ -1705,3 +1705,7 @@
   成功投递时延滚动窗 exact 最近秩 p50/p95/p99 零样本 null，forwarder
   setDeliveryLatency setter 接线默认 null 零变化）
 
+- `ContentModerationHook`（嵌套 `Action`）（515——OpenAI moderation
+  本地词表面：违禁词 contains 双缝过滤 BLOCK/MASK，命中计数分缝有界，
+  `buzhou.guard.moderation` 默认关）
+
