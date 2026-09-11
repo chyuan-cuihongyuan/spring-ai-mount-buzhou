@@ -12,6 +12,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnPriority
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostForecast
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ElasticBudgetPool
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedgerJsonl
@@ -51,6 +52,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationE
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreAutoConfiguration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCostForecastProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCostSpikeProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouErrorSamplingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouEvalSamplingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouExperimentProperties

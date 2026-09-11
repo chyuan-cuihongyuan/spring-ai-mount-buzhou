@@ -372,6 +372,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 评测 | 在线实验分桶 | `buzhou.experiments.<exp>.<variant>` 权重声明——session 确定性分桶（sha256 mod100+字典序累积，跨实例零协调）+未入组余量+曝光计数（GrowthBook/Statsig） | [spec 505](docs/spec/505-experiment-buckets.md) |
 | 护栏 | 工具入参限幅 | 执行前体积门（31 结果限幅的入站对称面）——超限拒绝回喂结构化反馈（不回显入参）引导精简重试、per-tool glob 覆盖、默认关 opt-in（nginx client_max_body_size） | [spec 506](docs/spec/506-tool-input-limit.md) |
 | 安全 | 可逆 PII 代管库 | vaultize/restore 对称原语（稳定令牌 sha256|salt 前 16hex 去重+TTL+有界+fail-safe 保留过期令牌）——「展示层脱敏、服务端留原值」授权回显工作流（Presidio Vault） | [spec 507](docs/spec/507-pii-vault.md) |
+| 成本预算 | 成本异常尖峰检测 | 滚动基线 z-score（当前分钟桶 vs 前 N 桶均/标差）+绝对地板+minSamples+cooldown 防抖——费率在预算内但相对自身基线突刺可见（与 403 forecast 互补：趋势 vs 突刺，Prometheus/Istio） | [spec 508](docs/spec/508-cost-spike.md) |
 
 ## 快速开始
 

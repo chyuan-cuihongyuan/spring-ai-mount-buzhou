@@ -279,6 +279,7 @@
 | #505 | 在线实验分桶 | [maps/effort-505.md](maps/effort-505.md) | T761–T762 | 408 |
 | #506 | 工具入参限幅 | [maps/effort-506.md](maps/effort-506.md) | T763–T764 | 409 |
 | #507 | 可逆 PII 代管库 | [maps/effort-507.md](maps/effort-507.md) | T765–T766 | 410 |
+| #508 | 成本异常尖峰检测 | [maps/effort-508.md](maps/effort-508.md) | T767–T768 | 411 |
 
 ## 跨 effort 悬留
 

@@ -1677,3 +1677,8 @@
   代管库原语 vaultize/restore 稳定令牌 sha256|salt 去重+TTL+有界 fail-safe，
   `buzhou.guard.pii.vault.enabled` 默认关；hook 自动接线留扩散）
 
+- `CostSpikeDetector`（嵌套 `SpikeEvent`）+ `BuzhouCostSpikeProperties`
+  （508——Prometheus/Istio 滚动基线 z-score：当前分钟桶 vs 前 N 桶突刺
+  +地板+minSamples+cooldown 防抖，ModelCostLedger 监听喂数 403 同缝，
+  enabled=true 才装配）
+

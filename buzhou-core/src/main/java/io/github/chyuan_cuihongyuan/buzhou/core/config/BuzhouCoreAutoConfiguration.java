@@ -55,6 +55,7 @@ import java.util.List;
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
         BuzhouPromptUsageProperties.class, BuzhouTurnRateLimitProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
+        BuzhouCostSpikeProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
         BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class,
@@ -813,6 +814,35 @@ public class BuzhouCoreAutoConfiguration {
                 .addListener(cost -> ring.record(cost.microUsd()));
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth(
                 ring, properties.window(), properties.horizon(), properties.budgetMicroUsd());
+    }
+
+    /**
+     * spec 508 / T767：成本异常尖峰检测（Prometheus/Istio 滚动基线 z-score——
+     * 与 403 forecast 互补：趋势 vs 突刺）。enabled=true 装配：监听
+     * ModelCostLedger 全局记账单点喂数（403 同缝）；只检测不拦截。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.spike", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector
+    buzhouCostSpikeDetector(BuzhouCostSpikeProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing ring =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing(
+                        properties.baselineBuckets() + 2, java.time.Clock.systemUTC());
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector detector =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector(
+                        ring, properties.baselineBuckets(), properties.minSamples(),
+                        properties.zThreshold(), properties.floorMicroUsd(),
+                        properties.cooldown(), java.time.Clock.systemUTC());
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger.global()
+                .addListener(cost -> {
+                    try {
+                        detector.record(cost.microUsd());
+                    } catch (RuntimeException ignored) {
+                        // 喂数隔离——记账路径不因检测面异常中断
+                    }
+                });
+        return detector;
     }
 
     /**
