@@ -46,6 +46,7 @@
 | 17 | 技能目录清单指纹 | sigstore/cosign 清单 | T882–T883 | 469 | 616 | ✅ |
 | 18 | 技能目录漂移看门狗 + 616 diff 方向修正 + outbox lag 毫秒竞态修复 | spec 201 镜像 | T884–T885 | 470 | 617 | ✅ |
 | 19 | MCP 注解聚入健康面 | spec 600 扩散 | T886–T887 | 471 | 618 | ✅ |
+| 20 | spill 预览头尾语义 | ripgrep context | T888–T889 | 472 | 619 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 
