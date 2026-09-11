@@ -100,6 +100,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.AbRunJsonlExporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.BuiltInEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetExpectations
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalCaseAmplifier
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetCsv
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetMeta
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalFlakinessDetector
@@ -195,6 +196,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.WatermarkHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ContextWatermarkHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain

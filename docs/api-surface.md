@@ -1756,3 +1756,6 @@
   为 context-watermark 机制健康面（低水位会话数≥阈值 DOWN），312 规则
   按机制名可订阅）
 
+- `EvalDatasetCsv`（527——LangSmith/HF datasets CSV 互操作：RFC 4180
+  toCsv/fromCsv 往返+表头宽松校验+Writer 导出，纯内存行表）
+
