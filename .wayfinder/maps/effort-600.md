@@ -48,6 +48,7 @@
 | 19 | MCP 注解聚入健康面 | spec 600 扩散 | T886–T887 | 471 | 618 | ✅ |
 | 20 | spill 预览头尾语义 | ripgrep context | T888–T889 | 472 | 619 | ✅ |
 | 21 | 熔断时间窗衰减 | resilience4j TIME-based | T890–T891 | 473 | 620 | ✅ |
+| 22 | 导出打包落盘持久档 | sqlite WAL 同步档位 | T892–T893 | 474 | 621 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 
