@@ -30,7 +30,8 @@ import java.util.Map;
 @ConditionalOnProperty(prefix = "buzhou.resilience", name = "enabled", matchIfMissing = true)
 @EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties.class,
-        BuzhouModelConcurrencyProperties.class})
+        BuzhouModelConcurrencyProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.BuzhouIdempotencyProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean
@@ -96,6 +97,53 @@ public class BuzhouResilienceAutoConfiguration {
                                 org.springframework.boot.context.properties.bind.Bindable
                                         .mapOf(String.class, Integer.class))
                         .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 501 / T753：请求幂等键（Stripe Idempotency-Key 借鉴——客户端超时
+     * 重试同键重入重放首次终态响应，不二次真调二次计费）。存储复用
+     * ResponseCacheStore（LRU+TTL+计数自带）；键缺席=透传零行为；
+     * {@code buzhou.resilience.idempotency.enabled=true} 显式开启才装配。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.IdempotencyPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
+    buzhouIdempotencyStore(io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency
+            .BuzhouIdempotencyProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore(
+                properties.maxEntries(), properties.ttl());
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.IdempotencyPresentCondition.class)
+    public RuntimeConfig idempotencyRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
+                    buzhouIdempotencyStore) {
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addAdvisor(
+                        new io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency
+                                .IdempotencyAdvisor(buzhouIdempotencyStore))),
+                null);
+    }
+
+    /** spec 501：enabled=true 才装配（Binder 预绑判定——426 同法）。 */
+    static final class IdempotencyPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.resilience.idempotency.enabled", Boolean.class)
+                        .map(Boolean::booleanValue).orElse(false);
             } catch (Exception e) {
                 return false;
             }

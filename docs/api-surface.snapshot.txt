@@ -556,6 +556,8 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.Hedged
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.BuzhouIdempotencyProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.IdempotencyAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMemoryRateLimitBackend
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException

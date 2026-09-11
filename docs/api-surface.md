@@ -1640,3 +1640,11 @@
 - `PiiStreamRedactionHook`（500——Presidio 流式匿名化+流式 WAF 回看窗口：
   模型回复出站第三缝，滑动窗口跨 chunk 实体不漏、占位符不拆分、flush 排空；
   `buzhou.guard.pii.reply-redaction`/`reply-window` yml，默认关）
+
+**buzhou-resilience**
+
+- `IdempotencyAdvisor` + `BuzhouIdempotencyProperties`（501——Stripe
+  Idempotency-Key：advisor 参数 `buzhou.idempotency-key` 同键重入重放首次
+  终态响应（复用 ResponseCacheStore/isTerminal），链序 +440 在 response-cache
+  外；enabled=true 才装配，键缺席透传零行为）
+
