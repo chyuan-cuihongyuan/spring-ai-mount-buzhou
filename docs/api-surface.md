@@ -1673,3 +1673,7 @@
   client_max_body_size：31 结果限幅的入站对称面，超限拒绝回喂结构化反馈
   不回显入参+glob per-tool 覆盖，默认 -1 零行为变化 opt-in）
 
+- `PiiVault` + `BuzhouPiiVaultProperties`（507——Presidio Vault：可逆 PII
+  代管库原语 vaultize/restore 稳定令牌 sha256|salt 去重+TTL+有界 fail-safe，
+  `buzhou.guard.pii.vault.enabled` 默认关；hook 自动接线留扩散）
+
