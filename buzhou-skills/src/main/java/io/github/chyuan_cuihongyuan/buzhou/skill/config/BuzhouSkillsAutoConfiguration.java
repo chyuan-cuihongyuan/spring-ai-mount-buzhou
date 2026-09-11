@@ -59,7 +59,13 @@ public class BuzhouSkillsAutoConfiguration {
 
     @Bean
     public SkillCatalogRenderer skillCatalogRenderer(SkillModule module) {
-        return module.catalogRenderer();
+        // spec 629 / T908：漂移看门狗搭渲染节拍（617 接线——零调度；漂移即 WARN + 计数）
+        io.github.chyuan_cuihongyuan.buzhou.skill.SkillCatalogDriftWatcher watcher =
+                new io.github.chyuan_cuihongyuan.buzhou.skill.SkillCatalogDriftWatcher(payload ->
+                        System.getLogger(BuzhouSkillsAutoConfiguration.class.getName()).log(
+                                System.Logger.Level.WARNING,
+                                "技能目录漂移（skill.catalog.drifted）：{0}", payload));
+        return module.catalogRendererWithDriftWatcher(watcher);
     }
 
     @Bean

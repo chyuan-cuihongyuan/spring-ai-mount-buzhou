@@ -35,6 +35,10 @@ public final class SkillModule {
     private final boolean enabled;
     private final SkillRegistry registry;
     private final SkillCatalogRenderer catalogRenderer;
+    /** spec 629 / T908：渲染器重建用（watcher 变体共享同一 ranker）。 */
+    private final SemanticSkillRanker ranker;
+    /** spec 629 / T908：渲染器重建用（目录预算同档）。 */
+    private final int catalogMaxEntries;
     private final LoadSkillTool loadSkillTool;
     private final SkillSearchTool skillSearchTool;
     private final SkillResourceResolver resourceResolver;
@@ -66,6 +70,8 @@ public final class SkillModule {
             }
             ranker = new SemanticSkillRanker(builder.embeddingModel);
         }
+        this.ranker = ranker;
+        this.catalogMaxEntries = builder.catalogMaxEntries;
         this.catalogRenderer = new SkillCatalogRendererImpl(bindingIndex, registry, ranker,
                 builder.catalogMaxEntries);
         this.loadSkillTool = new LoadSkillTool(registry, bindingIndex);
@@ -101,6 +107,16 @@ public final class SkillModule {
     /** 清单渲染器（供 memory 注入）；模块禁用时返回 null。 */
     public SkillCatalogRenderer catalogRenderer() {
         return enabled ? catalogRenderer : null;
+    }
+
+    /**
+     * spec 629 / T908：带目录漂移看门狗的清单渲染器（watcher 搭渲染节拍巡查——
+     * 617 接线；模块禁用返回 null 同 catalogRenderer）。
+     */
+    public SkillCatalogRenderer catalogRendererWithDriftWatcher(
+            SkillCatalogDriftWatcher watcher) {
+        return enabled ? new SkillCatalogRendererImpl(bindingIndex, registry, ranker,
+                catalogMaxEntries, watcher) : null;
     }
 
     /**
