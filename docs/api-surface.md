@@ -1693,3 +1693,7 @@
   命名空间 `__buzhou.archive-checksum__` + verify 五态/verifyAll，
   restore/purge/补偿级联清校验和；嵌套 `VerifyResult`/`VerifyState`）
 
+- `PromptTemplate`（嵌套 `ValidationResult`）（512——Jinja2
+  StrictUndefined：{{var}} 抽取/严格渲染缺失一次列全/未闭合语法错/
+  预检面；与 401 注册表组合消费）
+
