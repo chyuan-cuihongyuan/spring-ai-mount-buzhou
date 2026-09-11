@@ -1744,3 +1744,7 @@
   失败轮复现最小集快照（错误类/消息截断/输入预览），SessionObserver 缝
   423 同法，环形 128+JSONL 导出）
 
+- DefaultMcpClientRegistry `ConnectRetryPolicy`（524——Resilience4j retry
+  指数退避：建连失败 base×2^n 封顶 60s 重排、耗尽收口既有失败语义，
+  `buzhou.mcp.connect-retry` 声明即启用）
+

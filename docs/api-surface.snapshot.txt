@@ -162,6 +162,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.PostmortemBundle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFact
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore
@@ -243,6 +244,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersion
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.FailureTurnSnapshots
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry
