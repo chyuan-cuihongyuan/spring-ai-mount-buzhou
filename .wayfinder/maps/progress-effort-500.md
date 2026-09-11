@@ -77,4 +77,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 18 | #517 | 517 | T785-786 | 420 | 记忆压缩率分布观测（204 分布化；416 同法） | fa9ae86 |
 | 19 | #518 | 518 | T787-788 | 421 | 会话导出脱敏（Presidio anonymize；28×86 组合） | 0796cdc |
 | 20 | #519 | 519 | T789-790 | 422 | 工具调用图谱统计（LangSmith trace analytics） | b1aac28 |
-| 21 | #520 | 520 | T791-792 | 423 | 评估 run 预算闸（AWS Budgets/pytest maxfail 早停） | （R21 提交后回填） |
+| 21 | #520 | 520 | T791-792 | 423 | 评估 run 预算闸（AWS Budgets/pytest maxfail 早停） | 68b7fb9 |
+| 22 | #521 | 521 | T793-794 | 424 | 事故复盘一键包（317 ExportBundle 事故域组合） | （R22 提交后回填） |

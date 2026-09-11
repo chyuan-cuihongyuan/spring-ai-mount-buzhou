@@ -1733,3 +1733,6 @@
   `setRunBudgetChars` 逐项估算累计超限早停，剩余项 error [RUN-BUDGET]
   三态显式 partial；0=关零行为变化）
 
+- `PostmortemBundle`（521——317 ExportBundle 事故域预设组合：时间线/
+  错误签名/成本双维 rollup 标准 ZIP+summary 汇总，源缺席跳过）
+
