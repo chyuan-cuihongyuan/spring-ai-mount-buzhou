@@ -382,6 +382,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程治理 | API 快照门硬化 | regenerate 门控为显式维护操作——比对从「恒自愈」变真门（测试副作用吃掉自身断言的治理） | [spec 615](docs/spec/615-api-snapshot-gate-hardening.md) |
 | Skill 体系 | 技能目录清单指纹 | per 技能 sha256(description\|allowedTools) + 摘要 + 三分类对账——目录漂移可审计（cosign 清单思想；spec 175 的 skills 镜像） | [spec 616](docs/spec/616-skill-catalog-fingerprint.md) |
 | Skill 体系 | 技能目录漂移看门狗 | 首拍建基线、漂移即 `skill.catalog.drifted` 事件 + 基线推进（spec 201 的 skills 镜像；含 616 diff 方向对齐修正） | [spec 617](docs/spec/617-skill-catalog-drift-watcher.md) |
+| MCP 治理 | 注解聚入健康面 | `selfReportedDestructiveToolCount` 进 MCP 健康快照——自报危险与客户端认定危险两数对照可见（spec 600 扩散） | [spec 618](docs/spec/618-mcp-hints-health.md) |
 
 ## 快速开始
 

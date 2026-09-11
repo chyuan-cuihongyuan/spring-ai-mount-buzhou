@@ -69,7 +69,18 @@ public class BuzhouMcpHealthAutoConfiguration {
             details.put("activeConnections", registry.activeConnections());
             details.put("drainingConnections", registry.drainingConnections());
             details.put("dangerousToolCount", registry.dangerousToolNames().size());
+            // spec 618 / T886：注解观测面进健康快照——server 自报 destructive 工具数
+            //（观测口径非裁决：与 dangerousToolCount 的客户端风险分类分列，两数对照即
+            //「自报危险 vs 客户端认定危险」的差异可见）
+            details.put("selfReportedDestructiveToolCount", countSelfReportedDestructive());
             return details;
+        }
+
+        private long countSelfReportedDestructive() {
+            return registry.toolHints().values().stream()
+                    .flatMap(m -> m.values().stream())
+                    .filter(io.github.chyuan_cuihongyuan.buzhou.mcp.McpToolHints::destructiveHint)
+                    .count();
         }
     }
 }
