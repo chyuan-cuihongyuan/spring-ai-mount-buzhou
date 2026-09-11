@@ -75,6 +75,18 @@ class BuzhouResilienceAutoConfigurationTest {
         });
     }
 
+    /** spec 620 / T916 补验：circuit.time-window yml 绑定（多构造 record canonical 已标注）。 */
+    @Test
+    void circuitTimeWindowYmlBinds() {
+        runner.withPropertyValues(
+                "buzhou.resilience.circuit.time-window=90s"
+        ).run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.circuit()).isNotNull();
+            assertThat(props.circuit().timeWindow()).isEqualTo(Duration.ofMinutes(1).plusSeconds(30));
+        });
+    }
+
     /** spec 614 / T878：smoothing 与 gcra-burst-tolerance yml 绑定（多构造 record @ConstructorBinding）。 */
     @Test
     void rateLimitSmoothingYmlBinds() {

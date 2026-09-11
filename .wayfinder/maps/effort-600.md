@@ -60,6 +60,7 @@
 | 31 | 混合排序装配（SkillRanker 抽取） | spec 605 扩散 | T910–T911 | 483 | 630 | ✅ |
 | 32 | 会话索引 keyset 游标分页 | postgres keyset 惯例 | T912–T913 | 484 | 631 | ✅ |
 | 33 | 停机排水取消原因 E2E | spec 606 补验 | T914–T915 | 485 | 632 | ✅ |
+| 34 | panic/时间窗补验双小件 | spec 601/620 补齐 | T916–T917 | 486 | 633 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

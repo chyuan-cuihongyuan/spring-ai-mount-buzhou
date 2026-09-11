@@ -74,7 +74,7 @@ class ModelOutlierEjectionPanicTest {
         assertThat(out.stream().map(NamedFallbackModel::name)).containsExactly("b", "c");
     }
 
-    /** 4 选 4 逐 + panic=50：健康 0 < 2 → 恐慌返回全量。 */
+    /** 4 选 4 逐 + panic=50：健康 0 < 2 → 恐慌返回全量 + panicActivations 计数可见。 */
     @Test
     void panicWhenHealthyBelowThreshold() {
         ModelOutlierEjection ejection = new ModelOutlierEjection(fast(50), null);
@@ -82,6 +82,7 @@ class ModelOutlierEjectionPanicTest {
 
         List<NamedFallbackModel> candidates = List.of(model("a"), model("b"), model("c"), model("d"));
         assertThat(ejection.filter(candidates)).hasSize(4);
+        assertThat(ejection.panicActivations()).isEqualTo(1); // spec 633：观测面可读
     }
 
     /** 恰在阈值（1/2 健康，pct=50）不恐慌：严格低于才触发。 */

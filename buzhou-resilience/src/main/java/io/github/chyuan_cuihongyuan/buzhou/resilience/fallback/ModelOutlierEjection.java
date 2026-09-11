@@ -129,6 +129,7 @@ public final class ModelOutlierEjection {
         int minHealthy = minHealthyCount(candidates.size());
         if (minHealthy > 0 && healthy.size() < minHealthy) {
             BuzhouMetricsHolder.metrics().counter(PANIC_COUNTER, 1);
+            panicActivations.incrementAndGet();
             LOGGER.log(System.Logger.Level.WARNING,
                     "离群驱逐恐慌模式：健康候选 " + healthy.size() + "/" + candidates.size()
                             + " 低于阈值 " + minHealthy + "（panicThresholdPercent="
@@ -144,6 +145,15 @@ public final class ModelOutlierEjection {
             return 0;
         }
         return (candidateCount * config.panicThresholdPercent() + PERCENT_SCALE - 1) / PERCENT_SCALE;
+    }
+
+    /** spec 633 / T916：恐慌激活累计（观测面——非零持续增长 = 备选池常年低于恐慌线）。 */
+    private final java.util.concurrent.atomic.AtomicLong panicActivations =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 恐慌激活累计（观测面）。 */
+    public long panicActivations() {
+        return panicActivations.get();
     }
 
     /** 当前被逐名单（观测面，稳定序）。 */

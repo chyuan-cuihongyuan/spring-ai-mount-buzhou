@@ -397,6 +397,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | Skill 体系 | 混合排序装配 | `hybrid-ranking.enabled` 声明即 RRF 融合（SkillRanker 接口抽取双实现互换——spec 605 扩散） | [spec 630](docs/spec/630-hybrid-ranking-assembly.md) |
 | 会话索引 | keyset 游标分页 | 行序键锚定翻页——活跃索引不跳行不重行（三实现规范序统一；Redis 平局序偏差一并收口） | [spec 631](docs/spec/631-session-index-keyset.md) |
 | 会话治理 | 排水取消原因 E2E | 停机对在途会话的 session.cancelled {SHUTDOWN_DRAIN} 真路径钉住（spec 606 补验） | [spec 632](docs/spec/632-drain-cause-e2e.md) |
+| 模型韧性 | panic/时间窗补验 | panicActivations() 编程可读面 + time-window yml 绑定用例（spec 601/620 补齐） | [spec 633](docs/spec/633-resilience-obs-gap.md) |
 
 ## 快速开始
 
