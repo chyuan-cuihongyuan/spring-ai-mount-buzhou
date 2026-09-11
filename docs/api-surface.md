@@ -1789,3 +1789,6 @@
   滑动窗口跨 chunk 密钥不漏，复用 SecretScanner，500 SPI 第二消费者
   组合性证明，`secrets.stream-redaction` 默认关）
 
+- 死信原因分类计数（537——`buzhou.webhook.dead-reason` tag reason
+  有界（4xx|重试耗尽），治理动作分流；无新类型）
+

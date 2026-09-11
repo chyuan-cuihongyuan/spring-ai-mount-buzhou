@@ -225,6 +225,9 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         deadLettered.incrementAndGet();
         BuzhouMetricsHolder.metrics().counter("buzhou.webhook.failures");
         BuzhouMetricsHolder.metrics().counter("buzhou.webhook.dead-letter");
+        // spec 537 / T827：死信原因分类计数（有界 reason 集——4xx/重试耗尽）
+        BuzhouMetricsHolder.metrics().counter("buzhou.webhook.dead-reason",
+                "reason", reason.startsWith("4xx") ? "4xx" : reason);
         LOGGER.log(System.Logger.Level.ERROR, "webhook 事件进死信（" + reason + "，attempts="
                 + totalAttempts + "）：eventId=" + record.eventId() + " url=" + props.url());
     }
