@@ -11,6 +11,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class DefaultFactStoreTest {
 
+    /** spec 604 / T858：confidence 随信封往返；旧信封（无 confidence 字段）兼容读 1.0。 */
+    @Test
+    void confidenceRoundTripsAndLegacyEnvelopeDefaults() {
+        InMemorySessionStateStore state = new InMemorySessionStateStore();
+        FactStore store = new DefaultFactStore(state);
+        store.save("s1", new Fact(Fact.keyFor("p", "c"), "v", "p", 1, 5, 0.6));
+        assertThat(store.activeFacts("s1", 1).get(0).confidence()).isEqualTo(0.6);
+
+        // 手写旧格式信封（无 confidence）——历史事实不受影响
+        state.put("s1", new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                "fact.p.old", "{\"value\":\"v\",\"producer\":\"p\",\"createdTurn\":1,\"ttl\":5}",
+                "p", 1, 5, java.time.Instant.now()));
+        assertThat(store.activeFacts("s1", 1)).anyMatch(f -> f.confidence() == 1.0);
+    }
+
     @Test
     void saveAndRetrieveActiveFact() {
         FactStore store = new DefaultFactStore(new InMemorySessionStateStore());

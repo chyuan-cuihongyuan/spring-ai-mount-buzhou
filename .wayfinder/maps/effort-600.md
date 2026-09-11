@@ -31,6 +31,7 @@
 | 2 | 模型离群驱逐恐慌阈值 | envoy/outlier_detection | T852–T853 | 454 | 601 | ✅ |
 | 3 | fork 谱系（span-links 思想关联面） | open-telemetry spec links | T854–T855 | 455 | 602 | ✅ |
 | 4 | GCRA 平滑限流后端 | redis-cell / envoy GCRA | T856–T857 | 456 | 603 | ✅ |
+| 5 | 事实置信度衰减 | letta-ai/letta memory | T858–T859 | 457 | 604 | ✅ |
 
 （4–50 轮主题自雾区顺延；每轮补行。）
 

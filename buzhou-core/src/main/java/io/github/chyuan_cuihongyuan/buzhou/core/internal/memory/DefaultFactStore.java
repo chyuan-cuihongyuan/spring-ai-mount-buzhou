@@ -44,6 +44,7 @@ public class DefaultFactStore implements FactStore {
         envelope.put("producer", fact.producer());
         envelope.put("createdTurn", fact.createdTurn());
         envelope.put("ttl", fact.ttl());
+        envelope.put("confidence", fact.confidence());
         try {
             String json = MAPPER.writeValueAsString(envelope);
             stateStore.put(sessionId, new StateEntry(key, json, fact.producer(),
@@ -92,7 +93,9 @@ public class DefaultFactStore implements FactStore {
             int createdTurn = envelope.get("createdTurn") instanceof Number n ? n.intValue() : entry.createdTurn();
             int ttl = envelope.get("ttl") instanceof Number n ? n.intValue()
                     : (entry.ttlTurns() == null ? 1 : entry.ttlTurns());
-            return new Fact(entry.key(), value, producer, createdTurn, ttl);
+            // spec 604：旧信封无 confidence → 1.0（兼容读取，历史事实不受衰减影响）
+            double confidence = envelope.get("confidence") instanceof Number n ? n.doubleValue() : 1.0;
+            return new Fact(entry.key(), value, producer, createdTurn, ttl, confidence);
         } catch (Exception e) {
             // ticket 29 日志基线：信封解析失败静默退化改为可见告警（value 按原始字符串退化读取）
             LOG.warn("事实信封反序列化失败，按原始字符串退化读取：key={}", entry.key(), e);
