@@ -28,6 +28,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsck
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreIntegrityReport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AdaptiveBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead
@@ -57,6 +58,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCostSpikePrope
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouErrorSamplingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouEvalSamplingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouExperimentProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouFsckProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouHealthTimelineProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLatencySloProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases

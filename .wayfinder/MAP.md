@@ -305,6 +305,7 @@
 | #534 | 提示词版本行级 diff | [maps/effort-534.md](maps/effort-534.md) | T821–822 | 436 |
 | #536 | 流式回复秘密扫描 | [maps/effort-536.md](maps/effort-536.md) | T825–826 | 438 |
 | #537 | 死信原因分类计数 | [maps/effort-537.md](maps/effort-537.md) | T827–828 | 438 |
+| #538 | store fsck 定时巡检 | [maps/effort-538.md](maps/effort-538.md) | T829–830 | 439 |
 | #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
 | #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |

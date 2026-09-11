@@ -57,6 +57,7 @@ import java.util.List;
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouCostSpikeProperties.class,
         BuzhouLatencySloProperties.class,
+        BuzhouFsckProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
         BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class,
@@ -1956,6 +1957,40 @@ public class BuzhouCoreAutoConfiguration {
      * 默认关——删除动作必须显式开启；开启后单线程 scheduleWithFixedDelay 兑现
      * purgeTtl；多实例各跑一份，幂等无害）。
      */
+    /**
+     * spec 538 / T827：store fsck 定时巡检（341 选主扩散第三弹——对账面从
+     * 手工触发升级定时巡检）。{@code buzhou.fsck.enabled=true} 装配；只读
+     * 巡检不自动修复（repair 仍归手工面）；elector 缺席 = 无门单实例跑。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.FsckPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper
+    buzhouStoreFsckHousekeeper(
+            BuzhouStores stores,
+            BuzhouFsckProperties fsck,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector> leaderElector) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper(
+                stores, leaderElector.getIfAvailable(), fsck.interval());
+    }
+
+    /** spec 538：enabled=true 才装配（Binder 预绑判定——426 同法）。 */
+    static final class FsckPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.fsck.enabled", Boolean.class)
+                        .map(Boolean::booleanValue).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(prefix = "buzhou.session-archive", name = "purge-enabled",
             havingValue = "true")

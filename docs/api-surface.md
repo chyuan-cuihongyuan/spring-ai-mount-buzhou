@@ -1792,3 +1792,7 @@
 - 死信原因分类计数（537——`buzhou.webhook.dead-reason` tag reason
   有界（4xx|重试耗尽），治理动作分流；无新类型）
 
+- `StoreFsckHousekeeper` + `BuzhouFsckProperties`（538——341 选主扩散：
+  StoreFsck 只读对账定时化，findings WARN+计数不自动修复，
+  `buzhou.fsck.enabled` 默认关）
+
