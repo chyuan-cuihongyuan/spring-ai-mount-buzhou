@@ -21,6 +21,7 @@
 - [MCP 工具注解以观测面暴露并纳入漂移口径](../tickets/T851-mcp-tool-hints.md) — 注解=buzhou 自有 record 观测快照+同名注解翻转独立事件 `mcp.tool-hints-drift`；不做护栏裁决（不信任 server 自报元数据的既有决策不变）。
 - [离群驱逐恐慌阈值的形态与默认值](../tickets/T852-outlier-panic-shape.md) — 取 panic（过滤侧忽略驱逐）不取比例上限；默认 0=关零行为变化；ceil 取整、严格低于才触发。
 - [fork 谱系的落点](../tickets/T854-fork-lineage-shape.md) — OTel span-links 思想落为 state+事件（`buzhou.fork.source` + copy 计数），不造伪 span 谱系；两 fork 入口都写。
+- [GCRA 后端的算法映射](../tickets/T856-gcra-backend-shape.md) — TAT 映射 RateLimitBackend SPI；opt-in 默认 β=0 严格平滑；available = 此刻可连发数。
 
 ## 50 轮台账
 
@@ -29,6 +30,7 @@
 | 1 | MCP 工具注解观测面 + 注解漂移 | modelcontextprotocol/spec | T851 | 453 | 600 | ✅ |
 | 2 | 模型离群驱逐恐慌阈值 | envoy/outlier_detection | T852–T853 | 454 | 601 | ✅ |
 | 3 | fork 谱系（span-links 思想关联面） | open-telemetry spec links | T854–T855 | 455 | 602 | ✅ |
+| 4 | GCRA 平滑限流后端 | redis-cell / envoy GCRA | T856–T857 | 456 | 603 | ✅ |
 
 （4–50 轮主题自雾区顺延；每轮补行。）
 

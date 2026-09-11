@@ -367,6 +367,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | MCP 治理 | 工具注解观测面 + 注解漂移 | server 自报 readOnly/destructive hint 入目录快照，同名注解翻转独立告警（MCP 规范 annotations；观测口径不裁决危险性） | [spec 600](docs/spec/600-mcp-tool-hints.md) |
 | 模型韧性 | 离群驱逐恐慌阈值 | 健康候选跌破占比阈值即忽略驱逐返回全量——全逐比试坏端点更糟（Envoy panic threshold；默认 0=关） | [spec 601](docs/spec/601-outlier-panic-threshold.md) |
 | 会话分支 | fork 谱系 | 子会话 state 带 `buzhou.fork.source` 指向源会话、事件带 copy 计数——排障/策略/导出可查「fork 自谁」（OTel span-links 思想的关联面落地） | [spec 602](docs/spec/602-fork-lineage.md) |
+| 模型韧性 | GCRA 平滑限流后端 | TAT 匀速整形（默认 β=0 无突发，每 60/容量 秒放行）——突发即 429 的供应商场景 opt-in（redis-cell / Envoy GCRA） | [spec 603](docs/spec/603-gcra-rate-limit-backend.md) |
 
 ## 快速开始
 
