@@ -18,6 +18,9 @@ public final class DecayingFactStore implements FactStore {
 
     private final FactStore delegate;
     private final FactDecayPolicy policy;
+    /** spec 636 / T922：被衰减过滤的事实累计（观测面——非零增长 = 衰减在起作用的可编程信号）。 */
+    private final java.util.concurrent.atomic.AtomicLong filteredCount =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public DecayingFactStore(FactStore delegate, FactDecayPolicy policy) {
         if (delegate == null) {
@@ -40,8 +43,20 @@ public final class DecayingFactStore implements FactStore {
     @Override
     public List<Fact> activeFacts(String sessionId, int currentTurn) {
         return delegate.activeFacts(sessionId, currentTurn).stream()
-                .filter(fact -> policy.injectable(fact.confidence(), currentTurn - fact.createdTurn()))
+                .filter(fact -> {
+                    boolean injectable = policy.injectable(fact.confidence(),
+                            currentTurn - fact.createdTurn());
+                    if (!injectable) {
+                        filteredCount.incrementAndGet(); // spec 636：衰减过滤可观测
+                    }
+                    return injectable;
+                })
                 .toList();
+    }
+
+    /** spec 636：被衰减过滤的事实累计（观测面）。 */
+    public long filteredCount() {
+        return filteredCount.get();
     }
 
     @Override

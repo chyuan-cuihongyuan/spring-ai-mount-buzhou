@@ -48,6 +48,7 @@ class DecayingFactStoreTest {
         assertThat(store.activeFacts("s", 4).get(0).key()).isEqualTo("fact.p.a");
         assertThat(store.activeFacts("s", 8)).hasSize(1);   // a:0.25 恰在下限（≥ 含）
         assertThat(store.activeFacts("s", 9)).isEmpty();    // a:≈0.21 < 0.25
+        assertThat(store.filteredCount()).isEqualTo(5);     // spec 636：b 滤于 turn4×2（两断言各一调）+turn8，a 滤于 turn9
     }
 
     /** 精确口径：decayed = conf × 2^(−elapsed/halfLife)。 */

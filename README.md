@@ -400,6 +400,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | panic/时间窗补验 | panicActivations() 编程可读面 + time-window yml 绑定用例（spec 601/620 补齐） | [spec 633](docs/spec/633-resilience-obs-gap.md) |
 | 会话分支 | 回放起点 state | forkFromTurn 写 `buzhou.fork.turn`——「fork 自谁+从哪重走」state 面可查（spec 602 补全） | [spec 634](docs/spec/634-fork-turn-state.md) |
 | 工具治理 | 变换 fail-open 可观测 | failOpenCount() + 计数 + 首次 WARN——变换常年失效不再静默（spec 169 补全） | [spec 635](docs/spec/635-transform-fail-open-observability.md) |
+| 护栏 | 衰减过滤可观测 | `filteredCount()`——衰减确实在滤陈年低置信事实的运行信号（spec 626 补全） | [spec 636](docs/spec/636-decay-filter-observability.md) |
 
 ## 快速开始
 
