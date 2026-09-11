@@ -1709,3 +1709,7 @@
   本地词表面：违禁词 contains 双缝过滤 BLOCK/MASK，命中计数分缝有界，
   `buzhou.guard.moderation` 默认关）
 
+- `JudgeCalibration`（嵌套 `CalibrationReport`）（516——LightEval judge
+  calibration：verdict vs 金标准混淆矩阵四率，判红为正类，分母 0 null
+  诚实空值，纯函数）
+

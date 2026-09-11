@@ -114,6 +114,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalScore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeCalibration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.LlmJudgeEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseEvalRunner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseGate
