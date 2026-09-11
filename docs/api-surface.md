@@ -1697,3 +1697,7 @@
   StrictUndefined：{{var}} 抽取/严格渲染缺失一次列全/未闭合语法错/
   预检面；与 401 注册表组合消费）
 
+- `EvalFlakinessDetector`（嵌套 `FlakinessReport`/`FlakyItem`）（513——
+  HELM/工业 A/A test：同指纹两 run 红绿翻转=抖动、单侧=漂移不进分母，
+  纯函数 EvalRunDiff 同型）
+

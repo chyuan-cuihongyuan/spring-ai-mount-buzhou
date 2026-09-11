@@ -377,6 +377,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 安全 | 会话导出加密 | seal/open 密文容器（版本标记头+333 EnvelopeCipher AES-GCM，AAD 用途域绑定防跨域剪贴）——敏感会话导出文件落盘/传输不泄露，错钥/篡改 DATA_CORRUPTION 带修法（age/OCI 加密 artifact） | [spec 510](docs/spec/510-encrypted-session-export.md) |
 | 持久化 | 归档冷存完整性校验 | 写时 sha256 校验和随条目落盘（独立命名空间零污染）+verify 五态随时验（MISMATCH/存量 NO_CHECKSUM/CORRUPT 分列不冒充）——可读≠未被改，衰变/误写 restore 前发现（S3 checksum） | [spec 511](docs/spec/511-archive-integrity.md) |
 | 工程治理 | 提示词模板严格渲染 | `{{var}}` 抽取/严格渲染（缺失变量一次列全——杜绝占位符原样漏进 prompt 的静默失败）+预检面；与 401 注册表组合消费（Jinja2 StrictUndefined） | [spec 512](docs/spec/512-prompt-template.md) |
+| 评测 | 评估 A/A 抖动检测 | 同数据集同版本跑两遍——同项红绿翻转=抖动（fail/error 同红、方向不区分），单侧项=漂移不进分母；flakyRate+抖动清单先验评估系统自身稳定性（HELM/工业 A/A test） | [spec 513](docs/spec/513-eval-aa-flakiness.md) |
 
 ## 快速开始
 

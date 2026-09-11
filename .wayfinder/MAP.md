@@ -284,6 +284,7 @@
 | #510 | 会话导出加密 | [maps/effort-510.md](maps/effort-510.md) | T771–T772 | 413 |
 | #511 | 归档冷存完整性校验 | [maps/effort-511.md](maps/effort-511.md) | T773–T774 | 414 |
 | #512 | 提示词模板严格渲染 | [maps/effort-512.md](maps/effort-512.md) | T775–T776 | 415 |
+| #513 | 评估 A/A 抖动检测 | [maps/effort-513.md](maps/effort-513.md) | T777–T778 | 416 |
 
 ## 跨 effort 悬留
 

@@ -101,6 +101,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.BuiltInEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetExpectations
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetMeta
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalFlakinessDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalItem
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalQueryService
