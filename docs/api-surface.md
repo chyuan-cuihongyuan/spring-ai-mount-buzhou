@@ -1759,3 +1759,7 @@
 - `EvalDatasetCsv`（527——LangSmith/HF datasets CSV 互操作：RFC 4180
   toCsv/fromCsv 往返+表头宽松校验+Writer 导出，纯内存行表）
 
+- `SessionCanaryRegistry`（嵌套 `LeakFrom`）（528——thinkst canarytokens
+  /honeytoken：跨会话泄漏探测面，确定性令牌+他令牌扫描+LRU 256 有界，
+  与 CanaryGuard 注入检测语义正交）
+

@@ -88,4 +88,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 25 | #524 | 524 | T801-802 | 427 | MCP 建连退避重试（Resilience4j retry） | 93f3032 |
 | 26 | #525 | 525 | T803-804 | 428 | 评估集合成扩增（Ragas testset generation） | 3b78c02 |
 | 27 | #526 | 526 | T805-806 | 429 | 水位告警桥接（181×312 桥接） | bf267be |
-| 28 | #527 | 527 | T807-808 | 430 | 数据集 CSV 互操作（LangSmith/HF CSV 形态） | （R28 提交后回填） |
+| 28 | #527 | 527 | T807-808 | 430 | 数据集 CSV 互操作（LangSmith/HF CSV 形态） | 93fabb3 |
+| 29 | #528 | 528 | T809-810 | 431 | 跨会话泄漏金丝雀（thinkst canarytokens/honeytoken） | （R29 提交后回填） |
