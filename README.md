@@ -358,6 +358,14 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 | 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |
 
+## 生产级纵深 VI（F 会话 600 系增量）
+
+F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| MCP 治理 | 工具注解观测面 + 注解漂移 | server 自报 readOnly/destructive hint 入目录快照，同名注解翻转独立告警（MCP 规范 annotations；观测口径不裁决危险性） | [spec 600](docs/spec/600-mcp-tool-hints.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

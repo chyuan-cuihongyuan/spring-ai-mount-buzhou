@@ -3,6 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.mcp;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 一条 MCP server 连接（注册表条目的物理载体）。
@@ -21,6 +22,17 @@ public interface McpConnection extends AutoCloseable {
      */
     default List<String> listToolNames() {
         return List.of();
+    }
+
+    /**
+     * 该连接当前发现的工具自报注解快照（spec 600 / T851：工具名 → {@link McpToolHints}，
+     * 建连时快照）。默认空——伪连接/自定义实现可忽略。
+     *
+     * <p><b>观测面口径</b>：server 自报元数据不作为危险性裁决依据（见
+     * {@link McpClientRegistry#dangerousToolNames()} 的既有决策）。
+     */
+    default Map<String, McpToolHints> toolHints() {
+        return Map.of();
     }
 
     /**

@@ -14,7 +14,10 @@ import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 默认连接工厂（spec 04）：用 Spring AI / MCP SDK 公开类手工构建 client——
@@ -63,7 +66,14 @@ public class SpringAiMcpConnectionFactory implements McpConnectionFactory {
         }
         McpSyncClient client = clientSpec.build();
         List<ToolCallback> callbacks = SyncMcpToolCallbackProvider.syncToolCallbacks(List.of(client));
-        return new SpringAiMcpConnection(client, callbacks);
+        // spec 600：建连单次 listTools 快照同时供名字基线与注解基线（RPC 次数与此前持平）
+        McpSchema.ListToolsResult toolsSnapshot;
+        try {
+            toolsSnapshot = client.listTools();
+        } catch (RuntimeException e) {
+            toolsSnapshot = null; // 基线取不到 = 漂移检测退化为「与空基线差量」，不阻断建连
+        }
+        return new SpringAiMcpConnection(client, callbacks, toolsSnapshot);
     }
 
     private McpClientTransport stdioTransport(ToolSetSpec spec) {
@@ -87,25 +97,33 @@ public class SpringAiMcpConnectionFactory implements McpConnectionFactory {
         return builder.build();
     }
 
-    private record SpringAiMcpConnection(McpSyncClient client, List<ToolCallback> callbacks)
-            implements McpConnection {
+    private record SpringAiMcpConnection(McpSyncClient client, List<ToolCallback> callbacks,
+            McpSchema.ListToolsResult toolsSnapshot) implements McpConnection {
 
         @Override
         public List<ToolCallback> toolCallbacks() {
             return callbacks;
         }
 
-        /** spec 18：SDK 原始口径基线（与 tools/list_changed 通知同名同源）。 */
+        /** spec 18：SDK 原始口径基线（建连时快照，与 tools/list_changed 通知同名同源）。 */
         @Override
         public List<String> listToolNames() {
-            try {
-                McpSchema.ListToolsResult result = client.listTools();
-                return result == null || result.tools() == null
-                        ? List.of()
-                        : result.tools().stream().map(McpSchema.Tool::name).toList();
-            } catch (RuntimeException e) {
-                return List.of(); // 基线取不到 = 漂移检测退化为「与空基线差量」，不阻断建连
+            return toolsSnapshot == null || toolsSnapshot.tools() == null
+                    ? List.of()
+                    : toolsSnapshot.tools().stream().map(McpSchema.Tool::name).toList();
+        }
+
+        /** spec 600：工具自报注解基线（建连同一次快照派生，零额外 RPC）。 */
+        @Override
+        public Map<String, McpToolHints> toolHints() {
+            if (toolsSnapshot == null || toolsSnapshot.tools() == null) {
+                return Map.of();
             }
+            Map<String, McpToolHints> out = new LinkedHashMap<>();
+            for (McpSchema.Tool tool : toolsSnapshot.tools()) {
+                out.put(tool.name(), McpToolHints.from(tool));
+            }
+            return Collections.unmodifiableMap(out);
         }
 
         @Override

@@ -3,7 +3,8 @@
 > **单一目录**：2026-08-17 起，原按 effort 分裂的 `.wayfinder/`、`.wayfinder2/` … `.wayfinder15/` 十五个目录融合为本目录；2026-09-07 二次融合，其后又按 effort 分裂的 `.wayfinder16/` … `.wayfinder155/`、`.wayfinder200/` … `.wayfinder227/`、`.wayfinder300/` … `.wayfinder349/` 共 217 个目录同样并入（map → `maps/effort-<N>.md`，票 → 全局 `tickets/`）——**勿再新建 `.wayfinderN/`**。
 > 每个 effort 一张 map（`maps/effort-<N>.md`），#2–#10 的运行期 tracker 约定存档于 `maps/readme-effort-NN.md`；C 会话进度台账 = `maps/progress-effort-300.md`。
 > 票号全局连续 **T1–T690**（T231–T239 跳号未用；#222 的 T579/T580 仅记于 map、票文件未落盘；**下一张 = T691**）；impl 切片文件 **01–184**（#14 起 impl 记录随票，票内编号累计至 372；编号史见 [impl/README.md](impl/README.md)）。
-> effort #1–#349 全部闭合（A/B/C 三期自迭代会话收口，C 会话台账见 [maps/progress-effort-300.md](maps/progress-effort-300.md)）。
+> effort #1–#349 全部闭合（A/B/C 三期自迭代会话收口，C 会话台账见 [maps/progress-effort-300.md](maps/progress-effort-300.md)）；D 会话（400 系，#400–#429 / specs 400–429 / T691–T750 / impl 373–402）已收口。
+> **并行会话**：E 会话（500 系 / T751+ / impl403+，分支 e-session-500-series 进行中）；F 会话（600 系 / T851–T950 / impl 453–502 / specs 600–649，2026-09-12 启动）——新号段裁决见各自 map。
 
 **开新 effort**：新建 `maps/effort-350.md` 起续号（`.wayfinder350–399` 号段为 C 会话保留段，新自迭代会话按其台账裁决开 400 系），在下表登记一行；票从 T691 起、impl 从 373 起全局续号。tracker 约定见 [README.md](README.md)。
 
@@ -271,6 +272,7 @@
 | #427 | 非流式错误回调对称化 | [maps/effort-427.md](maps/effort-427.md) | T745–T746 | 400 |
 | #428 | Webhook 验签与防重放 | [maps/effort-428.md](maps/effort-428.md) | T747–T748 | 401 |
 | #429 | 模型并发舱热更新 | [maps/effort-429.md](maps/effort-429.md) | T749–T750 | 402 |
+| **#600（总图）** | **进行中** — F 会话 600 系 50 轮自迭代（借鉴高价值开源项目；MCP 注解观测面 / 驱逐恐慌阈值 / fork 谱系 / …台账见 map） | [maps/effort-600.md](maps/effort-600.md) | T851–（至 T950） | 453–（至 502） |
 
 ## 跨 effort 悬留
 

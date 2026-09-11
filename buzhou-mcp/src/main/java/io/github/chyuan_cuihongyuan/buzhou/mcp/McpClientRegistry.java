@@ -4,6 +4,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetSpec;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * MCP client 生命周期注册表（spec 04）：Harness 在 starter 之上自建的注册表层——
@@ -52,5 +53,16 @@ public interface McpClientRegistry {
      */
     default java.util.Set<String> dangerousToolNames() {
         return java.util.Set.of();
+    }
+
+    /**
+     * spec 600 / T851：当前 ACTIVE 连接的工具自报注解聚合快照（server → 工具名 →
+     * {@link McpToolHints}）；来自建连基线，查询零 RPC。默认空。
+     *
+     * <p><b>观测/审计面</b>：与 {@link #dangerousToolNames()} 相反，本面是 server 自报
+     * 口径——不作为危险性裁决依据，仅供目录可见性、审计画像与注解漂移信号消费。
+     */
+    default Map<String, Map<String, McpToolHints>> toolHints() {
+        return Map.of();
     }
 }
