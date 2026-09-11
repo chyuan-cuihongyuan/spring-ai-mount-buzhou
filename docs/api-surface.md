@@ -1748,3 +1748,7 @@
   指数退避：建连失败 base×2^n 封顶 60s 重排、耗尽收口既有失败语义，
   `buzhou.mcp.connect-retry` 声明即启用）
 
+- `EvalCaseAmplifier`（525——Ragas testset generation：种子→LLM 同语义
+  改写候选（id 空未入库语义+人审教义），围栏剥离逐行容错，零可解析
+  EVAL_OPERATION_INVALID 带预览）
+

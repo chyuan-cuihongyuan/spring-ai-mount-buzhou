@@ -85,4 +85,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 22 | #521 | 521 | T793-794 | 424 | 事故复盘一键包（317 ExportBundle 事故域组合） | 9f53fc1 |
 | 23 | #522 | 522 | T795-796 | 425 | session.opened 生命周期事件补齐 | cac7dd4 |
 | 24 | #523 | 523 | T797-798 | 426 | 失败轮快照面（Sentry event payload） | （R24 提交后回填） |
-| 25 | #524 | 524 | T801-802 | 427 | MCP 建连退避重试（Resilience4j retry） | （R25 提交后回填） |
+| 25 | #524 | 524 | T801-802 | 427 | MCP 建连退避重试（Resilience4j retry） | 93f3032 |
+| 26 | #525 | 525 | T803-804 | 428 | 评估集合成扩增（Ragas testset generation） | （R26 提交后回填） |

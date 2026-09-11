@@ -381,6 +381,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 观测治理 | 工具调用图谱统计 | TOOL span 同轮相邻有向边计数+per-tool calls/errors/错误率排行——「哪些工具总被连着用」「哪个工具错误集中」有数据依据（LangSmith trace analytics） | [spec 519](docs/spec/519-tool-graph.md) |
 | 成本预算 | 评估 run 预算闸 | 逐项 input+expected 字符估算累计超限即早停——剩余项 error 三态 [RUN-BUDGET] 显式可见、run 照常落盘（partial 不冒充完整）；默认关（AWS Budgets/pytest maxfail） | [spec 520](docs/spec/520-eval-run-budget.md) |
 | MCP 韧性 | MCP 建连退避重试 | 建连失败按指数退避重排（base×2^n 封顶 60s、重试耗尽收口既有失败语义）——server 暂时不可达自愈而非刷新前永久缺席，yml `connect-retry` 声明即启用（Resilience4j retry） | [spec 524](docs/spec/524-connect-retry.md) |
+| 评测 | 评估集合成扩增 | 种子用例→LLM 生成 N 条同语义改写候选（围栏剥离+逐行容错+零可解析异常带预览）——人审教义只产候选不入库（Ragas testset generation） | [spec 525](docs/spec/525-case-amplifier.md) |
 | 事故响应 | 事故复盘一键包 | 一个调用产出标准复盘 ZIP（405 时间线+83 错误签名族+334 成本双维 rollup+summary 汇总，manifest 对账）——源缺席跳过不中断（317 ExportBundle 事故域预设组合） | [spec 521](docs/spec/521-postmortem-bundle.md) |
 | 执行脊柱 | session.opened 生命周期事件补齐 | spawn 即派发（监听器挂载后、先于任何轮次；payload appId/agentName/sessionId 身份三元组——全局监听可达）与既有 session.closed 配对——生命周期首尾事件闭环 | [spec 522](docs/spec/522-session-opened-event.md) |
 | 失控防护 | 失败轮快照面 | SessionObserver 缝（423 同法）——错误轮落复现最小集快照（错误类/消息 256 截断/输入 512 预览）+环形 128+JSONL 导出，Sentry event payload 一屏可读 | [spec 523](docs/spec/523-failure-turn-snapshots.md) |
