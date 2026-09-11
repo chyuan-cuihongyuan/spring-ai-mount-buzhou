@@ -281,6 +281,7 @@
 | #507 | 可逆 PII 代管库 | [maps/effort-507.md](maps/effort-507.md) | T765–T766 | 410 |
 | #508 | 成本异常尖峰检测 | [maps/effort-508.md](maps/effort-508.md) | T767–T768 | 411 |
 | #509 | 时延 SLO 燃尽 | [maps/effort-509.md](maps/effort-509.md) | T769–T770 | 412 |
+| #510 | 会话导出加密 | [maps/effort-510.md](maps/effort-510.md) | T771–T772 | 413 |
 
 ## 跨 effort 悬留
 

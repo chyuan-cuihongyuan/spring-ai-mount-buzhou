@@ -374,6 +374,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 安全 | 可逆 PII 代管库 | vaultize/restore 对称原语（稳定令牌 sha256|salt 前 16hex 去重+TTL+有界+fail-safe 保留过期令牌）——「展示层脱敏、服务端留原值」授权回显工作流（Presidio Vault） | [spec 507](docs/spec/507-pii-vault.md) |
 | 成本预算 | 成本异常尖峰检测 | 滚动基线 z-score（当前分钟桶 vs 前 N 桶均/标差）+绝对地板+minSamples+cooldown 防抖——费率在预算内但相对自身基线突刺可见（与 403 forecast 互补：趋势 vs 突刺，Prometheus/Istio） | [spec 508](docs/spec/508-cost-spike.md) |
 | 观测治理 | 时延 SLO 燃尽 | 「99% 轮次 < N s」坏事件=latency>阈值喂 321 ErrorBudget（burn/breaching/topBreaching 语义全继承）——「错误率正常但变慢了」的隐蔽退化用 SRE 语言可见可告警（Google SRE） | [spec 509](docs/spec/509-latency-slo.md) |
+| 安全 | 会话导出加密 | seal/open 密文容器（版本标记头+333 EnvelopeCipher AES-GCM，AAD 用途域绑定防跨域剪贴）——敏感会话导出文件落盘/传输不泄露，错钥/篡改 DATA_CORRUPTION 带修法（age/OCI 加密 artifact） | [spec 510](docs/spec/510-encrypted-session-export.md) |
 
 ## 快速开始
 

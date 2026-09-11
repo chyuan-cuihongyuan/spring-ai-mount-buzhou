@@ -1686,3 +1686,6 @@
   321 时延维度扩散：坏事件=elapsed>threshold 喂 ErrorBudget，燃尽语义
   全继承，`buzhou.latency-slo.enabled` 默认关）
 
+- `EncryptedSessionExport`（510——age/OCI 加密 artifact：seal/open 封缄
+  容器复用 333 EnvelopeCipher，AAD 用途域绑定防跨域剪贴，原语先行宿主组合）
+
