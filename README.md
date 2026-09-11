@@ -376,6 +376,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 评估闭环 | 评估项级超时 | 挂死项中断收敛 error、其余项照跑、run 必完成（pytest-timeout；默认不设零变化） | [spec 609](docs/spec/609-eval-item-timeout.md) |
 | MCP 治理 | 每连接并发上限 | per-connection 信号量闸（阻塞可中断、core 工具超时兜底）——stdio 单线程 server 不被并行 fan-out 打挂（默认不设零变化） | [spec 610](docs/spec/610-mcp-connection-concurrency.md) |
 | 缓存与前缀 | 语义缓存维度漂移可见性 | 维度不匹配计数 + 首次 WARN——嵌入模型变更后命中率塌方不再静默（模型漂移监控惯例） | [spec 611](docs/spec/611-semantic-dimension-drift.md) |
+| 记忆治理 | 微压缩影子干跑 | 纯函数干跑不应用（会压哪些/省多少 + evictRatio 梯度调参表）——策略调参零风险（Istio mirroring 思想） | [spec 612](docs/spec/612-compaction-shadow-eval.md) |
 
 ## 快速开始
 
