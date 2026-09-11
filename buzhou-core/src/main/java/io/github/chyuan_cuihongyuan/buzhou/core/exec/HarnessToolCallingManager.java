@@ -36,6 +36,24 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** spec 308 / T607：ToolContext 中携带当前 Turn Deadline（动态视图——工具读实时剩余自我收敛）。 */
     public static final String TURN_DEADLINE_KEY = "buzhou.turnDeadline";
 
+    /**
+     * spec 608 / T866：ToolContext 中携带本逻辑调用的幂等键（Stripe X-Idempotency-Key
+     * 思想）——值 = {@code sessionId:callId}（会话缺省 {@code anon}）。同一逻辑调用的
+     * 重试/合并执行读同一键：出站 HTTP 工具应将其作为上游幂等头，重试由上游去重。
+     */
+    public static final String IDEMPOTENCY_KEY = "buzhou.idempotency.key";
+
+    private static final String ANONYMOUS_SESSION = "anon";
+
+    /** spec 608：从 ToolContext 取本逻辑调用的幂等键（无则 null）。 */
+    public static String idempotencyKeyOf(org.springframework.ai.chat.model.ToolContext toolContext) {
+        if (toolContext == null || toolContext.getContext() == null) {
+            return null;
+        }
+        Object value = toolContext.getContext().get(IDEMPOTENCY_KEY);
+        return value instanceof String s ? s : null;
+    }
+
     /** 从 ToolContext 取当前会话 id（无则 null；内置工具的会话级解析统一经此读取）。 */
     public static String sessionIdOf(org.springframework.ai.chat.model.ToolContext toolContext) {
         if (toolContext == null || toolContext.getContext() == null) {
@@ -331,13 +349,20 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         boolean returnDirect = false;
         ToolCallCoalescer coalescer = this.batchCoalescer;
         for (AssistantMessage.ToolCall toolCall : toolCalls) {
+            // spec 608 / T866：per-call 幂等键（批共享 context 之上浅拷贝加键——键含 callId，
+            // 重试/合并下同一逻辑调用恒同键）
+            Map<String, Object> callContextMap = new java.util.HashMap<>(toolContext.getContext());
+            callContextMap.put(IDEMPOTENCY_KEY,
+                    (sessionId == null ? ANONYMOUS_SESSION : sessionId) + ":" + toolCall.id());
+            org.springframework.ai.chat.model.ToolContext callContext =
+                    new org.springframework.ai.chat.model.ToolContext(callContextMap);
             if (coalescer == null) {
-                futures.add(executor.submit(() -> executeOne(toolCall, callbacksByName, toolContext)));
+                futures.add(executor.submit(() -> executeOne(toolCall, callbacksByName, callContext)));
             } else {
                 // spec 300 / impl-323：键 = 工具名 + 全参串（零碰撞——合并正确性优先于键紧凑）
                 String key = toolCall.name() + "#" + toolCall.arguments();
                 futures.add(coalescer.submit(key,
-                        () -> executeOne(toolCall, callbacksByName, toolContext), executor));
+                        () -> executeOne(toolCall, callbacksByName, callContext), executor));
             }
         }
         for (int i = 0; i < futures.size(); i++) {

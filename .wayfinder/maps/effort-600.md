@@ -35,6 +35,7 @@
 | 6 | skill 混合排序（BM25+RRF） | weaviate/qdrant hybrid | T860–T861 | 458 | 605 | ✅ |
 | 7 | 取消原因枚举传播 | grpc status codes | T862–T863 | 459 | 606 | ✅ |
 | 8 | 黄金轨迹 payload 归一化 | approvals/approvaltests | T864–T865 | 460 | 607 | ✅ |
+| 9 | 工具幂等键上下文传播 | stripe X-Idempotency-Key | T866–T867 | 461 | 608 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 
