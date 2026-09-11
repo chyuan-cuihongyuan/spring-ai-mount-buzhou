@@ -100,6 +100,10 @@ class ExperimentBucketerTest {
                 .run(context -> {
                     assertThat(context).hasNotFailed();
                     assertThat(context).hasBean("buzhouExperimentBucketer");
+                    // spec 531 装配审计：内容非空断言（仅 hasBean 挡不住绑空）
+                    var bucketer = (io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer)
+                            context.getBean("buzhouExperimentBucketer");
+                    assertThat(bucketer.experimentCount()).isEqualTo(1);
                 });
         new org.springframework.boot.test.context.runner.ApplicationContextRunner()
                 .withConfiguration(org.springframework.boot.autoconfigure.AutoConfigurations.of(

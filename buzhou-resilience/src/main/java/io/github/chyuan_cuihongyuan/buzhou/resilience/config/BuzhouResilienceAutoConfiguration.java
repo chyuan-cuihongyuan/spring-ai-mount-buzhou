@@ -162,10 +162,19 @@ public class BuzhouResilienceAutoConfiguration {
     @org.springframework.context.annotation.Conditional(
             BuzhouResilienceAutoConfiguration.CapabilityPresentCondition.class)
     public io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilityRegistry
-    buzhouModelCapabilityRegistry(io.github.chyuan_cuihongyuan.buzhou.resilience.capability
-            .BuzhouModelCapabilityProperties properties) {
+    buzhouModelCapabilityRegistry(org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：单 Map 组件 record 构造绑定在 prefix.<组件名> 子路径，
+        // 根前缀 yml 必须根绑定直读（原 properties 注入绑空——注册表静默空 → 门零裁决）
+        java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilities>
+                models = org.springframework.boot.context.properties.bind.Binder
+                        .get(env)
+                        .bind("buzhou.resilience.model-capabilities",
+                                org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                        String.class,
+                                        io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilities.class))
+                        .orElse(java.util.Map.of());
         return new io.github.chyuan_cuihongyuan.buzhou.resilience.capability
-                .ModelCapabilityRegistry(properties.models());
+                .ModelCapabilityRegistry(models);
     }
 
     @Bean

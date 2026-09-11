@@ -88,6 +88,14 @@ class ToolResultSchemaHookTest {
                 .run(context -> {
                     assertThat(context).hasNotFailed();
                     assertThat(context).hasBean("buzhouToolResultSchemasRuntimeConfig");
+                    // spec 531 装配审计：内容非空断言（根绑定修复回归——仅 hasBean 挡不住绑空）
+                    var rc = (io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig)
+                            context.getBean("buzhouToolResultSchemasRuntimeConfig");
+                    var hook = rc.hooks().stream()
+                            .filter(h -> h instanceof io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook)
+                            .map(h -> (io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook) h)
+                            .findFirst().orElseThrow();
+                    assertThat(hook.schemasCount()).isEqualTo(1);
                 });
         new org.springframework.boot.test.context.runner.ApplicationContextRunner()
                 .withConfiguration(org.springframework.boot.autoconfigure.AutoConfigurations.of(

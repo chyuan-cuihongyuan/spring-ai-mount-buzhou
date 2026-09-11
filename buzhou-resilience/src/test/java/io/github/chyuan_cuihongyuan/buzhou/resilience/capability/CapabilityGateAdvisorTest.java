@@ -152,6 +152,10 @@ class CapabilityGateAdvisorTest {
                     assertThat(context).hasNotFailed();
                     assertThat(context).hasBean("buzhouModelCapabilityRegistry");
                     assertThat(context).hasBean("capabilityGateRuntimeConfig");
+                    // spec 531 装配审计：注册表内容非空（仅 hasBean 挡不住绑空）
+                    var registry = (io.github.chyuan_cuihongyuan.buzhou.resilience.capability
+                            .ModelCapabilityRegistry) context.getBean("buzhouModelCapabilityRegistry");
+                    assertThat(registry.size()).isEqualTo(1);
                 });
         new org.springframework.boot.test.context.runner.ApplicationContextRunner()
                 .withConfiguration(org.springframework.boot.autoconfigure.AutoConfigurations.of(

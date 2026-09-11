@@ -410,9 +410,17 @@ public class BuzhouCoreAutoConfiguration {
     @org.springframework.context.annotation.Conditional(
             BuzhouCoreAutoConfiguration.ResultSchemasPresentCondition.class)
     public RuntimeConfig buzhouToolResultSchemasRuntimeConfig(
-            BuzhouToolResultSchemasProperties properties) {
+            org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：单 Map 组件 record 构造绑定在 prefix.<组件名> 子路径，
+        // 根前缀 yml 必须根绑定直读（原 properties 注入绑空——静默 no-op）
+        java.util.Map<String, String> schemas = org.springframework.boot.context.properties.bind.Binder
+                .get(env)
+                .bind("buzhou.tools.result-schemas",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .mapOf(String.class, String.class))
+                .orElse(java.util.Map.of());
         var hook = new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook(
-                properties.schemas());
+                schemas);
         return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
                 null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
                 java.util.List.of(), null);
@@ -427,9 +435,38 @@ public class BuzhouCoreAutoConfiguration {
     @org.springframework.context.annotation.Conditional(
             BuzhouCoreAutoConfiguration.ExperimentPresentCondition.class)
     public io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
-    buzhouExperimentBucketer(BuzhouExperimentProperties properties) {
+    buzhouExperimentBucketer(org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：根绑定直读（原 properties 注入绑空——实验表静默空）
+        java.util.Map<String, Object> raw = org.springframework.boot.context.properties.bind.Binder
+                .get(env)
+                .bind("buzhou.experiments",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .mapOf(String.class, Object.class))
+                .orElse(java.util.Map.of());
+        // 根绑定 Object 值为嵌套形态 {experiment: {variant: weight}}
+        java.util.Map<String, java.util.Map<String, Integer>> experiments = new java.util.LinkedHashMap<>();
+        raw.forEach((experiment, variants) -> {
+            if (variants instanceof java.util.Map<?, ?> variantMap) {
+                java.util.Map<String, Integer> weights = new java.util.LinkedHashMap<>();
+                variantMap.forEach((variant, weight) -> {
+                    // Object 绑定的叶子值可能是 String（属性源原文）或 Number——都接受
+                    if (weight instanceof Number number) {
+                        weights.put(String.valueOf(variant), number.intValue());
+                    } else if (weight instanceof String text && !text.isBlank()) {
+                        try {
+                            weights.put(String.valueOf(variant), Integer.parseInt(text.trim()));
+                        } catch (NumberFormatException ignored) {
+                            // 非整型权重跳过（观测面不炸装配）
+                        }
+                    }
+                });
+                if (!weights.isEmpty()) {
+                    experiments.put(experiment, weights);
+                }
+            }
+        });
         return new io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer(
-                properties.experiments());
+                experiments);
     }
 
     /**
@@ -656,10 +693,18 @@ public class BuzhouCoreAutoConfiguration {
     @Bean
     @org.springframework.context.annotation.Conditional(
             BuzhouCoreAutoConfiguration.ToolDeprecationPresentCondition.class)
-    public RuntimeConfig buzhouToolDeprecationRuntimeConfig(BuzhouToolDeprecationProperties properties) {
+    public RuntimeConfig buzhouToolDeprecationRuntimeConfig(org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：根绑定直读（原 properties 注入绑空——静默 no-op）
+        java.util.Map<String, BuzhouToolDeprecationProperties.Spec> declaredSpecs =
+                org.springframework.boot.context.properties.bind.Binder
+                        .get(env)
+                        .bind("buzhou.tools.deprecated",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, BuzhouToolDeprecationProperties.Spec.class))
+                        .orElse(java.util.Map.of());
         java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation>
                 declared = new java.util.LinkedHashMap<>();
-        properties.tools().forEach((name, spec) -> declared.put(name,
+        declaredSpecs.forEach((name, spec) -> declared.put(name,
                 new io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation(
                         spec.since(), spec.removalIn(), spec.successor(), spec.message())));
         return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
