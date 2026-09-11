@@ -398,6 +398,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话索引 | keyset 游标分页 | 行序键锚定翻页——活跃索引不跳行不重行（三实现规范序统一；Redis 平局序偏差一并收口） | [spec 631](docs/spec/631-session-index-keyset.md) |
 | 会话治理 | 排水取消原因 E2E | 停机对在途会话的 session.cancelled {SHUTDOWN_DRAIN} 真路径钉住（spec 606 补验） | [spec 632](docs/spec/632-drain-cause-e2e.md) |
 | 模型韧性 | panic/时间窗补验 | panicActivations() 编程可读面 + time-window yml 绑定用例（spec 601/620 补齐） | [spec 633](docs/spec/633-resilience-obs-gap.md) |
+| 会话分支 | 回放起点 state | forkFromTurn 写 `buzhou.fork.turn`——「fork 自谁+从哪重走」state 面可查（spec 602 补全） | [spec 634](docs/spec/634-fork-turn-state.md) |
 
 ## 快速开始
 

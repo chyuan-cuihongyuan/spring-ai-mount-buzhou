@@ -81,6 +81,9 @@ class SessionForkLineageTest {
 
         assertThat(stores.sessionStateStore().getAll("sess-tt").get("buzhou.fork.source").value())
                 .isEqualTo("sess-src");
+        // spec 634 / T918：回放起点也落 state（分支可查「从第几轮重走」）
+        assertThat(stores.sessionStateStore().getAll("sess-tt").get("buzhou.fork.turn").value())
+                .isEqualTo("1");
         SessionEvent forked = capture.events.stream()
                 .filter(e -> "session.forked".equals(e.type())).findFirst().orElseThrow();
         assertThat(forked.payload()).containsEntry("upToTurn", 1);

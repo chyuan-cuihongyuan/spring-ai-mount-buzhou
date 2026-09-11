@@ -28,6 +28,8 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
     /** spec 225 / T593：fork 谱系 state 键（子会话指向源会话；导出/导入携带）。 */
     private static final String FORK_SOURCE_STATE_KEY = "buzhou.fork.source";
     private static final String FORK_STATE_PRODUCER = "buzhou.core.fork";
+    /** spec 634 / T918：时间旅行 fork 回放起点轮次 state 键。 */
+    private static final String FORK_TURN_STATE_KEY = "buzhou.fork.turn";
     /** impl-33：续租间隔下限（防误配成 0/负数导致调度线程忙转）。 */
     private static final Duration MIN_RENEW_INTERVAL = Duration.ofMillis(50);
     /** impl-30 / spec 13 §core-1：停机排空预算默认值（未显式传入时）。 */
@@ -246,11 +248,15 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         }
         AgentSession session = spawn(appId, agentName, newSessionId);
         stores.messageStore().append(newSessionId, upTo);
-        // spec 602 / T854：时间旅行 fork 同样写谱系（buzhou.fork.source 指向源会话；
-        // 回放起点 upToTurn 由事件 payload 承载，state 值保持「源会话 id」稳定查询口径）
+        // spec 225 / T594：时间旅行 fork 同样写谱系（buzhou.fork.source 指向源会话）；
+        // spec 634 / T918：回放起点 upToTurn 也落 state（buzhou.fork.turn——分支可查「从第几轮重走」）
         stores.sessionStateStore().put(newSessionId,
                 new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
                         FORK_SOURCE_STATE_KEY, sourceSessionId, FORK_STATE_PRODUCER,
+                        0, null, java.time.Instant.now()));
+        stores.sessionStateStore().put(newSessionId,
+                new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                        FORK_TURN_STATE_KEY, String.valueOf(upToTurn), FORK_STATE_PRODUCER,
                         0, null, java.time.Instant.now()));
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.session.time-travels");
