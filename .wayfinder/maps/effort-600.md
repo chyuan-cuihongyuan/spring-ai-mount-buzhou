@@ -52,6 +52,7 @@
 | 23 | 归档/还原每会话互斥（丢失窗收口） | 关键段互斥惯例 | T894–T895 | 475 | 622 | ✅ |
 | 24 | saga per-session 事务域（归档并行化） | loop23 勘察兑现 | T896–T897 | 476 | 623 | ✅ |
 | 25 | 预算池借比例上限 | k8s LimitRange | T898–T899 | 477 | 624 | ✅ |
+| 26 | 启动装配摘要 | spring-boot diagnostics | T900–T901 | 478 | 625 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

@@ -44,6 +44,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WeightedRouter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BulkheadScalingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouAlertProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouArchiveProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouAssemblyReport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigAuditProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigRefreshEvent
