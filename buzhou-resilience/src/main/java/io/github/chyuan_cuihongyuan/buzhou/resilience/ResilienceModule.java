@@ -148,6 +148,10 @@ public final class ResilienceModule {
             limiter = new ModelRateLimiter(
                     rl.requestsPerMinute(), rl.tokensPerMinute(), rl.queueTimeout(),
                     properties.effectiveRateLimitOverloadPolicy(), null, effectiveBackend);
+            if (limiter.isEnabled() && stats != null) {
+                // spec 638 / T924：后端形态进健康面（memory/memory-gcra/redis——GCRA 声明是否生效一读便知）
+                stats.updateRateLimitBackend(limiter.backend().kind());
+            }
             if (!limiter.isEnabled()) {
                 limiter = null;
             }
