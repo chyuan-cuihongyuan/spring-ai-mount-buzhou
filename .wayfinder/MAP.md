@@ -283,6 +283,7 @@
 | #509 | 时延 SLO 燃尽 | [maps/effort-509.md](maps/effort-509.md) | T769–T770 | 412 |
 | #510 | 会话导出加密 | [maps/effort-510.md](maps/effort-510.md) | T771–T772 | 413 |
 | #511 | 归档冷存完整性校验 | [maps/effort-511.md](maps/effort-511.md) | T773–T774 | 414 |
+| #512 | 提示词模板严格渲染 | [maps/effort-512.md](maps/effort-512.md) | T775–T776 | 415 |
 
 ## 跨 effort 悬留
 
