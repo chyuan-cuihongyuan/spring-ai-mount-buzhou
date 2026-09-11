@@ -58,6 +58,7 @@
 | 29 | MCP 并发上限 yml 装配 | spec 610 扩散 | T906–T907 | 481 | 628 | ✅ |
 | 30 | 技能漂移看门狗渲染节拍接线 | spec 617 接线 | T908–T909 | 482 | 629 | ✅ |
 | 31 | 混合排序装配（SkillRanker 抽取） | spec 605 扩散 | T910–T911 | 483 | 630 | ✅ |
+| 32 | 会话索引 keyset 游标分页 | postgres keyset 惯例 | T912–T913 | 484 | 631 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

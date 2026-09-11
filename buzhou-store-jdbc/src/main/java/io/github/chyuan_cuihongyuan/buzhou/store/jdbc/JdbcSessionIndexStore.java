@@ -103,6 +103,14 @@ public class JdbcSessionIndexStore implements SessionIndexStore {
             where.append(" AND tags LIKE ?");
             args.put("tagLike", "%\"" + query.tagKey() + "\":\"" + query.tagValue() + "\"%");
         }
+        // spec 631 / T912：keyset 游标（与规范序一致：last_active DESC, id ASC）
+        if (query.cursor() != null) {
+            SessionIndexQuery.Cursor c = SessionIndexQuery.decodeCursor(query.cursor());
+            where.append(" AND (last_active_at_ms < ? OR (last_active_at_ms = ? AND session_id > ?))");
+            args.put("cursorLat", c.lastActiveAtEpochMs());
+            args.put("cursorLat2", c.lastActiveAtEpochMs());
+            args.put("cursorId", c.sessionId());
+        }
         String sql = "SELECT * FROM buzhou_session_index" + where
                 + " ORDER BY last_active_at_ms DESC, session_id LIMIT " + query.limit()
                 + " OFFSET " + query.offset();
