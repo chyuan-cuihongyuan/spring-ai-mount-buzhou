@@ -276,6 +276,7 @@
 | #502 | 模型能力注册表与能力门 | [maps/effort-502.md](maps/effort-502.md) | T755–T756 | 405 |
 | #503 | 时段路由窗口 | [maps/effort-503.md](maps/effort-503.md) | T757–T758 | 406 |
 | #504 | MCP 服务器级聚合熔断 | [maps/effort-504.md](maps/effort-504.md) | T759–T760 | 407 |
+| #505 | 在线实验分桶 | [maps/effort-505.md](maps/effort-505.md) | T761–T762 | 408 |
 
 ## 跨 effort 悬留
 

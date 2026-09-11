@@ -1663,3 +1663,9 @@
   复用 core ToolCircuitBreaker，宕机 server 全部工具快速失败结构化改道，
   `buzhou.mcp.server-breaker` 默认关，与 per-tool 131 正交两层）
 
+**buzhou-core**
+
+- `ExperimentBucketer` + `BuzhouExperimentProperties`（505——GrowthBook/
+  Statsig：在线实验确定性分桶 sha256 mod100+字典序累积权重+未入组余量
+  +曝光计数，`buzhou.experiments.<exp>.<variant>` 声明才装配）
+

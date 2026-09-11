@@ -53,6 +53,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCoreProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouCostForecastProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouErrorSamplingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouEvalSamplingProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouExperimentProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouHealthTimelineProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
@@ -152,6 +153,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TransformingToolCallba
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TtlCachingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFact

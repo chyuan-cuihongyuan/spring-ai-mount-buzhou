@@ -58,6 +58,7 @@ import java.util.List;
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
         BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class,
+        BuzhouExperimentProperties.class,
         BuzhouErrorSamplingProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
@@ -413,6 +414,39 @@ public class BuzhouCoreAutoConfiguration {
         return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
                 null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
                 java.util.List.of(), null);
+    }
+
+    /**
+     * spec 505 / T761：在线实验确定性分桶（GrowthBook/Statsig 思想）——
+     * buzhou.experiments.<experiment>.<variant> 权重声明即装配（Binder
+     * 预绑判 map 非空——409 同法）。曝光统计 experiment×variant 有界。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ExperimentPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
+    buzhouExperimentBucketer(BuzhouExperimentProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer(
+                properties.experiments());
+    }
+
+    /** spec 505：experiments map 非空才装配（Binder 预绑判定）。 */
+    static final class ExperimentPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.experiments",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Object.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     /** spec 409：result-schemas map 非空才装配（Binder 预绑判定）。 */
