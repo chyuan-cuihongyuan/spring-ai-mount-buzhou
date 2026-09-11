@@ -90,7 +90,11 @@ public final class GuardModule {
                             : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
                                     builder.piiTypes, builder.customPiiRules)));
         }
-        // spec 500 / T751：模型回复出站脱敏（流式窗口缓冲——跨 chunk 实体不漏；默认关）
+        // spec 536 / T825：流式回复秘密扫描（400 三缝的第四缝——回复出站流；默认关）
+        if (builder.secretStreamRedaction != null && builder.secretStreamRedaction) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanStreamHook());
+        }
+                // spec 500 / T751：模型回复出站脱敏（流式窗口缓冲——跨 chunk 实体不漏；默认关）
         if (builder.piiReplyRedaction) {
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiStreamRedactionHook(
                     builder.piiTypes,
@@ -233,6 +237,8 @@ public final class GuardModule {
         private boolean piiReplyRedaction = false;
         /** spec 500 / T751：回看窗口（0 = 默认 128）。 */
         private int piiReplyWindow = 0;
+        /** spec 536 / T825：流式回复秘密扫描（null = 默认关）。 */
+        private Boolean secretStreamRedaction;
         /** spec 515 / T781：内容安全词表过滤（null = 默认关）。 */
         private java.util.List<String> moderationTerms;
         private io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook.Action
@@ -247,6 +253,12 @@ public final class GuardModule {
         /** 指定回复缝回看窗口（字符；≤0 视为未设——用默认 128）。 */
         public Builder piiReplyWindow(int window) {
             this.piiReplyWindow = window;
+            return this;
+        }
+
+        /** spec 536 / T825：开启流式回复秘密扫描（400 秘密扫描的回复流出站缝）。 */
+        public Builder secretStreamRedaction() {
+            this.secretStreamRedaction = true;
             return this;
         }
 
@@ -429,6 +441,10 @@ public final class GuardModule {
                 Object secretsEnabled = secretsMap.get("enabled");
                 if (secretsEnabled instanceof Boolean b5) {
                     this.secretScanning = b5;
+                }
+                Object streamVal = secretsMap.get("stream-redaction");
+                if (streamVal instanceof Boolean streamEnabled && streamEnabled) {
+                    this.secretStreamRedaction = true;
                 }
                 Object secretTypesVal = secretsMap.get("types");
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> stypes =

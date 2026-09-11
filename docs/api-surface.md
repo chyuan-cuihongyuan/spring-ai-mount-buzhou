@@ -1785,3 +1785,7 @@
   重跑一次取第二次结果 detail [RETRIED] 留痕+计数，语义 fail 不重试，
   默认关）
 
+- `SecretScanStreamHook`（536——400 秘密扫描第四缝（回复出站流）：
+  滑动窗口跨 chunk 密钥不漏，复用 SecretScanner，500 SPI 第二消费者
+  组合性证明，`secrets.stream-redaction` 默认关）
+
