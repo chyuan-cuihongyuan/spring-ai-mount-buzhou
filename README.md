@@ -374,6 +374,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程治理 | 黄金轨迹 payload 归一化 | UUID/时刻/时长/epoch → 稳定哨兵后结构断言——payload 级黄金不 flaky（ApprovalTests 思想） | [spec 607](docs/spec/607-golden-payload-normalization.md) |
 | 执行脊柱 | 工具幂等键传播 | 每逻辑调用 `sessionId:callId` 键进 ToolContext——出站工具设上游幂等头，重试由上游去重（Stripe X-Idempotency-Key） | [spec 608](docs/spec/608-tool-idempotency-key.md) |
 | 评估闭环 | 评估项级超时 | 挂死项中断收敛 error、其余项照跑、run 必完成（pytest-timeout；默认不设零变化） | [spec 609](docs/spec/609-eval-item-timeout.md) |
+| MCP 治理 | 每连接并发上限 | per-connection 信号量闸（阻塞可中断、core 工具超时兜底）——stdio 单线程 server 不被并行 fan-out 打挂（默认不设零变化） | [spec 610](docs/spec/610-mcp-connection-concurrency.md) |
 
 ## 快速开始
 

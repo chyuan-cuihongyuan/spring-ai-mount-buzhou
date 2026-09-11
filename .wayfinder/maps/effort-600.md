@@ -37,6 +37,7 @@
 | 8 | 黄金轨迹 payload 归一化 | approvals/approvaltests | T864–T865 | 460 | 607 | ✅ |
 | 9 | 工具幂等键上下文传播 | stripe X-Idempotency-Key | T866–T867 | 461 | 608 | ✅ |
 | 10 | 评估项级超时预算 | pytest-dev/pytest-timeout | T868–T869 | 462 | 609 | ✅ |
+| 11 | MCP 每连接并发上限 | modelcontextprotocol 生态 | T870–T871 | 463 | 610 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

@@ -65,11 +65,36 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         private volatile java.util.Set<String> toolNamesBaseline = java.util.Set.of();
         /** spec 600 / T851：工具自报注解基线（与名字基线同生命周期；空 = 该连接无注解口径，跳过注解差量）。 */
         private volatile Map<String, McpToolHints> toolHintsBaseline = Map.of();
+        /** spec 610 / T870：每连接并发许可（null = 不设上限——默认零行为变化）。 */
+        private final java.util.concurrent.Semaphore concurrencyPermits;
 
-        Entry(String name, ToolSetSpec spec, McpConnection connection) {
+        Entry(String name, ToolSetSpec spec, McpConnection connection, Integer concurrencyLimit) {
             this.name = name;
             this.spec = spec;
             this.connection = connection;
+            this.concurrencyPermits = concurrencyLimit != null && concurrencyLimit > 0
+                    ? new java.util.concurrent.Semaphore(concurrencyLimit) : null;
+        }
+
+        /** spec 610：阻塞可中断获取许可（未设上限恒 true；中断返回 false 由调用方失败转文本）。 */
+        boolean acquirePermit() {
+            if (concurrencyPermits == null) {
+                return true;
+            }
+            try {
+                concurrencyPermits.acquire();
+                return true;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+
+        /** spec 610：释放许可（未设上限 no-op）。 */
+        void releasePermit() {
+            if (concurrencyPermits != null) {
+                concurrencyPermits.release();
+            }
         }
 
         java.util.Set<String> toolNamesBaseline() {
@@ -103,6 +128,8 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     private final java.util.List<java.util.regex.Pattern> dangerousToolPatterns;
     /** impl-50：最近一次建连失败计数（健康面）。 */
     private final java.util.concurrent.atomic.AtomicLong connectFailures = new java.util.concurrent.atomic.AtomicLong();
+    /** spec 610 / T870：每连接并发上限（null = 不设；Entry 创建时装配——既有条目不追溯）。 */
+    private volatile Integer perConnectionConcurrencyLimit;
     private final ConcurrentHashMap<String, Entry> entries = new ConcurrentHashMap<>();
     private final Object refreshLock = new Object();
     private final ScheduledExecutorService scheduler;
@@ -252,7 +279,7 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                     .counter("buzhou.mcp.connect.failures", "server", spec.name());
             return false;
         }
-        Entry entry = new Entry(spec.name(), spec, connection);
+        Entry entry = new Entry(spec.name(), spec, connection, perConnectionConcurrencyLimit);
         entry.spanContext = spanCtx;
         entry.toolNamesBaseline = Set.copyOf(connection.listToolNames());
         entry.toolHintsBaseline = Map.copyOf(connection.toolHints());
@@ -468,6 +495,18 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     public int inFlightOf(String name) {
         Entry e = entries.get(name);
         return e == null ? -1 : e.inFlight();
+    }
+
+    /**
+     * spec 610 / T870：每连接并发上限（MCP server——尤其 stdio 单线程实现——对同连接
+     * 并发调用敏感；并行工具 fan-out 的客户端侧静态闸）。null/<=0 = 不设（默认零行为
+     * 变化）；<b>Entry 创建时装配，既有条目不追溯</b>（诚实边界）；limit 恒 <= 0 视为关闭。
+     */
+    public void setPerConnectionConcurrencyLimit(Integer limit) {
+        if (limit != null && limit <= 0) {
+            throw new IllegalArgumentException("perConnectionConcurrencyLimit 必须 > 0 或 null（当前 " + limit + "）");
+        }
+        this.perConnectionConcurrencyLimit = limit;
     }
 
     /** impl-50：glob（*.delete*）→ 正则。 */
