@@ -80,6 +80,16 @@ public interface AgentSession extends AutoCloseable {
      */
     void cancel(CancelMode mode);
 
+    /**
+     * 按模式 + 原因取消（spec 606 / T862，gRPC status codes 思想）：cause 进入
+     * {@code session.cancelled} 事件 payload 与 {@code buzhou.session.cancelled}
+     * 指标 tag——观测面可区分「用户按了停」与「停机排水收割」。默认实现丢弃
+     * cause 委托 {@link #cancel(CancelMode)}（既有实现零改动）。
+     */
+    default void cancel(CancelMode mode, CancelCause cause) {
+        cancel(mode);
+    }
+
     @Override
     void close();
 

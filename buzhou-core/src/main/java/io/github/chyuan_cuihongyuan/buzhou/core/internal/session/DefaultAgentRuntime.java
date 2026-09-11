@@ -732,7 +732,8 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 return;
             }
             try {
-                s.cancel(mode);
+                // spec 606 / T862：停机排水取消显式带因——观测面可区分「用户按停」与「停机收割」
+                s.cancel(mode, io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause.SHUTDOWN_DRAIN);
             } catch (RuntimeException e) {
                 LOGGER.log(System.Logger.Level.WARNING, "停机取消会话在途 Turn 失败（mode={0}）",
                         mode);

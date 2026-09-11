@@ -737,14 +737,25 @@ public class DefaultAgentSession implements AgentSession {
     /** impl-05 / T31：按模式取消（三档语义见 {@link io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode}）。 */
     @Override
     public void cancel(io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode mode) {
+        cancel(mode, io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause.USER);
+    }
+
+    /** spec 606 / T862：模式 + 原因——cause 进事件 payload 与指标 tag（观测面区分取消发起者）。 */
+    @Override
+    public void cancel(io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode mode,
+            io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause cause) {
         ensureOpen();
         io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode effective = mode == null
                 ? io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode.IMMEDIATE : mode;
+        io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause effectiveCause = cause == null
+                ? io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause.USER : cause;
         toolManager.requestCancel(effective);
         observers.forEach(SessionObserver::onCancel);
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.session.cancelled", "cause", effectiveCause.name());
         dispatchEvent(io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent.of(
                 "session.cancelled",
-                java.util.Map.of("cancelMode", effective.name())));
+                java.util.Map.of("cancelMode", effective.name(), "cause", effectiveCause.name())));
     }
 
     /**

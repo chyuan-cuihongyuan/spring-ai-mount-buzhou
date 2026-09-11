@@ -370,6 +370,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | GCRA 平滑限流后端 | TAT 匀速整形（默认 β=0 无突发，每 60/容量 秒放行）——突发即 429 的供应商场景 opt-in（redis-cell / Envoy GCRA） | [spec 603](docs/spec/603-gcra-rate-limit-backend.md) |
 | 记忆治理 | 事实置信度衰减 | Fact 带 confidence、读时指数半衰过滤——陈年低置信事实不再占提示词预算（letta memory blocks；opt-in 装饰器不写回） | [spec 604](docs/spec/604-fact-confidence-decay.md) |
 | Skill 体系 | 技能混合排序 | BM25 词法 + 语义 cosine 两路 RRF 融合——精确词（错误码/型号）补语义判别盲区（weaviate/Qdrant hybrid；opt-in） | [spec 605](docs/spec/605-hybrid-skill-ranking.md) |
+| 会话治理 | 取消原因枚举 | `CancelCause` 闭集进 `session.cancelled` 事件与指标——「用户按停」与「停机收割」观测面分列（gRPC status codes） | [spec 606](docs/spec/606-cancel-cause.md) |
 
 ## 快速开始
 
