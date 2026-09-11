@@ -358,6 +358,14 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 | 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |
 
+## 生产级纵深 VI（E 会话 500 系增量）
+
+E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 安全 | 流式回复 PII 脱敏 | 模型回复出站第三缝（输入 106/工具输出 86 之外）——流式滑动窗口缓冲跨 chunk 实体不漏、flush 排空、占位符不拆分、非流式整段同滤（Presidio 流式匿名化+流式 WAF 回看窗口） | [spec 500](docs/spec/500-stream-pii-redaction.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

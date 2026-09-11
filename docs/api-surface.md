@@ -1624,3 +1624,19 @@
 - `RedisLeaderElector` + `LeaderElectionProperties`（331——Lua 原子选主：TTL 租约+单调纪元围栏，K8s leader election）
 
 - 类型级快照：**+38**（收口再生，Windows 首次本机可用）；yml 键：随各 spec 入档
+
+## effort #500–#549 新增公共面（E 会话 / spec 500–549 / impl-403–452，@since 1.0.0）
+
+> E 会话 500 系逐轮入档（同口径：src/main 非 internal 包 public 类型）。
+
+**buzhou-core**
+
+- `StreamTextFilter`（500——回复流出站过滤 SPI：filter/flush 每轮新建单轮单用；
+  `BuzhouHook.replyStreamFilter()` 默认方法挂点 + `HookChain.newReplyFilters()`
+  hook 序收集，DefaultAgentSession 流式/非流式两缝接线）
+
+**buzhou-guard**
+
+- `PiiStreamRedactionHook`（500——Presidio 流式匿名化+流式 WAF 回看窗口：
+  模型回复出站第三缝，滑动窗口跨 chunk 实体不漏、占位符不拆分、flush 排空；
+  `buzhou.guard.pii.reply-redaction`/`reply-window` yml，默认关）

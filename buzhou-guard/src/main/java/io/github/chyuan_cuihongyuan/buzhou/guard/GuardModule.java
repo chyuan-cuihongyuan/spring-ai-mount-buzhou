@@ -90,6 +90,14 @@ public final class GuardModule {
                             : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
                                     builder.piiTypes, builder.customPiiRules)));
         }
+        // spec 500 / T751：模型回复出站脱敏（流式窗口缓冲——跨 chunk 实体不漏；默认关）
+        if (builder.piiReplyRedaction) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiStreamRedactionHook(
+                    builder.piiTypes,
+                    builder.customPiiRules,
+                    builder.piiReplyWindow > 0 ? builder.piiReplyWindow
+                            : io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiStreamRedactionHook.DEFAULT_WINDOW));
+        }
         // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
         if (builder.secretScanning) {
             h.add(builder.secretTypes == null
@@ -216,6 +224,23 @@ public final class GuardModule {
             return this;
         }
 
+        /** spec 500 / T751：模型回复出站脱敏（流式窗口缓冲；默认关）。 */
+        private boolean piiReplyRedaction = false;
+        /** spec 500 / T751：回看窗口（0 = 默认 128）。 */
+        private int piiReplyWindow = 0;
+
+        /** 开启模型回复出站 PII 脱敏（全类型；spec 500 / T751）。 */
+        public Builder piiReplyRedaction() {
+            this.piiReplyRedaction = true;
+            return this;
+        }
+
+        /** 指定回复缝回看窗口（字符；≤0 视为未设——用默认 128）。 */
+        public Builder piiReplyWindow(int window) {
+            this.piiReplyWindow = window;
+            return this;
+        }
+
         /** 开启用户输入 PII 脱敏（类型集沿用当前 piiTypes；未设 = 全类型；spec 106 / T389）。 */
         public Builder piiInputRedaction() {
             this.piiInputRedaction = true;
@@ -331,6 +356,15 @@ public final class GuardModule {
                 Object inputVal = piiMap.get("input-redaction");
                 if (inputVal instanceof Boolean b4) {
                     this.piiInputRedaction = b4;
+                }
+                // spec 500 / T751：回复出站独立开关 + 可选回看窗口
+                Object replyVal = piiMap.get("reply-redaction");
+                if (replyVal instanceof Boolean replyEnabled) {
+                    this.piiReplyRedaction = replyEnabled;
+                }
+                Object replyWindowVal = piiMap.get("reply-window");
+                if (replyWindowVal instanceof Number replyWindow) {
+                    this.piiReplyWindow = replyWindow.intValue();
                 }
                 Object typesVal = piiMap.get("types");
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> types =

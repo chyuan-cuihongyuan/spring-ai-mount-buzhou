@@ -66,6 +66,22 @@ public class HookChain {
         hooks.forEach(hook -> hook.onEvent(ctx));
     }
 
+    /**
+     * 每轮新建回复流出站过滤器集（spec 500 / T751）——按 hook 序（已排序）收集
+     * {@link BuzhouHook#replyStreamFilter()} 非 null 实例。空表 = 无过滤器（调用方
+     * 短路零包装零开销）。
+     */
+    public java.util.List<StreamTextFilter> newReplyFilters() {
+        java.util.List<StreamTextFilter> filters = new java.util.ArrayList<>(1);
+        for (BuzhouHook hook : hooks) {
+            StreamTextFilter filter = hook.replyStreamFilter();
+            if (filter != null) {
+                filters.add(filter);
+            }
+        }
+        return java.util.List.copyOf(filters);
+    }
+
     private <C extends HookContext> HookResult run(C ctx, BiFunction<BuzhouHook, C, HookResult> call) {
         for (BuzhouHook hook : hooks) {
             HookResult result = call.apply(hook, ctx);
