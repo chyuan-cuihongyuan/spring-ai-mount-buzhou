@@ -53,4 +53,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 轮 | effort | spec | 票 | impl | 主题 | 提交 |
 |----|--------|------|----|------|------|------|
 | 1 | #500 | 500 | T751-752 | 403 | 流式回复 PII 脱敏（Presidio streaming+流式 WAF 回看窗） | 2210b80 |
-| 2 | #501 | 501 | T753-754 | 404 | 请求幂等键（Stripe；勘察换题：原拟注入扫描已有 InjectionClassifier/OnnxPromptGuard） | （R2 提交后回填） |
+| 2 | #501 | 501 | T753-754 | 404 | 请求幂等键（Stripe；勘察换题：原拟注入扫描已有 InjectionClassifier/OnnxPromptGuard） | 5c819ea |
+| 3 | #502 | 502 | T755-756 | 405 | 模型能力注册表与能力门（LiteLLM Router capabilities） | （R3 提交后回填） |

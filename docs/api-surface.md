@@ -1648,3 +1648,8 @@
   终态响应（复用 ResponseCacheStore/isTerminal），链序 +440 在 response-cache
   外；enabled=true 才装配，键缺席透传零行为）
 
+- `ModelCapabilities` + `ModelCapabilityRegistry` +
+  `BuzhouModelCapabilityProperties` + `CapabilityGateAdvisor`（502——
+  LiteLLM Router capabilities：vision/工具请求事前拦 ARGS_VALIDATION_FAILED，
+  未注册模型零门；`buzhou.resilience.model-capabilities.<model>` 声明才装配）
+

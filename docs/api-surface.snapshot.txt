@@ -536,6 +536,10 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseC
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.BuzhouModelCapabilityProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.CapabilityGateAdvisor
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilities
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilityRegistry
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.CircuitState
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException

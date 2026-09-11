@@ -273,6 +273,7 @@
 | #429 | 模型并发舱热更新 | [maps/effort-429.md](maps/effort-429.md) | T749–T750 | 402 |
 | #500 | 流式回复 PII 脱敏 | [maps/effort-500.md](maps/effort-500.md) | T751–T752 | 403 |
 | #501 | 请求幂等键 | [maps/effort-501.md](maps/effort-501.md) | T753–T754 | 404 |
+| #502 | 模型能力注册表与能力门 | [maps/effort-502.md](maps/effort-502.md) | T755–T756 | 405 |
 
 ## 跨 effort 悬留
 

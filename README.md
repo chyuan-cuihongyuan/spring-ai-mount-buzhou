@@ -366,6 +366,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 |------|------|--------|------|
 | 安全 | 流式回复 PII 脱敏 | 模型回复出站第三缝（输入 106/工具输出 86 之外）——流式滑动窗口缓冲跨 chunk 实体不漏、flush 排空、占位符不拆分、非流式整段同滤（Presidio 流式匿名化+流式 WAF 回看窗口） | [spec 500](docs/spec/500-stream-pii-redaction.md) |
 | 可靠性 | 请求幂等键 | 调用方供给 `buzhou.idempotency-key` advisor 参数——同键重入重放首次终态响应零二次调用（客户端超时重试不二次计费）、非终态不写半截、键缺席透传零行为（Stripe Idempotency-Key） | [spec 501](docs/spec/501-request-idempotency.md) |
+| 模型韧性 | 模型能力注册表与能力门 | yml 声明每模型 vision/tools/context-window——media/工具请求路由前事前拦（ARGS_VALIDATION_FAILED 结构化异常带 yml 键指引）而非供应商 400 事后错，未注册模型零门（LiteLLM Router capabilities） | [spec 502](docs/spec/502-model-capability-gate.md) |
 
 ## 快速开始
 
