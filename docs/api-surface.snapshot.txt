@@ -422,6 +422,7 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiStreamRedactionHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiVault
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.SessionExportSanitizer
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.policy.EmbeddedPolicyEngine
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyDecision
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.policy.PolicyEngine

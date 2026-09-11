@@ -1719,3 +1719,7 @@
   压缩回收字符分位+逐出比直方图+折入 trigger 计数，挂 CompactionListener
   缝观测零干预，`MemoryModule.compactionStats()` 读数面）
 
+- `SessionExportSanitizer`（518——Presidio anonymize × 28 导出面：消息/
+  摘要/state 三内容域占位符化不可变副本，结构字段原样，与 510 组合
+  先脱敏再封缄）
+
