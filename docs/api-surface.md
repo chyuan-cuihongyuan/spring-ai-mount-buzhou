@@ -1778,3 +1778,6 @@
   maxPayloadChars 超限拒入队+oversized 计数，默认 0 零变化，
   `buzhou.webhook.max-payload-chars`）
 
+- `PromptVersionDiff`（嵌套 `VersionDiff`/`DiffLine`）（534——Git diff
+  思想：注册表版本行级 LCS 最小变更集，晋级/回滚评审只看变化，纯函数）
+

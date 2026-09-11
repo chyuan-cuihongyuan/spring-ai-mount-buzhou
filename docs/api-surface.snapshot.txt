@@ -247,6 +247,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptTemplate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersion
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersionDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.FailureTurnSnapshots
