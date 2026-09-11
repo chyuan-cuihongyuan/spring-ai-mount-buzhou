@@ -40,6 +40,9 @@ public final class EvalRunner {
     /** spec 520 / T791：run 预算（字符估算累计上限；0 = 关——默认零行为变化）。 */
     private volatile long runBudgetChars;
 
+    /** spec 535 / T823：error 项重试一次（抖动缓解——默认关）。 */
+    private volatile boolean errorRetryOnce;
+
     /** run 前数据集期望门禁（spec 150 §A / T503，Great Expectations 借鉴；null = 无门禁零变化）。 */
     private volatile DatasetExpectations expectations;
     /** spec 198 §A / T561：宽松档（未过只 WARN 不拦）。 */
@@ -63,6 +66,15 @@ public final class EvalRunner {
             throw new IllegalArgumentException("run 预算非负（0 = 关；当前 " + chars + "）");
         }
         this.runBudgetChars = chars;
+    }
+
+    /**
+     * spec 535 / T823：error 项重试一次（抖动缓解）——仅 STATUS_ERROR 项
+     * 重跑一次（语义 fail 不重试——重试语义失败会掩盖真实回归）；取第二次
+     * 结果为准，detail 前缀 [RETRIED] 留痕。默认关。
+     */
+    public void setErrorRetryOnce(boolean retryOnce) {
+        this.errorRetryOnce = retryOnce;
     }
 
     /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
@@ -124,7 +136,8 @@ public final class EvalRunner {
         if (workers == 1 || items.size() <= 1) {
             results = new ArrayList<>();
             for (EvalItem item : items) {
-                results.add(budgetedItem(spent, item, () -> runItem(runId, item, evaluator)));
+                results.add(budgetedItem(spent, item,
+                        () -> runItemWithRetry(runId, item, evaluator)));
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
@@ -133,7 +146,8 @@ public final class EvalRunner {
                 final int index = i;
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
-                    byIndex[index] = budgetedItem(spent, item, () -> runItem(runId, item, evaluator));
+                    byIndex[index] = budgetedItem(spent, item,
+                            () -> runItemWithRetry(runId, item, evaluator));
                     return null;
                 });
             }
@@ -165,6 +179,23 @@ public final class EvalRunner {
         emitRunCompleted(result, startedAt, finishedAt);
         return result;
         }
+    }
+
+    /**
+     * spec 535 / T823：error 项重试一次（抖动缓解）——首跑 STATUS_ERROR 时
+     * 重跑一次（语义 fail 不重试——重试会掩盖真实回归），取第二次结果、
+     * detail 加 [RETRIED] 前缀留痕。默认关（errorRetryOnce=false 直通）。
+     */
+    private EvalRunItemResult runItemWithRetry(String runId, EvalItem item, Evaluator evaluator) {
+        EvalRunItemResult first = runItem(runId, item, evaluator);
+        if (!errorRetryOnce || !EvalRunItemResult.STATUS_ERROR.equals(first.status())) {
+            return first;
+        }
+        EvalRunItemResult second = runItem(runId, item, evaluator);
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.eval.error-retried");
+        return new EvalRunItemResult(item.id(), second.status(),
+                "[RETRIED] " + second.detail(), second.actualPreview(), second.durationMs());
     }
 
     /**

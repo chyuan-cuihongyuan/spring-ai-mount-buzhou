@@ -303,6 +303,7 @@
 | #531 | 装配绑定审计修复 | [maps/effort-531.md](maps/effort-531.md) | T815–816 | 434 |
 | #533 | webhook 载荷大小上限 | [maps/effort-533.md](maps/effort-533.md) | T819–820 | 435 |
 | #534 | 提示词版本行级 diff | [maps/effort-534.md](maps/effort-534.md) | T821–822 | 436 |
+| #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
 | #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
 

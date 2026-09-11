@@ -94,4 +94,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 31 | #530 | 530 | T813-814 | 433 | per-model 预算闸（budget 族模型维度扩散；发现单 Map 组件根绑定坑） | affdd4c |
 | 32 | #531 | 531 | T815-816 | 434 | 装配绑定审计修复（409/406/505 单 Map 组件根绑定缺失） | fe2753a |
 | 33 | #533 | 533 | T819-820 | 435 | webhook 载荷大小上限（Kafka max message size） | 9fcfbe5 |
-| 34 | #534 | 534 | T821-822 | 436 | 提示词版本行级 diff（Git diff；401 扩散） | （R34 提交后回填） |
+| 34 | #534 | 534 | T821-822 | 436 | 提示词版本行级 diff（Git diff；401 扩散） | c9e56de |
+| 35 | #535 | 535 | T823-824 | 437 | error 项重试一次（pytest flaky rerun） | （R35 提交后回填） |

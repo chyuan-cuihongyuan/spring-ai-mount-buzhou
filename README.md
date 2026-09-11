@@ -384,6 +384,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 成本预算 | per-model 预算闸 | ModelCostLedger 记账面 vs yml per-model 预算（microUsd）——耗尽 beforeModel 拦截（结构化告示带修法），以记账面为准未喂账恒放行，map 非空才装配 | [spec 530](docs/spec/530-model-budget-gate.md) |
 | MCP 韧性 | MCP 建连退避重试 | 建连失败按指数退避重排（base×2^n 封顶 60s、重试耗尽收口既有失败语义）——server 暂时不可达自愈而非刷新前永久缺席，yml `connect-retry` 声明即启用（Resilience4j retry） | [spec 524](docs/spec/524-connect-retry.md) |
 | 评测 | 评估集合成扩增 | 种子用例→LLM 生成 N 条同语义改写候选（围栏剥离+逐行容错+零可解析异常带预览）——人审教义只产候选不入库（Ragas testset generation） | [spec 525](docs/spec/525-case-amplifier.md) |
+| 评测 | error 项重试一次 | judge 抖动/闪断的 error 项自动重跑一次取第二次结果（detail [RETRIED] 留痕+计数）——语义 fail 不重试（不掩盖真实回归）、默认关（pytest flaky rerun） | [spec 535](docs/spec/535-error-retry-once.md) |
 | 观测治理 | 水位告警桥接 | per-session 低水位翻转态聚合为 context-watermark 机制健康面（低水位会话数≥阈值 DOWN、详情聚合读数）——312 告警规则按机制名可订阅「容量压力」（181×312 桥接） | [spec 526](docs/spec/526-watermark-health.md) |
 | 投递可靠 | webhook 载荷大小上限 | outbox 单条载荷体积门（默认不限 opt-in）——超限拒入队+oversized 计数可见，拒绝而非截断（截断 JSON 破坏消费端契约）（Kafka max message size） | [spec 533](docs/spec/533-max-payload.md) |
 | 工程治理 | 提示词版本行级 diff | 行级 LCS 最小变更集（equal/insert/delete+added/removed/net）+异名 fail-fast——晋级/回滚评审只看变化（Git diff；401 扩散） | [spec 534](docs/spec/534-prompt-version-diff.md) |

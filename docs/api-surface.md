@@ -1781,3 +1781,7 @@
 - `PromptVersionDiff`（嵌套 `VersionDiff`/`DiffLine`）（534——Git diff
   思想：注册表版本行级 LCS 最小变更集，晋级/回滚评审只看变化，纯函数）
 
+- EvalRunner error 项重试一次（535——pytest flaky rerun：STATUS_ERROR
+  重跑一次取第二次结果 detail [RETRIED] 留痕+计数，语义 fail 不重试，
+  默认关）
+
