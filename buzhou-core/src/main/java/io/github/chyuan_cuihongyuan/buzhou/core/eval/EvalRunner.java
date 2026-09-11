@@ -41,12 +41,26 @@ public final class EvalRunner {
     private volatile DatasetExpectations expectations;
     /** spec 198 §A / T561：宽松档（未过只 WARN 不拦）。 */
     private volatile boolean expectationsWarnOnly;
+    /** spec 609 / T868：项级超时预算（null = 不设——零行为变化；挂死项收敛 error 不拖死整跑）。 */
+    private volatile java.time.Duration perItemTimeout;
 
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
         this.runtime = runtime;
         this.datasetStore = datasetStore;
         this.stateStore = stateStore;
+    }
+
+    /**
+     * spec 609 / T868 / impl 462（pytest-timeout 借鉴）：项级超时预算——单项执行超时
+     * 收敛为该条 error（中断挂死项的虚拟线程），其余项照跑、run 必完成；指标
+     * {@code buzhou.eval.item.timeouts} 留痕。null / 非正值拒绝（不设 = 默认）。
+     */
+    public void setPerItemTimeout(java.time.Duration timeout) {
+        if (timeout != null && (timeout.isZero() || timeout.isNegative())) {
+            throw new IllegalArgumentException("perItemTimeout 必须为正时长（当前 " + timeout + "）");
+        }
+        this.perItemTimeout = timeout;
     }
 
     /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
@@ -106,7 +120,7 @@ public final class EvalRunner {
         if (workers == 1 || items.size() <= 1) {
             results = new ArrayList<>();
             for (EvalItem item : items) {
-                results.add(runItem(runId, item, evaluator));
+                results.add(runItemWithTimeout(runId, item, evaluator));
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
@@ -115,7 +129,7 @@ public final class EvalRunner {
                 final int index = i;
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
-                    byIndex[index] = runItem(runId, item, evaluator);
+                    byIndex[index] = runItemWithTimeout(runId, item, evaluator);
                     return null;
                 });
             }
@@ -170,6 +184,44 @@ public final class EvalRunner {
         payload.put("durationMs", java.time.Duration.between(startedAt, finishedAt).toMillis());
         try (var done = runtime.spawn("buzhou-eval", "eval", "eval-" + result.runId() + "-done")) {
             done.emitEvent("eval.run.completed", payload);
+        }
+    }
+
+    /**
+     * spec 609 / T868：带项级超时的执行包装——超时中断挂死项（shutdownNow 传播中断，
+     * 与模型超时兜底同取舍：可中断阻塞即刻中止）并收敛为 error；未设预算直通。
+     */
+    private EvalRunItemResult runItemWithTimeout(String runId, EvalItem item, Evaluator evaluator) {
+        java.time.Duration timeout = perItemTimeout;
+        if (timeout == null) {
+            return runItem(runId, item, evaluator);
+        }
+        long start = System.nanoTime();
+        java.util.concurrent.ExecutorService one =
+                java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
+        try {
+            return one.submit(() -> runItem(runId, item, evaluator))
+                    .get(timeout.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
+        } catch (java.util.concurrent.TimeoutException e) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.eval.item.timeouts");
+            return new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_ERROR,
+                    "项超时（预算 " + timeout + "）：单项未在预算内完成，已中断——挂死项不断批"
+                            + "（pytest-timeout 语义）",
+                    null, (System.nanoTime() - start) / 1_000_000);
+        } catch (java.util.concurrent.ExecutionException e) {
+            Throwable cause = e.getCause() == null ? e : e.getCause();
+            return new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_ERROR,
+                    "执行异常：" + cause.getClass().getSimpleName() + ": "
+                            + String.valueOf(cause.getMessage()).lines().findFirst().orElse(""),
+                    null, (System.nanoTime() - start) / 1_000_000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_ERROR,
+                    "执行被中断（dataset 评估整跑中断路径）", null,
+                    (System.nanoTime() - start) / 1_000_000);
+        } finally {
+            one.shutdownNow(); // 超时/完成都中断残留线程（挂死项的会话随中断关闭）
         }
     }
 

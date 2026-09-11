@@ -373,6 +373,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 取消原因枚举 | `CancelCause` 闭集进 `session.cancelled` 事件与指标——「用户按停」与「停机收割」观测面分列（gRPC status codes） | [spec 606](docs/spec/606-cancel-cause.md) |
 | 工程治理 | 黄金轨迹 payload 归一化 | UUID/时刻/时长/epoch → 稳定哨兵后结构断言——payload 级黄金不 flaky（ApprovalTests 思想） | [spec 607](docs/spec/607-golden-payload-normalization.md) |
 | 执行脊柱 | 工具幂等键传播 | 每逻辑调用 `sessionId:callId` 键进 ToolContext——出站工具设上游幂等头，重试由上游去重（Stripe X-Idempotency-Key） | [spec 608](docs/spec/608-tool-idempotency-key.md) |
+| 评估闭环 | 评估项级超时 | 挂死项中断收敛 error、其余项照跑、run 必完成（pytest-timeout；默认不设零变化） | [spec 609](docs/spec/609-eval-item-timeout.md) |
 
 ## 快速开始
 
