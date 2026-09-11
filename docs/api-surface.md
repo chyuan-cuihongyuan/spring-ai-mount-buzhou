@@ -1766,3 +1766,7 @@
 - `ToolTimeoutOverrides`（+嵌套 Holder）（529——31 per-tool glob 覆盖
   同法 × 单工具超时扩展：覆盖值替换全局、Deadline 恒天花板，默认空零变化）
 
+- `ModelBudgetGate`（530——budget 族模型维度扩散：ModelCostLedger 记账面
+  vs `buzhou.budget.model-budget.<model>` 预算，耗尽 beforeModel 拦截，
+  map 非空才装配，未喂账恒放行）
+

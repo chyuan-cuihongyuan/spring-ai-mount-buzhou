@@ -432,6 +432,54 @@ public class BuzhouCoreAutoConfiguration {
                 properties.experiments());
     }
 
+    /**
+     * spec 530 / T811：per-model 预算闸（budget 族扩散——ModelCostLedger
+     * 记账面 vs per-model 预算，耗尽 beforeModel 拦截）。map 非空才装配；
+     * 以记账面为准（未喂账恒放行）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ModelBudgetPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig
+    buzhouModelBudgetRuntimeConfig(org.springframework.core.env.Environment env) {
+        // 单 Map 组件 record 构造绑定在 prefix.<组件名> 子路径——根前缀 yml 会绑空
+        //（524/530 装配审计结论）；此处直接根绑定（与条件判定同一读法）
+        java.util.Map<String, Long> budgets = org.springframework.boot.context.properties.bind.Binder
+                .get(env)
+                .bind("buzhou.budget.model-budget",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .mapOf(String.class, Long.class))
+                .orElse(java.util.Map.of());
+        String modelName = env.getProperty("buzhou.model-name", "unknown");
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelBudgetGate gate =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelBudgetGate(
+                        budgets, modelName,
+                        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger.global());
+        return io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.hooks(
+                java.util.List.of(gate));
+    }
+
+    /** spec 530：budgets map 非空才装配（Binder 预绑判定）。 */
+    static final class ModelBudgetPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.budget.model-budget",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Long.class))
+                        .map(m -> {
+                            return !m.isEmpty();
+                        }).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
     /** spec 505：experiments map 非空才装配（Binder 预绑判定）。 */
     static final class ExperimentPresentCondition
             implements org.springframework.context.annotation.Condition {
