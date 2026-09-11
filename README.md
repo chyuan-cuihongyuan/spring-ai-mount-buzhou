@@ -382,6 +382,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 成本预算 | 评估 run 预算闸 | 逐项 input+expected 字符估算累计超限即早停——剩余项 error 三态 [RUN-BUDGET] 显式可见、run 照常落盘（partial 不冒充完整）；默认关（AWS Budgets/pytest maxfail） | [spec 520](docs/spec/520-eval-run-budget.md) |
 | 事故响应 | 事故复盘一键包 | 一个调用产出标准复盘 ZIP（405 时间线+83 错误签名族+334 成本双维 rollup+summary 汇总，manifest 对账）——源缺席跳过不中断（317 ExportBundle 事故域预设组合） | [spec 521](docs/spec/521-postmortem-bundle.md) |
 | 执行脊柱 | session.opened 生命周期事件补齐 | spawn 即派发（监听器挂载后、先于任何轮次；payload appId/agentName/sessionId 身份三元组——全局监听可达）与既有 session.closed 配对——生命周期首尾事件闭环 | [spec 522](docs/spec/522-session-opened-event.md) |
+| 失控防护 | 失败轮快照面 | SessionObserver 缝（423 同法）——错误轮落复现最小集快照（错误类/消息 256 截断/输入 512 预览）+环形 128+JSONL 导出，Sentry event payload 一屏可读 | [spec 523](docs/spec/523-failure-turn-snapshots.md) |
 | 工程治理 | 提示词模板严格渲染 | `{{var}}` 抽取/严格渲染（缺失变量一次列全——杜绝占位符原样漏进 prompt 的静默失败）+预检面；与 401 注册表组合消费（Jinja2 StrictUndefined） | [spec 512](docs/spec/512-prompt-template.md) |
 | 评测 | 评估 A/A 抖动检测 | 同数据集同版本跑两遍——同项红绿翻转=抖动（fail/error 同红、方向不区分），单侧项=漂移不进分母；flakyRate+抖动清单先验评估系统自身稳定性（HELM/工业 A/A test） | [spec 513](docs/spec/513-eval-aa-flakiness.md) |
 | 评测 | judge 校准跟踪 | judge verdict vs 金标准断言的混淆矩阵四率（判红为正类）+agreement/precision/recall/f1（分母 0 null）——judge 宽松倾向先于版本对比被发现（LightEval） | [spec 516](docs/spec/516-judge-calibration.md) |

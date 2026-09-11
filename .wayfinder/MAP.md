@@ -294,6 +294,7 @@
 | #520 | 评估 run 预算闸 | [maps/effort-520.md](maps/effort-520.md) | T791–T792 | 423 |
 | #521 | 事故复盘一键包 | [maps/effort-521.md](maps/effort-521.md) | T793–T794 | 424 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
+| #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
 
 ## 跨 effort 悬留
 

@@ -1740,3 +1740,7 @@
   先于任何轮次，payload 身份三元组；与既有 session.closed 配对闭环；
   无新类型）
 
+- `FailureTurnSnapshots`（嵌套 `Snapshot`）（523——Sentry event payload：
+  失败轮复现最小集快照（错误类/消息截断/输入预览），SessionObserver 缝
+  423 同法，环形 128+JSONL 导出）
+

@@ -79,4 +79,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 20 | #519 | 519 | T789-790 | 422 | 工具调用图谱统计（LangSmith trace analytics） | b1aac28 |
 | 21 | #520 | 520 | T791-792 | 423 | 评估 run 预算闸（AWS Budgets/pytest maxfail 早停） | 68b7fb9 |
 | 22 | #521 | 521 | T793-794 | 424 | 事故复盘一键包（317 ExportBundle 事故域组合） | 9f53fc1 |
-| 23 | #522 | 522 | T795-796 | 425 | session.opened 生命周期事件补齐 | （R23 提交后回填） |
+| 23 | #522 | 522 | T795-796 | 425 | session.opened 生命周期事件补齐 | cac7dd4 |
+| 24 | #523 | 523 | T797-798 | 426 | 失败轮快照面（Sentry event payload） | （R24 提交后回填） |
