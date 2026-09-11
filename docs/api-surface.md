@@ -1657,3 +1657,9 @@
   （嵌套 `RoutingWindow`）（503——K8s CronJob/Argo Rollouts schedule：
   时段窗自动切路由权重整表替换/出窗回落/同快照幂等，windows 非空才装配）
 
+**buzhou-mcp**
+
+- `McpServerBreaker`（504——Envoy per-host 聚合思想：一台 server 一个键
+  复用 core ToolCircuitBreaker，宕机 server 全部工具快速失败结构化改道，
+  `buzhou.mcp.server-breaker` 默认关，与 per-tool 131 正交两层）
+

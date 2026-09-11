@@ -1,5 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.mcp;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreaker;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanRecorder;
 import io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetProvider;
@@ -27,6 +28,7 @@ import java.util.Map;
 public final class McpModule implements AutoCloseable {
 
     private final boolean enabled;
+    private final ToolCircuitBreaker.Config serverBreakerConfig;
     private final McpClientRegistry registry;
     private final ToolSetProvider provider;
     /** impl-50：close() 总预算。 */
@@ -35,6 +37,7 @@ public final class McpModule implements AutoCloseable {
     private McpModule(Builder builder) {
         this.enabled = builder.enabled;
         this.shutdownBudget = builder.shutdownBudget;
+        this.serverBreakerConfig = builder.serverBreakerConfig;
         if (!enabled) {
             this.registry = null;
             this.provider = null;
@@ -51,7 +54,11 @@ public final class McpModule implements AutoCloseable {
         this.provider = p;
         DefaultMcpClientRegistry reg = new DefaultMcpClientRegistry(
                 builder.factory, builder.gracePeriod, builder.forceCloseTimeout, builder.recorder,
-                builder.policyProvider, builder.dangerousToolPatterns);
+                builder.policyProvider, builder.dangerousToolPatterns,
+                builder.serverBreakerConfig == null
+                        ? null
+                        : new io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker(
+                                builder.serverBreakerConfig));
         this.registry = reg;
         // 变更推送：配置源回调 → 差量刷新；坏配置（如重名）拒绝生效、注册表保持旧清单，
         // 记 ERROR Event（phase=refresh）——改配失败必须运维可见（spec 04：全部内部动作进可观测层）
@@ -79,6 +86,11 @@ public final class McpModule implements AutoCloseable {
     }
 
     /** 注册表；模块禁用时返回 null。 */
+    /** spec 504：服务器级聚合熔断配置（未装配返回 null——观测/测试面）。 */
+    public ToolCircuitBreaker.Config serverBreakerConfig() {
+        return serverBreakerConfig;
+    }
+
     public McpClientRegistry registry() {
         return registry;
     }
@@ -127,6 +139,8 @@ public final class McpModule implements AutoCloseable {
         private java.util.List<String> dangerousToolPatterns = java.util.List.of();
         /** impl-50：close() 总预算（默认 35s≈grace+5s；超出放弃等待仅强杀日志留痕）。 */
         private Duration shutdownBudget = Duration.ofSeconds(35);
+        /** spec 504 / T759：服务器级聚合熔断配置（null = 默认关）。 */
+        private ToolCircuitBreaker.Config serverBreakerConfig;
 
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
@@ -205,6 +219,12 @@ public final class McpModule implements AutoCloseable {
         }
 
         @SuppressWarnings("unchecked")
+        /** spec 504 / T759：开启服务器级聚合熔断（键=服务器名，状态机复用 core ToolCircuitBreaker）。 */
+        public Builder serverBreaker(ToolCircuitBreaker.Config config) {
+            this.serverBreakerConfig = config;
+            return this;
+        }
+
         public Builder fromYml(Map<String, Object> ymlConfig) {
             if (ymlConfig == null || ymlConfig.isEmpty()) {
                 return this;
@@ -227,6 +247,31 @@ public final class McpModule implements AutoCloseable {
             }
             if (ymlConfig.get("servers") instanceof Map<?, ?> s) {
                 this.servers = (Map<String, Object>) s;
+            }
+            // spec 504 / T760：server-breaker.{enabled,window-size,failure-rate-percent,cooldown,half-open-trials}
+            if (ymlConfig.get("server-breaker") instanceof Map<?, ?> sbMap
+                    && Boolean.TRUE.equals(sbMap.get("enabled"))) {
+                ToolCircuitBreaker.Config config = ToolCircuitBreaker.Config.defaults();
+                if (sbMap.get("window-size") instanceof Number ws) {
+                    config = new ToolCircuitBreaker.Config(ws.intValue(),
+                            config.failureRateThresholdPercent(), config.cooldown(),
+                            config.halfOpenTrials());
+                }
+                if (sbMap.get("failure-rate-percent") instanceof Number fr) {
+                    config = new ToolCircuitBreaker.Config(config.windowSize(),
+                            fr.doubleValue(), config.cooldown(), config.halfOpenTrials());
+                }
+                if (sbMap.get("cooldown") != null) {
+                    config = new ToolCircuitBreaker.Config(config.windowSize(),
+                            config.failureRateThresholdPercent(),
+                            Durations.fromMap(Map.of("cooldown", sbMap.get("cooldown")), "cooldown"),
+                            config.halfOpenTrials());
+                }
+                if (sbMap.get("half-open-trials") instanceof Number ht) {
+                    config = new ToolCircuitBreaker.Config(config.windowSize(),
+                            config.failureRateThresholdPercent(), config.cooldown(), ht.intValue());
+                }
+                this.serverBreakerConfig = config;
             }
             return this;
         }

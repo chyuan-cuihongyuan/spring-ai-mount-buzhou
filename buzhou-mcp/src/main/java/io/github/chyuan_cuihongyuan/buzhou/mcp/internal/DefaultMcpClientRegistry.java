@@ -103,6 +103,8 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     private final ConcurrentHashMap<String, Entry> entries = new ConcurrentHashMap<>();
     private final Object refreshLock = new Object();
     private final ScheduledExecutorService scheduler;
+    /** spec 504 / T759：服务器级聚合熔断（null = 不装配——callbacks 原样）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker serverBreaker;
     private volatile boolean shutdown;
 
     /** 既有 4 参构造兼容（policyProvider=null）。 */
@@ -123,6 +125,18 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                                     Duration forceCloseTimeout, SpanRecorder recorder,
                                     PolicyConfigProvider policyProvider,
                                     java.util.List<String> dangerousToolPatterns) {
+        this(factory, gracePeriod, forceCloseTimeout, recorder, policyProvider,
+                dangerousToolPatterns, null);
+    }
+
+    /** spec 504 / T760：+serverBreaker（null = 不装配聚合熔断，callbacks 原样）。 */
+    public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
+                                    Duration forceCloseTimeout, SpanRecorder recorder,
+                                    PolicyConfigProvider policyProvider,
+                                    java.util.List<String> dangerousToolPatterns,
+                                    io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker
+                                            serverBreaker) {
+        this.serverBreaker = serverBreaker;
         this.factory = factory;
         this.gracePeriod = gracePeriod;
         this.forceCloseTimeout = forceCloseTimeout;
@@ -147,7 +161,10 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             if (e.status == Status.ACTIVE && e.spec.visibleTo(appId, agentName)
                     && (bindingClip == null || bindingClip.contains(e.name()))) {
                 for (ToolCallback cb : e.connection.toolCallbacks()) {
-                    out.add(new RefCountingToolCallback(cb, e, this));
+                    // spec 504 / T760：服务器级聚合熔断内层包装（引用计数语义不变）
+                    ToolCallback effective = serverBreaker == null
+                            ? cb : serverBreaker.decorate(e.name(), cb);
+                    out.add(new RefCountingToolCallback(effective, e, this));
                 }
             }
         }
