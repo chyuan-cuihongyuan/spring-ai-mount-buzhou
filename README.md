@@ -380,7 +380,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | gzip 导出压缩档位 | 三个 gzip 导出面档位可配（-1 默认/[0,9]）——热导出省 CPU 冷归档求体积（nginx gzip_comp_level） | [spec 613](docs/spec/613-gzip-compression-level.md) |
 | 模型韧性 | GCRA yml 装配 | `rate-limit.smoothing: gcra` 三行声明平滑整形（spec 603 原语装配扩散；共享后端在场则共享语义优先） | [spec 614](docs/spec/614-gcra-assembly.md) |
 | 工程治理 | API 快照门硬化 | regenerate 门控为显式维护操作——比对从「恒自愈」变真门（测试副作用吃掉自身断言的治理） | [spec 615](docs/spec/615-api-snapshot-gate-hardening.md) |
-| Skill 体系 | 技能目录清单指纹 | per 技能 sha256(description|allowedTools) + 摘要 + 三分类对账——目录漂移可审计（cosign 清单思想；spec 175 的 skills 镜像） | [spec 616](docs/spec/616-skill-catalog-fingerprint.md) |
+| Skill 体系 | 技能目录清单指纹 | per 技能 sha256(description\|allowedTools) + 摘要 + 三分类对账——目录漂移可审计（cosign 清单思想；spec 175 的 skills 镜像） | [spec 616](docs/spec/616-skill-catalog-fingerprint.md) |
+| Skill 体系 | 技能目录漂移看门狗 | 首拍建基线、漂移即 `skill.catalog.drifted` 事件 + 基线推进（spec 201 的 skills 镜像；含 616 diff 方向对齐修正） | [spec 617](docs/spec/617-skill-catalog-drift-watcher.md) |
 
 ## 快速开始
 

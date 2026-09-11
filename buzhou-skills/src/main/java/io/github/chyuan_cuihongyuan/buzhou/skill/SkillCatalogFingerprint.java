@@ -70,18 +70,20 @@ public final class SkillCatalogFingerprint {
         return fingerprints.get(name);
     }
 
-    /** 与另一版对账（三分类；name 消失 = REMOVED、新增 = ADDED、指纹变 = CHANGED）。 */
+    /**
+     * 与另一版对账（{@code this.diff(other)}：added = other 侧新增、removed = this 侧消失
+     * ——与 spec 175 ToolCatalogFingerprint 同向：{@code 基线.diff(现目录)} 即时间正向）。
+     */
     public Diff diff(SkillCatalogFingerprint other) {
-        if (other == null) {
-            return new Diff(List.of(), List.copyOf(fingerprints.keySet()), List.of());
-        }
-        List<String> added = fingerprints.keySet().stream()
-                .filter(n -> !other.fingerprints.containsKey(n)).sorted().toList();
-        List<String> removed = other.fingerprints.keySet().stream()
-                .filter(n -> !fingerprints.containsKey(n)).sorted().toList();
+        SkillCatalogFingerprint target = other == null
+                ? SkillCatalogFingerprint.of(null) : other;
+        List<String> added = target.fingerprints.keySet().stream()
+                .filter(name -> !fingerprints.containsKey(name)).sorted().toList();
+        List<String> removed = fingerprints.keySet().stream()
+                .filter(name -> !target.fingerprints.containsKey(name)).sorted().toList();
         List<String> changed = fingerprints.entrySet().stream()
-                .filter(e -> other.fingerprints.containsKey(e.getKey())
-                        && !other.fingerprints.get(e.getKey()).equals(e.getValue()))
+                .filter(e -> target.fingerprints.containsKey(e.getKey())
+                        && !target.fingerprints.get(e.getKey()).equals(e.getValue()))
                 .map(Map.Entry::getKey).sorted().toList();
         return new Diff(added, removed, changed);
     }

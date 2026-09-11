@@ -28,7 +28,7 @@ class SkillCatalogFingerprintTest {
         assertThat(a.size()).isEqualTo(2);
     }
 
-    /** 三分类：新增/删除/描述变更各归其类。 */
+    /** 三分类：基线.diff(现目录) 时间正向——新增/删除/描述变更各归其类（与 175 同向）。 */
     @Test
     void diffClassifiesAddedRemovedChanged() {
         SkillCatalogFingerprint before = SkillCatalogFingerprint.of(List.of(
@@ -36,7 +36,7 @@ class SkillCatalogFingerprintTest {
         SkillCatalogFingerprint after = SkillCatalogFingerprint.of(List.of(
                 skill("deploy", "部署"), skill("audit", "审计 v2"), skill("new", "新增")));
 
-        SkillCatalogFingerprint.Diff diff = after.diff(before);
+        SkillCatalogFingerprint.Diff diff = before.diff(after);
         assertThat(diff.added()).containsExactly("new");
         assertThat(diff.removed()).containsExactly("old");
         assertThat(diff.changed()).containsExactly("audit");
@@ -62,7 +62,7 @@ class SkillCatalogFingerprintTest {
         assertThat(empty.size()).isZero();
         assertThat(empty.summaryHex()).hasSize(64);
         SkillCatalogFingerprint one = SkillCatalogFingerprint.of(List.of(skill("a", "d")));
-        assertThat(empty.diff(one).removed()).containsExactly("a");
-        assertThat(one.diff(null).removed()).containsExactly("a");
+        assertThat(empty.diff(one).added()).containsExactly("a"); // 空基线看一目录：全新增
+        assertThat(one.diff(null).removed()).containsExactly("a"); // 一目录对空：全消失
     }
 }

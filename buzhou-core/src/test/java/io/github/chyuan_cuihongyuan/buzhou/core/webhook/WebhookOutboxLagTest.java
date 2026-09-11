@@ -106,6 +106,9 @@ class WebhookOutboxLagTest {
         MutableClock clock = new MutableClock();
         WebhookOutbox outbox = new WebhookOutbox(new InMemorySessionStateStore(), 8);
         outbox.append("e1", "t", "{}");
+        // 毫秒竞态修复：MutableClock 快照先于 append 的系统时钟（几乎必然 ≥ 快照毫秒），
+        // 不推进则 due() 可能空表——推 1s 使「记录到期」确定（age 断言容差已覆盖）
+        clock.advanceMillis(1_000);
         WebhookOutbox.OutboxRecord current = outbox.due(clock.instant(), 10).getFirst();
         // 退避后移 60s——due() 不可见，但 lag 的 age 仍计它
         outbox.update(current, new WebhookOutbox.OutboxRecord("e1", "t", "{}",
@@ -118,7 +121,7 @@ class WebhookOutboxLagTest {
         WebhookOutboxLag.Lag read = lag.read(16);
         assertThat(read.pendingCount()).isEqualTo(1);
         assertThat(read.oldestEventId()).isEqualTo("e1");
-        assertThat(read.oldestPendingAgeMillis()).isBetween(29_999L, 31_000L);
+        assertThat(read.oldestPendingAgeMillis()).isBetween(30_000L, 31_001L);
     }
 
     @Test
