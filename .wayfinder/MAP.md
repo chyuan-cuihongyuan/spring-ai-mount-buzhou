@@ -298,6 +298,7 @@
 | #526 | 水位告警桥接 | [maps/effort-526.md](maps/effort-526.md) | T805–806 | 429 |
 | #527 | 数据集 CSV 互操作 | [maps/effort-527.md](maps/effort-527.md) | T807–808 | 430 |
 | #528 | 跨会话泄漏金丝雀 | [maps/effort-528.md](maps/effort-528.md) | T809–T810 | 431 |
+| #529 | per-tool 超时预算覆盖 | [maps/effort-529.md](maps/effort-529.md) | T811–812 | 432 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
 | #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
 

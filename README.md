@@ -384,6 +384,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 评测 | 评估集合成扩增 | 种子用例→LLM 生成 N 条同语义改写候选（围栏剥离+逐行容错+零可解析异常带预览）——人审教义只产候选不入库（Ragas testset generation） | [spec 525](docs/spec/525-case-amplifier.md) |
 | 观测治理 | 水位告警桥接 | per-session 低水位翻转态聚合为 context-watermark 机制健康面（低水位会话数≥阈值 DOWN、详情聚合读数）——312 告警规则按机制名可订阅「容量压力」（181×312 桥接） | [spec 526](docs/spec/526-watermark-health.md) |
 | 安全 | 跨会话泄漏金丝雀 | 会话专属确定性令牌（sha256|salt 前 8hex）+他令牌扫描探测——B 会话回复出现 A 金丝雀=跨会话污染信号，LRU 256 有界（thinkst canarytokens/honeytoken） | [spec 528](docs/spec/528-session-canary.md) |
+| 工具韧性 | per-tool 超时预算覆盖 | glob 键 per-tool 超时替换全局值（Deadline 恒天花板）——慢工具长预算快工具紧预算差异化，Holder 默认空零变化（31 per-tool 覆盖同法） | [spec 529](docs/spec/529-tool-timeout-overrides.md) |
 | 评测 | 数据集 CSV 互操作 | RFC 4180 转义/解析（逗号/引号/多行字段往返）、表头宽松校验、Writer 导出——与表格工具双向搬运（LangSmith/HF datasets CSV 形态） | [spec 527](docs/spec/527-dataset-csv.md) |
 | 事故响应 | 事故复盘一键包 | 一个调用产出标准复盘 ZIP（405 时间线+83 错误签名族+334 成本双维 rollup+summary 汇总，manifest 对账）——源缺席跳过不中断（317 ExportBundle 事故域预设组合） | [spec 521](docs/spec/521-postmortem-bundle.md) |
 | 执行脊柱 | session.opened 生命周期事件补齐 | spawn 即派发（监听器挂载后、先于任何轮次；payload appId/agentName/sessionId 身份三元组——全局监听可达）与既有 session.closed 配对——生命周期首尾事件闭环 | [spec 522](docs/spec/522-session-opened-event.md) |

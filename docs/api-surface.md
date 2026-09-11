@@ -1763,3 +1763,6 @@
   /honeytoken：跨会话泄漏探测面，确定性令牌+他令牌扫描+LRU 256 有界，
   与 CanaryGuard 注入检测语义正交）
 
+- `ToolTimeoutOverrides`（+嵌套 Holder）（529——31 per-tool glob 覆盖
+  同法 × 单工具超时扩展：覆盖值替换全局、Deadline 恒天花板，默认空零变化）
+
