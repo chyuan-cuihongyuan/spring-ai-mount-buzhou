@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -25,6 +26,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class SemanticCacheStore {
 
+    private static final System.Logger LOGGER =
+            System.getLogger(SemanticCacheStore.class.getName());
+
     private final int maxEntries;
     private final Duration ttl;
     private final double threshold;
@@ -32,6 +36,9 @@ public final class SemanticCacheStore {
     private final AtomicLong hits = new AtomicLong();
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
+    /** spec 611 / T872：维度不匹配计数（嵌入模型变更信号——命中率静默塌方的可见面）。 */
+    private final AtomicLong dimensionMismatches = new AtomicLong();
+    private final AtomicBoolean driftWarned = new AtomicBoolean();
 
     // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
     // 按 JLS 遮蔽外层同名嵌套类型，removeEldestEntry 覆盖签名在严格 javac 下名称冲突
@@ -90,6 +97,17 @@ public final class SemanticCacheStore {
             if (!entry.bucket().equals(bucket)) {
                 continue;
             }
+            if (queryEmbedding.length != entry.embedding().length) {
+                // spec 611 / T872：维度漂移计数（每次查询×每条不匹配条目）——嵌入模型变更后
+                // 命中面静默塌方，无此计数则只剩「命中率莫名归零」的排障迷宫
+                dimensionMismatches.incrementAndGet();
+                if (driftWarned.compareAndSet(false, true)) {
+                    LOGGER.log(System.Logger.Level.WARNING,
+                            "语义缓存维度漂移：缓存条目维度与查询不一致（查询 " + queryEmbedding.length
+                                    + "）——嵌入模型已变更？建议清缓存重建（新条目自然收敛，但旧条目永不命中）");
+                }
+                continue;
+            }
             double score = cosine(queryEmbedding, entry.embedding());
             if (score >= threshold && score >= bestScore) {
                 bestScore = score;
@@ -130,6 +148,11 @@ public final class SemanticCacheStore {
 
     public long evictedCount() {
         return evictions.get();
+    }
+
+    /** spec 611 / T872：维度不匹配累计（观测面——非零持续增长 = 嵌入模型已变更）。 */
+    public long dimensionMismatches() {
+        return dimensionMismatches.get();
     }
 
     public synchronized int size() {
