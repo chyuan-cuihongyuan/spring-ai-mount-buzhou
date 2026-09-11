@@ -51,6 +51,11 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 死信偏移重放、Webhook 事件幂等键（X-Buzhou-Event-Id 已带）。
 
 | 轮 | effort | spec | 票 | impl | 主题 | 提交 |
+
+## 备忘
+- R14/R19 两次 ToolCallCoalescerTest 全量下时序假红（differentKeysExecuteIndependently/
+  failurePropagatesToAllWaiters——异步完成时序断言），单跑即绿、与改动零交集；
+  持续观察，复现升排除集。webhook 族假红 R8 再现一次（同 D 会话 R6 记录）。
 |----|--------|------|----|------|------|------|
 | 1 | #500 | 500 | T751-752 | 403 | 流式回复 PII 脱敏（Presidio streaming+流式 WAF 回看窗） | 2210b80 |
 | 2 | #501 | 501 | T753-754 | 404 | 请求幂等键（Stripe；勘察换题：原拟注入扫描已有 InjectionClassifier/OnnxPromptGuard） | 5c819ea |
