@@ -60,4 +60,5 @@ per-tool 超时预算 yml(308 deadline 扩散)/失败轮快照面(Sentry event p
 | 6 | #505 | 505 | T761-762 | 408 | 在线实验分桶（GrowthBook/Statsig） | e231d90 |
 | 7 | #506 | 506 | T763-764 | 409 | 工具入参限幅（nginx client_max_body_size；31 入站对称面） | 92c1d12 |
 | 8 | #507 | 507 | T765-766 | 410 | 可逆 PII 代管库（Presidio Vault；webhook 族假红重跑绿记录） | 07dc9d0 |
-| 9 | #508 | 508 | T767-768 | 411 | 成本异常尖峰检测（Prometheus/Istio z-score；403 互补） | （R9 提交后回填） |
+| 9 | #508 | 508 | T767-768 | 411 | 成本异常尖峰检测（Prometheus/Istio z-score；403 互补） | 8031694 |
+| 10 | #509 | 509 | T769-770 | 412 | 时延 SLO 燃尽（Google SRE——321 扩散） | （R10 提交后回填） |

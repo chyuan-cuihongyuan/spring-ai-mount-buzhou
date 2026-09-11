@@ -373,6 +373,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 护栏 | 工具入参限幅 | 执行前体积门（31 结果限幅的入站对称面）——超限拒绝回喂结构化反馈（不回显入参）引导精简重试、per-tool glob 覆盖、默认关 opt-in（nginx client_max_body_size） | [spec 506](docs/spec/506-tool-input-limit.md) |
 | 安全 | 可逆 PII 代管库 | vaultize/restore 对称原语（稳定令牌 sha256|salt 前 16hex 去重+TTL+有界+fail-safe 保留过期令牌）——「展示层脱敏、服务端留原值」授权回显工作流（Presidio Vault） | [spec 507](docs/spec/507-pii-vault.md) |
 | 成本预算 | 成本异常尖峰检测 | 滚动基线 z-score（当前分钟桶 vs 前 N 桶均/标差）+绝对地板+minSamples+cooldown 防抖——费率在预算内但相对自身基线突刺可见（与 403 forecast 互补：趋势 vs 突刺，Prometheus/Istio） | [spec 508](docs/spec/508-cost-spike.md) |
+| 观测治理 | 时延 SLO 燃尽 | 「99% 轮次 < N s」坏事件=latency>阈值喂 321 ErrorBudget（burn/breaching/topBreaching 语义全继承）——「错误率正常但变慢了」的隐蔽退化用 SRE 语言可见可告警（Google SRE） | [spec 509](docs/spec/509-latency-slo.md) |
 
 ## 快速开始
 

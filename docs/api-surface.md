@@ -1682,3 +1682,7 @@
   +地板+minSamples+cooldown 防抖，ModelCostLedger 监听喂数 403 同缝，
   enabled=true 才装配）
 
+- `LatencySloMonitor` + `BuzhouLatencySloProperties`（509——Google SRE
+  321 时延维度扩散：坏事件=elapsed>threshold 喂 ErrorBudget，燃尽语义
+  全继承，`buzhou.latency-slo.enabled` 默认关）
+

@@ -57,6 +57,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouErrorSamplingP
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouEvalSamplingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouExperimentProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouHealthTimelineProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLatencySloProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouLifecyclePhases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMaintenanceProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouMessageEncryptionProperties
@@ -185,6 +186,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealt
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimeline
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.LatencySloMonitor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth

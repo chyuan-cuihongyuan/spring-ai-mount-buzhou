@@ -56,6 +56,7 @@ import java.util.List;
         BuzhouPromptUsageProperties.class, BuzhouTurnRateLimitProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
         BuzhouCostSpikeProperties.class,
+        BuzhouLatencySloProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
         BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class,
@@ -843,6 +844,31 @@ public class BuzhouCoreAutoConfiguration {
                     }
                 });
         return detector;
+    }
+
+    /**
+     * spec 509 / T769：时延 SLO 燃尽（Google SRE——321 时延维度扩散：坏事件
+     * =elapsed>threshold）。enabled=true 装配 RuntimeConfig.hooks（默认关——
+     * 完全零钩子零开销）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.latency-slo", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig
+    buzhouLatencySloRuntimeConfig(BuzhouLatencySloProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget budget =
+                new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget.Config(
+                                properties.sloPercent(), properties.burnRateThreshold(),
+                                io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget.Config
+                                        .DEFAULT_BUCKETS,
+                                properties.window(), properties.minSamples()),
+                        java.time.Clock.systemUTC());
+        io.github.chyuan_cuihongyuan.buzhou.core.health.LatencySloMonitor monitor =
+                new io.github.chyuan_cuihongyuan.buzhou.core.health.LatencySloMonitor(
+                        properties.thresholdMillis(), budget);
+        return io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.hooks(
+                java.util.List.of(monitor));
     }
 
     /**
