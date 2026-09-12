@@ -5,6 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanHandle;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanRecorder;
 import io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetSpec;
+import io.github.chyuan_cuihongyuan.buzhou.mcp.McpConcurrencyView;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpClientRegistry;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnection;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectionFactory;
@@ -67,6 +68,8 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         private volatile Map<String, McpToolHints> toolHintsBaseline = Map.of();
         /** spec 610 / T870：每连接并发许可（null = 不设上限——默认零行为变化）。 */
         private final java.util.concurrent.Semaphore concurrencyPermits;
+        /** spec 722 / T1044：并发上限读数原值（null = 未设）。 */
+        private final Integer concurrencyLimit;
 
         Entry(String name, ToolSetSpec spec, McpConnection connection, Integer concurrencyLimit) {
             this.name = name;
@@ -74,6 +77,16 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             this.connection = connection;
             this.concurrencyPermits = concurrencyLimit != null && concurrencyLimit > 0
                     ? new java.util.concurrent.Semaphore(concurrencyLimit) : null;
+            this.concurrencyLimit = concurrencyLimit;
+        }
+
+        /** spec 722：并发占用视图（未设上限 limit/available=-1）。 */
+        McpConcurrencyView view() {
+            return new McpConcurrencyView(name,
+                    concurrencyLimit == null ? McpConcurrencyView.UNSET : concurrencyLimit,
+                    concurrencyPermits == null ? McpConcurrencyView.UNSET
+                            : concurrencyPermits.availablePermits(),
+                    inFlight.get());
         }
 
         /** spec 610：阻塞可中断获取许可（未设上限恒 true；中断返回 false 由调用方失败转文本）。 */
@@ -563,6 +576,15 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     public Status statusOf(String name) {
         Entry e = entries.get(name);
         return e == null ? null : e.status;
+    }
+
+    @Override
+    public Map<String, McpConcurrencyView> concurrencyViews() {
+        Map<String, McpConcurrencyView> views = new java.util.LinkedHashMap<>();
+        for (Entry e : entries.values()) {
+            views.put(e.name(), e.view());
+        }
+        return views;
     }
 
     /** 测试探针：条目在途计数（无条目返回 -1）。 */

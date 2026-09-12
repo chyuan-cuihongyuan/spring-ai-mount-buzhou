@@ -345,6 +345,7 @@
 | #719 | 供应商限流头前瞻读数 | [maps/effort-719.md](maps/effort-719.md) | T1038–1039 | 619 |
 | #720 | 修正轮：span 分布撞车收敛（712 改写） | [maps/effort-720.md](maps/effort-720.md) | T1040–1041 | 620 |
 | #721 | 嵌入超限分批装饰器 | [maps/effort-721.md](maps/effort-721.md) | T1042–1043 | 621 |
+| #722 | MCP 每连接并发占用视图 | [maps/effort-722.md](maps/effort-722.md) | T1044–1045 | 622 |
 
 ## 跨 effort 悬留
 

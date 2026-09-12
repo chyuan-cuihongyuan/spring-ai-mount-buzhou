@@ -1934,3 +1934,7 @@
   call 按 maxBatchSize 切块顺序调 delegate+全局 index 重排拼接，≤max
   直通；default embed 方法经 call 自动受益）
 
+- `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
+  inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
+  `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
+
