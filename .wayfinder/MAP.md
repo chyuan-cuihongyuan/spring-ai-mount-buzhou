@@ -323,7 +323,7 @@
 | #548 | fsck 巡检健康面 | [maps/effort-548.md](maps/effort-548.md) | T855–856 | 450 |
 | #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
 | **#600（总图）** | **已收口（2026-09-13）** — F 会话 600 系 50 轮自迭代 | [maps/effort-600.md](maps/effort-600.md) | T851–T950 | 453–502 |
-| **#700（总图）** | **进行中** — G 会话 700 系 50 轮自迭代（借鉴高价值开源项目；工具耗时聚合 / 缓存容量上限 / 慢启动 / Retry-After / 契约测试基类 / …台账见 map） | [maps/effort-700.md](maps/effort-700.md) | T951–（至 T1050） | 503–（至 552） |
+| **#700（总图）** | **已收口（2026-09-13，spec 749 / T1050 / impl 552）** — G 会话 700 系 50 轮自迭代（借鉴高价值开源项目；工具耗时聚合 / 缓存 SWR / 慢启动 / Retry-After 规避 / MCP keepalive / 归档 PDB / 契约套件 / 边界守卫 / …台账见 map） | [maps/effort-700.md](maps/effort-700.md) | T951–T1050 | 503–552 |
 
 ## 跨 effort 悬留
 
