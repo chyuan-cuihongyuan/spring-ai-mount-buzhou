@@ -1905,3 +1905,7 @@
   `listDatasetsByTag`（713——Langfuse dataset tags 思想：归一 `[a-z0-9:-]`
   幂等打标/圈选；旧记录解码空表零迁移；tags 不入 fingerprint）
 
+- BuiltInEvaluators `similarity(minRatio)`（714——HELM grading scales 思想：
+  字符 trigram Jaccard 模糊判定，detail 携带分数留痕；minRatio∈[0,1]
+  fail-fast；加法方法无新顶层类型）
+

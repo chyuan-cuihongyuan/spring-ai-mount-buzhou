@@ -482,6 +482,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 持久化 | 消息序列连续性审计 | TurnSequenceAudit 单遍判 GAP/DUPLICATE/OUT_OF_ORDER——store 级丢数据从「上下文缺段」猜测变结构化证据（Kafka offset 审计） | [spec 711](docs/spec/711-turn-sequence-audit.md) |
 | 观测治理 | span 状态分布读数 | SpanStatusDistribution.of 聚合 (kind,status) 计数+RUNNING 残留（未关闭泄漏信号）+errorRate——错误率与泄漏一屏可见（OTel span status） | [spec 712](docs/spec/712-span-status-distribution.md) |
 | 评估闭环 | 数据集标签与过滤 | EvalDatasetMeta 扩 tags（归一升序不可变）+tag/untag 幂等+listDatasetsByTag 圈选；旧记录零迁移（Langfuse dataset tags） | [spec 713](docs/spec/713-dataset-tags.md) |
+| 评估闭环 | 相似度阈值判定器 | BuiltInEvaluators.similarity(minRatio)——字符 trigram Jaccard 模糊判定+detail 分数留痕，LLM 输出词序微变不再脆判（HELM grading） | [spec 714](docs/spec/714-similarity-evaluator.md) |
 
 ## 快速开始
 
