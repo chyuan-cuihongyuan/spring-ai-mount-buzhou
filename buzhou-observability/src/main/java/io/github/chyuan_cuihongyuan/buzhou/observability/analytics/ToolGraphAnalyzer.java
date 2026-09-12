@@ -89,4 +89,67 @@ public final class ToolGraphAnalyzer {
 
         return new ToolGraphReport(List.copyOf(edgeList), List.copyOf(toolList));
     }
+
+    /** 环枚举封顶（基数有界纪律——超限停止搜索，枚举顺序确定→截断确定）。 */
+    public static final int MAX_CYCLES = 16;
+
+    /**
+     * 初等环枚举（spec 717 / T985，静态分析 call-graph 环检测借鉴）：报告的有向
+     * 边集合上 DFS——<b>锚去重</b>（每环以最小节点为锚，锚外不扩展——A→B→A 与
+     * B→A→B 只报一次）；路径 visited 防自交；自环（A→A）单独识别。输出按
+     * （长度, 字典序）稳定排序；超 {@value #MAX_CYCLES} 停止。空图/无边图 = 空表。
+     */
+    public static List<List<String>> cycles(ToolGraphReport report) {
+        if (report == null) {
+            throw new IllegalArgumentException("report 必须非空");
+        }
+        Map<String, java.util.Set<String>> adjacency = new LinkedHashMap<>();
+        java.util.TreeSet<String> nodes = new java.util.TreeSet<>();
+        for (Edge edge : report.edges()) {
+            if (edge.count() <= 0) {
+                continue;
+            }
+            nodes.add(edge.from());
+            nodes.add(edge.to());
+            adjacency.computeIfAbsent(edge.from(), k -> new java.util.TreeSet<>()).add(edge.to());
+        }
+        List<List<String>> cycles = new ArrayList<>();
+        for (String anchor : nodes) {
+            dfsCycles(anchor, anchor, adjacency, new ArrayList<>(List.of(anchor)),
+                    new java.util.LinkedHashSet<>(List.of(anchor)), cycles);
+            if (cycles.size() >= MAX_CYCLES) {
+                break;
+            }
+        }
+        cycles.sort(Comparator.<List<String>>comparingInt(List::size)
+                .thenComparing(list -> String.join("→", list)));
+        if (cycles.size() > MAX_CYCLES) {
+            return List.copyOf(cycles.subList(0, MAX_CYCLES));
+        }
+        return List.copyOf(cycles);
+    }
+
+    /** 锚定 DFS：只记录回到锚的环；中间节点必须 > 锚（最小节点锚定——旋转去重）。 */
+    private static void dfsCycles(String anchor, String current,
+            Map<String, java.util.Set<String>> adjacency,
+            List<String> path, java.util.LinkedHashSet<String> inPath,
+            List<List<String>> out) {
+        for (String next : adjacency.getOrDefault(current, java.util.Set.of())) {
+            if (out.size() >= MAX_CYCLES) {
+                return;
+            }
+            if (next.equals(anchor)) {
+                out.add(List.copyOf(path)); // 找到环（长度 ≥2；自环即长度 1）
+                continue;
+            }
+            if (inPath.contains(next) || next.compareTo(anchor) < 0) {
+                continue; // 自交 / 非锚最小节点（旋转去重）
+            }
+            path.add(next);
+            inPath.add(next);
+            dfsCycles(anchor, next, adjacency, path, inPath, out);
+            path.remove(path.size() - 1);
+            inPath.remove(next);
+        }
+    }
 }
