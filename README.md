@@ -471,6 +471,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | Hook 护栏 | hook 计时进程级聚合读面 | HookTimingAggregator（Holder 装配开启）+ hook-timing 健康段（per-hook count/total/max/avg 微秒）——全进程内联预算分布一屏可读 | [spec 647](docs/spec/647-hook-timing-aggregate-health.md) |
 | 观测与运维 | JSONL 轮转事件指标化 | `buzhou.jsonl.rotated` / `rotate-failed`（tag file）——磁盘保护在工作/轮转病灶一数可读（spec 642 补全） | [spec 648](docs/spec/648-jsonl-rotate-metrics.md) |
 | 工程门禁 | F 会话 600 系收口 | 50 轮自迭代闭环：spec 600–649 / 票 T851–T950 / impl 453–502 全档 + 全仓 verify 终验绿 | [spec 649](docs/spec/649-session-f-closing.md) |
+| 观测与运维 | 工具执行 per-tool 耗时聚合读面 | ToolTimingAggregator（Holder 装配开启）+ tool-timing 健康段（per-tool count/total/max/avg 微秒 + failed）——哪个工具吃掉工具耗时预算一屏可读（pg_stat_statements 借鉴） | [spec 700](docs/spec/700-tool-timing-aggregate.md) |
 
 ## 快速开始
 

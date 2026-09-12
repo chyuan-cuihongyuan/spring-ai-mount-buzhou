@@ -1643,6 +1643,18 @@ public class BuzhouCoreAutoConfiguration {
                     io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator.Holder.current());
         }
 
+        /**
+         * spec 700 / T951：工具执行耗时进程级聚合 + 健康段（Holder 开启镜像——
+         * 未装配零变化；ToolTimingHealth 恒 UP，details = per-tool 耗时/失败计数）。
+         */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingHealth buzhouToolTimingHealth() {
+            io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingAggregator.Holder.enable();
+            return new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingHealth(
+                    io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingAggregator.Holder.current());
+        }
+
         /** spec 92 §A / T349：隔离舱健康段（未配置 UNKNOWN；配置后 per-agent 详情）。 */
         @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

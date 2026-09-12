@@ -69,10 +69,18 @@ public class HookedToolCallback implements ToolCallback {
                     "执行失败：" + e.getMessage());
         }
         // spec 108 §A / T395：工具调用时长 timer（tag outcome——慢工具/失败工具延迟可分）
+        long elapsedNanos = System.nanoTime() - startedAt;
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .timer("buzhou.tool.duration",
-                        java.time.Duration.ofNanos(System.nanoTime() - startedAt),
+                        java.time.Duration.ofNanos(elapsedNanos),
                         "outcome", error == null ? "ok" : "failed");
+        // spec 700 / T951：per-tool 进程级聚合镜像（Holder 未装配=null 跳过——零变化；
+        // per-tool tag 违基数守卫故不走 micrometer，pg_stat_statements 式进程内聚合）
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingAggregator aggregator =
+                io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingAggregator.Holder.current();
+        if (aggregator != null) {
+            aggregator.record(toolName, elapsedNanos, error != null);
+        }
         ctx.markExecuted(result, error);
         // impl-41 / spec 13 §T66：工具调用指标（全部机制的工具都经本回调执行）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
