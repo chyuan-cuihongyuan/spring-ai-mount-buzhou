@@ -30,7 +30,7 @@ class SharedFactFootprintTest {
         assertThat(report.eternalFacts()).isEqualTo(3);
         assertThat(report.rows()).extracting(SharedFactFootprint.Row::owner)
                 .containsExactly("agent-a", "agent-b", "agent-c"); // facts 2/2/1 降序，同数字典序 a 在前
-        assertThat(report.rows().get(0).eternal()).isEqualTo(2);
+        assertThat(report.rows().get(1).eternal()).isEqualTo(2); // agent-b 两条均永生
     }
 
     @Test
