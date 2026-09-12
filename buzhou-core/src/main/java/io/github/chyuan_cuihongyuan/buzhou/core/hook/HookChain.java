@@ -8,11 +8,30 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiFunction;
 
+/**
+ * hook 链（spec 13 §core-2）：按 order（同序按名稳定）逐 hook 派发八个回调面。
+ *
+ * <p>spec 646 / T942–T943：内嵌 <b>per-hook 耗时观测</b>——每回调面包裹
+ * {@link System#nanoTime()}，按 hook 名累计 count / totalNanos / maxNanos
+ * （{@link #stats()} 快照面）；单次超 {@link #SLOW_HOOK_WARN_NANOS} 输出
+ * WARN（原子去重：每 hook 首慢只告一次，此后只累计不刷屏）。纯观测零行为
+ * 变化——不注入超时不截断（hook 护栏语义敏感，跳过即失效）。
+ */
 public class HookChain {
 
+    /** 慢 hook 告警阈值（100ms——Turn 主链路内联面，超此量级即值得被看见）。 */
+    public static final long SLOW_HOOK_WARN_NANOS = 100_000_000L;
+
+    private static final System.Logger LOGGER = System.getLogger(HookChain.class.getName());
+
     private final List<BuzhouHook> hooks;
+    private final ConcurrentHashMap<String, Timing> timings = new ConcurrentHashMap<>();
 
     public HookChain(Collection<BuzhouHook> hooks, Set<String> disabledHookNames) {
         this.hooks = hooks.stream()
@@ -31,19 +50,19 @@ public class HookChain {
     }
 
     public HookResult beforeTurn(TurnContext ctx) {
-        return run(ctx, (hook, c) -> hook.beforeTurn(c));
+        return run(ctx, "beforeTurn", (hook, c) -> hook.beforeTurn(c));
     }
 
     public HookResult afterTurn(TurnContext ctx) {
-        return run(ctx, (hook, c) -> hook.afterTurn(c));
+        return run(ctx, "afterTurn", (hook, c) -> hook.afterTurn(c));
     }
 
     public HookResult beforeModel(ModelCallContext ctx) {
-        return run(ctx, (hook, c) -> hook.beforeModel(c));
+        return run(ctx, "beforeModel", (hook, c) -> hook.beforeModel(c));
     }
 
     public HookResult afterModel(ModelCallContext ctx) {
-        return run(ctx, (hook, c) -> hook.afterModel(c));
+        return run(ctx, "afterModel", (hook, c) -> hook.afterModel(c));
     }
 
     /**
@@ -51,19 +70,23 @@ public class HookChain {
      * {@code applyReplace} 回填响应、{@code Block(reason)} 提前返回；全 {@code CONTINUE} 时返回放行。
      */
     public HookResult onModelError(ModelCallContext ctx) {
-        return run(ctx, (hook, c) -> hook.onModelError(c));
+        return run(ctx, "onModelError", (hook, c) -> hook.onModelError(c));
     }
 
     public HookResult beforeTool(ToolCallContext ctx) {
-        return run(ctx, (hook, c) -> hook.beforeTool(c));
+        return run(ctx, "beforeTool", (hook, c) -> hook.beforeTool(c));
     }
 
     public HookResult afterTool(ToolCallContext ctx) {
-        return run(ctx, (hook, c) -> hook.afterTool(c));
+        return run(ctx, "afterTool", (hook, c) -> hook.afterTool(c));
     }
 
     public void fireEvent(SessionEventContext ctx) {
-        hooks.forEach(hook -> hook.onEvent(ctx));
+        for (BuzhouHook hook : hooks) {
+            long start = System.nanoTime();
+            hook.onEvent(ctx);
+            record(hook, "onEvent", System.nanoTime() - start);
+        }
     }
 
     /**
@@ -82,9 +105,57 @@ public class HookChain {
         return java.util.List.copyOf(filters);
     }
 
-    private <C extends HookContext> HookResult run(C ctx, BiFunction<BuzhouHook, C, HookResult> call) {
+    /** 单 hook 耗时快照（spec 646）：count 累计 / totalNanos 合计 / maxNanos 单次峰值。 */
+    public record HookTiming(String hookName, long count, long totalNanos, long maxNanos) {
+
+        /** 均值纳秒（零调用诚实 0）。 */
+        public double avgNanos() {
+            return count == 0 ? 0.0 : (double) totalNanos / count;
+        }
+    }
+
+    /** per-hook 计时累计（LongAdder 无锁累计 + volatile max）。 */
+    private static final class Timing {
+        final LongAdder count = new LongAdder();
+        final LongAdder totalNanos = new LongAdder();
+        volatile long maxNanos;
+        /** 慢 hook WARN 去重（0=未告过，1=已告过）。 */
+        final AtomicLong slowWarned = new AtomicLong();
+
+        void record(long nanos) {
+            count.increment();
+            totalNanos.add(nanos);
+            long currentMax;
+            long observed = maxNanos;
+            do {
+                currentMax = observed;
+                if (nanos <= currentMax) {
+                    break;
+                }
+            } while (!MAX_UPDATER.compareAndSet(this, currentMax, nanos));
+        }
+
+        HookTiming snapshot(String hookName) {
+            return new HookTiming(hookName, count.sum(), totalNanos.sum(), maxNanos);
+        }
+
+        private static final AtomicLongFieldUpdater<Timing> MAX_UPDATER =
+                AtomicLongFieldUpdater.newUpdater(Timing.class, "maxNanos");
+    }
+
+    /** 耗时快照（hook 名 → 计时；不可变）。 */
+    public Map<String, HookTiming> stats() {
+        Map<String, HookTiming> out = new java.util.LinkedHashMap<>();
+        timings.forEach((name, t) -> out.put(name, t.snapshot(name)));
+        return Map.copyOf(out);
+    }
+
+    private <C extends HookContext> HookResult run(C ctx, String callback,
+            BiFunction<BuzhouHook, C, HookResult> call) {
         for (BuzhouHook hook : hooks) {
+            long start = System.nanoTime();
             HookResult result = call.apply(hook, ctx);
+            record(hook, callback, System.nanoTime() - start);
             if (result instanceof HookResult.Replace replace) {
                 applyReplace(ctx, replace.payload());
                 continue;
@@ -96,6 +167,16 @@ public class HookChain {
             }
         }
         return HookResult.CONTINUE;
+    }
+
+    private void record(BuzhouHook hook, String callback, long nanos) {
+        Timing timing = timings.computeIfAbsent(hook.name(), k -> new Timing());
+        timing.record(nanos);
+        if (nanos > SLOW_HOOK_WARN_NANOS && timing.slowWarned.compareAndSet(0, 1)) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "慢 hook（首次告警，此后只累计）：{0}.{1} 单次 {2}ms——Turn 主链路内联面，持续偏慢请自查该 hook",
+                    hook.name(), callback, nanos / 1_000_000);
+        }
     }
 
     private void applyReplace(HookContext ctx, Object payload) {
