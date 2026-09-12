@@ -97,11 +97,16 @@ public final class ToolDenialLog {
         }
     }
 
-    /** (role,tool) 拒绝计数快照（按计数降序；不可变；超限含 truncated 键）。 */
+    /** (role,tool) 拒绝计数快照（count 降序、并列按键字典序——稳定；不可变；超限含 truncated 键）。 */
     public Map<String, Long> topDenials() {
         List<Map.Entry<Pair, Long>> sorted = new ArrayList<>();
         aggregate.forEach((pair, counter) -> sorted.add(Map.entry(pair, counter.get())));
-        sorted.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
+        sorted.sort((a, b) -> {
+            int byCount = Long.compare(b.getValue(), a.getValue());
+            return byCount != 0 ? byCount
+                    : (a.getKey().role + "->" + a.getKey().tool)
+                            .compareTo(b.getKey().role + "->" + b.getKey().tool);
+        });
         Map<String, Long> out = new LinkedHashMap<>();
         for (Map.Entry<Pair, Long> e : sorted) {
             out.put(e.getKey().role + "->" + e.getKey().tool, e.getValue());
