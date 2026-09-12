@@ -148,6 +148,7 @@
 - `public record TurnDeadline`
 - `public record TurnLoopPolicy`
 - `public sealed interface HookResult`
+- `public final class SessionForkKeys`（spec 640——fork 谱系 state 键常量收口：SOURCE/TURN/PRODUCER 写读两侧同源）
 
 ## buzhou-memory
 

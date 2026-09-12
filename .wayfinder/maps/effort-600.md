@@ -67,6 +67,7 @@
 | 38 | 限流后端形态健康面 | spec 614 补全 | T924–T925 | 490 | 637 | ✅ |
 | 39 | 熔断时间窗生效读面 | spec 620 补全 | T926–T927 | 491 | 638 | ✅ |
 | 40 | 缓存命中率便利 getter | spec 53/55 便利面 | T928–T929 | 492 | 639 | ✅ |
+| 41 | fork 谱系键常量收口 | grpc Metadata.Key / k8s apimachinery | T930–T931 | 493 | 640 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

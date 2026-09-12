@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.health;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon;
 import io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkKeys;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo;
@@ -33,9 +34,6 @@ public final class BuzhouSessionsEndpoint {
     private final MaintenanceCordon cordon;             // 恒在（342）
     /** 可空——无 state 读面部署（forkedActive 段诚实缺席）。 */
     private final io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore stateStore;
-
-    /** spec 627：fork 谱系 state 键（与 DefaultAgentRuntime 写入口径一致——测试双向钉住）。 */
-    static final String FORK_SOURCE_STATE_KEY = "buzhou.fork.source";
 
     /** affinity 展示桶数（spec 415：buzhou.sessions.affinity-buckets，默认 16）。 */
     private final int affinityBuckets;
@@ -151,7 +149,7 @@ public final class BuzhouSessionsEndpoint {
                     null, null, SessionInfo.STATUS_ACTIVE, null, null,
                     page * PAGE_SIZE, PAGE_SIZE));
             for (SessionInfo info : batch) {
-                if (stateStore.get(info.sessionId(), FORK_SOURCE_STATE_KEY).isPresent()) {
+                if (stateStore.get(info.sessionId(), SessionForkKeys.SOURCE).isPresent()) {
                     forked++;
                 }
             }

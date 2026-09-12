@@ -8,6 +8,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkKeys;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult;
@@ -25,11 +26,10 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
 
     private static final Duration LEASE_TTL = Duration.ofSeconds(90);
 
-    /** spec 225 / T593：fork 谱系 state 键（子会话指向源会话；导出/导入携带）。 */
-    private static final String FORK_SOURCE_STATE_KEY = "buzhou.fork.source";
-    private static final String FORK_STATE_PRODUCER = "buzhou.core.fork";
-    /** spec 634 / T918：时间旅行 fork 回放起点轮次 state 键。 */
-    private static final String FORK_TURN_STATE_KEY = "buzhou.fork.turn";
+    /** spec 640 / T930：谱系键公共常量化（写读两侧共用——字符串复制会漂移）。 */
+    private static final String FORK_SOURCE_STATE_KEY = SessionForkKeys.SOURCE;
+    private static final String FORK_STATE_PRODUCER = SessionForkKeys.PRODUCER;
+    private static final String FORK_TURN_STATE_KEY = SessionForkKeys.TURN;
     /** impl-33：续租间隔下限（防误配成 0/负数导致调度线程忙转）。 */
     private static final Duration MIN_RENEW_INTERVAL = Duration.ofMillis(50);
     /** impl-30 / spec 13 §core-1：停机排空预算默认值（未显式传入时）。 */
