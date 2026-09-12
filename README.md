@@ -514,6 +514,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 谱系游走导入场景深链补验 | 100 节点链+尾部环——默认深度截断不 OOM、显式深度走至环处 loopDetected（spec 711 补验） | [spec 740](docs/spec/740-lineage-import-e2e.md) |
 | 观测与运维 | 静默标记×健康段联动补验 | mute 自动传导至健康段 top 排除、snapshot 原样、unmute 回归——spec 720/85 联动闭环 | [spec 742](docs/spec/742-mute-health-e2e.md) |
 | Guard 护栏 | 假名化×幂等占位符互操作补验 | 假名化输出二次处理幂等（替身不再匹配→原样）+ 跨模式无双重脱敏——spec 713/731 补验 | [spec 741](docs/spec/741-pseudonymize-idempotency.md) |
+| 观测与运维 | dryRun×AlertGate 语义确认 | 静默门吞实弹通知但 dryRun 推演如实报告——dry-run=引擎推演/gate=通道策略正交（spec 716 补验） | [spec 746](docs/spec/746-dryrun-gate.md) |
 | 工程门禁 | MessageStore SPI 契约校验套件 | MessageStoreContract 四项语义契约（append/load 保序、未知会话空读、多次追加保序、deleteSession 幂等）——spec 705 同构扩散 | [spec 743](docs/spec/743-messagestore-contract.md) |
 | 工程门禁 | MessageStore 契约接入 H2 | JdbcMessageStore 过四项契约（H2 无 Docker CI 口径）——契约抓出探针会话主键冲突设计缺陷并重构为每检查独立会话（spec 743 复用面） | [spec 744](docs/spec/744-messagestore-h2.md) |
 
