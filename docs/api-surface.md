@@ -1870,3 +1870,8 @@
   SPAN_INDEX_CLASH/COLON_SUFFIX_TRICK）+reservedSegments() 读数+
   isSafeSessionId 摄入守卫谓词；纯静态不改键形状）
 
+- `McpDirectoryDiff`（嵌套 `SyncStatus`/`ChangeKind`/`ToolChange`/
+  `ServerDiff`/`Report`）（706——ArgoCD diff 思想：两份 toolHints 快照
+  plan 式差异，per-server 四态+三类变更+危险方向翻转 risky 标记；
+  纯函数无状态字典序确定序）
+

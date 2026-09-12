@@ -474,6 +474,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型路由 | 健康加权路由抑制原语 | attach(router,breaker,floor)——跳闸压权至地板（全跳不黑洞）恢复回声明值；breaker 加变迁监听缝（HAProxy agent-check） | [spec 703](docs/spec/703-routing-health-dampener.md) |
 | 观测治理 | 提示词角色构成拆解 | PromptComposition.analyze 按角色聚合 chars/messages/share 降序——水位告警后「谁在吃预算」的证据面（Langfuse prompt analytics；纯读数） | [spec 704](docs/spec/704-prompt-composition.md) |
 | 持久化 | Redis 键命名空间碰撞审计 | RedisKeyLayoutAudit 结构性对抗模拟——spev/event 保留段与 lease 冒号后缀三族潜伏碰撞证据+reservedSegments 读数+isSafeSessionId 摄入守卫（fsck 思想+E R12 教训制度化） | [spec 705](docs/spec/705-redis-key-layout-audit.md) |
+| MCP 治理 | 工具目录差异报告 | McpDirectoryDiff 两快照 plan 式 diff——per-server 四态+增/删/翻转明细+危险方向翻转 risky 标记（readOnly→false/destructive→true）（ArgoCD diff） | [spec 706](docs/spec/706-mcp-directory-diff.md) |
 
 ## 快速开始
 
