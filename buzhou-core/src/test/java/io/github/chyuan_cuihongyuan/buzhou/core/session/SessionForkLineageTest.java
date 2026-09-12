@@ -108,4 +108,15 @@ class SessionForkLineageTest {
         SessionExport export = runtime.exportSession("sess-branch");
         assertThat(export.state()).containsKey("buzhou.fork.source");
     }
+
+    /**
+     * spec 640 / T930：常量类与字面量同值钉死——常量化收口不得顺手改值
+     * （wire 契约：存量数据与新数据同键无缝；本用例红 = 键被改、谱系断裂）。
+     */
+    @Test
+    void forkKeyConstantsPinWireValues() {
+        assertThat(SessionForkKeys.SOURCE).isEqualTo("buzhou.fork.source");
+        assertThat(SessionForkKeys.TURN).isEqualTo("buzhou.fork.turn");
+        assertThat(SessionForkKeys.PRODUCER).isEqualTo("buzhou.core.fork");
+    }
 }

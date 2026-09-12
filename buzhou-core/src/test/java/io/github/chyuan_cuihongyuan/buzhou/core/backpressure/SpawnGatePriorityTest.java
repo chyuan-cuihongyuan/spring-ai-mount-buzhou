@@ -136,9 +136,13 @@ class SpawnGatePriorityTest {
         }
     }
 
-    /** 轮询等待断言条件（带 2s 截止；condition = false 时断言当前值恒为 false 即刻通过）。 */
+    /**
+     * 轮询等待断言条件（带 10s 截止——与 get(10s) 同放宽口径：全仓并行下虚拟线程
+     * 调度饥饿可能远超 2s（ca61e639 放宽了 get 却漏了此处 deadline）；condition =
+     * false 时断言当前值恒为 false 即刻通过）。
+     */
     private static void awaitState(java.util.function.BooleanSupplier probe, boolean expected) {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         while (System.nanoTime() < deadline) {
             if (probe.getAsBoolean() == expected) {
                 return;

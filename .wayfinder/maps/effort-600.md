@@ -7,7 +7,7 @@
 
 ## Destination
 
-完成 **50 个完整自迭代 loop**：每轮从高价值 GitHub 项目借鉴一个思想，落地为本仓一个小而完整、带测试、默认零行为变化或 opt-in 的机制改进；50 轮全部 Conventional Commits 提交并推送 GitHub，全仓 `mvn verify` 保持绿。
+**已达成（2026-09-13 收口，spec 649 / T950 / impl 502）**：50 个完整自迭代 loop 全部完成——每轮从高价值 GitHub 项目借鉴一个思想，落地为本仓一个小而完整、带测试、默认零行为变化或 opt-in 的机制改进；50 轮全部 Conventional Commits 提交并推送 GitHub，全仓 `mvn -B -ntp clean verify` 终验绿（16 模块 + JaCoCo ≥70% + enforcer + 快照门 + SpecCoverage）。
 
 ## Notes
 
@@ -67,48 +67,27 @@
 | 38 | 限流后端形态健康面 | spec 614 补全 | T924–T925 | 490 | 637 | ✅ |
 | 39 | 熔断时间窗生效读面 | spec 620 补全 | T926–T927 | 491 | 638 | ✅ |
 | 40 | 缓存命中率便利 getter | spec 53/55 便利面 | T928–T929 | 492 | 639 | ✅ |
+| 41 | fork 谱系键常量收口 | grpc Metadata.Key / k8s apimachinery | T930–T931 | 493 | 640 | ✅ |
+| 42 | 响应缓存 miss 惊群合并 | golang singleflight / nginx proxy_cache_lock | T932–T933 | 494 | 641 | ✅ |
+| 43 | 追加式 JSONL 大小轮转 | logback RollingFileAppender / logrotate | T934–T935 | 495 | 642 | ✅ |
+| 44 | JSONL 轮转 yml 装配扩散 | spec 642 扩散（D 会话装配轮模式） | T936–T937 | 496 | 643 | ✅ |
+| 45 | JSON 行手工拼接收口 | spec 60 纪律全仓收口（Jackson canonical） | T938–T939 | 497 | 644 | ✅ |
+| 46 | API 快照再生收口（E 合并后） | spec 615 门 + 快照随轮再生惯例 | T940–T941 | 498 | 645 | ✅ |
+| 47 | hook 链 per-hook 耗时观测 | actuator http.server.requests / OTel 计时 | T942–T943 | 499 | 646 | ✅ |
+| 48 | hook 计时进程级聚合读面 | spec 646 扩散（生效读面模式） | T944–T945 | 500 | 647 | ✅ |
+| 49 | JSONL 轮转事件指标化 | spec 642 扩散（micrometer 惯例） | T946–T947 | 501 | 648 | ✅ |
+| 50 | 收口：全仓终验+台账核查+地图关闭 | D/E 会话收口模式 | T950 | 502 | 649 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 
 ## Not yet specified
 
-雾区主题队列（顺序即优先级；每轮缺口核查后具体化，重复/已实现者记 ruled-out 顺延）：
+（收口清理：下列主题经 50 轮缺口核查均已被既有轮次覆盖或判定不毕业——留档不毕业原因，供后续 effort 另起时参考。）
 
-- GCRA 平滑限流后端（redis-cell / envoy GCRA，opt-in 替代令牌桶）
-- 事实置信度衰减（时间+冲突双驱动，letta memory）
-- 并行输入护栏（openai agents sdk guardrails：与模型调用并发、可取消）
-- 熔断时间滑动窗（resilience4j TIME-based）
-- 健康分组 liveness/readiness 视图（若 332 探针未覆盖聚合面）
-- 取消原因枚举传播（gRPC status codes）
-- skill 检索混合 BM25 关键词打分（weaviate/qdrant hybrid）
-- 语义缓存负缓存 TTL（nginx negative ttl）
-- eval 数据集 schema 校验（json-schema）
-- 黄金轨迹归一化（UUID/时间戳，approval tests）
-- 工具调用幂等键自动传播（stripe idempotency-key）
-- 记忆压缩影子干跑评估（istio mirroring 思想）
-- outbox 死信率健康维度（prometheus alert rules 思想）
-- MCP 每连接并发上限（mcp spec 并发协商）
-- skill 目录 SHA-256 清单指纹（cosign 思想）
-- 观测 JSONL fsync 档位（sqlite WAL 同步类比）
-- fallback 演练注入窗（chaos monkey 固定窗）
-- lease 续租抖动上限（grpc keepalive backoff cap）
-- 语义缓存维度漂移检测（model drift）
-- 事件总线慢消费者分级（akka bounded mailbox）
-- eval 项级超时预算（pytest-timeout）
-- 记忆 fact 冲突策略可配（delta lake merge）
-- 指标命名 _total 审计（prometheus naming）
-- 熔断 OPEN 预热半开（envoy slow-start）
-- 会话归档冷读限速（nginx limit_conn）
-- starter 装配诊断报告（spring-boot diagnostics）
-- 工具结果裁剪 dry-run 预览（jq dry-run）
-- 前缀缓存命中率细粒度口径（vllm prefix cache）
-- 会话索引 keyset 分页稳定性（postgres keyset）
-- 错误签名聚合窗导出（es date_histogram）
-- 预算池借用利率上限（k8s limit-ratio）
-- redteam 门阈值 yml 化（gh actions inputs）
-- run 恢复巡检抖动（alert for-range）
-- skills 目录变更通知合并（fsnotify）
-- gzip 导出压缩档位（nginx comp_level）
+- 语义缓存负缓存 TTL——精确键 TTL 已覆盖；相似维度负缓存键语义未决，不毕业
+- 会话归档冷读限速——归档无批量入口（单会话 API），限速落点不成立，不毕业
+- 观测写端采样——spec 136 尾采样（导出侧）+ TTL 批删已覆盖主诉求，不毕业
+- 消息历史窗口读下推——ChatMemory 全量语义被 ViewProcessor/Spill 层覆盖，收益存疑，不毕业
 
 ## Out of scope
 

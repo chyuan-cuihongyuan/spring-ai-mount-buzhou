@@ -13,10 +13,13 @@
 - `public class CompositeAttachmentRenderer`
 - `public class FileSandbox`
 - `public class HarnessToolCallingManager`
-- `public class HookChain`
+- `public class HookChain`（spec 646 起 per-hook 计时：`HookTiming` 嵌套 record + `stats()`）
+- `public class HookTimingAggregator`（spec 647——hook 计时进程级聚合，Holder 模式）
+- `public class HookTimingHealth`（spec 647——hook-timing 健康段）
 - `public class LeaseLostException`
 - `public class QuotaExceededException`
 - `public class RetentionSweeper`
+- `public class RollingJsonlWriter`（spec 642——追加式 JSONL 大小轮转：64MB×3 默认开/≤0 显式关）
 - `public class RunRecoveryService`
 - `public class RunStateTrackerHook`
 - `public class RunawayBudgetRenderer`
@@ -148,6 +151,7 @@
 - `public record TurnDeadline`
 - `public record TurnLoopPolicy`
 - `public sealed interface HookResult`
+- `public final class SessionForkKeys`（spec 640——fork 谱系 state 键常量收口：SOURCE/TURN/PRODUCER 写读两侧同源）
 
 ## buzhou-memory
 
@@ -398,6 +402,7 @@
 - `public class RateLimitAdvisor`
 - `public class ResilienceAdvisor`
 - `public class ResilienceSessionObserver`
+- `public class ResponseCacheCoalescer`（spec 641——响应缓存 miss 惊群合并：singleflight 语义）
 - `public class SessionQuotaHook`
 - `public enum CircuitState`
 - `public enum ErrorCategory`

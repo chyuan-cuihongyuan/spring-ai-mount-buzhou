@@ -17,7 +17,7 @@ class ResponseCacheWeightAssemblyTest {
     @Test
     void recordBindingAndCompatConstructor() {
         ResilienceProperties.ResponseCache full = new ResilienceProperties.ResponseCache(
-                Boolean.TRUE, 128, Duration.ofHours(1), 50_000L);
+                Boolean.TRUE, 128, Duration.ofHours(1), 50_000L, null);
         assertThat(full.maxWeightChars()).isEqualTo(50_000L);
 
         ResilienceProperties.ResponseCache legacy = new ResilienceProperties.ResponseCache(
@@ -25,7 +25,7 @@ class ResponseCacheWeightAssemblyTest {
         assertThat(legacy.maxWeightChars()).isZero(); // 兼容构造默认关
 
         assertThatThrownBy(() -> new ResilienceProperties.ResponseCache(
-                Boolean.TRUE, 128, Duration.ofHours(1), -1L))
+                Boolean.TRUE, 128, Duration.ofHours(1), -1L, null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

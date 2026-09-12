@@ -189,4 +189,42 @@ class BuzhouResilienceAutoConfigurationTest {
                 "buzhou.resilience.response-cache.ttl=0s")
                 .run(ctx -> assertThat(ctx).hasFailed());
     }
+
+    /** spec 641：coalescing yml 声明绑定（多构造 record canonical @ConstructorBinding 生效）；缺省关。 */
+    @Test
+    void responseCacheCoalescingBindsOptInAndDefaultsOff() {
+        runner.run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.responseCache().effectiveCoalescing()).isFalse();
+        });
+        runner.withPropertyValues(
+                "buzhou.resilience.response-cache.enabled=true",
+                "buzhou.resilience.response-cache.coalescing=true").run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.responseCache().effectiveEnabled()).isTrue();
+            assertThat(props.responseCache().effectiveCoalescing()).isTrue();
+        });
+    }
+
+    /**
+     * spec 643 / T936：shadow 明细 JSONL 轮转档 yml 绑定——键缺席 = 默认 64MB×3；
+     * 显式 0 = 关（Shadow record 5→7 参多构造 canonical 绑定钉住）。
+     */
+    @Test
+    void shadowRollingKeysBindWithDefaultAndExplicitOff() {
+        runner.run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.shadow().effectiveDetailMaxBytes()).isEqualTo(
+                    io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_BYTES);
+            assertThat(props.shadow().effectiveDetailMaxHistory()).isEqualTo(
+                    io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_HISTORY);
+        });
+        runner.withPropertyValues(
+                "buzhou.resilience.shadow.detail-max-bytes=0",
+                "buzhou.resilience.shadow.detail-max-history=0").run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.shadow().effectiveDetailMaxBytes()).isZero();
+            assertThat(props.shadow().effectiveDetailMaxHistory()).isZero();
+        });
+    }
 }

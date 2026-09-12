@@ -451,8 +451,11 @@ public class BuzhouResilienceAutoConfiguration {
     @ConditionalOnProperty(prefix = "buzhou.resilience.shadow", name = "detail-path")
     public io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl
     buzhouShadowComparisonJsonl(ResilienceProperties properties) throws java.io.IOException {
+        // spec 643 / T936：轮转档位 yml 透传（缺省默认 64MB×3；显式 ≤0 = 关）
         return new io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl(
-                java.nio.file.Path.of(properties.shadow().detailPath()));
+                java.nio.file.Path.of(properties.shadow().detailPath()),
+                properties.shadow().effectiveDetailMaxBytes(),
+                properties.shadow().effectiveDetailMaxHistory());
     }
 
     /**

@@ -317,17 +317,27 @@ public record ResilienceProperties(
      * @param dailyBudget   进程级 UTC 日预算（提交次数口径；默认 1000；池尽计 skipped-budget）
      * @param detailPath    对照明细 JSONL 落盘路径（spec 309；声明即装配导出监听——
      *                      shadow.compared 事件逐条追加；null = 不导出）
+     * @param detailMaxBytes  spec 643 / T936：明细轮转大小档（缺席 = 默认 64MB；显式 ≤0 = 关）
+     * @param detailMaxHistory spec 643 / T936：明细轮转代数档（缺席 = 默认 3；显式 ≤0 = 关）
      */
     public record Shadow(
             Boolean enabled,
             List<String> models,
             Integer maxConcurrent,
             Long dailyBudget,
-            String detailPath) {
+            String detailPath,
+            Long detailMaxBytes,
+            Integer detailMaxHistory) {
 
     /** 4 参兼容构造（spec 309 之前调用方；detail-path = 未配置）。 */
     public Shadow(Boolean enabled, List<String> models, Integer maxConcurrent, Long dailyBudget) {
-        this(enabled, models, maxConcurrent, dailyBudget, null);
+        this(enabled, models, maxConcurrent, dailyBudget, null, null, null);
+    }
+
+    /** 5 参兼容构造（spec 643 之前调用方；轮转细调 = 默认档）。 */
+    public Shadow(Boolean enabled, List<String> models, Integer maxConcurrent,
+            Long dailyBudget, String detailPath) {
+        this(enabled, models, maxConcurrent, dailyBudget, detailPath, null, null);
     }
 
     @org.springframework.boot.context.properties.bind.ConstructorBinding
@@ -341,6 +351,20 @@ public record ResilienceProperties(
         /** 生效开关：显式开启（模型来源由装配面校验——Spring 路径看 models 名单，编程式路径看注入列表）。 */
         public boolean effectiveEnabled() {
             return Boolean.TRUE.equals(enabled);
+        }
+
+        /** spec 643：明细轮转大小档（缺席 → RollingJsonlWriter 默认 64MB；显式 ≤0 = 关）。 */
+        public long effectiveDetailMaxBytes() {
+            return detailMaxBytes == null
+                    ? io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_BYTES
+                    : detailMaxBytes;
+        }
+
+        /** spec 643：明细轮转代数档（缺席 → 默认 3；显式 ≤0 = 关）。 */
+        public int effectiveDetailMaxHistory() {
+            return detailMaxHistory == null
+                    ? io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_HISTORY
+                    : detailMaxHistory;
         }
     }
 
@@ -380,13 +404,22 @@ public record ResilienceProperties(
      * @param enabled    开关（默认 false）
      * @param maxEntries LRU 容量（默认 256）
      * @param ttl        条目 TTL（默认 1h；惰性过期——命中路径检查）
+     * @param coalescing miss 惊群合并（spec 641：默认 false；开启后 call 路径首个 miss 窗口内
+     *                   同 key 并发收敛为一次模型调用——singleflight 语义，失败不共享）
      */
     public record ResponseCache(
             Boolean enabled,
             Integer maxEntries,
             Duration ttl,
-            Long maxWeightChars) {
+            Long maxWeightChars,
+            Boolean coalescing) {
 
+        /** 3 参便捷构造（spec 641/745 之前调用方；权重预算与 coalescing 缺省关）。 */
+        public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl) {
+            this(enabled, maxEntries, ttl, 0L, null);
+        }
+
+        /** 多构造器场景：显式指定规范构造器为绑定构造器（便捷构造不参与绑定）。 */
         @org.springframework.boot.context.properties.bind.ConstructorBinding
         public ResponseCache {
             maxEntries = maxEntries == null ? 256 : maxEntries;
@@ -398,14 +431,14 @@ public record ResilienceProperties(
             }
         }
 
-        /** 3 参兼容构造（spec 745 之前调用方；权重预算 = 关）。 */
-        public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl) {
-            this(enabled, maxEntries, ttl, 0L);
-        }
-
         /** 生效开关（显式开启）。 */
         public boolean effectiveEnabled() {
             return Boolean.TRUE.equals(enabled);
+        }
+
+        /** miss 惊群合并生效开关（显式开启；缓存本身未启用时无意义）。 */
+        public boolean effectiveCoalescing() {
+            return Boolean.TRUE.equals(coalescing);
         }
     }
 

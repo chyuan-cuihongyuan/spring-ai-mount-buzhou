@@ -862,8 +862,10 @@ public class BuzhouCoreAutoConfiguration {
     public io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl
     buzhouHealthTimelineJsonl(BuzhouHealthTimelineProperties properties)
             throws java.io.IOException {
+        // spec 643 / T936：轮转档位 yml 透传（缺省默认 64MB×3；显式 ≤0 = 关）
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl(
-                java.nio.file.Path.of(properties.exportPath()));
+                java.nio.file.Path.of(properties.exportPath()),
+                properties.effectiveExportMaxBytes(), properties.effectiveExportMaxHistory());
     }
 
     /**
@@ -1627,6 +1629,18 @@ public class BuzhouCoreAutoConfiguration {
         io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth buzhouErrorSignaturesHealth() {
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorSignaturesHealth(
                     io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global());
+        }
+
+        /**
+         * spec 647 / T944：hook 计时进程级聚合 + 健康段（Holder 开启镜像——
+         * 未装配零变化；HookTimingHealth 恒 UP，details = per-hook 计时）。
+         */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingHealth buzhouHookTimingHealth() {
+            io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator.Holder.enable();
+            return new io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingHealth(
+                    io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator.Holder.current());
         }
 
         /** spec 92 §A / T349：隔离舱健康段（未配置 UNKNOWN；配置后 per-agent 详情）。 */

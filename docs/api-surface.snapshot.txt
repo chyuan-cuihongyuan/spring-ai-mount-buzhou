@@ -181,6 +181,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFact
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactFootprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine
@@ -216,6 +217,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ContextWatermarkHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ModelCallCapHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ModelCallContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.OnFail
@@ -327,6 +330,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtens
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportSizeAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeatureStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionImportException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionInterrupts
@@ -594,6 +598,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.Resilie
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.budget.AgentCostLedgerHook
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ChunkingEmbeddingModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheKeys
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheAdvisor

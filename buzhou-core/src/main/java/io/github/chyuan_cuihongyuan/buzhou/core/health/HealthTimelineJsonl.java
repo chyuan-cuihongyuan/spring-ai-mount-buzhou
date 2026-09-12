@@ -2,17 +2,15 @@ package io.github.chyuan_cuihongyuan.buzhou.core.health;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+
+import io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter;
 
 /**
  * 健康时间线 JSONL 导出（spec 405 / T702）：逐变迁追加一行
@@ -25,19 +23,21 @@ public final class HealthTimelineJsonl implements Consumer<HealthTimeline.Entry>
     private static final String FAILED_COUNTER = "buzhou.health.timeline.jsonl-failed";
 
     private final Path path;
-    private final BufferedWriter writer;
+    /** spec 642：轮转 writer（大小触发 + 代际 shift——默认 64MB×3 保护）。 */
+    private final RollingJsonlWriter writer;
     private final AtomicLong written = new AtomicLong();
     private final AtomicLong failed = new AtomicLong();
 
     /** 打开（父目录自动创建；打开失败上抛——启动期 fail-fast，坏路径该红）。 */
     public HealthTimelineJsonl(Path path) throws IOException {
+        this(path, io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_BYTES,
+                io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_HISTORY);
+    }
+
+    /** spec 642 / T934：轮转参数显式构造（maxBytes/maxHistory ≤ 0 = 关轮转，旧无界语义）。 */
+    public HealthTimelineJsonl(Path path, long maxBytes, int maxHistory) throws IOException {
         this.path = Objects.requireNonNull(path, "path");
-        Path parent = path.toAbsolutePath().getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
-        this.writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        this.writer = new RollingJsonlWriter(path, maxBytes, maxHistory);
     }
 
     @Override
@@ -51,9 +51,7 @@ public final class HealthTimelineJsonl implements Consumer<HealthTimeline.Entry>
         line.put("from", entry.from() == null ? "" : entry.from().name());
         line.put("to", entry.to() == null ? "" : entry.to().name());
         try {
-            writer.write(MAPPER.writeValueAsString(line));
-            writer.newLine();
-            writer.flush();
+            writer.appendLine(MAPPER.writeValueAsString(line));
             written.incrementAndGet();
         } catch (Exception e) {
             failed.incrementAndGet();

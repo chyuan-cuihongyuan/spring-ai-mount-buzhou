@@ -461,6 +461,16 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | 限流后端形态健康面 | `rateLimitBackend`（memory/memory-gcra/redis/none）——GCRA 声明是否生效一读便知（spec 614 补全） | [spec 637](docs/spec/637-ratelimit-backend-kind-health.md) |
 | 模型韧性 | 熔断时间窗生效读面 | `circuitTimeWindowMs`（0=count 窗/正数=声明值）——spec 620 生效确认面 | [spec 638](docs/spec/638-circuit-time-window-readout.md) |
 | 缓存与前缀 | 缓存命中率便利 getter | Response/Semantic 两 store `hitRate()`（零请求诚实 0.0——观测便利面） | [spec 639](docs/spec/639-cache-hit-rate.md) |
+| 会话与 fork | fork 谱系键常量收口 | `SessionForkKeys`（SOURCE/TURN/PRODUCER）写读两侧同源——字符串复制漂移=谱系断 | [spec 640](docs/spec/640-fork-lineage-keys.md) |
+| 缓存与前缀 | 响应缓存 miss 惊群合并 | `response-cache.coalescing`（opt-in）：首个 miss 窗口同 key 并发收敛一次模型调用（singleflight；失败不共享） | [spec 641](docs/spec/641-response-cache-stampede-coalescing.md) |
+| 观测与运维 | 追加式 JSONL 大小轮转 | `RollingJsonlWriter`（64MB×3 默认开；≤0 显式关）——健康时间线/影子对照/prompt 快照三类明细磁盘封顶 | [spec 642](docs/spec/642-jsonl-rolling.md) |
+| 观测与运维 | JSONL 轮转 yml 细调 | `health.timeline.export-max-{bytes,history}` / `shadow.detail-max-{bytes,history}`——磁盘预算档位声明化（缺席默认/显式关） | [spec 643](docs/spec/643-jsonl-rolling-yml.md) |
+| 观测与运维 | JSON 行手工拼接收口 | 四处（prompt 快照/导出清单/失败快照/死信）统一 Jackson——注入字符（引号/换行/制表符）行仍合法回读原值 | [spec 644](docs/spec/644-jsonl-jackson-escaping.md) |
+| 工程门禁 | API 快照再生收口 | E 会话合并后快照再生成 + api-surface.md 同步（三个新公共类入档）——快照门复绿 | [spec 645](docs/spec/645-api-snapshot-regen.md) |
+| Hook 护栏 | hook 链 per-hook 耗时观测 | HookChain 八回调面计时（count/total/max + stats() 快照）+ 慢 hook（>100ms）WARN 原子去重——慢 hook 一查便知 | [spec 646](docs/spec/646-hook-chain-timing.md) |
+| Hook 护栏 | hook 计时进程级聚合读面 | HookTimingAggregator（Holder 装配开启）+ hook-timing 健康段（per-hook count/total/max/avg 微秒）——全进程内联预算分布一屏可读 | [spec 647](docs/spec/647-hook-timing-aggregate-health.md) |
+| 观测与运维 | JSONL 轮转事件指标化 | `buzhou.jsonl.rotated` / `rotate-failed`（tag file）——磁盘保护在工作/轮转病灶一数可读（spec 642 补全） | [spec 648](docs/spec/648-jsonl-rotate-metrics.md) |
+| 工程门禁 | F 会话 600 系收口 | 50 轮自迭代闭环：spec 600–649 / 票 T851–T950 / impl 453–502 全档 + 全仓 verify 终验绿 | [spec 649](docs/spec/649-session-f-closing.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 

@@ -84,10 +84,12 @@ class ToolCallCoalescerTest {
             }
             release.countDown();
 
+            // 等待语义（failsWithin）：release→leader 醒来抛异常→future 异常完成之间
+            // 有调度窗口——立即断言在高负载下抢跑假红（全仓 clean verify 复现）
             for (CompletableFuture<Object> f : joiners) {
-                assertThat(f).isCompletedExceptionally();
+                assertThat(f).failsWithin(2, TimeUnit.SECONDS);
             }
-            assertThat(first).isCompletedExceptionally();
+            assertThat(first).failsWithin(2, TimeUnit.SECONDS);
             assertThat(first.handle((r, e) -> e.getCause() == null ? e : e.getCause()))
                     .succeedsWithin(1, TimeUnit.SECONDS)
                     .isInstanceOf(IllegalStateException.class);

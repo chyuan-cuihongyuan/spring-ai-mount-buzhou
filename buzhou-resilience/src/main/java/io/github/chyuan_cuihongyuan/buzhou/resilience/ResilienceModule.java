@@ -207,6 +207,12 @@ public final class ResilienceModule {
                                 properties.responseCache().maxEntries(), properties.responseCache().ttl(),
                                 properties.responseCache().maxWeightChars(), java.time.Clock.systemUTC())
                         : null;
+        // spec 641 / T932：miss 惊群合并器（进程级共享——并发合并的价值在跨会话收敛；
+        // coalescing opt-in 且缓存已启用才建，默认 null = 零注入零开销）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer responseCacheCoalescer =
+                responseCacheStore != null && properties.responseCache().effectiveCoalescing()
+                        ? new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer()
+                        : null;
         // spec 55 §C / T242：语义缓存（进程级共享 store；默认关 = null；enabled 而无嵌入
         // bean = 配置矛盾 fail-fast 带修法——不静默降级成"配了却没生效"）
         io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore = null;
@@ -230,8 +236,8 @@ public final class ResilienceModule {
         }
         RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,
-                        fallbackChain, limiter, shadow, responseCacheStore, semanticCacheStore,
-                        semanticEmbeddingModel)));
+                        fallbackChain, limiter, shadow, responseCacheStore, responseCacheCoalescer,
+                        semanticCacheStore, semanticEmbeddingModel)));
         // per-session 日配额（impl-59）：有任一维度才挂 Hook（无配额零开销）。
         if (SessionQuotaHook.anyDimension(properties.sessionQuota())) {
             return RuntimeConfig.merge(assembly,
@@ -300,6 +306,7 @@ public final class ResilienceModule {
         private final ModelRateLimiter limiter;
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore;
+        private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer responseCacheCoalescer;
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore;
         private final org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel;
 
@@ -308,6 +315,7 @@ public final class ResilienceModule {
                                      FallbackChain fallback, ModelRateLimiter limiter,
                                      io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow,
                                      io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore,
+                                     io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer responseCacheCoalescer,
                                      io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore,
                                      org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel) {
             this.properties = properties;
@@ -319,6 +327,7 @@ public final class ResilienceModule {
             this.limiter = limiter;
             this.shadow = shadow;
             this.responseCacheStore = responseCacheStore;
+            this.responseCacheCoalescer = responseCacheCoalescer;
             this.semanticCacheStore = semanticCacheStore;
             this.semanticEmbeddingModel = semanticEmbeddingModel;
         }
@@ -329,7 +338,7 @@ public final class ResilienceModule {
             // ——命中短路两者（无模型调用即无 span/熔断窗；命中可观测走 store 计数）。
             if (responseCacheStore != null) {
                 ctx.addAdvisor(new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor(
-                        responseCacheStore, modelName));
+                        responseCacheStore, modelName, responseCacheCoalescer));
             }
             // 语义缓存（spec 55 §B / T241）：order +460 = 精确缓存(+450)之后——精确键（零成本）
             // 先短路，语义查（嵌入成本）只在精确 miss 后发生；命中同样短路 observability/resilience。

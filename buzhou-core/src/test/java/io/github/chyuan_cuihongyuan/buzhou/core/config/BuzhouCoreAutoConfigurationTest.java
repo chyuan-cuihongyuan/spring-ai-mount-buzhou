@@ -46,6 +46,28 @@ class BuzhouCoreAutoConfigurationTest {
         });
     }
 
+    /**
+     * spec 643 / T936：健康时间线 JSONL 轮转档 yml 绑定——键缺席 = 默认 64MB×3；
+     * 显式 0 = 关（多构造 record canonical 绑定顺带钉住）。
+     */
+    @Test
+    void healthTimelineRollingKeysBindWithDefaultAndExplicitOff() {
+        runner.run(ctx -> {
+            BuzhouHealthTimelineProperties props = ctx.getBean(BuzhouHealthTimelineProperties.class);
+            assertThat(props.effectiveExportMaxBytes()).isEqualTo(
+                    io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_BYTES);
+            assertThat(props.effectiveExportMaxHistory()).isEqualTo(
+                    io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_HISTORY);
+        });
+        runner.withPropertyValues(
+                "buzhou.health.timeline.export-max-bytes=0",
+                "buzhou.health.timeline.export-max-history=0").run(ctx -> {
+            BuzhouHealthTimelineProperties props = ctx.getBean(BuzhouHealthTimelineProperties.class);
+            assertThat(props.effectiveExportMaxBytes()).isZero();
+            assertThat(props.effectiveExportMaxHistory()).isZero();
+        });
+    }
+
     @Test
     void collectsRuntimeConfigBeansIntoAgentRuntime() {
         runner.withBean(RuntimeConfig.class, () -> RuntimeConfig.defaults())
