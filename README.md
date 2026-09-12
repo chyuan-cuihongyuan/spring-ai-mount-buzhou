@@ -485,6 +485,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | fork 谱系游走环防护 | ForkLineageWalker（SOURCE 链上溯 + visited 环检测 + 深度 64 封顶，只读不修）——导入路径注入环/超深链时消费方不死循环（call-graph 环检测借鉴） | [spec 711](docs/spec/711-fork-lineage-walker.md) |
 | 观测与运维 | JSONL 轮转旧档 gzip 压缩 | RollingJsonlWriter compressFromGeneration opt-in（代际 ≥N 存 .gz、file.1 恒明文 delaycompress、双形态清理）——观测明细 ~10:1 省盘（logrotate compress 借鉴） | [spec 712](docs/spec/712-jsonl-rotate-gzip.md) |
 | Guard 护栏 | PII 格式保持假名化 | PiiDetector.pseudonymize（同长度同形态替身：数字/字母/分隔分层，(seed,type,text) 确定性播种，不可逆零托管）——保形状不保校验位诚实划界（Presidio surrogate 借鉴） | [spec 713](docs/spec/713-pii-pseudonymize.md) |
+| Guard 护栏 | 秘密扫描熵阈值过滤 | SecretScanner 可选 Shannon 熵阈值（默认 4.0 bits/char，PRIVATE_KEY_BLOCK 豁免）——AWS 文档示例键/占位串不再误杀（truffleHog entropy 借鉴） | [spec 714](docs/spec/714-secret-entropy-filter.md) |
 
 ## 快速开始
 

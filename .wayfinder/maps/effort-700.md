@@ -43,6 +43,7 @@
 | 12 | fork 谱系游走环防护（原列「命中率 getter」ruled-out——spec 90 已覆盖） | call-graph 环检测 | T973–T974 | 514 | 711 | ✅ |
 | 13 | JSONL 轮转旧档 gzip 压缩 | logrotate compress+delaycompress | T975–T976 | 515 | 712 | ✅ |
 | 14 | PII 格式保持假名化（原列「Kappa」ruled-out——spec 541 已覆盖） | presidio surrogate | T977–T978 | 516 | 713 | ✅ |
+| 15 | 秘密扫描熵阈值过滤 | trufflesecurity/trufflehog | T979–T980 | 517 | 714 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
