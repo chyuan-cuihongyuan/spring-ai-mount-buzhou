@@ -476,6 +476,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | 路由慢启动权重爬坡 | RoutingSlowStart：权重上调先落 floor 再分 4 步爬到 target（热重载接线 opt-in、降权瞬时）——升配不瞬时打爆恢复端点（nginx upstream slow_start 借鉴） | [spec 702](docs/spec/702-routing-slow-start.md) |
 | MCP 治理 | MCP keepalive 空闲探活 | 注册表周期 listToolNames 探活（opt-in），失败重建走 spec-changed 同口径——空闲死连接不再拖到用户 Turn 才暴露（gRPC keepalive 借鉴） | [spec 703](docs/spec/703-mcp-keepalive.md) |
 | 观测与运维 | 最小可用水位闸（归档 PDB） | SessionAvailabilityFloor 挂 archive()：存活会话 ≤ minAvailable 拒绝自愿驱逐（未知计数 fail-open、restore 不受闸）——故障期运维动作不再削薄在线容量（k8s PodDisruptionBudget 借鉴） | [spec 704](docs/spec/704-session-availability-floor.md) |
+| 工程门禁 | store SPI 契约校验套件 | SessionStateStoreContract.verify 九项语义契约（CAS 消费一次/null-expect 首写/前缀扫描/幂等清场）+ Report 逐项明细——第三方 store 实现一行自证（Pact 借鉴） | [spec 705](docs/spec/705-store-contract.md) |
 
 ## 快速开始
 

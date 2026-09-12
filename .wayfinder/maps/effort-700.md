@@ -18,18 +18,23 @@
 
 ## Decisions so far
 
-（每轮补一行：[票名](链接) — 一行结论）
+- [工具执行 per-tool 耗时聚合读面](../tickets/T951-tool-timing-aggregate-shape.md) — ToolTimingAggregator（Holder 模式）+ tool-timing 健康段按总耗时降序 top-20（pg_stat_statements 本义）；per-tool 不进 micrometer（基数守卫）。
+- [缓存 stale-while-revalidate](../tickets/T953-cache-swr-shape.md) — 落点 TtlCachingToolCallback（刷新=重放工具调用，advisor 重放请求不值）；swrGrace opt-in、后台单飞、失败保旧值。
+- [模型端点慢启动权重爬坡](../tickets/T955-routing-slow-start-shape.md) — RoutingSlowStart 分 4 步线性爬坡（tick 包内可见测试手动推进）；热重载上调走 ramp、降权瞬时。
+- [MCP keepalive 空闲探活](../tickets/T957-mcp-keepalive-shape.md) — 注册表周期 listToolNames 探活（漂移基线同源）；失败走 spec-changed 同口径重建，refreshLock 内防竞态。
+- [最小可用水位闸（归档 PDB）](../tickets/T959-session-pdb-shape.md) — SessionAvailabilityFloor 挂 archive()；未知计数 fail-open（保底闸失明不误伤）；restore/purge 不受闸。
+- [store SPI 契约校验套件](../tickets/T961-store-contract-shape.md) — SessionStateStoreContract.verify 九项语义检查（主源码零 JUnit；逐项收集不抛）；`__contract__` 会话自清理。
 
 ## 50 轮台账
 
 | # | 主题 | 借鉴源 | 票 | impl | spec | 状态 |
 |---|------|--------|----|------|------|------|
-| 1 | 工具执行 per-tool 耗时聚合读面 | pg_stat_statements / ClickHouse query log | T951–T952 | 503 | 700 | ❌ |
-| 2 | 响应缓存容量上限 + 逐出计数 | ben-manes/caffeine maximumSize | T953–T954 | 504 | 701 | ❌ |
-| 3 | 缓存 stale-while-revalidate 刷新 | nginx proxy_cache_use_stale / guava refreshAfterWrite | T955–T956 | 505 | 702 | ❌ |
-| 4 | 模型端点慢启动权重爬坡 | nginx upstream slow_start | T957–T958 | 506 | 703 | ❌ |
-| 5 | 429/503 Retry-After 尊重退避 | HTTP RFC 7231 / envoy retry_back_off | T959–T960 | 507 | 704 | ❌ |
-| 6 | MCP keepalive 空闲探活 | grpc keepalive pings | T961–T962 | 508 | 705 | ❌ |
+| 1 | 工具执行 per-tool 耗时聚合读面 | pg_stat_statements / ClickHouse query log | T951–T952 | 503 | 700 | ✅ |
+| 2 | 缓存 SWR（原列「响应缓存容量上限」ruled-out——spec 53 §D 已覆盖） | nginx proxy_cache_use_stale / guava refreshAfterWrite | T953–T954 | 504 | 701 | ✅ |
+| 3 | 模型端点慢启动权重爬坡 | nginx upstream slow_start | T955–T956 | 505 | 702 | ✅ |
+| 4 | MCP keepalive 空闲探活（原列「Retry-After」ruled-out——spec 10 已覆盖） | grpc keepalive pings | T957–T958 | 506 | 703 | ✅ |
+| 5 | 最小可用水位闸·归档 PDB（原列「租约泄漏检测」ruled-out——impl-41 已覆盖；「排水水位闸」并入本主题：archive 即自愿驱逐入口） | k8s PodDisruptionBudget | T959–T960 | 507 | 704 | ✅ |
+| 6 | store SPI 契约校验套件（原列「压力归档建议」与 spec 179 空闲清单重叠顺延） | Pact consumer contract testing | T961–T962 | 508 | 705 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
