@@ -111,12 +111,12 @@ public final class GuardModule {
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook(
                     builder.moderationTerms, builder.moderationAction));
         }
-                // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
+        // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
         if (builder.secretScanning) {
-            h.add(builder.secretTypes == null
-                    ? new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook()
-                    : new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook(
-                            builder.secretTypes));
+            io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanner scanner =
+                    new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanner(
+                            builder.secretTypes, builder.secretMinEntropy);
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook(scanner));
         }
         // impl-21 / T49：FIDES 最小 taint（读侧打标 + 写门校验；默认关，按机制开关）
         if (builder.taintTracking) {
@@ -167,6 +167,11 @@ public final class GuardModule {
         return authApi;
     }
 
+    /** spec 727：已挂 hook 列表（包内观测面——装配测试断言缝）。 */
+    java.util.List<BuzhouHook> hooksView() {
+        return hooks;
+    }
+
     /** 事实 Attachment 渲染器（供 memory 注入视图构建方注入事实块）；无采集器时返回 null。 */
     public AttachmentRenderer attachmentRenderer() {
         return attachmentRenderer;
@@ -201,6 +206,8 @@ public final class GuardModule {
         // spec 400 / T692：密钥扫描（默认关；null 类型集 = 全 7 型）
         private boolean secretScanning = false;
         private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> secretTypes = null;
+        /** spec 727 / T1005：熵阈值（null = 关——默认）。 */
+        private Double secretMinEntropy;
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
         // spec 626 / T902：事实置信度衰减（null = 不衰减——既有语义零变化）
@@ -319,6 +326,12 @@ public final class GuardModule {
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> types) {
             this.secretScanning = true;
             this.secretTypes = types;
+            return this;
+        }
+
+        /** spec 727 / T1005：熵阈值（bits/char；null = 关——默认；见 spec 714）。 */
+        public Builder secretMinEntropy(Double minEntropy) {
+            this.secretMinEntropy = minEntropy;
             return this;
         }
 

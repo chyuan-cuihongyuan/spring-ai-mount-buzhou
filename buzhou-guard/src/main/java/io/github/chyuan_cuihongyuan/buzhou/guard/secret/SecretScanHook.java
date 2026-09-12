@@ -35,11 +35,16 @@ public class SecretScanHook implements BuzhouHook {
     private SecretHitStats.Side currentSide = SecretHitStats.Side.OUTPUT;
 
     public SecretScanHook() {
-        this(null);
+        this(new SecretScanner()); // 全类型、无熵闸——与既有 (Set)null 等价
     }
 
     public SecretScanHook(Set<SecretType> enabledTypes) {
         this.scanner = new SecretScanner(enabledTypes);
+    }
+
+    /** spec 727 / T1005：自带扫描器构造（熵阈值装配面——GuardModule 直通）。 */
+    public SecretScanHook(SecretScanner scanner) {
+        this.scanner = scanner == null ? new SecretScanner() : scanner;
     }
 
     @Override

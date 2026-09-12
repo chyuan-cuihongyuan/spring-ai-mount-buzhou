@@ -498,6 +498,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | MCP 治理 | MCP keepalive yml 装配 | Builder.keepalive + fromYml keepalive-interval 键直通注册表 9 参构造——声明即启用探活，缺省零变化（spec 703 装配轮） | [spec 724](docs/spec/724-mcp-keepalive-assembly.md) |
 | 模型韧性 | 路由慢启动 yml 装配 | buzhou.routing.slow-start 属性 + 条件 bean + 热重载 ObjectProvider 接线——权重上调爬坡声明即启用（spec 702 装配轮） | [spec 725](docs/spec/725-slow-start-assembly.md) |
 | 观测与运维 | 归档 PDB yml 装配 | buzhou.cleanup.min-available-sessions 属性 + capped probe 计数（limit=min+1 一页即答「>min 否」）——spec 704 声明式入口 | [spec 726](docs/spec/726-pdb-assembly.md) |
+| Guard 护栏 | 秘密熵过滤 Builder 装配 | GuardModule.Builder.secretMinEntropy 直通 SecretScanner——声明即滤示例键/占位串（spec 714 装配轮） | [spec 727](docs/spec/727-secret-entropy-assembly.md) |
 
 ## 快速开始
 
