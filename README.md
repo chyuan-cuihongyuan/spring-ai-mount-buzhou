@@ -492,6 +492,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | webhook 投递限速 | WebhookRateLimiter 令牌桶 + forwarder 可选接线（defer 留 outbox 原状不进重试状态机、整批 defer 早退防热旋）——事件风暴不冲垮下游消费者（envoy local rate limit 借鉴） | [spec 718](docs/spec/718-webhook-rate-limit.md) |
 | 观测与运维 | 生效配置 diff 读面 | ConfigDiff 纯函数（ADDED/REMOVED/CHANGED 三分类 + 字典序 + 掩码同值语义）——热重载/部署改了什么一数可读（kubectl diff 借鉴） | [spec 719](docs/spec/719-config-diff.md) |
 | 观测与运维 | 错误签名静默标记 | ErrorSignatures mute/unmute（MUTED_CAP=64 有界）——top 读面降噪但 snapshot 计数照常（静默是降噪不是删除），reset 连带清空（Sentry muted issues 借鉴） | [spec 720](docs/spec/720-signature-mute.md) |
+| 观测与运维 | 死信重放审计事件 | replayDeadLetters 动作留痕：dead-replayed 指标（delta=条数）+ replayCount/replayedCount 累计 + 结构化审计日志——运维敏感动作必留痕（审计完整性惯例） | [spec 721](docs/spec/721-dead-replay-audit.md) |
 
 ## 快速开始
 
