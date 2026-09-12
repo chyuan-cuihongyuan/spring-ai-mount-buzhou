@@ -343,6 +343,7 @@
 | #717 | 共享事实冲突审计 | [maps/effort-717.md](maps/effort-717.md) | T1034–1035 | 617 |
 | #718 | 评估通过率漂移基线 | [maps/effort-718.md](maps/effort-718.md) | T1036–1037 | 618 |
 | #719 | 供应商限流头前瞻读数 | [maps/effort-719.md](maps/effort-719.md) | T1038–1039 | 619 |
+| #720 | 修正轮：span 分布撞车收敛（712 改写） | [maps/effort-720.md](maps/effort-720.md) | T1040–1041 | 620 |
 
 ## 跨 effort 悬留
 

@@ -480,7 +480,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评测 | 实验到期自动停 | 构造器扩 expiresAt+Clock——到期按未入组返回 null、曝光计独立 `__expired__` 桶+expiredExperiments 读数（GrowthBook feature expiry） | [spec 709](docs/spec/709-experiment-expiry.md) |
 | 评测 | 全局 holdout 层 | holdoutPercent 构造参数——跨实验一致排除的纯控制组、曝光计 `__holdout__` 独立桶（Statsig holdout layer） | [spec 710](docs/spec/710-experiment-holdout.md) |
 | 持久化 | 消息序列连续性审计 | TurnSequenceAudit 单遍判 GAP/DUPLICATE/OUT_OF_ORDER——store 级丢数据从「上下文缺段」猜测变结构化证据（Kafka offset 审计） | [spec 711](docs/spec/711-turn-sequence-audit.md) |
-| 观测治理 | span 状态分布读数 | SpanStatusDistribution.of 聚合 (kind,status) 计数+RUNNING 残留（未关闭泄漏信号）+errorRate——错误率与泄漏一屏可见（OTel span status） | [spec 712](docs/spec/712-span-status-distribution.md) |
+| 观测治理 | span 健康摘要（543 补全） | healthSummary——RUNNING 残留（泄漏信号）+errorRate（口径显式）；R13 core 重建撞 543 的修正收敛（OTel span status） | [spec 712](docs/spec/712-span-health-summary.md) |
 | 评估闭环 | 数据集标签与过滤 | EvalDatasetMeta 扩 tags（归一升序不可变）+tag/untag 幂等+listDatasetsByTag 圈选；旧记录零迁移（Langfuse dataset tags） | [spec 713](docs/spec/713-dataset-tags.md) |
 | 评估闭环 | 相似度阈值判定器 | BuiltInEvaluators.similarity(minRatio)——字符 trigram Jaccard 模糊判定+detail 分数留痕，LLM 输出词序微变不再脆判（HELM grading） | [spec 714](docs/spec/714-similarity-evaluator.md) |
 | 护栏 | PII 格式保形掩码 | FormatPreservingMasker——手机/证件/邮箱/IP 保形掩码+形状校验失败全星降级；三形态（占位/掩码/vault）各司其职（Presidio FP） | [spec 715](docs/spec/715-format-preserving-mask.md) |

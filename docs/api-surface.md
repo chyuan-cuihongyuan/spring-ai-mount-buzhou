@@ -1897,9 +1897,9 @@
   思想：audit(List<Marker>) 单遍判消息序列 GAP/DUPLICATE/OUT_OF_ORDER，
   调用方投影解耦 store SPI；纯函数只读）
 
-- `SpanStatusDistribution`（嵌套 `Row`/`Report`）（712——OTel span status
-  语义：of(List<SpanRecord>) 聚合 (kind,status) 字典序+runningResidue
-  泄漏信号+errorRate（ERROR/total）；纯函数读数）
+- SpanStatusDistribution `healthSummary`（嵌套 `HealthSummary`）（720
+  修正轮——R13 曾在 core 重建撞 543；增量收敛到既有 analytics 类：
+  runningResidue 泄漏信号+errorRate 口径显式；无新顶层类型）
 
 - EvalDatasetMeta `tags` 组件 + EvalDatasetStore `tagDataset`/`untagDataset`/
   `listDatasetsByTag`（713——Langfuse dataset tags 思想：归一 `[a-z0-9:-]`

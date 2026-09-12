@@ -1,4 +1,4 @@
-# effort #712 — span 状态分布读数（换题注记：原 13 号「webhook 双密钥轮换」撞 spec 540 verifyWithRotation——E 会话已做，换入 span 状态分布）
+# effort #712 — span 状态分布读数（⚠ R21=effort#720 修正：core 重建撞 spec 543 同名类，已删并收敛 healthSummary 到 analytics 类——教训：排重 grep 必须 -i 且按类名后缀查）
 
 - 会话：G 会话 700 系第 13 轮 ｜ spec [712](../../../docs/spec/712-span-status-distribution.md) ｜ 票 [T1024](../tickets/T1024-span-status-dist.md)/[T1025](../tickets/T1025-span-status-dist-verify.md) ｜ impl612
 - **换题注记**：原计划「webhook 签名双密钥轮换」勘察撞 spec 540（verifyWithRotation 双密钥+容差窗组合已收口——教训：排重 grep 须 -i，verifyWith**R**otation 大写漏检）。换入池内「span 状态分布读数」（已验证零命中）。
