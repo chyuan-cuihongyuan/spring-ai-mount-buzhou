@@ -1913,3 +1913,7 @@
   结构化简化版：maskPhone/maskIdCard/maskEmail/maskIp+通用 mask 保长
   打星，形状校验复用 PiiDetector 口径、失败全星 fail-closed；纯静态）
 
+- `TodoStalenessAudit`（嵌套 `Row`/`Report`）（716——agent todo 纪律面板：
+  analyze 轮次年龄+滞留清单降序+promptHint 一行人话；staleAfterTurns≤0
+  只报统计；纯读数不自动清理）
+

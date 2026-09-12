@@ -484,6 +484,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评估闭环 | 数据集标签与过滤 | EvalDatasetMeta 扩 tags（归一升序不可变）+tag/untag 幂等+listDatasetsByTag 圈选；旧记录零迁移（Langfuse dataset tags） | [spec 713](docs/spec/713-dataset-tags.md) |
 | 评估闭环 | 相似度阈值判定器 | BuiltInEvaluators.similarity(minRatio)——字符 trigram Jaccard 模糊判定+detail 分数留痕，LLM 输出词序微变不再脆判（HELM grading） | [spec 714](docs/spec/714-similarity-evaluator.md) |
 | 护栏 | PII 格式保形掩码 | FormatPreservingMasker——手机/证件/邮箱/IP 保形掩码+形状校验失败全星降级；三形态（占位/掩码/vault）各司其职（Presidio FP） | [spec 715](docs/spec/715-format-preserving-mask.md) |
+| 工具治理 | Todo 陈旧度审计读数 | TodoStalenessAudit 轮次年龄+滞留清单+promptHint 一行人话——agent 任务清单烂掉可见（todo 纪律面板） | [spec 716](docs/spec/716-todo-staleness.md) |
 
 ## 快速开始
 
