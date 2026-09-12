@@ -1998,6 +1998,10 @@
 - `EventTypePresenceGate`（嵌套 `Report`）（739——726 对偶：gate(events,
   expectedTypes) 期望类型差集 missing 字典序；空契约不误报；纯函数）
 
+- ResponseCache `maxWeightChars` 组件（745——737 装配兑现：yml
+  response-cache.max-weight-chars（默认 0=关），ResilienceModule 装配点
+  透传；加法组件+兼容构造，无新顶层类型）
+
 - ResilienceStats `updateProviderUtilization`/`lastProviderUtilization`
   （740——719 信号聚合接线：NaN 起始+details 条件出现；加法方法无新
   顶层类型）

@@ -357,6 +357,7 @@
 | #731 | 评估分数分布解析 | [maps/effort-731.md](maps/effort-731.md) | T1062–1063 | 631 |
 | #741 | 共享事实足迹读数 | [maps/effort-741.md](maps/effort-741.md) | T1084–1085 | 641 |
 | #744 | 混合排序融合权重读数 | [maps/effort-744.md](maps/effort-744.md) | T1090–1091 | 644 |
+| #745 | 响应缓存权重预算 yml 装配 | [maps/effort-745.md](maps/effort-745.md) | T1092–1093 | 645 |
 | #742 | 孤儿保留计数读数 | [maps/effort-742.md](maps/effort-742.md) | T1086–1087 | 642 |
 | #732 | 事件 payload 大小审计 | [maps/effort-732.md](maps/effort-732.md) | T1064–1065 | 632 |
 | #733 | 提示词使用缺口读数 | [maps/effort-733.md](maps/effort-733.md) | T1066–1067 | 633 |

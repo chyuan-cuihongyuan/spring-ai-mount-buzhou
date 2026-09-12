@@ -384,11 +384,23 @@ public record ResilienceProperties(
     public record ResponseCache(
             Boolean enabled,
             Integer maxEntries,
-            Duration ttl) {
+            Duration ttl,
+            Long maxWeightChars) {
 
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public ResponseCache {
             maxEntries = maxEntries == null ? 256 : maxEntries;
             ttl = ttl == null ? Duration.ofHours(1) : ttl;
+            maxWeightChars = maxWeightChars == null ? 0L : maxWeightChars;
+            if (maxWeightChars < 0) {
+                throw new IllegalArgumentException(
+                        "response-cache.max-weight-chars（" + maxWeightChars + "）必须 >= 0（0=关）");
+            }
+        }
+
+        /** 3 参兼容构造（spec 745 之前调用方；权重预算 = 关）。 */
+        public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl) {
+            this(enabled, maxEntries, ttl, 0L);
         }
 
         /** 生效开关（显式开启）。 */

@@ -204,7 +204,8 @@ public final class ResilienceModule {
         io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore =
                 properties.responseCache() != null && properties.responseCache().effectiveEnabled()
                         ? new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore(
-                                properties.responseCache().maxEntries(), properties.responseCache().ttl())
+                                properties.responseCache().maxEntries(), properties.responseCache().ttl(),
+                                properties.responseCache().maxWeightChars(), java.time.Clock.systemUTC())
                         : null;
         // spec 55 §C / T242：语义缓存（进程级共享 store；默认关 = null；enabled 而无嵌入
         // bean = 配置矛盾 fail-fast 带修法——不静默降级成"配了却没生效"）

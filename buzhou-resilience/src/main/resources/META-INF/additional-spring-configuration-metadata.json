@@ -133,6 +133,12 @@
       "description": "缓存 LRU 容量（容量逐出计 evicted）。"
     },
     {
+      "name": "buzhou.resilience.response-cache.max-weight-chars",
+      "type": "java.lang.Long",
+      "defaultValue": 0,
+      "description": "响应缓存权重预算字符数（0=关；>0 时按响应字符数腾挪驱逐，701 同款）。"
+    },
+    {
       "name": "buzhou.resilience.response-cache.ttl",
       "type": "java.time.Duration",
       "defaultValue": "1h",
