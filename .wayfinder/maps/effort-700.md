@@ -45,6 +45,7 @@
 | 14 | PII 格式保持假名化（原列「Kappa」ruled-out——spec 541 已覆盖） | presidio surrogate | T977–T978 | 516 | 713 | ✅ |
 | 15 | 秘密扫描熵阈值过滤 | trufflesecurity/trufflehog | T979–T980 | 517 | 714 | ✅ |
 | 16 | 指标命名规范守卫测试（+ RoutingScheduleAdjuster 动态拼接名清零） | prometheus/client_java naming | T981–T982 | 518 | 715 | ✅ |
+| 17 | 告警规则 dry-run | k8s admission dryRun / argo --dry-run | T983–T984 | 519 | 716 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |

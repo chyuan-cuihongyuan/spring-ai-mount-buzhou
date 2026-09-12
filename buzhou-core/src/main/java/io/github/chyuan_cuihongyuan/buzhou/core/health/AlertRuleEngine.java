@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.health;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -174,6 +175,63 @@ public final class AlertRuleEngine implements org.springframework.context.SmartL
     /** 规则集（观测面）。 */
     public List<AlertRule> rules() {
         return rules;
+    }
+
+    /**
+     * dry-run 推演行（spec 716）：DOWN 且 for 窗未满——实弹若持续将触发，
+     * 含已 DOWN 时长与剩余窗口。
+     */
+    public record PendingRule(String ruleName, String mechanism, Duration downFor,
+                              Duration remaining) {
+    }
+
+    /**
+     * dry-run 推演报告（不可变）：三分类——{@code wouldFire}（实弹将触发）、
+     * {@code wouldRecover}（实弹将发恢复）、{@code pending}（窗口未满）。
+     */
+    public record DryRunReport(List<AlertFiring> wouldFire, List<AlertFiring> wouldRecover,
+                               List<PendingRule> pending) {
+    }
+
+    /**
+     * spec 716 / T983（k8s admission dryRun 借鉴）：纯只读推演一轮——
+     * <b>三不承诺</b>：不改 downSince/firing 状态机、不通知 listener、不发指标；
+     * 规则集演练（上线前验配）零副作用。
+     */
+    public DryRunReport dryRun(Instant now) {
+        Map<String, BuzhouHealth> healths = healthSource.get();
+        List<AlertFiring> wouldFire = new ArrayList<>();
+        List<AlertFiring> wouldRecover = new ArrayList<>();
+        List<PendingRule> pending = new ArrayList<>();
+        for (AlertRule rule : rules) {
+            BuzhouHealth health = healths.get(rule.mechanism());
+            if (health == null) {
+                continue; // 与 evaluate 同口径：运行期机制消失跳过
+            }
+            boolean down = health.status() == BuzhouHealth.Status.DOWN;
+            boolean isFiring = Boolean.TRUE.equals(firing.get(rule.name()));
+            if (!down) {
+                if (isFiring) {
+                    wouldRecover.add(new AlertFiring(rule.name(), rule.mechanism(), true,
+                            now, health.details(), rule.annotations()));
+                }
+                continue;
+            }
+            Instant since = downSince.getOrDefault(rule.name(), now);
+            Duration downFor = Duration.between(since, now);
+            Duration forDuration = rule.forDuration();
+            if (!forDuration.isZero() && downFor.compareTo(forDuration) < 0) {
+                pending.add(new PendingRule(rule.name(), rule.mechanism(), downFor,
+                        forDuration.minus(downFor)));
+                continue;
+            }
+            if (!isFiring) {
+                wouldFire.add(new AlertFiring(rule.name(), rule.mechanism(), false,
+                        now, health.details(), rule.annotations()));
+            }
+        }
+        return new DryRunReport(List.copyOf(wouldFire), List.copyOf(wouldRecover),
+                List.copyOf(pending));
     }
 
     /** spec 345 / T681：firing 视图（规则名 → 是否 firing——只读副本，面板端点用）。 */
