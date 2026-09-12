@@ -1967,6 +1967,10 @@
   OpenAI 头优先不混合来源，缺项回退 Anthropic anthropic-ratelimit-*；
   加法方法无新顶层类型）
 
+- `EvalScoreAnalytics`（嵌套 `Report`）（731——714 消费端：similarityScores
+  正则解析 run 明细中的 similarity= 分数→scored/min/max/mean/scores；
+  无分数项跳过诚实计数；纯函数）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
