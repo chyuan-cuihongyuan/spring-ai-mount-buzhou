@@ -48,9 +48,48 @@ class ApiSurfaceSnapshotTest {
                 .filter(l -> !l.isBlank() && !l.startsWith("#")).sorted().toList();
         List<String> actualLines = actual.entrySet().stream()
                 .map(e -> e.getValue() + "|" + e.getKey()).sorted().toList();
+        SnapshotDiff diff = gradeDiff(expected, actualLines);
         assertThat(actualLines)
-                .as("公共面与快照不符——有意变更请 regenerateSnapshot 更新并同步 api-surface.md")
+                .as(() -> "公共面与快照不符——" + diff.gradeMessage())
                 .containsExactlyElementsOf(expected);
+    }
+
+    /**
+     * spec 706 / T963（oasdiff 借鉴）：diff 破坏性分级——expected 有 actual 无 =
+     * removed（破坏性：公共类型消失，须审查 0.x 语义）；actual 有 expected 无 =
+     * added（非破坏：regenerate + api-surface.md 同步即可）。门语义不变（任何
+     * diff 仍失败）——分级只改处置指引。
+     */
+    record SnapshotDiff(List<String> added, List<String> removed) {
+
+        /** 破坏性判定（只看 removed）。 */
+        boolean breaking() {
+            return !removed.isEmpty();
+        }
+
+        /** 分级报告（破坏性清单前置 + 分类处置指引）。 */
+        String gradeMessage() {
+            StringBuilder sb = new StringBuilder();
+            if (breaking()) {
+                sb.append("【破坏性】公共类型消失 ").append(removed.size())
+                        .append(" 项：").append(removed).append(" —— 审查 0.x 语义与 api-surface.md；");
+            }
+            if (!added.isEmpty()) {
+                sb.append("【非破坏】新增公共类型 ").append(added.size())
+                        .append(" 项：").append(added)
+                        .append(" —— regenerateSnapshot 更新快照并同步 api-surface.md");
+            }
+            return sb.toString();
+        }
+    }
+
+    /** 有序 diff 分级（纯函数）。 */
+    static SnapshotDiff gradeDiff(List<String> expected, List<String> actualLines) {
+        java.util.Set<String> expectedSet = new java.util.HashSet<>(expected);
+        java.util.Set<String> actualSet = new java.util.HashSet<>(actualLines);
+        List<String> added = actualLines.stream().filter(l -> !expectedSet.contains(l)).toList();
+        List<String> removed = expected.stream().filter(l -> !actualSet.contains(l)).toList();
+        return new SnapshotDiff(added, removed);
     }
 
     /**
