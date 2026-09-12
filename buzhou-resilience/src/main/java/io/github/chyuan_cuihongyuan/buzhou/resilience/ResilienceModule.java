@@ -219,7 +219,8 @@ public final class ResilienceModule {
             io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties.SemanticCache sc =
                     properties.semanticCache();
             semanticCacheStore = new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore(
-                    sc.maxEntries(), sc.ttl(), sc.similarityThreshold());
+                    sc.maxEntries(), sc.ttl(), sc.similarityThreshold(), sc.maxWeightChars(),
+                    java.time.Clock.systemUTC());
         }
         RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,

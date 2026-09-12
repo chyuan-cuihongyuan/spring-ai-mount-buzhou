@@ -324,6 +324,7 @@
 | #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
 | **#600（总图）** | **进行中** — F 会话 600 系 50 轮自迭代（借鉴高价值开源项目；MCP 注解观测面 / 驱逐恐慌阈值 / fork 谱系 / …台账见 map） | [maps/effort-600.md](maps/effort-600.md) | T851–（至 T950） | 453–（至 502） |
 | #700 | 能力门决策审计读数 | [maps/effort-700.md](maps/effort-700.md) | T1000–1001 | 600 |
+| #701 | 语义缓存权重预算驱逐 | [maps/effort-701.md](maps/effort-701.md) | T1002–1003 | 601 |
 
 ## 跨 effort 悬留
 

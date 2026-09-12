@@ -408,17 +408,22 @@ public record ResilienceProperties(
      * @param similarityThreshold cosine 命中阈值（默认 0.95；越高越保守）
      * @param maxEntries         LRU 容量（默认 128；桶内线性扫描量级由 perf 哨兵钉住）
      * @param ttl                条目 TTL（默认 1h；惰性过期）
+     * @param maxWeightChars     权重预算字符数（spec 701；默认 0=关——>0 时按响应字符数腾挪驱逐，
+     *                           Caffeine weigher 思想）
      */
     public record SemanticCache(
             Boolean enabled,
             Double similarityThreshold,
             Integer maxEntries,
-            Duration ttl) {
+            Duration ttl,
+            Integer maxWeightChars) {
 
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public SemanticCache {
             similarityThreshold = similarityThreshold == null ? 0.95 : similarityThreshold;
             maxEntries = maxEntries == null ? 128 : maxEntries;
             ttl = ttl == null ? Duration.ofHours(1) : ttl;
+            maxWeightChars = maxWeightChars == null ? 0 : maxWeightChars;
             if (!(similarityThreshold > 0.0 && similarityThreshold <= 1.0)) {
                 throw new IllegalArgumentException(
                         "semantic-cache.similarity-threshold（" + similarityThreshold + "）必须在 (0,1]");
@@ -431,6 +436,15 @@ public record ResilienceProperties(
                 throw new IllegalArgumentException(
                         "semantic-cache.ttl（" + ttl + "）必须为正时长");
             }
+            if (maxWeightChars < 0) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.max-weight-chars（" + maxWeightChars + "）必须 >= 0（0=关）");
+            }
+        }
+
+        /** 4 参兼容构造（spec 701 之前调用方；maxWeightChars = 关）。 */
+        public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries, Duration ttl) {
+            this(enabled, similarityThreshold, maxEntries, ttl, 0);
         }
 
         /** 生效开关（显式开启）。 */

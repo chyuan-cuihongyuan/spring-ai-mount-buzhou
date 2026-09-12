@@ -163,6 +163,12 @@
       "description": "语义缓存条目 TTL（惰性过期——命中路径检查）。"
     },
     {
+      "name": "buzhou.resilience.semantic-cache.max-weight-chars",
+      "type": "java.lang.Integer",
+      "defaultValue": 0,
+      "description": "语义缓存权重预算字符数（0=关；>0 时按响应字符数腾挪驱逐，Caffeine weigher 思想——大响应不再挤出高频短条目）。"
+    },
+    {
       "name": "buzhou.resilience.fallback.latency-aware",
       "type": "java.lang.Boolean",
       "defaultValue": false,

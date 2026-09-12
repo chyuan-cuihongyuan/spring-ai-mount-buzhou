@@ -32,17 +32,23 @@ public final class SemanticCacheStore {
     private final int maxEntries;
     private final Duration ttl;
     private final double threshold;
+    /** spec 701 / T1002：权重预算字符数（0=关——默认零行为；>0 时 put 后腾挪至预算内）。 */
+    private final long maxWeightChars;
     private final Clock clock;
     private final AtomicLong hits = new AtomicLong();
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
+    /** spec 701：因权重预算未存留的总次数（腾挪+超预算拒存同计——独立于 evictedCount 口径）。 */
+    private final AtomicLong weightEvictions = new AtomicLong();
+    private volatile long totalWeightChars;
     /** spec 611 / T872：维度不匹配计数（嵌入模型变更信号——命中率静默塌方的可见面）。 */
     private final AtomicLong dimensionMismatches = new AtomicLong();
     private final AtomicBoolean driftWarned = new AtomicBoolean();
 
     // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
     // 按 JLS 遮蔽外层同名嵌套类型，removeEldestEntry 覆盖签名在严格 javac 下名称冲突
-    private record CacheEntry(String bucket, float[] embedding, ChatResponse response, Instant expireAt) {
+    private record CacheEntry(String bucket, float[] embedding, ChatResponse response, Instant expireAt,
+                              long weightChars) {
     }
 
     private final LinkedHashMap<String, CacheEntry> entries = new LinkedHashMap<>(16, 0.75f, true) {
@@ -63,6 +69,12 @@ public final class SemanticCacheStore {
     }
 
     public SemanticCacheStore(int maxEntries, Duration ttl, double threshold, Clock clock) {
+        this(maxEntries, ttl, threshold, 0, clock);
+    }
+
+    /** spec 701：maxWeightChars ≤ 0 = 权重预算关（默认零行为）。 */
+    public SemanticCacheStore(int maxEntries, Duration ttl, double threshold, long maxWeightChars,
+                              Clock clock) {
         if (maxEntries < 1) {
             throw new IllegalArgumentException("semantic-cache.max-entries 必须 >= 1（当前 " + maxEntries + "）");
         }
@@ -76,6 +88,7 @@ public final class SemanticCacheStore {
         this.maxEntries = maxEntries;
         this.ttl = ttl;
         this.threshold = threshold;
+        this.maxWeightChars = Math.max(0, maxWeightChars);
         this.clock = clock;
     }
 
@@ -124,13 +137,49 @@ public final class SemanticCacheStore {
         return Optional.of(best.response());
     }
 
-    /** 写入（调用方保证终态边界——带 toolCalls 不写；同 query 文本重复写允许共存，LRU 自然收敛）。 */
+    /** 写入（调用方保证终态边界——带 toolCalls 不写；同 query 文本重复写允许共存，LRU/权重预算自然收敛）。 */
     public synchronized void put(String bucket, float[] embedding, ChatResponse response) {
         if (bucket == null || embedding == null || embedding.length == 0 || response == null) {
             return;
         }
+        long weight = estimateChars(response);
+        if (maxWeightChars > 0 && weight > maxWeightChars) {
+            // spec 701：超预算单条永不入预算——拒存同计 weightEvictions（未存留总次数口径）
+            weightEvictions.incrementAndGet();
+            return;
+        }
+        if (maxWeightChars > 0) {
+            evictToBudget(weight);
+            totalWeightChars += weight;
+        }
         entries.put(bucket + "#" + (seq++), new CacheEntry(bucket, embedding, response,
-                clock.instant().plus(ttl)));
+                clock.instant().plus(ttl), weight));
+    }
+
+    /** spec 701：腾挪至 weight 入预算后仍 ≤ 预算（eldest 先出；weightEvictions 独立口径）。 */
+    private void evictToBudget(long incomingWeight) {
+        while (totalWeightChars + incomingWeight > maxWeightChars && !entries.isEmpty()) {
+            java.util.Iterator<CacheEntry> it = entries.values().iterator();
+            CacheEntry eldest = it.next();
+            it.remove();
+            totalWeightChars -= eldest.weightChars();
+            weightEvictions.incrementAndGet();
+        }
+    }
+
+    /** 响应文本字符数估算（各 Generation getText() 求和，null 安全——口径稳定可解释）。 */
+    static long estimateChars(ChatResponse response) {
+        if (response == null || response.getResults() == null) {
+            return 0;
+        }
+        long total = 0;
+        for (org.springframework.ai.chat.model.Generation generation : response.getResults()) {
+            if (generation != null && generation.getOutput() != null
+                    && generation.getOutput().getText() != null) {
+                total += generation.getOutput().getText().length();
+            }
+        }
+        return total;
     }
 
     /** 相似度阈值（观测/测试面）。 */
@@ -156,6 +205,21 @@ public final class SemanticCacheStore {
         return evictions.get();
     }
 
+    /** spec 701：权重预算（≤0 语义同 0=关）。 */
+    public long maxWeightChars() {
+        return maxWeightChars;
+    }
+
+    /** spec 701：当前在册条目权重合计（估算口径）。 */
+    public synchronized long totalWeightChars() {
+        return totalWeightChars;
+    }
+
+    /** spec 701：因权重预算未存留的总次数（腾挪+超预算拒存——独立于 evictedCount 口径）。 */
+    public long weightEvictionCount() {
+        return weightEvictions.get();
+    }
+
     /** spec 611 / T872：维度不匹配累计（观测面——非零持续增长 = 嵌入模型已变更）。 */
     public long dimensionMismatches() {
         return dimensionMismatches.get();
@@ -172,6 +236,9 @@ public final class SemanticCacheStore {
             boolean expired = now.isAfter(entry.expireAt());
             if (expired) {
                 evictions.incrementAndGet();
+                if (maxWeightChars > 0) {
+                    totalWeightChars -= entry.weightChars();
+                }
             }
             return expired;
         });

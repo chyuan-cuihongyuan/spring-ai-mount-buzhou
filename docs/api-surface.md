@@ -1848,3 +1848,7 @@
   denyByModel 聚合、snapshot() 不可变报告；CapabilityGateAdvisor 3 参
   构造接线，纯旁路拒绝行为零变化）
 
+- SemanticCacheStore 权重预算族（701——`maxWeightChars` 5 参构造+
+  `maxWeightChars()`/`totalWeightChars()`/`weightEvictionCount()` 读数+
+  estimateChars 估算口径；evictedCount 口径不混；加法方法无新顶层类型）
+
