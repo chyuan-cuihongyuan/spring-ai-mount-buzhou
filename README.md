@@ -496,6 +496,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | 工具泳道排队时延观测 | LaneLimitingToolCallback acquire 段计时 + WaitStats（waited/total/max/timeouts）+ buzhou.lane.wait/timeout 指标——排队与执行分开计量、容量调参有据（grpc queue 时延借鉴） | [spec 722](docs/spec/722-lane-wait-observability.md) |
 | 模型韧性 | 路由金丝雀阶段标签 | RouteStages（STABLE/CANARY/ARCHIVED 有界注册表）+ filter 构造期过滤（未标注恒可见）——端点生命周期显式声明、退役端点不参路由（MLflow stages 借鉴） | [spec 723](docs/spec/723-route-stages.md) |
 | MCP 治理 | MCP keepalive yml 装配 | Builder.keepalive + fromYml keepalive-interval 键直通注册表 9 参构造——声明即启用探活，缺省零变化（spec 703 装配轮） | [spec 724](docs/spec/724-mcp-keepalive-assembly.md) |
+| 模型韧性 | 路由慢启动 yml 装配 | buzhou.routing.slow-start 属性 + 条件 bean + 热重载 ObjectProvider 接线——权重上调爬坡声明即启用（spec 702 装配轮） | [spec 725](docs/spec/725-slow-start-assembly.md) |
 
 ## 快速开始
 
