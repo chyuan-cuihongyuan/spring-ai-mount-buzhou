@@ -51,6 +51,7 @@
 | 20 | 生效配置 diff 读面 | kubectl diff | T989–T990 | 522 | 719 | ✅ |
 | 21 | 错误签名静默标记 | getsentry/sentry muted issues | T991–T992 | 523 | 720 | ✅ |
 | 22 | 死信重放审计事件 | 审计完整性惯例 | T993–T994 | 524 | 721 | ✅ |
+| 23 | 工具泳道排队时延观测 | grpc server queue 时延 | T995–T996 | 525 | 722 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
