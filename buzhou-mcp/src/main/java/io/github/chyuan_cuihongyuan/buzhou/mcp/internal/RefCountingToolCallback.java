@@ -55,7 +55,16 @@ public class RefCountingToolCallback implements ToolCallback {
             return "MCP server '" + entry.name() + "' 已被配置热更摘除，该工具调用未执行";
         }
         try {
-            return delegate.call(toolInput, toolContext);
+            // spec 610 / T870：每连接并发许可（阻塞可中断——虚拟线程便宜、core 工具超时兜底
+            // 总时长；中断走失败转文本不抛，与摘除拒绝同词汇）
+            if (!entry.acquirePermit()) {
+                return "MCP server '" + entry.name() + "' 并发许可获取被中断，该工具调用未执行";
+            }
+            try {
+                return delegate.call(toolInput, toolContext);
+            } finally {
+                entry.releasePermit();
+            }
         } finally {
             registry.release(entry);
         }

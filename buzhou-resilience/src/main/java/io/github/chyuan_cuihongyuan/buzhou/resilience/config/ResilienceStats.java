@@ -19,6 +19,10 @@ public final class ResilienceStats implements BuzhouHealth {
     private final AtomicLong retryAttempts = new AtomicLong();
     private final AtomicLong retryExhausted = new AtomicLong();
     private final AtomicLong rateLimitRejections = new AtomicLong();
+    /** spec 637 / T924：生效限流后端标识（configure 时一次性写入）。 */
+    private volatile String rateLimitBackend = "none";
+    /** spec 638 / T926：熔断时间窗（毫秒；0 = count 窗——configure 时一次性写入）。 */
+    private volatile long circuitTimeWindowMs;
     private final AtomicLong modelTimeouts = new AtomicLong();
     private final AtomicLong contentRefusals = new AtomicLong();
     private final AtomicLong circuitRejections = new AtomicLong();
@@ -51,6 +55,8 @@ public final class ResilienceStats implements BuzhouHealth {
         details.put("retryAttempts", retryAttempts.get());
         details.put("retryExhausted", retryExhausted.get());
         details.put("rateLimitRejections", rateLimitRejections.get());
+        details.put("rateLimitBackend", rateLimitBackend); // spec 637：memory/memory-gcra/redis 一读便知
+        details.put("circuitTimeWindowMs", circuitTimeWindowMs); // spec 638：时间窗生效读面（0=count 窗）
         details.put("modelTimeouts", modelTimeouts.get());
         details.put("contentRefusals", contentRefusals.get());
         details.put("circuitRejections", circuitRejections.get());
@@ -78,6 +84,16 @@ public final class ResilienceStats implements BuzhouHealth {
 
     public void recordRetryExhausted() {
         retryExhausted.incrementAndGet();
+    }
+
+    /** spec 637：生效限流后端标识（configure 时设置——health details 直读）。 */
+    public void updateRateLimitBackend(String kind) {
+        this.rateLimitBackend = kind == null ? "none" : kind;
+    }
+
+    /** spec 638：熔断时间窗毫秒（configure 时设置——声明是否生效一读便知）。 */
+    public void updateCircuitTimeWindowMs(long ms) {
+        this.circuitTimeWindowMs = Math.max(0, ms);
     }
 
     public void recordRateLimitRejection() {

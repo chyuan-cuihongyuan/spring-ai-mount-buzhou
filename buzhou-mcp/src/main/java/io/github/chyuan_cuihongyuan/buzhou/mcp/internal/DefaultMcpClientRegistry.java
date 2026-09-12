@@ -8,6 +8,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetSpec;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpClientRegistry;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnection;
 import io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectionFactory;
+import io.github.chyuan_cuihongyuan.buzhou.mcp.McpToolHints;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.time.Duration;
@@ -62,11 +63,38 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         private volatile SpanContext spanContext;
         /** spec 18 / T86：工具名基线集（漂移差量口径；通知到达后推进）。 */
         private volatile java.util.Set<String> toolNamesBaseline = java.util.Set.of();
+        /** spec 600 / T851：工具自报注解基线（与名字基线同生命周期；空 = 该连接无注解口径，跳过注解差量）。 */
+        private volatile Map<String, McpToolHints> toolHintsBaseline = Map.of();
+        /** spec 610 / T870：每连接并发许可（null = 不设上限——默认零行为变化）。 */
+        private final java.util.concurrent.Semaphore concurrencyPermits;
 
-        Entry(String name, ToolSetSpec spec, McpConnection connection) {
+        Entry(String name, ToolSetSpec spec, McpConnection connection, Integer concurrencyLimit) {
             this.name = name;
             this.spec = spec;
             this.connection = connection;
+            this.concurrencyPermits = concurrencyLimit != null && concurrencyLimit > 0
+                    ? new java.util.concurrent.Semaphore(concurrencyLimit) : null;
+        }
+
+        /** spec 610：阻塞可中断获取许可（未设上限恒 true；中断返回 false 由调用方失败转文本）。 */
+        boolean acquirePermit() {
+            if (concurrencyPermits == null) {
+                return true;
+            }
+            try {
+                concurrencyPermits.acquire();
+                return true;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+
+        /** spec 610：释放许可（未设上限 no-op）。 */
+        void releasePermit() {
+            if (concurrencyPermits != null) {
+                concurrencyPermits.release();
+            }
         }
 
         java.util.Set<String> toolNamesBaseline() {
@@ -112,6 +140,9 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             }
         }
     }
+
+    /** spec 610 / T870：每连接并发上限（null = 不设；Entry 创建时装配——既有条目不追溯）。 */
+    private volatile Integer perConnectionConcurrencyLimit;
     private final ConcurrentHashMap<String, Entry> entries = new ConcurrentHashMap<>();
     private final Object refreshLock = new Object();
     private final ScheduledExecutorService scheduler;
@@ -322,9 +353,10 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                     .counter("buzhou.mcp.connect.failures", "server", spec.name());
             return false;
         }
-        Entry entry = new Entry(spec.name(), spec, connection);
+        Entry entry = new Entry(spec.name(), spec, connection, perConnectionConcurrencyLimit);
         entry.spanContext = spanCtx;
         entry.toolNamesBaseline = Set.copyOf(connection.listToolNames());
+        entry.toolHintsBaseline = Map.copyOf(connection.toolHints());
         entries.put(spec.name(), entry);
         obs.added(spanCtx, spec.name(), null);
         return true;
@@ -334,6 +366,9 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
      * spec 18 / T86：server 端工具集变更（tools/list_changed）→ 与基线差量。
      * 非空差量：mcp.tools-drift Event + WARN 日志 + 指标，基线推进（连续漂移各记各的）；
      * 空差量静默。M1 仅告警——回调在会话装配期绑定，热替换由运维触发 refresh/重启会话吸收。
+     *
+     * <p>spec 600 / T851：同名工具的注解变化另发 mcp.tool-hints-drift（独立事件，观测口径，
+     * 不作为护栏裁决）；基线无注解口径（伪连接/旧 server）时跳过注解差量，退化不误报。
      */
     private void handleToolsChanged(String serverName, java.util.List<io.modelcontextprotocol.spec.McpSchema.Tool> newTools) {
         Entry entry = entries.get(serverName);
@@ -347,21 +382,46 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                         .collect(java.util.stream.Collectors.toUnmodifiableSet());
         java.util.List<String> added;
         java.util.List<String> removed;
+        java.util.List<String> hintsChanged = List.of();
         synchronized (entry.lock) {
             java.util.Set<String> baseline = entry.toolNamesBaseline();
             added = incoming.stream().filter(n -> !baseline.contains(n)).sorted().toList();
             removed = baseline.stream().filter(n -> !incoming.contains(n)).sorted().toList();
-            if (added.isEmpty() && removed.isEmpty()) {
+            boolean namesDrifted = !added.isEmpty() || !removed.isEmpty();
+            if (namesDrifted) {
+                entry.toolNamesBaseline = incoming;
+            }
+            if (!entry.toolHintsBaseline.isEmpty() && newTools != null) {
+                Map<String, McpToolHints> incomingHints = new LinkedHashMap<>();
+                for (io.modelcontextprotocol.spec.McpSchema.Tool tool : newTools) {
+                    incomingHints.put(tool.name(), McpToolHints.from(tool));
+                }
+                hintsChanged = entry.toolHintsBaseline.entrySet().stream()
+                        .filter(b -> incomingHints.containsKey(b.getKey()))
+                        .filter(b -> !incomingHints.get(b.getKey()).equals(b.getValue()))
+                        .map(Map.Entry::getKey).sorted().toList();
+                entry.toolHintsBaseline = Map.copyOf(incomingHints);
+            }
+            if (!namesDrifted && hintsChanged.isEmpty()) {
                 return; // 空差量静默（SDK 可能对无实变化的通知重放）
             }
-            entry.toolNamesBaseline = incoming;
         }
-        obs.toolsDrift(entry.spanContext, serverName, added, removed);
-        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
-                .counter("buzhou.mcp.tools-drift", "server", serverName);
-        LOGGER.log(System.Logger.Level.WARNING,
-                "MCP server 工具集漂移：server=" + serverName + "，added=" + added + "，removed=" + removed
-                        + "——仅告警（回调于会话装配期绑定）；触发配置 refresh 或重启会话以吸收变更");
+        if (!added.isEmpty() || !removed.isEmpty()) {
+            obs.toolsDrift(entry.spanContext, serverName, added, removed);
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.mcp.tools-drift", "server", serverName);
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "MCP server 工具集漂移：server=" + serverName + "，added=" + added + "，removed=" + removed
+                            + "——仅告警（回调于会话装配期绑定）；触发配置 refresh 或重启会话以吸收变更");
+        }
+        if (!hintsChanged.isEmpty()) {
+            obs.toolHintsDrift(entry.spanContext, serverName, hintsChanged);
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.mcp.tool-hints-drift", "server", serverName);
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "MCP server 工具注解漂移：server=" + serverName + "，changed=" + hintsChanged
+                            + "——server 自报口径变化（如 readOnlyHint 翻转）；仅观测告警，不作为护栏裁决");
+        }
     }
 
     /** 置 DRAINING（对新调用即刻不可见）并启动关闭等待；inFlight==0 立即关闭。 */
@@ -511,6 +571,18 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         return e == null ? -1 : e.inFlight();
     }
 
+    /**
+     * spec 610 / T870：每连接并发上限（MCP server——尤其 stdio 单线程实现——对同连接
+     * 并发调用敏感；并行工具 fan-out 的客户端侧静态闸）。null/<=0 = 不设（默认零行为
+     * 变化）；<b>Entry 创建时装配，既有条目不追溯</b>（诚实边界）；limit 恒 <= 0 视为关闭。
+     */
+    public void setPerConnectionConcurrencyLimit(Integer limit) {
+        if (limit != null && limit <= 0) {
+            throw new IllegalArgumentException("perConnectionConcurrencyLimit 必须 > 0 或 null（当前 " + limit + "）");
+        }
+        this.perConnectionConcurrencyLimit = limit;
+    }
+
     /** impl-50：glob（*.delete*）→ 正则。 */
     static java.util.regex.Pattern globToRegex(String glob) {
         StringBuilder regex = new StringBuilder();
@@ -579,5 +651,17 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     /** impl-50：建连失败计数（connectFailure 路径自增；健康面只读）。 */
     long connectFailures() {
         return connectFailures.get();
+    }
+
+    /** spec 600 / T851：ACTIVE 条目的注解基线聚合快照（server → 工具名 → hints；查询零 RPC）。 */
+    @Override
+    public Map<String, Map<String, McpToolHints>> toolHints() {
+        Map<String, Map<String, McpToolHints>> out = new LinkedHashMap<>();
+        for (Entry e : entries.values()) {
+            if (e.status == Status.ACTIVE) {
+                out.put(e.name(), e.toolHintsBaseline);
+            }
+        }
+        return java.util.Collections.unmodifiableMap(out);
     }
 }

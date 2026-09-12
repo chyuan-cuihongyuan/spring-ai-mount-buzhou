@@ -415,6 +415,53 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 记忆治理 | 记忆压缩率分布观测 | 回收字符分位窗+逐出比直方图+折入 trigger 计数（挂既有 CompactionListener 缝，观测零干预）——梯子参数与折叠驱动信号有数据依据（416 分位族同法） | [spec 517](docs/spec/517-compaction-ratio-stats.md) |
 | 投递可靠 | 投递时延分位数 | 成功投递时延滚动窗（512 样本）+exact 最近秩 p50/p95/p99（零样本 null）——「送是送到了但延迟 20 分钟」的劣化可见，与 135 lag 互补（416 分位族同法） | [spec 514](docs/spec/514-delivery-latency.md) |
 
+## 生产级纵深 VII（F 会话 600 系增量）
+
+F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| MCP 治理 | 工具注解观测面 + 注解漂移 | server 自报 readOnly/destructive hint 入目录快照，同名注解翻转独立告警（MCP 规范 annotations；观测口径不裁决危险性） | [spec 600](docs/spec/600-mcp-tool-hints.md) |
+| 模型韧性 | 离群驱逐恐慌阈值 | 健康候选跌破占比阈值即忽略驱逐返回全量——全逐比试坏端点更糟（Envoy panic threshold；默认 0=关） | [spec 601](docs/spec/601-outlier-panic-threshold.md) |
+| 会话分支 | fork 谱系 | 子会话 state 带 `buzhou.fork.source` 指向源会话、事件带 copy 计数——排障/策略/导出可查「fork 自谁」（OTel span-links 思想的关联面落地） | [spec 602](docs/spec/602-fork-lineage.md) |
+| 模型韧性 | GCRA 平滑限流后端 | TAT 匀速整形（默认 β=0 无突发，每 60/容量 秒放行）——突发即 429 的供应商场景 opt-in（redis-cell / Envoy GCRA） | [spec 603](docs/spec/603-gcra-rate-limit-backend.md) |
+| 记忆治理 | 事实置信度衰减 | Fact 带 confidence、读时指数半衰过滤——陈年低置信事实不再占提示词预算（letta memory blocks；opt-in 装饰器不写回） | [spec 604](docs/spec/604-fact-confidence-decay.md) |
+| Skill 体系 | 技能混合排序 | BM25 词法 + 语义 cosine 两路 RRF 融合——精确词（错误码/型号）补语义判别盲区（weaviate/Qdrant hybrid；opt-in） | [spec 605](docs/spec/605-hybrid-skill-ranking.md) |
+| 会话治理 | 取消原因枚举 | `CancelCause` 闭集进 `session.cancelled` 事件与指标——「用户按停」与「停机收割」观测面分列（gRPC status codes） | [spec 606](docs/spec/606-cancel-cause.md) |
+| 工程治理 | 黄金轨迹 payload 归一化 | UUID/时刻/时长/epoch → 稳定哨兵后结构断言——payload 级黄金不 flaky（ApprovalTests 思想） | [spec 607](docs/spec/607-golden-payload-normalization.md) |
+| 执行脊柱 | 工具幂等键传播 | 每逻辑调用 `sessionId:callId` 键进 ToolContext——出站工具设上游幂等头，重试由上游去重（Stripe X-Idempotency-Key） | [spec 608](docs/spec/608-tool-idempotency-key.md) |
+| 评估闭环 | 评估项级超时 | 挂死项中断收敛 error、其余项照跑、run 必完成（pytest-timeout；默认不设零变化） | [spec 609](docs/spec/609-eval-item-timeout.md) |
+| MCP 治理 | 每连接并发上限 | per-connection 信号量闸（阻塞可中断、core 工具超时兜底）——stdio 单线程 server 不被并行 fan-out 打挂（默认不设零变化） | [spec 610](docs/spec/610-mcp-connection-concurrency.md) |
+| 缓存与前缀 | 语义缓存维度漂移可见性 | 维度不匹配计数 + 首次 WARN——嵌入模型变更后命中率塌方不再静默（模型漂移监控惯例） | [spec 611](docs/spec/611-semantic-dimension-drift.md) |
+| 记忆治理 | 微压缩影子干跑 | 纯函数干跑不应用（会压哪些/省多少 + evictRatio 梯度调参表）——策略调参零风险（Istio mirroring 思想） | [spec 612](docs/spec/612-compaction-shadow-eval.md) |
+| 观测治理 | gzip 导出压缩档位 | 三个 gzip 导出面档位可配（-1 默认/[0,9]）——热导出省 CPU 冷归档求体积（nginx gzip_comp_level） | [spec 613](docs/spec/613-gzip-compression-level.md) |
+| 模型韧性 | GCRA yml 装配 | `rate-limit.smoothing: gcra` 三行声明平滑整形（spec 603 原语装配扩散；共享后端在场则共享语义优先） | [spec 614](docs/spec/614-gcra-assembly.md) |
+| 工程治理 | API 快照门硬化 | regenerate 门控为显式维护操作——比对从「恒自愈」变真门（测试副作用吃掉自身断言的治理） | [spec 615](docs/spec/615-api-snapshot-gate-hardening.md) |
+| Skill 体系 | 技能目录清单指纹 | per 技能 sha256(description\|allowedTools) + 摘要 + 三分类对账——目录漂移可审计（cosign 清单思想；spec 175 的 skills 镜像） | [spec 616](docs/spec/616-skill-catalog-fingerprint.md) |
+| Skill 体系 | 技能目录漂移看门狗 | 首拍建基线、漂移即 `skill.catalog.drifted` 事件 + 基线推进（spec 201 的 skills 镜像；含 616 diff 方向对齐修正） | [spec 617](docs/spec/617-skill-catalog-drift-watcher.md) |
+| MCP 治理 | 注解聚入健康面 | `selfReportedDestructiveToolCount` 进 MCP 健康快照——自报危险与客户端认定危险两数对照可见（spec 600 扩散） | [spec 618](docs/spec/618-mcp-hints-health.md) |
+| Spill | 预览头尾语义 | 截断预览 = 头 3/4 + 省略标注 + 尾 1/4——大结果的尾部汇总/结论可见（ripgrep context） | [spec 619](docs/spec/619-spill-headtail-preview.md) |
+| 模型韧性 | 熔断时间窗衰减 | `circuit.time-window` 老样本出率计算与 min-calls 门——低频调用下陈年失败不再永久占窗（resilience4j TIME-based；默认 0 零变化） | [spec 620](docs/spec/620-circuit-time-window.md) |
+| 观测治理 | 导出打包落盘持久档 | Durability NONE/FILE/FILE_AND_DIR——审计归档的「返回即在盘上」FULL 语义（sqlite WAL 同步档位） | [spec 621](docs/spec/621-export-bundle-durability.md) |
+| 会话治理 | 归档/还原每会话互斥 | 同会话 archive/restore 串行——并发交错的数据丢失窗关闭（restore 旁路事务的根因收口） | [spec 622](docs/spec/622-archiver-session-mutex.md) |
+| 会话治理 | saga per-session 事务域 | CompensatingBatch 会话级锁重载——跨会话归档真并行（全局锁吞吐瓶颈解除） | [spec 623](docs/spec/623-saga-session-transaction.md) |
+| 成本预算 | 预算池借比例上限 | 单会话 held ≤ base × ratio——单借方不再吃光 surplus 饿死同伴（K8s LimitRange；默认不设限零变化） | [spec 624](docs/spec/624-budget-pool-borrow-ratio.md) |
+| 工程治理 | 启动装配摘要 | `buzhou.assembly-report.enabled=true` 启动后一行 INFO 生效面板（机制开关/store/模型）——「这套进程装了什么」一屏可答（Spring Boot diagnostics report） | [spec 625](docs/spec/625-assembly-report.md) |
+| 护栏 | 事实衰减 yml 装配 | `guard.fact-decay.half-life-turns` 声明即衰减（原语移驻 core 接通 GuardModule——spec 604 扩散） | [spec 626](docs/spec/626-fact-decay-assembly.md) |
+| 会话治理 | fork 谱系进面板 | sessions 端点 `forkedActive` 段——活跃分支计数即重试/探索流量信号（spec 602+346 接线） | [spec 627](docs/spec/627-forked-sessions-panel.md) |
+| MCP 治理 | 每连接并发上限 yml 装配 | `mcp.per-connection-concurrency-limit` 声明即生效（spec 610 扩散；stdio 单线程 server 三行防护） | [spec 628](docs/spec/628-mcp-concurrency-assembly.md) |
+| Skill 体系 | 技能漂移看门狗接线 | 渲染节拍即巡查宿主（每轮清单注入顺带指纹 check——零调度，漂移最迟下一轮显形） | [spec 629](docs/spec/629-renderer-drift-watch.md) |
+| Skill 体系 | 混合排序装配 | `hybrid-ranking.enabled` 声明即 RRF 融合（SkillRanker 接口抽取双实现互换——spec 605 扩散） | [spec 630](docs/spec/630-hybrid-ranking-assembly.md) |
+| 会话索引 | keyset 游标分页 | 行序键锚定翻页——活跃索引不跳行不重行（三实现规范序统一；Redis 平局序偏差一并收口） | [spec 631](docs/spec/631-session-index-keyset.md) |
+| 会话治理 | 排水取消原因 E2E | 停机对在途会话的 session.cancelled {SHUTDOWN_DRAIN} 真路径钉住（spec 606 补验） | [spec 632](docs/spec/632-drain-cause-e2e.md) |
+| 模型韧性 | panic/时间窗补验 | panicActivations() 编程可读面 + time-window yml 绑定用例（spec 601/620 补齐） | [spec 633](docs/spec/633-resilience-obs-gap.md) |
+| 会话分支 | 回放起点 state | forkFromTurn 写 `buzhou.fork.turn`——「fork 自谁+从哪重走」state 面可查（spec 602 补全） | [spec 634](docs/spec/634-fork-turn-state.md) |
+| 工具治理 | 变换 fail-open 可观测 | failOpenCount() + 计数 + 首次 WARN——变换常年失效不再静默（spec 169 补全） | [spec 635](docs/spec/635-transform-fail-open-observability.md) |
+| 护栏 | 衰减过滤可观测 | `filteredCount()`——衰减确实在滤陈年低置信事实的运行信号（spec 626 补全） | [spec 636](docs/spec/636-decay-filter-observability.md) |
+| 模型韧性 | 限流后端形态健康面 | `rateLimitBackend`（memory/memory-gcra/redis/none）——GCRA 声明是否生效一读便知（spec 614 补全） | [spec 637](docs/spec/637-ratelimit-backend-kind-health.md) |
+| 模型韧性 | 熔断时间窗生效读面 | `circuitTimeWindowMs`（0=count 窗/正数=声明值）——spec 620 生效确认面 | [spec 638](docs/spec/638-circuit-time-window-readout.md) |
+| 缓存与前缀 | 缓存命中率便利 getter | Response/Semantic 两 store `hitRate()`（零请求诚实 0.0——观测便利面） | [spec 639](docs/spec/639-cache-hit-rate.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

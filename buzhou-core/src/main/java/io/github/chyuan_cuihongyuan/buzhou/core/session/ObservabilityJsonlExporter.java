@@ -51,6 +51,28 @@ public final class ObservabilityJsonlExporter {
     private static final int SESSION_PAGE_SIZE = 100;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /** spec 613：默认压缩档（GZIPOutputStream 缺省 = Deflater.DEFAULT_COMPRESSION）。 */
+    private static final int DEFAULT_GZIP_LEVEL = java.util.zip.Deflater.DEFAULT_COMPRESSION;
+    private static final int MIN_GZIP_LEVEL = 0;
+    private static final int MAX_GZIP_LEVEL = 9;
+
+    /** 指定档位的 GZIP 流（level = -1（DEFAULT_COMPRESSION）或 [0,9]；匿名子类访问 protected def）。 */
+    private static java.util.zip.GZIPOutputStream gzip(java.io.OutputStream out, int level)
+            throws java.io.IOException {
+        boolean isDefault = level == java.util.zip.Deflater.DEFAULT_COMPRESSION;
+        if (!isDefault && (level < MIN_GZIP_LEVEL || level > MAX_GZIP_LEVEL)) {
+            throw new IllegalArgumentException(
+                    "compressionLevel 必须为 -1（默认）或 [0,9]（当前 " + level + "；Deflater 语义）");
+        }
+        return new java.util.zip.GZIPOutputStream(out) {
+            {
+                if (!isDefault) {
+                    this.def.setLevel(level);
+                }
+            }
+        };
+    }
     private static final System.Logger LOGGER = System.getLogger(ObservabilityJsonlExporter.class.getName());
 
     private final ObservabilityStore store;
@@ -112,8 +134,18 @@ public final class ObservabilityJsonlExporter {
      * 逐字节一致（同一 Writer 管线）。调用方负责关流（压缩流完整性由 close 收尾）。
      */
     public JsonlExportResult exportAllGzip(java.io.OutputStream out) throws IOException {
+        return exportAllGzip(out, DEFAULT_GZIP_LEVEL);
+    }
+
+    /**
+     * spec 613 / T876：gzip 全量导出（压缩档位可配——nginx gzip_comp_level 思想：
+     * 大体量归档省 CPU 用低档，冷归档求体积用高档）。level ∈ [0,9]
+     * （{@link java.util.zip.Deflater}：0=不压缩 … 1=BEST_SPEED … 9=BEST_COMPRESSION）。
+     */
+    public JsonlExportResult exportAllGzip(java.io.OutputStream out, int compressionLevel)
+            throws IOException {
         try (java.io.Writer writer = new java.io.OutputStreamWriter(
-                new java.util.zip.GZIPOutputStream(out), java.nio.charset.StandardCharsets.UTF_8)) {
+                gzip(out, compressionLevel), java.nio.charset.StandardCharsets.UTF_8)) {
             return exportAll(writer);
         }
     }
@@ -121,8 +153,14 @@ public final class ObservabilityJsonlExporter {
     /** gzip 增量导出（spec 67 水位语义 + spec 109 压缩面）。 */
     public JsonlExportResult exportAllSinceGzip(java.io.OutputStream out, Instant since)
             throws IOException {
+        return exportAllSinceGzip(out, since, DEFAULT_GZIP_LEVEL);
+    }
+
+    /** spec 613 / T876：gzip 增量导出（压缩档位可配）。 */
+    public JsonlExportResult exportAllSinceGzip(java.io.OutputStream out, Instant since,
+            int compressionLevel) throws IOException {
         try (java.io.Writer writer = new java.io.OutputStreamWriter(
-                new java.util.zip.GZIPOutputStream(out), java.nio.charset.StandardCharsets.UTF_8)) {
+                gzip(out, compressionLevel), java.nio.charset.StandardCharsets.UTF_8)) {
             return exportAllSince(writer, since);
         }
     }
@@ -130,8 +168,14 @@ public final class ObservabilityJsonlExporter {
     /** gzip 单会话导出（spec 119 §A / T419：单会话归档/工单附件场景）。 */
     public JsonlExportResult exportSessionGzip(String sessionId, java.io.OutputStream out)
             throws IOException {
+        return exportSessionGzip(sessionId, out, DEFAULT_GZIP_LEVEL);
+    }
+
+    /** spec 613 / T876：gzip 单会话导出（压缩档位可配）。 */
+    public JsonlExportResult exportSessionGzip(String sessionId, java.io.OutputStream out,
+            int compressionLevel) throws IOException {
         try (java.io.Writer writer = new java.io.OutputStreamWriter(
-                new java.util.zip.GZIPOutputStream(out), java.nio.charset.StandardCharsets.UTF_8)) {
+                gzip(out, compressionLevel), java.nio.charset.StandardCharsets.UTF_8)) {
             return exportSession(sessionId, writer);
         }
     }

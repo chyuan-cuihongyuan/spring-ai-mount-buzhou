@@ -55,6 +55,10 @@ public class RedisSessionIndexStore implements SessionIndexStore, AutoCloseable 
     @Override
     public List<SessionInfo> list(SessionIndexQuery query) {
         long total = sync.commands().zcard(keys.sessionIndexZset());
+        // spec 631 / T912：keyset 游标 + 规范序统一（zset 平局序与规范序不同——
+        // 收集后按 CANONICAL_ORDER 重排再过滤，三实现翻页一致）
+        SessionIndexQuery.Cursor keyset = query.cursor() == null ? null
+                : SessionIndexQuery.decodeCursor(query.cursor());
         List<SessionInfo> matched = new ArrayList<>();
         int page = Math.max(query.limit() * 4, 100);
         long cursor = 0;
@@ -73,6 +77,8 @@ public class RedisSessionIndexStore implements SessionIndexStore, AutoCloseable 
             cursor += page;
         }
         return matched.stream()
+                .sorted(SessionIndexQuery.CANONICAL_ORDER)
+                .filter(info -> SessionIndexQuery.afterCursor(info, keyset))
                 .skip(query.offset())
                 .limit(query.limit())
                 .toList();

@@ -49,8 +49,11 @@ class ShadowProbeTest {
     void agreedAndDivergedCountedWithSampleRing() throws Exception {
         ShadowProbe probe = new ShadowProbe(100);
         try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            // 分段 await 确定环序：并发提交的完成序不确定，diff-2 必须在 diff-1 完成后再探测
+            // （此前三连发后一次 await——recentDivergedKeys 断言被完成序竞态随机打红）
             probe.probe("same", "答案", () -> "答案", pool);
             probe.probe("diff-1", "答案 A", () -> "答案 B", pool);
+            await(() -> probe.snapshot().agreed() + probe.snapshot().diverged() == 2);
             probe.probe("diff-2", "答案 A", () -> "答案 C", pool);
             await(() -> probe.snapshot().agreed() + probe.snapshot().diverged() == 3);
         }

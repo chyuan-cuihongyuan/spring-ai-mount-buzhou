@@ -125,7 +125,25 @@ public record ResilienceProperties(
             @Min(value = 1, message = "rate-limit.requests-per-minute 必须 >= 1") Integer requestsPerMinute,
             @Min(value = 1, message = "rate-limit.tokens-per-minute 必须 >= 1") Integer tokensPerMinute,
             Duration queueTimeout,
-            String overloadPolicy) {
+            String overloadPolicy,
+            String smoothing,
+            Duration gcraBurstTolerance) {
+
+        /** 多构造绑定坑（R39 同法）：canonical 显式标注 @ConstructorBinding 供 yml 绑定。 */
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
+        public RateLimit {
+        }
+
+        /** 四参兼容构造（smoothing 默认令牌桶——既有装配零变化）。 */
+        public RateLimit(Integer requestsPerMinute, Integer tokensPerMinute,
+                Duration queueTimeout, String overloadPolicy) {
+            this(requestsPerMinute, tokensPerMinute, queueTimeout, overloadPolicy, null, null);
+        }
+
+        /** spec 614：是否声明 GCRA 平滑整形（{@code gcra}；null/空/token-bucket = 令牌桶缺省）。 */
+        public boolean isGcraSmoothing() {
+            return "gcra".equalsIgnoreCase(smoothing == null ? "" : smoothing.trim());
+        }
     }
 
     /**
@@ -152,21 +170,30 @@ public record ResilienceProperties(
             Duration openCooldown,
             List<String> failureCategories,
             Integer backoffCap,
-            Integer halfOpenSuccessThreshold) {
+            Integer halfOpenSuccessThreshold,
+            Duration timeWindow) {
 
-        /** 既有 6 参便捷构造（backoffCap/halfOpen 默认，二进制/源码兼容既有调用点）。 */
+        /** 既有 8 参构造（timeWindow 默认关——count 窗零变化）。 */
+        public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
+                Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
+                Integer backoffCap, Integer halfOpenSuccessThreshold) {
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
+                    backoffCap, halfOpenSuccessThreshold, null);
+        }
+
+        /** 既有 6 参便捷构造（backoffCap/halfOpen/timeWindow 默认，二进制/源码兼容既有调用点）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    null, null);
+                    null, null, null);
         }
 
-        /** 7 参便捷构造（halfOpenSuccessThreshold 默认）。 */
+        /** 7 参便捷构造（halfOpenSuccessThreshold/timeWindow 默认）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
                 Integer backoffCap) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    backoffCap, null);
+                    backoffCap, null, null);
         }
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察修复——缺注解时 yml 键静默不生效）。 */
@@ -202,6 +229,11 @@ public record ResilienceProperties(
             if (halfOpenSuccessThreshold < 1) {
                 throw configError("circuit.half-open-success-threshold",
                         String.valueOf(halfOpenSuccessThreshold), "设为 >= 1 的整数（1 = 单探测即恢复）");
+            }
+            // spec 620：时间窗（0 = count 窗既有语义；正 = 老样本按时间衰减出率计算）
+            timeWindow = timeWindow == null ? Duration.ZERO : timeWindow;
+            if (timeWindow.isNegative()) {
+                throw configError("circuit.time-window", timeWindow.toString(), "设为非负时长（0 = 不启用）");
             }
         }
 

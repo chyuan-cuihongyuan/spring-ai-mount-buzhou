@@ -51,6 +51,23 @@ class JdbcSessionIndexStoreTest {
                 .hasValueSatisfying(i -> assertThat(i.status()).isEqualTo(SessionInfo.STATUS_CLOSED));
     }
 
+    /** spec 631 / T912：keyset 游标（SQL 下推 <lat OR (=lat AND >id)）——翻页边界与内存实现一致。 */
+    @Test
+    void keysetCursorPagingSqlSide() {
+        index.upsert(info("k-1", "app-k", SessionInfo.STATUS_ACTIVE, 1000L, Map.of()));
+        index.upsert(info("k-2", "app-k", SessionInfo.STATUS_ACTIVE, 2000L, Map.of()));
+        index.upsert(info("k-3", "app-k", SessionInfo.STATUS_ACTIVE, 2000L, Map.of())); // 平局
+
+        List<SessionInfo> page1 = index.list(new SessionIndexQuery(
+                "app-k", null, SessionInfo.STATUS_ACTIVE, null, null, 0, 2, null));
+        assertThat(page1).extracting(SessionInfo::sessionId).containsExactly("k-2", "k-3"); // 平局 id 升
+
+        List<SessionInfo> page2 = index.list(new SessionIndexQuery(
+                "app-k", null, SessionInfo.STATUS_ACTIVE, null, null, 0, 2,
+                SessionIndexQuery.encodeCursor(page1.get(1))));
+        assertThat(page2).extracting(SessionInfo::sessionId).containsExactly("k-1"); // 锚点后
+    }
+
     /** tag 过滤（JSON 列 LIKE + 内存精确复核）；前缀邻键不误报。 */
     @Test
     void tagFilterExactMatch() {

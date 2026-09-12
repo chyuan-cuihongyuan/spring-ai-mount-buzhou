@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -25,6 +26,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class SemanticCacheStore {
 
+    private static final System.Logger LOGGER =
+            System.getLogger(SemanticCacheStore.class.getName());
+
     private final int maxEntries;
     private final Duration ttl;
     private final double threshold;
@@ -32,13 +36,18 @@ public final class SemanticCacheStore {
     private final AtomicLong hits = new AtomicLong();
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
+    /** spec 611 / T872：维度不匹配计数（嵌入模型变更信号——命中率静默塌方的可见面）。 */
+    private final AtomicLong dimensionMismatches = new AtomicLong();
+    private final AtomicBoolean driftWarned = new AtomicBoolean();
 
-    private record Entry(String bucket, float[] embedding, ChatResponse response, Instant expireAt) {
+    // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
+    // 按 JLS 遮蔽外层同名嵌套类型，removeEldestEntry 覆盖签名在严格 javac 下名称冲突
+    private record CacheEntry(String bucket, float[] embedding, ChatResponse response, Instant expireAt) {
     }
 
-    private final LinkedHashMap<String, Entry> entries = new LinkedHashMap<>(16, 0.75f, true) {
+    private final LinkedHashMap<String, CacheEntry> entries = new LinkedHashMap<>(16, 0.75f, true) {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String, Entry> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
             boolean evict = size() > maxEntries;
             if (evict) {
                 evictions.incrementAndGet();
@@ -82,10 +91,21 @@ public final class SemanticCacheStore {
         purgeExpired();
         String bestKey = null;
         double bestScore = 0;
-        Entry best = null;
-        for (Map.Entry<String, Entry> e : entries.entrySet()) {
-            Entry entry = e.getValue();
+        CacheEntry best = null;
+        for (Map.Entry<String, CacheEntry> e : entries.entrySet()) {
+            CacheEntry entry = e.getValue();
             if (!entry.bucket().equals(bucket)) {
+                continue;
+            }
+            if (queryEmbedding.length != entry.embedding().length) {
+                // spec 611 / T872：维度漂移计数（每次查询×每条不匹配条目）——嵌入模型变更后
+                // 命中面静默塌方，无此计数则只剩「命中率莫名归零」的排障迷宫
+                dimensionMismatches.incrementAndGet();
+                if (driftWarned.compareAndSet(false, true)) {
+                    LOGGER.log(System.Logger.Level.WARNING,
+                            "语义缓存维度漂移：缓存条目维度与查询不一致（查询 " + queryEmbedding.length
+                                    + "）——嵌入模型已变更？建议清缓存重建（新条目自然收敛，但旧条目永不命中）");
+                }
                 continue;
             }
             double score = cosine(queryEmbedding, entry.embedding());
@@ -109,7 +129,7 @@ public final class SemanticCacheStore {
         if (bucket == null || embedding == null || embedding.length == 0 || response == null) {
             return;
         }
-        entries.put(bucket + "#" + (seq++), new Entry(bucket, embedding, response,
+        entries.put(bucket + "#" + (seq++), new CacheEntry(bucket, embedding, response,
                 clock.instant().plus(ttl)));
     }
 
@@ -126,8 +146,19 @@ public final class SemanticCacheStore {
         return misses.get();
     }
 
+    /** spec 639 / T928：命中率（0..1；零查询 = 0.0 诚实口径）——观测便利面。 */
+    public double hitRate() {
+        long total = hits.get() + misses.get();
+        return total == 0 ? 0.0 : (double) hits.get() / total;
+    }
+
     public long evictedCount() {
         return evictions.get();
+    }
+
+    /** spec 611 / T872：维度不匹配累计（观测面——非零持续增长 = 嵌入模型已变更）。 */
+    public long dimensionMismatches() {
+        return dimensionMismatches.get();
     }
 
     public synchronized int size() {

@@ -35,12 +35,15 @@ public class InMemorySessionIndexStore implements SessionIndexStore {
 
     @Override
     public List<SessionInfo> list(SessionIndexQuery query) {
+        // spec 631 / T912：游标过滤（keyset 翻页——规范序 CANONICAL_ORDER 统一三实现）
+        SessionIndexQuery.Cursor cursor = query.cursor() == null ? null
+                : SessionIndexQuery.decodeCursor(query.cursor());
         lock.readLock().lock();
         try {
             return rows.values().stream()
                     .filter(info -> matches(info, query))
-                    .sorted(Comparator.comparingLong(SessionInfo::lastActiveAtEpochMs).reversed()
-                            .thenComparing(SessionInfo::sessionId))
+                    .filter(info -> SessionIndexQuery.afterCursor(info, cursor))
+                    .sorted(SessionIndexQuery.CANONICAL_ORDER)
                     .skip(query.offset())
                     .limit(query.limit())
                     .toList();

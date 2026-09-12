@@ -30,13 +30,28 @@ public final class ElasticBudgetPool {
 
     private final long capacity;
     private final Map<String, SessionBudget> sessions = new LinkedHashMap<>();
+    /** spec 624 / T898：每会话持有上限系数（base × ratio；null = 不设限既有语义）。 */
+    private final Double borrowRatio;
     private final AtomicLong borrowed = new AtomicLong();
     private final AtomicLong denied = new AtomicLong();
 
     public ElasticBudgetPool(long capacity, Map<String, Long> baseQuotas) {
+        this(capacity, baseQuotas, null);
+    }
+
+    /**
+     * spec 624 / T898（K8s LimitRange limit-ratio 借鉴）：借比例上限——单会话 held ≤
+     * base × ratio（防单借方吃光 surplus 饿死同伴；base=0 会话在设 ratio 时不可借，
+     * 诚实边界入档）。ratio null = 不设限（既有语义）；< 1 拒绝（低于保底无意义）。
+     */
+    public ElasticBudgetPool(long capacity, Map<String, Long> baseQuotas, Double borrowRatio) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity 必须为正（当前 " + capacity + "）");
         }
+        if (borrowRatio != null && borrowRatio < 1.0) {
+            throw new IllegalArgumentException("borrowRatio 必须 >= 1 或 null（当前 " + borrowRatio + "）");
+        }
+        this.borrowRatio = borrowRatio;
         long sumBases = 0;
         if (baseQuotas != null) {
             for (Map.Entry<String, Long> e : baseQuotas.entrySet()) {
@@ -75,6 +90,12 @@ public final class ElasticBudgetPool {
                 .sum();
         long borrowable = capacity - reserved;
         if (budget.held + amount <= budget.base + borrowable) {
+            // spec 624 / T898：借比例上限——sur够也不能超 base × ratio（防单借方吃光 surplus）
+            if (borrowRatio != null
+                    && budget.held + amount > (long) (budget.base * borrowRatio)) {
+                denied.incrementAndGet();
+                return false;
+            }
             budget.held += amount;
             long over = budget.held - budget.base;
             if (over > 0) {

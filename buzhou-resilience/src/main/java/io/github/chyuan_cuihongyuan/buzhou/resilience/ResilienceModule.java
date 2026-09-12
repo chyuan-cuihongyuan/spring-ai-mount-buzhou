@@ -4,6 +4,8 @@ import io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationExcept
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer;
+
+import java.time.Duration;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCallInFlight;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor;
 import io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver;
@@ -132,12 +134,28 @@ public final class ResilienceModule {
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
                 ? new ModelCircuitBreaker(properties.circuit(), stats, java.time.Clock.systemUTC(), circuitBackend)
                 : null;
+        // spec 638 / T926：时间窗生效读面（0=count 窗——声明是否生效一读便知）
+        if (stats != null) {
+            stats.updateCircuitTimeWindowMs(properties.circuit().timeWindow().toMillis());
+        }
         ModelRateLimiter limiter = null;
         ResilienceProperties.RateLimit rl = properties.rateLimit();
         if (rl != null) {
+            // spec 614 / T878：无共享后端时 smoothing=gcra 声明 GCRA 平滑整形（τ 匀速无突发，
+            // 突发容忍可配默认 0）；共享后端在场则共享语义优先（跨实例一份额度 > 单进程整形）
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend effectiveBackend = rateLimitBackend;
+            if (rateLimitBackend == null && rl.isGcraSmoothing()) {
+                effectiveBackend = new io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.GcraRateLimitBackend(
+                        rl.requestsPerMinute(), rl.tokensPerMinute(),
+                        rl.gcraBurstTolerance() == null ? Duration.ZERO : rl.gcraBurstTolerance());
+            }
             limiter = new ModelRateLimiter(
                     rl.requestsPerMinute(), rl.tokensPerMinute(), rl.queueTimeout(),
-                    properties.effectiveRateLimitOverloadPolicy(), null, rateLimitBackend);
+                    properties.effectiveRateLimitOverloadPolicy(), null, effectiveBackend);
+            if (limiter.isEnabled() && stats != null) {
+                // spec 638 / T924：后端形态进健康面（memory/memory-gcra/redis——GCRA 声明是否生效一读便知）
+                stats.updateRateLimitBackend(limiter.backend().kind());
+            }
             if (!limiter.isEnabled()) {
                 limiter = null;
             }
@@ -228,6 +246,15 @@ public final class ResilienceModule {
         }
         ResilienceProperties.RateLimit rl = p.rateLimit();
         if (rl != null) {
+            // spec 614：smoothing 词汇闭集校验（拼写错不静默宽容）
+            String smoothing = rl.smoothing();
+            if (smoothing != null && !smoothing.isBlank()
+                    && !"token-bucket".equalsIgnoreCase(smoothing.trim())
+                    && !"gcra".equalsIgnoreCase(smoothing.trim())) {
+                throw new BuzhouConfigurationException(
+                        "buzhou.resilience.rate-limit.smoothing（" + smoothing + "）不在支持集",
+                        "支持：token-bucket（默认，容量即突发额度）/ gcra（TAT 匀速无突发，spec 603）");
+            }
             if (rl.requestsPerMinute() != null && rl.requestsPerMinute() < 1) {
                 throw new BuzhouConfigurationException(
                         "buzhou.resilience.rate-limit.requests-per-minute（" + rl.requestsPerMinute() + "）必须 >= 1",

@@ -8,6 +8,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.testsupport.ScriptedChatModel;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.metadata.ChatResponseMetadata;
 import org.springframework.ai.chat.metadata.DefaultUsage;
@@ -26,8 +27,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class CostAttributionJsonlTest {
 
+    @BeforeEach
     @AfterEach
     void resetLedgers() {
+        // 双侧重置：AfterEach 清自身污染，BeforeEach 防同 JVM 先行测试类（free-model 等
+        // TokenBudgetHook 用例）残留全局账本——rollup 断言与测试顺序解耦
         CostAttributionLedger.install(null);
     }
 

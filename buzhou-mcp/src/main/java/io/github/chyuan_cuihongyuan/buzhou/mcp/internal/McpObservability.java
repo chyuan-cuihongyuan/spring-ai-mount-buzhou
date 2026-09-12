@@ -26,6 +26,10 @@ public final class McpObservability {
     public static final String MCP_CLOSED = "mcp.closed";
     public static final String MCP_FORCE_CLOSED = "mcp.forceClosed";
     public static final String MCP_TOOLS_DRIFT = "mcp.tools-drift";
+    public static final String MCP_TOOL_HINTS_DRIFT = "mcp.tool-hints-drift";
+
+    /** 事件 payload 内名单的上限（spec 600：与 toolsDrift 有界口径一致）。 */
+    private static final int PAYLOAD_LIST_CAP = 20;
 
     static {
         EventType.of(MCP_ADDED);
@@ -33,6 +37,7 @@ public final class McpObservability {
         EventType.of(MCP_CLOSED);
         EventType.of(MCP_FORCE_CLOSED);
         EventType.of(MCP_TOOLS_DRIFT);
+        EventType.of(MCP_TOOL_HINTS_DRIFT);
     }
 
     private final SpanRecorder recorder;
@@ -78,6 +83,20 @@ public final class McpObservability {
             payload.put("removed", removed.subList(0, Math.min(removed.size(), 20)));
         }
         recorder.emit(span, MCP_TOOLS_DRIFT, payload);
+    }
+
+    /** 工具注解漂移（spec 600 / T851：同名工具 hints 变化非空）；payload 有界。 */
+    public void toolHintsDrift(SpanContext span, String server, java.util.List<String> changed) {
+        if (recorder == null) {
+            return;
+        }
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("server", server);
+        payload.put("changedCount", changed.size());
+        if (!changed.isEmpty()) {
+            payload.put("changed", changed.subList(0, Math.min(changed.size(), PAYLOAD_LIST_CAP)));
+        }
+        recorder.emit(span, MCP_TOOL_HINTS_DRIFT, payload);
     }
 
     /** 强杀兜底（spec 04：Error Event + Span 标记）——payload 带 error 标记，span 置 ERROR 属性。 */

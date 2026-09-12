@@ -31,6 +31,11 @@ public final class BuzhouSessionsEndpoint {
     private final SessionIndexStore index;              // 可空——无索引部署
     private final SpawnAdmissionFloor floor;            // 恒在（342）
     private final MaintenanceCordon cordon;             // 恒在（342）
+    /** 可空——无 state 读面部署（forkedActive 段诚实缺席）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore stateStore;
+
+    /** spec 627：fork 谱系 state 键（与 DefaultAgentRuntime 写入口径一致——测试双向钉住）。 */
+    static final String FORK_SOURCE_STATE_KEY = "buzhou.fork.source";
 
     /** affinity 展示桶数（spec 415：buzhou.sessions.affinity-buckets，默认 16）。 */
     private final int affinityBuckets;
@@ -42,16 +47,25 @@ public final class BuzhouSessionsEndpoint {
 
     public BuzhouSessionsEndpoint(SessionIndexStore index, SpawnAdmissionFloor floor,
             MaintenanceCordon cordon, int affinityBuckets) {
+        this(index, floor, cordon, affinityBuckets, null);
+    }
+
+    /** spec 627 / T904：带 state 读面构造（forkedActive 段的谱系计数）。 */
+    public BuzhouSessionsEndpoint(SessionIndexStore index, SpawnAdmissionFloor floor,
+            MaintenanceCordon cordon, int affinityBuckets,
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore stateStore) {
         this.index = index;
         this.floor = floor;
         this.cordon = cordon;
         this.affinityBuckets = Math.max(1, affinityBuckets);
+        this.stateStore = stateStore;
     }
 
     @ReadOperation
     public Map<String, Object> sessionsDashboard() {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("activeSessions", activeSessionsSection());
+        payload.put("forkedActive", forkedActiveSection());
         Map<String, Object> floorSection = new LinkedHashMap<>();
         floorSection.put("effective", floor == null ? null : floor.get().name());
         floorSection.put("sources", floor == null ? Map.of() : sourceNames(floor));
@@ -117,6 +131,36 @@ public final class BuzhouSessionsEndpoint {
         section.put("available", true);
         section.put("count", count);
         section.put("truncated", truncated);
+        return section;
+    }
+
+    /**
+     * spec 627 / T904：fork 谱系活跃段——活跃会话中带 {@code buzhou.fork.source} 的计数
+     * （重试/探索分支流量信号）。state 读面缺席 = 段 {@code available:false} 诚实缺席；
+     * 每会话一次 state GET（ops 按需面板，≤50k 封顶同计数循环）。
+     */
+    private Map<String, Object> forkedActiveSection() {
+        Map<String, Object> section = new LinkedHashMap<>();
+        if (index == null || stateStore == null) {
+            section.put("available", false);
+            return section;
+        }
+        long forked = 0;
+        for (int page = 0; page < MAX_PAGES; page++) {
+            List<SessionInfo> batch = index.list(new SessionIndexQuery(
+                    null, null, SessionInfo.STATUS_ACTIVE, null, null,
+                    page * PAGE_SIZE, PAGE_SIZE));
+            for (SessionInfo info : batch) {
+                if (stateStore.get(info.sessionId(), FORK_SOURCE_STATE_KEY).isPresent()) {
+                    forked++;
+                }
+            }
+            if (batch.size() < PAGE_SIZE) {
+                break;
+            }
+        }
+        section.put("available", true);
+        section.put("count", forked);
         return section;
     }
 

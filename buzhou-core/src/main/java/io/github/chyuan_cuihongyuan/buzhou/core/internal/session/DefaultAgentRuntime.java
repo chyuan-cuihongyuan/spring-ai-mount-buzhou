@@ -24,6 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
 
     private static final Duration LEASE_TTL = Duration.ofSeconds(90);
+
+    /** spec 225 / T593：fork 谱系 state 键（子会话指向源会话；导出/导入携带）。 */
+    private static final String FORK_SOURCE_STATE_KEY = "buzhou.fork.source";
+    private static final String FORK_STATE_PRODUCER = "buzhou.core.fork";
+    /** spec 634 / T918：时间旅行 fork 回放起点轮次 state 键。 */
+    private static final String FORK_TURN_STATE_KEY = "buzhou.fork.turn";
     /** impl-33：续租间隔下限（防误配成 0/负数导致调度线程忙转）。 */
     private static final Duration MIN_RENEW_INTERVAL = Duration.ofMillis(50);
     /** impl-30 / spec 13 §core-1：停机排空预算默认值（未显式传入时）。 */
@@ -183,8 +189,19 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         }
         AgentSession session = spawn(appId, agentName, newSessionId);
         stores.messageStore().append(newSessionId, history);
-        stores.summaryStore().latest(sourceSessionId)
-                .ifPresent(summary -> stores.summaryStore().save(newSessionId, summary));
+        boolean copiedSummary = stores.summaryStore().latest(sourceSessionId)
+                .map(summary -> {
+                    stores.summaryStore().save(newSessionId, summary);
+                    return true;
+                })
+                .orElse(false);
+        // spec 225 / T593：fork 谱系入子会话 state（OTel span-links 思想落为 buzhou 关联面）——
+        // 不复制任何源 state（预算重置语义不变），只写一条新谱系条目；导出/导入天然携带，
+        // 任何模块（guard/spill/dashboard）可经 sessionStateStore 查「本会话 fork 自谁」。
+        stores.sessionStateStore().put(newSessionId,
+                new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                        FORK_SOURCE_STATE_KEY, sourceSessionId, FORK_STATE_PRODUCER,
+                        0, null, java.time.Instant.now()));
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.session.forks");
         // spec 26 / T105 / impl-80：fork 监听器——store 外会话关联数据（spill 证据引用）登记；
@@ -201,7 +218,10 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         }
         if (session instanceof DefaultAgentSession concrete) {
             concrete.dispatchEventInternal(SessionEvent.of(
-                    "session.forked", java.util.Map.of("sourceSessionId", sourceSessionId)));
+                    "session.forked", java.util.Map.<String, Object>of(
+                            "sourceSessionId", sourceSessionId,
+                            "copiedMessages", history.size(),
+                            "copiedSummary", copiedSummary)));
         }
         return session;
     }
@@ -228,6 +248,16 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         }
         AgentSession session = spawn(appId, agentName, newSessionId);
         stores.messageStore().append(newSessionId, upTo);
+        // spec 225 / T594：时间旅行 fork 同样写谱系（buzhou.fork.source 指向源会话）；
+        // spec 634 / T918：回放起点 upToTurn 也落 state（buzhou.fork.turn——分支可查「从第几轮重走」）
+        stores.sessionStateStore().put(newSessionId,
+                new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                        FORK_SOURCE_STATE_KEY, sourceSessionId, FORK_STATE_PRODUCER,
+                        0, null, java.time.Instant.now()));
+        stores.sessionStateStore().put(newSessionId,
+                new io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry(
+                        FORK_TURN_STATE_KEY, String.valueOf(upToTurn), FORK_STATE_PRODUCER,
+                        0, null, java.time.Instant.now()));
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.session.time-travels");
         for (io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener listener
@@ -242,7 +272,8 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
         }
         if (session instanceof DefaultAgentSession concrete) {
             concrete.dispatchEventInternal(SessionEvent.of("session.forked",
-                    java.util.Map.of("sourceSessionId", sourceSessionId, "upToTurn", upToTurn)));
+                    java.util.Map.<String, Object>of("sourceSessionId", sourceSessionId,
+                            "upToTurn", upToTurn, "copiedMessages", upTo.size())));
         }
         return session;
     }
@@ -717,7 +748,8 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
                 return;
             }
             try {
-                s.cancel(mode);
+                // spec 606 / T862：停机排水取消显式带因——观测面可区分「用户按停」与「停机收割」
+                s.cancel(mode, io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause.SHUTDOWN_DRAIN);
             } catch (RuntimeException e) {
                 LOGGER.log(System.Logger.Level.WARNING, "停机取消会话在途 Turn 失败（mode={0}）",
                         mode);

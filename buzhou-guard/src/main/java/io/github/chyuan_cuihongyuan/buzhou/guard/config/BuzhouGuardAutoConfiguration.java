@@ -90,6 +90,14 @@ public class BuzhouGuardAutoConfiguration {
         PolicyRefresher refresher = policyRefresher.getIfAvailable();
         GuardModule.Builder builder = GuardModule.builder(stores)
                 .fromYml(ConfigMaps.sub(env, "buzhou.guard"));
+        // spec 626 / T902：事实衰减 yml 装配（half-life-turns 声明即启用；floor 可选默认 0.25）
+        Double halfLifeTurns = env.getProperty(
+                "buzhou.guard.fact-decay.half-life-turns", Double.class);
+        if (halfLifeTurns != null) {
+            Double floor = env.getProperty("buzhou.guard.fact-decay.floor", Double.class, 0.25);
+            builder.factDecay(new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy(
+                    halfLifeTurns, floor));
+        }
         if (refresher != null) {
             builder.policyEngine(refresher);
         }

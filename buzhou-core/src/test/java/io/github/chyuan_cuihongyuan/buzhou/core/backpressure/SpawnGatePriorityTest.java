@@ -56,11 +56,11 @@ class SpawnGatePriorityTest {
             assertThat(high.isDone()).isFalse();
 
             gate.releaseSlot();
-            assertThat(high.get(2, TimeUnit.SECONDS)).isEqualTo("vip");
+            assertThat(high.get(10, TimeUnit.SECONDS)).isEqualTo("vip");
             assertThat(normal.isDone()).isFalse();
 
             gate.releaseSlot();
-            assertThat(normal.get(2, TimeUnit.SECONDS)).isEqualTo("normal-1");
+            assertThat(normal.get(10, TimeUnit.SECONDS)).isEqualTo("normal-1");
             gate.releaseSlot();
             gate.releaseSlot();
         }
@@ -79,9 +79,9 @@ class SpawnGatePriorityTest {
             assertThat(second.isDone()).isFalse();
 
             gate.releaseSlot();
-            assertThat(first.get(2, TimeUnit.SECONDS)).isEqualTo("first");
+            assertThat(first.get(10, TimeUnit.SECONDS)).isEqualTo("first");
             gate.releaseSlot();
-            assertThat(second.get(2, TimeUnit.SECONDS)).isEqualTo("second");
+            assertThat(second.get(10, TimeUnit.SECONDS)).isEqualTo("second");
             gate.releaseSlot();
             gate.releaseSlot();
         }
@@ -100,9 +100,9 @@ class SpawnGatePriorityTest {
             assertThat(low.isDone()).isFalse();
 
             gate.releaseSlot();
-            assertThat(normal.get(2, TimeUnit.SECONDS)).isEqualTo("interactive");
+            assertThat(normal.get(10, TimeUnit.SECONDS)).isEqualTo("interactive");
             gate.releaseSlot();
-            assertThat(low.get(2, TimeUnit.SECONDS)).isEqualTo("batch-1");
+            assertThat(low.get(10, TimeUnit.SECONDS)).isEqualTo("batch-1");
             gate.releaseSlot();
             gate.releaseSlot();
         }

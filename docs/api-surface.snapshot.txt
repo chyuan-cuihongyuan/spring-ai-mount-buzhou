@@ -1,5 +1,5 @@
 # api-surface 黄金快照（impl-179 生成；模块|全限定名，字典序）
-# 更新流程：regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
+# 更新流程：-Dbuzhou.api-snapshot.regenerate=true 跑 regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
@@ -47,6 +47,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WeightedRouter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BulkheadScalingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouAlertProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouArchiveProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouAssemblyReport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouBackpressureProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigAuditProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigRefreshEvent
@@ -284,6 +285,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.TurnRepetitionDetec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.TurnStallWatchdog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EncryptedSessionExport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBusStats
@@ -471,6 +473,7 @@ buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpClientRegistry
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnection
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectionFactory
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpModule
+buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpToolHints
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.PropertiesToolSetProvider
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.SpringAiMcpConnectionFactory
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.ToolSetSpecStore
@@ -492,6 +495,7 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetReport
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.budget.DefaultBudgetCalculator
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.budget.SegmentBudgetPlanner
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionCheckpoints
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompactionShadowEvaluator
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.CompletedTurnDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultCompletedTurnDetector
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultMicroCompactor
@@ -602,6 +606,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.Shadow
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.BuzhouIdempotencyProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.IdempotencyAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.GcraRateLimitBackend
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMemoryRateLimitBackend
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
@@ -617,14 +622,19 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.Stru
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputViolationException
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.DefaultSkillRegistry
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.HybridSkillRanker
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.LexicalSkillRanker
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.LoadSkillTool
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SemanticSkillRanker
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SessionBindingIndex
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.Skill
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillBodyAudit
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillCatalogDriftWatcher
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillCatalogFingerprint
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillCatalogRendererImpl
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillMetadata
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillModule
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillRanker
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillRegistry
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillResource
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillSearchTool

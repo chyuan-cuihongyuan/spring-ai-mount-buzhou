@@ -12,6 +12,10 @@ public final class RangeReadEngine {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    /** spec 619：头尾预览的头占比 3/4（尾 1/4——收尾的汇总/结论优先可见）。 */
+    private static final int HEAD_FRACTION_NUMERATOR = 3;
+    private static final int HEAD_FRACTION_DENOMINATOR = 4;
+
     private RangeReadEngine() {
     }
 
@@ -155,7 +159,18 @@ public final class RangeReadEngine {
             } catch (Exception ignored) {
             }
         }
-        return content.substring(0, Math.min(previewChars, content.length()));
+        if (content.length() <= previewChars) {
+            return content;
+        }
+        // spec 619 / T888：头尾预览（ripgrep context 语义）——大结果的关键信息常在尾部
+        //（汇总行/结论/总计数），纯头截断让模型只见开头。头 3/4 + 省略标注 + 尾 1/4；
+        // 预算量级不变（正文仍 ≤ previewChars + 标注开销）。
+        int headChars = previewChars * HEAD_FRACTION_NUMERATOR / HEAD_FRACTION_DENOMINATOR;
+        int tailChars = previewChars - headChars;
+        int omitted = content.length() - headChars - tailChars;
+        return content.substring(0, headChars)
+                + "\n…（中间省略 " + omitted + " 字符，read_range 可回读）…\n"
+                + content.substring(content.length() - tailChars);
     }
 
     private static String encodeCursor(int offset) {

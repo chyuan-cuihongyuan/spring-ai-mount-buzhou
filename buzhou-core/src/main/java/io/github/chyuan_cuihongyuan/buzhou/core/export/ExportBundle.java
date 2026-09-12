@@ -45,6 +45,16 @@ public final class ExportBundle {
      */
     public static java.util.List<ManifestEntry> bundle(Path zip,
             LinkedHashMap<String, ExportSource> sources) throws IOException {
+        return bundle(zip, sources, Durability.NONE);
+    }
+
+    /**
+     * spec 621 / T892：带落盘持久档的打包（sqlite WAL 同步档位语义——NONE=close 即返
+     * （OS 页缓存，默认零变化）；FILE=zip 数据+元数据 force 到设备；FILE_AND_DIR=另
+     * force 父目录 fsync——崩溃后目录项可见，真正的 FULL 档（审计/合规归档用）。
+     */
+    public static java.util.List<ManifestEntry> bundle(Path zip,
+            LinkedHashMap<String, ExportSource> sources, Durability durability) throws IOException {
         Path parent = zip.toAbsolutePath().getParent();
         if (parent != null) {
             Files.createDirectories(parent);
@@ -77,7 +87,27 @@ public final class ExportBundle {
                 out.closeEntry();
             }
         }
+        if (durability == null) {
+            durability = Durability.NONE;
+        }
+        if (durability != Durability.NONE) {
+            try (java.nio.channels.FileChannel ch = java.nio.channels.FileChannel.open(zip,
+                    java.nio.file.StandardOpenOption.READ, java.nio.file.StandardOpenOption.WRITE)) {
+                ch.force(true);
+            }
+            if (durability == Durability.FILE_AND_DIR && parent != null) {
+                try (java.nio.channels.FileChannel dir = java.nio.channels.FileChannel.open(parent,
+                        java.nio.file.StandardOpenOption.READ)) {
+                    dir.force(true);
+                }
+            }
+        }
         return java.util.List.copyOf(manifest);
+    }
+
+    /** spec 621：落盘持久档（NONE 默认零变化 / FILE / FILE_AND_DIR）。 */
+    public enum Durability {
+        NONE, FILE, FILE_AND_DIR
     }
 
     private static String manifestJson(java.util.List<ManifestEntry> manifest) {

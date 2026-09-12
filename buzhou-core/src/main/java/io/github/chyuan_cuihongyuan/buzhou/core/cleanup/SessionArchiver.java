@@ -72,6 +72,14 @@ public final class SessionArchiver {
         this.cleaner = cleaner;
     }
 
+    /** spec 622 / T894：每会话归档/还原互斥锁（跨会话并行；条目级对象锁——会话数级）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, Object> sessionLocks =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private Object lockOf(String sessionId) {
+        return sessionLocks.computeIfAbsent(sessionId == null ? "" : sessionId, k -> new Object());
+    }
+
     /**
      * 归档并删除（快照 → 级联清理）。快照编码失败 fail-fast（不删——宁可保留原会话
      * 也不冒数据丢失风险）；空会话返回 false。
@@ -82,6 +90,14 @@ public final class SessionArchiver {
      * 人工介入重试）。
      */
     public boolean archive(String sessionId) {
+        // spec 622 / T894：同会话 archive/restore 互斥——并发 archive+restore 交错会把
+        // 刚还原的活数据删掉而归档键已被 restore 删除（数据丢失窗）；跨会话不受影响
+        synchronized (lockOf(sessionId)) {
+            return archiveLocked(sessionId);
+        }
+    }
+
+    private boolean archiveLocked(String sessionId) {
         List<BuzhouMessage> messages = stores.messageStore().load(sessionId);
         Optional<StructuredSummary> summary = stores.summaryStore().latest(sessionId);
         if (messages.isEmpty() && summary.isEmpty()) {
@@ -94,8 +110,9 @@ public final class SessionArchiver {
         // 承担：liveTouched 标记后步已动活数据，则从条目写回（undo log）再撤归档键。
         java.util.concurrent.atomic.AtomicBoolean liveTouched =
                 new java.util.concurrent.atomic.AtomicBoolean(false);
+        // spec 623 / T896：per-session 事务域（跨会话归档并行；同会话已由条目锁串行）
         return io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.run(
-                stores.unitOfWork(),
+                stores.unitOfWork(), sessionId,
                 List.of(
                         io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch.Step.of(
                                 "archive-write",
@@ -149,6 +166,13 @@ public final class SessionArchiver {
 
     /** 从归档回放三槽（原键原值）；归档键随后删除。无归档 = false。 */
     public boolean restore(String sessionId) {
+        // spec 622 / T894：同会话互斥（见 archive 注释——交错=数据丢失窗）
+        synchronized (lockOf(sessionId)) {
+            return restoreLocked(sessionId);
+        }
+    }
+
+    private boolean restoreLocked(String sessionId) {
         Optional<StateEntry> stored = stores.sessionStateStore()
                 .get(ARCHIVE_SESSION_ID, ARCHIVE_PREFIX + sessionId);
         if (stored.isEmpty()) {

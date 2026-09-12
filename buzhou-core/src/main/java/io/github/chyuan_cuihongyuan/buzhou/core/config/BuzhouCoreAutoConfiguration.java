@@ -66,6 +66,17 @@ import java.util.List;
 public class BuzhouCoreAutoConfiguration {
 
     /**
+     * spec 625 / T900：启动装配摘要（opt-in——{@code buzhou.assembly-report.enabled=true}
+     * 声明即装；ApplicationReady 后一行 INFO 输出机制开关/store/模型名生效面板）。
+     */
+    @org.springframework.context.annotation.Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.assembly-report", name = "enabled", havingValue = "true")
+    public BuzhouAssemblyReport buzhouAssemblyReport(org.springframework.core.env.Environment env) {
+        return new BuzhouAssemblyReport(env);
+    }
+
+    /**
      * spec 333 / T658：消息静态信封加密（{@code buzhou.security.message-encryption.master-key}
      * 声明即启用——Vault transit / KMS envelope 思想：密钥不出进程、存储只见
      * 密文、AAD 绑定标识防剪贴、previous-master-key 双钥轮换窗口）。BPP 捕获
@@ -1601,9 +1612,13 @@ public class BuzhouCoreAutoConfiguration {
         io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint buzhouSessionsEndpoint(
                 ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> index,
                 io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor floor,
-                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon cordon) {
+                io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon cordon,
+                ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores> stores) {
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores bstores =
+                    stores.getIfAvailable();
             return new io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouSessionsEndpoint(
-                    index.getIfAvailable(), floor, cordon);
+                    index.getIfAvailable(), floor, cordon, 16,
+                    bstores == null ? null : bstores.sessionStateStore());
         }
 
         /** spec 85 §A / T325：错误签名健康段（top-5 族 + 在册数；恒 UP——观测面）。 */

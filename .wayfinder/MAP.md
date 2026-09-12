@@ -3,12 +3,14 @@
 > **单一目录**：2026-08-17 起，原按 effort 分裂的 `.wayfinder/`、`.wayfinder2/` … `.wayfinder15/` 十五个目录融合为本目录；2026-09-07 二次融合，其后又按 effort 分裂的 `.wayfinder16/` … `.wayfinder155/`、`.wayfinder200/` … `.wayfinder227/`、`.wayfinder300/` … `.wayfinder349/` 共 217 个目录同样并入（map → `maps/effort-<N>.md`，票 → 全局 `tickets/`）——**勿再新建 `.wayfinderN/`**。
 > 每个 effort 一张 map（`maps/effort-<N>.md`），#2–#10 的运行期 tracker 约定存档于 `maps/readme-effort-NN.md`；C 会话进度台账 = `maps/progress-effort-300.md`。
 > 票号全局连续 **T1–T690**（T231–T239 跳号未用；#222 的 T579/T580 仅记于 map、票文件未落盘；**下一张 = T691**）；impl 切片文件 **01–184**（#14 起 impl 记录随票，票内编号累计至 372；编号史见 [impl/README.md](impl/README.md)）。
-> effort #1–#349 全部闭合（A/B/C 三期自迭代会话收口，C 会话台账见 [maps/progress-effort-300.md](maps/progress-effort-300.md)）。
+> effort #1–#349 全部闭合（A/B/C 三期自迭代会话收口，C 会话台账见 [maps/progress-effort-300.md](maps/progress-effort-300.md)）；D 会话（400 系，#400–#429 / specs 400–429 / T691–T750 / impl 373–402）已收口。
+> **并行会话**：E 会话（500 系 / T751+ / impl403+，分支 e-session-500-series 进行中）；F 会话（600 系 / T851–T950 / impl 453–502 / specs 600–649，2026-09-12 启动）——新号段裁决见各自 map。
 
 **开新 effort**：新建 `maps/effort-350.md` 起续号（`.wayfinder350–399` 号段为 C 会话保留段，新自迭代会话按其台账裁决开 400 系），在下表登记一行；票从 T691 起、impl 从 373 起全局续号。tracker 约定见 [README.md](README.md)。
 
 | Effort | 主题 | Map | 票号 | impl |
 |---|------|-----|------|------|
+
 | #1 | core 做深做透（CI 根因 / alpha 措辞 / Spring AI 边界文档 / 可运行 demo / 真实 LLM 测试 / run_command 安全默认 / DoD 基线 / best-of-breed Tier-1 落地） | [maps/effort-01.md](maps/effort-01.md) | T1–T27 | 01–08（局部号；[SPEC.md](SPEC.md)） |
 | #2 | 做完美 Tier-2/3 全量（FakeChatModel / 取消三档 / run 注册表 / 事件溯源工具日志 / interrupt-resume / time-travel fork / 压缩治理 / 向量 recall / 红队门 / 审计链 / 策略引擎 / 沙箱） | [maps/effort-02.md](maps/effort-02.md) | T28–T54 | 01–27（局部号） |
 | #3 | 生产级收口（Turn deadline / 优雅停机 / schema 迁移 / 事务正确性 / 租约 fence / 事件背压 / 级联清理 / 保留策略 / 审计持久化 / 配置参数化） | [maps/effort-03.md](maps/effort-03.md) | T55–T68 | 28–43 |
@@ -293,6 +295,8 @@
 | #519 | 工具调用图谱统计 | [maps/effort-519.md](maps/effort-519.md) | T789–T790 | 422 |
 | #520 | 评估 run 预算闸 | [maps/effort-520.md](maps/effort-520.md) | T791–T792 | 423 |
 | #521 | 事故复盘一键包 | [maps/effort-521.md](maps/effort-521.md) | T793–T794 | 424 |
+| #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
+| #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
 | #524 | MCP 建连退避重试 | [maps/effort-524.md](maps/effort-524.md) | T801–802 | 427 |
 | #525 | 评估集合成扩增 | [maps/effort-525.md](maps/effort-525.md) | T803–T804 | 428 |
 | #526 | 水位告警桥接 | [maps/effort-526.md](maps/effort-526.md) | T805–806 | 429 |
@@ -303,6 +307,7 @@
 | #531 | 装配绑定审计修复 | [maps/effort-531.md](maps/effort-531.md) | T815–816 | 434 |
 | #533 | webhook 载荷大小上限 | [maps/effort-533.md](maps/effort-533.md) | T819–820 | 435 |
 | #534 | 提示词版本行级 diff | [maps/effort-534.md](maps/effort-534.md) | T821–822 | 436 |
+| #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
 | #536 | 流式回复秘密扫描 | [maps/effort-536.md](maps/effort-536.md) | T825–826 | 438 |
 | #537 | 死信原因分类计数 | [maps/effort-537.md](maps/effort-537.md) | T827–828 | 438 |
 | #538 | store fsck 定时巡检 | [maps/effort-538.md](maps/effort-538.md) | T829–830 | 439 |
@@ -317,9 +322,7 @@
 | #547 | 会话导出校验和 | [maps/effort-547.md](maps/effort-547.md) | T853–854 | 449 |
 | #548 | fsck 巡检健康面 | [maps/effort-548.md](maps/effort-548.md) | T855–856 | 450 |
 | #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
-| #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
-| #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
-| #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
+| **#600（总图）** | **进行中** — F 会话 600 系 50 轮自迭代（借鉴高价值开源项目；MCP 注解观测面 / 驱逐恐慌阈值 / fork 谱系 / …台账见 map） | [maps/effort-600.md](maps/effort-600.md) | T851–（至 T950） | 453–（至 502） |
 
 ## 跨 effort 悬留
 

@@ -51,7 +51,11 @@ public final class GuardModule {
                 builder.enabled, builder.authTtl, List.copyOf(builder.dangerousTools));
         this.authApi = new GuardAuthApi(builder.stores.sessionStateStore(), builder.authTtl,
                 builder.stores.observabilityStore());
-        this.factStore = new DefaultFactStore(builder.stores.sessionStateStore());
+        // spec 626 / T902：事实衰减装饰（opt-in——factDecay 非 null 包一层；null = 既有语义）
+        this.factStore = builder.factDecay == null
+                ? new DefaultFactStore(builder.stores.sessionStateStore())
+                : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DecayingFactStore(
+                        new DefaultFactStore(builder.stores.sessionStateStore()), builder.factDecay);
         List<BuzhouHook> h = new ArrayList<>();
         if (builder.enabled) {
             h.add(new DangerousToolGuardHook(config, builder.stores.sessionStateStore()));
@@ -199,9 +203,18 @@ public final class GuardModule {
         private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> secretTypes = null;
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
+        // spec 626 / T902：事实置信度衰减（null = 不衰减——既有语义零变化）
+        private io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy factDecay;
 
         private Builder(BuzhouStores stores) {
             this.stores = stores;
+        }
+
+        /** spec 626 / T902：声明事实衰减（read 时半衰过滤——陈年低置信事实停止注入）。 */
+        public Builder factDecay(
+                io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy policy) {
+            this.factDecay = policy;
+            return this;
         }
 
         public Builder enabled(boolean enabled) {

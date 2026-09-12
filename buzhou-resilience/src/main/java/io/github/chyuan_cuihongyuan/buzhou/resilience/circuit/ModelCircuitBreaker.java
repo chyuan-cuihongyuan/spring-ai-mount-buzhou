@@ -211,12 +211,15 @@ public final class ModelCircuitBreaker {
         private long effectiveCooldownMs;
         /** 计数窗口：true=失败样本（ring buffer，满窗移出最老）。 */
         private boolean[] window;
+        /** spec 620 / T890：样本时间戳（与 window 平行的 ring——timeWindow>0 时老样本出率计算）。 */
+        private long[] windowAt;
         private int samples;
         private int failures;
 
         ModelCircuit(String modelName) {
             this.modelName = modelName;
             this.window = new boolean[config.windowSize()];
+            this.windowAt = new long[config.windowSize()];
             this.effectiveCooldownMs = config.openCooldown().toMillis();
             // spec 44 §B / T160：gauge tag 截断（与 RateLimitAdvisor 同一纪律）
             metrics().gauge("buzhou.resilience.circuit-open",
@@ -279,8 +282,31 @@ public final class ModelCircuitBreaker {
                 return; // 非可用性失败（RATE_LIMIT/CONTENT/AUTH/UNKNOWN）：不进窗口
             }
             append(outcome == Outcome.FAILURE);
-            double rate = samples == 0 ? 0.0 : (double) failures / samples;
-            if (samples >= config.minCalls() && rate >= config.failureRateThreshold()) {
+            long timeWindowMs = config.timeWindow().toMillis();
+            int effectiveSamples = samples;
+            double rate;
+            if (timeWindowMs > 0) {
+                // spec 620 / T890：时间窗口径——老样本（now−at ≥ timeWindow）出率计算与
+                // min-calls 门（resilience4j TIME-based sliding window 思想：低频调用下
+                // count 窗的陈年失败不再永久占窗）
+                long nowMs = java.time.Instant.now(clock).toEpochMilli();
+                int freshSamples = 0;
+                int freshFailures = 0;
+                for (int i = 0, k = Math.min(samples, window.length); i < k; i++) {
+                    int idx = (samples - 1 - i) % window.length;
+                    if (nowMs - windowAt[idx] < timeWindowMs) {
+                        freshSamples++;
+                        if (window[idx]) {
+                            freshFailures++;
+                        }
+                    }
+                }
+                effectiveSamples = freshSamples;
+                rate = freshSamples == 0 ? 0.0 : (double) freshFailures / freshSamples;
+            } else {
+                rate = samples == 0 ? 0.0 : (double) failures / samples;
+            }
+            if (effectiveSamples >= config.minCalls() && rate >= config.failureRateThreshold()) {
                 transition(CircuitState.OPEN, emitter);
             }
         }
@@ -295,6 +321,7 @@ public final class ModelCircuitBreaker {
                 failures--; // 满窗移出最老样本
             }
             window[samples % size] = failure;
+            windowAt[samples % size] = java.time.Instant.now(clock).toEpochMilli();
             if (failure) {
                 failures++;
             }
@@ -357,6 +384,7 @@ public final class ModelCircuitBreaker {
 
         private void resetWindow() {
             window = new boolean[config.windowSize()];
+            windowAt = new long[config.windowSize()];
             samples = 0;
             failures = 0;
         }
