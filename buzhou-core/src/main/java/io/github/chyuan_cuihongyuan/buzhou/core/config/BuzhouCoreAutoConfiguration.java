@@ -1631,6 +1631,18 @@ public class BuzhouCoreAutoConfiguration {
                     io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global());
         }
 
+        /**
+         * spec 647 / T944：hook 计时进程级聚合 + 健康段（Holder 开启镜像——
+         * 未装配零变化；HookTimingHealth 恒 UP，details = per-hook 计时）。
+         */
+        @Bean
+        @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+        io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingHealth buzhouHookTimingHealth() {
+            io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator.Holder.enable();
+            return new io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingHealth(
+                    io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator.Holder.current());
+        }
+
         /** spec 92 §A / T349：隔离舱健康段（未配置 UNKNOWN；配置后 per-agent 详情）。 */
         @Bean
         @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

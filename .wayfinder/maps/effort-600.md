@@ -74,6 +74,7 @@
 | 45 | JSON 行手工拼接收口 | spec 60 纪律全仓收口（Jackson canonical） | T938–T939 | 497 | 644 | ✅ |
 | 46 | API 快照再生收口（E 合并后） | spec 615 门 + 快照随轮再生惯例 | T940–T941 | 498 | 645 | ✅ |
 | 47 | hook 链 per-hook 耗时观测 | actuator http.server.requests / OTel 计时 | T942–T943 | 499 | 646 | ✅ |
+| 48 | hook 计时进程级聚合读面 | spec 646 扩散（生效读面模式） | T944–T945 | 500 | 647 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

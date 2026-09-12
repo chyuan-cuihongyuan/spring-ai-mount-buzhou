@@ -172,6 +172,11 @@ public class HookChain {
     private void record(BuzhouHook hook, String callback, long nanos) {
         Timing timing = timings.computeIfAbsent(hook.name(), k -> new Timing());
         timing.record(nanos);
+        // spec 647：进程级聚合镜像（未装配 = null 跳过——链内私有口径不变）
+        HookTimingAggregator aggregator = HookTimingAggregator.Holder.current();
+        if (aggregator != null) {
+            aggregator.record(hook.name(), nanos);
+        }
         if (nanos > SLOW_HOOK_WARN_NANOS && timing.slowWarned.compareAndSet(0, 1)) {
             LOGGER.log(System.Logger.Level.WARNING,
                     "慢 hook（首次告警，此后只累计）：{0}.{1} 单次 {2}ms——Turn 主链路内联面，持续偏慢请自查该 hook",
