@@ -55,9 +55,13 @@ import java.util.List;
         BuzhouMaintenanceProperties.class, BuzhouPromptProperties.class,
         BuzhouPromptUsageProperties.class, BuzhouTurnRateLimitProperties.class,
         BuzhouCostForecastProperties.class, BuzhouHealthTimelineProperties.class,
+        BuzhouCostSpikeProperties.class,
+        BuzhouLatencySloProperties.class,
+        BuzhouFsckProperties.class,
         BuzhouToolDeprecationProperties.class, BuzhouEvalSamplingProperties.class,
         BuzhouPeriodBudgetProperties.class, BuzhouToolResultSchemasProperties.class,
         BuzhouConfigAuditProperties.class, BuzhouToolLaneProperties.class,
+        BuzhouExperimentProperties.class,
         BuzhouErrorSamplingProperties.class})
 public class BuzhouCoreAutoConfiguration {
 
@@ -418,12 +422,139 @@ public class BuzhouCoreAutoConfiguration {
     @org.springframework.context.annotation.Conditional(
             BuzhouCoreAutoConfiguration.ResultSchemasPresentCondition.class)
     public RuntimeConfig buzhouToolResultSchemasRuntimeConfig(
-            BuzhouToolResultSchemasProperties properties) {
+            org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：单 Map 组件 record 构造绑定在 prefix.<组件名> 子路径，
+        // 根前缀 yml 必须根绑定直读（原 properties 注入绑空——静默 no-op）
+        java.util.Map<String, String> schemas = org.springframework.boot.context.properties.bind.Binder
+                .get(env)
+                .bind("buzhou.tools.result-schemas",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .mapOf(String.class, String.class))
+                .orElse(java.util.Map.of());
         var hook = new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook(
-                properties.schemas());
+                schemas);
         return new RuntimeConfig(java.util.List.of(hook), java.util.Set.of(), java.util.Set.of(),
                 null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
                 java.util.List.of(), null);
+    }
+
+    /**
+     * spec 505 / T761：在线实验确定性分桶（GrowthBook/Statsig 思想）——
+     * buzhou.experiments.<experiment>.<variant> 权重声明即装配（Binder
+     * 预绑判 map 非空——409 同法）。曝光统计 experiment×variant 有界。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ExperimentPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
+    buzhouExperimentBucketer(org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：根绑定直读（原 properties 注入绑空——实验表静默空）
+        java.util.Map<String, Object> raw = org.springframework.boot.context.properties.bind.Binder
+                .get(env)
+                .bind("buzhou.experiments",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .mapOf(String.class, Object.class))
+                .orElse(java.util.Map.of());
+        // 根绑定 Object 值为嵌套形态 {experiment: {variant: weight}}
+        java.util.Map<String, java.util.Map<String, Integer>> experiments = new java.util.LinkedHashMap<>();
+        raw.forEach((experiment, variants) -> {
+            if (variants instanceof java.util.Map<?, ?> variantMap) {
+                java.util.Map<String, Integer> weights = new java.util.LinkedHashMap<>();
+                variantMap.forEach((variant, weight) -> {
+                    // Object 绑定的叶子值可能是 String（属性源原文）或 Number——都接受
+                    if (weight instanceof Number number) {
+                        weights.put(String.valueOf(variant), number.intValue());
+                    } else if (weight instanceof String text && !text.isBlank()) {
+                        try {
+                            weights.put(String.valueOf(variant), Integer.parseInt(text.trim()));
+                        } catch (NumberFormatException ignored) {
+                            // 非整型权重跳过（观测面不炸装配）
+                        }
+                    }
+                });
+                if (!weights.isEmpty()) {
+                    experiments.put(experiment, weights);
+                }
+            }
+        });
+        return new io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer(
+                experiments);
+    }
+
+    /**
+     * spec 530 / T811：per-model 预算闸（budget 族扩散——ModelCostLedger
+     * 记账面 vs per-model 预算，耗尽 beforeModel 拦截）。map 非空才装配；
+     * 以记账面为准（未喂账恒放行）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.ModelBudgetPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig
+    buzhouModelBudgetRuntimeConfig(org.springframework.core.env.Environment env) {
+        // 单 Map 组件 record 构造绑定在 prefix.<组件名> 子路径——根前缀 yml 会绑空
+        //（524/530 装配审计结论）；此处直接根绑定（与条件判定同一读法）
+        java.util.Map<String, Long> budgets = org.springframework.boot.context.properties.bind.Binder
+                .get(env)
+                .bind("buzhou.budget.model-budget",
+                        org.springframework.boot.context.properties.bind.Bindable
+                                .mapOf(String.class, Long.class))
+                .orElse(java.util.Map.of());
+        String modelName = env.getProperty("buzhou.model-name", "unknown");
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelBudgetGate gate =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelBudgetGate(
+                        budgets, modelName,
+                        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger.global());
+        return io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.hooks(
+                java.util.List.of(gate));
+    }
+
+    /** spec 548 / T827：fsck 巡检健康面（观测面恒 UP——findings 是数据需关注非进程故障）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.fsck", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth buzhouStoreFsckHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper keeper) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth(keeper);
+    }
+
+    /** spec 530：budgets map 非空才装配（Binder 预绑判定）。 */
+    static final class ModelBudgetPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.budget.model-budget",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Long.class))
+                        .map(m -> {
+                            return !m.isEmpty();
+                        }).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /** spec 505：experiments map 非空才装配（Binder 预绑判定）。 */
+    static final class ExperimentPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.experiments",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, Object.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
     }
 
     /** spec 409：result-schemas map 非空才装配（Binder 预绑判定）。 */
@@ -583,10 +714,18 @@ public class BuzhouCoreAutoConfiguration {
     @Bean
     @org.springframework.context.annotation.Conditional(
             BuzhouCoreAutoConfiguration.ToolDeprecationPresentCondition.class)
-    public RuntimeConfig buzhouToolDeprecationRuntimeConfig(BuzhouToolDeprecationProperties properties) {
+    public RuntimeConfig buzhouToolDeprecationRuntimeConfig(org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：根绑定直读（原 properties 注入绑空——静默 no-op）
+        java.util.Map<String, BuzhouToolDeprecationProperties.Spec> declaredSpecs =
+                org.springframework.boot.context.properties.bind.Binder
+                        .get(env)
+                        .bind("buzhou.tools.deprecated",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .mapOf(String.class, BuzhouToolDeprecationProperties.Spec.class))
+                        .orElse(java.util.Map.of());
         java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation>
                 declared = new java.util.LinkedHashMap<>();
-        properties.tools().forEach((name, spec) -> declared.put(name,
+        declaredSpecs.forEach((name, spec) -> declared.put(name,
                 new io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback.Deprecation(
                         spec.since(), spec.removalIn(), spec.successor(), spec.message())));
         return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
@@ -790,6 +929,60 @@ public class BuzhouCoreAutoConfiguration {
                 .addListener(cost -> ring.record(cost.microUsd()));
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.CostForecastHealth(
                 ring, properties.window(), properties.horizon(), properties.budgetMicroUsd());
+    }
+
+    /**
+     * spec 508 / T767：成本异常尖峰检测（Prometheus/Istio 滚动基线 z-score——
+     * 与 403 forecast 互补：趋势 vs 突刺）。enabled=true 装配：监听
+     * ModelCostLedger 全局记账单点喂数（403 同缝）；只检测不拦截。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.budget.spike", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector
+    buzhouCostSpikeDetector(BuzhouCostSpikeProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing ring =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing(
+                        properties.baselineBuckets() + 2, java.time.Clock.systemUTC());
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector detector =
+                new io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector(
+                        ring, properties.baselineBuckets(), properties.minSamples(),
+                        properties.zThreshold(), properties.floorMicroUsd(),
+                        properties.cooldown(), java.time.Clock.systemUTC());
+        io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger.global()
+                .addListener(cost -> {
+                    try {
+                        detector.record(cost.microUsd());
+                    } catch (RuntimeException ignored) {
+                        // 喂数隔离——记账路径不因检测面异常中断
+                    }
+                });
+        return detector;
+    }
+
+    /**
+     * spec 509 / T769：时延 SLO 燃尽（Google SRE——321 时延维度扩散：坏事件
+     * =elapsed>threshold）。enabled=true 装配 RuntimeConfig.hooks（默认关——
+     * 完全零钩子零开销）。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.latency-slo", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig
+    buzhouLatencySloRuntimeConfig(BuzhouLatencySloProperties properties) {
+        io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget budget =
+                new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget.Config(
+                                properties.sloPercent(), properties.burnRateThreshold(),
+                                io.github.chyuan_cuihongyuan.buzhou.core.health.ErrorBudget.Config
+                                        .DEFAULT_BUCKETS,
+                                properties.window(), properties.minSamples()),
+                        java.time.Clock.systemUTC());
+        io.github.chyuan_cuihongyuan.buzhou.core.health.LatencySloMonitor monitor =
+                new io.github.chyuan_cuihongyuan.buzhou.core.health.LatencySloMonitor(
+                        properties.thresholdMillis(), budget);
+        return io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig.hooks(
+                java.util.List.of(monitor));
     }
 
     /**
@@ -1048,6 +1241,11 @@ public class BuzhouCoreAutoConfiguration {
                         org.springframework.boot.context.properties.bind.Bindable.listOf(String.class))
                 .orElse(java.util.List.of());
         forwarder.setIncludeTypes(include);
+        // spec 533 / T817：载荷大小上限（0 = 不限——默认零变化；Kafka max message size 思想）
+        Integer maxPayloadChars = env.getProperty("buzhou.webhook.max-payload-chars", Integer.class);
+        if (maxPayloadChars != null && maxPayloadChars > 0) {
+            forwarder.setOutboxMaxPayloadChars(maxPayloadChars);
+        }
         return forwarder;
     }
 
@@ -1067,6 +1265,20 @@ public class BuzhouCoreAutoConfiguration {
                 new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiter(
                         props.resultLimitChars(), overrides);
         io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiterHolder.set(limiter);
+        return limiter;
+    }
+
+    /**
+     * 工具入参限幅器全局默认（spec 506 / T763——31 结果限幅的入站对称面）：
+     * 默认 -1 不限（零默认行为变化——显式 opt-in）；Holder 模式同结果限幅。
+     */
+    @Bean
+    public io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiter buzhouToolInputLimiter(
+            BuzhouToolsProperties props) {
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiter limiter =
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiter(
+                        props.inputLimitChars(), props.inputLimitOverrides());
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInputLimiterHolder.set(limiter);
         return limiter;
     }
 
@@ -1769,6 +1981,40 @@ public class BuzhouCoreAutoConfiguration {
      * 默认关——删除动作必须显式开启；开启后单线程 scheduleWithFixedDelay 兑现
      * purgeTtl；多实例各跑一份，幂等无害）。
      */
+    /**
+     * spec 538 / T827：store fsck 定时巡检（341 选主扩散第三弹——对账面从
+     * 手工触发升级定时巡检）。{@code buzhou.fsck.enabled=true} 装配；只读
+     * 巡检不自动修复（repair 仍归手工面）；elector 缺席 = 无门单实例跑。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouCoreAutoConfiguration.FsckPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper
+    buzhouStoreFsckHousekeeper(
+            BuzhouStores stores,
+            BuzhouFsckProperties fsck,
+            ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector> leaderElector) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper(
+                stores, leaderElector.getIfAvailable(), fsck.interval());
+    }
+
+    /** spec 538：enabled=true 才装配（Binder 预绑判定——426 同法）。 */
+    static final class FsckPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.fsck.enabled", Boolean.class)
+                        .map(Boolean::booleanValue).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(prefix = "buzhou.session-archive", name = "purge-enabled",
             havingValue = "true")

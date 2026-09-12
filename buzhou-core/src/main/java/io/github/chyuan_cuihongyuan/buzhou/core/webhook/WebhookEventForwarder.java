@@ -101,9 +101,22 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     /** spec 105 §A / T387：订阅类型过滤（空集 = 全投递——默认零变化）。 */
     private volatile java.util.Set<String> includeTypes = java.util.Set.of();
 
+    /** spec 514 / T777：投递时延记录器（可空）。 */
+    private volatile WebhookDeliveryLatency deliveryLatency;
+
     /** 限定投递的事件类型集（null/空 = 全投递；BuzhouWebhookProperties 不扩——record 兼容）。 */
     public void setIncludeTypes(java.util.Collection<String> types) {
         this.includeTypes = types == null ? java.util.Set.of() : java.util.Set.copyOf(types);
+    }
+
+    /** spec 514 / T777：投递时延分位数记录器（null=不记录——默认零变化）。 */
+    public void setDeliveryLatency(WebhookDeliveryLatency latency) {
+        this.deliveryLatency = latency;
+    }
+
+    /** spec 533 / T817：载荷上限透传 outbox（0 = 不限——默认零变化）。 */
+    public void setOutboxMaxPayloadChars(int chars) {
+        outbox.setMaxPayloadChars(chars);
     }
 
     @Override
@@ -177,6 +190,11 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                     outbox.delete(record);
                     delivered.incrementAndGet();
                     BuzhouMetricsHolder.metrics().counter("buzhou.webhook.delivered");
+                    // spec 514 / T777：入队→成功投递时延样本（成功才记——死信/退避中不是「送达」）
+                    WebhookDeliveryLatency latency = deliveryLatency;
+                    if (latency != null) {
+                        latency.record(System.currentTimeMillis() - record.createdAtEpochMs());
+                    }
                 }
                 case FATAL -> markDead(record, "4xx");
                 case RETRYABLE -> scheduleRetryOrDead(record);
@@ -207,6 +225,9 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
         deadLettered.incrementAndGet();
         BuzhouMetricsHolder.metrics().counter("buzhou.webhook.failures");
         BuzhouMetricsHolder.metrics().counter("buzhou.webhook.dead-letter");
+        // spec 537 / T827：死信原因分类计数（有界 reason 集——4xx/重试耗尽）
+        BuzhouMetricsHolder.metrics().counter("buzhou.webhook.dead-reason",
+                "reason", reason.startsWith("4xx") ? "4xx" : reason);
         LOGGER.log(System.Logger.Level.ERROR, "webhook 事件进死信（" + reason + "，attempts="
                 + totalAttempts + "）：eventId=" + record.eventId() + " url=" + props.url());
     }

@@ -128,11 +128,26 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     private final java.util.List<java.util.regex.Pattern> dangerousToolPatterns;
     /** impl-50：最近一次建连失败计数（健康面）。 */
     private final java.util.concurrent.atomic.AtomicLong connectFailures = new java.util.concurrent.atomic.AtomicLong();
+
+    /** spec 524 / T801：建连重试策略（null = 不重试——默认）。 */
+    private final ConnectRetryPolicy connectRetry;
+
+    /** 重试策略（指数退避：base × 2^n 封顶 60s）。 */
+    public record ConnectRetryPolicy(int maxAttempts, long baseDelayMillis) {
+        public ConnectRetryPolicy {
+            if (maxAttempts < 1 || baseDelayMillis < 1) {
+                throw new IllegalArgumentException("max-attempts>=1 且 base-delay>=1ms");
+            }
+        }
+    }
+
     /** spec 610 / T870：每连接并发上限（null = 不设；Entry 创建时装配——既有条目不追溯）。 */
     private volatile Integer perConnectionConcurrencyLimit;
     private final ConcurrentHashMap<String, Entry> entries = new ConcurrentHashMap<>();
     private final Object refreshLock = new Object();
     private final ScheduledExecutorService scheduler;
+    /** spec 504 / T759：服务器级聚合熔断（null = 不装配——callbacks 原样）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker serverBreaker;
     private volatile boolean shutdown;
 
     /** 既有 4 参构造兼容（policyProvider=null）。 */
@@ -153,6 +168,31 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                                     Duration forceCloseTimeout, SpanRecorder recorder,
                                     PolicyConfigProvider policyProvider,
                                     java.util.List<String> dangerousToolPatterns) {
+        this(factory, gracePeriod, forceCloseTimeout, recorder, policyProvider,
+                dangerousToolPatterns, null);
+    }
+
+    /** spec 504 / T760：+serverBreaker（null = 不装配聚合熔断，callbacks 原样）。 */
+    public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
+                                    Duration forceCloseTimeout, SpanRecorder recorder,
+                                    PolicyConfigProvider policyProvider,
+                                    java.util.List<String> dangerousToolPatterns,
+                                    io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker
+                                            serverBreaker) {
+        this(factory, gracePeriod, forceCloseTimeout, recorder, policyProvider,
+                dangerousToolPatterns, serverBreaker, null);
+    }
+
+    /** spec 524 / T801：+connectRetry（null = 不重试——默认）。 */
+    public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
+                                    Duration forceCloseTimeout, SpanRecorder recorder,
+                                    PolicyConfigProvider policyProvider,
+                                    java.util.List<String> dangerousToolPatterns,
+                                    io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker
+                                            serverBreaker,
+                                    ConnectRetryPolicy connectRetry) {
+        this.connectRetry = connectRetry;
+        this.serverBreaker = serverBreaker;
         this.factory = factory;
         this.gracePeriod = gracePeriod;
         this.forceCloseTimeout = forceCloseTimeout;
@@ -177,7 +217,10 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             if (e.status == Status.ACTIVE && e.spec.visibleTo(appId, agentName)
                     && (bindingClip == null || bindingClip.contains(e.name()))) {
                 for (ToolCallback cb : e.connection.toolCallbacks()) {
-                    out.add(new RefCountingToolCallback(cb, e, this));
+                    // spec 504 / T760：服务器级聚合熔断内层包装（引用计数语义不变）
+                    ToolCallback effective = serverBreaker == null
+                            ? cb : serverBreaker.decorate(e.name(), cb);
+                    out.add(new RefCountingToolCallback(effective, e, this));
                 }
             }
         }
@@ -265,8 +308,39 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         }
     }
 
-    /** 建连 + 注册 ACTIVE 条目；失败记 ERROR Event 并跳过（不影响其余条目）。 */
+    /** 建连 + 注册 ACTIVE 条目；失败记 ERROR Event 并跳过（不影响其余条目）。
+     *  spec 524 / T801：配置重试策略时按指数退避重试（scheduler 线程延迟重排）。 */
     private boolean addEntry(ToolSetSpec spec, SpanContext spanCtx) {
+        if (connectRetry != null) {
+            return addEntryWithRetry(spec, spanCtx, 1);
+        }
+        return addEntryOnce(spec, spanCtx);
+    }
+
+    /** spec 524 / T801：指数退避重试（delay = base × 2^(attempt-1)，封顶 60s）。 */
+    private boolean addEntryWithRetry(ToolSetSpec spec, SpanContext spanCtx, int attempt) {
+        if (addEntryOnce(spec, spanCtx)) {
+            return true;
+        }
+        if (attempt >= connectRetry.maxAttempts()) {
+            return false; // 重试耗尽——既有失败语义收口
+        }
+        long delayMillis = Math.min(60_000,
+                connectRetry.baseDelayMillis() * (1L << Math.min(attempt, 10)));
+        scheduler.schedule(() -> {
+            try {
+                addEntryWithRetry(spec, spanCtx, attempt + 1);
+            } catch (RuntimeException ignored) {
+                // 调度线程保护——失败已在 addEntryOnce 内计数
+            }
+        }, delayMillis, TimeUnit.MILLISECONDS);
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.mcp.connect.retries", "server", spec.name());
+        return false;
+    }
+
+    /** 单次建连尝试（原 addEntry 主体——失败计数/事件语义不变）。 */
+    private boolean addEntryOnce(ToolSetSpec spec, SpanContext spanCtx) {
         McpConnection connection;
         try {
             // spec 18 / T86：协议 tools/list_changed 订阅透传到注册表差量处理器。

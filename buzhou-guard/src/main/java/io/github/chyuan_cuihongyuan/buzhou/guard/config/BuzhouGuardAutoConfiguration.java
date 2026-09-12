@@ -46,9 +46,43 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "buzhou.guard", name = "enabled", matchIfMissing = true)
+@org.springframework.boot.context.properties.EnableConfigurationProperties(
+        BuzhouPiiVaultProperties.class)
 public class BuzhouGuardAutoConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuzhouGuardAutoConfiguration.class);
+
+    /**
+     * spec 507 / T765：可逆 PII 代管库（Presidio Vault anonymize↔deanonymize）——
+     * enabled=true 才装配（默认关；代管库是敏感面：进程内+TTL+有界+salt）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouGuardAutoConfiguration.PiiVaultPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiVault buzhouPiiVault(
+            BuzhouPiiVaultProperties properties, org.springframework.core.env.Environment env) {
+        String salt = env.getProperty("buzhou.guard.pii.vault.salt",
+                java.util.UUID.randomUUID().toString());
+        return new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiVault(
+                salt, properties.ttl(), properties.maxEntries());
+    }
+
+    /** spec 507：enabled=true 才装配（Binder 预绑判定——409 同法）。 */
+    static final class PiiVaultPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.guard.pii.vault.enabled", Boolean.class)
+                        .map(Boolean::booleanValue).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
 
     @Bean
     public GuardModule guardModule(BuzhouStores stores, Environment env,

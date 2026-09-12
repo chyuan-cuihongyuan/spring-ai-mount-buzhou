@@ -554,6 +554,16 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), feedback);
             }
         }
+        // spec 506 / T763：入参限幅（opt-in 默认关）——超限不执行、回喂结构化反馈
+        //（不回显超限入参——回显即重新入上下文）；语义同校验拒绝（REASK 通道）
+        String inputViolation = io.github.chyuan_cuihongyuan.buzhou.core.exec
+                .ToolInputLimiterHolder.current().violation(toolCall.name(), toolCall.arguments());
+        if (inputViolation != null) {
+            recordOutcome(toolCall,
+                    io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome.VALIDATION_REJECTED,
+                    inputViolation);
+            return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), inputViolation);
+        }
         io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline = this.turnDeadline;
         if (deadline.isExpired()) {
             // impl-28：预算已耗尽——不占组锁/许可，直接 TIMEOUT 回喂（免无谓排队）
@@ -628,7 +638,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             ToolCallback callback,
             ToolContext toolContext,
             io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline) {
-        long timeoutMillis = effectiveToolTimeoutMillis(deadline);
+        long timeoutMillis = effectiveToolTimeoutMillis(deadline, toolCall.name());
         if (timeoutMillis <= 0) {
             turnPermits.release();
             return timeoutResponse(toolCall, "Turn 剩余预算已耗尽，未派发");
@@ -663,13 +673,21 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         return new ToolResponseMessage.ToolResponse(toolCall.id(), toolCall.name(), result);
     }
 
-    /** impl-28：单次派发时限 = min(单工具超时, Deadline 剩余)；无 Deadline 即单工具超时。 */
+    /**
+     * impl-28：单次派发时限 = min(单工具超时, Deadline 剩余)；无 Deadline 即单工具超时。
+     * spec 529 / T811：per-tool glob 覆盖（ToolTimeoutOverridesHolder——默认空零变化）
+     * 优先替换全局值，再与 Deadline 剩余取 min（Deadline 恒为天花板）。
+     */
     private long effectiveToolTimeoutMillis(
-            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline) {
+            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline,
+            String toolName) {
+        long override = io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimeoutOverrides
+                .Holder.current().timeoutMillisFor(toolName);
+        long base = override >= 0 ? override : toolTimeout.toMillis();
         if (deadline.isNone()) {
-            return toolTimeout.toMillis();
+            return base;
         }
-        return Math.min(toolTimeout.toMillis(), deadline.remainingMillis());
+        return Math.min(base, deadline.remainingMillis());
     }
 
     /** impl-28：超时时长文案（≥1s 用秒、否则毫秒；无 Deadline 时与既有「60s」格式一致）。 */

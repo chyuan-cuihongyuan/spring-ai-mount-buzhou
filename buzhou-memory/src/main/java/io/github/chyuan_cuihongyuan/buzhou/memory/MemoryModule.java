@@ -24,6 +24,14 @@ import java.util.function.Function;
 
 public final class MemoryModule {
 
+    /** spec 517 / T777：压缩规模分布观测（进程级有界样本窗——Holder 同型）。 */
+    private static final CompactionRatioStats STATS = new CompactionRatioStats();
+
+    /** 压缩规模分布读数（观测面）。 */
+    public static CompactionRatioStats compactionStats() {
+        return STATS;
+    }
+
     private MemoryModule() {
     }
 
@@ -151,6 +159,8 @@ public final class MemoryModule {
                 public void onCompacted(String sessionId,
                         io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionResult result,
                         double ratio) {
+                    // spec 517 / T777：压缩规模分布观测（有界样本窗——只观测零干预）
+                    STATS.recordCompaction(result.reclaimedChars(), ratio);
                     stores.observabilityStore().saveEvents(
                             java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
                                     java.util.UUID.randomUUID().toString(), null, sessionId,
@@ -165,6 +175,8 @@ public final class MemoryModule {
                 public void onSummaryFolded(String sessionId,
                         io.github.chyuan_cuihongyuan.buzhou.memory.summary.NineSectionSummary summary,
                         String trigger) {
+                    // spec 517 / T777：折入规模与触发判据计数（观测面）
+                    STATS.recordFold(summary.render().length(), trigger);
                     stores.observabilityStore().saveEvents(
                             java.util.List.of(new io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord(
                                     java.util.UUID.randomUUID().toString(), null, sessionId,

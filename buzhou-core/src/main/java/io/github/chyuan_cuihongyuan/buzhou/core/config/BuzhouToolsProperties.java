@@ -22,17 +22,25 @@ public record BuzhouToolsProperties(
         Map<String, Integer> resultLimitOverrides,
         Health health,
         Circuit circuit,
-        Map<String, String> baggage) {
+        Map<String, String> baggage,
+        Integer inputLimitChars,
+        Map<String, Integer> inputLimitOverrides) {
 
     /** 2 参兼容构造（spec 305 之前调用方；health/circuit/baggage = 未配置）。 */
     public BuzhouToolsProperties(Integer resultLimitChars, Map<String, Integer> resultLimitOverrides) {
-        this(resultLimitChars, resultLimitOverrides, null, null, null);
+        this(resultLimitChars, resultLimitOverrides, null, null, null, null, null);
     }
 
     /** 4 参兼容构造（spec 337 之前调用方；baggage = 未配置）。 */
     public BuzhouToolsProperties(Integer resultLimitChars, Map<String, Integer> resultLimitOverrides,
             Health health, Circuit circuit) {
-        this(resultLimitChars, resultLimitOverrides, health, circuit, null);
+        this(resultLimitChars, resultLimitOverrides, health, circuit, null, null, null);
+    }
+
+    /** 5 参兼容构造（spec 506 之前调用方；input-limit = 未配置）。 */
+    public BuzhouToolsProperties(Integer resultLimitChars, Map<String, Integer> resultLimitOverrides,
+            Health health, Circuit circuit, Map<String, String> baggage) {
+        this(resultLimitChars, resultLimitOverrides, health, circuit, baggage, null, null);
     }
 
     /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察同款）。 */
@@ -58,6 +66,26 @@ public record BuzhouToolsProperties(
                     });
         }
         baggage = baggage == null ? java.util.Map.of() : java.util.Map.copyOf(baggage);
+        if (inputLimitChars == null) {
+            inputLimitChars = -1; // spec 506：默认不限（零默认行为变化——显式 opt-in）
+        }
+        if (inputLimitChars < -1) {
+            throw new BuzhouConfigurationException(
+                    "buzhou.tools.input-limit-chars（" + inputLimitChars + "）非法",
+                    "设为 >= 0 的整数或 -1（不限）");
+        }
+        if (inputLimitOverrides != null) {
+            inputLimitOverrides.values().stream()
+                    .filter(v -> v != null && v < -1)
+                    .findAny()
+                    .ifPresent(v -> {
+                        throw new BuzhouConfigurationException(
+                                "buzhou.tools.input-limit-overrides 值（" + v + "）非法",
+                                "每项设为 >= 0 的整数或 -1（该工具不限）");
+                        });
+        }
+        inputLimitOverrides = inputLimitOverrides == null
+                ? java.util.Map.of() : java.util.Map.copyOf(inputLimitOverrides);
     }
 
     /**

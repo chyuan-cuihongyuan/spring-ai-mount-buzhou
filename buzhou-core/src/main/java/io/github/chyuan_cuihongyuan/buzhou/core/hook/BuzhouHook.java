@@ -37,6 +37,14 @@ public interface BuzhouHook {
         return HookResult.CONTINUE;
     }
 
+    /**
+     * 回复流出站过滤器工厂（spec 500 / T751）：每轮调用一次、返回<b>新建</b>实例
+     * （有状态——跨 chunk 窗口缓冲）；返回 null = 本钩子不参与回复流过滤（默认）。
+     */
+    default StreamTextFilter replyStreamFilter() {
+        return null;
+    }
+
     default HookResult beforeTool(ToolCallContext ctx) {
         return HookResult.CONTINUE;
     }

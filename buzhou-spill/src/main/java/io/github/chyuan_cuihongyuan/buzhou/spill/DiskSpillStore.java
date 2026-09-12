@@ -223,10 +223,19 @@ public class DiskSpillStore implements SpillStore {
         }
     }
 
+    /** spec 539 / T827：回读审计轨迹（有界样本窗——只观测零干预）。 */
+    private final ReadAuditTrail readAudit = new ReadAuditTrail();
+
+    /** 回读审计读数面（观测/排障）。 */
+    public ReadAuditTrail readAudit() {
+        return readAudit;
+    }
+
     @Override
     public RangeReadResult readRange(SpillUri uri, RangeReadRequest request) {
         // impl-17 / T45：读回复验——不一致时内容前缀完整性告警（读侧 lenient=warning 透传）
         if (!verifyIntegrity(uri)) {
+            readAudit.record(String.valueOf(uri), 0, true, java.time.Instant.now());
             return load(uri)
                     .map(content -> new RangeReadResult(
                             ReadIntegrity.CORRUPTION_WARNING + "\n"
@@ -237,12 +246,16 @@ public class DiskSpillStore implements SpillStore {
                                 + "且无引用保留。请基于对话摘要重建所需信息，或重新执行生成该数据的工具。",
                         0, false, null));
         }
-        return load(uri)
+        RangeReadResult result = load(uri)
                 .map(content -> RangeReadEngine.read(content, request))
                 .orElse(new RangeReadResult(
                         "EVIDENCE_GONE：spill 证据已被清理（" + uri + "）——该证据可能属已删除会话"
                                 + "且无引用保留。请基于对话摘要重建所需信息，或重新执行生成该数据的工具。",
                         0, false, null));
+        readAudit.record(String.valueOf(uri),
+                result.content() == null ? 0 : result.totalChars(), false,
+                java.time.Instant.now());
+        return result;
     }
 
     @Override

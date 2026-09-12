@@ -62,6 +62,34 @@ public final class SpendRateRing {
         return total;
     }
 
+    /**
+     * 最近 count 个已完成分钟桶总额（不含当前分钟；仅本进程写入过的桶——
+     * 陈旧/未写桶剔除；返回长度可能 < count；升序旧→新。spec 508 基线面）。
+     */
+    public synchronized long[] completedBuckets(int count) {
+        long nowMinute = clock.millis() / 60_000L;
+        java.util.List<Long> out = new java.util.ArrayList<>(Math.max(0, count));
+        for (int back = Math.min(count, buckets.length); back >= 1; back--) {
+            long minute = nowMinute - back;
+            int slot = (int) Math.floorMod(minute, buckets.length);
+            if (bucketEpochMinute[slot] == minute) {
+                out.add(buckets[slot]);
+            }
+        }
+        long[] values = new long[out.size()];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = out.get(i);
+        }
+        return values;
+    }
+
+    /** 当前分钟桶累计（microUsd——spec 508 检测面）。 */
+    public synchronized long currentBucketTotal() {
+        long minute = clock.millis() / 60_000L;
+        int slot = (int) Math.floorMod(minute, buckets.length);
+        return bucketEpochMinute[slot] == minute ? buckets[slot] : 0;
+    }
+
     /** 小时速率（microUsd/h）：窗内合计按窗长外推。 */
     public long ratePerHour(Duration lookback) {
         long minutes = Math.max(1, Math.min(lookback.toMinutes(), buckets.length));

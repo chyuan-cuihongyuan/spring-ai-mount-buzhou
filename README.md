@@ -358,7 +358,64 @@ D 会话（effort #400+ 号段）增量（每项默认零行为变化或 opt-in�
 | 工程治理 | 配置漂移审计 | 周期快照 buzhou.* 全属性 diff（值变更/新增/删除三语义）——变更留痕 WARN 日志+listener 回调+计数；敏感值与 343 同款末段掩码不外泄（ArgoCD drift detection） | [spec 414](docs/spec/414-config-drift.md) |
 | 运维 | 会话黏性路由提示 | sha256(appId|sessionId) 确定性亲和键+桶位（跨实例零协调天然一致）——LB 哈希规则的事实源，面板行可见路由分布（Ketama 确定性键） | [spec 415](docs/spec/415-session-affinity.md) |
 
-## 生产级纵深 VI（F 会话 600 系增量）
+## 生产级纵深 VI（E 会话 500 系增量）
+
+E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 安全 | 流式回复 PII 脱敏 | 模型回复出站第三缝（输入 106/工具输出 86 之外）——流式滑动窗口缓冲跨 chunk 实体不漏、flush 排空、占位符不拆分、非流式整段同滤（Presidio 流式匿名化+流式 WAF 回看窗口） | [spec 500](docs/spec/500-stream-pii-redaction.md) |
+| 可靠性 | 请求幂等键 | 调用方供给 `buzhou.idempotency-key` advisor 参数——同键重入重放首次终态响应零二次调用（客户端超时重试不二次计费）、非终态不写半截、键缺席透传零行为（Stripe Idempotency-Key） | [spec 501](docs/spec/501-request-idempotency.md) |
+| 模型韧性 | 模型能力注册表与能力门 | yml 声明每模型 vision/tools/context-window——media/工具请求路由前事前拦（ARGS_VALIDATION_FAILED 结构化异常带 yml 键指引）而非供应商 400 事后错，未注册模型零门（LiteLLM Router capabilities） | [spec 502](docs/spec/502-model-capability-gate.md) |
+| 模型路由 | 时段路由窗口 | 同日时间窗自动切权重（窗权整表替换、出窗回落基础、WARN 留痕+applied/reverted 计数）——夜间切便宜模型白天回切零人工值守（K8s CronJob/Argo Rollouts schedule） | [spec 503](docs/spec/503-routing-schedule.md) |
+| 工具韧性 | MCP 服务器级聚合熔断 | 一台 server 一个键的断路状态机（复用 core ToolCircuitBreaker）——server 宕机全部工具快速失败结构化改道信号、半开探测恢复、snapshot 观测面，与 per-tool 131 正交两层（Envoy per-host 聚合） | [spec 504](docs/spec/504-mcp-server-breaker.md) |
+| 评测 | 在线实验分桶 | `buzhou.experiments.<exp>.<variant>` 权重声明——session 确定性分桶（sha256 mod100+字典序累积，跨实例零协调）+未入组余量+曝光计数（GrowthBook/Statsig） | [spec 505](docs/spec/505-experiment-buckets.md) |
+| 护栏 | 工具入参限幅 | 执行前体积门（31 结果限幅的入站对称面）——超限拒绝回喂结构化反馈（不回显入参）引导精简重试、per-tool glob 覆盖、默认关 opt-in（nginx client_max_body_size） | [spec 506](docs/spec/506-tool-input-limit.md) |
+| 安全 | 可逆 PII 代管库 | vaultize/restore 对称原语（稳定令牌 sha256|salt 前 16hex 去重+TTL+有界+fail-safe 保留过期令牌）——「展示层脱敏、服务端留原值」授权回显工作流（Presidio Vault） | [spec 507](docs/spec/507-pii-vault.md) |
+| 成本预算 | 成本异常尖峰检测 | 滚动基线 z-score（当前分钟桶 vs 前 N 桶均/标差）+绝对地板+minSamples+cooldown 防抖——费率在预算内但相对自身基线突刺可见（与 403 forecast 互补：趋势 vs 突刺，Prometheus/Istio） | [spec 508](docs/spec/508-cost-spike.md) |
+| 观测治理 | 时延 SLO 燃尽 | 「99% 轮次 < N s」坏事件=latency>阈值喂 321 ErrorBudget（burn/breaching/topBreaching 语义全继承）——「错误率正常但变慢了」的隐蔽退化用 SRE 语言可见可告警（Google SRE） | [spec 509](docs/spec/509-latency-slo.md) |
+| 持久化 | store fsck 定时巡检 | StoreFsck 只读对账定时化（选主门 elector 缺席=无门单实例）——findings WARN+计数不自动修复，衰变在 restore 前可见（341 选主扩散第三弹） | [spec 538](docs/spec/538-fsck-housekeeper.md) |
+| 持久化 | fsck 巡检健康面 | mechanism=store-fsck 观测面恒 UP——details 聚合 runs/totalFindings/lastFindings/skippedNotLeader，巡检结果从日志面升级到标准健康读数（538 健康面接入） | [spec 548](docs/spec/548-fsck-health.md) |
+| 技能治理 | 技能正文规模审计 | 逐技能正文字符规模降序+预算超限标记+聚合统计——load_skill 载荷膨胀的静态审计面（110 目录预算 per-skill 深化），纯读数不拦截 | [spec 546](docs/spec/546-skill-body-audit.md) |
+| Spill 治理 | spill 回读审计 | readRange 回读有界样本窗（uri/字节/完整性告警）+per-uri 计数降序+累计读数——热点证据与落盘衰变的排障读数面（60/67 导出族同构） | [spec 539](docs/spec/539-spill-read-audit.md) |
+| 安全 | 会话导出加密 | seal/open 密文容器（版本标记头+333 EnvelopeCipher AES-GCM，AAD 用途域绑定防跨域剪贴）——敏感会话导出文件落盘/传输不泄露，错钥/篡改 DATA_CORRUPTION 带修法（age/OCI 加密 artifact） | [spec 510](docs/spec/510-encrypted-session-export.md) |
+| 持久化 | 归档冷存完整性校验 | 写时 sha256 校验和随条目落盘（独立命名空间零污染）+verify 五态随时验（MISMATCH/存量 NO_CHECKSUM/CORRUPT 分列不冒充）——可读≠未被改，衰变/误写 restore 前发现（S3 checksum） | [spec 511](docs/spec/511-archive-integrity.md) |
+| 安全 | 内容安全词表过滤 | yml 声明违禁词表（大小写不敏感 contains——CJK 无词界正确语义）+双缝（输入/工具结果）BLOCK 结构化告示或 MASK 打码——合规黑名单本地词表面（OpenAI moderation 规则子集） | [spec 515](docs/spec/515-content-moderation.md) |
+| 安全 | 会话导出脱敏 | sanitize 不可变副本——消息/摘要/state 三内容域占位符化（86 检测器+custom rules），结构字段原样；与 510 组合先脱敏再封缄=对外分享全链（Presidio anonymize） | [spec 518](docs/spec/518-export-sanitizer.md) |
+| 观测治理 | 工具调用图谱统计 | TOOL span 同轮相邻有向边计数+per-tool calls/errors/错误率排行——「哪些工具总被连着用」「哪个工具错误集中」有数据依据（LangSmith trace analytics） | [spec 519](docs/spec/519-tool-graph.md) |
+| 观测治理 | span 状态分布读数 | kind×status 计数（大小写归一+UNSET 兜底+TreeMap 稳定序）——「MODEL 错误集中还是 TOOL 错误集中」一屏可读（Prometheus label 聚合；519 同包扩散） | [spec 543](docs/spec/543-span-status-distribution.md) |
+| 排障 | guard 装配摘要读数 | `assemblySummary()` 列出装配的 hook 名（装配序）——「guard 到底挂了哪些钩子」支持包/排障一屏可读 | [spec 549](docs/spec/549-assembly-summary.md) |
+| 收口 | E 会话收口终验 | 全反应堆串行终验+快照/覆盖门复验+台账归档（C spec 349 / D R30 同型；49 轮实质功能总览） | [spec 532](docs/spec/532-closeout.md) |
+| 成本预算 | 评估 run 预算闸 | 逐项 input+expected 字符估算累计超限即早停——剩余项 error 三态 [RUN-BUDGET] 显式可见、run 照常落盘（partial 不冒充完整）；默认关（AWS Budgets/pytest maxfail） | [spec 520](docs/spec/520-eval-run-budget.md) |
+| 工程治理 | 装配绑定审计修复 | 409 result-schemas/406 deprecated/505 experiments 单 Map 组件 record 构造绑定在 prefix.组件名 子路径——根前缀 yml 绑空静默 no-op，统一改根绑定直读+内容非空回归断言（R31 发现的系统性坑） | [spec 531](docs/spec/531-assembly-binding-audit.md) |
+| 成本预算 | per-model 预算闸 | ModelCostLedger 记账面 vs yml per-model 预算（microUsd）——耗尽 beforeModel 拦截（结构化告示带修法），以记账面为准未喂账恒放行，map 非空才装配 | [spec 530](docs/spec/530-model-budget-gate.md) |
+| MCP 韧性 | MCP 建连退避重试 | 建连失败按指数退避重排（base×2^n 封顶 60s、重试耗尽收口既有失败语义）——server 暂时不可达自愈而非刷新前永久缺席，yml `connect-retry` 声明即启用（Resilience4j retry） | [spec 524](docs/spec/524-connect-retry.md) |
+| 评测 | 评估集合成扩增 | 种子用例→LLM 生成 N 条同语义改写候选（围栏剥离+逐行容错+零可解析异常带预览）——人审教义只产候选不入库（Ragas testset generation） | [spec 525](docs/spec/525-case-amplifier.md) |
+| 评测 | error 项重试一次 | judge 抖动/闪断的 error 项自动重跑一次取第二次结果（detail [RETRIED] 留痕+计数）——语义 fail 不重试（不掩盖真实回归）、默认关（pytest flaky rerun） | [spec 535](docs/spec/535-error-retry-once.md) |
+| 观测治理 | 水位告警桥接 | per-session 低水位翻转态聚合为 context-watermark 机制健康面（低水位会话数≥阈值 DOWN、详情聚合读数）——312 告警规则按机制名可订阅「容量压力」（181×312 桥接） | [spec 526](docs/spec/526-watermark-health.md) |
+| 投递可靠 | webhook 载荷大小上限 | outbox 单条载荷体积门（默认不限 opt-in）——超限拒入队+oversized 计数可见，拒绝而非截断（截断 JSON 破坏消费端契约）（Kafka max message size） | [spec 533](docs/spec/533-max-payload.md) |
+| 投递可靠 | 死信原因分类计数 | `buzhou.webhook.dead-reason` 计数（tag reason 有界：4xx|重试耗尽）——接收端配置错与瞬时故障治理动作分流（135 死信面观测扩散） | [spec 537](docs/spec/537-dead-reason-counter.md) |
+| 投递可靠 | 死信 JSONL 导出 | 死信清单一行一 JSON（eventId/type/attempts/createdAt epoch，转义完备）——与 OLAP/归档管道同构搬运（60/67 导出族同构） | [spec 542](docs/spec/542-dead-letter-jsonl.md) |
+| 工程治理 | 提示词版本行级 diff | 行级 LCS 最小变更集（equal/insert/delete+added/removed/net）+异名 fail-fast——晋级/回滚评审只看变化（Git diff；401 扩散） | [spec 534](docs/spec/534-prompt-version-diff.md) |
+| 安全 | 跨会话泄漏金丝雀 | 会话专属确定性令牌（sha256|salt 前 8hex）+他令牌扫描探测——B 会话回复出现 A 金丝雀=跨会话污染信号，LRU 256 有界（thinkst canarytokens/honeytoken） | [spec 528](docs/spec/528-session-canary.md) |
+| 投递可靠 | 签名双密钥轮换验签 | verifyWithRotation（current→previous，blank=null）×容差窗组合——密钥轮换窗口旧签名可验，生产/消费端不必原子同步换钥（Stripe 多签名密钥） | [spec 540](docs/spec/540-signature-rotation.md) |
+| 工具韧性 | per-tool 超时预算覆盖 | glob 键 per-tool 超时替换全局值（Deadline 恒天花板）——慢工具长预算快工具紧预算差异化，Holder 默认空零变化（31 per-tool 覆盖同法） | [spec 529](docs/spec/529-tool-timeout-overrides.md) |
+| 评测 | 数据集 CSV 互操作 | RFC 4180 转义/解析（逗号/引号/多行字段往返）、表头宽松校验、Writer 导出——与表格工具双向搬运（LangSmith/HF datasets CSV 形态） | [spec 527](docs/spec/527-dataset-csv.md) |
+| 安全 | 流式回复秘密扫描 | 秘密第四缝（回复出站流）——滑动窗口跨 chunk 密钥不漏、占位符不拆分、复用 SecretScanner 7 型（500 SPI 第二消费者组合性证明） | [spec 536](docs/spec/536-secret-stream.md) |
+| 事故响应 | 事故复盘一键包 | 一个调用产出标准复盘 ZIP（405 时间线+83 错误签名族+334 成本双维 rollup+summary 汇总，manifest 对账）——源缺席跳过不中断（317 ExportBundle 事故域预设组合） | [spec 521](docs/spec/521-postmortem-bundle.md) |
+| 执行脊柱 | session.opened 生命周期事件补齐 | spawn 即派发（监听器挂载后、先于任何轮次；payload appId/agentName/sessionId 身份三元组——全局监听可达）与既有 session.closed 配对——生命周期首尾事件闭环 | [spec 522](docs/spec/522-session-opened-event.md) |
+| 失控防护 | 失败轮快照面 | SessionObserver 缝（423 同法）——错误轮落复现最小集快照（错误类/消息 256 截断/输入 512 预览）+环形 128+JSONL 导出，Sentry event payload 一屏可读 | [spec 523](docs/spec/523-failure-turn-snapshots.md) |
+| 工程治理 | 提示词模板严格渲染 | `{{var}}` 抽取/严格渲染（缺失变量一次列全——杜绝占位符原样漏进 prompt 的静默失败）+预检面；与 401 注册表组合消费（Jinja2 StrictUndefined） | [spec 512](docs/spec/512-prompt-template.md) |
+| 评测 | 评估 A/A 抖动检测 | 同数据集同版本跑两遍——同项红绿翻转=抖动（fail/error 同红、方向不区分），单侧项=漂移不进分母；flakyRate+抖动清单先验评估系统自身稳定性（HELM/工业 A/A test） | [spec 513](docs/spec/513-eval-aa-flakiness.md) |
+| 评测 | run 项耗时分布 | run 内项耗时 exact 最近秩 p50/p95/max+最慢项 top3（降序稳定）——「整个 run 慢在哪一项」一屏可读（416 分位族同法） | [spec 544](docs/spec/544-run-duration-stats.md) |
+| 持久化 | 会话导出校验和 | 明文导出旁写 sha256 校验和+导入前验校（fail-closed）——传输/存储衰变在语义解析前被发现（511 密文封缄的明文通道对偶；S3 checksum） | [spec 547](docs/spec/547-export-checksum.md) |
+| 工程治理 | 注册表快照导出/导入 | 全部名称的版本史+标签指针 → 可移植 JSON，导入空注册表按旧版本序重放（版本号对齐+标签重指）——提示词资产迁移可灾备（Langfuse export/import；401 扩散） | [spec 545](docs/spec/545-registry-snapshot.md) |
+| 评测 | 双 judge 一致率 | Cohen κ 修正机遇一致的两 judge verdict 一致性+Landis-Koch 分级——朴素一致率被「都判绿」虚高时 κ 揭穿（scikit-learn cohen_kappa_score；516 双 judge 变体） | [spec 541](docs/spec/541-judge-agreement.md) |
+| 评测 | judge 校准跟踪 | judge verdict vs 金标准断言的混淆矩阵四率（判红为正类）+agreement/precision/recall/f1（分母 0 null）——judge 宽松倾向先于版本对比被发现（LightEval） | [spec 516](docs/spec/516-judge-calibration.md) |
+| 记忆治理 | 记忆压缩率分布观测 | 回收字符分位窗+逐出比直方图+折入 trigger 计数（挂既有 CompactionListener 缝，观测零干预）——梯子参数与折叠驱动信号有数据依据（416 分位族同法） | [spec 517](docs/spec/517-compaction-ratio-stats.md) |
+| 投递可靠 | 投递时延分位数 | 成功投递时延滚动窗（512 样本）+exact 最近秩 p50/p95/p99（零样本 null）——「送是送到了但延迟 20 分钟」的劣化可见，与 135 lag 互补（416 分位族同法） | [spec 514](docs/spec/514-delivery-latency.md) |
+
+## 生产级纵深 VII（F 会话 600 系增量）
 
 F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线（每项默认零行为变化或 opt-in）：
 

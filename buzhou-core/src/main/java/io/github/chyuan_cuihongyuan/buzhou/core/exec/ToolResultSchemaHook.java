@@ -33,6 +33,11 @@ public final class ToolResultSchemaHook implements BuzhouHook {
         this.schemasByTool = Map.copyOf(schemasByTool == null ? Map.of() : schemasByTool);
     }
 
+    /** 已声明 schema 数（装配审计读数——spec 531）。 */
+    public int schemasCount() {
+        return schemasByTool.size();
+    }
+
     @Override
     public String name() {
         return "ToolResultSchemaHook";

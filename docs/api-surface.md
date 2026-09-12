@@ -1624,3 +1624,216 @@
 - `RedisLeaderElector` + `LeaderElectionProperties`（331——Lua 原子选主：TTL 租约+单调纪元围栏，K8s leader election）
 
 - 类型级快照：**+38**（收口再生，Windows 首次本机可用）；yml 键：随各 spec 入档
+
+## effort #500–#549 新增公共面（E 会话 / spec 500–549 / impl-403–452，@since 1.0.0）
+
+> E 会话 500 系逐轮入档（同口径：src/main 非 internal 包 public 类型）。
+
+**buzhou-core**
+
+- `StreamTextFilter`（500——回复流出站过滤 SPI：filter/flush 每轮新建单轮单用；
+  `BuzhouHook.replyStreamFilter()` 默认方法挂点 + `HookChain.newReplyFilters()`
+  hook 序收集，DefaultAgentSession 流式/非流式两缝接线）
+
+**buzhou-guard**
+
+- `PiiStreamRedactionHook`（500——Presidio 流式匿名化+流式 WAF 回看窗口：
+  模型回复出站第三缝，滑动窗口跨 chunk 实体不漏、占位符不拆分、flush 排空；
+  `buzhou.guard.pii.reply-redaction`/`reply-window` yml，默认关）
+
+**buzhou-resilience**
+
+- `IdempotencyAdvisor` + `BuzhouIdempotencyProperties`（501——Stripe
+  Idempotency-Key：advisor 参数 `buzhou.idempotency-key` 同键重入重放首次
+  终态响应（复用 ResponseCacheStore/isTerminal），链序 +440 在 response-cache
+  外；enabled=true 才装配，键缺席透传零行为）
+
+- `ModelCapabilities` + `ModelCapabilityRegistry` +
+  `BuzhouModelCapabilityProperties` + `CapabilityGateAdvisor`（502——
+  LiteLLM Router capabilities：vision/工具请求事前拦 ARGS_VALIDATION_FAILED，
+  未注册模型零门；`buzhou.resilience.model-capabilities.<model>` 声明才装配）
+
+- `RoutingScheduleAdjuster` + `BuzhouRoutingScheduleProperties`
+  （嵌套 `RoutingWindow`）（503——K8s CronJob/Argo Rollouts schedule：
+  时段窗自动切路由权重整表替换/出窗回落/同快照幂等，windows 非空才装配）
+
+**buzhou-mcp**
+
+- `McpServerBreaker`（504——Envoy per-host 聚合思想：一台 server 一个键
+  复用 core ToolCircuitBreaker，宕机 server 全部工具快速失败结构化改道，
+  `buzhou.mcp.server-breaker` 默认关，与 per-tool 131 正交两层）
+
+**buzhou-core**
+
+- `ExperimentBucketer` + `BuzhouExperimentProperties`（505——GrowthBook/
+  Statsig：在线实验确定性分桶 sha256 mod100+字典序累积权重+未入组余量
+  +曝光计数，`buzhou.experiments.<exp>.<variant>` 声明才装配）
+
+- `ToolInputLimiter` + `ToolInputLimiterHolder`（506——nginx
+  client_max_body_size：31 结果限幅的入站对称面，超限拒绝回喂结构化反馈
+  不回显入参+glob per-tool 覆盖，默认 -1 零行为变化 opt-in）
+
+- `PiiVault` + `BuzhouPiiVaultProperties`（507——Presidio Vault：可逆 PII
+  代管库原语 vaultize/restore 稳定令牌 sha256|salt 去重+TTL+有界 fail-safe，
+  `buzhou.guard.pii.vault.enabled` 默认关；hook 自动接线留扩散）
+
+- `CostSpikeDetector`（嵌套 `SpikeEvent`）+ `BuzhouCostSpikeProperties`
+  （508——Prometheus/Istio 滚动基线 z-score：当前分钟桶 vs 前 N 桶突刺
+  +地板+minSamples+cooldown 防抖，ModelCostLedger 监听喂数 403 同缝，
+  enabled=true 才装配）
+
+- `LatencySloMonitor` + `BuzhouLatencySloProperties`（509——Google SRE
+  321 时延维度扩散：坏事件=elapsed>threshold 喂 ErrorBudget，燃尽语义
+  全继承，`buzhou.latency-slo.enabled` 默认关）
+
+- `EncryptedSessionExport`（510——age/OCI 加密 artifact：seal/open 封缄
+  容器复用 333 EnvelopeCipher，AAD 用途域绑定防跨域剪贴，原语先行宿主组合）
+
+- SessionArchiver 完整性面（511——S3 checksum：写时 sha256 落独立
+  命名空间 `__buzhou.archive-checksum__` + verify 五态/verifyAll，
+  restore/purge/补偿级联清校验和；嵌套 `VerifyResult`/`VerifyState`）
+
+- `PromptTemplate`（嵌套 `ValidationResult`）（512——Jinja2
+  StrictUndefined：{{var}} 抽取/严格渲染缺失一次列全/未闭合语法错/
+  预检面；与 401 注册表组合消费）
+
+- `EvalFlakinessDetector`（嵌套 `FlakinessReport`/`FlakyItem`）（513——
+  HELM/工业 A/A test：同指纹两 run 红绿翻转=抖动、单侧=漂移不进分母，
+  纯函数 EvalRunDiff 同型）
+
+- `WebhookDeliveryLatency`（嵌套 `Snapshot`）（514——416 分位族同法：
+  成功投递时延滚动窗 exact 最近秩 p50/p95/p99 零样本 null，forwarder
+  setDeliveryLatency setter 接线默认 null 零变化）
+
+- `ContentModerationHook`（嵌套 `Action`）（515——OpenAI moderation
+  本地词表面：违禁词 contains 双缝过滤 BLOCK/MASK，命中计数分缝有界，
+  `buzhou.guard.moderation` 默认关）
+
+- `JudgeCalibration`（嵌套 `CalibrationReport`）（516——LightEval judge
+  calibration：verdict vs 金标准混淆矩阵四率，判红为正类，分母 0 null
+  诚实空值，纯函数）
+
+**buzhou-memory**
+
+- `CompactionRatioStats`（嵌套 `Snapshot`）（517——416 分位族同法：
+  压缩回收字符分位+逐出比直方图+折入 trigger 计数，挂 CompactionListener
+  缝观测零干预，`MemoryModule.compactionStats()` 读数面）
+
+- `SessionExportSanitizer`（518——Presidio anonymize × 28 导出面：消息/
+  摘要/state 三内容域占位符化不可变副本，结构字段原样，与 510 组合
+  先脱敏再封缄）
+
+**buzhou-observability**
+
+- `ToolGraphAnalyzer`（嵌套 `ToolGraphReport`/`Edge`/`ToolTotal`）（519——
+  LangSmith trace analytics：TOOL span 同轮相邻有向边计数+per-tool
+  成败错误率，纯函数+store 便捷重载）
+
+- EvalRunner run 预算闸（520——AWS Budgets/pytest maxfail 早停语义：
+  `setRunBudgetChars` 逐项估算累计超限早停，剩余项 error [RUN-BUDGET]
+  三态显式 partial；0=关零行为变化）
+
+- `PostmortemBundle`（521——317 ExportBundle 事故域预设组合：时间线/
+  错误签名/成本双维 rollup 标准 ZIP+summary 汇总，源缺席跳过）
+
+- 生命周期事件补齐（522——`session.opened` spawn 即派发：监听器挂载后
+  先于任何轮次，payload 身份三元组；与既有 session.closed 配对闭环；
+  无新类型）
+
+- `FailureTurnSnapshots`（嵌套 `Snapshot`）（523——Sentry event payload：
+  失败轮复现最小集快照（错误类/消息截断/输入预览），SessionObserver 缝
+  423 同法，环形 128+JSONL 导出）
+
+- DefaultMcpClientRegistry `ConnectRetryPolicy`（524——Resilience4j retry
+  指数退避：建连失败 base×2^n 封顶 60s 重排、耗尽收口既有失败语义，
+  `buzhou.mcp.connect-retry` 声明即启用）
+
+- `EvalCaseAmplifier`（525——Ragas testset generation：种子→LLM 同语义
+  改写候选（id 空未入库语义+人审教义），围栏剥离逐行容错，零可解析
+  EVAL_OPERATION_INVALID 带预览）
+
+- `WatermarkHealth`（526——181×312 桥接：per-session 低水位翻转态聚合
+  为 context-watermark 机制健康面（低水位会话数≥阈值 DOWN），312 规则
+  按机制名可订阅）
+
+- `EvalDatasetCsv`（527——LangSmith/HF datasets CSV 互操作：RFC 4180
+  toCsv/fromCsv 往返+表头宽松校验+Writer 导出，纯内存行表）
+
+- `SessionCanaryRegistry`（嵌套 `LeakFrom`）（528——thinkst canarytokens
+  /honeytoken：跨会话泄漏探测面，确定性令牌+他令牌扫描+LRU 256 有界，
+  与 CanaryGuard 注入检测语义正交）
+
+- `ToolTimeoutOverrides`（+嵌套 Holder）（529——31 per-tool glob 覆盖
+  同法 × 单工具超时扩展：覆盖值替换全局、Deadline 恒天花板，默认空零变化）
+
+- `ModelBudgetGate`（530——budget 族模型维度扩散：ModelCostLedger 记账面
+  vs `buzhou.budget.model-budget.<model>` 预算，耗尽 beforeModel 拦截，
+  map 非空才装配，未喂账恒放行）
+
+- 装配绑定审计修复（531——409 result-schemas/406 deprecated/505
+  experiments 单 Map 组件 record 构造绑定 prefix.<组件名> 子路径致根
+  yml 绑空静默 no-op；统一改根绑定直读+内容非空回归断言）
+- WebhookSignatures verifyWithRotation 重载×2（540——Stripe 多签名密钥：
+  双密钥轮换验签 current→previous + 轮换×容差窗组合，fail-closed 不变；
+  无新类型）
+
+- webhook 载荷大小上限（533——Kafka max message size：outbox
+  maxPayloadChars 超限拒入队+oversized 计数，默认 0 零变化，
+  `buzhou.webhook.max-payload-chars`）
+
+- `PromptVersionDiff`（嵌套 `VersionDiff`/`DiffLine`）（534——Git diff
+  思想：注册表版本行级 LCS 最小变更集，晋级/回滚评审只看变化，纯函数）
+
+- EvalRunner error 项重试一次（535——pytest flaky rerun：STATUS_ERROR
+  重跑一次取第二次结果 detail [RETRIED] 留痕+计数，语义 fail 不重试，
+  默认关）
+
+- `SecretScanStreamHook`（536——400 秘密扫描第四缝（回复出站流）：
+  滑动窗口跨 chunk 密钥不漏，复用 SecretScanner，500 SPI 第二消费者
+  组合性证明，`secrets.stream-redaction` 默认关）
+
+- 死信原因分类计数（537——`buzhou.webhook.dead-reason` tag reason
+  有界（4xx|重试耗尽），治理动作分流；无新类型）
+
+- `StoreFsckHousekeeper` + `BuzhouFsckProperties`（538——341 选主扩散：
+  StoreFsck 只读对账定时化，findings WARN+计数不自动修复，
+  `buzhou.fsck.enabled` 默认关）
+
+**buzhou-spill**
+
+- `ReadAuditTrail`（嵌套 `ReadRecord`）（539——spill 回读审计：readRange
+  有界样本窗+per-uri 计数降序+完整性告警计数，只观测零干预，
+  DiskSpillStore.readAudit() 读数面）
+
+- `JudgeAgreement`（嵌套 `AgreementReport`）（541——scikit-learn
+  cohen_kappa_score：双 judge 一致率 Cohen κ 修正机遇一致+Landis-Koch
+  分级，纯函数 516 同型）
+
+- `WebhookDeadLetterJsonl`（542——60/67 导出族同构：死信清单一行一
+  JSON 转义完备单行+行数返回，源经 forwarder.deadLetters() 查询）
+
+- `SpanStatusDistribution`（543——Prometheus label 聚合：kind×status
+  计数读数（大小写归一+UNSET 兜底），纯函数+store 便捷重载）
+
+- `EvalRunDurationStats`（嵌套 `DurationStats`/`SlowestItem`）（544——
+  416 分位族同法：run 项耗时 p50/p95/max+最慢 top3，纯函数读数）
+
+- `PromptRegistrySnapshot`（545——Langfuse export/import：注册表全量
+  快照可移植 JSON（版本史+labels），导入空注册表按旧版本序重放，
+  非空 fail-fast）
+
+**buzhou-skills**
+
+- `SkillBodyAudit`（嵌套 `Report`/`SkillRow`）（546——110 目录预算
+  per-skill 深化：正文字符规模降序+预算超限标记+聚合统计，纯函数读数）
+
+- `SessionExportChecksum`（547——S3 checksum 明文通道对偶：导出 JSON
+  sha256 校验和+verify fail-closed，防衰变/误写不防蓄意同改（归 510））
+
+- `StoreFsckHealth`（548——538 巡检健康面接入：mechanism=store-fsck
+  观测面恒 UP，details 聚合 runs/totalFindings/lastFindings/
+  skippedNotLeader）
+
+- GuardModule `assemblySummary()`（549——装配 hook 名列表读数，支持包
+  /排障「guard 挂了哪些钩子」一屏可读；加法方法无新类型）
+

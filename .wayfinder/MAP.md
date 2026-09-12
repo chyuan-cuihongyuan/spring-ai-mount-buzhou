@@ -10,6 +10,7 @@
 
 | Effort | 主题 | Map | 票号 | impl |
 |---|------|-----|------|------|
+
 | #1 | core 做深做透（CI 根因 / alpha 措辞 / Spring AI 边界文档 / 可运行 demo / 真实 LLM 测试 / run_command 安全默认 / DoD 基线 / best-of-breed Tier-1 落地） | [maps/effort-01.md](maps/effort-01.md) | T1–T27 | 01–08（局部号；[SPEC.md](SPEC.md)） |
 | #2 | 做完美 Tier-2/3 全量（FakeChatModel / 取消三档 / run 注册表 / 事件溯源工具日志 / interrupt-resume / time-travel fork / 压缩治理 / 向量 recall / 红队门 / 审计链 / 策略引擎 / 沙箱） | [maps/effort-02.md](maps/effort-02.md) | T28–T54 | 01–27（局部号） |
 | #3 | 生产级收口（Turn deadline / 优雅停机 / schema 迁移 / 事务正确性 / 租约 fence / 事件背压 / 级联清理 / 保留策略 / 审计持久化 / 配置参数化） | [maps/effort-03.md](maps/effort-03.md) | T55–T68 | 28–43 |
@@ -272,6 +273,55 @@
 | #427 | 非流式错误回调对称化 | [maps/effort-427.md](maps/effort-427.md) | T745–T746 | 400 |
 | #428 | Webhook 验签与防重放 | [maps/effort-428.md](maps/effort-428.md) | T747–T748 | 401 |
 | #429 | 模型并发舱热更新 | [maps/effort-429.md](maps/effort-429.md) | T749–T750 | 402 |
+| #500 | 流式回复 PII 脱敏 | [maps/effort-500.md](maps/effort-500.md) | T751–T752 | 403 |
+| #501 | 请求幂等键 | [maps/effort-501.md](maps/effort-501.md) | T753–T754 | 404 |
+| #502 | 模型能力注册表与能力门 | [maps/effort-502.md](maps/effort-502.md) | T755–T756 | 405 |
+| #503 | 时段路由窗口 | [maps/effort-503.md](maps/effort-503.md) | T757–T758 | 406 |
+| #504 | MCP 服务器级聚合熔断 | [maps/effort-504.md](maps/effort-504.md) | T759–T760 | 407 |
+| #505 | 在线实验分桶 | [maps/effort-505.md](maps/effort-505.md) | T761–T762 | 408 |
+| #506 | 工具入参限幅 | [maps/effort-506.md](maps/effort-506.md) | T763–T764 | 409 |
+| #507 | 可逆 PII 代管库 | [maps/effort-507.md](maps/effort-507.md) | T765–T766 | 410 |
+| #508 | 成本异常尖峰检测 | [maps/effort-508.md](maps/effort-508.md) | T767–T768 | 411 |
+| #509 | 时延 SLO 燃尽 | [maps/effort-509.md](maps/effort-509.md) | T769–T770 | 412 |
+| #510 | 会话导出加密 | [maps/effort-510.md](maps/effort-510.md) | T771–T772 | 413 |
+| #511 | 归档冷存完整性校验 | [maps/effort-511.md](maps/effort-511.md) | T773–T774 | 414 |
+| #512 | 提示词模板严格渲染 | [maps/effort-512.md](maps/effort-512.md) | T775–T776 | 415 |
+| #513 | 评估 A/A 抖动检测 | [maps/effort-513.md](maps/effort-513.md) | T777–T778 | 416 |
+| #514 | 投递时延分位数 | [maps/effort-514.md](maps/effort-514.md) | T779–T780 | 417 |
+| #515 | 内容安全词表过滤 | [maps/effort-515.md](maps/effort-515.md) | T781–T782 | 418 |
+| #516 | judge 校准跟踪 | [maps/effort-516.md](maps/effort-516.md) | T783–T784 | 419 |
+| #517 | 记忆压缩率分布观测 | [maps/effort-517.md](maps/effort-517.md) | T785–T786 | 420 |
+| #518 | 会话导出脱敏 | [maps/effort-518.md](maps/effort-518.md) | T787–T788 | 421 |
+| #519 | 工具调用图谱统计 | [maps/effort-519.md](maps/effort-519.md) | T789–T790 | 422 |
+| #520 | 评估 run 预算闸 | [maps/effort-520.md](maps/effort-520.md) | T791–T792 | 423 |
+| #521 | 事故复盘一键包 | [maps/effort-521.md](maps/effort-521.md) | T793–T794 | 424 |
+| #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
+| #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
+| #524 | MCP 建连退避重试 | [maps/effort-524.md](maps/effort-524.md) | T801–802 | 427 |
+| #525 | 评估集合成扩增 | [maps/effort-525.md](maps/effort-525.md) | T803–T804 | 428 |
+| #526 | 水位告警桥接 | [maps/effort-526.md](maps/effort-526.md) | T805–806 | 429 |
+| #527 | 数据集 CSV 互操作 | [maps/effort-527.md](maps/effort-527.md) | T807–808 | 430 |
+| #528 | 跨会话泄漏金丝雀 | [maps/effort-528.md](maps/effort-528.md) | T809–T810 | 431 |
+| #529 | per-tool 超时预算覆盖 | [maps/effort-529.md](maps/effort-529.md) | T811–812 | 432 |
+| #530 | per-model 预算闸 | [maps/effort-530.md](maps/effort-530.md) | T813–814 | 433 |
+| #531 | 装配绑定审计修复 | [maps/effort-531.md](maps/effort-531.md) | T815–816 | 434 |
+| #533 | webhook 载荷大小上限 | [maps/effort-533.md](maps/effort-533.md) | T819–820 | 435 |
+| #534 | 提示词版本行级 diff | [maps/effort-534.md](maps/effort-534.md) | T821–822 | 436 |
+| #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
+| #536 | 流式回复秘密扫描 | [maps/effort-536.md](maps/effort-536.md) | T825–826 | 438 |
+| #537 | 死信原因分类计数 | [maps/effort-537.md](maps/effort-537.md) | T827–828 | 438 |
+| #538 | store fsck 定时巡检 | [maps/effort-538.md](maps/effort-538.md) | T829–830 | 439 |
+| #539 | spill 回读审计 | [maps/effort-539.md](maps/effort-539.md) | T831–832 | 440 |
+| #540 | 签名双密钥轮换验签 | [maps/effort-540.md](maps/effort-540.md) | T833–834 | 441 |
+| #541 | 双 judge 一致率 | [maps/effort-541.md](maps/effort-541.md) | T835–836 | 442 |
+| #542 | 死信 JSONL 导出 | [maps/effort-542.md](maps/effort-542.md) | T837–838 | 444 |
+| #543 | span 状态分布读数 | [maps/effort-543.md](maps/effort-543.md) | T841–842 | 445 |
+| #544 | 评估 run 项耗时分布 | [maps/effort-544.md](maps/effort-544.md) | T843–844 | 446 |
+| #545 | 注册表快照导出/导入 | [maps/effort-545.md](maps/effort-545.md) | T847–848 | 447 |
+| #546 | 技能正文规模审计 | [maps/effort-546.md](maps/effort-546.md) | T851–852 | 448 |
+| #547 | 会话导出校验和 | [maps/effort-547.md](maps/effort-547.md) | T853–854 | 449 |
+| #548 | fsck 巡检健康面 | [maps/effort-548.md](maps/effort-548.md) | T855–856 | 450 |
+| #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
 | **#600（总图）** | **进行中** — F 会话 600 系 50 轮自迭代（借鉴高价值开源项目；MCP 注解观测面 / 驱逐恐慌阈值 / fork 谱系 / …台账见 map） | [maps/effort-600.md](maps/effort-600.md) | T851–（至 T950） | 453–（至 502） |
 
 ## 跨 effort 悬留

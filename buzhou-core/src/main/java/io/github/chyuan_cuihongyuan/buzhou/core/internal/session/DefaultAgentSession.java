@@ -19,8 +19,11 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 
 import java.time.Duration;
@@ -403,11 +406,75 @@ public class DefaultAgentSession implements AgentSession {
             recordTurnDuration(turnStartNanos, "failed");
             throw e;
         }
-        turnCtx.markResponded(response);
+        String outbound = applyReplyFiltersToComplete(response);
+        turnCtx.markResponded(outbound);
         hookChain.afterTurn(turnCtx);
-        observers.forEach(o -> o.onTurnEnd(turnSeq, response));
+        observers.forEach(o -> o.onTurnEnd(turnSeq, outbound));
         recordTurnDuration(turnStartNanos, "ok");
         return turnCtx.response();
+    }
+
+    /**
+     * spec 500 / T751：回复流出站过滤——非流式缝。整段 filter+flush 拼接改写
+     * （组合序：f1 全量过完再 f2）；无过滤器或空回复零开销短路。
+     */
+    private String applyReplyFiltersToComplete(String response) {
+        List<io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter> filters =
+                hookChain.newReplyFilters();
+        if (filters.isEmpty() || response == null || response.isEmpty()) {
+            return response;
+        }
+        String text = response;
+        for (io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter filter : filters) {
+            text = filter.filter(text) + filter.flush();
+        }
+        return text;
+    }
+
+    /** spec 500 / T751：单 chunk 过滤——文本变化的 Generation 重建，否则引用透传零重建。 */
+    private static ChatResponse filterReplyChunk(ChatResponse resp,
+            List<io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter> filters) {
+        if (resp == null || resp.getResults() == null || resp.getResults().isEmpty()) {
+            return resp;
+        }
+        boolean changed = false;
+        List<Generation> rewritten = new ArrayList<>(resp.getResults().size());
+        for (Generation generation : resp.getResults()) {
+            String text = generation.getOutput() == null ? null : generation.getOutput().getText();
+            if (text == null || text.isEmpty()) {
+                rewritten.add(generation);
+                continue;
+            }
+            String filtered = text;
+            for (io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter filter : filters) {
+                filtered = filter.filter(filtered);
+            }
+            if (filtered.equals(text)) {
+                rewritten.add(generation);
+            } else {
+                changed = true;
+                rewritten.add(new Generation(new AssistantMessage(filtered), generation.getMetadata()));
+            }
+        }
+        return changed ? new ChatResponse(rewritten, resp.getMetadata()) : resp;
+    }
+
+    /** spec 500 / T751：轮次收口 flush——f_i.flush 产出过下游 filters 后拼接；无残留=空 Mono。 */
+    private static Mono<ChatResponse> flushReplyChunk(
+            List<io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter> filters) {
+        return Mono.fromSupplier(() -> {
+            StringBuilder remainder = new StringBuilder();
+            for (int i = 0; i < filters.size(); i++) {
+                String piece = filters.get(i).flush();
+                for (int j = i + 1; j < filters.size(); j++) {
+                    piece = filters.get(j).filter(piece);
+                }
+                remainder.append(piece);
+            }
+            String flushed = remainder.toString();
+            return flushed.isEmpty() ? null
+                    : new ChatResponse(List.of(new Generation(new AssistantMessage(flushed))));
+        });
     }
 
     /** impl-41 / spec 13 §T66：Turn 时长（outcome=ok|failed；tag 无 sessionId）。 */
@@ -551,6 +618,15 @@ public class DefaultAgentSession implements AgentSession {
             stream = stream.takeUntilOther(
                     reactor.core.publisher.Mono.delay(cap).then(
                             reactor.core.publisher.Mono.error(new StreamTotalTimeoutException(cap))));
+        }
+        // spec 500 / T751：回复流出站过滤——流式缝。逐 chunk 过滤重建（文本无变化零重建）
+        // + 收口 flush chunk（concatWith 先于 doOnComplete 装饰，flush 文本同进累积面与订阅者）。
+        // 无 filter 钩子时零包装零开销（newReplyFilters 空表短路）。
+        List<io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter> replyFilters =
+                hookChain.newReplyFilters();
+        if (!replyFilters.isEmpty()) {
+            stream = stream.map(resp -> filterReplyChunk(resp, replyFilters))
+                    .concatWith(flushReplyChunk(replyFilters));
         }
         // impl-30 / spec 13 §core-1：轮次终结一次性守卫——complete/error/cancel/timeout 四路
         // 终结信号共用（正常完成与异常收尾语义均只执行一次，幂等）

@@ -62,6 +62,16 @@ public final class ContextWatermarkHook implements BuzhouHook {
         return "ContextWatermarkHook";
     }
 
+    /** 当前处于低水位区的会话数（spec 526 健康桥接读数——翻转态计数）。 */
+    public synchronized int lowWaterSessionCount() {
+        return (int) lowWater.values().stream().filter(Boolean::booleanValue).count();
+    }
+
+    /** 窗口容量配置是否启用（false = 全程静默零行为）。 */
+    public boolean isEnabled() {
+        return config.windowChars() > 0;
+    }
+
     @Override
     public HookResult beforeModel(ModelCallContext ctx) {
         if (ctx == null || ctx.sessionId() == null || config.windowChars() <= 0

@@ -94,7 +94,24 @@ public final class GuardModule {
                             : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
                                     builder.piiTypes, builder.customPiiRules)));
         }
-        // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
+        // spec 536 / T825：流式回复秘密扫描（400 三缝的第四缝——回复出站流；默认关）
+        if (builder.secretStreamRedaction != null && builder.secretStreamRedaction) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanStreamHook());
+        }
+                // spec 500 / T751：模型回复出站脱敏（流式窗口缓冲——跨 chunk 实体不漏；默认关）
+        if (builder.piiReplyRedaction) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiStreamRedactionHook(
+                    builder.piiTypes,
+                    builder.customPiiRules,
+                    builder.piiReplyWindow > 0 ? builder.piiReplyWindow
+                            : io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiStreamRedactionHook.DEFAULT_WINDOW));
+        }
+        // spec 515 / T781：内容安全词表过滤（BLOCK/MASK 双缝；默认关）
+        if (builder.moderationTerms != null && !builder.moderationTerms.isEmpty()) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook(
+                    builder.moderationTerms, builder.moderationAction));
+        }
+                // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
         if (builder.secretScanning) {
             h.add(builder.secretTypes == null
                     ? new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook()
@@ -131,6 +148,18 @@ public final class GuardModule {
 
     public RuntimeConfig configure() {
         return new RuntimeConfig(hooks, Set.of(), Set.of(), null, List.of());
+    }
+
+    /**
+     * spec 549 / T855：装配摘要读数——hook 名列表（装配序）。「guard 到底
+     * 挂了哪些钩子」支持包/排障一屏可读。
+     */
+    public List<String> assemblySummary() {
+        List<String> names = new ArrayList<>();
+        for (BuzhouHook hook : hooks) {
+            names.add(hook.name());
+        }
+        return List.copyOf(names);
     }
 
     /** 授权写回 API（业务侧 REST 调用）。 */
@@ -226,6 +255,44 @@ public final class GuardModule {
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> types) {
             this.piiRedaction = true;
             this.piiTypes = types;
+            return this;
+        }
+
+        /** spec 500 / T751：模型回复出站脱敏（流式窗口缓冲；默认关）。 */
+        private boolean piiReplyRedaction = false;
+        /** spec 500 / T751：回看窗口（0 = 默认 128）。 */
+        private int piiReplyWindow = 0;
+        /** spec 536 / T825：流式回复秘密扫描（null = 默认关）。 */
+        private Boolean secretStreamRedaction;
+        /** spec 515 / T781：内容安全词表过滤（null = 默认关）。 */
+        private java.util.List<String> moderationTerms;
+        private io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook.Action
+                moderationAction;
+
+        /** 开启模型回复出站 PII 脱敏（全类型；spec 500 / T751）。 */
+        public Builder piiReplyRedaction() {
+            this.piiReplyRedaction = true;
+            return this;
+        }
+
+        /** 指定回复缝回看窗口（字符；≤0 视为未设——用默认 128）。 */
+        public Builder piiReplyWindow(int window) {
+            this.piiReplyWindow = window;
+            return this;
+        }
+
+        /** spec 536 / T825：开启流式回复秘密扫描（400 秘密扫描的回复流出站缝）。 */
+        public Builder secretStreamRedaction() {
+            this.secretStreamRedaction = true;
+            return this;
+        }
+
+        /** spec 515 / T781：开启内容安全词表过滤（BLOCK/MASK；terms 非空才有效）。 */
+        public Builder contentModeration(java.util.List<String> terms,
+                io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook.Action
+                        action) {
+            this.moderationTerms = terms;
+            this.moderationAction = action;
             return this;
         }
 
@@ -345,6 +412,15 @@ public final class GuardModule {
                 if (inputVal instanceof Boolean b4) {
                     this.piiInputRedaction = b4;
                 }
+                // spec 500 / T751：回复出站独立开关 + 可选回看窗口
+                Object replyVal = piiMap.get("reply-redaction");
+                if (replyVal instanceof Boolean replyEnabled) {
+                    this.piiReplyRedaction = replyEnabled;
+                }
+                Object replyWindowVal = piiMap.get("reply-window");
+                if (replyWindowVal instanceof Number replyWindow) {
+                    this.piiReplyWindow = replyWindow.intValue();
+                }
                 Object typesVal = piiMap.get("types");
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType> types =
                         new java.util.LinkedHashSet<>();
@@ -366,12 +442,34 @@ public final class GuardModule {
                     this.customPiiRules = parseCustomPiiRules(rulesVal);
                 }
             }
-            // spec 400 / T692：secrets.enabled（默认 false）+ secrets.types（List/CSV，可选）
+            // spec 515 / T781：moderation.{terms: [...], action: block|mask}
+            if (ymlConfig.get("moderation") instanceof Map<?, ?> modMap) {
+                java.util.List<String> modTerms = new java.util.ArrayList<>();
+                if (modMap.get("terms") instanceof List<?> termList) {
+                    termList.forEach(t -> modTerms.add(String.valueOf(t)));
+                }
+                if (!modTerms.isEmpty()) {
+                    io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook.Action
+                            modAction =
+                            "mask".equalsIgnoreCase(String.valueOf(modMap.get("action")))
+                                    ? io.github.chyuan_cuihongyuan.buzhou.guard.moderation
+                                            .ContentModerationHook.Action.MASK
+                                    : io.github.chyuan_cuihongyuan.buzhou.guard.moderation
+                                            .ContentModerationHook.Action.BLOCK;
+                    this.moderationTerms = modTerms;
+                    this.moderationAction = modAction;
+                }
+            }
+                        // spec 400 / T692：secrets.enabled（默认 false）+ secrets.types（List/CSV，可选）
             Object secretsVal = ymlConfig.get("secrets");
             if (secretsVal instanceof Map<?, ?> secretsMap) {
                 Object secretsEnabled = secretsMap.get("enabled");
                 if (secretsEnabled instanceof Boolean b5) {
                     this.secretScanning = b5;
+                }
+                Object streamVal = secretsMap.get("stream-redaction");
+                if (streamVal instanceof Boolean streamEnabled && streamEnabled) {
+                    this.secretStreamRedaction = true;
                 }
                 Object secretTypesVal = secretsMap.get("types");
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> stypes =

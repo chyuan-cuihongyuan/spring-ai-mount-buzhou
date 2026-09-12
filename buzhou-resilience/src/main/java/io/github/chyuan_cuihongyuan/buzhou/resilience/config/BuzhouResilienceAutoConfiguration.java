@@ -30,7 +30,10 @@ import java.util.Map;
 @ConditionalOnProperty(prefix = "buzhou.resilience", name = "enabled", matchIfMissing = true)
 @EnableConfigurationProperties({ResilienceProperties.class, BuzhouRoutingProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.resilience.structured.StructuredOutputProperties.class,
-        BuzhouModelConcurrencyProperties.class})
+        BuzhouModelConcurrencyProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.resilience.capability.BuzhouModelCapabilityProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties.class,
+        io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.BuzhouIdempotencyProperties.class})
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean
@@ -96,6 +99,153 @@ public class BuzhouResilienceAutoConfiguration {
                                 org.springframework.boot.context.properties.bind.Bindable
                                         .mapOf(String.class, Integer.class))
                         .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 501 / T753：请求幂等键（Stripe Idempotency-Key 借鉴——客户端超时
+     * 重试同键重入重放首次终态响应，不二次真调二次计费）。存储复用
+     * ResponseCacheStore（LRU+TTL+计数自带）；键缺席=透传零行为；
+     * {@code buzhou.resilience.idempotency.enabled=true} 显式开启才装配。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.IdempotencyPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
+    buzhouIdempotencyStore(io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency
+            .BuzhouIdempotencyProperties properties) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore(
+                properties.maxEntries(), properties.ttl());
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.IdempotencyPresentCondition.class)
+    public RuntimeConfig idempotencyRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
+                    buzhouIdempotencyStore) {
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addAdvisor(
+                        new io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency
+                                .IdempotencyAdvisor(buzhouIdempotencyStore))),
+                null);
+    }
+
+    /** spec 501：enabled=true 才装配（Binder 预绑判定——426 同法）。 */
+    static final class IdempotencyPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.resilience.idempotency.enabled", Boolean.class)
+                        .map(Boolean::booleanValue).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 502 / T755：模型能力注册表与能力门（LiteLLM Router capabilities
+     * 借鉴——vision/工具请求事前拦，供应商 400 变结构化异常）。
+     * {@code buzhou.resilience.model-capabilities.<model>} 非空声明才装配；
+     * 未注册模型零门零行为（声明渐进）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.CapabilityPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilityRegistry
+    buzhouModelCapabilityRegistry(org.springframework.core.env.Environment env) {
+        // spec 531 装配审计修复：单 Map 组件 record 构造绑定在 prefix.<组件名> 子路径，
+        // 根前缀 yml 必须根绑定直读（原 properties 注入绑空——注册表静默空 → 门零裁决）
+        java.util.Map<String, io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilities>
+                models = org.springframework.boot.context.properties.bind.Binder
+                        .get(env)
+                        .bind("buzhou.resilience.model-capabilities",
+                                org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                        String.class,
+                                        io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilities.class))
+                        .orElse(java.util.Map.of());
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.capability
+                .ModelCapabilityRegistry(models);
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.CapabilityPresentCondition.class)
+    public RuntimeConfig capabilityGateRuntimeConfig(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilityRegistry registry,
+            org.springframework.core.env.Environment env) {
+        String modelName = env.getProperty("buzhou.model-name", "unknown");
+        return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
+                null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
+                java.util.List.of(ctx -> ctx.addAdvisor(
+                        new io.github.chyuan_cuihongyuan.buzhou.resilience.capability
+                                .CapabilityGateAdvisor(registry, modelName))),
+                null);
+    }
+
+    /** spec 502：capabilities map 非空才装配（Binder 预绑判定——426 同法）。 */
+    static final class CapabilityPresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.resilience.model-capabilities",
+                                org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                        String.class, io.github.chyuan_cuihongyuan.buzhou
+                                                .resilience.capability.ModelCapabilities.class))
+                        .map(m -> !m.isEmpty()).orElse(false);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * spec 503 / T757：时段路由窗口（K8s CronJob / Argo Rollouts schedule
+     * 思想——时间窗驱动权重自动切换，夜间切便宜模型白天回切零人工值守）。
+     * windows 非空才装配；直依赖 WeightedChatModel（路由未配而窗已声明 =
+     * 跨键矛盾，启动红即诚实——doctor 115 同口径）。
+     */
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.RoutingSchedulePresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster
+    routingScheduleAdjuster(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel chatModel,
+            BuzhouRoutingProperties routing,
+            io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties
+                    schedule) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster(
+                chatModel, schedule.windows(), routing.weights(), schedule.checkInterval(), null);
+    }
+
+    /** spec 503：windows 非空才装配（Binder 预绑判定——426 同法）。 */
+    static final class RoutingSchedulePresentCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            try {
+                return org.springframework.boot.context.properties.bind.Binder
+                        .get(context.getEnvironment())
+                        .bind("buzhou.routing.schedule.windows",
+                                org.springframework.boot.context.properties.bind.Bindable
+                                        .listOf(io.github.chyuan_cuihongyuan.buzhou.resilience
+                                                .routing.BuzhouRoutingScheduleProperties
+                                                .RoutingWindow.class))
+                        .map(w -> !w.isEmpty()).orElse(false);
             } catch (Exception e) {
                 return false;
             }

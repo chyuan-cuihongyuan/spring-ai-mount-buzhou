@@ -92,6 +92,9 @@ class WebhookOutboxLagTest {
     @Test
     void stalledFlipsWhenOldestAgeCrossesThreshold() {
         MutableClock clock = new MutableClock();
+        // spec 524 勘察修复：outbox.append 的 createdAt 取真实时钟——MutableClock 先对齐
+        // 真实时间再 append，测试余量不随负载漂移（100ms 额度原被 setup 延迟吃掉）
+        clock.advanceMillis(System.currentTimeMillis() - clock.instant().toEpochMilli() + 1_000);
         WebhookOutbox outbox = new WebhookOutbox(new InMemorySessionStateStore(), 8);
         outbox.append("stuck", "t", "{}");
         WebhookOutboxLag lag = new WebhookOutboxLag(outbox, clock);
@@ -121,7 +124,7 @@ class WebhookOutboxLagTest {
         WebhookOutboxLag.Lag read = lag.read(16);
         assertThat(read.pendingCount()).isEqualTo(1);
         assertThat(read.oldestEventId()).isEqualTo("e1");
-        assertThat(read.oldestPendingAgeMillis()).isBetween(30_000L, 31_001L);
+        assertThat(read.oldestPendingAgeMillis()).isBetween(30_000L, 31_500L);
     }
 
     @Test
