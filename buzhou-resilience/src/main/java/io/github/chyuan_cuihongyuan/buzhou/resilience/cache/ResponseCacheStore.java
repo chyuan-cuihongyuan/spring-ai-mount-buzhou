@@ -24,14 +24,19 @@ public final class ResponseCacheStore {
 
     private final int maxEntries;
     private final Duration ttl;
+    /** spec 737 / T1074：权重预算字符数（0=关——701 同款 Caffeine weigher 思想）。 */
+    private final long maxWeightChars;
     private final Clock clock;
     private final AtomicLong hits = new AtomicLong();
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
+    /** spec 737：因权重预算未存留的总次数（独立于 evictedCount 口径）。 */
+    private final AtomicLong weightEvictions = new AtomicLong();
+    private long totalWeightChars;
 
     // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
     // 按 JLS 遮蔽外层同名嵌套类型，removeEldestEntry 覆盖签名在严格 javac 下名称冲突
-    private record CacheEntry(ChatResponse response, Instant expireAt) {
+    private record CacheEntry(ChatResponse response, Instant expireAt, long weightChars) {
     }
 
     private final LinkedHashMap<String, CacheEntry> cache = new LinkedHashMap<>(16, 0.75f, true) {
@@ -50,6 +55,11 @@ public final class ResponseCacheStore {
     }
 
     public ResponseCacheStore(int maxEntries, Duration ttl, Clock clock) {
+        this(maxEntries, ttl, 0, clock);
+    }
+
+    /** spec 737 / T1074：带权重预算构造（≤0 = 关——默认零行为）。 */
+    public ResponseCacheStore(int maxEntries, Duration ttl, long maxWeightChars, Clock clock) {
         if (maxEntries < 1) {
             throw new IllegalArgumentException("response-cache.max-entries 必须 >= 1（当前 " + maxEntries + "）");
         }
@@ -58,6 +68,7 @@ public final class ResponseCacheStore {
         }
         this.maxEntries = maxEntries;
         this.ttl = ttl;
+        this.maxWeightChars = Math.max(0, maxWeightChars);
         this.clock = clock;
     }
 
@@ -73,6 +84,9 @@ public final class ResponseCacheStore {
                 cache.remove(key);
                 evictions.incrementAndGet();
                 misses.incrementAndGet();
+                if (maxWeightChars > 0) {
+                    totalWeightChars -= entry.weightChars();
+                }
                 return Optional.empty();
             }
             hits.incrementAndGet();
@@ -80,14 +94,62 @@ public final class ResponseCacheStore {
         }
     }
 
-    /** 写入（键已存在 = 刷新 expireAt）。 */
+    /**
+     * 写入（键已存在 = 刷新 expireAt 并重算权重）。spec 737：权重预算开启时
+     * 超预算单条拒存（weightEvictions 计数）、写入后腾挪 eldest 至预算内
+     * （腾挪与拒存同计 weightEvictions——独立于 evictedCount 口径）。
+     */
     public void put(String key, ChatResponse response) {
         if (key == null || response == null) {
             return;
         }
+        long weight = SemanticCacheStore.estimateChars(response);
         synchronized (cache) {
-            cache.put(key, new CacheEntry(response, clock.instant().plus(ttl)));
+            if (maxWeightChars > 0) {
+                if (weight > maxWeightChars) {
+                    weightEvictions.incrementAndGet();
+                    return; // 超预算单条拒存
+                }
+                // 替换同键：先回收旧权重
+                CacheEntry previous = cache.get(key);
+                if (previous != null) {
+                    totalWeightChars -= previous.weightChars();
+                }
+                cache.put(key, new CacheEntry(response, clock.instant().plus(ttl), weight));
+                totalWeightChars += weight;
+                evictToBudget();
+                return;
+            }
+            cache.put(key, new CacheEntry(response, clock.instant().plus(ttl), 0));
         }
+    }
+
+    /** spec 737：腾挪 eldest 至预算内（预算开启时调用）。 */
+    private void evictToBudget() {
+        while (totalWeightChars > maxWeightChars && !cache.isEmpty()) {
+            java.util.Iterator<Map.Entry<String, CacheEntry>> it = cache.entrySet().iterator();
+            Map.Entry<String, CacheEntry> eldest = it.next();
+            it.remove();
+            totalWeightChars -= eldest.getValue().weightChars();
+            weightEvictions.incrementAndGet();
+        }
+    }
+
+    /** spec 737：权重预算读数（0=关）。 */
+    public long maxWeightChars() {
+        return maxWeightChars;
+    }
+
+    /** spec 737：当前权重合计（估算口径；预算关闭时恒 0）。 */
+    public long totalWeightChars() {
+        synchronized (cache) {
+            return totalWeightChars;
+        }
+    }
+
+    /** spec 737：因权重预算未存留的总次数（腾挪+拒存——独立于 evictedCount）。 */
+    public long weightEvictionCount() {
+        return weightEvictions.get();
     }
 
     public long hitCount() {

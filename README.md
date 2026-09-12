@@ -491,6 +491,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 缓存与前缀 | 嵌入超限分批装饰器 | ChunkingEmbeddingModel 按 maxBatchSize 切块顺序调 delegate+全局 index 重排——批量嵌入超供应商 cap 不再 400（OpenAI embeddings 批限） | [spec 721](docs/spec/721-chunking-embedding-model.md) |
 | 缓存与前缀 | 分批嵌入 yml 装配 | semantic-cache.embedding-max-batch（默认 0=关）——语义缓存 EmbeddingModel 自动包 Chunking（721 装配兑现） | [spec 723](docs/spec/723-chunking-embedding-assembly.md) |
 | 持久化 | 会话状态 TTL 覆盖审计 | StateTtlCoverage——永生键（ttlTurns=null）计数+producer 归因+覆盖率——状态膨胀主通道可见（S3 生命周期审计） | [spec 724](docs/spec/724-state-ttl-coverage.md) |
+| 缓存与前缀 | 响应缓存权重预算 | ResponseCacheStore maxWeightChars（默认 0=关）——701 同款按字符数腾挪驱逐+替换回收，精确缓存大响应不再挤占（Caffeine weigher 姊妹轮） | [spec 737](docs/spec/737-response-cache-weight-budget.md) |
 | 模型路由 | 健康压权半开中点渐变 | HALF_OPEN→(floor+declared)/2 中点档——探测期半量试探防二次跳闸，确定性两级阶梯（HAProxy slow-start） | [spec 725](docs/spec/725-dampener-ramp.md) |
 | 观测治理 | 事件类型分布读数 | EventTypeDistribution.of——type 计数降序+topType 占比+自定义类型兼容，「哪类事件在刷屏」一屏可见（Loki top-k） | [spec 726](docs/spec/726-event-type-distribution.md) |
 | 持久化 | Redis 键审计健康面 | RedisKeyLayoutHealth（mechanism=redis-key-layout 恒 UP）——三族碰撞计数+保留段进 actuator/312 读数（705 接线，548 同型） | [spec 727](docs/spec/727-redis-key-layout-health.md) |

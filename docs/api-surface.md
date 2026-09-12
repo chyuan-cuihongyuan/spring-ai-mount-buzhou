@@ -1976,6 +1976,10 @@
   （count/total/max，totalBytes 降序）+serialized/skipped 诚实计数；
   纯函数读数）
 
+- ResponseCacheStore 权重预算族（737——701 对称落地：maxWeightChars
+  4 参构造+maxWeightChars/totalWeightChars/weightEvictionCount 读数+
+  替换同键回收/TTL 即弃回收；加法方法无新顶层类型）
+
 - `PromptUsageGaps`（嵌套 `Report`）（733——401×使用统计联合读数：
   analyze(declaredNames, rows) 零使用差集+孤儿统计漂移信号；纯函数）
 
