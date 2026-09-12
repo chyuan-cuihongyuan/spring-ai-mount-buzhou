@@ -1837,3 +1837,14 @@
 - GuardModule `assemblySummary()`（549——装配 hook 名列表读数，支持包
   /排障「guard 挂了哪些钩子」一屏可读；加法方法无新类型）
 
+## effort #700–#749 新增公共面（G 会话 / spec 700–749 / impl-600–649，@since 1.0.0）
+
+> G 会话 700 系逐轮入档（同口径：src/main 非 internal 包 public 类型）。
+
+**buzhou-resilience**
+
+- `CapabilityDecisionAudit`（嵌套 `Decision`/`Report`）（700——OPA Decision
+  Logs 思想：能力门 deny 环形留痕容量 64+dropped 计数、admit 只计数、
+  denyByModel 聚合、snapshot() 不可变报告；CapabilityGateAdvisor 3 参
+  构造接线，纯旁路拒绝行为零变化）
+

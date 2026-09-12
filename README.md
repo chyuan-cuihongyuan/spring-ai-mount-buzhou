@@ -462,6 +462,14 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | 熔断时间窗生效读面 | `circuitTimeWindowMs`（0=count 窗/正数=声明值）——spec 620 生效确认面 | [spec 638](docs/spec/638-circuit-time-window-readout.md) |
 | 缓存与前缀 | 缓存命中率便利 getter | Response/Semantic 两 store `hitRate()`（零请求诚实 0.0——观测便利面） | [spec 639](docs/spec/639-cache-hit-rate.md) |
 
+## 生产级纵深 VIII（G 会话 700 系增量）
+
+G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 模型韧性 | 能力门决策审计读数 | deny 环形留痕（容量 64+dropped 计数）+admit 计数+denyByModel 聚合+snapshot 不可变报告——「门最近拒了谁」从异常瞬间变成可查询证据面（OPA Decision Logs） | [spec 700](docs/spec/700-capability-decision-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
