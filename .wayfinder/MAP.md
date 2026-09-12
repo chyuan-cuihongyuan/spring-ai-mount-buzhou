@@ -355,6 +355,7 @@
 | #729 | 内存观测库容量健康面 | [maps/effort-729.md](maps/effort-729.md) | T1058–1059 | 629 |
 | #730 | 限流头跨供应商归一解析 | [maps/effort-730.md](maps/effort-730.md) | T1060–1061 | 630 |
 | #731 | 评估分数分布解析 | [maps/effort-731.md](maps/effort-731.md) | T1062–1063 | 631 |
+| #732 | 事件 payload 大小审计 | [maps/effort-732.md](maps/effort-732.md) | T1064–1065 | 632 |
 
 ## 跨 effort 悬留
 
