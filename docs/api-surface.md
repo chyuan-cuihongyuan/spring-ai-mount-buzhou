@@ -1875,3 +1875,7 @@
   plan 式差异，per-server 四态+三类变更+危险方向翻转 risky 标记；
   纯函数无状态字典序确定序）
 
+- `SpillPairAudit`（嵌套 `Finding`/`Report`）（707——Git fsck 思想：
+  audit(rootDir) 只读扫 .spill/.meta 配对残缺（DATA_WITHOUT_META 带字节/
+  META_WITHOUT_DATA），双写崩溃窗口的配额吞噬证据；三层完整性矩阵中层）
+
