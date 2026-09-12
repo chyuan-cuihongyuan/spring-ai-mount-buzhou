@@ -404,6 +404,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 工程治理 | 提示词模板严格渲染 | `{{var}}` 抽取/严格渲染（缺失变量一次列全——杜绝占位符原样漏进 prompt 的静默失败）+预检面；与 401 注册表组合消费（Jinja2 StrictUndefined） | [spec 512](docs/spec/512-prompt-template.md) |
 | 评测 | 评估 A/A 抖动检测 | 同数据集同版本跑两遍——同项红绿翻转=抖动（fail/error 同红、方向不区分），单侧项=漂移不进分母；flakyRate+抖动清单先验评估系统自身稳定性（HELM/工业 A/A test） | [spec 513](docs/spec/513-eval-aa-flakiness.md) |
 | 评测 | run 项耗时分布 | run 内项耗时 exact 最近秩 p50/p95/max+最慢项 top3（降序稳定）——「整个 run 慢在哪一项」一屏可读（416 分位族同法） | [spec 544](docs/spec/544-run-duration-stats.md) |
+| 工程治理 | 注册表快照导出/导入 | 全部名称的版本史+标签指针 → 可移植 JSON，导入空注册表按旧版本序重放（版本号对齐+标签重指）——提示词资产迁移可灾备（Langfuse export/import；401 扩散） | [spec 545](docs/spec/545-registry-snapshot.md) |
 | 评测 | 双 judge 一致率 | Cohen κ 修正机遇一致的两 judge verdict 一致性+Landis-Koch 分级——朴素一致率被「都判绿」虚高时 κ 揭穿（scikit-learn cohen_kappa_score；516 双 judge 变体） | [spec 541](docs/spec/541-judge-agreement.md) |
 | 评测 | judge 校准跟踪 | judge verdict vs 金标准断言的混淆矩阵四率（判红为正类）+agreement/precision/recall/f1（分母 0 null）——judge 宽松倾向先于版本对比被发现（LightEval） | [spec 516](docs/spec/516-judge-calibration.md) |
 | 记忆治理 | 记忆压缩率分布观测 | 回收字符分位窗+逐出比直方图+折入 trigger 计数（挂既有 CompactionListener 缝，观测零干预）——梯子参数与折叠驱动信号有数据依据（416 分位族同法） | [spec 517](docs/spec/517-compaction-ratio-stats.md) |

@@ -1818,3 +1818,7 @@
 - `EvalRunDurationStats`（嵌套 `DurationStats`/`SlowestItem`）（544——
   416 分位族同法：run 项耗时 p50/p95/max+最慢 top3，纯函数读数）
 
+- `PromptRegistrySnapshot`（545——Langfuse export/import：注册表全量
+  快照可移植 JSON（版本史+labels），导入空注册表按旧版本序重放，
+  非空 fail-fast）
+
