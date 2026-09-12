@@ -1954,6 +1954,10 @@
   mechanism=redis-key-layout 恒 UP，details 聚合三族碰撞计数+保留段；
   随 BuzhouRedisStoreAutoConfiguration 条件装配）
 
+- `SpillPairHealth`（728——707 审计接线：implements BuzhouHealth，
+  mechanism=spill-pair 禁用 UNKNOWN/启用恒 UP，details 五项统计；
+  随 BuzhouSpillHealthAutoConfiguration 装配）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）

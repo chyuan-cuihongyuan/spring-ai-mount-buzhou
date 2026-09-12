@@ -351,6 +351,7 @@
 | #725 | 健康压权半开中点渐变 | [maps/effort-725.md](maps/effort-725.md) | T1050–1051 | 625 |
 | #726 | 事件类型分布读数 | [maps/effort-726.md](maps/effort-726.md) | T1052–1053 | 626 |
 | #727 | Redis 键审计健康面接线 | [maps/effort-727.md](maps/effort-727.md) | T1054–1055 | 627 |
+| #728 | spill 配对健康面接线 | [maps/effort-728.md](maps/effort-728.md) | T1056–1057 | 628 |
 
 ## 跨 effort 悬留
 
