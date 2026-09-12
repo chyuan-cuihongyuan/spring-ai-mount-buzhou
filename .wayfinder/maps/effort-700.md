@@ -49,6 +49,7 @@
 | 18 | 工具调用图谱环检测 | call-graph cycle detection | T985–T986 | 520 | 717 | ✅ |
 | 19 | webhook 投递限速 | envoy local rate limit | T987–T988 | 521 | 718 | ✅ |
 | 20 | 生效配置 diff 读面 | kubectl diff | T989–T990 | 522 | 719 | ✅ |
+| 21 | 错误签名静默标记 | getsentry/sentry muted issues | T991–T992 | 523 | 720 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
