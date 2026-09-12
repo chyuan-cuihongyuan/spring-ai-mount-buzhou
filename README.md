@@ -463,6 +463,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 缓存与前缀 | 缓存命中率便利 getter | Response/Semantic 两 store `hitRate()`（零请求诚实 0.0——观测便利面） | [spec 639](docs/spec/639-cache-hit-rate.md) |
 | 会话与 fork | fork 谱系键常量收口 | `SessionForkKeys`（SOURCE/TURN/PRODUCER）写读两侧同源——字符串复制漂移=谱系断 | [spec 640](docs/spec/640-fork-lineage-keys.md) |
 | 缓存与前缀 | 响应缓存 miss 惊群合并 | `response-cache.coalescing`（opt-in）：首个 miss 窗口同 key 并发收敛一次模型调用（singleflight；失败不共享） | [spec 641](docs/spec/641-response-cache-stampede-coalescing.md) |
+| 观测与运维 | 追加式 JSONL 大小轮转 | `RollingJsonlWriter`（64MB×3 默认开；≤0 显式关）——健康时间线/影子对照/prompt 快照三类明细磁盘封顶 | [spec 642](docs/spec/642-jsonl-rolling.md) |
 
 ## 快速开始
 

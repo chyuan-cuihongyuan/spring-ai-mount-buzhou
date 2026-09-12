@@ -1,16 +1,13 @@
 package io.github.chyuan_cuihongyuan.buzhou.resilience.shadow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter;
 import io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -21,6 +18,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * 可溯）：全局监听 {@code shadow.compared} 事件逐条追加 JSONL（at + payload
  * 全字段，字符串值节选封顶）。每行 flush（tail -f 可观察）；IO 失败吞 +
  * 计数（旁路语义不放大——明细缺行好过主链故障）；{@link #close()} 关句柄。
+ *
+ * <p>spec 642：内部换 {@link RollingJsonlWriter}——大小触发轮转（默认
+ * 64MB×3 代封顶，磁盘保护；≤0 显式关）。
  */
 public final class ShadowComparisonJsonl implements SessionEventListener, AutoCloseable {
 
@@ -30,19 +30,19 @@ public final class ShadowComparisonJsonl implements SessionEventListener, AutoCl
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final Path path;
-    private final BufferedWriter writer;
+    private final RollingJsonlWriter writer;
     private final AtomicLong written = new AtomicLong();
     private final AtomicLong failed = new AtomicLong();
 
     /** 打开（父目录自动创建；打开失败上抛——启动期 fail-fast，坏路径该红）。 */
     public ShadowComparisonJsonl(Path path) throws IOException {
+        this(path, RollingJsonlWriter.DEFAULT_MAX_BYTES, RollingJsonlWriter.DEFAULT_MAX_HISTORY);
+    }
+
+    /** spec 642 / T934：轮转参数显式构造（maxBytes/maxHistory ≤ 0 = 关轮转，旧无界语义）。 */
+    public ShadowComparisonJsonl(Path path, long maxBytes, int maxHistory) throws IOException {
         this.path = Objects.requireNonNull(path, "path");
-        Path parent = path.toAbsolutePath().getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
-        this.writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        this.writer = new RollingJsonlWriter(path, maxBytes, maxHistory);
     }
 
     @Override
@@ -58,11 +58,7 @@ public final class ShadowComparisonJsonl implements SessionEventListener, AutoCl
             return;
         }
         try {
-            synchronized (this) {
-                writer.write(line);
-                writer.write('\n');
-                writer.flush();
-            }
+            writer.appendLine(line);
             written.incrementAndGet();
         } catch (IOException e) {
             countFailure(); // 吞——旁路语义：明细缺行好过主链故障
@@ -103,8 +99,6 @@ public final class ShadowComparisonJsonl implements SessionEventListener, AutoCl
 
     @Override
     public void close() throws IOException {
-        synchronized (this) {
-            writer.close();
-        }
+        writer.close();
     }
 }
