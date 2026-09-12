@@ -347,6 +347,7 @@
 | #721 | 嵌入超限分批装饰器 | [maps/effort-721.md](maps/effort-721.md) | T1042–1043 | 621 |
 | #722 | MCP 每连接并发占用视图 | [maps/effort-722.md](maps/effort-722.md) | T1044–1045 | 622 |
 | #723 | 分批嵌入 yml 装配接线 | [maps/effort-723.md](maps/effort-723.md) | T1046–1047 | 623 |
+| #724 | 会话状态 TTL 覆盖审计 | [maps/effort-724.md](maps/effort-724.md) | T1048–1049 | 624 |
 
 ## 跨 effort 悬留
 

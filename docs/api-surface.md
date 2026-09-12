@@ -1939,6 +1939,10 @@
   语义缓存装配点包装 ChunkingEmbeddingModel；metadata 登记；加法组件
   +兼容构造，无新顶层类型）
 
+- `StateTtlCoverage`（嵌套 `Row`/`Report`）（724——S3 生命周期审计思想：
+  analyze(Map<String,StateEntry>) 永生键计数+coverage（total=0 空真
+  1.0）+byProducer 归因；纯函数读数）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
