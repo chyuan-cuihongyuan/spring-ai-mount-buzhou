@@ -1991,6 +1991,10 @@
   树语义：audit(List<SpanRecord>) 悬空父引用发现+totalSpans/rootSpans；
   纯函数）
 
+- `SessionExportSizeAudit`（嵌套 `Segment`/`Report`）（738——成本归因：
+  analyze(SessionExport) 按段字符归因 messages/summary/state/ext:*+占比
+  守恒；纯函数读数）
+
 - EvalRunner `lastFingerprintChanged`（734——82 指纹消费信号：当前 vs 最近
   历史 run 指纹不同置位+计数+INFO；diff 明细归 EvalRunDiff；加法方法
   无新顶层类型）

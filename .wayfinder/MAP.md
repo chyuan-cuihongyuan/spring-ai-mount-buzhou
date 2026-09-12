@@ -361,6 +361,7 @@
 | #735 | 事件配对完整性审计 | [maps/effort-735.md](maps/effort-735.md) | T1070–1071 | 635 |
 | #736 | span 父链完整性审计 | [maps/effort-736.md](maps/effort-736.md) | T1072–1073 | 636 |
 | #737 | 响应缓存权重预算 | [maps/effort-737.md](maps/effort-737.md) | T1074–1075 | 637 |
+| #738 | 导出体积去向审计 | [maps/effort-738.md](maps/effort-738.md) | T1076–1077 | 638 |
 
 ## 跨 effort 悬留
 
