@@ -163,6 +163,12 @@
       "description": "语义缓存条目 TTL（惰性过期——命中路径检查）。"
     },
     {
+      "name": "buzhou.resilience.semantic-cache.embedding-max-batch",
+      "type": "java.lang.Integer",
+      "defaultValue": 0,
+      "description": "嵌入批量上限（0=关；>0 时 EmbeddingModel 包 ChunkingEmbeddingModel 切块——批量写入超供应商 cap 不再 400）。"
+    },
+    {
       "name": "buzhou.resilience.semantic-cache.max-weight-chars",
       "type": "java.lang.Integer",
       "defaultValue": 0,

@@ -1934,6 +1934,11 @@
   call 按 maxBatchSize 切块顺序调 delegate+全局 index 重排拼接，≤max
   直通；default embed 方法经 call 自动受益）
 
+- SemanticCache `embeddingMaxBatch` 组件（723——721 装配兑现：yml
+  semantic-cache.embedding-max-batch（默认 0=关），ResilienceModule 在
+  语义缓存装配点包装 ChunkingEmbeddingModel；metadata 登记；加法组件
+  +兼容构造，无新顶层类型）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
