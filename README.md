@@ -473,6 +473,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 断路器变迁事件流读数 | CircuitTransitionJournal 进程级变迁环形留痕+per-model trips/recoveries/halfOpens 聚合——「最近跳了谁/多久恢复」不再散落会话事件通道（Resilience4j EventConsumer） | [spec 702](docs/spec/702-circuit-transition-journal.md) |
 | 模型路由 | 健康加权路由抑制原语 | attach(router,breaker,floor)——跳闸压权至地板（全跳不黑洞）恢复回声明值；breaker 加变迁监听缝（HAProxy agent-check） | [spec 703](docs/spec/703-routing-health-dampener.md) |
 | 观测治理 | 提示词角色构成拆解 | PromptComposition.analyze 按角色聚合 chars/messages/share 降序——水位告警后「谁在吃预算」的证据面（Langfuse prompt analytics；纯读数） | [spec 704](docs/spec/704-prompt-composition.md) |
+| 持久化 | Redis 键命名空间碰撞审计 | RedisKeyLayoutAudit 结构性对抗模拟——spev/event 保留段与 lease 冒号后缀三族潜伏碰撞证据+reservedSegments 读数+isSafeSessionId 摄入守卫（fsck 思想+E R12 教训制度化） | [spec 705](docs/spec/705-redis-key-layout-audit.md) |
 
 ## 快速开始
 

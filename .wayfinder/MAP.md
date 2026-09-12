@@ -328,6 +328,7 @@
 | #702 | 断路器变迁事件流读数 | [maps/effort-702.md](maps/effort-702.md) | T1004–1005 | 602 |
 | #703 | 健康加权路由抑制原语 | [maps/effort-703.md](maps/effort-703.md) | T1006–1007 | 603 |
 | #704 | 提示词角色构成拆解读数 | [maps/effort-704.md](maps/effort-704.md) | T1008–1009 | 604 |
+| #705 | Redis 键命名空间碰撞审计 | [maps/effort-705.md](maps/effort-705.md) | T1010–1011 | 605 |
 
 ## 跨 effort 悬留
 

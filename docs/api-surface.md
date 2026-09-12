@@ -1865,3 +1865,8 @@
   analytics 思想：analyze(Prompt) 按角色聚合 chars/messages/share 降序+
   字典序稳定；TOOL 载荷从 getResponses()responseData 计量；纯函数读数）
 
+- `RedisKeyLayoutAudit`（嵌套 `Finding`）（705——fsck 思想：audit(prefix)
+  结构性对抗模拟产出三族碰撞 Finding（RESERVED_SEGMENT/
+  SPAN_INDEX_CLASH/COLON_SUFFIX_TRICK）+reservedSegments() 读数+
+  isSafeSessionId 摄入守卫谓词；纯静态不改键形状）
+
