@@ -503,6 +503,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | 健康时间线 JSONL 压缩线装配 | export-compress-from 属性直通 RollingJsonlWriter 压缩线——观测明细声明即省盘（spec 712 装配轮） | [spec 729](docs/spec/729-timeline-gzip-assembly.md) |
 | 模型韧性 | 路由阶段标签 yml 装配 | buzhou.routing.stages/visible-stages 双键声明 → 构造期过滤（<2 路 fail-fast）——spec 723 声明式入口 | [spec 730](docs/spec/730-route-stages-assembly.md) |
 | Guard 护栏 | PII 假名化模式装配 | PiiDetector 模式构造（redact 分派 pseudonymize）+ Builder.piiPreserveFormat 直通双缝——同长度替身声明即启用（spec 713 装配轮） | [spec 731](docs/spec/731-pii-mode-assembly.md) |
+| 工程门禁 | 契约套件接入示例（H2） | JdbcSessionStateStore 过 SessionStateStoreContract 九项检查（H2 无 Docker CI 口径）——第三方 store 自证价值主张实证（spec 705 复用面） | [spec 732](docs/spec/732-contract-jdbc-demo.md) |
 
 ## 快速开始
 
