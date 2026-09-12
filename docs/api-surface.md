@@ -1861,3 +1861,7 @@
   跳闸压权至地板/恢复回声明权重；ModelCircuitBreaker 加
   `addTransitionListener` 监听缝，listener 异常隔离不伤状态机）
 
+- `PromptComposition`（嵌套 `Section`/`Report`）（704——Langfuse prompt
+  analytics 思想：analyze(Prompt) 按角色聚合 chars/messages/share 降序+
+  字典序稳定；TOOL 载荷从 getResponses()responseData 计量；纯函数读数）
+
