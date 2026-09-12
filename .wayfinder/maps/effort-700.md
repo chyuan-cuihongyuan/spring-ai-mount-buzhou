@@ -73,6 +73,7 @@
 | 42 | 静默标记×健康段联动补验 | spec 720/85 补验 | T1033–T1034 | 544 | 742 | ✅ |
 | 43 | 假名化×幂等占位符互操作补验 | spec 713/731 补验 | T1035–T1036 | 545 | 741 | ✅ |
 | 44 | MessageStore SPI 契约校验套件 | spec 705 同构扩散 | T1037–T1038 | 546 | 743 | ✅ |
+| 45 | MessageStore 契约接入 H2（抓出探针会话主键冲突设计缺陷并重构） | spec 743 复用面 | T1039–T1040 | 547 | 744 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |

@@ -42,6 +42,14 @@ class H2StoresContractTest extends AbstractBuzhouStoresContractTest {
         assertThat(report.passed()).as("失败项：" + report.failures()).isTrue();
     }
 
+    /** spec 744 / T1039：MessageStore SPI 四项语义契约（G 会话 spec 743）——真实 SQL 存储全绿。 */
+    @Test
+    void messageStoreSatisfiesGSessionContract() {
+        var report = io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStoreContract.verify(
+                stores().messageStore());
+        assertThat(report.passed()).as("失败项：" + report.failures()).isTrue();
+    }
+
     @Test
     void unitOfWorkRollsBackAllWritesOnFailure() {
         String sessionId = "rollback-" + UUID.randomUUID();

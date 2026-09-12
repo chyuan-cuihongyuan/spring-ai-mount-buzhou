@@ -11,8 +11,9 @@ import java.util.UUID;
 /**
  * MessageStore SPI 契约校验套件（spec 743 / T1037，spec 705 同构扩散）：
  * 四项有序契约检查——append/load 往返保序、未知会话空读、多次追加保序、
- * deleteSession 幂等清场。主源码零 JUnit 依赖；探针会话
- * {@value #CONTRACT_SESSION_PREFIX} 前缀 + 自清理。
+ * deleteSession 幂等清场。主源码零 JUnit 依赖；每检查独立探针会话
+ * （{@value #CONTRACT_SESSION_PREFIX} 前缀 + 各自 finally 自清理——
+ * 检查间 (turn,seqInTurn) 主键隔离）。
  */
 public final class MessageStoreContract {
 
@@ -40,35 +41,27 @@ public final class MessageStoreContract {
     private MessageStoreContract() {
     }
 
-    /** 对 store 跑全部契约检查（结束自清理探针会话）。 */
+    /** 对 store 跑全部契约检查（各检查独立探针会话 + 自清理）。 */
     public static Report verify(MessageStore store) {
         if (store == null) {
             throw new IllegalArgumentException("store 必须非空");
         }
-        String session = CONTRACT_SESSION_PREFIX + UUID.randomUUID();
         List<Check> checks = new java.util.ArrayList<>();
-        try {
-            checks.add(run("append-load-roundtrip-preserves-order",
-                    () -> appendLoadRoundtrip(store, session)));
-            checks.add(run("unknown-session-empty", () -> unknownSessionEmpty(store)));
-            checks.add(run("multiple-appends-preserve-chronology",
-                    () -> multipleAppendsPreserveChronology(store, session)));
-            checks.add(run("delete-session-idempotent",
-                    () -> deleteSessionIdempotent(store, session)));
-        } finally {
-            try {
-                store.deleteSession(session);
-            } catch (RuntimeException ignored) {
-                // 清理失败不影响报告
-            }
-        }
+        checks.add(run("append-load-roundtrip-preserves-order",
+                () -> appendLoadRoundtrip(store)));
+        checks.add(run("unknown-session-empty", () -> unknownSessionEmpty(store)));
+        checks.add(run("multiple-appends-preserve-chronology",
+                () -> multipleAppendsPreserveChronology(store)));
+        checks.add(run("delete-session-idempotent",
+                () -> deleteSessionIdempotent(store)));
         return new Report(List.copyOf(checks));
     }
 
     private interface CheckBody {
-        void run() throws Exception;
+        void run();
     }
 
+    /** 每检查独立探针会话 + 自清理（检查间 (turn,seqInTurn) 主键隔离）。 */
     private static Check run(String name, CheckBody body) {
         try {
             body.run();
@@ -87,16 +80,33 @@ public final class MessageStoreContract {
         }
     }
 
-    private static BuzhouMessage message(String session, int turn, String text) {
-        return new BuzhouMessage(UUID.randomUUID().toString(), session, turn, 0,
+    private static String probe() {
+        return CONTRACT_SESSION_PREFIX + "msg-" + UUID.randomUUID();
+    }
+
+    private static BuzhouMessage message(String session, int turn, int seqInTurn, String text) {
+        return new BuzhouMessage(UUID.randomUUID().toString(), session, turn, seqInTurn,
                 Role.USER, text, List.of(), null, null, null, Map.of(), Instant.now());
     }
 
-    private static void appendLoadRoundtrip(MessageStore store, String session) {
-        store.append(session, List.of(message(session, 1, "one")));
-        List<BuzhouMessage> loaded = store.load(session);
-        expect(loaded.size() >= 1 && "one".equals(loaded.get(0).content()),
-                "append 后 load 应读到同内容");
+    private static void quietlyWipe(MessageStore store, String session) {
+        try {
+            store.deleteSession(session);
+        } catch (RuntimeException ignored) {
+            // 清理失败不影响报告
+        }
+    }
+
+    private static void appendLoadRoundtrip(MessageStore store) {
+        String session = probe();
+        try {
+            store.append(session, List.of(message(session, 1, 0, "one")));
+            List<BuzhouMessage> loaded = store.load(session);
+            expect(loaded.size() >= 1 && "one".equals(loaded.get(0).content()),
+                    "append 后 load 应读到同内容");
+        } finally {
+            quietlyWipe(store, session);
+        }
     }
 
     private static void unknownSessionEmpty(MessageStore store) {
@@ -104,17 +114,24 @@ public final class MessageStoreContract {
         expect(store.load(ghost).isEmpty(), "未知会话 load 应为空");
     }
 
-    private static void multipleAppendsPreserveChronology(MessageStore store, String session) {
-        store.append(session, List.of(message(session, 1, "t1")));
-        store.append(session, List.of(message(session, 2, "t2")));
-        List<BuzhouMessage> loaded = store.load(session);
-        expect(loaded.size() >= 2
-                && loaded.stream().anyMatch(m -> "t1".equals(m.content()))
-                && loaded.stream().anyMatch(m -> "t2".equals(m.content())),
-                "多次 append 后 load 应含全部消息");
+    private static void multipleAppendsPreserveChronology(MessageStore store) {
+        String session = probe();
+        try {
+            store.append(session, List.of(message(session, 1, 0, "t1")));
+            store.append(session, List.of(message(session, 2, 0, "t2")));
+            List<BuzhouMessage> loaded = store.load(session);
+            expect(loaded.size() >= 2
+                    && loaded.stream().anyMatch(m -> "t1".equals(m.content()))
+                    && loaded.stream().anyMatch(m -> "t2".equals(m.content())),
+                    "多次 append 后 load 应含全部消息");
+        } finally {
+            quietlyWipe(store, session);
+        }
     }
 
-    private static void deleteSessionIdempotent(MessageStore store, String session) {
+    private static void deleteSessionIdempotent(MessageStore store) {
+        String session = probe();
+        store.append(session, List.of(message(session, 1, 0, "wipe")));
         store.deleteSession(session);
         expect(store.load(session).isEmpty(), "deleteSession 后 load 应为空");
         store.deleteSession(session); // 幂等：二次不抛
