@@ -491,6 +491,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 缓存与前缀 | 嵌入超限分批装饰器 | ChunkingEmbeddingModel 按 maxBatchSize 切块顺序调 delegate+全局 index 重排——批量嵌入超供应商 cap 不再 400（OpenAI embeddings 批限） | [spec 721](docs/spec/721-chunking-embedding-model.md) |
 | 缓存与前缀 | 分批嵌入 yml 装配 | semantic-cache.embedding-max-batch（默认 0=关）——语义缓存 EmbeddingModel 自动包 Chunking（721 装配兑现） | [spec 723](docs/spec/723-chunking-embedding-assembly.md) |
 | 持久化 | 会话状态 TTL 覆盖审计 | StateTtlCoverage——永生键（ttlTurns=null）计数+producer 归因+覆盖率——状态膨胀主通道可见（S3 生命周期审计） | [spec 724](docs/spec/724-state-ttl-coverage.md) |
+| 模型路由 | 健康压权半开中点渐变 | HALF_OPEN→(floor+declared)/2 中点档——探测期半量试探防二次跳闸，确定性两级阶梯（HAProxy slow-start） | [spec 725](docs/spec/725-dampener-ramp.md) |
 | MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 
 ## 快速开始

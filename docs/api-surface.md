@@ -1943,6 +1943,9 @@
   analyze(Map<String,StateEntry>) 永生键计数+coverage（total=0 空真
   1.0）+byProducer 归因；纯函数读数）
 
+- RoutingHealthDampener 半开中点档（725——HAProxy slow-start：HALF_OPEN
+  权重=(floor+declared)/2 向下取整，CLOSED 回声明值；加法行为无新类型）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）

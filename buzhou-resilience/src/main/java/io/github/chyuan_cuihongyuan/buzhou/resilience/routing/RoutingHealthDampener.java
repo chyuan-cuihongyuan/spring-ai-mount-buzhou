@@ -63,12 +63,16 @@ public final class RoutingHealthDampener {
             if (dampened.putIfAbsent(model, Boolean.TRUE) == null) {
                 router.setWeight(model, floorWeight);
             }
+        } else if (CircuitState.HALF_OPEN.name().equals(transition.to())) {
+            // spec 725 / T1050：半开升半量试探（floor 与 declared 的中点向下取整）——
+            // 探测成功的 provider 渐进而非跳变（HAProxy slow-start 思想的确定性两档）
+            int declared = declaredWeights.get(model);
+            router.setWeight(model, (floorWeight + declared) / 2);
         } else if (CircuitState.CLOSED.name().equals(transition.to())) {
             if (dampened.remove(model) != null) {
                 router.setWeight(model, declaredWeights.get(model));
             }
         }
-        // HALF_OPEN：维持地板（探测 trickle——单探测本就是最小流量）
     }
 
     /** 读数面：当前被压权模型视图（名字 → 地板权重）。 */

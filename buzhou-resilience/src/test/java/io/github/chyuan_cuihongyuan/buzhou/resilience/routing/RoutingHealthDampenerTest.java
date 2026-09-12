@@ -93,13 +93,32 @@ class RoutingHealthDampenerTest {
         assertThat(dampener.dampened()).containsEntry("primary", 1);
 
         clock.advanceMillis(200);
-        breaker.beforeCall("primary", SINK); // → HALF_OPEN（维持地板）
-        assertThat(router.routes()).containsEntry("primary", 1);
+        breaker.beforeCall("primary", SINK); // → HALF_OPEN（中点档：(1+5)/2=3）
+        assertThat(breaker.state("primary")).isEqualTo(CircuitState.HALF_OPEN);
+        assertThat(router.routes()).containsEntry("primary", 3);
+        assertThat(dampener.dampened()).containsEntry("primary", 1); // 未回满视图
 
-        breaker.recordSuccess("primary", SINK); // 半开阈值 1 → CLOSED 恢复
+        breaker.recordSuccess("primary", SINK); // 半开阈值 1 → CLOSED 恢复声明值
         assertThat(breaker.state("primary")).isEqualTo(CircuitState.CLOSED);
         assertThat(router.routes()).containsEntry("primary", 5).containsEntry("backup", 2);
         assertThat(dampener.dampened()).isEmpty();
+    }
+
+    @Test
+    void halfStepRoundsDownOnOddSpan() {
+        MutableClock clock = new MutableClock();
+        // floor=1 declared=6 → 中点 (1+6)/2=3 向下取整
+        WeightedChatModel router = new WeightedChatModel(
+                Map.of("primary", (ChatModel) new StubModel(), "backup", (ChatModel) new StubModel()),
+                Map.of("primary", 6, "backup", 2));
+        ModelCircuitBreaker breaker = breaker(clock);
+        RoutingHealthDampener.attach(router, breaker, 1);
+        breaker.recordTerminal("primary", "NETWORK", SINK);
+        breaker.recordTerminal("primary", "NETWORK", SINK);
+        breaker.recordTerminal("primary", "NETWORK", SINK); // OPEN
+        clock.advanceMillis(200);
+        breaker.beforeCall("primary", SINK); // HALF_OPEN → 3
+        assertThat(router.routes()).containsEntry("primary", 3);
     }
 
     @Test
