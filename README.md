@@ -493,6 +493,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 持久化 | 会话状态 TTL 覆盖审计 | StateTtlCoverage——永生键（ttlTurns=null）计数+producer 归因+覆盖率——状态膨胀主通道可见（S3 生命周期审计） | [spec 724](docs/spec/724-state-ttl-coverage.md) |
 | 模型路由 | 健康压权半开中点渐变 | HALF_OPEN→(floor+declared)/2 中点档——探测期半量试探防二次跳闸，确定性两级阶梯（HAProxy slow-start） | [spec 725](docs/spec/725-dampener-ramp.md) |
 | 观测治理 | 事件类型分布读数 | EventTypeDistribution.of——type 计数降序+topType 占比+自定义类型兼容，「哪类事件在刷屏」一屏可见（Loki top-k） | [spec 726](docs/spec/726-event-type-distribution.md) |
+| 持久化 | Redis 键审计健康面 | RedisKeyLayoutHealth（mechanism=redis-key-layout 恒 UP）——三族碰撞计数+保留段进 actuator/312 读数（705 接线，548 同型） | [spec 727](docs/spec/727-redis-key-layout-health.md) |
 | MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 
 ## 快速开始
