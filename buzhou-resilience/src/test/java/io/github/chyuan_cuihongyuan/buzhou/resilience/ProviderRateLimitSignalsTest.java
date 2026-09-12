@@ -85,4 +85,27 @@ class ProviderRateLimitSignalsTest {
         assertThatThrownBy(() -> ProviderRateLimitSignals.parse(null))
                 .isInstanceOf(NullPointerException.class);
     }
+
+    @Test
+    void flexibleParseFallsBackToAnthropicHeaderNames() {
+        HttpHeaders anthropic = headers(
+                "anthropic-ratelimit-requests-limit", "50",
+                "anthropic-ratelimit-requests-remaining", "10",
+                "anthropic-ratelimit-tokens-limit", "20000",
+                "anthropic-ratelimit-tokens-remaining", "4000");
+        ProviderRateLimitSignals.Signals signals = ProviderRateLimitSignals.parseFlexible(anthropic);
+        assertThat(signals.limitRequests()).isEqualTo(50);
+        assertThat(signals.remainingRequests()).isEqualTo(10);
+        assertThat(signals.requestUtilization()).isEqualTo(0.8);
+        assertThat(signals.pressureLevel()).isEqualTo(ProviderRateLimitSignals.Pressure.MEDIUM);
+
+        // OpenAI 头优先（两家都在时不混合来源）
+        HttpHeaders both = headers(
+                "X-RateLimit-Limit-Requests", "10",
+                "X-RateLimit-Remaining-Requests", "9",
+                "anthropic-ratelimit-requests-limit", "50");
+        ProviderRateLimitSignals.Signals openaiFirst = ProviderRateLimitSignals.parseFlexible(both);
+        assertThat(openaiFirst.limitRequests()).isEqualTo(10);
+        assertThat(openaiFirst.remainingRequests()).isEqualTo(9);
+    }
 }

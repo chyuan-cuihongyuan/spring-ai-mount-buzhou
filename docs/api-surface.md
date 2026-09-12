@@ -1963,6 +1963,10 @@
   used/max/utilization/evicted；InMemoryObservabilityStore 加逐出计数
   与三读数（sessionCount 提升 public））
 
+- ProviderRateLimitSignals `parseFlexible`（730——719 扩散：跨供应商归一，
+  OpenAI 头优先不混合来源，缺项回退 Anthropic anthropic-ratelimit-*；
+  加法方法无新顶层类型）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）

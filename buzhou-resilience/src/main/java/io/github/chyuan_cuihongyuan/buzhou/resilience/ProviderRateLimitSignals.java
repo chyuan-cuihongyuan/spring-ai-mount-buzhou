@@ -65,7 +65,7 @@ public final class ProviderRateLimitSignals {
         }
     }
 
-    /** 解析（null headers fail-fast；无相关头 = {@link Signals#EMPTY}）。 */
+    /** 解析（null headers fail-fast；无相关头 = {@link Signals#EMPTY}）——OpenAI 头名约定。 */
     public static Signals parse(HttpHeaders headers) {
         Objects.requireNonNull(headers, "headers");
         return new Signals(
@@ -75,6 +75,25 @@ public final class ProviderRateLimitSignals {
                 longHeader(headers, "X-RateLimit-Limit-Tokens"),
                 durationHeader(headers, "X-RateLimit-Reset-Requests"),
                 durationHeader(headers, "X-RateLimit-Reset-Tokens"));
+    }
+
+    /**
+     * spec 730 / T1054 族扩散：跨供应商归一解析——先 OpenAI 头名，缺项再回退
+     * Anthropic 头名（anthropic-ratelimit-requests-remaining/tokens-limit 等）。
+     * 两家头都在时 OpenAI 优先（不混合来源）。
+     */
+    public static Signals parseFlexible(HttpHeaders headers) {
+        Signals openai = parse(headers);
+        if (!openai.equals(Signals.EMPTY)) {
+            return openai; // 有任一 OpenAI 头——不混合来源
+        }
+        return new Signals(
+                longHeader(headers, "Anthropic-RateLimit-Requests-Remaining"),
+                longHeader(headers, "Anthropic-RateLimit-Requests-Limit"),
+                longHeader(headers, "Anthropic-RateLimit-Tokens-Remaining"),
+                longHeader(headers, "Anthropic-RateLimit-Tokens-Limit"),
+                durationHeader(headers, "Anthropic-RateLimit-Tokens-Reset"),
+                durationHeader(headers, "Anthropic-RateLimit-Tokens-Reset"));
     }
 
     private static Long longHeader(HttpHeaders headers, String name) {
