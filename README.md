@@ -475,6 +475,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | 缓存 stale-while-revalidate | 跨轮工具缓存 swrGrace opt-in：过期后 grace 窗同步回 stale + 虚拟线程后台单飞刷新（失败保旧值）——TTL 边界调用延迟归零（nginx proxy_cache_use_stale 借鉴） | [spec 701](docs/spec/701-cache-stale-while-revalidate.md) |
 | 模型韧性 | 路由慢启动权重爬坡 | RoutingSlowStart：权重上调先落 floor 再分 4 步爬到 target（热重载接线 opt-in、降权瞬时）——升配不瞬时打爆恢复端点（nginx upstream slow_start 借鉴） | [spec 702](docs/spec/702-routing-slow-start.md) |
 | MCP 治理 | MCP keepalive 空闲探活 | 注册表周期 listToolNames 探活（opt-in），失败重建走 spec-changed 同口径——空闲死连接不再拖到用户 Turn 才暴露（gRPC keepalive 借鉴） | [spec 703](docs/spec/703-mcp-keepalive.md) |
+| 观测与运维 | 最小可用水位闸（归档 PDB） | SessionAvailabilityFloor 挂 archive()：存活会话 ≤ minAvailable 拒绝自愿驱逐（未知计数 fail-open、restore 不受闸）——故障期运维动作不再削薄在线容量（k8s PodDisruptionBudget 借鉴） | [spec 704](docs/spec/704-session-availability-floor.md) |
 
 ## 快速开始
 
