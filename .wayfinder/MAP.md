@@ -358,6 +358,7 @@
 | #732 | 事件 payload 大小审计 | [maps/effort-732.md](maps/effort-732.md) | T1064–1065 | 632 |
 | #733 | 提示词使用缺口读数 | [maps/effort-733.md](maps/effort-733.md) | T1066–1067 | 633 |
 | #734 | 数据集指纹变更信号 | [maps/effort-734.md](maps/effort-734.md) | T1068–1069 | 634 |
+| #735 | 事件配对完整性审计 | [maps/effort-735.md](maps/effort-735.md) | T1070–1071 | 635 |
 
 ## 跨 effort 悬留
 

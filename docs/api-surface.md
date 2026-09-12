@@ -1979,6 +1979,10 @@
 - `PromptUsageGaps`（嵌套 `Report`）（733——401×使用统计联合读数：
   analyze(declaredNames, rows) 零使用差集+孤儿统计漂移信号；纯函数）
 
+- `EventPairingAudit`（嵌套 `Finding`/`Report`）（735——请求/应答型事件
+  spanId 内 min 配对，差集产出 UNPAIRED_REQUEST/UNPAIRED_RESPONSE+paired
+  计数；规则表调用方供给；纯函数）
+
 - EvalRunner `lastFingerprintChanged`（734——82 指纹消费信号：当前 vs 最近
   历史 run 指纹不同置位+计数+INFO；diff 明细归 EvalRunDiff；加法方法
   无新顶层类型）

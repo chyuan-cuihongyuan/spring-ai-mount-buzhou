@@ -501,6 +501,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评估闭环 | 数据集指纹变更信号 | lastFingerprintChanged()+计数——连续跑批中指纹变化即时可见，diff 结论不张冠李戴（82 消费信号） | [spec 734](docs/spec/734-fingerprint-change-signal.md) |
 | 观测治理 | 事件 payload 大小审计 | EventPayloadSizeAudit.analyze——Jackson 字节按类型聚合 total/max 降序，payload 风暴与存储吞噬可见（Sentry 限额思想） | [spec 732](docs/spec/732-event-payload-size-audit.md) |
 | 提示词治理 | 提示词使用缺口读数 | PromptUsageGaps——声明×使用差集：零使用清理候选+孤儿统计漂移信号（401/545 联合读数） | [spec 733](docs/spec/733-prompt-usage-gaps.md) |
+| 观测治理 | 事件配对完整性审计 | EventPairingAudit——请求/应答型事件 spanId 内配对，悬空请求/孤儿应答（中断崩溃/审批悬空）证据化（规则表泛化） | [spec 735](docs/spec/735-event-pairing-audit.md) |
 | MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 
 ## 快速开始
