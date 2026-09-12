@@ -1884,3 +1884,8 @@
   命中 detail `[MEMO]` 前缀+hits/misses 计数，ERROR 不缓存；加法方法
   无新顶层类型）
 
+- ExperimentBucketer 到期族（709——GrowthBook feature expiry：构造器扩
+  `expiresAt`+`Clock`，assign() 过期按未入组返回 null+`__expired__` 独立
+  桶+每实验一次 WARN，`expiredExperiments()`/`expiresAt(name)` 读数；
+  加法方法无新顶层类型）
+
