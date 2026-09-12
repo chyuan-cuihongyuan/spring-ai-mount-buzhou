@@ -60,6 +60,8 @@ public final class ModelCircuitBreaker {
     private final java.time.Clock clock;
     /** spec 57 / T255：共享熔断闸后端（null = 进程语义零变化）。 */
     private final io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend shared;
+    /** spec 702 / T1004：进程级变迁读数（恒开旁路——跳闸低频，有界内存可忽略）。 */
+    private final CircuitTransitionJournal journal = new CircuitTransitionJournal();
     private final ConcurrentHashMap<String, ModelCircuit> circuits = new ConcurrentHashMap<>();
 
     public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats) {
@@ -180,6 +182,11 @@ public final class ModelCircuitBreaker {
     /** 探测/观测用：当前状态（未见过该模型 = CLOSED）。 */
     public CircuitState state(String modelName) {
         return circuit(modelName).snapshotState();
+    }
+
+    /** spec 702 / T1004：进程级变迁读数（环形留痕+聚合，与会话事件通道旁路并行）。 */
+    public CircuitTransitionJournal transitionJournal() {
+        return journal;
     }
 
     private ModelCircuit circuit(String modelName) {
@@ -374,6 +381,12 @@ public final class ModelCircuitBreaker {
                     payload.put("openDurationMs", effectiveCooldownMs);
                 }
                 emitter.accept(new SessionEvent(EVENT_STATE_CHANGED, payload, Instant.now(clock)));
+            }
+            // spec 702 / T1004：进程级变迁留痕（旁路镜像——会话通道语义不变）
+            if (from != to) {
+                journal.record(modelName, from.name(), to.name(), System.currentTimeMillis(),
+                        to == CircuitState.OPEN ? consecutiveTrips : -1,
+                        to == CircuitState.OPEN ? effectiveCooldownMs : -1L);
             }
         }
 

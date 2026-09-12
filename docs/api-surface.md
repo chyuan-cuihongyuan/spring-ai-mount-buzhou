@@ -1852,3 +1852,8 @@
   `maxWeightChars()`/`totalWeightChars()`/`weightEvictionCount()` 读数+
   estimateChars 估算口径；evictedCount 口径不混；加法方法无新顶层类型）
 
+- `CircuitTransitionJournal`（嵌套 `Transition`/`Report`）（702——
+  Resilience4j EventConsumer 思想：进程级变迁环形留痕容量 64+dropped、
+  per-model trips/recoveries/halfOpens 聚合；内嵌 ModelCircuitBreaker
+  恒开旁路，`transitionJournal()` getter 暴露）
+
