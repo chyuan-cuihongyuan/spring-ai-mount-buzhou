@@ -306,6 +306,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionDrainCoordin
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportChecksum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeatureStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook

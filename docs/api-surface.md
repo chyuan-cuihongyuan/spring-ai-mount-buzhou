@@ -1827,3 +1827,6 @@
 - `SkillBodyAudit`（嵌套 `Report`/`SkillRow`）（546——110 目录预算
   per-skill 深化：正文字符规模降序+预算超限标记+聚合统计，纯函数读数）
 
+- `SessionExportChecksum`（547——S3 checksum 明文通道对偶：导出 JSON
+  sha256 校验和+verify fail-closed，防衰变/误写不防蓄意同改（归 510））
+
