@@ -33,17 +33,30 @@ public final class HookTimingAggregator {
         return Map.copyOf(out);
     }
 
-    /** 与 HookChain.Timing 同构（无锁累计 + CAS max）。 */
+    /**
+     * spec 708 / T967：滚动窗 max 快照（hook 名 → 纳秒；窗口内无样本 = 0——
+     * 生命周期 max 永不衰减的误导面修正：「现在还慢不慢」可答）。不可变。
+     */
+    public Map<String, Long> windowedMax() {
+        Map<String, Long> out = new LinkedHashMap<>();
+        timings.forEach((name, t) -> out.put(name, t.windowedMax.max()));
+        return Map.copyOf(out);
+    }
+
+    /** 与 HookChain.Timing 同构（无锁累计 + CAS max + 滚动窗 max）。 */
     private static final class Timing {
         final LongAdder count = new LongAdder();
         final LongAdder totalNanos = new LongAdder();
+        final io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter windowedMax =
+                new io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter();
         volatile long maxNanos;
 
         void record(long nanos) {
             count.increment();
             totalNanos.add(nanos);
-            long currentMax;
+            windowedMax.record(nanos);
             long observed = maxNanos;
+            long currentMax;
             do {
                 currentMax = observed;
                 if (nanos <= currentMax) {
