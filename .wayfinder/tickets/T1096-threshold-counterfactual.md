@@ -1,6 +1,6 @@
 ---
-id: T1094
-title: 相似度阈值反事实对照的裁决（复用编号——746 票号迁移注记）
+id: T1096
+title: 相似度阈值反事实对照的裁决
 type: task
 status: closed
 assignee: zcode-g

@@ -1,6 +1,6 @@
 ---
-id: T1095
-title: 相似度阈值反事实对照验证（复用编号注记同 T1094）
+id: T1097
+title: 相似度阈值反事实对照验证
 type: task
 status: closed
 assignee: zcode-g
