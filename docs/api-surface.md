@@ -1930,3 +1930,7 @@
   x-ratelimit 头思想：parse(HttpHeaders) 解析余量/上限/reset+utilization
   +三级压力分级；全 null-safe fail-safe 无头 empty；纯静态解析原语）
 
+- `ChunkingEmbeddingModel`（721——OpenAI embeddings 批量上限思想：
+  call 按 maxBatchSize 切块顺序调 delegate+全局 index 重排拼接，≤max
+  直通；default embed 方法经 call 自动受益）
+

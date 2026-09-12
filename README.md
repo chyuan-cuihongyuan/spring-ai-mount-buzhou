@@ -488,6 +488,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 记忆治理 | 共享事实冲突审计 | FactConflictAudit 按键分组判 CONFLICT/DUPLICATE+entries 证据全列——导出/合并/多实例聚合的「精神分裂」可见（mem0 治理） | [spec 717](docs/spec/717-fact-conflict-audit.md) |
 | 评估闭环 | 评估通过率漂移基线 | setDriftBaseline(window,warnShift) opt-in——同数据集近 N 次 passRate 均值基线、|Δ|超线 WARN+计数+lastDriftDelta 读数；防自污染只取早于本次（Evidently drift） | [spec 718](docs/spec/718-eval-drift-baseline.md) |
 | 模型韧性 | 供应商限流头前瞻读数 | ProviderRateLimitSignals 解析 x-ratelimit 余量/reset+utilization+三级压力分级——429 之前的拥挤信号（OpenAI 头约定） | [spec 719](docs/spec/719-provider-ratelimit-signals.md) |
+| 缓存与前缀 | 嵌入超限分批装饰器 | ChunkingEmbeddingModel 按 maxBatchSize 切块顺序调 delegate+全局 index 重排——批量嵌入超供应商 cap 不再 400（OpenAI embeddings 批限） | [spec 721](docs/spec/721-chunking-embedding-model.md) |
 
 ## 快速开始
 
