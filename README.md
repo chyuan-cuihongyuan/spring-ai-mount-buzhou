@@ -375,6 +375,7 @@ E 会话（effort #500+ 号段）增量（每项默认零行为变化或 opt-in�
 | 成本预算 | 成本异常尖峰检测 | 滚动基线 z-score（当前分钟桶 vs 前 N 桶均/标差）+绝对地板+minSamples+cooldown 防抖——费率在预算内但相对自身基线突刺可见（与 403 forecast 互补：趋势 vs 突刺，Prometheus/Istio） | [spec 508](docs/spec/508-cost-spike.md) |
 | 观测治理 | 时延 SLO 燃尽 | 「99% 轮次 < N s」坏事件=latency>阈值喂 321 ErrorBudget（burn/breaching/topBreaching 语义全继承）——「错误率正常但变慢了」的隐蔽退化用 SRE 语言可见可告警（Google SRE） | [spec 509](docs/spec/509-latency-slo.md) |
 | 持久化 | store fsck 定时巡检 | StoreFsck 只读对账定时化（选主门 elector 缺席=无门单实例）——findings WARN+计数不自动修复，衰变在 restore 前可见（341 选主扩散第三弹） | [spec 538](docs/spec/538-fsck-housekeeper.md) |
+| 技能治理 | 技能正文规模审计 | 逐技能正文字符规模降序+预算超限标记+聚合统计——load_skill 载荷膨胀的静态审计面（110 目录预算 per-skill 深化），纯读数不拦截 | [spec 546](docs/spec/546-skill-body-audit.md) |
 | Spill 治理 | spill 回读审计 | readRange 回读有界样本窗（uri/字节/完整性告警）+per-uri 计数降序+累计读数——热点证据与落盘衰变的排障读数面（60/67 导出族同构） | [spec 539](docs/spec/539-spill-read-audit.md) |
 | 安全 | 会话导出加密 | seal/open 密文容器（版本标记头+333 EnvelopeCipher AES-GCM，AAD 用途域绑定防跨域剪贴）——敏感会话导出文件落盘/传输不泄露，错钥/篡改 DATA_CORRUPTION 带修法（age/OCI 加密 artifact） | [spec 510](docs/spec/510-encrypted-session-export.md) |
 | 持久化 | 归档冷存完整性校验 | 写时 sha256 校验和随条目落盘（独立命名空间零污染）+verify 五态随时验（MISMATCH/存量 NO_CHECKSUM/CORRUPT 分列不冒充）——可读≠未被改，衰变/误写 restore 前发现（S3 checksum） | [spec 511](docs/spec/511-archive-integrity.md) |

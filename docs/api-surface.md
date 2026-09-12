@@ -1822,3 +1822,8 @@
   快照可移植 JSON（版本史+labels），导入空注册表按旧版本序重放，
   非空 fail-fast）
 
+**buzhou-skills**
+
+- `SkillBodyAudit`（嵌套 `Report`/`SkillRow`）（546——110 目录预算
+  per-skill 深化：正文字符规模降序+预算超限标记+聚合统计，纯函数读数）
+

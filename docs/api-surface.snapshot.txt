@@ -619,6 +619,7 @@ buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.LoadSkillTool
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SemanticSkillRanker
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SessionBindingIndex
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.Skill
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillBodyAudit
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillCatalogRendererImpl
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillMetadata
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillModule

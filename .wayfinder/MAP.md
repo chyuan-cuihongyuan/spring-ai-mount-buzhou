@@ -313,6 +313,7 @@
 | #543 | span 状态分布读数 | [maps/effort-543.md](maps/effort-543.md) | T841–842 | 445 |
 | #544 | 评估 run 项耗时分布 | [maps/effort-544.md](maps/effort-544.md) | T843–844 | 446 |
 | #545 | 注册表快照导出/导入 | [maps/effort-545.md](maps/effort-545.md) | T847–848 | 447 |
+| #546 | 技能正文规模审计 | [maps/effort-546.md](maps/effort-546.md) | T851–852 | 448 |
 | #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
 | #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |
