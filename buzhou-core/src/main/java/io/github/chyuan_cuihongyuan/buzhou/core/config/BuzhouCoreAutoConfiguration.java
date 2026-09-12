@@ -1248,6 +1248,15 @@ public class BuzhouCoreAutoConfiguration {
         if (maxPayloadChars != null && maxPayloadChars > 0) {
             forwarder.setOutboxMaxPayloadChars(maxPayloadChars);
         }
+        // spec 728 / T1007：投递限速（buzhou.webhook.rate-limit-per-second>0 声明即启用；
+        // burst 缺省 = ceil(rate)；envoy local rate limit 思想）
+        Double ratePerSecond = env.getProperty("buzhou.webhook.rate-limit-per-second", Double.class);
+        if (ratePerSecond != null && ratePerSecond > 0) {
+            Integer burst = env.getProperty("buzhou.webhook.rate-limit-burst", Integer.class,
+                    (int) Math.ceil(ratePerSecond));
+            forwarder.setRateLimiter(new io.github.chyuan_cuihongyuan.buzhou.core.webhook
+                    .WebhookRateLimiter(burst, ratePerSecond, System::currentTimeMillis));
+        }
         return forwarder;
     }
 

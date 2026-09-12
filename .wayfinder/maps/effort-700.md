@@ -57,6 +57,7 @@
 | 26 | 路由慢启动 yml 装配 | D 会话装配轮模式 | T1001–T1002 | 528 | 725 | ✅ |
 | 27 | 归档 PDB yml 装配（capped probe 计数） | D 会话装配轮模式 | T1003–T1004 | 529 | 726 | ✅ |
 | 28 | 秘密熵过滤 Builder 装配 | D 会话装配轮模式 | T1005–T1006 | 530 | 727 | ✅ |
+| 29 | webhook 限速 yml 装配 | D 会话装配轮模式 | T1007–T1008 | 531 | 728 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |

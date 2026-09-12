@@ -499,6 +499,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | 路由慢启动 yml 装配 | buzhou.routing.slow-start 属性 + 条件 bean + 热重载 ObjectProvider 接线——权重上调爬坡声明即启用（spec 702 装配轮） | [spec 725](docs/spec/725-slow-start-assembly.md) |
 | 观测与运维 | 归档 PDB yml 装配 | buzhou.cleanup.min-available-sessions 属性 + capped probe 计数（limit=min+1 一页即答「>min 否」）——spec 704 声明式入口 | [spec 726](docs/spec/726-pdb-assembly.md) |
 | Guard 护栏 | 秘密熵过滤 Builder 装配 | GuardModule.Builder.secretMinEntropy 直通 SecretScanner——声明即滤示例键/占位串（spec 714 装配轮） | [spec 727](docs/spec/727-secret-entropy-assembly.md) |
+| 观测与运维 | webhook 限速 yml 装配 | buzhou.webhook.rate-limit-per-second/burst 属性直通 setRateLimiter——声明即节流投递（spec 718 装配轮） | [spec 728](docs/spec/728-webhook-ratelimit-assembly.md) |
 
 ## 快速开始
 
