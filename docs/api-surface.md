@@ -1995,6 +1995,9 @@
   analyze(SessionExport) 按段字符归因 messages/summary/state/ext:*+占比
   守恒；纯函数读数）
 
+- `EventTypePresenceGate`（嵌套 `Report`）（739——726 对偶：gate(events,
+  expectedTypes) 期望类型差集 missing 字典序；空契约不误报；纯函数）
+
 - EvalRunner `lastFingerprintChanged`（734——82 指纹消费信号：当前 vs 最近
   历史 run 指纹不同置位+计数+INFO；diff 明细归 EvalRunDiff；加法方法
   无新顶层类型）

@@ -505,6 +505,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 观测治理 | 事件配对完整性审计 | EventPairingAudit——请求/应答型事件 spanId 内配对，悬空请求/孤儿应答（中断崩溃/审批悬空）证据化（规则表泛化） | [spec 735](docs/spec/735-event-pairing-audit.md) |
 | 观测治理 | span 父链完整性审计 | SpanParentIntegrityAudit——悬空 parentSpanId（父被逐出/未落库）发现+根计数，trace 树断裂可见（OTel 树语义） | [spec 736](docs/spec/736-span-parent-integrity.md) |
 | 持久化 | 导出体积去向审计 | SessionExportSizeAudit——消息/摘要/状态/扩展段字符归因+占比守恒，「导出为什么大」有数（成本归因） | [spec 738](docs/spec/738-session-export-size-audit.md) |
+| 观测治理 | 事件静默缺失门 | EventTypePresenceGate.gate——期望类型集与观测集差集，「该发生而没发生」的流程断链前向信号（726 对偶） | [spec 739](docs/spec/739-event-presence-gate.md) |
 | MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 
 ## 快速开始
