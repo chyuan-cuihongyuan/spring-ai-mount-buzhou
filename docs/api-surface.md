@@ -2002,6 +2002,10 @@
   （740——719 信号聚合接线：NaN 起始+details 条件出现；加法方法无新
   顶层类型）
 
+- `SharedFactFootprint`（嵌套 `Row`/`Report`）（741——410 事实库 owner
+  治理：analyze(List<SharedFact>) owner 维度 facts/eternal 降序归因；
+  值不读取隐私口径；纯函数）
+
 - EvalRunner `lastFingerprintChanged`（734——82 指纹消费信号：当前 vs 最近
   历史 run 指纹不同置位+计数+INFO；diff 明细归 EvalRunDiff；加法方法
   无新顶层类型）
