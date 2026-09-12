@@ -1917,3 +1917,7 @@
   analyze 轮次年龄+滞留清单降序+promptHint 一行人话；staleAfterTurns≤0
   只报统计；纯读数不自动清理）
 
+- `FactConflictAudit`（嵌套 `Kind`/`Row`/`Report`）（717——mem0 冲突治理
+  思想：audit(List<SharedFact>) 按键分组判 CONFLICT/DUPLICATE，entries
+  证据全列；Objects.equals 保守口径；纯函数快照审计）
+
