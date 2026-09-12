@@ -476,6 +476,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 持久化 | Redis 键命名空间碰撞审计 | RedisKeyLayoutAudit 结构性对抗模拟——spev/event 保留段与 lease 冒号后缀三族潜伏碰撞证据+reservedSegments 读数+isSafeSessionId 摄入守卫（fsck 思想+E R12 教训制度化） | [spec 705](docs/spec/705-redis-key-layout-audit.md) |
 | MCP 治理 | 工具目录差异报告 | McpDirectoryDiff 两快照 plan 式 diff——per-server 四态+增/删/翻转明细+危险方向翻转 risky 标记（readOnly→false/destructive→true）（ArgoCD diff） | [spec 706](docs/spec/706-mcp-directory-diff.md) |
 | Spill 治理 | spill 双文件配对巡检 | SpillPairAudit 只读扫 .spill/.meta 配对残缺（双写崩溃窗口）——孤 data 带字节量、配额吞噬可见；三层完整性矩阵中层（Git fsck） | [spec 707](docs/spec/707-spill-pair-audit.md) |
+| 评估闭环 | 评估项结果记忆化 | setMemoizationKey opt-in——sig(数据+judge 身份)未变复用上轮判定跳过模型调用，detail `[MEMO]` 留痕+hits/misses 计数；ERROR 不缓存（scikit-learn Pipeline memory） | [spec 708](docs/spec/708-eval-item-memoization.md) |
 
 ## 快速开始
 

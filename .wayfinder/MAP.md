@@ -331,6 +331,7 @@
 | #705 | Redis 键命名空间碰撞审计 | [maps/effort-705.md](maps/effort-705.md) | T1010–1011 | 605 |
 | #706 | MCP 工具目录差异报告 | [maps/effort-706.md](maps/effort-706.md) | T1012–1013 | 606 |
 | #707 | spill 双文件配对完整性巡检 | [maps/effort-707.md](maps/effort-707.md) | T1014–1015 | 607 |
+| #708 | 评估项结果记忆化 | [maps/effort-708.md](maps/effort-708.md) | T1016–1017 | 608 |
 
 ## 跨 effort 悬留
 

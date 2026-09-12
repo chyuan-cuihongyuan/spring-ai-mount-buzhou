@@ -29,6 +29,11 @@ public final class EvalRunner {
     /** run 记录键前缀（与数据集键同合成会话、不同前缀段）。 */
     static final String RUN_PREFIX = "eval.run.";
 
+    /** spec 708：memo 键前缀（同合成会话、run/数据集前缀段外独立）。 */
+    static final String MEMO_PREFIX = "eval.memo.";
+
+    private static final System.Logger LOGGER = System.getLogger(EvalRunner.class.getName());
+
     static final int ACTUAL_PREVIEW_LIMIT = 2048;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -49,6 +54,9 @@ public final class EvalRunner {
     private volatile boolean expectationsWarnOnly;
     /** spec 609 / T868：项级超时预算（null = 不设——零行为变化；挂死项收敛 error 不拖死整跑）。 */
     private volatile java.time.Duration perItemTimeout;
+
+    /** spec 708 / T1016：项级记忆化键（null/blank = 关——默认零行为；判定身份指纹由调用方拼装）。 */
+    private volatile String memoizationKey;
 
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
@@ -89,6 +97,18 @@ public final class EvalRunner {
             throw new IllegalArgumentException("perItemTimeout 必须为正时长（当前 " + timeout + "）");
         }
         this.perItemTimeout = timeout;
+    }
+
+    /**
+     * spec 708 / T1016（scikit-learn Pipeline memory 借鉴）：项级记忆化——
+     * sig = sha256(dataset|itemId|input|expected|key) 与上轮一致即复用判定
+     * 跳过模型调用（detail 加 [MEMO] 前缀）；数据集就地改项自动失配。
+     * key 是判定身份指纹（judge 实现+模型+模板版本由调用方拼装），换 key =
+     * 全量重跑。null/blank = 关（默认零行为）。ERROR 项不缓存（瞬时故障
+     * 不固化）；memo 读写失败降级直跑（优化不是依赖）。
+     */
+    public void setMemoizationKey(String key) {
+        this.memoizationKey = key == null || key.isBlank() ? null : key;
     }
 
     /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
@@ -151,7 +171,7 @@ public final class EvalRunner {
             results = new ArrayList<>();
             for (EvalItem item : items) {
                 results.add(budgetedItem(spent, item,
-                        () -> runItemWithRetry(runId, item, evaluator)));
+                        () -> memoizedItem(runId, datasetName, item, evaluator)));
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
@@ -161,7 +181,7 @@ public final class EvalRunner {
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
                     byIndex[index] = budgetedItem(spent, item,
-                            () -> runItemWithRetry(runId, item, evaluator));
+                            () -> memoizedItem(runId, datasetName, item, evaluator));
                     return null;
                 });
             }
@@ -210,6 +230,76 @@ public final class EvalRunner {
                 .counter("buzhou.eval.error-retried");
         return new EvalRunItemResult(item.id(), second.status(),
                 "[RETRIED] " + second.detail(), second.actualPreview(), second.durationMs());
+    }
+
+    /**
+     * spec 708 / T1016：项级记忆化包装——命中即复用上轮三态结果（跳过模型
+     * 调用与 judge），miss/失配照常执行后回写；ERROR 不缓存；读写失败降级
+     * 直跑（WARN 一次——优化不是依赖）。包装在 retry 外层：命中零重试语义。
+     */
+    private EvalRunItemResult memoizedItem(String runId, String datasetName,
+            EvalItem item, Evaluator evaluator) {
+        String key = memoizationKey;
+        if (key == null) {
+            return runItemWithRetry(runId, item, evaluator);
+        }
+        String memoKey = MEMO_PREFIX + datasetName + "." + item.id();
+        String sig = memoSig(datasetName, item, key);
+        try {
+            var existing = stateStore.get(EvalDatasetStore.SESSION_ID, memoKey);
+            if (existing.isPresent()) {
+                Map<String, Object> memo = decodeMap(existing.get().value());
+                if (sig.equals(memo.get("sig"))) {
+                    io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                            .counter("buzhou.eval.memo.hits");
+                    return new EvalRunItemResult(item.id(), (String) memo.get("status"),
+                            "[MEMO] " + memo.get("detail"),
+                            (String) memo.get("actual"),
+                            memo.get("durationMs") == null ? 0L
+                                    : ((Number) memo.get("durationMs")).longValue());
+                }
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "memo 读取失败（降级直跑）：" + String.valueOf(e.getMessage()));
+        }
+        EvalRunItemResult result = runItemWithRetry(runId, item, evaluator);
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.eval.memo.misses");
+        if (!EvalRunItemResult.STATUS_ERROR.equals(result.status())) {
+            try {
+                Map<String, Object> memo = new LinkedHashMap<>();
+                memo.put("sig", sig);
+                memo.put("status", result.status());
+                memo.put("detail", result.detail());
+                memo.put("actual", result.actualPreview());
+                memo.put("durationMs", result.durationMs());
+                stateStore.put(EvalDatasetStore.SESSION_ID,
+                        new StateEntry(memoKey, encode(memo), "eval", 0, null, Instant.now()));
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "memo 回写失败（忽略——优化不是依赖）：" + String.valueOf(e.getMessage()));
+            }
+        }
+        return result;
+    }
+
+    /** 记忆化签名（sha256 hex——数据/判定身份任一变化即失配）。 */
+    private static String memoSig(String datasetName, EvalItem item, String key) {
+        String material = datasetName + "|" + item.id() + "|"
+                + (item.input() == null ? "" : item.input()) + "|"
+                + (item.expected() == null ? "" : item.expected()) + "|" + key;
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(material.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 不可用", e);
+        }
     }
 
     /**

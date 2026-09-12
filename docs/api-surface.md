@@ -1879,3 +1879,8 @@
   audit(rootDir) 只读扫 .spill/.meta 配对残缺（DATA_WITHOUT_META 带字节/
   META_WITHOUT_DATA），双写崩溃窗口的配额吞噬证据；三层完整性矩阵中层）
 
+- EvalRunner `setMemoizationKey`（708——scikit-learn Pipeline memory 思想：
+  项级结果记忆化 opt-in，sig=sha256(dataset|itemId|input|expected|key)，
+  命中 detail `[MEMO]` 前缀+hits/misses 计数，ERROR 不缓存；加法方法
+  无新顶层类型）
+
