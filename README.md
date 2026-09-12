@@ -480,6 +480,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | API 快照 diff 破坏性分级 | SnapshotDiff 分类器（removed=破坏性前置审查 / added=非破坏 regenerate）——门语义不变，失败信息分级带处置指引（oasdiff 借鉴） | [spec 706](docs/spec/706-api-snapshot-diff-grading.md) |
 | 工程门禁 | 模块边界守卫 + internal 存量清零 | ModuleBoundaryGuardTest 源码级双规则守卫（internal 跨模块禁引 / feature 互依禁引，自举归属零依赖）——8 处存量违规清零、6 类迁出 internal（ArchUnit 思想自写） | [spec 707](docs/spec/707-module-boundary-guard.md) |
 | Hook 护栏 | HookTiming 滚动 max 读面 | RollingMaxCounter 时间桶滚动 max（8×10s 默认窗 + 时钟注入）+ hook-timing 健康行 rollingMaxMicros——修好慢 hook 后「现在还慢不慢」可答（micrometer max decay 借鉴） | [spec 708](docs/spec/708-rolling-max.md) |
+| Guard 护栏 | 角色权限拒绝有界日志 | ToolDenialLog（128 条环形明细 + 64 键 (role,tool) 聚合 + unauthorized/undefined-role 分流）——谁在反复试哪些无权工具一查便知（Redis ACL LOG 借鉴） | [spec 709](docs/spec/709-tool-denial-log.md) |
 
 ## 快速开始
 
