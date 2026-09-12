@@ -114,8 +114,16 @@ public final class RollingJsonlWriter implements AutoCloseable {
             return 0;
         }
         shiftGenerations(path, maxHistory);
+        // spec 648：静态轮转路径同发指标（与长驻 rotate() 同口径）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter(METRIC_ROTATED, "file", path.getFileName().toString());
         return 1;
     }
+
+    /** 轮转成功指标名（spec 648——BuzhouMetricsHolder 全局面；tag file=目标文件名）。 */
+    public static final String METRIC_ROTATED = "buzhou.jsonl.rotated";
+    /** 轮转失败指标名（spec 648——best-effort 降级的运行病灶信号）。 */
+    public static final String METRIC_ROTATE_FAILED = "buzhou.jsonl.rotate-failed";
 
     private void rotate() throws IOException {
         try {
@@ -125,8 +133,12 @@ public final class RollingJsonlWriter implements AutoCloseable {
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             bytesWritten = 0L;
             rotations.incrementAndGet();
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter(METRIC_ROTATED, "file", path.getFileName().toString());
         } catch (IOException rotateFailed) {
             rotationFailures.incrementAndGet();
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter(METRIC_ROTATE_FAILED, "file", path.getFileName().toString());
             // best-effort：重开原文件继续写（轮转失败不放大——旁路语义）
             writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);

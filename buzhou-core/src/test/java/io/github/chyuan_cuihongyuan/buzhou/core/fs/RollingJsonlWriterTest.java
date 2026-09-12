@@ -99,4 +99,48 @@ class RollingJsonlWriterTest {
         assertThat(Files.readString(file("snap.jsonl.1"))).isEqualTo("{\"n\":1}\n");
         assertThat(f).doesNotExist();
     }
+
+    /**
+     * spec 648 / T946–T947：轮转事件指标化——rotated 计数与轮转次数一致
+     * （tag file 命中）；长驻与静态路径同发。
+     */
+    @Test
+    void rotationEmitsMetrics() throws IOException {
+        java.util.List<String> counters = new java.util.concurrent.CopyOnWriteArrayList<>();
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.install(
+                new io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics() {
+                    @Override
+                    public void counter(String name, String... tagKeyValue) {
+                        counters.add(name + "|" + String.join("=", tagKeyValue));
+                    }
+
+                    @Override
+                    public void counter(String name, long delta, String... tagKeyValue) {
+                        counters.add(name + "|" + String.join("=", tagKeyValue));
+                    }
+
+                    @Override
+                    public void timer(String name, java.time.Duration duration, String... tagKeyValue) {
+                        // 本用例只断言 counter 面
+                    }
+                });
+        try {
+            Path f = file("metrics.jsonl");
+            try (RollingJsonlWriter w = new RollingJsonlWriter(f, 20, 3)) {
+                for (int i = 1; i <= 6; i++) {
+                    w.appendLine("{\"n\":" + i + "}");
+                }
+            }
+            Path snap = file("snap-m.jsonl");
+            Files.writeString(snap, "{\"n\":1}\n");
+            RollingJsonlWriter.rotateIfNeeded(snap, 500, 100, 3);
+
+            assertThat(counters.stream()
+                    .filter(c -> c.startsWith(RollingJsonlWriter.METRIC_ROTATED + "|file=metrics.jsonl"))
+                    .count()).isEqualTo(2); // 6 行 20B 阈值 → 两次长驻轮转
+            assertThat(counters).contains(RollingJsonlWriter.METRIC_ROTATED + "|file=snap-m.jsonl");
+        } finally {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.reset();
+        }
+    }
 }
