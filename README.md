@@ -513,6 +513,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | 限速×死信路径隔离补验 | defer 零状态机扰动/令牌恢复全路径可达/重放不绕闸——spec 718/24 补验 | [spec 739](docs/spec/739-ratelimit-deadletter.md) |
 | 会话治理 | 谱系游走导入场景深链补验 | 100 节点链+尾部环——默认深度截断不 OOM、显式深度走至环处 loopDetected（spec 711 补验） | [spec 740](docs/spec/740-lineage-import-e2e.md) |
 | 观测与运维 | 静默标记×健康段联动补验 | mute 自动传导至健康段 top 排除、snapshot 原样、unmute 回归——spec 720/85 联动闭环 | [spec 742](docs/spec/742-mute-health-e2e.md) |
+| Guard 护栏 | 假名化×幂等占位符互操作补验 | 假名化输出二次处理幂等（替身不再匹配→原样）+ 跨模式无双重脱敏——spec 713/731 补验 | [spec 741](docs/spec/741-pseudonymize-idempotency.md) |
 
 ## 快速开始
 
