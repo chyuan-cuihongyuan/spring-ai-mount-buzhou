@@ -66,10 +66,18 @@ public final class SessionArchiver {
 
     private final BuzhouStores stores;
     private final SessionCleaner cleaner;
+    private final SessionAvailabilityFloor availabilityFloor;
 
     public SessionArchiver(BuzhouStores stores, SessionCleaner cleaner) {
+        this(stores, cleaner, null);
+    }
+
+    /** spec 704 / T959：+availabilityFloor（null = 不设闸——默认零行为变化）。 */
+    public SessionArchiver(BuzhouStores stores, SessionCleaner cleaner,
+                           SessionAvailabilityFloor availabilityFloor) {
         this.stores = stores;
         this.cleaner = cleaner;
+        this.availabilityFloor = availabilityFloor;
     }
 
     /** spec 622 / T894：每会话归档/还原互斥锁（跨会话并行；条目级对象锁——会话数级）。 */
@@ -90,6 +98,13 @@ public final class SessionArchiver {
      * 人工介入重试）。
      */
     public boolean archive(String sessionId) {
+        // spec 704 / T959：PDB 闸——水位不足拒绝自愿驱逐（k8s evict 429 同义）；
+        // 计数未知 fail-open（SessionAvailabilityFloor 语义），restore/purge 不受闸
+        if (availabilityFloor != null && !availabilityFloor.allowsArchive()) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.archive.pdb-rejected");
+            return false;
+        }
         // spec 622 / T894：同会话 archive/restore 互斥——并发 archive+restore 交错会把
         // 刚还原的活数据删掉而归档键已被 restore 删除（数据丢失窗）；跨会话不受影响
         synchronized (lockOf(sessionId)) {

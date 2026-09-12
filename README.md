@@ -471,6 +471,55 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | Hook 护栏 | hook 计时进程级聚合读面 | HookTimingAggregator（Holder 装配开启）+ hook-timing 健康段（per-hook count/total/max/avg 微秒）——全进程内联预算分布一屏可读 | [spec 647](docs/spec/647-hook-timing-aggregate-health.md) |
 | 观测与运维 | JSONL 轮转事件指标化 | `buzhou.jsonl.rotated` / `rotate-failed`（tag file）——磁盘保护在工作/轮转病灶一数可读（spec 642 补全） | [spec 648](docs/spec/648-jsonl-rotate-metrics.md) |
 | 工程门禁 | F 会话 600 系收口 | 50 轮自迭代闭环：spec 600–649 / 票 T851–T950 / impl 453–502 全档 + 全仓 verify 终验绿 | [spec 649](docs/spec/649-session-f-closing.md) |
+| 观测与运维 | 工具执行 per-tool 耗时聚合读面 | ToolTimingAggregator（Holder 装配开启）+ tool-timing 健康段（per-tool count/total/max/avg 微秒 + failed）——哪个工具吃掉工具耗时预算一屏可读（pg_stat_statements 借鉴） | [spec 700](docs/spec/700-tool-timing-aggregate.md) |
+| 观测与运维 | 缓存 stale-while-revalidate | 跨轮工具缓存 swrGrace opt-in：过期后 grace 窗同步回 stale + 虚拟线程后台单飞刷新（失败保旧值）——TTL 边界调用延迟归零（nginx proxy_cache_use_stale 借鉴） | [spec 701](docs/spec/701-cache-stale-while-revalidate.md) |
+| 模型韧性 | 路由慢启动权重爬坡 | RoutingSlowStart：权重上调先落 floor 再分 4 步爬到 target（热重载接线 opt-in、降权瞬时）——升配不瞬时打爆恢复端点（nginx upstream slow_start 借鉴） | [spec 702](docs/spec/702-routing-slow-start.md) |
+| MCP 治理 | MCP keepalive 空闲探活 | 注册表周期 listToolNames 探活（opt-in），失败重建走 spec-changed 同口径——空闲死连接不再拖到用户 Turn 才暴露（gRPC keepalive 借鉴） | [spec 703](docs/spec/703-mcp-keepalive.md) |
+| 观测与运维 | 最小可用水位闸（归档 PDB） | SessionAvailabilityFloor 挂 archive()：存活会话 ≤ minAvailable 拒绝自愿驱逐（未知计数 fail-open、restore 不受闸）——故障期运维动作不再削薄在线容量（k8s PodDisruptionBudget 借鉴） | [spec 704](docs/spec/704-session-availability-floor.md) |
+| 工程门禁 | store SPI 契约校验套件 | SessionStateStoreContract.verify 九项语义契约（CAS 消费一次/null-expect 首写/前缀扫描/幂等清场）+ Report 逐项明细——第三方 store 实现一行自证（Pact 借鉴） | [spec 705](docs/spec/705-store-contract.md) |
+| 工程门禁 | API 快照 diff 破坏性分级 | SnapshotDiff 分类器（removed=破坏性前置审查 / added=非破坏 regenerate）——门语义不变，失败信息分级带处置指引（oasdiff 借鉴） | [spec 706](docs/spec/706-api-snapshot-diff-grading.md) |
+| 工程门禁 | 模块边界守卫 + internal 存量清零 | ModuleBoundaryGuardTest 源码级双规则守卫（internal 跨模块禁引 / feature 互依禁引，自举归属零依赖）——8 处存量违规清零、6 类迁出 internal（ArchUnit 思想自写） | [spec 707](docs/spec/707-module-boundary-guard.md) |
+| Hook 护栏 | HookTiming 滚动 max 读面 | RollingMaxCounter 时间桶滚动 max（8×10s 默认窗 + 时钟注入）+ hook-timing 健康行 rollingMaxMicros——修好慢 hook 后「现在还慢不慢」可答（micrometer max decay 借鉴） | [spec 708](docs/spec/708-rolling-max.md) |
+| Guard 护栏 | 角色权限拒绝有界日志 | ToolDenialLog（128 条环形明细 + 64 键 (role,tool) 聚合 + unauthorized/undefined-role 分流）——谁在反复试哪些无权工具一查便知（Redis ACL LOG 借鉴） | [spec 709](docs/spec/709-tool-denial-log.md) |
+| 会话治理 | 会话导出 unchanged 协商 | contentFingerprint（内容投影剔除 exportedAt，sha256-c: 前缀）+ exportIfChanged（UNCHANGED 不外发 payload，fail-open）——周期同步方免收全量（HTTP ETag 借鉴） | [spec 710](docs/spec/710-export-conditional.md) |
+| 会话治理 | fork 谱系游走环防护 | ForkLineageWalker（SOURCE 链上溯 + visited 环检测 + 深度 64 封顶，只读不修）——导入路径注入环/超深链时消费方不死循环（call-graph 环检测借鉴） | [spec 711](docs/spec/711-fork-lineage-walker.md) |
+| 观测与运维 | JSONL 轮转旧档 gzip 压缩 | RollingJsonlWriter compressFromGeneration opt-in（代际 ≥N 存 .gz、file.1 恒明文 delaycompress、双形态清理）——观测明细 ~10:1 省盘（logrotate compress 借鉴） | [spec 712](docs/spec/712-jsonl-rotate-gzip.md) |
+| Guard 护栏 | PII 格式保持假名化 | PiiDetector.pseudonymize（同长度同形态替身：数字/字母/分隔分层，(seed,type,text) 确定性播种，不可逆零托管）——保形状不保校验位诚实划界（Presidio surrogate 借鉴） | [spec 713](docs/spec/713-pii-pseudonymize.md) |
+| Guard 护栏 | 秘密扫描熵阈值过滤 | SecretScanner 可选 Shannon 熵阈值（默认 4.0 bits/char，PRIVATE_KEY_BLOCK 豁免）——AWS 文档示例键/占位串不再误杀（truffleHog entropy 借鉴） | [spec 714](docs/spec/714-secret-entropy-filter.md) |
+| 工程门禁 | 指标命名规范守卫 | MetricNamingGuardTest 源码级双正则提取（调用点 + METRIC 常量）+ 命名规则断言（点分隔小写段）——316 指标名漂移即红、动态拼接前缀清零（prometheus naming 借鉴） | [spec 715](docs/spec/715-metric-naming-guard.md) |
+| 观测与运维 | 告警规则 dry-run | AlertRuleEngine.dryRun 纯只读推演（wouldFire/wouldRecover/pending 三分类 + 三不承诺：状态机/通知/指标零副作用）——规则上线前验配不实弹（k8s admission dryRun 借鉴） | [spec 716](docs/spec/716-alert-dry-run.md) |
+| 观测与运维 | 工具调用图谱环检测 | ToolGraphAnalyzer.cycles 初等环 DFS 枚举（最小节点锚去重 + MAX_CYCLES=16 有界 + 稳定排序）——模型循环调用模式可见（call-graph 环检测借鉴） | [spec 717](docs/spec/717-graph-cycle-detection.md) |
+| 观测与运维 | webhook 投递限速 | WebhookRateLimiter 令牌桶 + forwarder 可选接线（defer 留 outbox 原状不进重试状态机、整批 defer 早退防热旋）——事件风暴不冲垮下游消费者（envoy local rate limit 借鉴） | [spec 718](docs/spec/718-webhook-rate-limit.md) |
+| 观测与运维 | 生效配置 diff 读面 | ConfigDiff 纯函数（ADDED/REMOVED/CHANGED 三分类 + 字典序 + 掩码同值语义）——热重载/部署改了什么一数可读（kubectl diff 借鉴） | [spec 719](docs/spec/719-config-diff.md) |
+| 观测与运维 | 错误签名静默标记 | ErrorSignatures mute/unmute（MUTED_CAP=64 有界）——top 读面降噪但 snapshot 计数照常（静默是降噪不是删除），reset 连带清空（Sentry muted issues 借鉴） | [spec 720](docs/spec/720-signature-mute.md) |
+| 观测与运维 | 死信重放审计事件 | replayDeadLetters 动作留痕：dead-replayed 指标（delta=条数）+ replayCount/replayedCount 累计 + 结构化审计日志——运维敏感动作必留痕（审计完整性惯例） | [spec 721](docs/spec/721-dead-replay-audit.md) |
+| 观测与运维 | 工具泳道排队时延观测 | LaneLimitingToolCallback acquire 段计时 + WaitStats（waited/total/max/timeouts）+ buzhou.lane.wait/timeout 指标——排队与执行分开计量、容量调参有据（grpc queue 时延借鉴） | [spec 722](docs/spec/722-lane-wait-observability.md) |
+| 模型韧性 | 路由金丝雀阶段标签 | RouteStages（STABLE/CANARY/ARCHIVED 有界注册表）+ filter 构造期过滤（未标注恒可见）——端点生命周期显式声明、退役端点不参路由（MLflow stages 借鉴） | [spec 723](docs/spec/723-route-stages.md) |
+| MCP 治理 | MCP keepalive yml 装配 | Builder.keepalive + fromYml keepalive-interval 键直通注册表 9 参构造——声明即启用探活，缺省零变化（spec 703 装配轮） | [spec 724](docs/spec/724-mcp-keepalive-assembly.md) |
+| 模型韧性 | 路由慢启动 yml 装配 | buzhou.routing.slow-start 属性 + 条件 bean + 热重载 ObjectProvider 接线——权重上调爬坡声明即启用（spec 702 装配轮） | [spec 725](docs/spec/725-slow-start-assembly.md) |
+| 观测与运维 | 归档 PDB yml 装配 | buzhou.cleanup.min-available-sessions 属性 + capped probe 计数（limit=min+1 一页即答「>min 否」）——spec 704 声明式入口 | [spec 726](docs/spec/726-pdb-assembly.md) |
+| Guard 护栏 | 秘密熵过滤 Builder 装配 | GuardModule.Builder.secretMinEntropy 直通 SecretScanner——声明即滤示例键/占位串（spec 714 装配轮） | [spec 727](docs/spec/727-secret-entropy-assembly.md) |
+| 观测与运维 | webhook 限速 yml 装配 | buzhou.webhook.rate-limit-per-second/burst 属性直通 setRateLimiter——声明即节流投递（spec 718 装配轮） | [spec 728](docs/spec/728-webhook-ratelimit-assembly.md) |
+| 观测与运维 | 健康时间线 JSONL 压缩线装配 | export-compress-from 属性直通 RollingJsonlWriter 压缩线——观测明细声明即省盘（spec 712 装配轮） | [spec 729](docs/spec/729-timeline-gzip-assembly.md) |
+| 模型韧性 | 路由阶段标签 yml 装配 | buzhou.routing.stages/visible-stages 双键声明 → 构造期过滤（<2 路 fail-fast）——spec 723 声明式入口 | [spec 730](docs/spec/730-route-stages-assembly.md) |
+| Guard 护栏 | PII 假名化模式装配 | PiiDetector 模式构造（redact 分派 pseudonymize）+ Builder.piiPreserveFormat 直通双缝——同长度替身声明即启用（spec 713 装配轮） | [spec 731](docs/spec/731-pii-mode-assembly.md) |
+| 工程门禁 | 契约套件接入示例（H2） | JdbcSessionStateStore 过 SessionStateStoreContract 九项检查（H2 无 Docker CI 口径）——第三方 store 自证价值主张实证（spec 705 复用面） | [spec 732](docs/spec/732-contract-jdbc-demo.md) |
+| 会话治理 | 导出协商联动补验 | 往返指纹稳定 + 两轮协商周期 + 双校验和幂等——周期同步脚本语义闭环（spec 710 补验） | [spec 733](docs/spec/733-export-negotiation-e2e.md) |
+| 观测与运维 | PDB×空闲压缩联动补验 | sweep 空闲候选×floor 拒绝/放行两态 + 计数一致——候选→闸联动闭环（spec 704/179 补验） | [spec 734](docs/spec/734-pdb-idle-e2e.md) |
+| 模型韧性 | 金丝雀×慢启动×热重载联动补验 | filter→构造→热调升配 ramp→tick 到位编排闭环——archived 不入路由（spec 723/702/340 补验） | [spec 735](docs/spec/735-stages-slowstart-e2e.md) |
+| 观测与运维 | ConfigDiff×快照端点同源补验 | 端点真快照两份对比——掩码语义/diff 稳定闭环（spec 719 补验） | [spec 736](docs/spec/736-config-diff-e2e.md) |
+| 观测与运维 | 工具侧滚动 max 同构扩散 | ToolTimingAggregator windowedMax + 健康行 rollingMaxMicros（RollingMaxCounter 复用）——spec 708 同构扩散 | [spec 738](docs/spec/738-tool-timing-rollingmax.md) |
+| Guard 护栏 | 拒绝日志排序稳定性补验 | topDenials 并列字典序 tie-break（实现缺陷补齐）+ 环形窗口读面零副作用——spec 709 补验 | [spec 737](docs/spec/737-denial-log-stability.md) |
+| 观测与运维 | 限速×死信路径隔离补验 | defer 零状态机扰动/令牌恢复全路径可达/重放不绕闸——spec 718/24 补验 | [spec 739](docs/spec/739-ratelimit-deadletter.md) |
+| 会话治理 | 谱系游走导入场景深链补验 | 100 节点链+尾部环——默认深度截断不 OOM、显式深度走至环处 loopDetected（spec 711 补验） | [spec 740](docs/spec/740-lineage-import-e2e.md) |
+| 观测与运维 | 静默标记×健康段联动补验 | mute 自动传导至健康段 top 排除、snapshot 原样、unmute 回归——spec 720/85 联动闭环 | [spec 742](docs/spec/742-mute-health-e2e.md) |
+| Guard 护栏 | 假名化×幂等占位符互操作补验 | 假名化输出二次处理幂等（替身不再匹配→原样）+ 跨模式无双重脱敏——spec 713/731 补验 | [spec 741](docs/spec/741-pseudonymize-idempotency.md) |
+| 观测与运维 | dryRun×AlertGate 语义确认 | 静默门吞实弹通知但 dryRun 推演如实报告——dry-run=引擎推演/gate=通道策略正交（spec 716 补验） | [spec 746](docs/spec/746-dryrun-gate.md) |
+| 观测与运维 | ToolTimingAggregator 并发压测 | 4000 并发 record 不变量守恒（count/total/max 精确断言）+ 多工具隔离 + windowedMax 同窗一致——热路径组件压测实证（spec 700 补验） | [spec 747](docs/spec/747-tool-timing-concurrency.md) |
+| 工程门禁 | G 会话中点快照再生 | 全量 reactor regenerate——8 新公共类入档零移除零意外（ConfigDiff/RollingMaxCounter/ForkLineageWalker/SessionExportConditional/MessageStoreContract/WebhookRateLimiter/ToolDenialLog/RouteStages）+ api-surface.md 同步 | [spec 748](docs/spec/748-snapshot-regen-g.md) |
+| 工程门禁 | G 会话收口预检（台账核查） | spec 700–748 连续核查（745 缺位本轮填补）/票 96 张全闭环/impl 对账 + SpecCoverage + 快照比对复跑绿 | [spec 745](docs/spec/745-g-session-audit.md) |
+| 工程门禁 | MessageStore SPI 契约校验套件 | MessageStoreContract 四项语义契约（append/load 保序、未知会话空读、多次追加保序、deleteSession 幂等）——spec 705 同构扩散 | [spec 743](docs/spec/743-messagestore-contract.md) |
+| 工程门禁 | MessageStore 契约接入 H2 | JdbcMessageStore 过四项契约（H2 无 Docker CI 口径）——契约抓出探针会话主键冲突设计缺陷并重构为每检查独立会话（spec 743 复用面） | [spec 744](docs/spec/744-messagestore-h2.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 

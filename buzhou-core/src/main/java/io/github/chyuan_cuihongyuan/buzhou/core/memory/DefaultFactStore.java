@@ -1,0 +1,109 @@
+package io.github.chyuan_cuihongyuan.buzhou.core.memory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * 默认 {@link FactStore} 实现：建在 {@link SessionStateStore} 上。
+ *
+ * <p>事实序列化为 JSON 存入 {@link StateEntry#value()}：{@code {"value":..., "producer":..., "createdTurn":..., "ttl":...}}。
+ * key 命名空间 {@code fact.{producer}.{name}}；ttl 轮次过滤 {@code currentTurn - createdTurn < ttl}。
+ *
+ * <p>spec 707 / T965：自 {@code core.internal.memory} 迁出——跨模块复用类不入
+ * internal（边界守卫 ModuleBoundaryGuardTest 口径）。
+ */
+public class DefaultFactStore implements FactStore {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultFactStore.class);
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String FACT_KEY_PREFIX = "fact.";
+
+    private final SessionStateStore stateStore;
+
+    public DefaultFactStore(SessionStateStore stateStore) {
+        this.stateStore = stateStore;
+    }
+
+    @Override
+    public void save(String sessionId, Fact fact) {
+        String key = fact.key().startsWith(FACT_KEY_PREFIX) ? fact.key()
+                : Fact.keyFor(fact.producer(), fact.key());
+        Map<String, Object> envelope = new java.util.LinkedHashMap<>();
+        envelope.put("value", fact.value());
+        envelope.put("producer", fact.producer());
+        envelope.put("createdTurn", fact.createdTurn());
+        envelope.put("ttl", fact.ttl());
+        envelope.put("confidence", fact.confidence());
+        try {
+            String json = MAPPER.writeValueAsString(envelope);
+            stateStore.put(sessionId, new StateEntry(key, json, fact.producer(),
+                    fact.createdTurn(), fact.ttl(), Instant.now()));
+        } catch (Exception e) {
+            // ticket 29 日志基线：序列化失败静默退化改为可见告警（退化仅影响该条事实的结构化字段）
+            LOG.warn("事实序列化失败，降级存原始字符串：sessionId={} key={}", sessionId, key, e);
+            stateStore.put(sessionId, new StateEntry(key, String.valueOf(fact.value()), fact.producer(),
+                    fact.createdTurn(), fact.ttl(), Instant.now()));
+        }
+    }
+
+    @Override
+    public List<Fact> activeFacts(String sessionId, int currentTurn) {
+        Map<String, StateEntry> all = stateStore.getAll(sessionId);
+        List<Fact> facts = new ArrayList<>();
+        for (StateEntry entry : all.values()) {
+            if (entry.key() == null || !entry.key().startsWith(FACT_KEY_PREFIX)) {
+                continue;
+            }
+            Fact fact = deserialize(entry);
+            if (fact == null) {
+                continue;
+            }
+            // ttl 过滤：currentTurn - createdTurn < ttl（createdTurn 当轮即注入）
+            if (currentTurn - fact.createdTurn() < fact.ttl()) {
+                facts.add(fact);
+            }
+        }
+        facts.sort(Comparator.comparingInt(Fact::createdTurn));
+        return facts;
+    }
+
+    @Override
+    public void delete(String sessionId, String key) {
+        stateStore.delete(sessionId, key);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Fact deserialize(StateEntry entry) {
+        try {
+            Map<String, Object> envelope = MAPPER.readValue(entry.value(), new TypeReference<>() {
+            });
+            Object value = envelope.get("value");
+            String producer = envelope.get("producer") instanceof String s ? s : entry.producer();
+            int createdTurn = envelope.get("createdTurn") instanceof Number n ? n.intValue() : entry.createdTurn();
+            int ttl = envelope.get("ttl") instanceof Number n ? n.intValue()
+                    : (entry.ttlTurns() == null ? 1 : entry.ttlTurns());
+            // spec 604：旧信封无 confidence → 1.0（兼容读取，历史事实不受衰减影响）
+            double confidence = envelope.get("confidence") instanceof Number n ? n.doubleValue() : 1.0;
+            return new Fact(entry.key(), value, producer, createdTurn, ttl, confidence);
+        } catch (Exception e) {
+            // ticket 29 日志基线：信封解析失败静默退化改为可见告警（value 按原始字符串退化读取）
+            LOG.warn("事实信封反序列化失败，按原始字符串退化读取：key={}", entry.key(), e);
+            int ttl = entry.ttlTurns() == null ? 1 : entry.ttlTurns();
+            return new Fact(entry.key(), entry.value(), entry.producer(), entry.createdTurn(), ttl);
+        }
+    }
+}

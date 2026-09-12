@@ -145,6 +145,12 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     /** spec 524 / T801：建连重试策略（null = 不重试——默认）。 */
     private final ConnectRetryPolicy connectRetry;
 
+    /** spec 703 / T957：探活成功/失败计数（观测/编程面）。 */
+    private final java.util.concurrent.atomic.AtomicLong probeSuccesses =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong probeFailures =
+            new java.util.concurrent.atomic.AtomicLong();
+
     /** 重试策略（指数退避：base × 2^n 封顶 60s）。 */
     public record ConnectRetryPolicy(int maxAttempts, long baseDelayMillis) {
         public ConnectRetryPolicy {
@@ -204,6 +210,19 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                                     io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker
                                             serverBreaker,
                                     ConnectRetryPolicy connectRetry) {
+        this(factory, gracePeriod, forceCloseTimeout, recorder, policyProvider,
+                dangerousToolPatterns, serverBreaker, connectRetry, null);
+    }
+
+    /** spec 703 / T957：+keepaliveInterval（null/零 = 关——默认零行为变化）。 */
+    public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
+                                    Duration forceCloseTimeout, SpanRecorder recorder,
+                                    PolicyConfigProvider policyProvider,
+                                    java.util.List<String> dangerousToolPatterns,
+                                    io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker
+                                            serverBreaker,
+                                    ConnectRetryPolicy connectRetry,
+                                    Duration keepaliveInterval) {
         this.connectRetry = connectRetry;
         this.serverBreaker = serverBreaker;
         this.factory = factory;
@@ -218,6 +237,11 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             t.setDaemon(true);
             return t;
         });
+        if (keepaliveInterval != null && !keepaliveInterval.isZero() && !keepaliveInterval.isNegative()) {
+            long intervalMillis = keepaliveInterval.toMillis();
+            scheduler.scheduleWithFixedDelay(this::safeProbe, intervalMillis, intervalMillis,
+                    TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
@@ -350,6 +374,61 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.mcp.connect.retries", "server", spec.name());
         return false;
+    }
+
+    /** spec 703 / T957：对全部 ACTIVE 连接做一轮探活（listToolNames 轻量 RPC——漂移基线同源）。 */
+    public void probeOnce() {
+        for (Entry e : entries.values()) {
+            if (e.status != Status.ACTIVE) {
+                continue;
+            }
+            try {
+                e.connection.listToolNames();
+                probeSuccesses.incrementAndGet();
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.mcp.keepalive.ok", "server", e.name());
+            } catch (RuntimeException ex) {
+                probeFailures.incrementAndGet();
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.mcp.keepalive.failed", "server", e.name());
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "MCP keepalive 探活失败「{0}」：{1}——摘除并重建连接",
+                        e.name(), ex.toString());
+                rebuildEntry(e);
+            }
+        }
+    }
+
+    /** 调度线程保护——单连接探活异常不炸整轮。 */
+    private void safeProbe() {
+        try {
+            probeOnce();
+        } catch (RuntimeException ignored) {
+            // 失败已在 probeOnce 内计数
+        }
+    }
+
+    /** spec 703：探活失败路径——与 refresh 的 spec-changed 同口径（draining 排空 + 原样重建）。 */
+    private void rebuildEntry(Entry e) {
+        synchronized (refreshLock) {
+            Entry current = entries.get(e.name());
+            if (current != e || current.status != Status.ACTIVE) {
+                return; // 已被 refresh/shutdown 摘除——不重复动作
+            }
+            ToolSetSpec spec = current.spec;
+            markDraining(current, null);
+            addEntry(spec, null);
+        }
+    }
+
+    /** spec 703：探活成功累计（观测面）。 */
+    public long probeSuccessCount() {
+        return probeSuccesses.get();
+    }
+
+    /** spec 703：探活失败累计（观测面——非零持续增长 = 连接质量病灶）。 */
+    public long probeFailureCount() {
+        return probeFailures.get();
     }
 
     /** 单次建连尝试（原 addEntry 主体——失败计数/事件语义不变）。 */

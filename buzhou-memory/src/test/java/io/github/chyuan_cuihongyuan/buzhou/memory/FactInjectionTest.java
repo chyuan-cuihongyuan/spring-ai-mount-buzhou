@@ -1,6 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory;
 
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DefaultFactStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
@@ -169,8 +169,8 @@ class FactInjectionTest {
         volatile io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetInput lastInput;
 
         CapturingBudgetCalculator() {
-            super(new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(Map.of()),
-                    new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator());
+            super(new io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver(Map.of()),
+                    new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator());
         }
 
         @Override
@@ -191,8 +191,8 @@ class FactInjectionTest {
         InjectionViewProcessor ivp = new InjectionViewProcessor(compactor,
                 t -> MicroCompactionPolicy.defaults(), 1,
                 new DefaultBudgetCalculator(
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(Map.of()),
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver(Map.of()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator()),
                 new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge(
                         new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryStore()),
                 new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3),

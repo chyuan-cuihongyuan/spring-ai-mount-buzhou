@@ -95,7 +95,7 @@ public class BuzhouGuardAutoConfiguration {
                 "buzhou.guard.fact-decay.half-life-turns", Double.class);
         if (halfLifeTurns != null) {
             Double floor = env.getProperty("buzhou.guard.fact-decay.floor", Double.class, 0.25);
-            builder.factDecay(new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy(
+            builder.factDecay(new io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy(
                     halfLifeTurns, floor));
         }
         if (refresher != null) {

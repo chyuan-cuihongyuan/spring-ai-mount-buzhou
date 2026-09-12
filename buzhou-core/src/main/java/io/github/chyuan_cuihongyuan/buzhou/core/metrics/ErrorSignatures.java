@@ -70,9 +70,10 @@ public final class ErrorSignatures {
         counts.computeIfAbsent(sig, k -> new AtomicLong()).incrementAndGet();
     }
 
-    /** top-N（count 降序，同 count 签名字典序——输出稳定）。 */
+    /** top-N（count 降序，同 count 签名字典序——输出稳定；muted 签名排除——spec 720）。 */
     public List<Map.Entry<String, Long>> top(int n) {
         return counts.entrySet().stream()
+                .filter(e -> !isMuted(e.getKey()))
                 .sorted((a, b) -> {
                     int byCount = Long.compare(b.getValue().get(), a.getValue().get());
                     return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
@@ -83,7 +84,8 @@ public final class ErrorSignatures {
     }
 
     /** 按 kind 前缀过滤的 top-N（spec 196 §A / T558：kind + ":" 是签名前缀——
-     * 「只看模型侧错误族」这类分面看板；空白 kind = IllegalArgumentException）。 */
+     * 「只看模型侧错误族」这类分面看板；空白 kind = IllegalArgumentException。
+     * muted 签名排除——spec 720）。 */
     public List<Map.Entry<String, Long>> top(String kind, int n) {
         if (kind == null || kind.isBlank()) {
             throw new IllegalArgumentException("kind must not be blank");
@@ -91,6 +93,7 @@ public final class ErrorSignatures {
         String prefix = kind + ":";
         return counts.entrySet().stream()
                 .filter(e -> e.getKey().startsWith(prefix))
+                .filter(e -> !isMuted(e.getKey()))
                 .sorted((a, b) -> {
                     int byCount = Long.compare(b.getValue().get(), a.getValue().get());
                     return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
@@ -123,6 +126,44 @@ public final class ErrorSignatures {
      */
     public void reset() {
         counts.clear();
+        muted.clear(); // spec 720：新纪元——静默标记随计数一并清空
+    }
+
+    /** 静默集合封顶（spec 720——基数有界纪律）。 */
+    public static final int MUTED_CAP = 64;
+
+    private final java.util.Set<String> muted = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /**
+     * 静默标记（spec 720 / T991，Sentry muted issues 借鉴）：签名退出 top 读面
+     * 但<b>计数照常累计</b>（snapshot 原样——静默是读面降噪不是数据删除）。
+     * 集合封顶 {@value #MUTED_CAP}：超限拒绝返回 false。
+     *
+     * @return 是否成功入册（重复 mute = true 幂等）
+     */
+    public boolean mute(String signature) {
+        if (signature == null || signature.isBlank()) {
+            return false;
+        }
+        if (muted.size() >= MUTED_CAP && !muted.contains(signature)) {
+            return false;
+        }
+        boolean added = muted.add(signature);
+        return added || muted.contains(signature); // 幂等：重复 mute = true
+    }
+
+    /** 解除静默（top 读面回归）。 */
+    public boolean unmute(String signature) {
+        return signature != null && muted.remove(signature);
+    }
+
+    /** 静默签名集（不可变快照）。 */
+    public java.util.Set<String> mutedSignatures() {
+        return java.util.Collections.unmodifiableSet(new java.util.TreeSet<>(muted));
+    }
+
+    private boolean isMuted(String signature) {
+        return muted.contains(signature);
     }
 
     static String signature(String kind, String errorText) {

@@ -100,13 +100,20 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
 
     /** spec 105 §A / T387：订阅类型过滤（空集 = 全投递——默认零变化）。 */
     private volatile java.util.Set<String> includeTypes = java.util.Set.of();
+    private volatile WebhookRateLimiter rateLimiter; // spec 718：null = 关（默认）
 
     /** spec 514 / T777：投递时延记录器（可空）。 */
     private volatile WebhookDeliveryLatency deliveryLatency;
 
     /** 限定投递的事件类型集（null/空 = 全投递；BuzhouWebhookProperties 不扩——record 兼容）。 */
     public void setIncludeTypes(java.util.Collection<String> types) {
-        this.includeTypes = types == null ? java.util.Set.of() : java.util.Set.copyOf(types);
+        this.includeTypes = types == null || types.isEmpty()
+                ? java.util.Set.of() : java.util.Set.copyOf(types);
+    }
+
+    /** spec 718 / T987：可选投递限速（null = 关——默认零变化）。 */
+    public void setRateLimiter(WebhookRateLimiter limiter) {
+        this.rateLimiter = limiter;
     }
 
     /** spec 514 / T777：投递时延分位数记录器（null=不记录——默认零变化）。 */
@@ -183,7 +190,17 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
 
     private boolean processDueBatch() {
         List<WebhookOutbox.OutboxRecord> due = outbox.due(Instant.now(), BATCH);
+        int rateLimited = 0;
         for (WebhookOutbox.OutboxRecord record : due) {
+            // spec 718 / T987：限速闸——拒绝 = 留 outbox 原状（defer 不是失败，
+            // 不进重试状态机；下一 tick 令牌回填自然放行）
+            WebhookRateLimiter limiter = rateLimiter;
+            if (limiter != null && !limiter.tryAcquire()) {
+                rateLimited++;
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.webhook.ratelimit-deferred");
+                continue;
+            }
             Outcome outcome = attemptOnce(record);
             switch (outcome) {
                 case DELIVERED -> {
@@ -200,6 +217,9 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                 case RETRYABLE -> scheduleRetryOrDead(record);
                 default -> throw new IllegalStateException("unreachable: " + outcome);
             }
+        }
+        if (rateLimited == due.size() && !due.isEmpty()) {
+            return false; // 整批全 defer——提前结束本轮（防 deadline 内热旋）
         }
         return !due.isEmpty();
     }
@@ -318,16 +338,40 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
      * spec 37 §B / T133 / impl-106：一键重放全部死信（迁回 outbox、attempts 清零、
      * 立即触发投递）。投递语义回到常规（可能再死信——消费端幂等键去重契约内）。
      *
+     * <p>spec 721 / T993：审计面——指标 {@code buzhou.webhook.dead-replayed}
+     * （delta=条数；零重放不发）+ 累计计数（{@link #replayCount()}/{@link
+     * #replayedCount()}）+ 结构化审计日志（动作敏感必留痕）。
+     *
      * @return 本次重放的条数（容量满则部分重放）
      */
     public int replayDeadLetters() {
         int requeued = outbox.requeueDead(Integer.MAX_VALUE);
         if (requeued > 0) {
             nudge.release();
+            replayActions.incrementAndGet();
+            replayedLetters.addAndGet(requeued);
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.webhook.dead-replayed", requeued);
             LOGGER.log(System.Logger.Level.INFO,
-                    "webhook 死信重放 " + requeued + " 条（attempts 清零，立即重投）");
+                    "webhook 死信重放：count={0} letters={1} remainingDead={2}（attempts 清零，立即重投）",
+                    requeued, replayedLetters.get(), deadLetters().size());
         }
         return requeued;
+    }
+
+    private final java.util.concurrent.atomic.AtomicLong replayActions =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong replayedLetters =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** spec 721：重放动作累计次数（审计面）。 */
+    public long replayCount() {
+        return replayActions.get();
+    }
+
+    /** spec 721：累计重放信件数（审计面）。 */
+    public long replayedCount() {
+        return replayedLetters.get();
     }
 
     public Duration timeout() {

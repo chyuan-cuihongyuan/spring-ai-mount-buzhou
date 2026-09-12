@@ -158,13 +158,13 @@ public class SessionQuotaHook implements BuzhouHook {
     /**
      * 原子递增并返回当日计数（spec 56 §B / T250；spec 62 / T275 统一走 AtomicStateCounters）：
      * CAS(raw, day:next) 带进度检测重试——失败后值仍在变即续试（不丢计数）；仅值停滞
-     * 满 {@link io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters#MAX_STALLED_ATTEMPTS}
+     * 满 {@link io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters#MAX_STALLED_ATTEMPTS}
      * 次回退覆写 + stats 回退计数。raw 为 null（首写）或旧日串（翻越重置）都作为
      * expected 原值——并发下只一方成功，失败方重读续算。
      */
     private int incrementDayCounter(HookContext ctx, String key) {
         long today = todayKey();
-        String next = io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters
+        String next = io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters
                 .swapValue(ctx.state(), key,
                         raw -> today + ":" + (countForToday(raw, today) + 1),
                         stats == null ? null : stats::recordQuotaCasFallback);
@@ -174,7 +174,7 @@ public class SessionQuotaHook implements BuzhouHook {
     /** 原子累计 tokens（同上口径，delta = usage 合计）。 */
     private void accumulateToday(HookContext ctx, String key, long delta) {
         long today = todayKey();
-        io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters.swapValue(
+        io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters.swapValue(
                 ctx.state(), key,
                 raw -> today + ":" + (countForToday(raw, today) + delta),
                 stats == null ? null : stats::recordQuotaCasFallback);

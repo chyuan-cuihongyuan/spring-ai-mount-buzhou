@@ -14,12 +14,19 @@ import java.time.Duration;
  */
 @ConfigurationProperties(prefix = "buzhou.health.timeline")
 public record BuzhouHealthTimelineProperties(Boolean enabled, Duration interval,
-        Integer capacity, String exportPath, Long exportMaxBytes, Integer exportMaxHistory) {
+        Integer capacity, String exportPath, Long exportMaxBytes, Integer exportMaxHistory,
+        Integer exportCompressFrom) {
 
     /** spec 643 之前的 4 参调用方（轮转细调缺席 = 默认档）。 */
     public BuzhouHealthTimelineProperties(Boolean enabled, Duration interval,
             Integer capacity, String exportPath) {
-        this(enabled, interval, capacity, exportPath, null, null);
+        this(enabled, interval, capacity, exportPath, null, null, null);
+    }
+
+    /** spec 643 之前的 6 参调用方（压缩线缺席 = 关）。 */
+    public BuzhouHealthTimelineProperties(Boolean enabled, Duration interval,
+            Integer capacity, String exportPath, Long exportMaxBytes, Integer exportMaxHistory) {
+        this(enabled, interval, capacity, exportPath, exportMaxBytes, exportMaxHistory, null);
     }
 
     /** 多构造器场景：显式指定规范构造器为绑定构造器（便捷构造不参与绑定）。 */
@@ -43,5 +50,18 @@ public record BuzhouHealthTimelineProperties(Boolean enabled, Duration interval,
         return exportMaxHistory == null
                 ? io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter.DEFAULT_MAX_HISTORY
                 : exportMaxHistory;
+    }
+
+    /** spec 729：压缩线档（键缺席 → 0 = 关；1 非法 → 拒）。 */
+    public int effectiveExportCompressFrom() {
+        if (exportCompressFrom == null) {
+            return 0;
+        }
+        if (exportCompressFrom == 1) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                    "buzhou.health.timeline.export-compress-from（1）非法",
+                    "≥2（file.1 恒明文 delaycompress）或 0 = 关");
+        }
+        return exportCompressFrom;
     }
 }

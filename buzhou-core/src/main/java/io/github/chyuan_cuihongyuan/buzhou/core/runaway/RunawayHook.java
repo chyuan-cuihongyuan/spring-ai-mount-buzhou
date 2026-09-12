@@ -297,7 +297,7 @@ public class RunawayHook implements BuzhouHook {
         // 同步：工具扇出可并行调用 beforeTool，会话级计数 RMW 需按会话加锁防竞争（undercount）；
         // spec 62 / T275：CAS 写统一走 AtomicStateCounters（跨实例原子 + 进度检测重试）
         synchronized (counters.sessionLock(ctx.sessionId())) {
-            String next = io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters
+            String next = io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters
                     .swapValue(ctx.state(), key,
                             raw -> Integer.toString(parseCounter(raw) + 1), null);
             return parseCounter(next);

@@ -5,7 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DefaultFactStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.AuthTtl;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.ConfirmOption;
@@ -54,7 +54,7 @@ public final class GuardModule {
         // spec 626 / T902：事实衰减装饰（opt-in——factDecay 非 null 包一层；null = 既有语义）
         this.factStore = builder.factDecay == null
                 ? new DefaultFactStore(builder.stores.sessionStateStore())
-                : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DecayingFactStore(
+                : new io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore(
                         new DefaultFactStore(builder.stores.sessionStateStore()), builder.factDecay);
         List<BuzhouHook> h = new ArrayList<>();
         if (builder.enabled) {
@@ -69,30 +69,15 @@ public final class GuardModule {
             h.add(new SpotlightHook());
         }
         // spec 86 §A / T329：PII 脱敏先于 spotlight（order 70 < 80——先脱敏原文再包裹）
+        // spec 731 / T1013：piiPreserveFormat → 假名化模式（同长度同形态替身）
         if (builder.piiRedaction) {
-            h.add(builder.piiTypes == null
-                    ? (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook()
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                                    null, builder.customPiiRules))
-                    : (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                                    builder.piiTypes)
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                                    builder.piiTypes, builder.customPiiRules)));
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
+                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat));
         }
         // spec 106 §A / T389：用户输入脱敏（beforeTurn replaceInput——与输出侧正交）
         if (builder.piiInputRedaction) {
-            h.add(builder.piiTypes == null
-                    ? (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook()
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                                    null, builder.customPiiRules))
-                    : (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                                    builder.piiTypes)
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                                    builder.piiTypes, builder.customPiiRules)));
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
+                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat));
         }
         // spec 536 / T825：流式回复秘密扫描（400 三缝的第四缝——回复出站流；默认关）
         if (builder.secretStreamRedaction != null && builder.secretStreamRedaction) {
@@ -111,12 +96,12 @@ public final class GuardModule {
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook(
                     builder.moderationTerms, builder.moderationAction));
         }
-                // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
+        // spec 400 / T692：密钥扫描（三缝 MASK——输入/出站参数/工具结果；默认关）
         if (builder.secretScanning) {
-            h.add(builder.secretTypes == null
-                    ? new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook()
-                    : new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook(
-                            builder.secretTypes));
+            io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanner scanner =
+                    new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanner(
+                            builder.secretTypes, builder.secretMinEntropy);
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook(scanner));
         }
         // impl-21 / T49：FIDES 最小 taint（读侧打标 + 写门校验；默认关，按机制开关）
         if (builder.taintTracking) {
@@ -167,6 +152,11 @@ public final class GuardModule {
         return authApi;
     }
 
+    /** spec 727：已挂 hook 列表（包内观测面——装配测试断言缝）。 */
+    java.util.List<BuzhouHook> hooksView() {
+        return hooks;
+    }
+
     /** 事实 Attachment 渲染器（供 memory 注入视图构建方注入事实块）；无采集器时返回 null。 */
     public AttachmentRenderer attachmentRenderer() {
         return attachmentRenderer;
@@ -201,10 +191,20 @@ public final class GuardModule {
         // spec 400 / T692：密钥扫描（默认关；null 类型集 = 全 7 型）
         private boolean secretScanning = false;
         private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> secretTypes = null;
+        /** spec 727 / T1005：熵阈值（null = 关——默认）。 */
+        private Double secretMinEntropy;
+        /** spec 731 / T1013：PII 假名化模式（false = MASK 占位符——默认零变化）。 */
+        private boolean piiPreserveFormat;
+
+        /** spec 731 / T1013：PII 格式保持假名化（同长度同形态替身——spec 713）。 */
+        public Builder piiPreserveFormat() {
+            this.piiPreserveFormat = true;
+            return this;
+        }
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
         // spec 626 / T902：事实置信度衰减（null = 不衰减——既有语义零变化）
-        private io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy factDecay;
+        private io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy factDecay;
 
         private Builder(BuzhouStores stores) {
             this.stores = stores;
@@ -212,7 +212,7 @@ public final class GuardModule {
 
         /** spec 626 / T902：声明事实衰减（read 时半衰过滤——陈年低置信事实停止注入）。 */
         public Builder factDecay(
-                io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy policy) {
+                io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy policy) {
             this.factDecay = policy;
             return this;
         }
@@ -319,6 +319,12 @@ public final class GuardModule {
                 java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> types) {
             this.secretScanning = true;
             this.secretTypes = types;
+            return this;
+        }
+
+        /** spec 727 / T1005：熵阈值（bits/char；null = 关——默认；见 spec 714）。 */
+        public Builder secretMinEntropy(Double minEntropy) {
+            this.secretMinEntropy = minEntropy;
             return this;
         }
 

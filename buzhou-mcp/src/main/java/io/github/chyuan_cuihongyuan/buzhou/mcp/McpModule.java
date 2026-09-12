@@ -61,7 +61,8 @@ public final class McpModule implements AutoCloseable {
                         ? null
                         : new io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker(
                                 builder.serverBreakerConfig),
-                builder.connectRetryPolicy);
+                builder.connectRetryPolicy,
+                builder.keepaliveInterval);
         // spec 628 / T906（F 会话）：每连接并发上限（声明即启用——Entry 创建时装配信号量）
         if (builder.perConnectionConcurrencyLimit != null) {
             reg.setPerConnectionConcurrencyLimit(builder.perConnectionConcurrencyLimit);
@@ -157,6 +158,14 @@ public final class McpModule implements AutoCloseable {
         private ToolCircuitBreaker.Config serverBreakerConfig;
         /** spec 524 / T801：建连重试策略（null = 不重试——默认）。 */
         private DefaultMcpClientRegistry.ConnectRetryPolicy connectRetryPolicy;
+        /** spec 703 / T957：keepalive 探活间隔（null = 关——默认）。 */
+        private Duration keepaliveInterval;
+
+        /** spec 724 / T999：keepalive 探活间隔（yml {@code keepalive-interval}；null = 关）。 */
+        public Builder keepalive(Duration interval) {
+            this.keepaliveInterval = interval;
+            return this;
+        }
 
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
@@ -283,6 +292,12 @@ public final class McpModule implements AutoCloseable {
                     this.connectRetryPolicy = new DefaultMcpClientRegistry.ConnectRetryPolicy(
                             maxA.intValue(), baseD.longValue());
                 }
+            }
+            // spec 724 / T999：keepalive-interval（声明即启用探活——缺省关）
+            Object keepalive = ymlConfig.get("keepalive-interval");
+            if (keepalive != null) {
+                this.keepaliveInterval = Durations.fromMap(
+                        Map.of("keepalive-interval", keepalive), "keepalive-interval");
             }
                         // spec 504 / T760：server-breaker.{enabled,window-size,failure-rate-percent,cooldown,half-open-trials}
             if (ymlConfig.get("server-breaker") instanceof Map<?, ?> sbMap

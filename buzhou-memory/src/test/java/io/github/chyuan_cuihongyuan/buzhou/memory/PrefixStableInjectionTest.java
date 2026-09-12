@@ -26,8 +26,8 @@ class PrefixStableInjectionTest {
                         new io.github.chyuan_cuihongyuan.buzhou.memory.compact.DefaultCompletedTurnDetector()),
                 t -> io.github.chyuan_cuihongyuan.buzhou.memory.compact.MicroCompactionPolicy.defaults(), 1,
                 new io.github.chyuan_cuihongyuan.buzhou.memory.budget.DefaultBudgetCalculator(
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(Map.of()),
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver(Map.of()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator()),
                 new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge(
                         new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryStore()),
                 new io.github.chyuan_cuihongyuan.buzhou.memory.summary.DefaultSummaryGenerator(),

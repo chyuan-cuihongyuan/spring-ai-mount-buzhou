@@ -36,6 +36,7 @@ public final class HookTimingHealth implements BuzhouHealth {
     @Override
     public Map<String, Object> details() {
         Map<String, HookChain.HookTiming> stats = aggregator.stats();
+        Map<String, Long> windowed = aggregator.windowedMax(); // spec 708：滚动窗 max
         Map<String, Object> out = new LinkedHashMap<>();
         int i = 0;
         for (Map.Entry<String, HookChain.HookTiming> e : stats.entrySet()) {
@@ -49,6 +50,7 @@ public final class HookTimingHealth implements BuzhouHealth {
             row.put("totalMicros", t.totalNanos() / 1_000);
             row.put("maxMicros", t.maxNanos() / 1_000);
             row.put("avgMicros", (long) t.avgNanos() / 1_000);
+            row.put("rollingMaxMicros", windowed.getOrDefault(e.getKey(), 0L) / 1_000);
             out.put(e.getKey(), row);
         }
         return out;

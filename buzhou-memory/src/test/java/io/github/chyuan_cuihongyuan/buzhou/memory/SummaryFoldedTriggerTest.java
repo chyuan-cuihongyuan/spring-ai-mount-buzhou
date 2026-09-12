@@ -70,8 +70,8 @@ class SummaryFoldedTriggerTest {
                 new DefaultMicroCompactor(new DefaultCompletedTurnDetector()),
                 t -> MicroCompactionPolicy.defaults(), 1,
                 new DefaultBudgetCalculator(
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(Map.of()),
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver(Map.of()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator()),
                 bridge, new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3),
                 new StubSummaryModel(), "stub", 1, null, 1_000_000);
         ivp.setBoundaryCompactBacklog(backlog);

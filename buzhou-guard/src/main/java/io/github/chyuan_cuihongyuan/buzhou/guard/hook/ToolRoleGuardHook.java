@@ -23,15 +23,23 @@ public final class ToolRoleGuardHook implements BuzhouHook {
 
     private final ToolPermissions permissions;
     private final String defaultRole;
+    private final ToolDenialLog denialLog;
 
     public ToolRoleGuardHook(ToolPermissions permissions) {
         this(permissions, "default");
     }
 
     public ToolRoleGuardHook(ToolPermissions permissions, String defaultRole) {
+        this(permissions, defaultRole, null);
+    }
+
+    /** spec 709 / T969：+denialLog（null = 不记日志——默认零行为变化）。 */
+    public ToolRoleGuardHook(ToolPermissions permissions, String defaultRole,
+                             ToolDenialLog denialLog) {
         this.permissions = permissions == null ? new ToolPermissions(null) : permissions;
         this.defaultRole = defaultRole == null || defaultRole.isBlank()
                 ? "default" : defaultRole;
+        this.denialLog = denialLog;
     }
 
     @Override
@@ -54,6 +62,14 @@ public final class ToolRoleGuardHook implements BuzhouHook {
             return HookResult.CONTINUE;
         }
         BuzhouMetricsHolder.metrics().counter(DENIED_COUNTER, 1, "role", role);
+        // spec 709 / T969：拒绝双记（明细 + 聚合；log 未装配跳过）
+        if (denialLog != null) {
+            denialLog.record(role, ctx.toolName(),
+                    permissions.hasRole(role)
+                            ? ToolDenialLog.Reason.UNAUTHORIZED
+                            : ToolDenialLog.Reason.UNDEFINED_ROLE,
+                    System.currentTimeMillis());
+        }
         String hint = permissions.hasRole(role)
                 ? "角色「" + role + "」无权调用工具「" + ctx.toolName() + "」（可用工具面见角色配置；如需临时扩面请提升角色）"
                 : "角色「" + role + "」未在权限规则中定义（fail-closed 全拒；请修正会话角色或补角色规则）";

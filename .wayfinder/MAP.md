@@ -4,7 +4,7 @@
 > 每个 effort 一张 map（`maps/effort-<N>.md`），#2–#10 的运行期 tracker 约定存档于 `maps/readme-effort-NN.md`；C 会话进度台账 = `maps/progress-effort-300.md`。
 > 票号全局连续 **T1–T690**（T231–T239 跳号未用；#222 的 T579/T580 仅记于 map、票文件未落盘；**下一张 = T691**）；impl 切片文件 **01–184**（#14 起 impl 记录随票，票内编号累计至 372；编号史见 [impl/README.md](impl/README.md)）。
 > effort #1–#349 全部闭合（A/B/C 三期自迭代会话收口，C 会话台账见 [maps/progress-effort-300.md](maps/progress-effort-300.md)）；D 会话（400 系，#400–#429 / specs 400–429 / T691–T750 / impl 373–402）已收口。
-> **并行会话**：E 会话（500 系 / T751+ / impl403+，分支 e-session-500-series 进行中）；F 会话（600 系 / T851–T950 / impl 453–502 / specs 600–649，2026-09-12 启动）——新号段裁决见各自 map。
+> **并行会话**：E 会话（500 系，PR#19 已合并）、F 会话（600 系，2026-09-13 收口：spec 600–649 / T851–T950 / impl 453–502 全档）——新号段裁决见各自 map；**G 会话（700 系 / T951–T1050 / impl 503–552 / specs 700–749，2026-09-13 启动，进行中）**。
 
 **开新 effort**：新建 `maps/effort-350.md` 起续号（`.wayfinder350–399` 号段为 C 会话保留段，新自迭代会话按其台账裁决开 400 系），在下表登记一行；票从 T691 起、impl 从 373 起全局续号。tracker 约定见 [README.md](README.md)。
 
@@ -322,7 +322,8 @@
 | #547 | 会话导出校验和 | [maps/effort-547.md](maps/effort-547.md) | T853–854 | 449 |
 | #548 | fsck 巡检健康面 | [maps/effort-548.md](maps/effort-548.md) | T855–856 | 450 |
 | #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
-| **#600（总图）** | **进行中** — F 会话 600 系 50 轮自迭代（借鉴高价值开源项目；MCP 注解观测面 / 驱逐恐慌阈值 / fork 谱系 / …台账见 map） | [maps/effort-600.md](maps/effort-600.md) | T851–（至 T950） | 453–（至 502） |
+| **#600（总图）** | **已收口（2026-09-13）** — F 会话 600 系 50 轮自迭代 | [maps/effort-600.md](maps/effort-600.md) | T851–T950 | 453–502 |
+| **#700（总图·并行会话）** | **进行中** — 并行 G 会话 700 系总图（工具耗时聚合 / 缓存容量上限 / 慢启动 / Retry-After / 契约测试基类 / …台账见 map） | [maps/effort-700-g-total.md](maps/effort-700-g-total.md) | T951–（至 T1050） | 503–（至 552） |
 | #700 | 能力门决策审计读数 | [maps/effort-700.md](maps/effort-700.md) | T1000–1001 | 600 |
 | #701 | 语义缓存权重预算驱逐 | [maps/effort-701.md](maps/effort-701.md) | T1002–1003 | 601 |
 | #702 | 断路器变迁事件流读数 | [maps/effort-702.md](maps/effort-702.md) | T1004–1005 | 602 |
@@ -355,24 +356,24 @@
 | #729 | 内存观测库容量健康面 | [maps/effort-729.md](maps/effort-729.md) | T1058–1059 | 629 |
 | #730 | 限流头跨供应商归一解析 | [maps/effort-730.md](maps/effort-730.md) | T1060–1061 | 630 |
 | #731 | 评估分数分布解析 | [maps/effort-731.md](maps/effort-731.md) | T1062–1063 | 631 |
-| #741 | 共享事实足迹读数 | [maps/effort-741.md](maps/effort-741.md) | T1084–1085 | 641 |
-| #744 | 混合排序融合权重读数 | [maps/effort-744.md](maps/effort-744.md) | T1090–1091 | 644 |
-| #745 | 响应缓存权重预算 yml 装配 | [maps/effort-745.md](maps/effort-745.md) | T1092–1093 | 645 |
-| #747 | 相似度阈值反事实对照 | [maps/effort-747.md](maps/effort-747.md) | T1096–1097 | 631 续 |
-| #748 | 执行策略汇总读数 | [maps/effort-748.md](maps/effort-748.md) | T1098–1099 | 649 |
-| #749 | 收口终验 | [maps/effort-749.md](maps/effort-749.md) | —（全闭环） | — |
-| #746 | 能力审计按能力维度聚合 | [maps/effort-746.md](maps/effort-746.md) | T1094–1095 | 645 续 |
-| #742 | 孤儿保留计数读数 | [maps/effort-742.md](maps/effort-742.md) | T1086–1087 | 642 |
 | #732 | 事件 payload 大小审计 | [maps/effort-732.md](maps/effort-732.md) | T1064–1065 | 632 |
 | #733 | 提示词使用缺口读数 | [maps/effort-733.md](maps/effort-733.md) | T1066–1067 | 633 |
 | #734 | 数据集指纹变更信号 | [maps/effort-734.md](maps/effort-734.md) | T1068–1069 | 634 |
 | #735 | 事件配对完整性审计 | [maps/effort-735.md](maps/effort-735.md) | T1070–1071 | 635 |
 | #736 | span 父链完整性审计 | [maps/effort-736.md](maps/effort-736.md) | T1072–1073 | 636 |
-| #740 | 供应商限流信号 stats 接线 | [maps/effort-740.md](maps/effort-740.md) | T1082–1083 | 640 |
 | #737 | 响应缓存权重预算 | [maps/effort-737.md](maps/effort-737.md) | T1074–1075 | 637 |
 | #738 | 导出体积去向审计 | [maps/effort-738.md](maps/effort-738.md) | T1076–1077 | 638 |
 | #739 | 事件静默缺失门 | [maps/effort-739.md](maps/effort-739.md) | T1078–1079 | 639 |
+| #740 | 供应商限流信号 stats 接线 | [maps/effort-740.md](maps/effort-740.md) | T1082–1083 | 640 |
+| #741 | 共享事实足迹读数 | [maps/effort-741.md](maps/effort-741.md) | T1084–1085 | 641 |
+| #742 | 孤儿保留计数读数 | [maps/effort-742.md](maps/effort-742.md) | T1086–1087 | 642 |
 | #743 | 导出脱敏命中计数 | [maps/effort-743.md](maps/effort-743.md) | T1088–1089 | 643 |
+| #744 | 混合排序融合权重读数 | [maps/effort-744.md](maps/effort-744.md) | T1090–1091 | 644 |
+| #745 | 响应缓存权重预算 yml 装配 | [maps/effort-745.md](maps/effort-745.md) | T1092–1093 | 645 |
+| #746 | 能力审计按能力维度聚合 | [maps/effort-746.md](maps/effort-746.md) | T1094–1095 | 645 续 |
+| #747 | 相似度阈值反事实对照 | [maps/effort-747.md](maps/effort-747.md) | T1096–1097 | 631 续 |
+| #748 | 执行策略汇总读数 | [maps/effort-748.md](maps/effort-748.md) | T1098–1099 | 649 |
+| #749 | 收口终验 | [maps/effort-749.md](maps/effort-749.md) | —（全闭环） | — |
 
 ## 跨 effort 悬留
 

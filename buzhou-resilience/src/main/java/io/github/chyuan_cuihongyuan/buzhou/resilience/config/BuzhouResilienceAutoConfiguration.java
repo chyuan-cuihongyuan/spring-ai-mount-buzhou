@@ -273,9 +273,44 @@ public class BuzhouResilienceAutoConfiguration {
     @org.springframework.context.annotation.Conditional(
             BuzhouResilienceAutoConfiguration.RoutingConfiguredCondition.class)
     public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
-    buzhouWeightedChatModel(BuzhouRoutingProperties routing, Map<String, ChatModel> chatModels) {
+    buzhouWeightedChatModel(BuzhouRoutingProperties routing, Map<String, ChatModel> chatModels,
+                            org.springframework.core.env.Environment environment) {
+        // spec 730 / T1011：阶段选型过滤（buzhou.routing.stages.<name> + visible-stages
+        // 双声明才生效；未标注恒保留——零变化）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages stages =
+                new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages();
+        java.util.Map<String, String> stageMap = org.springframework.boot.context.properties.bind.Binder
+                .get(environment)
+                .bind("buzhou.routing.stages",
+                        org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                String.class, String.class))
+                .orElse(java.util.Map.of());
+        stageMap.forEach((k, v) -> stages.tag(k,
+                io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.Stage
+                        .valueOf(String.valueOf(v).trim().toUpperCase())));
+        java.util.Set<String> rawVisible = org.springframework.boot.context.properties.bind.Binder
+                .get(environment)
+                .bind("buzhou.routing.visible-stages",
+                        org.springframework.boot.context.properties.bind.Bindable.setOf(String.class))
+                .orElse(java.util.Set.of());
+        java.util.Set<io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.Stage> visible =
+                rawVisible.stream().map(s ->
+                                io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.Stage
+                                        .valueOf(String.valueOf(s).trim().toUpperCase()))
+                        .collect(java.util.stream.Collectors.toSet());
+        java.util.Map<String, Integer> weights =
+                new java.util.LinkedHashMap<>(routing.weights());
+        if (!stages.view().isEmpty() && !visible.isEmpty()) {
+            weights = io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.filter(
+                    weights, stages, visible);
+            if (weights.size() < 2) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                        "buzhou.routing.visible-stages 过滤后仅剩 " + weights.size() + " 路（路由需 ≥2）",
+                        "调整 visible-stages 或降低过滤强度（如放行 CANARY）");
+            }
+        }
         java.util.Map<String, ChatModel> candidates = new java.util.LinkedHashMap<>();
-        routing.weights().keySet().forEach(name -> {
+        weights.keySet().forEach(name -> {
             ChatModel model = chatModels.get(name);
             if (model == null) {
                 throw new BuzhouConfigurationException(
@@ -285,12 +320,50 @@ public class BuzhouResilienceAutoConfiguration {
             candidates.put(name, model);
         });
         return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel(
-                candidates, routing.weights());
+                candidates, weights);
+    }
+
+    /**
+     * spec 725 / T1001：路由慢启动条件——buzhou.routing.slow-start 声明且
+     * weights ≥2（双闸；缺任一 = 不装配零变化）。
+     */
+    static final class RoutingSlowStartCondition
+            implements org.springframework.context.annotation.Condition {
+        @Override
+        public boolean matches(org.springframework.context.annotation.ConditionContext context,
+                               org.springframework.core.type.AnnotatedTypeMetadata metadata) {
+            String value = context.getEnvironment().getProperty("buzhou.routing.slow-start");
+            if (value == null || value.isBlank()) {
+                return false;
+            }
+            Integer count = org.springframework.boot.context.properties.bind.Binder
+                    .get(context.getEnvironment())
+                    .bind("buzhou.routing.weights",
+                            org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                    String.class, Integer.class))
+                    .map(Map::size).orElse(0);
+            return count >= 2;
+        }
+    }
+
+    /**
+     * spec 725 / T1001：路由慢启动（buzhou.routing.slow-start 声明才装配——
+     * AutoCloseable close 关停爬坡调度器；缺席 = 零变化）。
+     */
+    @Bean(destroyMethod = "close")
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.RoutingSlowStartCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingSlowStart
+    buzhouRoutingSlowStart(BuzhouRoutingProperties routing,
+                           io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel router) {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingSlowStart(
+                router, routing.slowStart());
     }
 
     /**
      * spec 340 / T672：路由权重热重载（路由器在场即挂——320 舱容量同模式；
      * refresh 事件重读 yml 逐路 setWeight，WRR 动量保留自然收敛）。
+     * spec 725：慢启动 bean 在场时上调走爬坡（ObjectProvider 可选注入）。
      */
     @Bean
     @org.springframework.context.annotation.Conditional(
@@ -298,9 +371,11 @@ public class BuzhouResilienceAutoConfiguration {
     public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload
     buzhouRoutingWeightsHotReload(
             io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel router,
-            org.springframework.core.env.Environment environment) {
+            org.springframework.core.env.Environment environment,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingSlowStart> slowStart) {
         return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload(
-                router, environment);
+                router, environment, slowStart.getIfAvailable());
     }
 
     /** spec 339：weights ≥2 路才建路由器（Binder 预绑判定——未配零变化）。 */

@@ -36,7 +36,13 @@ public class PiiInputRedactionHook implements BuzhouHook {
 
     /** spec 129 / T475：输入侧叠加自定义规则（镜像输出侧三参构造器；null = 无叠加）。 */
     public PiiInputRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules) {
-        this.detector = new PiiDetector();
+        this(enabledTypes, customRules, false);
+    }
+
+    /** spec 731 / T1013：+格式保持模式（true = redact 分派 pseudonymize）。 */
+    public PiiInputRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules,
+                                 boolean formatPreserving) {
+        this.detector = new PiiDetector(formatPreserving);
         this.enabledTypes = EnumSet.copyOf(enabledTypes == null || enabledTypes.isEmpty()
                 ? EnumSet.allOf(PiiType.class) : enabledTypes);
         this.customRules = customRules == null ? new CustomPiiRules(List.of()) : customRules;

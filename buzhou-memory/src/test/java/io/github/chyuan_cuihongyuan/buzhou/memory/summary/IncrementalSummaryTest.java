@@ -76,9 +76,9 @@ class IncrementalSummaryTest {
                 new DefaultMicroCompactor(new DefaultCompletedTurnDetector()),
                 tool -> MicroCompactionPolicy.defaults(), 1,
                 new DefaultBudgetCalculator(
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver(
                                 java.util.Map.of()),
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator()),
                 new SummaryStoreBridge(store),
                 new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3), model,
                 "tiny-model", 2, null, 4000);

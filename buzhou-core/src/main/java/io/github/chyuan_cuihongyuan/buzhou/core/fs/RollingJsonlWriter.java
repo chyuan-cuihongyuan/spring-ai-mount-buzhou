@@ -37,6 +37,7 @@ public final class RollingJsonlWriter implements AutoCloseable {
     private final Path path;
     private final long maxBytes;
     private final int maxHistory;
+    private final int compressFromGeneration;
     private BufferedWriter writer;
     private long bytesWritten;
     private final AtomicLong rotations = new AtomicLong();
@@ -48,9 +49,24 @@ public final class RollingJsonlWriter implements AutoCloseable {
      * @param maxHistory 轮转保留代数（≤ 0 = 关轮转）
      */
     public RollingJsonlWriter(Path path, long maxBytes, int maxHistory) throws IOException {
+        this(path, maxBytes, maxHistory, 0);
+    }
+
+    /**
+     * spec 712 / T975（logrotate compress + delaycompress 借鉴）：代际 ≥
+     * {@code compressFromGeneration}（≥2；1 非法——file.1 恒明文 delaycompress）
+     * 的历史档存 gzip（{@code file.N.gz}）；0 = 关（全明文——默认零变化）。
+     */
+    public RollingJsonlWriter(Path path, long maxBytes, int maxHistory,
+            int compressFromGeneration) throws IOException {
+        if (compressFromGeneration == 1) {
+            throw new IllegalArgumentException(
+                    "compressFromGeneration 必须 ≥2（file.1 恒明文 delaycompress）或 0=关");
+        }
         this.path = path.toAbsolutePath();
         this.maxBytes = maxBytes;
         this.maxHistory = maxHistory;
+        this.compressFromGeneration = compressFromGeneration;
         Path parent = this.path.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
@@ -107,13 +123,19 @@ public final class RollingJsonlWriter implements AutoCloseable {
      */
     public static int rotateIfNeeded(Path path, long incomingBytes,
             long maxBytes, int maxHistory) throws IOException {
+        return rotateIfNeeded(path, incomingBytes, maxBytes, maxHistory, 0);
+    }
+
+    /** spec 712：带压缩线的静态轮转（语义同实例路径；0 = 全明文）。 */
+    public static int rotateIfNeeded(Path path, long incomingBytes,
+            long maxBytes, int maxHistory, int compressFromGeneration) throws IOException {
         if (maxBytes <= 0 || maxHistory <= 0 || !Files.exists(path)) {
             return 0;
         }
         if (Files.size(path) + incomingBytes <= maxBytes) {
             return 0;
         }
-        shiftGenerations(path, maxHistory);
+        shiftGenerations(path, maxHistory, compressFromGeneration);
         // spec 648：静态轮转路径同发指标（与长驻 rotate() 同口径）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter(METRIC_ROTATED, "file", path.getFileName().toString());
@@ -128,7 +150,7 @@ public final class RollingJsonlWriter implements AutoCloseable {
     private void rotate() throws IOException {
         try {
             writer.close();
-            shiftGenerations(path, maxHistory);
+            shiftGenerations(path, maxHistory, compressFromGeneration);
             writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             bytesWritten = 0L;
@@ -147,21 +169,58 @@ public final class RollingJsonlWriter implements AutoCloseable {
 
     /** 代际 shift：file.(h-1)→file.h 自高向低（最老删除），最后 file→file.1。 */
     private static void shiftGenerations(Path path, int maxHistory) throws IOException {
-        for (int gen = maxHistory; gen >= 2; gen--) {
-            Path from = generationPath(path, gen - 1);
-            Path to = generationPath(path, gen);
-            if (gen == maxHistory) {
-                Files.deleteIfExists(to); // 超龄最老代先清（腾位）
-            }
-            if (Files.exists(from)) {
-                Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);
-            }
-        }
-        Files.move(path, generationPath(path, 1), StandardCopyOption.REPLACE_EXISTING);
+        shiftGenerations(path, maxHistory, 0);
     }
 
-    private static Path generationPath(Path path, int gen) {
-        return path.resolveSibling(path.getFileName() + "." + gen);
+    /**
+     * spec 712：带压缩线的代际 shift——目标代 ≥ compressFrom 存 .gz；明文源跨线
+     * 时 gzip 转码（gz→gz 纯 rename；file.1 恒明文——delaycompress）；最老代清理
+     * 双形态。
+     */
+    private static void shiftGenerations(Path path, int maxHistory,
+            int compressFromGeneration) throws IOException {
+        for (int gen = maxHistory; gen >= 2; gen--) {
+            if (gen == maxHistory) {
+                deleteGeneration(path, gen); // 超龄最老代先清（腾位；双形态）
+            }
+            Path to = generationPath(path, gen, compressFromGeneration);
+            Path from = generationPath(path, gen - 1, compressFromGeneration);
+            if (Files.exists(from)) {
+                boolean transcode = compressFromGeneration > 0
+                        && gen >= compressFromGeneration
+                        && !from.toString().endsWith(".gz");
+                if (transcode) {
+                    gzipTo(from, to);
+                    Files.delete(from);
+                } else {
+                    Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+        Files.move(path, generationPath(path, 1, compressFromGeneration),
+                StandardCopyOption.REPLACE_EXISTING); // file.1 恒明文
+    }
+
+    /** 双形态清理（压缩线变更/重开残留兼容——明文与 .gz 都清）。 */
+    private static void deleteGeneration(Path path, int gen) throws IOException {
+        Files.deleteIfExists(generationPath(path, gen, 0));   // 明文形态
+        Files.deleteIfExists(generationPath(path, gen, gen)); // .gz 形态（gen ≥ gen 恒真）
+    }
+
+    private static Path generationPath(Path path, int gen, int compressFromGeneration) {
+        Path plain = path.resolveSibling(path.getFileName() + "." + gen);
+        boolean compressed = compressFromGeneration > 0 && gen >= compressFromGeneration;
+        return compressed ? plain.resolveSibling(plain.getFileName() + ".gz") : plain;
+    }
+
+    /** 明文 → gzip 转码（spec 712：跨压缩线的一次性开销，失败走轮转失败通道）。 */
+    private static void gzipTo(Path from, Path to) throws IOException {
+        try (java.io.InputStream in = Files.newInputStream(from);
+                java.util.zip.GZIPOutputStream gz = new java.util.zip.GZIPOutputStream(
+                        Files.newOutputStream(to, StandardOpenOption.CREATE,
+                                StandardOpenOption.TRUNCATE_EXISTING))) {
+            in.transferTo(gz);
+        }
     }
 
     private static long lineBytes(String line) {
