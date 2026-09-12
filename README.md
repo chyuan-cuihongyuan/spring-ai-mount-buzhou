@@ -516,6 +516,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | Guard 护栏 | 假名化×幂等占位符互操作补验 | 假名化输出二次处理幂等（替身不再匹配→原样）+ 跨模式无双重脱敏——spec 713/731 补验 | [spec 741](docs/spec/741-pseudonymize-idempotency.md) |
 | 观测与运维 | dryRun×AlertGate 语义确认 | 静默门吞实弹通知但 dryRun 推演如实报告——dry-run=引擎推演/gate=通道策略正交（spec 716 补验） | [spec 746](docs/spec/746-dryrun-gate.md) |
 | 观测与运维 | ToolTimingAggregator 并发压测 | 4000 并发 record 不变量守恒（count/total/max 精确断言）+ 多工具隔离 + windowedMax 同窗一致——热路径组件压测实证（spec 700 补验） | [spec 747](docs/spec/747-tool-timing-concurrency.md) |
+| 工程门禁 | G 会话 700 系收口 | 50 轮自迭代闭环：spec 700–749 / 票 T951–T1050 / impl 503–552 全档 + 全仓 verify 终验绿（spec 745 台账预检补缺位） | [spec 749](docs/spec/749-session-g-closing.md) |
 | 工程门禁 | G 会话中点快照再生 | 全量 reactor regenerate——8 新公共类入档零移除零意外（ConfigDiff/RollingMaxCounter/ForkLineageWalker/SessionExportConditional/MessageStoreContract/WebhookRateLimiter/ToolDenialLog/RouteStages）+ api-surface.md 同步 | [spec 748](docs/spec/748-snapshot-regen-g.md) |
 | 工程门禁 | G 会话收口预检（台账核查） | spec 700–748 连续核查（745 缺位本轮填补）/票 96 张全闭环/impl 对账 + SpecCoverage + 快照比对复跑绿 | [spec 745](docs/spec/745-g-session-audit.md) |
 | 工程门禁 | MessageStore SPI 契约校验套件 | MessageStoreContract 四项语义契约（append/load 保序、未知会话空读、多次追加保序、deleteSession 幂等）——spec 705 同构扩散 | [spec 743](docs/spec/743-messagestore-contract.md) |
