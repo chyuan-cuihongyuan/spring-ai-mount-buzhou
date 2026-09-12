@@ -862,8 +862,10 @@ public class BuzhouCoreAutoConfiguration {
     public io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl
     buzhouHealthTimelineJsonl(BuzhouHealthTimelineProperties properties)
             throws java.io.IOException {
+        // spec 643 / T936：轮转档位 yml 透传（缺省默认 64MB×3；显式 ≤0 = 关）
         return new io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl(
-                java.nio.file.Path.of(properties.exportPath()));
+                java.nio.file.Path.of(properties.exportPath()),
+                properties.effectiveExportMaxBytes(), properties.effectiveExportMaxHistory());
     }
 
     /**

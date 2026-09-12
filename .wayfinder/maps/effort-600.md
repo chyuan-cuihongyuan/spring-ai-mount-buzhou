@@ -70,6 +70,7 @@
 | 41 | fork 谱系键常量收口 | grpc Metadata.Key / k8s apimachinery | T930–T931 | 493 | 640 | ✅ |
 | 42 | 响应缓存 miss 惊群合并 | golang singleflight / nginx proxy_cache_lock | T932–T933 | 494 | 641 | ✅ |
 | 43 | 追加式 JSONL 大小轮转 | logback RollingFileAppender / logrotate | T934–T935 | 495 | 642 | ✅ |
+| 44 | JSONL 轮转 yml 装配扩散 | spec 642 扩散（D 会话装配轮模式） | T936–T937 | 496 | 643 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 
