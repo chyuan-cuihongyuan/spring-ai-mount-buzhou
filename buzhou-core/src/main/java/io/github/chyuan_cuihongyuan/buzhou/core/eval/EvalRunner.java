@@ -58,6 +58,13 @@ public final class EvalRunner {
     /** spec 708 / T1016：项级记忆化键（null/blank = 关——默认零行为；判定身份指纹由调用方拼装）。 */
     private volatile String memoizationKey;
 
+    /** spec 718 / T1036：漂移基线窗（0 = 关——默认零行为）。 */
+    private volatile int driftWindow;
+    /** spec 718：漂移告警线（绝对差值 ∈ (0,1]）。 */
+    private volatile double driftWarnShift;
+    /** spec 718：最近一次 run 的 passRate−baseline（无基线 = NaN——读数面）。 */
+    private volatile double lastDriftDelta = Double.NaN;
+
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
         this.runtime = runtime;
@@ -109,6 +116,80 @@ public final class EvalRunner {
      */
     public void setMemoizationKey(String key) {
         this.memoizationKey = key == null || key.isBlank() ? null : key;
+    }
+
+    /**
+     * spec 718 / T1036（Evidently drift 借鉴）：通过率漂移基线——run 完成后取
+     * 同数据集早于本次的最近 {@code window} 次 passRate 均值为基线，
+     * |当前−基线| ≥ warnShift → WARN+计数。无历史样本跳过；只告警不阻断。
+     * 默认关（window=0）。window≥0、warnShift∈(0,1] fail-fast。
+     */
+    public void setDriftBaseline(int window, double warnShift) {
+        if (window < 0) {
+            throw new IllegalArgumentException("漂移窗口非负（0 = 关；当前 " + window + "）");
+        }
+        if (window > 0 && !(warnShift > 0.0 && warnShift <= 1.0)) {
+            throw new IllegalArgumentException("漂移告警线必须在 (0,1]（当前 " + warnShift + "）");
+        }
+        this.driftWindow = window;
+        this.driftWarnShift = warnShift;
+    }
+
+    /** spec 718：最近一次 run 的 passRate−baseline（无基线 = NaN）。 */
+    public double lastDriftDelta() {
+        return lastDriftDelta;
+    }
+
+    /**
+     * spec 718：漂移判定（run 落盘后调用——基线只取早于本次的记录）。
+     * 读历史失败降级跳过（观测面故障不放大）。
+     */
+    private void checkDrift(String datasetName, EvalRunResult result) {
+        int window = driftWindow;
+        if (window <= 0) {
+            return;
+        }
+        try {
+            record Sample(Instant startedAt, double passRate) {
+            }
+            List<Sample> history = new ArrayList<>();
+            stateStore.scanByPrefix(EvalDatasetStore.SESSION_ID, RUN_PREFIX)
+                    .values().forEach(entry -> {
+                        try {
+                            Map<String, Object> map = decodeMap(entry.value());
+                            if (!datasetName.equals(map.get("datasetName"))) {
+                                return;
+                            }
+                            Instant startedAt = Instant.parse(String.valueOf(map.get("startedAt")));
+                            if (!startedAt.isBefore(result.startedAt())) {
+                                return; // 只取早于本次的 run——基线防自污染
+                            }
+                            history.add(new Sample(startedAt,
+                                    ((Number) map.getOrDefault("passRate", 0)).doubleValue()));
+                        } catch (RuntimeException malformedRunRecord) {
+                            // 单条坏记录跳过——漂移面不因存量脏数据失效
+                        }
+                    });
+            history.sort(java.util.Comparator.comparing(Sample::startedAt).reversed());
+            List<Sample> windowed = history.stream().limit(window).toList();
+            if (windowed.isEmpty()) {
+                return; // 首跑无基线
+            }
+            double baseline = windowed.stream().mapToDouble(Sample::passRate).average().orElse(0);
+            double delta = result.passRate() - baseline;
+            lastDriftDelta = delta;
+            if (Math.abs(delta) >= driftWarnShift) {
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.eval.drift.alerts");
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "评估通过率漂移：dataset=" + datasetName + " runId=" + result.runId()
+                                + " 当前 " + result.passRate() + " vs 基线 " + baseline
+                                + "（差 " + delta + " ≥ 告警线 " + driftWarnShift + "）");
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "漂移基线读取失败（跳过判定）：" + String.valueOf(e.getMessage()));
+        }
     }
 
     /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
@@ -206,6 +287,8 @@ public final class EvalRunner {
         stateStore.put(EvalDatasetStore.SESSION_ID,
                 new StateEntry(RUN_PREFIX + runId, encode(resultToMap(result)),
                         "eval", 0, null, finishedAt));
+        // spec 718 / T1036：通过率漂移判定（落盘后——基线只取早于本次的记录）
+        checkDrift(datasetName, result);
         // spec 111 §A / T403：run 总时长 timer（per-item durationMs 之外的整跑视角）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .timer("buzhou.eval.run.duration",

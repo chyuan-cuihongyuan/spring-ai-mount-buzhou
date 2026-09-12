@@ -341,6 +341,7 @@
 | #715 | PII 格式保形掩码 | [maps/effort-715.md](maps/effort-715.md) | T1030–1031 | 615 |
 | #716 | Todo 陈旧度审计读数 | [maps/effort-716.md](maps/effort-716.md) | T1032–1033 | 616 |
 | #717 | 共享事实冲突审计 | [maps/effort-717.md](maps/effort-717.md) | T1034–1035 | 617 |
+| #718 | 评估通过率漂移基线 | [maps/effort-718.md](maps/effort-718.md) | T1036–1037 | 618 |
 
 ## 跨 effort 悬留
 

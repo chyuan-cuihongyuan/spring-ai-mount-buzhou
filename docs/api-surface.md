@@ -1921,3 +1921,8 @@
   思想：audit(List<SharedFact>) 按键分组判 CONFLICT/DUPLICATE，entries
   证据全列；Objects.equals 保守口径；纯函数快照审计）
 
+- EvalRunner `setDriftBaseline`/`lastDriftDelta`（718——Evidently drift
+  思想：opt-in 通过率基线漂移告警，基线=同数据集早于本次最近 window 次
+  均值（防自污染），|Δ|≥warnShift WARN+计数；复用 run 落盘零新存储；
+  加法方法无新顶层类型）
+
