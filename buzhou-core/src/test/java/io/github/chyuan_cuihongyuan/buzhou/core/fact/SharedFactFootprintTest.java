@@ -29,7 +29,7 @@ class SharedFactFootprintTest {
         assertThat(report.totalFacts()).isEqualTo(5);
         assertThat(report.eternalFacts()).isEqualTo(3);
         assertThat(report.rows()).extracting(SharedFactFootprint.Row::owner)
-                .containsExactly("agent-b", "agent-a", "agent-c"); // facts 2/2/1 降序，同数字典序
+                .containsExactly("agent-a", "agent-b", "agent-c"); // facts 2/2/1 降序，同数字典序 a 在前
         assertThat(report.rows().get(0).eternal()).isEqualTo(2);
     }
 
