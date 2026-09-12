@@ -1992,14 +1992,31 @@ public class BuzhouCoreAutoConfiguration {
     @ConditionalOnMissingBean
     public io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver buzhouSessionArchiver(
             BuzhouStores stores,
+            org.springframework.core.env.Environment environment,
+            org.springframework.beans.factory.ObjectProvider<
+                    io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore> indexStore,
             org.springframework.beans.factory.ObjectProvider<
                     io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog> toolCallLog,
             org.springframework.beans.factory.ObjectProvider<
                     io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry> runRegistry) {
+        // spec 726 / T1003：归档 PDB 闸（buzhou.cleanup.min-available-sessions>0 且
+        // 索引在场才装配——capped probe 计数：limit=min+1 一页，size>min 即放行）
+        int minAvailable = environment.getProperty(
+                "buzhou.cleanup.min-available-sessions", Integer.class, 0);
+        io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor floor = null;
+        var index = indexStore.getIfAvailable();
+        if (minAvailable > 0 && index != null) {
+            floor = new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor(
+                    minAvailable, () -> index.list(
+                            new io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery(
+                                    null, null, null, null, null, 0, minAvailable + 1, null))
+                            .size());
+        }
         return new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver(
                 stores,
                 new io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner(
-                        stores, runRegistry.getIfAvailable(), toolCallLog.getIfAvailable()));
+                        stores, runRegistry.getIfAvailable(), toolCallLog.getIfAvailable()),
+                floor);
     }
 
     /**

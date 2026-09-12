@@ -55,6 +55,7 @@
 | 24 | 路由金丝雀阶段标签 | MLflow stages / argo-rollouts | T997–T998 | 526 | 723 | ✅ |
 | 25 | MCP keepalive yml 装配 | D 会话装配轮模式 | T999–T1000 | 527 | 724 | ✅ |
 | 26 | 路由慢启动 yml 装配 | D 会话装配轮模式 | T1001–T1002 | 528 | 725 | ✅ |
+| 27 | 归档 PDB yml 装配（capped probe 计数） | D 会话装配轮模式 | T1003–T1004 | 529 | 726 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
