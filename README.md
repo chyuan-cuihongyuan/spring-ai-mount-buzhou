@@ -483,6 +483,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | Guard 护栏 | 角色权限拒绝有界日志 | ToolDenialLog（128 条环形明细 + 64 键 (role,tool) 聚合 + unauthorized/undefined-role 分流）——谁在反复试哪些无权工具一查便知（Redis ACL LOG 借鉴） | [spec 709](docs/spec/709-tool-denial-log.md) |
 | 会话治理 | 会话导出 unchanged 协商 | contentFingerprint（内容投影剔除 exportedAt，sha256-c: 前缀）+ exportIfChanged（UNCHANGED 不外发 payload，fail-open）——周期同步方免收全量（HTTP ETag 借鉴） | [spec 710](docs/spec/710-export-conditional.md) |
 | 会话治理 | fork 谱系游走环防护 | ForkLineageWalker（SOURCE 链上溯 + visited 环检测 + 深度 64 封顶，只读不修）——导入路径注入环/超深链时消费方不死循环（call-graph 环检测借鉴） | [spec 711](docs/spec/711-fork-lineage-walker.md) |
+| 观测与运维 | JSONL 轮转旧档 gzip 压缩 | RollingJsonlWriter compressFromGeneration opt-in（代际 ≥N 存 .gz、file.1 恒明文 delaycompress、双形态清理）——观测明细 ~10:1 省盘（logrotate compress 借鉴） | [spec 712](docs/spec/712-jsonl-rotate-gzip.md) |
 
 ## 快速开始
 
