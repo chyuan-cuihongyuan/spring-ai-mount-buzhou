@@ -466,6 +466,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | 追加式 JSONL 大小轮转 | `RollingJsonlWriter`（64MB×3 默认开；≤0 显式关）——健康时间线/影子对照/prompt 快照三类明细磁盘封顶 | [spec 642](docs/spec/642-jsonl-rolling.md) |
 | 观测与运维 | JSONL 轮转 yml 细调 | `health.timeline.export-max-{bytes,history}` / `shadow.detail-max-{bytes,history}`——磁盘预算档位声明化（缺席默认/显式关） | [spec 643](docs/spec/643-jsonl-rolling-yml.md) |
 | 观测与运维 | JSON 行手工拼接收口 | 四处（prompt 快照/导出清单/失败快照/死信）统一 Jackson——注入字符（引号/换行/制表符）行仍合法回读原值 | [spec 644](docs/spec/644-jsonl-jackson-escaping.md) |
+| 工程门禁 | API 快照再生收口 | E 会话合并后快照再生成 + api-surface.md 同步（三个新公共类入档）——快照门复绿 | [spec 645](docs/spec/645-api-snapshot-regen.md) |
+| Hook 护栏 | hook 链 per-hook 耗时观测 | HookChain 八回调面计时（count/total/max + stats() 快照）+ 慢 hook（>100ms）WARN 原子去重——慢 hook 一查便知 | [spec 646](docs/spec/646-hook-chain-timing.md) |
 
 ## 快速开始
 

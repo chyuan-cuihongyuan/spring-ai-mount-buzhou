@@ -72,6 +72,8 @@
 | 43 | 追加式 JSONL 大小轮转 | logback RollingFileAppender / logrotate | T934–T935 | 495 | 642 | ✅ |
 | 44 | JSONL 轮转 yml 装配扩散 | spec 642 扩散（D 会话装配轮模式） | T936–T937 | 496 | 643 | ✅ |
 | 45 | JSON 行手工拼接收口 | spec 60 纪律全仓收口（Jackson canonical） | T938–T939 | 497 | 644 | ✅ |
+| 46 | API 快照再生收口（E 合并后） | spec 615 门 + 快照随轮再生惯例 | T940–T941 | 498 | 645 | ✅ |
+| 47 | hook 链 per-hook 耗时观测 | actuator http.server.requests / OTel 计时 | T942–T943 | 499 | 646 | ✅ |
 
 （9–50 轮主题自雾区顺延；每轮补行。另：eval 数据集 schema 校验主题经核查已被 spec 134 DatasetExpectations 覆盖——ruled-out 顺延。）
 

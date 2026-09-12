@@ -176,6 +176,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFact
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine
@@ -313,6 +314,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportChecks
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeatureStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionImportException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionInterrupts
@@ -575,6 +577,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.Resilie
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.budget.AgentCostLedgerHook
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheKeys
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheAdvisor

@@ -17,6 +17,7 @@
 - `public class LeaseLostException`
 - `public class QuotaExceededException`
 - `public class RetentionSweeper`
+- `public class RollingJsonlWriter`（spec 642——追加式 JSONL 大小轮转：64MB×3 默认开/≤0 显式关）
 - `public class RunRecoveryService`
 - `public class RunStateTrackerHook`
 - `public class RunawayBudgetRenderer`
@@ -399,6 +400,7 @@
 - `public class RateLimitAdvisor`
 - `public class ResilienceAdvisor`
 - `public class ResilienceSessionObserver`
+- `public class ResponseCacheCoalescer`（spec 641——响应缓存 miss 惊群合并：singleflight 语义）
 - `public class SessionQuotaHook`
 - `public enum CircuitState`
 - `public enum ErrorCategory`
