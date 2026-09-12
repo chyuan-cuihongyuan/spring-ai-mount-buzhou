@@ -1,6 +1,6 @@
 # G 会话进度台账（rolling，收口轮据此归档）
 
-> **状态：0/50（2026-09-12 开工）。** G 会话 700 系自迭代——
+> **状态：50/50 收官（2026-09-13）。** G 会话 700 系自迭代——
 > /goal ≥50 轮 wayfinder→spec→tickets→implement 闭环，全自主决策，借鉴 GitHub >10K star 项目思想。
 > 号段：efforts #700–#749 ｜ specs 700–749 ｜ 票 T1000–T1099 ｜ impl600–649 ｜ 分支 g-session-700-series。
 > 前情：E 会话 50 轮入 main（PR #19，merge 8741dbc，见 [progress-effort-500.md](progress-effort-500.md)）；
@@ -77,3 +77,4 @@ R49 慢调用 TopN 读数(MySQL slow query log)/R50 收口终验（全反应堆�
 | 18 | #717 | 共享事实冲突审计（mem0 治理） | 717 | T1034–1035 | 617 | 77c7ce6 |
 | 19 | #718 | 评估通过率漂移基线（Evidently drift） | 718 | T1036–1037 | 618 | abe4844 |
 | 20 | #719 | 供应商限流头前瞻读数（OpenAI x-ratelimit） | 719 | T1038–1039 | 619 | ea24cca |
+| 50 | #749 | 收口终验（全反应堆回归+快照门修正+补档） | 749 | 全闭环 | — | （本轮） |

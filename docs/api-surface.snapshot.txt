@@ -27,9 +27,11 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupResult
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StateTtlCoverage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsck
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreIntegrityReport
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.TurnSequenceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AdaptiveBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkheadReporter
@@ -119,6 +121,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalScore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalScoreAnalytics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeAgreement
@@ -172,8 +175,10 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.PostmortemBundle
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.FactConflictAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFact
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactFootprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
@@ -200,6 +205,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.HealthTimelineRecorder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.LatencySloMonitor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ObservabilityCapacityHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth
@@ -223,6 +229,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnTimingHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.PromptComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
@@ -233,11 +240,16 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPairingAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPayloadSizeAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventType
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventTypeDistribution
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventTypePresenceGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanHandle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanKind
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanParentIntegrityAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanRecorder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanStatus
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
@@ -251,6 +263,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegist
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistrySnapshot
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptTemplate
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageGaps
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersion
@@ -311,6 +324,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListene
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportChecksum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportSizeAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeatureStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener
@@ -432,6 +446,7 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.inject.SpotlightHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.leak.SessionCanaryRegistry
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.moderation.ContentModerationHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.CustomPiiRules
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.FormatPreservingMasker
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiDetector
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiEventRedactor
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiHitStats
@@ -470,8 +485,10 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.taint.TaintWriteGateHook
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.DbToolSetProvider
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.InMemoryToolSetSpecStore
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpClientRegistry
+buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConcurrencyView
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnection
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectionFactory
+buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpDirectoryDiff
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpModule
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpToolHints
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.PropertiesToolSetProvider
@@ -569,21 +586,25 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ErrorCategory
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.MetricTags
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ModelCallTimeoutException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderErrorClassifier
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderRateLimitSignals
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ResilienceModule
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCallInFlight
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.budget.AgentCostLedgerHook
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ChunkingEmbeddingModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheKeys
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.BuzhouModelCapabilityProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.CapabilityDecisionAudit
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.CapabilityGateAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilities
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilityRegistry
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.CircuitState
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.CircuitTransitionJournal
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.concurrency.ModelConcurrencyAdvisor
@@ -612,6 +633,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.Model
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingHealthDampener
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
@@ -685,6 +707,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillGuardModule
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillHandle
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillModule
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillOffloadHook
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillPairAudit
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillQuota
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillService
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillStore
@@ -694,6 +717,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.BuzhouSpillAutoCon
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.BuzhouSpillHealthAutoConfiguration
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillHealth
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillModuleLifecycle
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillPairHealth
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillProperties
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.DegradingObservabilityStore
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.Dialect
@@ -717,6 +741,8 @@ buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.DegradingObse
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBulkheadStateBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBuzhouStores
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisCircuitBreakerStateBackend
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisKeyLayoutAudit
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisKeyLayoutHealth
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLaneStateBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisLeaderElector
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisMessageStore
@@ -747,5 +773,6 @@ buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.http.HttpRequestTool
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.http.SsrfGuard
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoAttachmentRenderer
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoItem
+buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoStalenessAudit
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoStore
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoTool

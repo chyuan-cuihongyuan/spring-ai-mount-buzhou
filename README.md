@@ -502,6 +502,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 记忆治理 | 共享事实足迹读数 | SharedFactFootprint——owner 维度 facts/eternal 归因降序，事实堆积与永生可见（410 治理；值不读取隐私口径） | [spec 741](docs/spec/741-shared-fact-footprint.md) |
 | Spill 治理 | 孤儿保留计数读数 | totalRetainedOrphans/lastSweepRetained——被 fork 引用保留的孤儿从局部变量升格为证据面，引用泄漏堆积可见（impl-38 深化） | [spec 742](docs/spec/742-sweep-retained-readout.md) |
 | 评估闭环 | 数据集指纹变更信号 | lastFingerprintChanged()+计数——连续跑批中指纹变化即时可见，diff 结论不张冠李戴（82 消费信号） | [spec 734](docs/spec/734-fingerprint-change-signal.md) |
+| 评估闭环 | 相似度阈值反事实对照 | passesAtThresholds——给定候选阈值集分别计算通过数，「阈值调到 X 会多放行几条」一目了然（731 深化） | [spec 747](docs/spec/747-threshold-counterfactual.md) |
 | Skill 体系 | 混合排序融合权重读数 | semanticWeight/lexicalWeight/fusedCount——权重声明是否生效与融合次数一读便知（638 声明生效确认面同型） | [spec 744](docs/spec/744-hybrid-ranker-readout.md) |
 | 模型韧性 | 供应商限流信号 stats 接线 | updateProviderUtilization/lastProviderUtilization（NaN 起始）+details 条件出现——719 信号的聚合归宿（740） | [spec 740](docs/spec/740-provider-signals-stats.md) |
 | 观测治理 | 事件 payload 大小审计 | EventPayloadSizeAudit.analyze——Jackson 字节按类型聚合 total/max 降序，payload 风暴与存储吞噬可见（Sentry 限额思想） | [spec 732](docs/spec/732-event-payload-size-audit.md) |
@@ -513,6 +514,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 缓存与前缀 | 响应缓存权重预算 yml 装配 | response-cache.max-weight-chars（默认 0=关）——737 原语的装配兑现（723 同模式） | [spec 745](docs/spec/745-response-cache-weight-assembly.md) |
 | 模型韧性 | 能力审计按能力维度聚合 | Report 增 denyByCapability——vision/tools 分布与 denyByModel 正交双视角，补声明还是换模型有数（700 深化） | [spec 746](docs/spec/746-deny-by-capability.md) |
 | 评估闭环 | 执行策略汇总读数 | executionPolicy()——五件套（预算/重试/超时/记忆化/漂移）当前态一屏确认，「为什么有 [RUN-BUDGET]/[MEMO]」的配置证据面（748） | [spec 748](docs/spec/748-execution-policy-readout.md) |
+| 收口 | G 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门修正（regenerate 需系统属性——49 轮静默跳过已补）+覆盖门补档 721/723/738+台账 50/50 归档 | [spec 749](docs/spec/749-final-verification.md) |
 | 护栏 | 导出脱敏命中计数 | SessionExportSanitizer hitCounts/totalHits——PiiType 与自定义规则归因，「导出脱敏动了多少刀」可审计（合规证据面） | [spec 743](docs/spec/743-sanitizer-hit-counts.md) |
 | MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 
