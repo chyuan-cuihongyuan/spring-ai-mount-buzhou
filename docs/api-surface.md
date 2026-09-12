@@ -1976,6 +1976,9 @@
   （count/total/max，totalBytes 降序）+serialized/skipped 诚实计数；
   纯函数读数）
 
+- `PromptUsageGaps`（嵌套 `Report`）（733——401×使用统计联合读数：
+  analyze(declaredNames, rows) 零使用差集+孤儿统计漂移信号；纯函数）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
