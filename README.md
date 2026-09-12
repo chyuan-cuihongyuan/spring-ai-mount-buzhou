@@ -507,6 +507,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 导出协商联动补验 | 往返指纹稳定 + 两轮协商周期 + 双校验和幂等——周期同步脚本语义闭环（spec 710 补验） | [spec 733](docs/spec/733-export-negotiation-e2e.md) |
 | 观测与运维 | PDB×空闲压缩联动补验 | sweep 空闲候选×floor 拒绝/放行两态 + 计数一致——候选→闸联动闭环（spec 704/179 补验） | [spec 734](docs/spec/734-pdb-idle-e2e.md) |
 | 模型韧性 | 金丝雀×慢启动×热重载联动补验 | filter→构造→热调升配 ramp→tick 到位编排闭环——archived 不入路由（spec 723/702/340 补验） | [spec 735](docs/spec/735-stages-slowstart-e2e.md) |
+| 观测与运维 | ConfigDiff×快照端点同源补验 | 端点真快照两份对比——掩码语义/diff 稳定闭环（spec 719 补验） | [spec 736](docs/spec/736-config-diff-e2e.md) |
 
 ## 快速开始
 
