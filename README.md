@@ -517,6 +517,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | dryRun×AlertGate 语义确认 | 静默门吞实弹通知但 dryRun 推演如实报告——dry-run=引擎推演/gate=通道策略正交（spec 716 补验） | [spec 746](docs/spec/746-dryrun-gate.md) |
 | 观测与运维 | ToolTimingAggregator 并发压测 | 4000 并发 record 不变量守恒（count/total/max 精确断言）+ 多工具隔离 + windowedMax 同窗一致——热路径组件压测实证（spec 700 补验） | [spec 747](docs/spec/747-tool-timing-concurrency.md) |
 | 工程门禁 | G 会话中点快照再生 | 全量 reactor regenerate——8 新公共类入档零移除零意外（ConfigDiff/RollingMaxCounter/ForkLineageWalker/SessionExportConditional/MessageStoreContract/WebhookRateLimiter/ToolDenialLog/RouteStages）+ api-surface.md 同步 | [spec 748](docs/spec/748-snapshot-regen-g.md) |
+| 工程门禁 | G 会话收口预检（台账核查） | spec 700–748 连续核查（745 缺位本轮填补）/票 96 张全闭环/impl 对账 + SpecCoverage + 快照比对复跑绿 | [spec 745](docs/spec/745-g-session-audit.md) |
 | 工程门禁 | MessageStore SPI 契约校验套件 | MessageStoreContract 四项语义契约（append/load 保序、未知会话空读、多次追加保序、deleteSession 幂等）——spec 705 同构扩散 | [spec 743](docs/spec/743-messagestore-contract.md) |
 | 工程门禁 | MessageStore 契约接入 H2 | JdbcMessageStore 过四项契约（H2 无 Docker CI 口径）——契约抓出探针会话主键冲突设计缺陷并重构为每检查独立会话（spec 743 复用面） | [spec 744](docs/spec/744-messagestore-h2.md) |
 

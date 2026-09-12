@@ -77,6 +77,7 @@
 | 46 | dryRun×AlertGate 语义确认 | spec 716 补验 | T1041–T1042 | 548 | 746 | ✅ |
 | 47 | ToolTimingAggregator 并发压测 | spec 700 补验 | T1043–T1044 | 549 | 747 | ✅ |
 | 48 | API 快照再生 + api-surface 同步 | spec 615/645 惯例 | T1045–T1046 | 550 | 748 | ✅ |
+| 49 | G 会话收口预检（台账核查，补 spec 745 缺位） | D/E/F 收口预检模式 | T1047–T1048 | 551 | 745 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
