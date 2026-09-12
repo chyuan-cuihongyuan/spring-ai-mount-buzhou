@@ -28,7 +28,8 @@ public final class CapabilityDecisionAudit {
 
     /** 不可变读数报告（recentDenies 最新在前；列表为防御拷贝）。 */
     public record Report(List<Decision> recentDenies, long denied, long admitted,
-                         long dropped, int capacity, Map<String, Long> denyByModel) {
+                         long dropped, int capacity, Map<String, Long> denyByModel,
+                         Map<String, Long> denyByCapability) {
     }
 
     private final int capacity;
@@ -71,7 +72,11 @@ public final class CapabilityDecisionAudit {
 
     /** 不可变快照（最新在前；防御拷贝）。 */
     public synchronized Report snapshot() {
+        Map<String, Long> byCapability = new LinkedHashMap<>();
+        for (Decision decision : recent) {
+            byCapability.merge(decision.capability(), 1L, Long::sum);
+        }
         return new Report(List.copyOf(recent), denied, admitted, dropped, capacity,
-                Map.copyOf(denyByModel));
+                Map.copyOf(denyByModel), Map.copyOf(byCapability));
     }
 }

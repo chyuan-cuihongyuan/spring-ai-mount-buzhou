@@ -2002,6 +2002,10 @@
   response-cache.max-weight-chars（默认 0=关），ResilienceModule 装配点
   透传；加法组件+兼容构造，无新顶层类型）
 
+- CapabilityDecisionAudit.Report `denyByCapability`（746——700 深化：
+  snapshot 即时聚合 vision/tools 分布，与 denyByModel 正交双视角；
+  record 组件扩展，无新顶层类型）
+
 - ResilienceStats `updateProviderUtilization`/`lastProviderUtilization`
   （740——719 信号聚合接线：NaN 起始+details 条件出现；加法方法无新
   顶层类型）
