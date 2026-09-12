@@ -471,6 +471,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 能力门决策审计读数 | deny 环形留痕（容量 64+dropped 计数）+admit 计数+denyByModel 聚合+snapshot 不可变报告——「门最近拒了谁」从异常瞬间变成可查询证据面（OPA Decision Logs） | [spec 700](docs/spec/700-capability-decision-audit.md) |
 | 缓存与前缀 | 语义缓存权重预算驱逐 | `max-weight-chars`（默认 0=关）——按响应字符数腾挪驱逐，大响应不再挤出高频短条目；weightEvictions 独立口径（Caffeine weigher） | [spec 701](docs/spec/701-semantic-cache-weight-budget.md) |
 | 模型韧性 | 断路器变迁事件流读数 | CircuitTransitionJournal 进程级变迁环形留痕+per-model trips/recoveries/halfOpens 聚合——「最近跳了谁/多久恢复」不再散落会话事件通道（Resilience4j EventConsumer） | [spec 702](docs/spec/702-circuit-transition-journal.md) |
+| 模型路由 | 健康加权路由抑制原语 | attach(router,breaker,floor)——跳闸压权至地板（全跳不黑洞）恢复回声明值；breaker 加变迁监听缝（HAProxy agent-check） | [spec 703](docs/spec/703-routing-health-dampener.md) |
 
 ## 快速开始
 

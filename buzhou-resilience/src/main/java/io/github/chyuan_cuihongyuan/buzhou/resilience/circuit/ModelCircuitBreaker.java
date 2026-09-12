@@ -62,6 +62,9 @@ public final class ModelCircuitBreaker {
     private final io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend shared;
     /** spec 702 / T1004：进程级变迁读数（恒开旁路——跳闸低频，有界内存可忽略）。 */
     private final CircuitTransitionJournal journal = new CircuitTransitionJournal();
+    /** spec 703 / T1006：变迁监听缝（跨面联动挂点；listener 异常隔离不伤状态机）。 */
+    private final java.util.List<java.util.function.Consumer<CircuitTransitionJournal.Transition>>
+            transitionListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, ModelCircuit> circuits = new ConcurrentHashMap<>();
 
     public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats) {
@@ -187,6 +190,14 @@ public final class ModelCircuitBreaker {
     /** spec 702 / T1004：进程级变迁读数（环形留痕+聚合，与会话事件通道旁路并行）。 */
     public CircuitTransitionJournal transitionJournal() {
         return journal;
+    }
+
+    /**
+     * spec 703 / T1006：变迁监听缝——每次状态变迁回调（与 journal 同数据）。
+     * listener 异常被隔离（WARN 留痕，状态机照常）；无 listener 零开销。
+     */
+    public void addTransitionListener(java.util.function.Consumer<CircuitTransitionJournal.Transition> listener) {
+        transitionListeners.add(listener);
     }
 
     private ModelCircuit circuit(String modelName) {
@@ -384,9 +395,20 @@ public final class ModelCircuitBreaker {
             }
             // spec 702 / T1004：进程级变迁留痕（旁路镜像——会话通道语义不变）
             if (from != to) {
-                journal.record(modelName, from.name(), to.name(), System.currentTimeMillis(),
+                CircuitTransitionJournal.Transition record = new CircuitTransitionJournal.Transition(
+                        modelName, from.name(), to.name(), System.currentTimeMillis(),
                         to == CircuitState.OPEN ? consecutiveTrips : -1,
                         to == CircuitState.OPEN ? effectiveCooldownMs : -1L);
+                journal.record(record.model(), record.from(), record.to(), record.atEpochMs(),
+                        record.consecutiveTrips(), record.openDurationMs());
+                for (java.util.function.Consumer<CircuitTransitionJournal.Transition> listener : transitionListeners) {
+                    try {
+                        listener.accept(record);
+                    } catch (RuntimeException e) {
+                        LOGGER.log(System.Logger.Level.WARNING,
+                                "熔断变迁监听器异常（已隔离，状态机照常）：" + record, e);
+                    }
+                }
             }
         }
 

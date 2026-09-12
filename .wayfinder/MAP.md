@@ -326,6 +326,7 @@
 | #700 | 能力门决策审计读数 | [maps/effort-700.md](maps/effort-700.md) | T1000–1001 | 600 |
 | #701 | 语义缓存权重预算驱逐 | [maps/effort-701.md](maps/effort-701.md) | T1002–1003 | 601 |
 | #702 | 断路器变迁事件流读数 | [maps/effort-702.md](maps/effort-702.md) | T1004–1005 | 602 |
+| #703 | 健康加权路由抑制原语 | [maps/effort-703.md](maps/effort-703.md) | T1006–1007 | 603 |
 
 ## 跨 effort 悬留
 

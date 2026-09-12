@@ -1857,3 +1857,7 @@
   per-model trips/recoveries/halfOpens 聚合；内嵌 ModelCircuitBreaker
   恒开旁路，`transitionJournal()` getter 暴露）
 
+- `RoutingHealthDampener`（703——HAProxy agent-check 思想：attach 原语
+  跳闸压权至地板/恢复回声明权重；ModelCircuitBreaker 加
+  `addTransitionListener` 监听缝，listener 异常隔离不伤状态机）
+
