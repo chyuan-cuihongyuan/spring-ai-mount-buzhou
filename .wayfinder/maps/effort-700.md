@@ -39,6 +39,7 @@
 | 8 | 模块边界守卫 + internal 存量清零（8 处违规、6 类迁出、快照再生 11 行） | ArchUnit / eslint no-restricted-imports | T965–T966 | 510 | 707 | ✅ |
 | 9 | HookTiming 滚动 max 读面 | micrometer Timer max decay | T967–T968 | 511 | 708 | ✅ |
 | 10 | 角色权限拒绝有界日志 | Redis ACL LOG | T969–T970 | 512 | 709 | ✅ |
+| 11 | 会话导出 unchanged 协商 | HTTP ETag / RFC 7232 | T971–T972 | 513 | 710 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
