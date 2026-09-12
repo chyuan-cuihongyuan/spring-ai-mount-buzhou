@@ -316,6 +316,7 @@
 | #546 | 技能正文规模审计 | [maps/effort-546.md](maps/effort-546.md) | T851–852 | 448 |
 | #547 | 会话导出校验和 | [maps/effort-547.md](maps/effort-547.md) | T853–854 | 449 |
 | #548 | fsck 巡检健康面 | [maps/effort-548.md](maps/effort-548.md) | T855–856 | 450 |
+| #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
 | #535 | error 项重试一次 | [maps/effort-535.md](maps/effort-535.md) | T823–824 | 437 |
 | #522 | session.opened 事件补齐 | [maps/effort-522.md](maps/effort-522.md) | T795–T796 | 425 |
 | #523 | 失败轮快照面 | [maps/effort-523.md](maps/effort-523.md) | T797–T798 | 426 |

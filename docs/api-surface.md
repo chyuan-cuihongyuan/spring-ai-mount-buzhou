@@ -1834,3 +1834,6 @@
   观测面恒 UP，details 聚合 runs/totalFindings/lastFindings/
   skippedNotLeader）
 
+- GuardModule `assemblySummary()`（549——装配 hook 名列表读数，支持包
+  /排障「guard 挂了哪些钩子」一屏可读；加法方法无新类型）
+

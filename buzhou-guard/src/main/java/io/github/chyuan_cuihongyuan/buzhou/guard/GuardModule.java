@@ -146,6 +146,18 @@ public final class GuardModule {
         return new RuntimeConfig(hooks, Set.of(), Set.of(), null, List.of());
     }
 
+    /**
+     * spec 549 / T855：装配摘要读数——hook 名列表（装配序）。「guard 到底
+     * 挂了哪些钩子」支持包/排障一屏可读。
+     */
+    public List<String> assemblySummary() {
+        List<String> names = new ArrayList<>();
+        for (BuzhouHook hook : hooks) {
+            names.add(hook.name());
+        }
+        return List.copyOf(names);
+    }
+
     /** 授权写回 API（业务侧 REST 调用）。 */
     public GuardAuthApi authApi() {
         return authApi;
