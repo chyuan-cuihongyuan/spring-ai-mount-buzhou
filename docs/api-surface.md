@@ -1946,6 +1946,10 @@
 - RoutingHealthDampener 半开中点档（725——HAProxy slow-start：HALF_OPEN
   权重=(floor+declared)/2 向下取整，CLOSED 回声明值；加法行为无新类型）
 
+- `EventTypeDistribution`（嵌套 `Row`/`Report`）（726——Grafana Loki top-k
+  思想：of(List<EventRecord>) type 计数降序+字典序稳定+topType 占比；
+  类型不假设闭集；纯函数读数）
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
