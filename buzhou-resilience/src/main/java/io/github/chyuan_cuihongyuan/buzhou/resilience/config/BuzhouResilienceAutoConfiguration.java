@@ -263,9 +263,44 @@ public class BuzhouResilienceAutoConfiguration {
     @org.springframework.context.annotation.Conditional(
             BuzhouResilienceAutoConfiguration.RoutingConfiguredCondition.class)
     public io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
-    buzhouWeightedChatModel(BuzhouRoutingProperties routing, Map<String, ChatModel> chatModels) {
+    buzhouWeightedChatModel(BuzhouRoutingProperties routing, Map<String, ChatModel> chatModels,
+                            org.springframework.core.env.Environment environment) {
+        // spec 730 / T1011：阶段选型过滤（buzhou.routing.stages.<name> + visible-stages
+        // 双声明才生效；未标注恒保留——零变化）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages stages =
+                new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages();
+        java.util.Map<String, String> stageMap = org.springframework.boot.context.properties.bind.Binder
+                .get(environment)
+                .bind("buzhou.routing.stages",
+                        org.springframework.boot.context.properties.bind.Bindable.mapOf(
+                                String.class, String.class))
+                .orElse(java.util.Map.of());
+        stageMap.forEach((k, v) -> stages.tag(k,
+                io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.Stage
+                        .valueOf(String.valueOf(v).trim().toUpperCase())));
+        java.util.Set<String> rawVisible = org.springframework.boot.context.properties.bind.Binder
+                .get(environment)
+                .bind("buzhou.routing.visible-stages",
+                        org.springframework.boot.context.properties.bind.Bindable.setOf(String.class))
+                .orElse(java.util.Set.of());
+        java.util.Set<io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.Stage> visible =
+                rawVisible.stream().map(s ->
+                                io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.Stage
+                                        .valueOf(String.valueOf(s).trim().toUpperCase()))
+                        .collect(java.util.stream.Collectors.toSet());
+        java.util.Map<String, Integer> weights =
+                new java.util.LinkedHashMap<>(routing.weights());
+        if (!stages.view().isEmpty() && !visible.isEmpty()) {
+            weights = io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages.filter(
+                    weights, stages, visible);
+            if (weights.size() < 2) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                        "buzhou.routing.visible-stages 过滤后仅剩 " + weights.size() + " 路（路由需 ≥2）",
+                        "调整 visible-stages 或降低过滤强度（如放行 CANARY）");
+            }
+        }
         java.util.Map<String, ChatModel> candidates = new java.util.LinkedHashMap<>();
-        routing.weights().keySet().forEach(name -> {
+        weights.keySet().forEach(name -> {
             ChatModel model = chatModels.get(name);
             if (model == null) {
                 throw new BuzhouConfigurationException(
@@ -275,7 +310,7 @@ public class BuzhouResilienceAutoConfiguration {
             candidates.put(name, model);
         });
         return new io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel(
-                candidates, routing.weights());
+                candidates, weights);
     }
 
     /**
