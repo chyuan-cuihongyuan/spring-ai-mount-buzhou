@@ -25,6 +25,23 @@ public final class PiiDetector {
     /** splitmix64 黄金常数（0x9E3779B97F4A7C15）。 */
     private static final long SPLITMIX_GAMMA = 0x9E3779B97F4A7C15L;
 
+    private final boolean formatPreserving;
+
+    /** 默认构造：MASK 模式（redact = 全占位符——既有语义）。 */
+    public PiiDetector() {
+        this(false);
+    }
+
+    /**
+     * spec 731 / T1013：模式构造——{@code formatPreserving=true} 时
+     * {@link #redact} 分派到 {@link #pseudonymize}（同长度同形态替身）；
+     * false = 既有 MASK 语义。三缝（输入/出站/流式）共用同一 detector 实例
+     * 时模式自然一致。
+     */
+    public PiiDetector(boolean formatPreserving) {
+        this.formatPreserving = formatPreserving;
+    }
+
     /** 单次命中（type + 区间；text 仅测试/审计用，勿外发日志）。 */
     public record PiiMatch(PiiType type, int start, int end, String text) {
     }
@@ -120,8 +137,13 @@ public final class PiiDetector {
         return x ^ (x >>> 31);
     }
 
-    /** 命中指定类型集即脱敏（占位符形态 {@code [PII:TYPE]}）。 */
+    /** 命中指定类型集即脱敏（MODE 分派——spec 731：formatPreserving → pseudonymize）。 */
     public String redact(String text, Set<PiiType> enabled) {
+        return formatPreserving ? pseudonymize(text, enabled) : maskRedact(text, enabled);
+    }
+
+    /** MASK 模式：占位符形态 {@code [PII:TYPE]}（既有语义）。 */
+    private String maskRedact(String text, Set<PiiType> enabled) {
         if (text == null || text.isEmpty() || enabled.isEmpty()) {
             return text;
         }

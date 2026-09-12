@@ -69,30 +69,15 @@ public final class GuardModule {
             h.add(new SpotlightHook());
         }
         // spec 86 §A / T329：PII 脱敏先于 spotlight（order 70 < 80——先脱敏原文再包裹）
+        // spec 731 / T1013：piiPreserveFormat → 假名化模式（同长度同形态替身）
         if (builder.piiRedaction) {
-            h.add(builder.piiTypes == null
-                    ? (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook()
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                                    null, builder.customPiiRules))
-                    : (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                                    builder.piiTypes)
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                                    builder.piiTypes, builder.customPiiRules)));
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
+                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat));
         }
         // spec 106 §A / T389：用户输入脱敏（beforeTurn replaceInput——与输出侧正交）
         if (builder.piiInputRedaction) {
-            h.add(builder.piiTypes == null
-                    ? (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook()
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                                    null, builder.customPiiRules))
-                    : (builder.customPiiRules == null
-                            ? new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                                    builder.piiTypes)
-                            : new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                                    builder.piiTypes, builder.customPiiRules)));
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
+                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat));
         }
         // spec 536 / T825：流式回复秘密扫描（400 三缝的第四缝——回复出站流；默认关）
         if (builder.secretStreamRedaction != null && builder.secretStreamRedaction) {
@@ -208,6 +193,14 @@ public final class GuardModule {
         private java.util.Set<io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretType> secretTypes = null;
         /** spec 727 / T1005：熵阈值（null = 关——默认）。 */
         private Double secretMinEntropy;
+        /** spec 731 / T1013：PII 假名化模式（false = MASK 占位符——默认零变化）。 */
+        private boolean piiPreserveFormat;
+
+        /** spec 731 / T1013：PII 格式保持假名化（同长度同形态替身——spec 713）。 */
+        public Builder piiPreserveFormat() {
+            this.piiPreserveFormat = true;
+            return this;
+        }
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
         // spec 626 / T902：事实置信度衰减（null = 不衰减——既有语义零变化）
