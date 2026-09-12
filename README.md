@@ -489,6 +489,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | 指标命名规范守卫 | MetricNamingGuardTest 源码级双正则提取（调用点 + METRIC 常量）+ 命名规则断言（点分隔小写段）——316 指标名漂移即红、动态拼接前缀清零（prometheus naming 借鉴） | [spec 715](docs/spec/715-metric-naming-guard.md) |
 | 观测与运维 | 告警规则 dry-run | AlertRuleEngine.dryRun 纯只读推演（wouldFire/wouldRecover/pending 三分类 + 三不承诺：状态机/通知/指标零副作用）——规则上线前验配不实弹（k8s admission dryRun 借鉴） | [spec 716](docs/spec/716-alert-dry-run.md) |
 | 观测与运维 | 工具调用图谱环检测 | ToolGraphAnalyzer.cycles 初等环 DFS 枚举（最小节点锚去重 + MAX_CYCLES=16 有界 + 稳定排序）——模型循环调用模式可见（call-graph 环检测借鉴） | [spec 717](docs/spec/717-graph-cycle-detection.md) |
+| 观测与运维 | webhook 投递限速 | WebhookRateLimiter 令牌桶 + forwarder 可选接线（defer 留 outbox 原状不进重试状态机、整批 defer 早退防热旋）——事件风暴不冲垮下游消费者（envoy local rate limit 借鉴） | [spec 718](docs/spec/718-webhook-rate-limit.md) |
 
 ## 快速开始
 

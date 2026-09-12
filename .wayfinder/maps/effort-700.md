@@ -47,6 +47,7 @@
 | 16 | 指标命名规范守卫测试（+ RoutingScheduleAdjuster 动态拼接名清零） | prometheus/client_java naming | T981–T982 | 518 | 715 | ✅ |
 | 17 | 告警规则 dry-run | k8s admission dryRun / argo --dry-run | T983–T984 | 519 | 716 | ✅ |
 | 18 | 工具调用图谱环检测 | call-graph cycle detection | T985–T986 | 520 | 717 | ✅ |
+| 19 | webhook 投递限速 | envoy local rate limit | T987–T988 | 521 | 718 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |

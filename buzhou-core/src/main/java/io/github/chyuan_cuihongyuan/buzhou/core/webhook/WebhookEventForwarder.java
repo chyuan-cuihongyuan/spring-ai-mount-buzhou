@@ -100,13 +100,20 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
 
     /** spec 105 §A / T387：订阅类型过滤（空集 = 全投递——默认零变化）。 */
     private volatile java.util.Set<String> includeTypes = java.util.Set.of();
+    private volatile WebhookRateLimiter rateLimiter; // spec 718：null = 关（默认）
 
     /** spec 514 / T777：投递时延记录器（可空）。 */
     private volatile WebhookDeliveryLatency deliveryLatency;
 
     /** 限定投递的事件类型集（null/空 = 全投递；BuzhouWebhookProperties 不扩——record 兼容）。 */
     public void setIncludeTypes(java.util.Collection<String> types) {
-        this.includeTypes = types == null ? java.util.Set.of() : java.util.Set.copyOf(types);
+        this.includeTypes = types == null || types.isEmpty()
+                ? java.util.Set.of() : java.util.Set.copyOf(types);
+    }
+
+    /** spec 718 / T987：可选投递限速（null = 关——默认零变化）。 */
+    public void setRateLimiter(WebhookRateLimiter limiter) {
+        this.rateLimiter = limiter;
     }
 
     /** spec 514 / T777：投递时延分位数记录器（null=不记录——默认零变化）。 */
@@ -183,7 +190,17 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
 
     private boolean processDueBatch() {
         List<WebhookOutbox.OutboxRecord> due = outbox.due(Instant.now(), BATCH);
+        int rateLimited = 0;
         for (WebhookOutbox.OutboxRecord record : due) {
+            // spec 718 / T987：限速闸——拒绝 = 留 outbox 原状（defer 不是失败，
+            // 不进重试状态机；下一 tick 令牌回填自然放行）
+            WebhookRateLimiter limiter = rateLimiter;
+            if (limiter != null && !limiter.tryAcquire()) {
+                rateLimited++;
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.webhook.ratelimit-deferred");
+                continue;
+            }
             Outcome outcome = attemptOnce(record);
             switch (outcome) {
                 case DELIVERED -> {
@@ -200,6 +217,9 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                 case RETRYABLE -> scheduleRetryOrDead(record);
                 default -> throw new IllegalStateException("unreachable: " + outcome);
             }
+        }
+        if (rateLimited == due.size() && !due.isEmpty()) {
+            return false; // 整批全 defer——提前结束本轮（防 deadline 内热旋）
         }
         return !due.isEmpty();
     }
