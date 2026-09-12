@@ -2006,6 +2006,10 @@
   治理：analyze(List<SharedFact>) owner 维度 facts/eternal 降序归因；
   值不读取隐私口径；纯函数）
 
+- SessionExportSanitizer `hitCounts`/`totalHits`（743——导出脱敏命中计数：
+  PiiType 名+custom:规则名归因；CustomPiiRules 加 rules() 只读访问器；
+  加法方法无新顶层类型）
+
 - DiskSpillStore `totalRetainedOrphans`/`lastSweepRetained`（742——impl-38
   孤儿扫描的证据面：被 fork 引用保留的孤儿累计/最近保留数（-1 哨兵）；
   加法方法无新顶层类型）

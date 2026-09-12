@@ -366,6 +366,7 @@
 | #737 | 响应缓存权重预算 | [maps/effort-737.md](maps/effort-737.md) | T1074–1075 | 637 |
 | #738 | 导出体积去向审计 | [maps/effort-738.md](maps/effort-738.md) | T1076–1077 | 638 |
 | #739 | 事件静默缺失门 | [maps/effort-739.md](maps/effort-739.md) | T1078–1079 | 639 |
+| #743 | 导出脱敏命中计数 | [maps/effort-743.md](maps/effort-743.md) | T1088–1089 | 643 |
 
 ## 跨 effort 悬留
 
