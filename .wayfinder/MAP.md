@@ -335,6 +335,7 @@
 | #709 | 实验到期自动停 | [maps/effort-709.md](maps/effort-709.md) | T1018–1019 | 609 |
 | #710 | 全局 holdout 层 | [maps/effort-710.md](maps/effort-710.md) | T1020–1021 | 610 |
 | #711 | 消息序列连续性审计 | [maps/effort-711.md](maps/effort-711.md) | T1022–1023 | 611 |
+| #712 | span 状态分布读数 | [maps/effort-712.md](maps/effort-712.md) | T1024–1025 | 612 |
 
 ## 跨 effort 悬留
 

@@ -1897,3 +1897,7 @@
   思想：audit(List<Marker>) 单遍判消息序列 GAP/DUPLICATE/OUT_OF_ORDER，
   调用方投影解耦 store SPI；纯函数只读）
 
+- `SpanStatusDistribution`（嵌套 `Row`/`Report`）（712——OTel span status
+  语义：of(List<SpanRecord>) 聚合 (kind,status) 字典序+runningResidue
+  泄漏信号+errorRate（ERROR/total）；纯函数读数）
+
