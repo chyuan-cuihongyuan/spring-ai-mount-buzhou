@@ -43,6 +43,7 @@ public final class ToolTimingHealth implements BuzhouHealth {
         sorted.sort(Comparator.comparingLong(ToolTimingAggregator.ToolTiming::totalNanos)
                 .reversed()
                 .thenComparing(ToolTimingAggregator.ToolTiming::toolName));
+        Map<String, Long> windowed = aggregator.windowedMax(); // spec 738：滚动窗 max
         Map<String, Object> out = new LinkedHashMap<>();
         for (int i = 0; i < sorted.size(); i++) {
             if (i >= TOP_LIMIT) {
@@ -56,6 +57,7 @@ public final class ToolTimingHealth implements BuzhouHealth {
             row.put("maxMicros", t.maxNanos() / 1_000);
             row.put("avgMicros", t.avgNanos() / 1_000);
             row.put("failed", t.failed());
+            row.put("rollingMaxMicros", windowed.getOrDefault(t.toolName(), 0L) / 1_000);
             out.put(t.toolName(), row);
         }
         return out;

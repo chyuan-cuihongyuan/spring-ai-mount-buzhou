@@ -70,6 +70,13 @@ class ToolTimingAggregatorTest {
     }
 
     @Test
+    void windowedMaxExposedForToolSide() {
+        ToolTimingAggregator aggregator = new ToolTimingAggregator();
+        aggregator.record("t", 5_000L, false);
+        assertThat(aggregator.windowedMax()).containsEntry("t", 5_000L); // spec 738：滚动 max 可读
+    }
+
+    @Test
     void hookedToolCallbackMirrorsWhenEnabled() throws Exception {
         ToolTimingAggregator.Holder.reset();
         ToolTimingAggregator.Holder.enable();

@@ -37,6 +37,16 @@ public final class ToolTimingAggregator {
         return java.util.Collections.unmodifiableMap(out);
     }
 
+    /**
+     * spec 738 / T1025：滚动窗 max 快照（工具名 → 纳秒；窗口内无样本 = 0——
+     * spec 708 工具侧同构扩散：「修好慢工具后现在还慢不慢」可答）。不可变。
+     */
+    public Map<String, Long> windowedMax() {
+        Map<String, Long> out = new LinkedHashMap<>();
+        timings.forEach((name, t) -> out.put(name, t.windowedMax.max()));
+        return Map.copyOf(out);
+    }
+
     /** 单工具聚合行（不可变）。 */
     public record ToolTiming(String toolName, long count, long totalNanos,
                              long maxNanos, long failed) {
@@ -47,16 +57,19 @@ public final class ToolTimingAggregator {
         }
     }
 
-    /** 无锁累计 + CAS max（HookTimingAggregator.Timing 同构）。 */
+    /** 无锁累计 + CAS max（HookTimingAggregator.Timing 同构 + 滚动窗 max）。 */
     private static final class Timing {
         final LongAdder count = new LongAdder();
         final LongAdder totalNanos = new LongAdder();
         final LongAdder failed = new LongAdder();
+        final io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter windowedMax =
+                new io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter();
         volatile long maxNanos;
 
         void record(long nanos, boolean isFailed) {
             count.increment();
             totalNanos.add(nanos);
+            windowedMax.record(nanos);
             if (isFailed) {
                 failed.increment();
             }
