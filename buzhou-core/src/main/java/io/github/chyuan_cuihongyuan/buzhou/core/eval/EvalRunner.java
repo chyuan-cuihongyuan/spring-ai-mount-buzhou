@@ -65,6 +65,9 @@ public final class EvalRunner {
     /** spec 718：最近一次 run 的 passRate−baseline（无基线 = NaN——读数面）。 */
     private volatile double lastDriftDelta = Double.NaN;
 
+    /** spec 734 / T1068：最近一次 run 与其前一次的数据集指纹是否不同（首跑 false——读数面）。 */
+    private volatile boolean lastFingerprintChanged;
+
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
         this.runtime = runtime;
@@ -138,6 +141,53 @@ public final class EvalRunner {
     /** spec 718：最近一次 run 的 passRate−baseline（无基线 = NaN）。 */
     public double lastDriftDelta() {
         return lastDriftDelta;
+    }
+
+    /** spec 734：最近一次 run 的数据集指纹相对其前一次是否变化（首跑 false）。 */
+    public boolean lastFingerprintChanged() {
+        return lastFingerprintChanged;
+    }
+
+    /**
+     * spec 734：数据集指纹变更检测（82 指纹入档的消费信号）——当前 run 指纹
+     * 与最近一次历史 run 不同即置位+计数。就地改项/增删项都会变指纹——
+     * diff 明细归 EvalRunDiff，本面只做「变了」的一眼信号。
+     */
+    private void checkFingerprintChange(String datasetName, EvalRunResult result) {
+        try {
+            String latest = null;
+            Instant latestAt = Instant.EPOCH;
+            for (StateEntry entry : stateStore
+                    .scanByPrefix(EvalDatasetStore.SESSION_ID, RUN_PREFIX).values()) {
+                try {
+                    Map<String, Object> map = decodeMap(entry.value());
+                    if (!datasetName.equals(map.get("datasetName"))) {
+                        continue;
+                    }
+                    Instant startedAt = Instant.parse(String.valueOf(map.get("startedAt")));
+                    if (startedAt.isAfter(latestAt) && startedAt.isBefore(result.startedAt())) {
+                        latestAt = startedAt;
+                        Object fp = map.get("datasetFingerprint");
+                        latest = fp == null ? null : String.valueOf(fp);
+                    }
+                } catch (RuntimeException malformedRunRecord) {
+                    // 跳过坏记录
+                }
+            }
+            String current = result.datasetFingerprint();
+            boolean changed = latest != null && current != null && !latest.equals(current);
+            lastFingerprintChanged = changed;
+            if (changed) {
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.eval.fingerprint.changed");
+                LOGGER.log(System.Logger.Level.INFO,
+                        "数据集指纹变更：dataset=" + datasetName + " 前值 " + latest
+                                + " → 现值 " + current + "（diff 明细见 EvalRunDiff）");
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "指纹变更检测失败（跳过）：" + String.valueOf(e.getMessage()));
+        }
     }
 
     /**
@@ -289,6 +339,8 @@ public final class EvalRunner {
                         "eval", 0, null, finishedAt));
         // spec 718 / T1036：通过率漂移判定（落盘后——基线只取早于本次的记录）
         checkDrift(datasetName, result);
+        // spec 734 / T1068：数据集指纹变更信号
+        checkFingerprintChange(datasetName, result);
         // spec 111 §A / T403：run 总时长 timer（per-item durationMs 之外的整跑视角）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .timer("buzhou.eval.run.duration",

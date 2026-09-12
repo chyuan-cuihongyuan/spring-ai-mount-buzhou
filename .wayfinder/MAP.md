@@ -357,6 +357,7 @@
 | #731 | 评估分数分布解析 | [maps/effort-731.md](maps/effort-731.md) | T1062–1063 | 631 |
 | #732 | 事件 payload 大小审计 | [maps/effort-732.md](maps/effort-732.md) | T1064–1065 | 632 |
 | #733 | 提示词使用缺口读数 | [maps/effort-733.md](maps/effort-733.md) | T1066–1067 | 633 |
+| #734 | 数据集指纹变更信号 | [maps/effort-734.md](maps/effort-734.md) | T1068–1069 | 634 |
 
 ## 跨 effort 悬留
 
