@@ -160,4 +160,16 @@ public class BuzhouRedisStoreAutoConfiguration {
         return RedisBuzhouStores.createPooled(client, props.keyPrefix(), props.snapshotTtl(),
                 connectionPool, policy);
     }
+
+    /**
+     * spec 727 / T1054：Redis 键布局健康面（705 审计接线）——随 redis store
+     * 装配（type=redis 条件继承类级注解）。观测面恒 UP（findings 是数据）。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.BuzhouHealth redisKeyLayoutHealth(
+            RedisStoreProperties props) {
+        return new io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisKeyLayoutHealth(
+                props.keyPrefix());
+    }
 }

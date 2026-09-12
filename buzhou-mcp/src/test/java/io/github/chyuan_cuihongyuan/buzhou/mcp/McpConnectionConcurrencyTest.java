@@ -124,6 +124,52 @@ class McpConnectionConcurrencyTest {
         registry.shutdown();
     }
 
+    /** spec 722 / T1044：并发占用视图——limit/available/inFlight 实时反映。 */
+    @Test
+    void concurrencyViewReflectsOccupancy() throws Exception {
+        CountDownLatch firstStarted = new CountDownLatch(1);
+        CountDownLatch releaseFirst = new CountDownLatch(1);
+        AtomicInteger entered = new AtomicInteger();
+        ToolCallback tool = new ToolCallback() {
+            @Override
+            public ToolDefinition getToolDefinition() {
+                return ToolDefinition.builder().name("t").description("d").inputSchema("{}").build();
+            }
+
+            @Override
+            public String call(String toolInput) {
+                entered.incrementAndGet();
+                firstStarted.countDown();
+                try {
+                    releaseFirst.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return "ok";
+            }
+        };
+        DefaultMcpClientRegistry registry = new DefaultMcpClientRegistry(
+                factoryOf(Map.of("srv", tool)), GRACE, FORCE, null);
+        registry.setPerConnectionConcurrencyLimit(2);
+        registry.refresh(List.of(spec("srv")));
+        List<ToolCallback> callbacks = registry.toolCallbacksFor("app", "agent");
+
+        McpConcurrencyView idle = registry.concurrencyViews().get("srv");
+        assertThat(idle.limit()).isEqualTo(2);
+        assertThat(idle.available()).isEqualTo(2);
+        assertThat(idle.inFlight()).isZero();
+
+        CompletableFuture<String> first = CompletableFuture.supplyAsync(() -> callbacks.get(0).call("{}"));
+        assertThat(firstStarted.await(2, TimeUnit.SECONDS)).isTrue();
+        McpConcurrencyView busy = registry.concurrencyViews().get("srv");
+        assertThat(busy.available()).isEqualTo(1);
+        assertThat(busy.inFlight()).isEqualTo(1);
+
+        releaseFirst.countDown();
+        first.get(2, TimeUnit.SECONDS);
+        registry.shutdown();
+    }
+
     /** 跨连接互不影响：两 server 各自独立信号量，limit=1 也能并行。 */
     @Test
     void differentConnectionsDoNotInterfere() throws Exception {

@@ -522,6 +522,62 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | MessageStore SPI 契约校验套件 | MessageStoreContract 四项语义契约（append/load 保序、未知会话空读、多次追加保序、deleteSession 幂等）——spec 705 同构扩散 | [spec 743](docs/spec/743-messagestore-contract.md) |
 | 工程门禁 | MessageStore 契约接入 H2 | JdbcMessageStore 过四项契约（H2 无 Docker CI 口径）——契约抓出探针会话主键冲突设计缺陷并重构为每检查独立会话（spec 743 复用面） | [spec 744](docs/spec/744-messagestore-h2.md) |
 
+## 生产级纵深 VIII（G 会话 700 系增量）
+
+G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 模型韧性 | 能力门决策审计读数 | deny 环形留痕（容量 64+dropped 计数）+admit 计数+denyByModel 聚合+snapshot 不可变报告——「门最近拒了谁」从异常瞬间变成可查询证据面（OPA Decision Logs） | [spec 700](docs/spec/700-capability-decision-audit.md) |
+| 缓存与前缀 | 语义缓存权重预算驱逐 | `max-weight-chars`（默认 0=关）——按响应字符数腾挪驱逐，大响应不再挤出高频短条目；weightEvictions 独立口径（Caffeine weigher） | [spec 701](docs/spec/701-semantic-cache-weight-budget.md) |
+| 模型韧性 | 断路器变迁事件流读数 | CircuitTransitionJournal 进程级变迁环形留痕+per-model trips/recoveries/halfOpens 聚合——「最近跳了谁/多久恢复」不再散落会话事件通道（Resilience4j EventConsumer） | [spec 702](docs/spec/702-circuit-transition-journal.md) |
+| 模型路由 | 健康加权路由抑制原语 | attach(router,breaker,floor)——跳闸压权至地板（全跳不黑洞）恢复回声明值；breaker 加变迁监听缝（HAProxy agent-check） | [spec 703](docs/spec/703-routing-health-dampener.md) |
+| 观测治理 | 提示词角色构成拆解 | PromptComposition.analyze 按角色聚合 chars/messages/share 降序——水位告警后「谁在吃预算」的证据面（Langfuse prompt analytics；纯读数） | [spec 704](docs/spec/704-prompt-composition.md) |
+| 持久化 | Redis 键命名空间碰撞审计 | RedisKeyLayoutAudit 结构性对抗模拟——spev/event 保留段与 lease 冒号后缀三族潜伏碰撞证据+reservedSegments 读数+isSafeSessionId 摄入守卫（fsck 思想+E R12 教训制度化） | [spec 705](docs/spec/705-redis-key-layout-audit.md) |
+| MCP 治理 | 工具目录差异报告 | McpDirectoryDiff 两快照 plan 式 diff——per-server 四态+增/删/翻转明细+危险方向翻转 risky 标记（readOnly→false/destructive→true）（ArgoCD diff） | [spec 706](docs/spec/706-mcp-directory-diff.md) |
+| Spill 治理 | spill 双文件配对巡检 | SpillPairAudit 只读扫 .spill/.meta 配对残缺（双写崩溃窗口）——孤 data 带字节量、配额吞噬可见；三层完整性矩阵中层（Git fsck） | [spec 707](docs/spec/707-spill-pair-audit.md) |
+| 评估闭环 | 评估项结果记忆化 | setMemoizationKey opt-in——sig(数据+judge 身份)未变复用上轮判定跳过模型调用，detail `[MEMO]` 留痕+hits/misses 计数；ERROR 不缓存（scikit-learn Pipeline memory） | [spec 708](docs/spec/708-eval-item-memoization.md) |
+| 评测 | 实验到期自动停 | 构造器扩 expiresAt+Clock——到期按未入组返回 null、曝光计独立 `__expired__` 桶+expiredExperiments 读数（GrowthBook feature expiry） | [spec 709](docs/spec/709-experiment-expiry.md) |
+| 评测 | 全局 holdout 层 | holdoutPercent 构造参数——跨实验一致排除的纯控制组、曝光计 `__holdout__` 独立桶（Statsig holdout layer） | [spec 710](docs/spec/710-experiment-holdout.md) |
+| 持久化 | 消息序列连续性审计 | TurnSequenceAudit 单遍判 GAP/DUPLICATE/OUT_OF_ORDER——store 级丢数据从「上下文缺段」猜测变结构化证据（Kafka offset 审计） | [spec 711](docs/spec/711-turn-sequence-audit.md) |
+| 观测治理 | span 健康摘要（543 补全） | healthSummary——RUNNING 残留（泄漏信号）+errorRate（口径显式）；R13 core 重建撞 543 的修正收敛（OTel span status） | [spec 712](docs/spec/712-span-health-summary.md) |
+| 评估闭环 | 数据集标签与过滤 | EvalDatasetMeta 扩 tags（归一升序不可变）+tag/untag 幂等+listDatasetsByTag 圈选；旧记录零迁移（Langfuse dataset tags） | [spec 713](docs/spec/713-dataset-tags.md) |
+| 评估闭环 | 相似度阈值判定器 | BuiltInEvaluators.similarity(minRatio)——字符 trigram Jaccard 模糊判定+detail 分数留痕，LLM 输出词序微变不再脆判（HELM grading） | [spec 714](docs/spec/714-similarity-evaluator.md) |
+| 护栏 | PII 格式保形掩码 | FormatPreservingMasker——手机/证件/邮箱/IP 保形掩码+形状校验失败全星降级；三形态（占位/掩码/vault）各司其职（Presidio FP） | [spec 715](docs/spec/715-format-preserving-mask.md) |
+| 工具治理 | Todo 陈旧度审计读数 | TodoStalenessAudit 轮次年龄+滞留清单+promptHint 一行人话——agent 任务清单烂掉可见（todo 纪律面板） | [spec 716](docs/spec/716-todo-staleness.md) |
+| 记忆治理 | 共享事实冲突审计 | FactConflictAudit 按键分组判 CONFLICT/DUPLICATE+entries 证据全列——导出/合并/多实例聚合的「精神分裂」可见（mem0 治理） | [spec 717](docs/spec/717-fact-conflict-audit.md) |
+| 评估闭环 | 评估通过率漂移基线 | setDriftBaseline(window,warnShift) opt-in——同数据集近 N 次 passRate 均值基线、|Δ|超线 WARN+计数+lastDriftDelta 读数；防自污染只取早于本次（Evidently drift） | [spec 718](docs/spec/718-eval-drift-baseline.md) |
+| 模型韧性 | 供应商限流头前瞻读数 | ProviderRateLimitSignals 解析 x-ratelimit 余量/reset+utilization+三级压力分级——429 之前的拥挤信号（OpenAI 头约定） | [spec 719](docs/spec/719-provider-ratelimit-signals.md) |
+| 缓存与前缀 | 嵌入超限分批装饰器 | ChunkingEmbeddingModel 按 maxBatchSize 切块顺序调 delegate+全局 index 重排——批量嵌入超供应商 cap 不再 400（OpenAI embeddings 批限） | [spec 721](docs/spec/721-chunking-embedding-model.md) |
+| 缓存与前缀 | 分批嵌入 yml 装配 | semantic-cache.embedding-max-batch（默认 0=关）——语义缓存 EmbeddingModel 自动包 Chunking（721 装配兑现） | [spec 723](docs/spec/723-chunking-embedding-assembly.md) |
+| 持久化 | 会话状态 TTL 覆盖审计 | StateTtlCoverage——永生键（ttlTurns=null）计数+producer 归因+覆盖率——状态膨胀主通道可见（S3 生命周期审计） | [spec 724](docs/spec/724-state-ttl-coverage.md) |
+| 缓存与前缀 | 响应缓存权重预算 | ResponseCacheStore maxWeightChars（默认 0=关）——701 同款按字符数腾挪驱逐+替换回收，精确缓存大响应不再挤占（Caffeine weigher 姊妹轮） | [spec 737](docs/spec/737-response-cache-weight-budget.md) |
+| 模型路由 | 健康压权半开中点渐变 | HALF_OPEN→(floor+declared)/2 中点档——探测期半量试探防二次跳闸，确定性两级阶梯（HAProxy slow-start） | [spec 725](docs/spec/725-dampener-ramp.md) |
+| 观测治理 | 事件类型分布读数 | EventTypeDistribution.of——type 计数降序+topType 占比+自定义类型兼容，「哪类事件在刷屏」一屏可见（Loki top-k） | [spec 726](docs/spec/726-event-type-distribution.md) |
+| 持久化 | Redis 键审计健康面 | RedisKeyLayoutHealth（mechanism=redis-key-layout 恒 UP）——三族碰撞计数+保留段进 actuator/312 读数（705 接线，548 同型） | [spec 727](docs/spec/727-redis-key-layout-health.md) |
+| Spill 治理 | spill 配对健康面 | SpillPairHealth（mechanism=spill-pair，禁用 UNKNOWN）——残缺对计数+吞噬字节进健康读数（707 接线，548 同型） | [spec 728](docs/spec/728-spill-pair-health.md) |
+| 观测治理 | 观测容量健康面 | ObservabilityCapacityHealth（mechanism=memory-observability 恒 UP）——used/max/utilization/evicted 逐出可见，「trace 为何没了」有答案（548 同型） | [spec 729](docs/spec/729-observability-capacity-health.md) |
+| 模型韧性 | 限流头跨供应商归一 | parseFlexible——OpenAI 优先、缺项回退 Anthropic 头名不混合来源（719 扩散） | [spec 730](docs/spec/730-ratelimit-header-normalization.md) |
+| 评估闭环 | 评估分数分布解析 | EvalScoreAnalytics.similarityScores——从 714 detail 留痕解析分数 min/max/mean，「调阈值会多放行多少」有数（714 消费端） | [spec 731](docs/spec/731-eval-score-analytics.md) |
+| 记忆治理 | 共享事实足迹读数 | SharedFactFootprint——owner 维度 facts/eternal 归因降序，事实堆积与永生可见（410 治理；值不读取隐私口径） | [spec 741](docs/spec/741-shared-fact-footprint.md) |
+| Spill 治理 | 孤儿保留计数读数 | totalRetainedOrphans/lastSweepRetained——被 fork 引用保留的孤儿从局部变量升格为证据面，引用泄漏堆积可见（impl-38 深化） | [spec 742](docs/spec/742-sweep-retained-readout.md) |
+| 评估闭环 | 数据集指纹变更信号 | lastFingerprintChanged()+计数——连续跑批中指纹变化即时可见，diff 结论不张冠李戴（82 消费信号） | [spec 734](docs/spec/734-fingerprint-change-signal.md) |
+| 评估闭环 | 相似度阈值反事实对照 | passesAtThresholds——给定候选阈值集分别计算通过数，「阈值调到 X 会多放行几条」一目了然（731 深化） | [spec 747](docs/spec/747-threshold-counterfactual.md) |
+| Skill 体系 | 混合排序融合权重读数 | semanticWeight/lexicalWeight/fusedCount——权重声明是否生效与融合次数一读便知（638 声明生效确认面同型） | [spec 744](docs/spec/744-hybrid-ranker-readout.md) |
+| 模型韧性 | 供应商限流信号 stats 接线 | updateProviderUtilization/lastProviderUtilization（NaN 起始）+details 条件出现——719 信号的聚合归宿（740） | [spec 740](docs/spec/740-provider-signals-stats.md) |
+| 观测治理 | 事件 payload 大小审计 | EventPayloadSizeAudit.analyze——Jackson 字节按类型聚合 total/max 降序，payload 风暴与存储吞噬可见（Sentry 限额思想） | [spec 732](docs/spec/732-event-payload-size-audit.md) |
+| 提示词治理 | 提示词使用缺口读数 | PromptUsageGaps——声明×使用差集：零使用清理候选+孤儿统计漂移信号（401/545 联合读数） | [spec 733](docs/spec/733-prompt-usage-gaps.md) |
+| 观测治理 | 事件配对完整性审计 | EventPairingAudit——请求/应答型事件 spanId 内配对，悬空请求/孤儿应答（中断崩溃/审批悬空）证据化（规则表泛化） | [spec 735](docs/spec/735-event-pairing-audit.md) |
+| 观测治理 | span 父链完整性审计 | SpanParentIntegrityAudit——悬空 parentSpanId（父被逐出/未落库）发现+根计数，trace 树断裂可见（OTel 树语义） | [spec 736](docs/spec/736-span-parent-integrity.md) |
+| 持久化 | 导出体积去向审计 | SessionExportSizeAudit——消息/摘要/状态/扩展段字符归因+占比守恒，「导出为什么大」有数（成本归因） | [spec 738](docs/spec/738-session-export-size-audit.md) |
+| 观测治理 | 事件静默缺失门 | EventTypePresenceGate.gate——期望类型集与观测集差集，「该发生而没发生」的流程断链前向信号（726 对偶） | [spec 739](docs/spec/739-event-presence-gate.md) |
+| 缓存与前缀 | 响应缓存权重预算 yml 装配 | response-cache.max-weight-chars（默认 0=关）——737 原语的装配兑现（723 同模式） | [spec 745](docs/spec/745-response-cache-weight-assembly.md) |
+| 模型韧性 | 能力审计按能力维度聚合 | Report 增 denyByCapability——vision/tools 分布与 denyByModel 正交双视角，补声明还是换模型有数（700 深化） | [spec 746](docs/spec/746-deny-by-capability.md) |
+| 评估闭环 | 执行策略汇总读数 | executionPolicy()——五件套（预算/重试/超时/记忆化/漂移）当前态一屏确认，「为什么有 [RUN-BUDGET]/[MEMO]」的配置证据面（748） | [spec 748](docs/spec/748-execution-policy-readout.md) |
+| 收口 | G 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门修正（regenerate 需系统属性——49 轮静默跳过已补）+覆盖门补档 721/723/738+台账 50/50 归档 | [spec 749](docs/spec/749-final-verification.md) |
+| 护栏 | 导出脱敏命中计数 | SessionExportSanitizer hitCounts/totalHits——PiiType 与自定义规则归因，「导出脱敏动了多少刀」可审计（合规证据面） | [spec 743](docs/spec/743-sanitizer-hit-counts.md) |
+| MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

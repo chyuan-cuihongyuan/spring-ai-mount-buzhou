@@ -65,4 +65,12 @@ public interface McpClientRegistry {
     default Map<String, Map<String, McpToolHints>> toolHints() {
         return Map.of();
     }
+
+    /**
+     * spec 722 / T1044：每连接并发占用视图（server → limit/available/inFlight）。
+     * 未设上限 limit=-1。默认空（实现未支持时零面）。
+     */
+    default Map<String, McpConcurrencyView> concurrencyViews() {
+        return Map.of();
+    }
 }
