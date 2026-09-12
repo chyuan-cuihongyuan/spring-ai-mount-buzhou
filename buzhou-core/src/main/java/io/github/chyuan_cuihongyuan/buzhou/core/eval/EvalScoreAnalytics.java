@@ -1,6 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.eval;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +23,31 @@ public final class EvalScoreAnalytics {
     }
 
     private EvalScoreAnalytics() {
+    }
+
+    /**
+     * spec 747 / T1092 族（731 深化，反事实阈值对照）：给定候选阈值集，分别
+     * 计算「若以该阈值为判定线会有多少分数通过」——调阈值的放行量影响一目
+     * 了然。分数来源同 {@link #similarityScores}（detail 解析口径）。
+     *
+     * @return 阈值 → 通过数（阈值按入参顺序；null 入参 fail-fast）
+     */
+    public static Map<Double, Integer> passesAtThresholds(EvalRunResult run, double... thresholds) {
+        if (run == null) {
+            throw new IllegalArgumentException("run 必须非空");
+        }
+        List<Double> scores = similarityScores(run).scores();
+        Map<Double, Integer> result = new LinkedHashMap<>();
+        for (double threshold : thresholds) {
+            int passes = 0;
+            for (double score : scores) {
+                if (score >= threshold) {
+                    passes++;
+                }
+            }
+            result.put(threshold, passes);
+        }
+        return result;
     }
 
     /** 解析 run 中 similarity 口径分数并统计（null run fail-fast）。 */

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,6 +37,20 @@ class EvalScoreAnalyticsTest {
         assertThat(report.max()).isEqualTo(0.9);
         assertThat(report.mean()).isEqualTo(0.7, org.assertj.core.data.Offset.offset(1e-9));
         assertThat(report.scores()).containsExactly(0.9, 0.5, 0.7);
+    }
+
+    @Test
+    void counterfactualThresholdsCountPasses() {
+        EvalRunResult run = runOf(
+                "similarity=0.900000 阈值=0.8",
+                "similarity=0.500000 阈值=0.8",
+                "similarity=0.700000 阈值=0.8",
+                "exact 命中");
+        Map<Double, Integer> counterfactual = EvalScoreAnalytics.passesAtThresholds(
+                run, 0.5, 0.6, 0.95);
+        assertThat(counterfactual.get(0.5)).isEqualTo(3);
+        assertThat(counterfactual.get(0.6)).isEqualTo(2);
+        assertThat(counterfactual.get(0.95)).isZero();
     }
 
     @Test
