@@ -510,6 +510,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | ConfigDiff×快照端点同源补验 | 端点真快照两份对比——掩码语义/diff 稳定闭环（spec 719 补验） | [spec 736](docs/spec/736-config-diff-e2e.md) |
 | 观测与运维 | 工具侧滚动 max 同构扩散 | ToolTimingAggregator windowedMax + 健康行 rollingMaxMicros（RollingMaxCounter 复用）——spec 708 同构扩散 | [spec 738](docs/spec/738-tool-timing-rollingmax.md) |
 | Guard 护栏 | 拒绝日志排序稳定性补验 | topDenials 并列字典序 tie-break（实现缺陷补齐）+ 环形窗口读面零副作用——spec 709 补验 | [spec 737](docs/spec/737-denial-log-stability.md) |
+| 观测与运维 | 限速×死信路径隔离补验 | defer 零状态机扰动/令牌恢复全路径可达/重放不绕闸——spec 718/24 补验 | [spec 739](docs/spec/739-ratelimit-deadletter.md) |
 
 ## 快速开始
 

@@ -68,6 +68,7 @@
 | 37 | ConfigDiff×快照端点同源补验 | spec 719 补验 | T1023–T1024 | 539 | 736 | ✅ |
 | 38 | 工具侧滚动 max 同构扩散 | spec 708 同构扩散 | T1025–T1026 | 540 | 738 | ✅ |
 | 39 | 拒绝日志排序稳定性补验（并列 tie-break 实现缺陷补齐） | spec 709 补验 | T1027–T1028 | 541 | 737 | ✅ |
+| 40 | 限速×死信路径隔离补验 | spec 718/24 补验 | T1029–T1030 | 542 | 739 | ✅ |
 | 7 | 会话租约泄漏检测 | brettwooldridge/HikariCP leakDetectionThreshold | T963–T964 | 509 | 706 | ❌ |
 | 8 | 排水最小可用水位闸 | k8s PodDisruptionBudget | T965–T966 | 510 | 707 | ❌ |
 | 9 | 会话压力归档建议排序 | k8s Eviction API 排序思想 | T967–T968 | 511 | 708 | ❌ |
