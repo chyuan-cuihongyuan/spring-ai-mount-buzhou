@@ -1926,3 +1926,7 @@
   均值（防自污染），|Δ|≥warnShift WARN+计数；复用 run 落盘零新存储；
   加法方法无新顶层类型）
 
+- `ProviderRateLimitSignals`（嵌套 `Pressure`/`Signals`）（719——OpenAI
+  x-ratelimit 头思想：parse(HttpHeaders) 解析余量/上限/reset+utilization
+  +三级压力分级；全 null-safe fail-safe 无头 empty；纯静态解析原语）
+

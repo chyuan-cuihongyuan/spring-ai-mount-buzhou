@@ -487,6 +487,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具治理 | Todo 陈旧度审计读数 | TodoStalenessAudit 轮次年龄+滞留清单+promptHint 一行人话——agent 任务清单烂掉可见（todo 纪律面板） | [spec 716](docs/spec/716-todo-staleness.md) |
 | 记忆治理 | 共享事实冲突审计 | FactConflictAudit 按键分组判 CONFLICT/DUPLICATE+entries 证据全列——导出/合并/多实例聚合的「精神分裂」可见（mem0 治理） | [spec 717](docs/spec/717-fact-conflict-audit.md) |
 | 评估闭环 | 评估通过率漂移基线 | setDriftBaseline(window,warnShift) opt-in——同数据集近 N 次 passRate 均值基线、|Δ|超线 WARN+计数+lastDriftDelta 读数；防自污染只取早于本次（Evidently drift） | [spec 718](docs/spec/718-eval-drift-baseline.md) |
+| 模型韧性 | 供应商限流头前瞻读数 | ProviderRateLimitSignals 解析 x-ratelimit 余量/reset+utilization+三级压力分级——429 之前的拥挤信号（OpenAI 头约定） | [spec 719](docs/spec/719-provider-ratelimit-signals.md) |
 
 ## 快速开始
 
