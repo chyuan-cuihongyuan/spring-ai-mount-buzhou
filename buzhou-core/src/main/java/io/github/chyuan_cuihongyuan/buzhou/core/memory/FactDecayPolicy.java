@@ -1,4 +1,4 @@
-package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
+package io.github.chyuan_cuihongyuan.buzhou.core.memory;
 
 import java.time.Duration;
 
@@ -9,6 +9,9 @@ import java.time.Duration;
  * 低于 {@link #floor()} 即停止注入（陈年低置信事实不再占提示词预算）。
  *
  * <p>仅时间维衰减；冲突驱动的置信下调（新矛盾事实压低旧事实）留雾区。
+ *
+ * <p>spec 707 / T965：自 {@code core.internal.memory} 迁出——跨模块复用类不入
+ * internal（边界守卫 ModuleBoundaryGuardTest 口径）。
  *
  * @param halfLifeTurns 半衰期（轮次；每过一个半衰期置信度减半）
  * @param floor         注入下限 [0,1)：衰减后 &lt; floor 的事实被过滤

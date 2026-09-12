@@ -1,4 +1,4 @@
-package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
+package io.github.chyuan_cuihongyuan.buzhou.core.memory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +21,9 @@ import java.util.Optional;
  *
  * <p>事实序列化为 JSON 存入 {@link StateEntry#value()}：{@code {"value":..., "producer":..., "createdTurn":..., "ttl":...}}。
  * key 命名空间 {@code fact.{producer}.{name}}；ttl 轮次过滤 {@code currentTurn - createdTurn < ttl}。
+ *
+ * <p>spec 707 / T965：自 {@code core.internal.memory} 迁出——跨模块复用类不入
+ * internal（边界守卫 ModuleBoundaryGuardTest 口径）。
  */
 public class DefaultFactStore implements FactStore {
 

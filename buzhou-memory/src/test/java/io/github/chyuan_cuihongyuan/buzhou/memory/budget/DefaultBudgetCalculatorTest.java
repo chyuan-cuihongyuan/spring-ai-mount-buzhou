@@ -1,7 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory.budget;
 
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver;
+import io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator;
+import io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

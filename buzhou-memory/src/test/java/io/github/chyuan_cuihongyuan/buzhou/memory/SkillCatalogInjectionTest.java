@@ -119,8 +119,8 @@ class SkillCatalogInjectionTest {
         volatile BudgetInput lastInput;
 
         CapturingBudgetCalculator() {
-            super(new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(Map.of()),
-                    new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator());
+            super(new io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver(Map.of()),
+                    new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator());
         }
 
         @Override
@@ -139,8 +139,8 @@ class SkillCatalogInjectionTest {
         InjectionViewProcessor ivp = new InjectionViewProcessor(compactor,
                 t -> MicroCompactionPolicy.defaults(), 1,
                 new DefaultBudgetCalculator(
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver(Map.of()),
-                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver(Map.of()),
+                        new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator()),
                 new SummaryStoreBridge(new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryStore()),
                 new DefaultSummaryGenerator(), new SummaryCircuitBreaker(3),
                 summaryModel, "stub", 1, null, 4000);

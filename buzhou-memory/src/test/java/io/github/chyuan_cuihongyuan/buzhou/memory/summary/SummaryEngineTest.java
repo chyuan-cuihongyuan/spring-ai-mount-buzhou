@@ -1,6 +1,6 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory.summary;
 
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator;
+import io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
 import org.junit.jupiter.api.Test;

@@ -5,7 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultToolCallContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DefaultFactStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;

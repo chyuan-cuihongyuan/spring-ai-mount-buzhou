@@ -59,7 +59,7 @@ public final class ObservabilityModule {
         if (!config.enabled()) {
             return RuntimeConfig.defaults();
         }
-        TokenEstimator tokenEstimator = new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator();
+        TokenEstimator tokenEstimator = new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator();
         ThinkingChainExtractor thinkingExtractor = new ThinkingChainExtractor(
                 config.thinkingExtraKeys(), config.thinkingMaxChars());
         return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(), null, List.of(),
@@ -92,7 +92,7 @@ public final class ObservabilityModule {
         BaseSpanRecorder recorder = synchronous
                 ? new SynchronousObservabilityPipeline(stores.observabilityStore(), config, meters, sinks)
                 : new AsyncObservabilityPipeline(stores.observabilityStore(), config, meters, sinks);
-        TokenEstimator tokenEstimator = new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator();
+        TokenEstimator tokenEstimator = new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator();
         ThinkingChainExtractor thinkingExtractor = new ThinkingChainExtractor(
                 config.thinkingExtraKeys(), config.thinkingMaxChars());
         return new RuntimeConfig(List.of(), java.util.Set.of(), java.util.Set.of(), null, List.of(),

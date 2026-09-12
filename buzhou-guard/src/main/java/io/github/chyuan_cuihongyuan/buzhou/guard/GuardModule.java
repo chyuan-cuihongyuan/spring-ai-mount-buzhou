@@ -5,7 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.AttachmentRenderer;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DefaultFactStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.AuthTtl;
 import io.github.chyuan_cuihongyuan.buzhou.guard.config.ConfirmOption;
@@ -54,7 +54,7 @@ public final class GuardModule {
         // spec 626 / T902：事实衰减装饰（opt-in——factDecay 非 null 包一层；null = 既有语义）
         this.factStore = builder.factDecay == null
                 ? new DefaultFactStore(builder.stores.sessionStateStore())
-                : new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DecayingFactStore(
+                : new io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore(
                         new DefaultFactStore(builder.stores.sessionStateStore()), builder.factDecay);
         List<BuzhouHook> h = new ArrayList<>();
         if (builder.enabled) {
@@ -204,7 +204,7 @@ public final class GuardModule {
         // impl-40 / spec 13 §T64：授权策略门引擎（null = 不挂策略门）
         private PolicyEngine policyEngine;
         // spec 626 / T902：事实置信度衰减（null = 不衰减——既有语义零变化）
-        private io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy factDecay;
+        private io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy factDecay;
 
         private Builder(BuzhouStores stores) {
             this.stores = stores;
@@ -212,7 +212,7 @@ public final class GuardModule {
 
         /** spec 626 / T902：声明事实衰减（read 时半衰过滤——陈年低置信事实停止注入）。 */
         public Builder factDecay(
-                io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.FactDecayPolicy policy) {
+                io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy policy) {
             this.factDecay = policy;
             return this;
         }

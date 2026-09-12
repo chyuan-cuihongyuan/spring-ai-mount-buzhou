@@ -5,7 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.ModelCallContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.SessionStateHandle;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.AtomicStateCounters;
+import io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry;
 import org.springframework.ai.chat.client.ChatClientResponse;

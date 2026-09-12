@@ -1,4 +1,4 @@
-package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
+package io.github.chyuan_cuihongyuan.buzhou.core.memory;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
@@ -8,7 +8,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * 事实置信度衰减测试（spec 604 / T858–T859 / impl 457；spec 626 / T902 移驻 core 后回归）：
+ * 事实置信度衰减测试（spec 604 / T858–T859 / impl 457；spec 626 / T902 移驻 core 后回归；
+ * spec 707 / T965 迁出 internal）：
  * 半衰过滤边界、衰减公式、默认事实存活口径、save/delete 直通、策略校验。
  */
 class DecayingFactStoreTest {

@@ -1,4 +1,4 @@
-package io.github.chyuan_cuihongyuan.buzhou.core.internal.token;
+package io.github.chyuan_cuihongyuan.buzhou.core.token;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextWindowResolver;
 
@@ -9,6 +9,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 内置模型上下文窗口表 + yml 覆盖（前缀匹配内置表，未知模型回退 32K 且每模型
+ * 只告警一次）。
+ *
+ * <p>spec 707 / T965：自 {@code core.internal.token} 迁出——跨模块复用类不入
+ * internal（边界守卫 ModuleBoundaryGuardTest 口径）。
+ */
 public class TableContextWindowResolver implements ContextWindowResolver {
 
     private static final Logger LOG = System.getLogger(TableContextWindowResolver.class.getName());

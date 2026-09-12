@@ -1,10 +1,17 @@
-package io.github.chyuan_cuihongyuan.buzhou.core.internal.token;
+package io.github.chyuan_cuihongyuan.buzhou.core.token;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.TokenEstimator;
 import org.springframework.ai.chat.messages.Message;
 
 import java.util.List;
 
+/**
+ * 字符启发式 token 估算器（拉丁 ≈4 字符/token、汉字 ≈2 字符/token、JSON ×1.15、
+ * 媒体固定计数）——无 tokenizer 依赖的零配置基线。
+ *
+ * <p>spec 707 / T965：自 {@code core.internal.token} 迁出——跨模块复用类不入
+ * internal（边界守卫 ModuleBoundaryGuardTest 口径）。
+ */
 public class CharHeuristicTokenEstimator implements TokenEstimator {
 
     private static final int CHARS_PER_TOKEN_LATIN = 4;

@@ -1,5 +1,6 @@
-package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
+package io.github.chyuan_cuihongyuan.buzhou.core.memory;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
 import org.junit.jupiter.api.Test;

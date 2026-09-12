@@ -1,7 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory;
 
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver;
+import io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator;
+import io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver;
 import io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatcher;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;

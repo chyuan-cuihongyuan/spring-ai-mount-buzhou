@@ -1,8 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.token.TableContextWindowResolver;
+import io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator;
+import io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord;

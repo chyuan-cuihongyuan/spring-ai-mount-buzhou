@@ -24,6 +24,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupResult
@@ -164,6 +165,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiterHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimeoutOverrides
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingAggregator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolValidationFeedback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TransformingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TtlCachingToolCallback
@@ -206,6 +209,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.WatermarkHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ContextWatermarkHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain
@@ -225,6 +229,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnTimingHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord
@@ -360,6 +367,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionLeaseStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStoreContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillCatalogRenderer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillResourceResolver
@@ -374,6 +382,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetSpec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.Transport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.UnitOfWork
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.EventDeduplicator
@@ -618,6 +628,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.Model
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingSlowStart
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingWeightsHotReload
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.WeightedChatModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowComparisonJsonl

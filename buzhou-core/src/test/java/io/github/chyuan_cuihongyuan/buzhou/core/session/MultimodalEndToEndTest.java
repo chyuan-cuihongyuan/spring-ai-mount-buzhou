@@ -85,8 +85,8 @@ class MultimodalEndToEndTest {
     /** token 估算：媒体按固定档位计（每媒体 320）。 */
     @Test
     void estimatorChargesFixedTokensPerMedia() {
-        io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator estimator =
-                new io.github.chyuan_cuihongyuan.buzhou.core.internal.token.CharHeuristicTokenEstimator();
+        io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator estimator =
+                new io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator();
         UserMessage withMedia = UserMessage.builder().text("hello world")
                 .media(new org.springframework.ai.content.Media(
                         org.springframework.util.MimeType.valueOf("image/png"),

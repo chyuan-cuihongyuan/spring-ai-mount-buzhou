@@ -1,7 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
-import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.DefaultFactStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;

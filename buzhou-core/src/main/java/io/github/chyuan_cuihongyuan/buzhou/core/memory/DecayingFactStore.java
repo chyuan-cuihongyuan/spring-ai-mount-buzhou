@@ -1,4 +1,4 @@
-package io.github.chyuan_cuihongyuan.buzhou.core.internal.memory;
+package io.github.chyuan_cuihongyuan.buzhou.core.memory;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore;
@@ -13,6 +13,9 @@ import java.util.List;
  *
  * <p><b>只影响注入读，不影响持久化</b>：save/delete 直通被装饰者；衰减不写回
  * （下一轮按同一公式重算，幂等可逆——换策略立即生效）。
+ *
+ * <p>spec 707 / T965：自 {@code core.internal.memory} 迁出——跨模块复用类不入
+ * internal（边界守卫 ModuleBoundaryGuardTest 口径）。
  */
 public final class DecayingFactStore implements FactStore {
 

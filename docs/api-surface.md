@@ -7,6 +7,7 @@
 
 - `public class BuzhouConfigurationException`
 - `public class BuzhouCoreAutoConfiguration`
+- `public final class AtomicStateCounters`（spec 707——跨模块 CAS 计数助手，自 internal.hook 迁出）
 - `public class BuzhouDataCorruptionException`
 - `public class BuzhouException`
 - `public class BuzhouStoreFailureAnalyzer`
@@ -16,10 +17,14 @@
 - `public class HookChain`（spec 646 起 per-hook 计时：`HookTiming` 嵌套 record + `stats()`）
 - `public class HookTimingAggregator`（spec 647——hook 计时进程级聚合，Holder 模式）
 - `public class HookTimingHealth`（spec 647——hook-timing 健康段）
+- `public final class ToolTimingAggregator`（spec 700——工具执行 per-tool 耗时聚合，Holder 模式）
+- `public final class ToolTimingHealth`（spec 700——tool-timing 健康段，总耗时降序 top-20）
 - `public class LeaseLostException`
 - `public class QuotaExceededException`
 - `public class RetentionSweeper`
 - `public class RollingJsonlWriter`（spec 642——追加式 JSONL 大小轮转：64MB×3 默认开/≤0 显式关）
+- `public final class SessionAvailabilityFloor`（spec 704——归档 PDB 最小可用水位闸）
+- `public final class SessionStateStoreContract`（spec 705——SessionStateStore SPI 九项契约校验套件）
 - `public class RunRecoveryService`
 - `public class RunStateTrackerHook`
 - `public class RunawayBudgetRenderer`
@@ -29,6 +34,7 @@
 - `public class SessionCapacityExceededException`
 - `public class StructuredOutputException`
 - `public class TokenBudgetHook`
+- `public class TableContextWindowResolver`（spec 707——模型上下文窗口表 + 覆盖，自 internal.token 迁出）
 - `public enum CancelMode`
 - `public enum ErrorCode`
 - `public enum OnFail`
@@ -48,9 +54,13 @@
 - `public final class BuzhouThreadFactory`
 - `public final class Buzhou`
 - `public final class CachedEmbeddingProvider`
+- `public class CharHeuristicTokenEstimator`（spec 707——字符启发式 token 估算，自 internal.token 迁出）
 - `public final class CancellationToken`
-- `public final class ConfigMaps`
+- `public class ConfigMaps`
+- `public final class DecayingFactStore`（spec 707——读时置信度衰减装饰器，自 internal.memory 迁出）
+- `public class DefaultFactStore`（spec 707——默认 FactStore 实现，自 internal.memory 迁出）
 - `public final class EventType`
+- `public record FactDecayPolicy`（spec 707——事实置信度衰减策略，自 internal.memory 迁出）
 - `public final class LeakDetectorHolder`
 - `public final class MicrometerBuzhouMetrics`
 - `public final class RecoverySupport`
@@ -403,6 +413,7 @@
 - `public class ResilienceAdvisor`
 - `public class ResilienceSessionObserver`
 - `public class ResponseCacheCoalescer`（spec 641——响应缓存 miss 惊群合并：singleflight 语义）
+- `public final class RoutingSlowStart`（spec 702——路由慢启动权重爬坡，nginx slow_start 借鉴）
 - `public class SessionQuotaHook`
 - `public enum CircuitState`
 - `public enum ErrorCategory`
