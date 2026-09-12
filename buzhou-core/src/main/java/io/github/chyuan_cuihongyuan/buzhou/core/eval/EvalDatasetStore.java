@@ -75,6 +75,69 @@ public final class EvalDatasetStore {
         return result;
     }
 
+    /**
+     * spec 713 / T1026（Langfuse dataset tags 思想）：给数据集打标签——
+     * 幂等；tag 归一 trim+lowercase，校验 {@code [a-z0-9:-]{1,32}}。
+     * 组织维度，不参与 fingerprint。
+     */
+    public EvalDatasetMeta tagDataset(String name, String tag) {
+        String normalized = requireValidTag(tag);
+        EvalDatasetMeta meta = dataset(name)
+                .orElseThrow(() -> evalError("数据集未建：" + name, "先 createDataset 再打标"));
+        if (meta.tags().contains(normalized)) {
+            return meta;
+        }
+        List<String> tags = new ArrayList<>(meta.tags());
+        tags.add(normalized);
+        java.util.Collections.sort(tags);
+        return writeTags(meta, tags);
+    }
+
+    /** 去标签（幂等——不存在该标签即原样返回）。 */
+    public EvalDatasetMeta untagDataset(String name, String tag) {
+        String normalized = requireValidTag(tag);
+        EvalDatasetMeta meta = dataset(name)
+                .orElseThrow(() -> evalError("数据集未建：" + name, "先 createDataset 再改标"));
+        if (!meta.tags().contains(normalized)) {
+            return meta;
+        }
+        List<String> tags = new ArrayList<>(meta.tags());
+        tags.remove(normalized);
+        return writeTags(meta, tags);
+    }
+
+    /** 按标签圈选数据集（按名排序；tag 同样归一后比较）。 */
+    public List<EvalDatasetMeta> listDatasetsByTag(String tag) {
+        String normalized = requireValidTag(tag);
+        List<EvalDatasetMeta> result = new ArrayList<>();
+        for (EvalDatasetMeta meta : listDatasets()) {
+            if (meta.tags().contains(normalized)) {
+                result.add(meta);
+            }
+        }
+        return result;
+    }
+
+    private EvalDatasetMeta writeTags(EvalDatasetMeta meta, List<String> tags) {
+        EvalDatasetMeta updated = new EvalDatasetMeta(meta.name(), meta.description(),
+                meta.itemCount(), meta.createdAt(), tags);
+        stateStore.put(SESSION_ID, new StateEntry(dsKey(meta.name()), encode(metaToMap(updated)),
+                "eval", 0, null, meta.createdAt()));
+        return updated;
+    }
+
+    private static String requireValidTag(String tag) {
+        if (tag == null) {
+            throw evalError("标签必填", "提供 [a-z0-9:-]{1,32} 标签");
+        }
+        String normalized = tag.trim().toLowerCase(java.util.Locale.ROOT);
+        if (!normalized.matches("[a-z0-9:-]{1,32}")) {
+            throw evalError("非法标签（归一后须匹配 [a-z0-9:-]{1,32}）：" + tag,
+                    "修正标签字符集后重试");
+        }
+        return normalized;
+    }
+
     /** 加评估项（dataset 必须已存在；input/expected 非空）。返回条目 Id。 */
     public String addItem(String name, String input, String expected,
             String sourceSessionId, Integer sourceTurnSeq) {
@@ -223,6 +286,7 @@ public final class EvalDatasetStore {
         map.put("itemCount", meta.itemCount());
         map.put("nextItemId", 1L);
         map.put("createdAt", meta.createdAt().toString());
+        map.put("tags", meta.tags());
         return map;
     }
 
@@ -230,7 +294,11 @@ public final class EvalDatasetStore {
         Map<String, Object> map = decodeMap(json);
         int itemCount = ((Number) map.getOrDefault("itemCount", 0)).intValue();
         Instant createdAt = Instant.parse(String.valueOf(map.get("createdAt")));
-        return new EvalDatasetMeta(name, (String) map.get("description"), itemCount, createdAt);
+        List<String> tags = new ArrayList<>();
+        for (Object tag : (List<?>) map.getOrDefault("tags", List.of())) {
+            tags.add(String.valueOf(tag));
+        }
+        return new EvalDatasetMeta(name, (String) map.get("description"), itemCount, createdAt, tags);
     }
 
     private static Map<String, Object> itemToMap(EvalItem item) {

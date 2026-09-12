@@ -1901,3 +1901,7 @@
   语义：of(List<SpanRecord>) 聚合 (kind,status) 字典序+runningResidue
   泄漏信号+errorRate（ERROR/total）；纯函数读数）
 
+- EvalDatasetMeta `tags` 组件 + EvalDatasetStore `tagDataset`/`untagDataset`/
+  `listDatasetsByTag`（713——Langfuse dataset tags 思想：归一 `[a-z0-9:-]`
+  幂等打标/圈选；旧记录解码空表零迁移；tags 不入 fingerprint）
+
