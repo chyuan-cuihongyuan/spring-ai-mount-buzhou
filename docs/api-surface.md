@@ -1909,3 +1909,7 @@
   字符 trigram Jaccard 模糊判定，detail 携带分数留痕；minRatio∈[0,1]
   fail-fast；加法方法无新顶层类型）
 
+- `FormatPreservingMasker`（715——Presidio format-preserving 思想的
+  结构化简化版：maskPhone/maskIdCard/maskEmail/maskIp+通用 mask 保长
+  打星，形状校验复用 PiiDetector 口径、失败全星 fail-closed；纯静态）
+
