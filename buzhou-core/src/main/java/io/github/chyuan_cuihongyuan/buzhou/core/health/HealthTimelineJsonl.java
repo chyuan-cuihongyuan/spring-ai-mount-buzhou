@@ -36,8 +36,14 @@ public final class HealthTimelineJsonl implements Consumer<HealthTimeline.Entry>
 
     /** spec 642 / T934：轮转参数显式构造（maxBytes/maxHistory ≤ 0 = 关轮转，旧无界语义）。 */
     public HealthTimelineJsonl(Path path, long maxBytes, int maxHistory) throws IOException {
+        this(path, maxBytes, maxHistory, 0);
+    }
+
+    /** spec 729 / T1009：+compressFrom（代际 ≥N 存 .gz——logrotate compress 语义；0 = 关）。 */
+    public HealthTimelineJsonl(Path path, long maxBytes, int maxHistory,
+            int compressFrom) throws IOException {
         this.path = Objects.requireNonNull(path, "path");
-        this.writer = new RollingJsonlWriter(path, maxBytes, maxHistory);
+        this.writer = new RollingJsonlWriter(path, maxBytes, maxHistory, compressFrom);
     }
 
     @Override
