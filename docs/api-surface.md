@@ -1998,6 +1998,10 @@
 - `EventTypePresenceGate`（嵌套 `Report`）（739——726 对偶：gate(events,
   expectedTypes) 期望类型差集 missing 字典序；空契约不误报；纯函数）
 
+- ResilienceStats `updateProviderUtilization`/`lastProviderUtilization`
+  （740——719 信号聚合接线：NaN 起始+details 条件出现；加法方法无新
+  顶层类型）
+
 - EvalRunner `lastFingerprintChanged`（734——82 指纹消费信号：当前 vs 最近
   历史 run 指纹不同置位+计数+INFO；diff 明细归 EvalRunDiff；加法方法
   无新顶层类型）

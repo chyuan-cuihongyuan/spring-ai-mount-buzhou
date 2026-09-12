@@ -500,6 +500,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 限流头跨供应商归一 | parseFlexible——OpenAI 优先、缺项回退 Anthropic 头名不混合来源（719 扩散） | [spec 730](docs/spec/730-ratelimit-header-normalization.md) |
 | 评估闭环 | 评估分数分布解析 | EvalScoreAnalytics.similarityScores——从 714 detail 留痕解析分数 min/max/mean，「调阈值会多放行多少」有数（714 消费端） | [spec 731](docs/spec/731-eval-score-analytics.md) |
 | 评估闭环 | 数据集指纹变更信号 | lastFingerprintChanged()+计数——连续跑批中指纹变化即时可见，diff 结论不张冠李戴（82 消费信号） | [spec 734](docs/spec/734-fingerprint-change-signal.md) |
+| 模型韧性 | 供应商限流信号 stats 接线 | updateProviderUtilization/lastProviderUtilization（NaN 起始）+details 条件出现——719 信号的聚合归宿（740） | [spec 740](docs/spec/740-provider-signals-stats.md) |
 | 观测治理 | 事件 payload 大小审计 | EventPayloadSizeAudit.analyze——Jackson 字节按类型聚合 total/max 降序，payload 风暴与存储吞噬可见（Sentry 限额思想） | [spec 732](docs/spec/732-event-payload-size-audit.md) |
 | 提示词治理 | 提示词使用缺口读数 | PromptUsageGaps——声明×使用差集：零使用清理候选+孤儿统计漂移信号（401/545 联合读数） | [spec 733](docs/spec/733-prompt-usage-gaps.md) |
 | 观测治理 | 事件配对完整性审计 | EventPairingAudit——请求/应答型事件 spanId 内配对，悬空请求/孤儿应答（中断崩溃/审批悬空）证据化（规则表泛化） | [spec 735](docs/spec/735-event-pairing-audit.md) |

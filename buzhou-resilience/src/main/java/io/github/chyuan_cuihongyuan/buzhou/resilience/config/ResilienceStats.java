@@ -65,6 +65,10 @@ public final class ResilienceStats implements BuzhouHealth {
         details.put("fallbackExhausted", fallbackExhausted.get());
         details.put("quotaRejections", quotaRejections.get());
         details.put("quotaCasFallbacks", quotaCasFallbacks.get());
+        double providerUtilization = lastProviderUtilization;
+        if (!Double.isNaN(providerUtilization)) {
+            details.put("providerUtilization", providerUtilization); // spec 740：供应商余量前瞻
+        }
         if (!circuitStates.isEmpty()) {
             details.put("circuitStates", new LinkedHashMap<>(circuitStates));
         }
@@ -87,6 +91,23 @@ public final class ResilienceStats implements BuzhouHealth {
     }
 
     /** spec 637：生效限流后端标识（configure 时设置——health details 直读）。 */
+    /** spec 740 / T1082：最近一次供应商限流头利用率（NaN = 尚无信号）。 */
+    private volatile double lastProviderUtilization = Double.NaN;
+
+    /**
+     * spec 740 / T1082（719 前瞻信号的 stats 接线）：记录最近一次解析的
+     * 供应商限流利用率（request/token 取大者）。消费端（advisor 拦截响应头）
+     * 调用——本类只做聚合读数。
+     */
+    public void updateProviderUtilization(double utilization) {
+        this.lastProviderUtilization = utilization;
+    }
+
+    /** spec 740：最近一次供应商限流利用率读数（NaN = 尚无信号）。 */
+    public double lastProviderUtilization() {
+        return lastProviderUtilization;
+    }
+
     public void updateRateLimitBackend(String kind) {
         this.rateLimitBackend = kind == null ? "none" : kind;
     }

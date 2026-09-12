@@ -360,6 +360,7 @@
 | #734 | 数据集指纹变更信号 | [maps/effort-734.md](maps/effort-734.md) | T1068–1069 | 634 |
 | #735 | 事件配对完整性审计 | [maps/effort-735.md](maps/effort-735.md) | T1070–1071 | 635 |
 | #736 | span 父链完整性审计 | [maps/effort-736.md](maps/effort-736.md) | T1072–1073 | 636 |
+| #740 | 供应商限流信号 stats 接线 | [maps/effort-740.md](maps/effort-740.md) | T1082–1083 | 640 |
 | #737 | 响应缓存权重预算 | [maps/effort-737.md](maps/effort-737.md) | T1074–1075 | 637 |
 | #738 | 导出体积去向审计 | [maps/effort-738.md](maps/effort-738.md) | T1076–1077 | 638 |
 | #739 | 事件静默缺失门 | [maps/effort-739.md](maps/effort-739.md) | T1078–1079 | 639 |
