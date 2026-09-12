@@ -37,6 +37,8 @@ public class StoreFsckHousekeeper implements SmartLifecycle {
     private final AtomicLong runs = new AtomicLong();
     private final AtomicLong totalFindings = new AtomicLong();
     private final AtomicLong skippedNotLeader = new AtomicLong();
+    /** spec 548 / T827：最近一次巡检 findings 数（健康详情）。 */
+    private volatile int lastFindings = -1;
 
     public StoreFsckHousekeeper(BuzhouStores stores, LeaderElector elector, Duration interval) {
         this.stores = stores;
@@ -68,11 +70,12 @@ public class StoreFsckHousekeeper implements SmartLifecycle {
     }
 
     /** 单次巡检（只读）：findings > 0 WARN + 计数；不自动修复。 */
-    public StoreIntegrityReport evaluateOnce() {
+    public synchronized StoreIntegrityReport evaluateOnce() {
         StoreIntegrityReport report = StoreFsck.run(stores);
         runs.incrementAndGet();
         int findings = report.findings().size();
         totalFindings.addAndGet(findings);
+        lastFindings = findings;
         BuzhouMetricsHolder.metrics().counter("buzhou.fsck.runs");
         if (findings > 0) {
             BuzhouMetricsHolder.metrics().counter("buzhou.fsck.findings");
@@ -107,5 +110,10 @@ public class StoreFsckHousekeeper implements SmartLifecycle {
 
     public long skippedNotLeader() {
         return skippedNotLeader.get();
+    }
+
+    /** 最近一次巡检 findings 数（-1 = 尚未巡检）。 */
+    public int lastFindings() {
+        return lastFindings;
     }
 }

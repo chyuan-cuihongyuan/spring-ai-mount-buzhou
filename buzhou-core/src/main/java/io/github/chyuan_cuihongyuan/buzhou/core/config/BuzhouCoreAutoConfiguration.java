@@ -497,6 +497,15 @@ public class BuzhouCoreAutoConfiguration {
                 java.util.List.of(gate));
     }
 
+    /** spec 548 / T827：fsck 巡检健康面（观测面恒 UP——findings 是数据需关注非进程故障）。 */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.fsck", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth buzhouStoreFsckHealth(
+            io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper keeper) {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth(keeper);
+    }
+
     /** spec 530：budgets map 非空才装配（Binder 预绑判定）。 */
     static final class ModelBudgetPresentCondition
             implements org.springframework.context.annotation.Condition {

@@ -1830,3 +1830,7 @@
 - `SessionExportChecksum`（547——S3 checksum 明文通道对偶：导出 JSON
   sha256 校验和+verify fail-closed，防衰变/误写不防蓄意同改（归 510））
 
+- `StoreFsckHealth`（548——538 巡检健康面接入：mechanism=store-fsck
+  观测面恒 UP，details 聚合 runs/totalFindings/lastFindings/
+  skippedNotLeader）
+
