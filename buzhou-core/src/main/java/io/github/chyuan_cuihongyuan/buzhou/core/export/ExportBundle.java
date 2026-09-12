@@ -96,9 +96,13 @@ public final class ExportBundle {
                 ch.force(true);
             }
             if (durability == Durability.FILE_AND_DIR && parent != null) {
+                // 目录 fsync 是 POSIX 语义——Windows 无法以 FileChannel 打开目录，
+                // best-effort 忽略（E 会话 543 跨平台实证：否则 Windows 全挂）
                 try (java.nio.channels.FileChannel dir = java.nio.channels.FileChannel.open(parent,
                         java.nio.file.StandardOpenOption.READ)) {
                     dir.force(true);
+                } catch (IOException ignored) {
+                    // 平台不支持目录 fsync——跳过（FILE 层 force 已完成）
                 }
             }
         }

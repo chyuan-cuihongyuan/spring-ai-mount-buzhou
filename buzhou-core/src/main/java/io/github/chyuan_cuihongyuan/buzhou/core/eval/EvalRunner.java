@@ -161,7 +161,7 @@ public final class EvalRunner {
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
                     byIndex[index] = budgetedItem(spent, item,
-                            () -> runItemWithRetry(runId, item, evaluator)));
+                            () -> runItemWithRetry(runId, item, evaluator));
                     return null;
                 });
             }

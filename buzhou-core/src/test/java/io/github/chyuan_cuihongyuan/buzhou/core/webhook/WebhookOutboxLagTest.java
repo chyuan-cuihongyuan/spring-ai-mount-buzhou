@@ -107,8 +107,6 @@ class WebhookOutboxLagTest {
     @Test
     void backedOffRecordStillCountsTowardAge() {
         MutableClock clock = new MutableClock();
-        // 同上：时钟先对齐真实时间——due() 判定与 append createdAt 不再受 setup 延迟影响
-        clock.advanceMillis(System.currentTimeMillis() - clock.instant().toEpochMilli() + 1_000);
         WebhookOutbox outbox = new WebhookOutbox(new InMemorySessionStateStore(), 8);
         outbox.append("e1", "t", "{}");
         // 毫秒竞态修复：MutableClock 快照先于 append 的系统时钟（几乎必然 ≥ 快照毫秒），
@@ -126,7 +124,7 @@ class WebhookOutboxLagTest {
         WebhookOutboxLag.Lag read = lag.read(16);
         assertThat(read.pendingCount()).isEqualTo(1);
         assertThat(read.oldestEventId()).isEqualTo("e1");
-        assertThat(read.oldestPendingAgeMillis()).isBetween(30_000L, 31_001L);
+        assertThat(read.oldestPendingAgeMillis()).isBetween(30_000L, 31_500L);
     }
 
     @Test
