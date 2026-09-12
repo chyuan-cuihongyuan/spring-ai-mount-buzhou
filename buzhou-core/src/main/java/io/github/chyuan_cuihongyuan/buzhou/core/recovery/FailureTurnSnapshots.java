@@ -27,6 +27,10 @@ public final class FailureTurnSnapshots implements SessionObserver {
     /** 错误消息截断（字符）。 */
     public static final int ERROR_MESSAGE_CHARS = 256;
 
+    /** spec 644：行序列化 Jackson（与 60/67 导出族同模式）。 */
+    private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
+
     /** 单失败轮快照（复现最小集）。 */
     public record Snapshot(int turnSeq, String errorClass, String errorMessage,
             String inputPreview) {
@@ -90,23 +94,22 @@ public final class FailureTurnSnapshots implements SessionObserver {
         return totalErrors;
     }
 
-    /** JSONL 导出（一行一快照——60/67 导出族同构）。 */
+    /**
+     * JSONL 导出（一行一快照——60/67 导出族同构）。spec 644 / T938：行序列化
+     * 走 Jackson（spec 60 纪律——任意字符合法转义，含旧自有 escape 不覆盖的
+     * 控制字符）。
+     */
     public long exportJsonl(java.io.Writer out) throws java.io.IOException {
         long lines = 0;
         for (Snapshot s : snapshot()) {
-            out.write("{\"turnSeq\":" + s.turnSeq()
-                    + ",\"errorClass\":\"" + escape(s.errorClass())
-                    + "\",\"errorMessage\":\"" + escape(s.errorMessage())
-                    + "\",\"inputPreview\":\"" + escape(s.inputPreview())
-                    + "\"}\n");
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("turnSeq", s.turnSeq());
+            row.put("errorClass", s.errorClass());
+            row.put("errorMessage", s.errorMessage());
+            row.put("inputPreview", s.inputPreview());
+            out.write(MAPPER.writeValueAsString(row) + "\n");
             lines++;
         }
         return lines;
-    }
-
-    private static String escape(String value) {
-        return value == null ? "" : value
-                .replace("\\", "\\\\").replace("\"", "\\\"")
-                .replace("\n", "\\n").replace("\r", "\\r");
     }
 }

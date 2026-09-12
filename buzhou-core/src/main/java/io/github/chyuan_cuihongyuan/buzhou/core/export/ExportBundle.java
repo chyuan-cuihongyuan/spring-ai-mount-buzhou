@@ -22,6 +22,9 @@ import java.util.zip.ZipOutputStream;
  */
 public final class ExportBundle {
 
+    private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
+
     /** manifest 条目（首条目 manifest.json 的行——对账清单）。 */
     public record ManifestEntry(String name, long lines, String sha256, String error) {
     }
@@ -114,25 +117,27 @@ public final class ExportBundle {
         NONE, FILE, FILE_AND_DIR
     }
 
+    /** spec 644 / T938：Jackson 序列化（LinkedHashMap 插入序 = 字段序稳定；error 多行消息合法转义——旧土法 replace 丢信息且不处理换行）。 */
     private static String manifestJson(java.util.List<ManifestEntry> manifest) {
-        StringBuilder sb = new StringBuilder("[");
-        boolean first = true;
+        java.util.List<Map<String, Object>> entries = new java.util.ArrayList<>(manifest.size());
         for (ManifestEntry entry : manifest) {
-            if (!first) {
-                sb.append(',');
-            }
-            first = false;
-            sb.append("{\"name\":\"").append(entry.name())
-                    .append("\",\"lines\":").append(entry.lines());
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("name", entry.name());
+            row.put("lines", entry.lines());
             if (entry.sha256() != null) {
-                sb.append(",\"sha256\":\"").append(entry.sha256()).append('"');
+                row.put("sha256", entry.sha256());
             }
             if (entry.error() != null) {
-                sb.append(",\"error\":\"").append(entry.error().replace("\"", "'")).append('"');
+                row.put("error", entry.error());
             }
-            sb.append('}');
+            entries.add(row);
         }
-        return sb.append(']').toString();
+        try {
+            return MAPPER.writeValueAsString(entries);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            // manifest 值均为简单类型——序列化失败属不可能分支；兜底上抛不静默吞
+            throw new IllegalStateException("manifest 序列化失败", e);
+        }
     }
 
     private static String sha256(byte[] content) {

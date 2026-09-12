@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * 提示词使用快照 JSONL 导出（spec 424 / T740，418/421 追加快照同族）：
@@ -17,8 +19,14 @@ import java.time.Instant;
  *
  * <p>spec 642 / T934：4 参重载带大小轮转（append 前静态检查——默认 64MB×3
  * 保护；≤0 显式关）；既有 2 参面 = 默认轮转参数。
+ *
+ * <p>spec 644 / T938：行序列化走 Jackson（spec 60 纪律——name 含引号/换行
+ * 天然转义，绝不手工拼接）。
  */
 public final class PromptUsageJsonl {
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private PromptUsageJsonl() {
     }
@@ -48,9 +56,12 @@ public final class PromptUsageJsonl {
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE,
                 StandardOpenOption.APPEND)) {
             for (PromptUsageStats.Row row : rows) {
-                writer.write("{\"at\":\"" + at + "\",\"name\":\"" + row.name()
-                        + "\",\"version\":" + row.version()
-                        + ",\"count\":" + row.count() + "}");
+                Map<String, Object> line = new LinkedHashMap<>();
+                line.put("at", at.toString());
+                line.put("name", row.name());
+                line.put("version", row.version());
+                line.put("count", row.count());
+                writer.write(MAPPER.writeValueAsString(line));
                 writer.newLine();
             }
         }
