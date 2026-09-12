@@ -45,6 +45,10 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
     private final ConcurrentHashMap<String, InjectionSnapshot> snapshots = new ConcurrentHashMap<>();
     /** impl-36：观测会话注册表（lastActivity 单调时钟——逐出裁决源）。 */
     private final ConcurrentHashMap<String, Long> sessionActivity = new ConcurrentHashMap<>();
+
+    /** spec 729 / T1058：被容量逐出的会话累计（容量压力信号）。 */
+    private final java.util.concurrent.atomic.AtomicLong evictedSessions =
+            new java.util.concurrent.atomic.AtomicLong();
     /** impl-36：FIFO 丢最旧的累计记录数（丢弃可见）。 */
     private final AtomicLong droppedRecords = new AtomicLong();
 
@@ -137,6 +141,7 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
         }
         if (victim != null) {
             removeSessionData(victim);
+            evictedSessions.incrementAndGet(); // spec 729 / T1058：逐出计数（容量压力可见）
         }
     }
 
@@ -235,7 +240,7 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
     }
 
     /** impl-36：在册观测会话数（测试与运维可观测）。 */
-    int sessionCount() {
+    public int sessionCount() {
         return sessionActivity.size();
     }
 
@@ -333,5 +338,15 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
             after += sessionSpans.size();
         }
         return before - after;
+    }
+    /** spec 729 / T1058：被容量逐出的会话累计读数。 */
+    public long evictedSessionCount() {
+        return evictedSessions.get();
+    }
+
+
+    /** spec 729 / T1058：容量上限。 */
+    public int maxSessions() {
+        return maxSessions;
     }
 }

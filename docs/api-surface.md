@@ -1958,6 +1958,11 @@
   mechanism=spill-pair 禁用 UNKNOWN/启用恒 UP，details 五项统计；
   随 BuzhouSpillHealthAutoConfiguration 装配）
 
+- `ObservabilityCapacityHealth`（729——容量逐出读数接线：implements
+  BuzhouHealth，mechanism=memory-observability 恒 UP，details
+  used/max/utilization/evicted；InMemoryObservabilityStore 加逐出计数
+  与三读数（sessionCount 提升 public））
+
 - `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
