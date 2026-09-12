@@ -474,6 +474,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | 工具执行 per-tool 耗时聚合读面 | ToolTimingAggregator（Holder 装配开启）+ tool-timing 健康段（per-tool count/total/max/avg 微秒 + failed）——哪个工具吃掉工具耗时预算一屏可读（pg_stat_statements 借鉴） | [spec 700](docs/spec/700-tool-timing-aggregate.md) |
 | 观测与运维 | 缓存 stale-while-revalidate | 跨轮工具缓存 swrGrace opt-in：过期后 grace 窗同步回 stale + 虚拟线程后台单飞刷新（失败保旧值）——TTL 边界调用延迟归零（nginx proxy_cache_use_stale 借鉴） | [spec 701](docs/spec/701-cache-stale-while-revalidate.md) |
 | 模型韧性 | 路由慢启动权重爬坡 | RoutingSlowStart：权重上调先落 floor 再分 4 步爬到 target（热重载接线 opt-in、降权瞬时）——升配不瞬时打爆恢复端点（nginx upstream slow_start 借鉴） | [spec 702](docs/spec/702-routing-slow-start.md) |
+| MCP 治理 | MCP keepalive 空闲探活 | 注册表周期 listToolNames 探活（opt-in），失败重建走 spec-changed 同口径——空闲死连接不再拖到用户 Turn 才暴露（gRPC keepalive 借鉴） | [spec 703](docs/spec/703-mcp-keepalive.md) |
 
 ## 快速开始
 
