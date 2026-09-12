@@ -2014,6 +2014,9 @@
   （744——605 声明生效确认面：构造期权重读数+RRF 融合完成计数；加法
   方法无新顶层类型）
 
+- EvalRunner `executionPolicy`（748——五件套策略一屏确认：预算/重试/
+  超时/记忆化/漂移当前态 Map 回显；加法方法无新顶层类型）
+
 - `SharedFactFootprint`（嵌套 `Row`/`Report`）（741——410 事实库 owner
   治理：analyze(List<SharedFact>) owner 维度 facts/eternal 降序归因；
   值不读取隐私口径；纯函数）

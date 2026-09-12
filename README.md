@@ -512,6 +512,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 观测治理 | 事件静默缺失门 | EventTypePresenceGate.gate——期望类型集与观测集差集，「该发生而没发生」的流程断链前向信号（726 对偶） | [spec 739](docs/spec/739-event-presence-gate.md) |
 | 缓存与前缀 | 响应缓存权重预算 yml 装配 | response-cache.max-weight-chars（默认 0=关）——737 原语的装配兑现（723 同模式） | [spec 745](docs/spec/745-response-cache-weight-assembly.md) |
 | 模型韧性 | 能力审计按能力维度聚合 | Report 增 denyByCapability——vision/tools 分布与 denyByModel 正交双视角，补声明还是换模型有数（700 深化） | [spec 746](docs/spec/746-deny-by-capability.md) |
+| 评估闭环 | 执行策略汇总读数 | executionPolicy()——五件套（预算/重试/超时/记忆化/漂移）当前态一屏确认，「为什么有 [RUN-BUDGET]/[MEMO]」的配置证据面（748） | [spec 748](docs/spec/748-execution-policy-readout.md) |
 | 护栏 | 导出脱敏命中计数 | SessionExportSanitizer hitCounts/totalHits——PiiType 与自定义规则归因，「导出脱敏动了多少刀」可审计（合规证据面） | [spec 743](docs/spec/743-sanitizer-hit-counts.md) |
 | MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 

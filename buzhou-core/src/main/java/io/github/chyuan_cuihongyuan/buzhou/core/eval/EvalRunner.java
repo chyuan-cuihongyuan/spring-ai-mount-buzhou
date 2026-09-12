@@ -143,6 +143,23 @@ public final class EvalRunner {
         return lastDriftDelta;
     }
 
+    /**
+     * spec 748 / T1098：执行策略汇总读数（一屏确认五件套当前态）——
+     * runBudgetChars / errorRetryOnce / perItemTimeoutMs（null=未设）/
+     * memoizationKey（null=关）/ driftWindow / driftWarnShift。
+     * 排障「为什么这个 run 有 [RUN-BUDGET]/[MEMO]」的配置证据面。
+     */
+    public Map<String, Object> executionPolicy() {
+        Map<String, Object> policy = new LinkedHashMap<>();
+        policy.put("runBudgetChars", runBudgetChars);
+        policy.put("errorRetryOnce", errorRetryOnce);
+        policy.put("perItemTimeoutMs", perItemTimeout == null ? null : perItemTimeout.toMillis());
+        policy.put("memoizationKey", memoizationKey);
+        policy.put("driftWindow", driftWindow);
+        policy.put("driftWarnShift", driftWindow > 0 ? driftWarnShift : null);
+        return policy;
+    }
+
     /** spec 734：最近一次 run 的数据集指纹相对其前一次是否变化（首跑 false）。 */
     public boolean lastFingerprintChanged() {
         return lastFingerprintChanged;
