@@ -22,7 +22,14 @@
 - `public class LeaseLostException`
 - `public class QuotaExceededException`
 - `public class RetentionSweeper`
-- `public class RollingJsonlWriter`（spec 642——追加式 JSONL 大小轮转：64MB×3 默认开/≤0 显式关）
+- `public class RollingJsonlWriter`（spec 642——追加式 JSONL 大小轮转：64MB×3 默认开/≤0 显式关；spec 712 compressFromGeneration 压缩线）
+- `public final class RollingMaxCounter`（spec 708——时间桶滚动 max，时钟注入）
+- `public final class ConfigDiff`（spec 719——生效配置三分类 diff 纯函数）
+- `public final class ForkLineageWalker`（spec 711——fork 谱系游走环防护）
+- `public final class SessionExportConditional`（spec 710——导出 unchanged 协商）
+- `public final class MessageStoreContract`（spec 743——MessageStore SPI 契约校验）
+- `public final class WebhookRateLimiter`（spec 718——webhook 投递限速令牌桶）
+- `public final class ToolDenialLog`（spec 709——角色权限拒绝有界日志）
 - `public final class SessionAvailabilityFloor`（spec 704——归档 PDB 最小可用水位闸）
 - `public final class SessionStateStoreContract`（spec 705——SessionStateStore SPI 九项契约校验套件）
 - `public class RunRecoveryService`
@@ -414,6 +421,7 @@
 - `public class ResilienceSessionObserver`
 - `public class ResponseCacheCoalescer`（spec 641——响应缓存 miss 惊群合并：singleflight 语义）
 - `public final class RoutingSlowStart`（spec 702——路由慢启动权重爬坡，nginx slow_start 借鉴）
+- `public final class RouteStages`（spec 723——路由阶段注册表 + 构造期选型过滤，MLflow stages 借鉴）
 - `public class SessionQuotaHook`
 - `public enum CircuitState`
 - `public enum ErrorCategory`
