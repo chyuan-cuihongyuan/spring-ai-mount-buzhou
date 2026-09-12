@@ -502,6 +502,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 记忆治理 | 共享事实足迹读数 | SharedFactFootprint——owner 维度 facts/eternal 归因降序，事实堆积与永生可见（410 治理；值不读取隐私口径） | [spec 741](docs/spec/741-shared-fact-footprint.md) |
 | Spill 治理 | 孤儿保留计数读数 | totalRetainedOrphans/lastSweepRetained——被 fork 引用保留的孤儿从局部变量升格为证据面，引用泄漏堆积可见（impl-38 深化） | [spec 742](docs/spec/742-sweep-retained-readout.md) |
 | 评估闭环 | 数据集指纹变更信号 | lastFingerprintChanged()+计数——连续跑批中指纹变化即时可见，diff 结论不张冠李戴（82 消费信号） | [spec 734](docs/spec/734-fingerprint-change-signal.md) |
+| Skill 体系 | 混合排序融合权重读数 | semanticWeight/lexicalWeight/fusedCount——权重声明是否生效与融合次数一读便知（638 声明生效确认面同型） | [spec 744](docs/spec/744-hybrid-ranker-readout.md) |
 | 模型韧性 | 供应商限流信号 stats 接线 | updateProviderUtilization/lastProviderUtilization（NaN 起始）+details 条件出现——719 信号的聚合归宿（740） | [spec 740](docs/spec/740-provider-signals-stats.md) |
 | 观测治理 | 事件 payload 大小审计 | EventPayloadSizeAudit.analyze——Jackson 字节按类型聚合 total/max 降序，payload 风暴与存储吞噬可见（Sentry 限额思想） | [spec 732](docs/spec/732-event-payload-size-audit.md) |
 | 提示词治理 | 提示词使用缺口读数 | PromptUsageGaps——声明×使用差集：零使用清理候选+孤儿统计漂移信号（401/545 联合读数） | [spec 733](docs/spec/733-prompt-usage-gaps.md) |

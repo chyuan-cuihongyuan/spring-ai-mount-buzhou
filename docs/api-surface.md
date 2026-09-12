@@ -2002,6 +2002,10 @@
   （740——719 信号聚合接线：NaN 起始+details 条件出现；加法方法无新
   顶层类型）
 
+- HybridSkillRanker `semanticWeight`/`lexicalWeight`/`fusedCount`
+  （744——605 声明生效确认面：构造期权重读数+RRF 融合完成计数；加法
+  方法无新顶层类型）
+
 - `SharedFactFootprint`（嵌套 `Row`/`Report`）（741——410 事实库 owner
   治理：analyze(List<SharedFact>) owner 维度 facts/eternal 降序归因；
   值不读取隐私口径；纯函数）

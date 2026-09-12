@@ -24,6 +24,8 @@ public final class HybridSkillRanker implements SkillRanker {
     private final double semanticWeight;
     private final double lexicalWeight;
     private final java.util.concurrent.atomic.AtomicLong semanticFallbacks = new java.util.concurrent.atomic.AtomicLong();
+    /** spec 744 / T1090：RRF 融合完成次数（两路齐备才计）。 */
+    private final java.util.concurrent.atomic.AtomicLong fusedCount = new java.util.concurrent.atomic.AtomicLong();
 
     public HybridSkillRanker(SemanticSkillRanker semantic, LexicalSkillRanker lexical) {
         this(semantic, lexical, 1.0, 1.0);
@@ -49,6 +51,21 @@ public final class HybridSkillRanker implements SkillRanker {
         return semanticFallbacks.get();
     }
 
+    /** spec 744 / T1090：融合权重读数（语义路）——声明生效确认面（638 同型）。 */
+    public double semanticWeight() {
+        return semanticWeight;
+    }
+
+    /** spec 744 / T1090：融合权重读数（词法路）。 */
+    public double lexicalWeight() {
+        return lexicalWeight;
+    }
+
+    /** spec 744 / T1090：两路信号齐备完成 RRF 融合的次数（单路降级不计）。 */
+    public long fusedCount() {
+        return fusedCount.get();
+    }
+
     /** RRF 融合排序；hint 无效 → 原样返回。 */
     @Override
     public List<SkillMetadata> rank(List<SkillMetadata> candidates, String queryHint) {
@@ -68,6 +85,7 @@ public final class HybridSkillRanker implements SkillRanker {
         double[] scores = new double[candidates.size()];
         accumulate(semanticOrder, semanticWeight, scores, candidates);
         accumulate(lexicalOrder, lexicalWeight, scores, candidates);
+        fusedCount.incrementAndGet(); // spec 744：两路齐备完成融合
 
         record Scored(int index, double score) {
         }
