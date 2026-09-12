@@ -211,6 +211,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ContextWatermarkHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ModelCallCapHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ModelCallContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.OnFail

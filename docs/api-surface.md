@@ -13,7 +13,9 @@
 - `public class CompositeAttachmentRenderer`
 - `public class FileSandbox`
 - `public class HarnessToolCallingManager`
-- `public class HookChain`
+- `public class HookChain`（spec 646 起 per-hook 计时：`HookTiming` 嵌套 record + `stats()`）
+- `public class HookTimingAggregator`（spec 647——hook 计时进程级聚合，Holder 模式）
+- `public class HookTimingHealth`（spec 647——hook-timing 健康段）
 - `public class LeaseLostException`
 - `public class QuotaExceededException`
 - `public class RetentionSweeper`

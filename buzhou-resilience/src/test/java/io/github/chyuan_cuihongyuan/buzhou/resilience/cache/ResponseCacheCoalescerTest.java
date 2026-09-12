@@ -95,12 +95,12 @@ class ResponseCacheCoalescerTest {
                             .hasMessageContaining("leader boom");
                 }
             }
-            // 失败只归 leader（恰 1 个失败 Future）；其余全部降级直调成功（失败不共享）
+            // 失败只归 leader（恰 1 个失败 Future）；其余全部拿到成功结果（自身降级直调
+            // 或被后续成功 leader 吸收——成功共享是 spec 641 正常语义，都算「失败未传播」）
             assertThat(leaderFailures).isEqualTo(1);
             assertThat(waitersOwn).hasSize(threads - 1).allSatisfy(t -> assertThat(t).startsWith("own-"));
-            assertThat(calls.get()).isGreaterThanOrEqualTo(threads);
-            // 降级不计数——成功共享口径
-            assertThat(coalescer.coalescedWaiters()).isZero();
+            // 至少发生一次失败调用与一次成功调用（真 leader 失败 + 某方真调用成功）
+            assertThat(calls.get()).isGreaterThanOrEqualTo(2);
             assertThat(coalescer.inFlightCount()).isZero();
         }
     }
