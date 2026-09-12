@@ -1893,3 +1893,7 @@
   `holdoutPercent`，sha256("holdout|unitKey") 跨实验一致排除+`__holdout__`
   独立桶，`holdoutPercent()` 读数；加法方法无新顶层类型）
 
+- `TurnSequenceAudit`（嵌套 `Marker`/`Finding`）（711——Kafka offset 审计
+  思想：audit(List<Marker>) 单遍判消息序列 GAP/DUPLICATE/OUT_OF_ORDER，
+  调用方投影解耦 store SPI；纯函数只读）
+
