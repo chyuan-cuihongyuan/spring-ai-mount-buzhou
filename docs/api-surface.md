@@ -1889,3 +1889,7 @@
   桶+每实验一次 WARN，`expiredExperiments()`/`expiresAt(name)` 读数；
   加法方法无新顶层类型）
 
+- ExperimentBucketer holdout 层（710——Statsig holdout layer：构造器再扩
+  `holdoutPercent`，sha256("holdout|unitKey") 跨实验一致排除+`__holdout__`
+  独立桶，`holdoutPercent()` 读数；加法方法无新顶层类型）
+

@@ -478,6 +478,7 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | Spill 治理 | spill 双文件配对巡检 | SpillPairAudit 只读扫 .spill/.meta 配对残缺（双写崩溃窗口）——孤 data 带字节量、配额吞噬可见；三层完整性矩阵中层（Git fsck） | [spec 707](docs/spec/707-spill-pair-audit.md) |
 | 评估闭环 | 评估项结果记忆化 | setMemoizationKey opt-in——sig(数据+judge 身份)未变复用上轮判定跳过模型调用，detail `[MEMO]` 留痕+hits/misses 计数；ERROR 不缓存（scikit-learn Pipeline memory） | [spec 708](docs/spec/708-eval-item-memoization.md) |
 | 评测 | 实验到期自动停 | 构造器扩 expiresAt+Clock——到期按未入组返回 null、曝光计独立 `__expired__` 桶+expiredExperiments 读数（GrowthBook feature expiry） | [spec 709](docs/spec/709-experiment-expiry.md) |
+| 评测 | 全局 holdout 层 | holdoutPercent 构造参数——跨实验一致排除的纯控制组、曝光计 `__holdout__` 独立桶（Statsig holdout layer） | [spec 710](docs/spec/710-experiment-holdout.md) |
 
 ## 快速开始
 

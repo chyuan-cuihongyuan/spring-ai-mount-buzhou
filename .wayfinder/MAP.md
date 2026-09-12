@@ -333,6 +333,7 @@
 | #707 | spill 双文件配对完整性巡检 | [maps/effort-707.md](maps/effort-707.md) | T1014–1015 | 607 |
 | #708 | 评估项结果记忆化 | [maps/effort-708.md](maps/effort-708.md) | T1016–1017 | 608 |
 | #709 | 实验到期自动停 | [maps/effort-709.md](maps/effort-709.md) | T1018–1019 | 609 |
+| #710 | 全局 holdout 层 | [maps/effort-710.md](maps/effort-710.md) | T1020–1021 | 610 |
 
 ## 跨 effort 悬留
 
