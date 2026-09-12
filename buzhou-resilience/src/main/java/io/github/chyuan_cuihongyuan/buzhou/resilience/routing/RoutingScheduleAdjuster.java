@@ -31,6 +31,11 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class RoutingScheduleAdjuster implements SmartLifecycle {
 
+    /** 时段窗口激活指标（spec 715：全字面常量）。 */
+    public static final String METRIC_SCHEDULE_APPLIED = "buzhou.routing.schedule.applied";
+    /** 时段窗口回落指标。 */
+    public static final String METRIC_SCHEDULE_REVERTED = "buzhou.routing.schedule.reverted";
+
     private static final Logger LOG =
             LoggerFactory.getLogger(RoutingScheduleAdjuster.class);
 
@@ -103,8 +108,9 @@ public class RoutingScheduleAdjuster implements SmartLifecycle {
         LOG.warn("时段路由窗口切换：{} 应用权重 {}（此前 {}）",
                 revert ? "结束回落" : "激活[" + active.start() + "-" + active.end() + "]",
                 applied, lastApplied.get());
-        BuzhouMetricsHolder.metrics().counter("buzhou.routing.schedule."
-                + (revert ? "reverted" : "applied"), 1);
+        // spec 715：全字面指标名常量（动态拼接前缀违命名守卫口径）
+        BuzhouMetricsHolder.metrics().counter(revert
+                ? METRIC_SCHEDULE_REVERTED : METRIC_SCHEDULE_APPLIED, 1);
         lastApplied.set(snapshot);
     }
 
