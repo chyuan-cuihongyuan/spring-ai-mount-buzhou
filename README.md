@@ -494,6 +494,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | 错误签名静默标记 | ErrorSignatures mute/unmute（MUTED_CAP=64 有界）——top 读面降噪但 snapshot 计数照常（静默是降噪不是删除），reset 连带清空（Sentry muted issues 借鉴） | [spec 720](docs/spec/720-signature-mute.md) |
 | 观测与运维 | 死信重放审计事件 | replayDeadLetters 动作留痕：dead-replayed 指标（delta=条数）+ replayCount/replayedCount 累计 + 结构化审计日志——运维敏感动作必留痕（审计完整性惯例） | [spec 721](docs/spec/721-dead-replay-audit.md) |
 | 观测与运维 | 工具泳道排队时延观测 | LaneLimitingToolCallback acquire 段计时 + WaitStats（waited/total/max/timeouts）+ buzhou.lane.wait/timeout 指标——排队与执行分开计量、容量调参有据（grpc queue 时延借鉴） | [spec 722](docs/spec/722-lane-wait-observability.md) |
+| 模型韧性 | 路由金丝雀阶段标签 | RouteStages（STABLE/CANARY/ARCHIVED 有界注册表）+ filter 构造期过滤（未标注恒可见）——端点生命周期显式声明、退役端点不参路由（MLflow stages 借鉴） | [spec 723](docs/spec/723-route-stages.md) |
 
 ## 快速开始
 
