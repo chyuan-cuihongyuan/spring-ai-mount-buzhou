@@ -189,4 +189,20 @@ class BuzhouResilienceAutoConfigurationTest {
                 "buzhou.resilience.response-cache.ttl=0s")
                 .run(ctx -> assertThat(ctx).hasFailed());
     }
+
+    /** spec 641：coalescing yml 声明绑定（多构造 record canonical @ConstructorBinding 生效）；缺省关。 */
+    @Test
+    void responseCacheCoalescingBindsOptInAndDefaultsOff() {
+        runner.run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.responseCache().effectiveCoalescing()).isFalse();
+        });
+        runner.withPropertyValues(
+                "buzhou.resilience.response-cache.enabled=true",
+                "buzhou.resilience.response-cache.coalescing=true").run(context -> {
+            ResilienceProperties props = context.getBean(ResilienceProperties.class);
+            assertThat(props.responseCache().effectiveEnabled()).isTrue();
+            assertThat(props.responseCache().effectiveCoalescing()).isTrue();
+        });
+    }
 }

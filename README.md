@@ -462,6 +462,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | 熔断时间窗生效读面 | `circuitTimeWindowMs`（0=count 窗/正数=声明值）——spec 620 生效确认面 | [spec 638](docs/spec/638-circuit-time-window-readout.md) |
 | 缓存与前缀 | 缓存命中率便利 getter | Response/Semantic 两 store `hitRate()`（零请求诚实 0.0——观测便利面） | [spec 639](docs/spec/639-cache-hit-rate.md) |
 | 会话与 fork | fork 谱系键常量收口 | `SessionForkKeys`（SOURCE/TURN/PRODUCER）写读两侧同源——字符串复制漂移=谱系断 | [spec 640](docs/spec/640-fork-lineage-keys.md) |
+| 缓存与前缀 | 响应缓存 miss 惊群合并 | `response-cache.coalescing`（opt-in）：首个 miss 窗口同 key 并发收敛一次模型调用（singleflight；失败不共享） | [spec 641](docs/spec/641-response-cache-stampede-coalescing.md) |
 
 ## 快速开始
 

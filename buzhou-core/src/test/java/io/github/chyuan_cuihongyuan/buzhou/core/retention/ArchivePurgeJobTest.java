@@ -83,7 +83,9 @@ class ArchivePurgeJobTest {
 
         int sizeAtStop = seen.size();
         TimeUnit.MILLISECONDS.sleep(150);
-        assertThat(seen.size()).isEqualTo(sizeAtStop); // stop 后不再触发
+        // stop 停调度但不断在途一轮（40ms 周期恰在飞 → 回调晚落地）——容差恰一轮；
+        // 若 stop 失效（继续排程）150ms ≈ 3-4 轮，容差一轮仍能钉住失效
+        assertThat(seen.size()).isLessThanOrEqualTo(sizeAtStop + 1); // stop 后不再触发
     }
 
     @Test

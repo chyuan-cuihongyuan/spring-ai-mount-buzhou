@@ -28,10 +28,18 @@ public class ResponseCacheAdvisor implements BaseAdvisor {
 
     private final ResponseCacheStore store;
     private final String modelName;
+    /** spec 641：可空——coalescing 关（缺省）时既有路径零变化。 */
+    private final ResponseCacheCoalescer coalescer;
 
     public ResponseCacheAdvisor(ResponseCacheStore store, String modelName) {
+        this(store, modelName, null);
+    }
+
+    public ResponseCacheAdvisor(ResponseCacheStore store, String modelName,
+            ResponseCacheCoalescer coalescer) {
         this.store = store;
         this.modelName = modelName;
+        this.coalescer = coalescer;
     }
 
     @Override
@@ -55,6 +63,14 @@ public class ResponseCacheAdvisor implements BaseAdvisor {
         if (cached.isPresent()) {
             // 新建包装：不与历史命中方共享可变引用
             return new ChatClientResponse(cached.get(), request.context());
+        }
+        if (coalescer != null) {
+            // spec 641：miss 惊群合并——同 key 并发 leader 独占调用、等待者共享 ChatResponse
+            // （各拿自有 context 的包装——与缓存命中路径同构）；leader 失败等待者各自直调
+            ChatResponse coalesced = coalescer.coalesce(key,
+                    () -> callChain.nextCall(request).chatResponse());
+            cacheIfTerminal(key, coalesced);
+            return new ChatClientResponse(coalesced, request.context());
         }
         ChatClientResponse response = callChain.nextCall(request);
         cacheIfTerminal(key, response.chatResponse());

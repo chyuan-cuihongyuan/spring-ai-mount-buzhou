@@ -380,12 +380,22 @@ public record ResilienceProperties(
      * @param enabled    开关（默认 false）
      * @param maxEntries LRU 容量（默认 256）
      * @param ttl        条目 TTL（默认 1h；惰性过期——命中路径检查）
+     * @param coalescing miss 惊群合并（spec 641：默认 false；开启后 call 路径首个 miss 窗口内
+     *                   同 key 并发收敛为一次模型调用——singleflight 语义，失败不共享）
      */
     public record ResponseCache(
             Boolean enabled,
             Integer maxEntries,
-            Duration ttl) {
+            Duration ttl,
+            Boolean coalescing) {
 
+        /** 3 参便捷构造（spec 641 之前调用方；coalescing 缺省关）。 */
+        public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl) {
+            this(enabled, maxEntries, ttl, null);
+        }
+
+        /** 多构造器场景：显式指定规范构造器为绑定构造器（便捷构造不参与绑定）。 */
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public ResponseCache {
             maxEntries = maxEntries == null ? 256 : maxEntries;
             ttl = ttl == null ? Duration.ofHours(1) : ttl;
@@ -394,6 +404,11 @@ public record ResilienceProperties(
         /** 生效开关（显式开启）。 */
         public boolean effectiveEnabled() {
             return Boolean.TRUE.equals(enabled);
+        }
+
+        /** miss 惊群合并生效开关（显式开启；缓存本身未启用时无意义）。 */
+        public boolean effectiveCoalescing() {
+            return Boolean.TRUE.equals(coalescing);
         }
     }
 
