@@ -402,3 +402,4 @@
 | #818 | 限流自适应收紧器 | [maps/effort-818.md](maps/effort-818.md) | T1137–1138 | 571 |
 | #819 | Token 估算校准审计 | [maps/effort-819.md](maps/effort-819.md) | T1139–1140 | 572 |
 | #820 | 护栏豁免登记面 | [maps/effort-820.md](maps/effort-820.md) | T1141–1142 | 573 |
+| #821 | 目录 lint 严重度分级 | [maps/effort-821.md](maps/effort-821.md) | T1143–1144 | 574 |

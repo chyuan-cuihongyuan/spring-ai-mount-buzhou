@@ -2156,3 +2156,8 @@
 - `GuardExemptionRegistry`（嵌套 `Exemption`/`Snapshot`）（820——ESLint
   suppressions 带过期借鉴：机制×主体显式有时限豁免登记——惰性过期计数/
   同键覆盖续期/封顶 64+truncated；不自动接线 hook 默认零变化）
+
+- `LintSeverityGrader`（嵌套 `Severity`/`GradedFinding`/`GradeReport`）
+  （821——rust-clippy 分级借鉴：DENY/WARN/HINT 三档默认映射（DUP 破坏
+  分发= DENY）+withRule 不可变定制+严重序典序破平；未知规则保守 HINT；
+  纯分级不阻断）

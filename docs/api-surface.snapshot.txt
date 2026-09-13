@@ -148,6 +148,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunPlanJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LaneLimitingToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LintSeverityGrader
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.MemoizedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
