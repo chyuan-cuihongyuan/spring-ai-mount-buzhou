@@ -39,6 +39,16 @@ public class TableContextWindowResolver implements ContextWindowResolver {
 
     private final Map<String, Integer> overrides;
     private final Set<String> warnedModels = ConcurrentHashMap.newKeySet();
+    /** impl-781 / spec 1028：三路解析分布计数（守恒：三者和 == resolveWindow 调用数）。 */
+    private final java.util.concurrent.atomic.AtomicLong overrideHits =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong builtInHits =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong fallbackHits =
+            new java.util.concurrent.atomic.AtomicLong();
+    /** 已解析模型 → 窗值（有界：模型名源自应用配置）。 */
+    private final ConcurrentHashMap<String, Integer> resolvedWindows =
+            new ConcurrentHashMap<>();
 
     public TableContextWindowResolver(Map<String, Integer> overrides) {
         this.overrides = overrides == null ? Map.of() : overrides;
@@ -47,15 +57,20 @@ public class TableContextWindowResolver implements ContextWindowResolver {
     @Override
     public int resolveWindow(String modelName) {
         if (modelName == null) {
+            fallbackHits.incrementAndGet();
             return DEFAULT_WINDOW;
         }
         Integer override = overrides.get(modelName);
         if (override != null) {
+            overrideHits.incrementAndGet();
+            resolvedWindows.put(modelName, override);
             return override;
         }
         String lower = modelName.toLowerCase();
         for (Map.Entry<String, Integer> entry : BUILT_IN.entrySet()) {
             if (lower.startsWith(entry.getKey())) {
+                builtInHits.incrementAndGet();
+                resolvedWindows.put(modelName, entry.getValue());
                 return entry.getValue();
             }
         }
@@ -63,6 +78,27 @@ public class TableContextWindowResolver implements ContextWindowResolver {
             LOG.log(Level.WARNING,
                     "Unknown model window, falling back to 32K: " + modelName);
         }
+        fallbackHits.incrementAndGet();
+        resolvedWindows.put(modelName, DEFAULT_WINDOW);
         return DEFAULT_WINDOW;
+    }
+
+    /** 解析分布只读快照（override/内置/回退三路计数 + 已解析模型窗；spec 1028）。 */
+    public WindowResolutionStats stats() {
+        return new WindowResolutionStats(overrideHits.get(), builtInHits.get(),
+                fallbackHits.get(), Map.copyOf(resolvedWindows));
+    }
+
+    /** 解析分布计数行（不可变）。 */
+    public record WindowResolutionStats(long overrideHits, long builtInHits, long fallbackHits,
+                                        Map<String, Integer> resolvedWindows) {
+        public WindowResolutionStats {
+            resolvedWindows = Map.copyOf(resolvedWindows);
+        }
+
+        /** 三路守恒：和 == 解析总数。 */
+        public long total() {
+            return overrideHits + builtInHits + fallbackHits;
+        }
     }
 }
