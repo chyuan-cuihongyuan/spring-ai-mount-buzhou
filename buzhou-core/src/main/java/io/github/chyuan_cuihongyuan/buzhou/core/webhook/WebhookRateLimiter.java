@@ -59,4 +59,19 @@ public final class WebhookRateLimiter {
     public long deferredCount() {
         return deferred.get();
     }
+
+    /**
+     * impl-673 / spec 920：余量快照（synchronized 同锁强一致）——「令牌还剩多少/
+     * 桶多大/流速多少」读面，区分「限流配置过低（余量常态贴 0）」与「突发超预期
+     * （余量骤降后回填）」。tokens 为 refill 时点修正后的实时余量（与 acquire
+     * 判定同语义）。纯读面，tryAcquire/deferredCount 行为零变化。
+     */
+    public record Snapshot(double tokens, double capacity, double refillPerSecond,
+                           long deferred) {
+    }
+
+    public synchronized Snapshot snapshot() {
+        refill();
+        return new Snapshot(tokens, capacity, refillPerSecond, deferred.get());
+    }
 }
