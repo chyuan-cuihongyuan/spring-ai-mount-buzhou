@@ -41,6 +41,7 @@
 - [丢弃计数 reason 维度指标](../tickets/T1287-drop-reason-metric-shape.md) — DROP_REASON_* 六常量统一三处字面量 + 双轨指标（无维度总量保留零分裂 + dropped-reason 带 tag 值域封闭）——breakdown 键与 tag 同源口径。
 - [加密导出×审计×指纹联动 e2e](../tickets/T1289-encrypted-export-e2e-shape.md) — 四场景：密文进明文审计 fail-closed 固化 / seal→open→审计·严格导入全链咬合 / nonce 密文不同但规范化内容指纹稳定 / 既有零回归（明文密文两形态路由纪律实证）。
 - [webhook 限流器余量快照读面](../tickets/T1291-ratelimit-snapshot-shape.md) — WebhookRateLimiter.snapshot（同锁强一致 tokens/capacity/refillPerSecond/deferred 投影，refill 时点修正与 acquire 同语义）——TurnRateLimitHook.availableSnapshot 先例同构，区分「配置过低」与「突发超预期」。
+- [TurnDeadline 软截止窗口读法](../tickets/T1293-soft-window-shape.md) — withinSoftWindow（remaining ∈ (0,softWindow]，已到期归硬截止语义）+ softDeadlineAt（预警绝对时刻 Optional）——K8s graceful period 分层语义，值对象层不动 exec 内核（集成轮留位）。
 
 ## 100 轮台账
 
@@ -67,7 +68,8 @@
 | 19 | 丢弃计数 reason 维度指标（口径统一轮） | spec 900×13 口径统一 | T1287–T1288 | 671 | 918 | ✅ README 行欠账（906–918 十三行） |
 | 20 | 加密导出×审计×指纹联动 e2e + 周期 verify | G 补验轮模式 | T1289–T1290 | 672 | 919 | ✅ README 行欠账（906–919 十四行） |
 | 21 | webhook 限流器余量快照读面 | TurnRateLimitHook 同构 | T1291–T1292 | 673 | 920 | ✅ README 行欠账（906–920 十五行） |
-| 22 | （开工时按缺口核查选题，候选见下） | — | T1293–T1294 | 674 | 921 |  |
+| 22 | TurnDeadline 软截止窗口读法（租户窗口用量 ruled-out——TurnRateLimitHook per-key snapshot 已覆盖） | K8s graceful period | T1293–T1294 | 674 | 921 | ✅ README 行欠账（906–921 十六行） |
+| 23 | （开工时按缺口核查选题，候选见下） | — | T1295–T1296 | 675 | 922 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表。**工作区并发警示**：同机另有会话共享工作区（1000 系 / T1451+ / impl 753+）——每轮提交必须精确路径 add，勿 git add -A；README 行受其未提交 spec 引用阻塞时欠账下轮补。候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 

@@ -95,4 +95,38 @@ public record TurnDeadline(Instant deadline) {
         }
         return deadline.isBefore(other.deadline) ? this : other;
     }
+
+    /**
+     * impl-674 / spec 921：软截止窗口判定（K8s terminationGracePeriod 的 SIGTERM
+     * 预警窗语义）——「预算即将耗尽，开始收尾」的预警读法。
+     *
+     * <p>非哨兵且 {@code remaining ∈ (0, softWindow]} 判真；已到期（remaining=0）
+     * <b>不算</b>在软窗内（0 属硬截止已发生语义，预警窗只覆盖「还剩一点」区间，
+     * 硬到期判定用 {@link #isExpired()}）；哨兵（不设界）恒 false。
+     * softWindow 为 null 或负 fail-fast。
+     */
+    public boolean withinSoftWindow(java.time.Duration softWindow) {
+        if (softWindow == null || softWindow.isNegative()) {
+            throw new IllegalArgumentException("softWindow 必须非 null 且非负，收到 " + softWindow);
+        }
+        if (isNone()) {
+            return false;
+        }
+        Duration remaining = remaining();
+        return !remaining.isZero() && remaining.compareTo(softWindow) <= 0;
+    }
+
+    /**
+     * impl-674 / spec 921：软截止绝对时刻（{@code deadline − softWindow}；到达该
+     * 时刻即应开始收尾）。哨兵（不设界）返回 empty。
+     */
+    public java.util.Optional<Instant> softDeadlineAt(java.time.Duration softWindow) {
+        if (softWindow == null || softWindow.isNegative()) {
+            throw new IllegalArgumentException("softWindow 必须非 null 且非负，收到 " + softWindow);
+        }
+        if (isNone()) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(deadline.minus(softWindow));
+    }
 }
