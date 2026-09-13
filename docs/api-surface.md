@@ -2083,3 +2083,7 @@
 - `MultiQueryRetriever`（嵌套 `Result`）（803——LangChain MultiQueryRetriever
   借鉴：查询多变体展开+逐路检索+跨变体 RRF k=60 融合，消息 id 去重累加，
   变体封顶 8、生成器/单路双层 fail-open；与 605 单查询双信号融合正交）
+
+- `NormalizingEmbeddingModel`（804——sentence-transformers 借鉴：
+  EmbeddingModel 装饰器逐条 L2 归一，cosine 退化为点积；ε=1e-4 已归一
+  跳算/零向量透传三计数面；副本语义；721 同模式双路径）

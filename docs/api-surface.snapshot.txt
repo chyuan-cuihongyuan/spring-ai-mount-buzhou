@@ -617,6 +617,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.Resilie
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.budget.AgentCostLedgerHook
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ChunkingEmbeddingModel
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.NormalizingEmbeddingModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheKeys

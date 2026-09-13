@@ -588,6 +588,7 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 持久化 | Redis 大值审计 | RedisValueSizeAudit——采样字节九族归类+WARN/CRIT 定级+Top32+按族聚合+治理提示，哪个命名空间在吃内存结构化（redis-cli --bigkeys 思想，纯函数） | [spec 801](docs/spec/801-redis-value-size-audit.md) |
 | 观测治理 | 指标新鲜度审计 | MetricFreshnessTracker——BuzhouMetrics 装饰器记名字级最后写入+audit(now, staleAfter) 陈旧清单，「指标为何没数了」从猜变查（Prometheus staleness；gauge 不追踪口径显式） | [spec 802](docs/spec/802-metric-freshness.md) |
 | 记忆治理 | 检索多路改写融合 | MultiQueryRetriever——查询多变体展开+逐路检索+跨变体 RRF 融合，词形脆弱不再漏召（LangChain MultiQueryRetriever；与 605 双信号融合正交） | [spec 803](docs/spec/803-multi-query-retriever.md) |
+| 缓存与前缀 | 嵌入 L2 归一化装饰器 | NormalizingEmbeddingModel——输出向量逐条单位范数，cosine 退化为点积、跨供应商尺度一致（sentence-transformers normalize_embeddings；721 同模式） | [spec 804](docs/spec/804-normalizing-embedding.md) |
 
 ## 快速开始
 
