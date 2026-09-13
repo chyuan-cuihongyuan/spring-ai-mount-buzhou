@@ -406,3 +406,4 @@
 | #822 | MCP 能力协商快照 | [maps/effort-822.md](maps/effort-822.md) | T1145–1146 | 575 |
 | #823 | 启动阶段耗时读数 | [maps/effort-823.md](maps/effort-823.md) | T1147–1148 | 576 |
 | #824 | 取消原因分布读数 | [maps/effort-824.md](maps/effort-824.md) | T1149–1150 | 577 |
+| #825 | 会话迁移对账 | [maps/effort-825.md](maps/effort-825.md) | T1151–1152 | 578 |

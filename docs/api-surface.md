@@ -2173,3 +2173,7 @@
 - `CancelCauseDistribution`（嵌套 `CauseCount`/`Report`）（824——Temporal
   取消观测借鉴：606 五类闭集的计数/份额/lastSeen 分布面（counts 降序+
   dominant 平局声明序）；synchronized 记账；喂点归装配侧）
+
+- `MigrationReconciliation`（嵌套 `Reconciliation`）（825——gh-ost 对账
+  思想：源/目标导出四维对账（消息计数/轮次范围/首尾 id 仅 keepIds/状态
+  键+缺失明细封顶 8）；重映射语义跳过 id 比对；只读不修复）
