@@ -43,6 +43,7 @@
 - [webhook 限流器余量快照读面](../tickets/T1291-ratelimit-snapshot-shape.md) — WebhookRateLimiter.snapshot（同锁强一致 tokens/capacity/refillPerSecond/deferred 投影，refill 时点修正与 acquire 同语义）——TurnRateLimitHook.availableSnapshot 先例同构，区分「配置过低」与「突发超预期」。
 - [TurnDeadline 软截止窗口读法](../tickets/T1293-soft-window-shape.md) — withinSoftWindow（remaining ∈ (0,softWindow]，已到期归硬截止语义）+ softDeadlineAt（预警绝对时刻 Optional）——K8s graceful period 分层语义，值对象层不动 exec 内核（集成轮留位）。
 - [SessionLeaseStore 契约校验套件](../tickets/T1295-lease-contract-shape.md) — 九项语义检查静态 verify（acquire 幂等互斥/renew 持有人限定/release 重取新 fence/steal fence 递增/inspect/deleteSession 幂等）+ 内存实现接入示例——spec 705/743 同构扩散收口核心 SPI（spec 744 每检查独立会话教训沿用）。
+- [扩缩容建议缩容滞回](../tickets/T1297-scaling-hysteresis-shape.md) — BulkheadScalingAdvisor stabilizeWindows opt-in（回零建议需连续 N 空闲窗才回落，期间保持上次非 1 建议；扩容即时不对称——HPA stabilization window；默认 1 逐位不变）。
 
 ## 100 轮台账
 
@@ -71,7 +72,8 @@
 | 21 | webhook 限流器余量快照读面 | TurnRateLimitHook 同构 | T1291–T1292 | 673 | 920 | ✅ README 行欠账（906–920 十五行） |
 | 22 | TurnDeadline 软截止窗口读法（租户窗口用量 ruled-out——TurnRateLimitHook per-key snapshot 已覆盖） | K8s graceful period | T1293–T1294 | 674 | 921 | ✅ README 行欠账（906–921 十六行） |
 | 23 | SessionLeaseStore 契约校验套件 | spec 705/743 同构（Pact） | T1295–T1296 | 675 | 922 | ✅ README 行欠账（906–922 十七行） |
-| 24 | （开工时按缺口核查选题，候选见下） | — | T1297–T1298 | 676 | 923 |  |
+| 24 | 扩缩容建议缩容滞回（事件重放序号缺口 ruled-out——SequenceFence 五态已覆盖） | K8s HPA stabilization | T1297–T1298 | 676 | 923 | ✅ README 行欠账（906–923 十八行） |
+| 25 | （开工时按缺口核查选题，候选见下） | — | T1299–T1300 | 677 | 924 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表。**工作区并发警示**：同机另有会话共享工作区（1000 系 / T1451+ / impl 753+）——每轮提交必须精确路径 add，勿 git add -A；README 行受其未提交 spec 引用阻塞时欠账下轮补。候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 
