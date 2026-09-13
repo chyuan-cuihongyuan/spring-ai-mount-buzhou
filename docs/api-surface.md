@@ -2169,3 +2169,7 @@
 - `StartupPhaseTiming`（嵌套 `StepTiming`/`Step`）（823——Spring Boot
   ApplicationStartup 借鉴：装配阶段 start/end 句柄耗时留痕（未结束 -1
   哨兵、end 首末幂等），升序快照；步骤封顶 64；喂点归应用侧零侵入）
+
+- `CancelCauseDistribution`（嵌套 `CauseCount`/`Report`）（824——Temporal
+  取消观测借鉴：606 五类闭集的计数/份额/lastSeen 分布面（counts 降序+
+  dominant 平局声明序）；synchronized 记账；喂点归装配侧）
