@@ -602,6 +602,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | 评估闭环 | k 次防抖门 | EvalGate.enforceStable（k 次全过才过 + 早停 + 历史容量校验）——flaky 误报防护从严门（spec 943） | [spec 943](docs/spec/943-stable-gate.md) |
 | 观测治理 | 工具调用结局分布读面 | ToolCallOutcomeStats.stats（四桶+other 收容桶，守恒不破枚举扩展）——spec 50 日志根因分诊聚合面（spec 944） | [spec 944](docs/spec/944-outcome-stats.md) |
+| 模型韧性 | outbox 重试次数分布读面 | WebhookOutbox.retryDistribution（attempts 分桶 TreeMap 升序 + appendRetry 包级退避落盘）——重试积压结构可见（spec 948） | [spec 948](docs/spec/948-retry-distribution.md) |
+| 模型韧性 | ElasticBudgetPool 并发守恒压测 | 8 线程×500 借还 Σheld+surplus==capacity 守恒 + base 保底不吃 borrow——池级单锁语义并发正确性实证（spec 947） | [spec 947](docs/spec/947-budget-pool-stress.md) |
 | 持久化 | SessionIndexStore 契约校验套件 | 五项语义检查静态 verify（往返/覆盖幂等/delete 幂等/DELETED 排除/purge 计数 limit 尊重 ACTIVE 保护）+ 内存接入——契约系列第五站（spec 945） | [spec 945](docs/spec/945-index-contract.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
@@ -632,9 +634,6 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 手动压缩操作分布读面 | ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages 守恒）+ opStats()——K8s 事件聚合思想（spec 1027） | [spec 1027](docs/spec/1027-compact-op-stats.md) |
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
-| 安全 | 工具权限判定分布读面 | ToolPermissions 嵌套 PermissionStats 四桶（checks/allowed/deniedUndefinedRole/deniedByRules 守恒）+ stats()——K8s RBAC audit 思想，fail-closed 拼错角色显形（spec 1037） | [spec 1037](docs/spec/1037-permission-stats.md) |
-| MCP 热插拔 | properties 装配解析统计读面 | PropertiesToolSetProvider 静态三计数（servers/bindings/bindingsSkipped——非 Map binding 项静默跳过显形）+ parseStats()——清单解析统计思想（spec 1036） | [spec 1036](docs/spec/1036-mcp-parse-stats.md) |
-| 技能治理 | 词法排序生效计数读面 | LexicalSkillRanker 嵌套 RankStats（runs/reordered——排序器空转显形）+ stats()——混合排序生效水位（spec 1034） | [spec 1034](docs/spec/1034-lexical-rank-stats.md) |
 | 安全 | 审计收集器采集与持久化失败计数读面 | AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()——Splunk HEC ingestion stats 借鉴（spec 1031） | [spec 1031](docs/spec/1031-audit-ingest-stats.md) |
 | 观测治理 | 打转检测触发聚合读面 | RepetitionDetectorHook 嵌套 RepetitionStats（fires/blocks/maxRunSeen 峰值）+ stats()——LLM 打转频率调参水位（spec 1032） | [spec 1032](docs/spec/1032-repetition-stats.md) |
 | 会话治理 | 会话级联清理聚合计数读面 | SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()——PostgreSQL autovacuum stats 思想（spec 1030） | [spec 1030](docs/spec/1030-cleanup-stats.md) |
