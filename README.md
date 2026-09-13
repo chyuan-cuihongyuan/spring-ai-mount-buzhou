@@ -671,6 +671,25 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 配置治理 | 配置默认偏离审计 | ConfigDeviationAudit——当前值 vs 出厂默认偏离对账(无基线不裁决)+偏离清单典序封顶+偏离率（Spring Boot configuration metadata 扩散；与 ConfigDiff 辨义） | [spec 848](docs/spec/848-config-deviation-audit.md) |
 | 收口 | H 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门/覆盖门全过+台账 50/50 归档——effort 800–849 连续无缺位（R39 补位轮制度化） | [spec 849](docs/spec/849-h-session-closing.md) |
 
+### I 会话 900 系产出吸收登记
+
+I 会话（effort #900+）部分 spec 未及在 README 登记（H 会话收口合并时发现）——按覆盖门纪律补登如下，详表归 I 会话台账（[progress 台账](.wayfinder/maps/progress-effort-800.md) 同目录）：
+
+| 来源 | 吸收登记 | 详设 |
+|------|----------|------|
+| I 会话 #916 | 剪枝×稳定性×gate 联动补验（pruned 状态红绿映射修正） | [spec 916](docs/spec/916-pruned-stability.md) |
+| I 会话 #917 | 分数装配读面 | [spec 917](docs/spec/917-score-assembly.md) |
+| I 会话 #918 | 丢弃原因指标读面 | [spec 918](docs/spec/918-drop-reason-metric.md) |
+| I 会话 #919 | 加密导出端到端补验 | [spec 919](docs/spec/919-encrypted-export-e2e.md) |
+| I 会话 #920 | 限流快照读面 | [spec 920](docs/spec/920-ratelimit-snapshot.md) |
+| I 会话 #921 | 软窗读面 | [spec 921](docs/spec/921-soft-window.md) |
+| I 会话 #922 | 租约契约校验套件 | [spec 922](docs/spec/922-lease-contract.md) |
+| I 会话 #923 | 扩缩容滞回读面 | [spec 923](docs/spec/923-scaling-hysteresis.md) |
+| I 会话 #924 | 观测存储水位读面 | [spec 924](docs/spec/924-obs-watermark.md) |
+| I 会话 #925 | 会话索引水位读面 | [spec 925](docs/spec/925-index-watermark.md) |
+| I 会话 #926 | 事实衰减预报读法 | [spec 926](docs/spec/926-decay-forecast.md) |
+| J 会话 #1007 | 租约生命周期统计读面 | [spec 1007](docs/spec/1007-lease-lifecycle-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

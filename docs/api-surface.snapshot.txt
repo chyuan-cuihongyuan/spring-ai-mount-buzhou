@@ -420,6 +420,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionLeaseStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionLeaseStoreContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStoreContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionSummary

@@ -2288,3 +2288,7 @@
   configuration metadata 扩散：当前值 vs 出厂默认偏离对账（String.equals，
   无基线不裁决），偏离清单典序封顶 32+偏离率；与 ConfigDiff 快照间 diff
   辨义）
+
+- `SessionLeaseStoreContract`（I 会话 922 产出——补登：SessionLeaseStore
+  契约校验套件九项语义静态收集范式，第三方 store 自证工具；H 会话收口
+  合并时 api-surface 补档）
