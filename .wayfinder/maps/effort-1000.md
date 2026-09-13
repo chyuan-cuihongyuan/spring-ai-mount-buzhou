@@ -43,6 +43,7 @@
 - [facts 段导入导出行数读面的形态裁决](../tickets/T1499-facts-flow-stats-shape.md) — FactsExporter 嵌套 FactsFlowStats（factsExported/factsImported/importFailures 照抛）+ stats()；导出/导入对账迁移完整性（rsync --stats）。首入 memory 模块。
 - [内嵌策略引擎判定分布读面的形态裁决](../tickets/T1501-policy-engine-stats-shape.md) — EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒 == decide 调用数）+ stats()；FIDES approver 通道压力显形（OPA 判定分布谱系）。首入 guard policy 包。
 - [审计收集器采集与持久化失败计数读面的形态裁决](../tickets/T1513-audit-ingest-stats-shape.md) — AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()；持久化失败连续=审计断链风险水位（Splunk HEC ingestion stats）。首入 guard audit 包。
+- [提示词注册表解析分布读面的形态裁决](../tickets/T1531-prompt-resolution-stats-shape.md) — InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒）+ resolutionStats()；计数收敛到公共解析核心（resolve 双入口与 resolveVersion 不重复计）；解析返回值与异常语义逐位不变——提示词名拼错/标签缺失=配置错误信号，R17 技能轴的 prompt 域分轴。
 - [token 估算调用量与总量读面的形态裁决](../tickets/T1519-token-estimate-stats-shape.md) — CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()；预算面估算总量显形（进程级静态先例）。
 - [MCP properties 装配解析统计读面的形态裁决](../tickets/T1523-mcp-parse-stats-shape.md) — PropertiesToolSetProvider 静态三计数（servers/bindings/bindingsSkipped）+ parseStats()/resetForTest()；非 Map binding 项静默跳过显形（幽灵配置族）。首入 buzhou-mcp 模块。
 - [工具权限判定分布读面的形态裁决](../tickets/T1527-permission-stats-shape.md) — ToolPermissions 嵌套 PermissionStats 四桶（checks/allowed/deniedUndefinedRole/deniedByRules 守恒）+ stats()；fail-closed 拼错角色显形（K8s RBAC audit 思想）。
