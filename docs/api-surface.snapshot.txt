@@ -243,6 +243,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnTimingHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakSuspectAggregator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore

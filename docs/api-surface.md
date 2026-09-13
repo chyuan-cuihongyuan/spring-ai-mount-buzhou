@@ -2235,3 +2235,7 @@
   限流键申请热力排行（键封顶 128+溢出桶/requests+amount 毫账累计+lastSeen/
   top 降序典序破平）；键拼装归调用方 backend SPI 零变更；补位轮——R38
   跳号缺位即时填补）
+
+- `LeakSuspectAggregator`（嵌套 `SuspectType`/`Report`）（839——泄漏聚合：
+  实现 LeakListener 按描述稳键（截 64）聚合 count/maxAge/lastSeen，键封顶
+  32+溢出桶+count 降序排行；检测器零变更；快照近似口径）

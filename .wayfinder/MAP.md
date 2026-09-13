@@ -420,3 +420,4 @@
 | #836 | 半开探测成功率读数 | [maps/effort-836.md](maps/effort-836.md) | T1173–1174 | 589 |
 | #838 | 选举竞争读数 | [maps/effort-838.md](maps/effort-838.md) | T1175–1176 | 590 |
 | #837 | 限流键热点读数 | [maps/effort-837.md](maps/effort-837.md) | T1177–1178 | 591 |
+| #839 | 泄漏疑似对象聚合器 | [maps/effort-839.md](maps/effort-839.md) | T1179–1180 | 592 |
