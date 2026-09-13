@@ -41,6 +41,7 @@
 - [金丝雀生命周期计数读面的形态裁决](../tickets/T1489-canary-stats-shape.md) — CanaryGuardHook 嵌套 CanaryStats（planted 播撒幂等不重复计 / leaked 泄漏 / variantBlocked 变体拦截）+ stats()；泄漏与变体触发即间接注入在场的铁证（Thinkst Canary）。
 - [密钥扫描计数读面的形态裁决](../tickets/T1497-secret-scan-stats-shape.md) — SecretScanner 嵌套 SecretScanStats（scanCalls/findings/redactions：findings 水位是泄漏趋势第一信号；空文本早返与幂等早返均不计）+ stats()；AWS 文档示例键测试样本分段拼接避免源码级自命中（Gitleaks findings）。
 - [facts 段导入导出行数读面的形态裁决](../tickets/T1499-facts-flow-stats-shape.md) — FactsExporter 嵌套 FactsFlowStats（factsExported/factsImported/importFailures 照抛）+ stats()；导出/导入对账迁移完整性（rsync --stats）。首入 memory 模块。
+- [内嵌策略引擎判定分布读面的形态裁决](../tickets/T1501-policy-engine-stats-shape.md) — EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒 == decide 调用数）+ stats()；FIDES approver 通道压力显形（OPA 判定分布谱系）。首入 guard policy 包。
 - [事实采集隔离硬化与计数读面的形态裁决](../tickets/T1491-fact-collector-isolation-shape.md) — FactCollectorHook 逐定义 try/catch 隔离（judge/save 异常不再炸 afterTool 链——监听器隔离惯例对齐）+ FactCollectionStats（saved/failures）+ stats()；本轮含行为改进（隔离语义）。
 - [HITL 审批操作分布读面的形态裁决](../tickets/T1493-auth-operation-stats-shape.md) — GuardAuthApi 嵌套 AuthOperationStats（approved/rejected/revoked 三计数）+ stats()；事件流之外的进程内聚合水位（与 R19 门判定分轴——台账操作轴）。
 - [加密消息存储操作计数读面的形态裁决](../tickets/T1495-crypto-store-stats-shape.md) — EncryptingMessageStore 嵌套 CryptoStoreStats（encrypted/decrypted/passthrough 双向透传分计）+ stats()；解密失败照抛不计（完整性优先语义不变）——信封加密 ops 可视性。首入 crypto 包。
@@ -74,7 +75,8 @@
 | 23 | 加密消息存储操作计数读面（encrypted/decrypted/passthrough） | 信封加密 ops 可视性 | T1495–T1496 | 775 | 1022 | ✅ |
 | 24 | 密钥扫描计数读面（scanCalls/findings/redactions） | Gitleaks findings | T1497–T1498 | 776 | 1023 | ✅ |
 | 25 | facts 段导入导出行数读面（factsExported/factsImported/importFailures） | rsync --stats | T1499–T1500 | 777 | 1024 | ✅ |
-| 26 | （开工时按缺口核查选题，候选见下） | — | T1501–T1502 | 778 | 1025 |  |
+| 26 | 内嵌策略引擎判定分布读面（四桶含 approver 通道） | OPA 判定分布 | T1501–T1502 | 778 | 1025 | ✅ |
+| 27 | （开工时按缺口核查选题，候选见下） | — | T1503–T1504 | 779 | 1026 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 

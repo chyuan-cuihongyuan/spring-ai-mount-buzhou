@@ -13,6 +13,15 @@ import java.util.List;
 public final class EmbeddedPolicyEngine implements PolicyEngine {
 
     private final List<PolicyDecision.Rule> rules;
+    /** impl-778 / spec 1025：判定分布四桶（守恒：四桶和 == decide 调用数）。 */
+    private final java.util.concurrent.atomic.AtomicLong allowCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong denyCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong escalateCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong escalateApprovedCount =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public EmbeddedPolicyEngine(List<PolicyDecision.Rule> rules) {
         this.rules = rules == null ? List.of() : List.copyOf(rules);
@@ -21,6 +30,7 @@ public final class EmbeddedPolicyEngine implements PolicyEngine {
     @Override
     public PolicyDecision decide(PolicyDecision.Input input) {
         if (input == null || input.toolName() == null) {
+            denyCount.incrementAndGet();
             return PolicyDecision.deny("策略输入缺失（toolName 为空）——默认拒");
         }
         for (PolicyDecision.Rule rule : rules) {
@@ -36,14 +46,32 @@ public final class EmbeddedPolicyEngine implements PolicyEngine {
             // ESCALATE 且人工已审批 → allow（approver 通道；与既有授权台账一致）
             if (rule.decision().action() == PolicyDecision.Action.ESCALATE
                     && input.humanApproved()) {
+                escalateApprovedCount.incrementAndGet();
                 return PolicyDecision.allow("规则 " + rule.id()
                         + " 升级后已获人工审批（escalate→approved）");
+            }
+            if (rule.decision().action() == PolicyDecision.Action.ESCALATE) {
+                escalateCount.incrementAndGet();
+            } else {
+                allowCount.incrementAndGet();
             }
             return new PolicyDecision(rule.decision().action(),
                     "规则 " + rule.id() + "：" + rule.decision().reason());
         }
+        denyCount.incrementAndGet();
         return PolicyDecision.deny("无策略规则命中工具「" + input.toolName()
                 + "」——默认拒（deny by default）");
+    }
+
+    /** 判定分布只读快照（守恒：四桶和 == decide 调用数——spec 1025）。 */
+    public PolicyDecisionStats stats() {
+        return new PolicyDecisionStats(allowCount.get(), denyCount.get(),
+                escalateCount.get(), escalateApprovedCount.get());
+    }
+
+    /** 判定分布计数行（不可变）。 */
+    public record PolicyDecisionStats(long allowCount, long denyCount, long escalateCount,
+                                      long escalateApprovedCount) {
     }
 
     /** glob 匹配（* 任意段、? 单字符；空 pattern = 全部）。 */

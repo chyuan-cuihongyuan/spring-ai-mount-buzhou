@@ -567,6 +567,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 安全 | 加密消息存储操作计数读面 | EncryptingMessageStore 嵌套 CryptoStoreStats（encrypted/decrypted/passthrough 双向透传分计）+ stats()——信封加密 ops 可视性（spec 1022） | [spec 1022](docs/spec/1022-crypto-store-stats.md) |
 | 安全 | 密钥扫描计数读面 | SecretScanner 嵌套 SecretScanStats（scanCalls/findings/redactions，findings 水位=泄漏趋势）+ stats()——Gitleaks findings 借鉴（spec 1023） | [spec 1023](docs/spec/1023-secret-scan-stats.md) |
 | 记忆治理 | facts 段导入导出行数读面 | FactsExporter 嵌套 FactsFlowStats（factsExported/factsImported/importFailures 照抛）+ stats()——rsync --stats 迁移完整性思想（spec 1024） | [spec 1024](docs/spec/1024-facts-flow-stats.md) |
+| 安全 | 内嵌策略引擎判定分布读面 | EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒）+ stats()——OPA 判定分布谱系，FIDES approver 通道压力显形（spec 1025） | [spec 1025](docs/spec/1025-policy-engine-stats.md) |
 | 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
