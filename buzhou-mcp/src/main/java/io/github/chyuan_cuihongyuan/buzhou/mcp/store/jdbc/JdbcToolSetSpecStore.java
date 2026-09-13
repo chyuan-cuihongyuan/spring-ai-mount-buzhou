@@ -24,11 +24,15 @@ public class JdbcToolSetSpecStore implements ToolSetSpecStore {
             .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
             .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+    /*
+     * T1804 / spec 1200：spec_json 用 TEXT（跨方言）——CLOB 在 PostgreSQL/MySQL 不存在
+     * （postgres:17 容器实测 ERROR: type "clob" does not exist），H2 视 TEXT 为同义。
+     */
     private static final String DDL = """
             CREATE TABLE IF NOT EXISTS buzhou_mcp_toolset (
-                name       VARCHAR(128) PRIMARY KEY,
-                spec_json  CLOB         NOT NULL,
-                updated_at TIMESTAMP    NOT NULL
+                name       VARCHAR(128)  PRIMARY KEY,
+                spec_json  TEXT          NOT NULL,
+                updated_at TIMESTAMP     NOT NULL
             )""";
 
     private final JdbcTemplate jdbc;

@@ -57,5 +57,27 @@
       <artifactId>jackson-datatype-jsr310</artifactId>
       <optional>true</optional>
     </dependency>
+    <!-- spec 1200 / T1801（K 会话 R1）：JdbcToolSetSpecStore 行为测试内存库（版本走 BOM，guard 先例） -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- spec 1200 / T1804：真实 PG 方言回归（store-jdbc 同坐标先例；无 Docker 自动跳过） -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
