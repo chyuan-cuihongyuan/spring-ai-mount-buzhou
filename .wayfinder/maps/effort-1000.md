@@ -39,6 +39,7 @@
 - [沙箱执行结果分桶读面的形态裁决](../tickets/T1485-sandbox-exec-stats-shape.md) — LimitedCommandSandbox 嵌套 ExecStats（executions/timeouts/outputTruncations，TIMEOUT/OUTPUT 两轴正交无加法守恒）+ stats()；击杀与截断从单次字段升为累计水位（Firejail/bubblewrap run stats）。首入 guard 模块。
 - [taint 信息流控制生命周期计数读面的形态裁决](../tickets/T1487-taint-lifecycle-stats-shape.md) — TaintMarkStats（marksApplied/firstMarks）+ GateStats 四分桶（checked == trusted + approved + blocked 守恒）+ 双 stats()；打标/放行/拦截行为逐位不变（FIDES 判定分布显形）。首入 guard taint 包。
 - [金丝雀生命周期计数读面的形态裁决](../tickets/T1489-canary-stats-shape.md) — CanaryGuardHook 嵌套 CanaryStats（planted 播撒幂等不重复计 / leaked 泄漏 / variantBlocked 变体拦截）+ stats()；泄漏与变体触发即间接注入在场的铁证（Thinkst Canary）。
+- [事实采集隔离硬化与计数读面的形态裁决](../tickets/T1491-fact-collector-isolation-shape.md) — FactCollectorHook 逐定义 try/catch 隔离（judge/save 异常不再炸 afterTool 链——监听器隔离惯例对齐）+ FactCollectionStats（saved/failures）+ stats()；本轮含行为改进（隔离语义）。
 
 ## 150 轮台账
 
@@ -64,7 +65,8 @@
 | 18 | 沙箱执行结果分桶读面（TIMEOUT/OUTPUT 两轴正交） | Firejail run stats | T1485–T1486 | 770 | 1017 | ✅ |
 | 19 | taint 信息流控制生命周期计数读面（打标/写门四分桶） | FIDES 判定分布显形 | T1487–T1488 | 771 | 1018 | ✅ |
 | 20 | 金丝雀生命周期计数读面（播撒/泄漏/变体拦截） | Thinkst Canary | T1489–T1490 | 772 | 1019 | ✅ |
-| 21 | （开工时按缺口核查选题，候选见下） | — | T1491–T1492 | 773 | 1020 |  |
+| 21 | 事实采集隔离硬化与计数读面（judge/save 隔离 + saved/failures） | 监听器隔离惯例推广 | T1491–T1492 | 773 | 1020 | ✅ |
+| 22 | （开工时按缺口核查选题，候选见下） | — | T1493–T1494 | 774 | 1021 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 
