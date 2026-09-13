@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,6 +93,45 @@ public final class ExportManifest {
             }
         });
         return verify(manifestJson, canonicalized);
+    }
+
+    /**
+     * impl-690 / spec 941：子集校验（增量搬运场景——只核对提供的会话子集，
+     * manifest 中未提供的条目不计 missing/unexpected；rsync --partial 思想）。
+     * 与 {@link #verifyCanonical} 配对使用（规范化口径）。
+     */
+    public static Verification verifySubset(String manifestJson, Map<String, String> contents) {
+        if (contents == null) {
+            throw new IllegalArgumentException("contents 必须非空（子集校验至少验一项；全量校验用 verify）");
+        }
+        Map<String, String> canonicalized = new LinkedHashMap<>();
+        contents.forEach((id, content) -> {
+            if (id != null && content != null) {
+                canonicalized.put(id, SessionExportChecksum.canonicalJson(content));
+            }
+        });
+        try {
+            JsonNode root = MAPPER.readTree(manifestJson);
+            Map<String, String> expected = new LinkedHashMap<>();
+            for (JsonNode entry : root.path("entries")) {
+                expected.put(entry.path("id").asText(), entry.path("digest").asText());
+            }
+            List<String> mismatched = new ArrayList<>();
+            for (Map.Entry<String, String> e : canonicalized.entrySet()) {
+                String manifestDigest = expected.get(e.getKey());
+                if (manifestDigest == null) {
+                    mismatched.add(e.getKey()); // 子集含 manifest 没有的会话 = 异常
+                } else if (!sha256(e.getValue().strip()).equals(manifestDigest)) {
+                    mismatched.add(e.getKey());
+                }
+            }
+            boolean ok = mismatched.isEmpty();
+            return new Verification(ok, mismatched, List.of(), List.of());
+        } catch (RuntimeException e) {
+            throw new IllegalStateException("manifest 解析失败（凭证损坏）", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("manifest 解析失败（凭证损坏）", e);
+        }
     }
 
     /**
