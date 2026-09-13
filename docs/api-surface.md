@@ -2212,3 +2212,8 @@
 - `DangerousToolHitStats`（嵌套 `ToolHits`）（833——WAF top-rules 观测
   思想：危险工具命中 per-tool 热力排行（封顶 64+溢出桶/requiredState
   最近非空/lastSeen max/top(n) 降序）；喂点=GuardHook 装配侧不改拦截）
+
+- `ContextTruncationStats`（嵌套 `StrategyTruncation`/`Report`）（834——
+  HF truncation_strategy 思想：跨截断机制 chars 聚合（策略键封顶 8+
+  __overflow__ 桶量净计；events/chars 双累计；chars 降序）；喂点=机制
+  装配侧零侵入）

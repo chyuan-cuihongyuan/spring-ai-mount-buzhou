@@ -374,6 +374,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CachedEmbeddingProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CircuitBreakerStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CompositeAttachmentRenderer
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextTruncationStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextWindowResolver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EstimatorCalibrationAudit

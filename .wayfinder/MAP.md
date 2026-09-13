@@ -415,3 +415,4 @@
 | #831 | 会话准入拒绝分布 | [maps/effort-831.md](maps/effort-831.md) | T1163–1164 | 584 |
 | #832 | 技能加载延迟读数 | [maps/effort-832.md](maps/effort-832.md) | T1165–1166 | 585 |
 | #833 | 危险工具命中分布 | [maps/effort-833.md](maps/effort-833.md) | T1167–1168 | 586 |
+| #834 | 上下文截断统计 | [maps/effort-834.md](maps/effort-834.md) | T1169–1170 | 587 |
