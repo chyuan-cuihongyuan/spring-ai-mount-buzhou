@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.eval;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
@@ -20,6 +21,14 @@ public final class EvalScoreAnalytics {
 
     /** 不可变分布报告（未解析到任何分数 → scored=0、统计 NaN）。 */
     public record Report(int scored, double min, double max, double mean, List<Double> scores) {
+    }
+
+    /**
+     * impl-656 / spec 903：bootstrap 均值区间（percentile 口径）。{@code lower ≤
+     * pointEstimate ≤ upper} 不由构造保证（重采样经验分布偏斜时点估计可落区间外——
+     * 诚实呈现）；调用方按需自行判断。
+     */
+    public record MeanInterval(double lower, double upper, double pointEstimate) {
     }
 
     private EvalScoreAnalytics() {
@@ -70,5 +79,97 @@ public final class EvalScoreAnalytics {
         double max = scores.isEmpty() ? Double.NaN : scores.stream().mapToDouble(Double::doubleValue).max().orElse(Double.NaN);
         double mean = scores.isEmpty() ? Double.NaN : scores.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN);
         return new Report(scores.size(), min, max, mean, List.copyOf(scores));
+    }
+
+    /**
+     * impl-656 / spec 903：bootstrap 均值置信区间（Efron percentile 口径）——
+     * 小样本 mean 的抽样误差显形（零分布假设：评估分数常见 pass/fail 双峰，
+     * 不满足正态近似）。
+     *
+     * <p>可重复重采样 {@code resamples} 次（每次含 {@code samples.length} 个
+     * 有放回抽取）→ 每次算均值 → 经验分布 {@code [α/2, 1−α/2]} 分位点为区间。
+     * {@code seed} 显式注入：同 seed 同结果（可复现，与依赖注入时钟 spec 9
+     * 同风格）；单样本退化为点估计区间（重采样恒同值——诚实语义）。
+     *
+     * @param samples         样本分数（非空；NaN 元素 fail-fast——均值语义已被污染）
+     * @param confidenceLevel 置信水平 ∈ 开区间 (0,1)
+     * @param resamples       重采样次数（≥ 1）
+     * @param seed            随机种子（同 seed 同结果）
+     */
+    public static MeanInterval bootstrapMeanInterval(double[] samples, double confidenceLevel,
+                                                     int resamples, long seed) {
+        if (samples == null || samples.length == 0) {
+            throw new IllegalArgumentException("samples 必须非空");
+        }
+        for (double s : samples) {
+            if (Double.isNaN(s)) {
+                throw new IllegalArgumentException("samples 含 NaN——均值语义已被污染，先清洗");
+            }
+        }
+        if (confidenceLevel <= 0 || confidenceLevel >= 1) {
+            throw new IllegalArgumentException("confidenceLevel 须 ∈ 开区间 (0,1)，收到 " + confidenceLevel);
+        }
+        if (resamples < 1) {
+            throw new IllegalArgumentException("resamples 须 ≥ 1，收到 " + resamples);
+        }
+        java.util.SplittableRandom rnd = new java.util.SplittableRandom(seed);
+        int n = samples.length;
+        double pointEstimate = Arrays.stream(samples).average().orElse(Double.NaN);
+        double[] resampleMeans = new double[resamples];
+        for (int r = 0; r < resamples; r++) {
+            double sum = 0;
+            for (int i = 0; i < n; i++) {
+                sum += samples[rnd.nextInt(n)];
+            }
+            resampleMeans[r] = sum / n;
+        }
+        Arrays.sort(resampleMeans);
+        double alpha = (1.0 - confidenceLevel) / 2.0;
+        int lowerIdx = (int) Math.floor(alpha * resamples);
+        int upperIdx = (int) Math.ceil((1.0 - alpha) * resamples) - 1;
+        // 索引夹取（极端 α×resamples < 1 时退化到经验分布两端——诚实语义）
+        lowerIdx = Math.max(0, Math.min(resamples - 1, lowerIdx));
+        upperIdx = Math.max(0, Math.min(resamples - 1, upperIdx));
+        return new MeanInterval(resampleMeans[lowerIdx], resampleMeans[upperIdx], pointEstimate);
+    }
+
+    /**
+     * impl-662 / spec 909：排序分位数（R-7 线性插值口径——numpy/Excel 默认，
+     * {@code h = (n−1)·q} 线性插值；口径显式入档可复现）。长尾标准问法
+     * （「P95 多少」）的直接读面。
+     *
+     * @param samples   样本分数（非空；NaN fail-fast——spec 903 同纪律）
+     * @param quantiles 分位请求 ∈ 开区间 (0,1)，非空
+     * @return q → 分位值（LinkedHashMap，按入参序）
+     */
+    public static Map<Double, Double> percentiles(double[] samples, double... quantiles) {
+        if (samples == null || samples.length == 0) {
+            throw new IllegalArgumentException("samples 必须非空");
+        }
+        for (double s : samples) {
+            if (Double.isNaN(s)) {
+                throw new IllegalArgumentException("samples 含 NaN——先清洗");
+            }
+        }
+        if (quantiles == null || quantiles.length == 0) {
+            throw new IllegalArgumentException("quantiles 必须非空");
+        }
+        for (double q : quantiles) {
+            if (q <= 0 || q >= 1) {
+                throw new IllegalArgumentException("quantile 须 ∈ 开区间 (0,1)，收到 " + q);
+            }
+        }
+        double[] sorted = samples.clone();
+        Arrays.sort(sorted);
+        int n = sorted.length;
+        Map<Double, Double> out = new LinkedHashMap<>();
+        for (double q : quantiles) {
+            double h = (n - 1) * q;
+            int lower = (int) Math.floor(h);
+            int upper = Math.min(lower + 1, n - 1);
+            double value = sorted[lower] + (h - lower) * (sorted[upper] - sorted[lower]);
+            out.put(q, value);
+        }
+        return out;
     }
 }

@@ -102,6 +102,23 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     private volatile java.util.Set<String> includeTypes = java.util.Set.of();
     private volatile WebhookRateLimiter rateLimiter; // spec 718：null = 关（默认）
 
+    /** impl-660 / spec 907：AIMD 自适应批量（TCP 拥塞控制思想——加性增/乘性减）。 */
+    private static final int ADAPTIVE_MIN = 1;
+    private static final int ADAPTIVE_MAX = 64;
+    /** 自适应批（opt-in；默认 false = 固定 BATCH 零行为变化）。 */
+    private volatile boolean adaptiveBatchEnabled;
+    private volatile int adaptiveBatchSize = BATCH;
+
+    /** 启用 AIMD 自适应批量（默认关——关闭态投递行为逐位不变）。 */
+    public void setAdaptiveBatchEnabled(boolean enabled) {
+        this.adaptiveBatchEnabled = enabled;
+    }
+
+    /** 当前生效批量（自适应关闭时恒为 BATCH——读数面）。 */
+    public int currentBatchSize() {
+        return adaptiveBatchEnabled ? adaptiveBatchSize : BATCH;
+    }
+
     /** spec 514 / T777：投递时延记录器（可空）。 */
     private volatile WebhookDeliveryLatency deliveryLatency;
 
@@ -189,8 +206,11 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
     }
 
     private boolean processDueBatch() {
-        List<WebhookOutbox.OutboxRecord> due = outbox.due(Instant.now(), BATCH);
+        int batch = currentBatchSize();
+        List<WebhookOutbox.OutboxRecord> due = outbox.due(Instant.now(), batch);
         int rateLimited = 0;
+        int failures = 0;
+        int successes = 0;
         for (WebhookOutbox.OutboxRecord record : due) {
             // spec 718 / T987：限速闸——拒绝 = 留 outbox 原状（defer 不是失败，
             // 不进重试状态机；下一 tick 令牌回填自然放行）
@@ -206,6 +226,7 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                 case DELIVERED -> {
                     outbox.delete(record);
                     delivered.incrementAndGet();
+                    successes++;
                     BuzhouMetricsHolder.metrics().counter("buzhou.webhook.delivered");
                     // spec 514 / T777：入队→成功投递时延样本（成功才记——死信/退避中不是「送达」）
                     WebhookDeliveryLatency latency = deliveryLatency;
@@ -213,15 +234,50 @@ public final class WebhookEventForwarder implements SessionEventListener, AutoCl
                         latency.record(System.currentTimeMillis() - record.createdAtEpochMs());
                     }
                 }
-                case FATAL -> markDead(record, "4xx");
-                case RETRYABLE -> scheduleRetryOrDead(record);
+                case FATAL -> {
+                    failures++;
+                    markDead(record, "4xx");
+                }
+                case RETRYABLE -> {
+                    failures++;
+                    scheduleRetryOrDead(record);
+                }
                 default -> throw new IllegalStateException("unreachable: " + outcome);
             }
         }
+        adjustBatch(successes, failures, rateLimited, due.size());
         if (rateLimited == due.size() && !due.isEmpty()) {
             return false; // 整批全 defer——提前结束本轮（防 deadline 内热旋）
         }
         return !due.isEmpty();
+    }
+
+    /**
+     * impl-660 / spec 907：AIMD 批量裁决（opt-in——关闭态零调用零开销）。
+     * 全成功批（无 defer 无失败）加性增 +1；出现失败乘性减 ÷2；夹取
+     * [ADAPTIVE_MIN, ADAPTIVE_MAX]。含 defer 的批不参与裁决（defer 是闸不是故障）。
+     * 包级纯函数（裁决逻辑可直测）；调用点负责回写实例字段。
+     */
+    static int adjustedBatch(int current, int successes, int failures,
+            int rateLimited, int batchSize) {
+        if (batchSize == 0) {
+            return current;
+        }
+        if (failures > 0) {
+            return Math.max(ADAPTIVE_MIN, current / 2);
+        }
+        if (rateLimited == 0 && successes == batchSize) {
+            return Math.min(ADAPTIVE_MAX, current + 1);
+        }
+        return current; // 含 defer 混合批/空裁决——保持现值
+    }
+
+    private void adjustBatch(int successes, int failures, int rateLimited, int batchSize) {
+        if (!adaptiveBatchEnabled) {
+            return;
+        }
+        adaptiveBatchSize = adjustedBatch(adaptiveBatchSize, successes, failures,
+                rateLimited, batchSize);
     }
 
     private void scheduleRetryOrDead(WebhookOutbox.OutboxRecord record) {

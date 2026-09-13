@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.session;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -80,5 +81,63 @@ public final class SessionExportChecksum {
         } catch (Exception e) {
             throw new IllegalStateException("SHA-256 不可用", e);
         }
+    }
+
+    /**
+     * impl-664 / spec 911：规范化内容指纹前缀（与 {@link #CONTENT_PREFIX} 显式区分
+     * 防混用——710 前缀纪律：整体校验和/内容指纹/规范化指纹三值语义不同不可互换）。
+     */
+    public static final String CANONICAL_PREFIX = "sha256-j:";
+
+    /**
+     * 规范化内容指纹（RFC 8785 JCS 思想——指纹绑定内容而非序列化键序）：内容投影
+     * 同 {@link #contentFingerprint}（剔除 exportedAtEpochMs），但反序列化树
+     * <b>递归排序全部 Map 键</b>（字典序；List 元素保序——数组有序是语义）后求和。
+     * 嵌套 metadata/state 键序跨实现漂移不再改变指纹。
+     *
+     * <p>诚实边界：数字按 Jackson 文本原样（不做 RFC 8785 §3.1 数字规范化完整
+     * 实现——Java 生态内单产单消场景数字文本稳定，入档）。
+     */
+    public static String canonicalContentFingerprint(SessionExport export) {
+        if (export == null) {
+            throw new IllegalArgumentException("export 非空");
+        }
+        try {
+            Map<String, Object> doc = MAPPER.readValue(export.toJson(),
+                    new com.fasterxml.jackson.core.type.TypeReference<
+                            java.util.LinkedHashMap<String, Object>>() {
+                    });
+            doc.remove("exportedAtEpochMs");
+            Map<String, Object> canonical = canonicalizeMap(doc);
+            return CANONICAL_PREFIX + sha256Hex(MAPPER.writeValueAsString(canonical));
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("规范化指纹计算失败", e);
+        }
+    }
+
+    /** 顶层规范化：doc 恒为 Map → 递归排序键。 */
+    private static Map<String, Object> canonicalizeMap(Map<String, Object> doc) {
+        Map<String, Object> sorted = new java.util.TreeMap<>();
+        doc.forEach((key, value) -> sorted.put(key, canonicalize(value)));
+        return sorted;
+    }
+
+    /** 递归键排序规范化：Map → TreeMap 字典序；List 逐元素递归；标量原样。 */
+    private static Object canonicalize(Object node) {
+        if (node instanceof Map<?, ?> map) {
+            Map<String, Object> sorted = new java.util.TreeMap<>();
+            map.forEach((key, value) -> sorted.put(String.valueOf(key), canonicalize(value)));
+            return sorted;
+        }
+        if (node instanceof List<?> list) {
+            List<Object> copied = new java.util.ArrayList<>(list.size());
+            for (Object element : list) {
+                copied.add(canonicalize(element));
+            }
+            return copied;
+        }
+        return node;
     }
 }

@@ -91,4 +91,22 @@ public class InMemorySessionIndexStore implements SessionIndexStore {
         }
         return true;
     }
+
+    /**
+     * impl-678 / spec 925：索引存量水位（spec 924 同构——「索引条目贴容量了吗」
+     * 一读即知；本实现无独立上限，maxSessions = -1 显式无界标注，受全局会话上限
+     * 间接约束——诚实口径入档）。
+     */
+    public record Watermark(int indexedSessions, int maxSessions) {
+    }
+
+    /** 水位快照（写锁一致性；纯读面——零行为变化）。 */
+    public Watermark watermark() {
+        lock.writeLock().lock();
+        try {
+            return new Watermark(rows.size(), -1); // -1 = 无界（本实现无独立上限）
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
 }

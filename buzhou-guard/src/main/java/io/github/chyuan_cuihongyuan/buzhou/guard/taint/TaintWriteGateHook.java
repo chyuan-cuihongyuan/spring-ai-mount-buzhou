@@ -26,6 +26,15 @@ public class TaintWriteGateHook implements BuzhouHook {
     private final DangerousToolConfig config;
     private final DangerousToolMatcher matcher;
     private final SessionStateStore stateStore;
+    /** impl-771 / spec 1018：写门判定四分桶（守恒 checked == trusted + approved + blocked）。 */
+    private final java.util.concurrent.atomic.AtomicLong checkedWriteCalls =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong allowedTrusted =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong allowedApproved =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong blocked =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public TaintWriteGateHook(DangerousToolConfig config, SessionStateStore stateStore) {
         this.config = config;
@@ -46,17 +55,21 @@ public class TaintWriteGateHook implements BuzhouHook {
     @Override
     public HookResult beforeTool(ToolCallContext ctx) {
         if (!config.enabled() || matcher.match(ctx.toolName()).isEmpty()) {
-            return HookResult.CONTINUE; // 非写侧工具不受 taint 门约束
+            return HookResult.CONTINUE; // 非写侧工具不受 taint 门约束（不计——gate 口径只看写侧）
         }
+        checkedWriteCalls.incrementAndGet(); // spec 1018：写侧判定计数
         if (!TaintTrackingHook.isTainted(stateStore, ctx.sessionId())) {
+            allowedTrusted.incrementAndGet();
             return HookResult.CONTINUE; // 可信上下文正常流不受扰
         }
         // 人工已审批同一 (tool, args) → 放行（FIDES approver 等价物；HITL 门做终审）
         String authKey = ArgumentFingerprint.authKey(ctx.toolName(),
                 ArgumentFingerprint.fingerprint(ctx.arguments()));
         if (stateStore.get(ctx.sessionId(), authKey).isPresent()) {
+            allowedApproved.incrementAndGet();
             return HookResult.CONTINUE;
         }
+        blocked.incrementAndGet();
         ctx.emitEvent(new SessionEvent(EVENT_TAINT_BLOCKED, Map.of(
                 "sessionId", ctx.sessionId(),
                 "toolName", ctx.toolName(),
@@ -65,5 +78,16 @@ public class TaintWriteGateHook implements BuzhouHook {
         return new HookResult.Block("等待人工确认（信息流控制）：当前上下文含未消毒的不可信数据"
                 + "（来源工具输出，taint=UNTRUSTED），不能直接触发写侧操作「" + ctx.toolName()
                 + "」。请用户审批该操作，或先对引用内容消毒后重试。");
+    }
+
+    /** 写门判定四分桶只读快照（守恒 checked == trusted + approved + blocked——spec 1018）。 */
+    public GateStats stats() {
+        return new GateStats(checkedWriteCalls.get(), allowedTrusted.get(),
+                allowedApproved.get(), blocked.get());
+    }
+
+    /** 写门判定计数行（不可变）。 */
+    public record GateStats(long checkedWriteCalls, long allowedTrusted,
+            long allowedApproved, long blocked) {
     }
 }

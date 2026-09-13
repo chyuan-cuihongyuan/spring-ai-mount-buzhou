@@ -116,4 +116,24 @@ public interface AgentSession extends AutoCloseable {
     default java.util.Optional<EventBusStats> eventBusStats() {
         return java.util.Optional.empty();
     }
+
+    /**
+     * impl-653 / spec 900：事件丢弃按原因分类快照（Sentry discarded events 借鉴——
+     * {@code drop-oldest} / {@code block-timeout} / {@code closed-undelivered} 等
+     * 「为什么丢」结构化可读）。仅 {@code buffered} 分发模式适用；SYNC（默认）返回空。
+     * 守恒不变量：{@link EventDropBreakdown#total()} 恒等于 {@link #eventBusStats()}
+     * 的 {@code dropped()}。
+     */
+    default java.util.Optional<EventDropBreakdown> eventDropBreakdown() {
+        return java.util.Optional.empty();
+    }
+
+    /**
+     * impl-759 / spec 1006：会话面包屑（Sentry breadcrumbs 借鉴——最近已交付事件的
+     * 时间线尾部环，新→旧，出事后看最后发生了什么）。双模式（SYNC/buffered）都记录；
+     * 只记事件类型与时刻，不记 payload。默认空表（其他实现零负担）。
+     */
+    default java.util.List<EventBreadcrumb> breadcrumbs() {
+        return java.util.List.of();
+    }
 }

@@ -1259,6 +1259,12 @@ public class BuzhouCoreAutoConfiguration {
             forwarder.setRateLimiter(new io.github.chyuan_cuihongyuan.buzhou.core.webhook
                     .WebhookRateLimiter(burst, ratePerSecond, System::currentTimeMillis));
         }
+        // impl-663 / spec 910：AIMD 自适应批量（buzhou.webhook.adaptive-batch=true 声明即启用；
+        // 缺省 false = 固定批次零变化——TCP AIMD 思想，spec 907 编程面的声明式缝）
+        Boolean adaptiveBatch = env.getProperty("buzhou.webhook.adaptive-batch", Boolean.class);
+        if (Boolean.TRUE.equals(adaptiveBatch)) {
+            forwarder.setAdaptiveBatchEnabled(true);
+        }
         return forwarder;
     }
 

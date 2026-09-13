@@ -3,12 +3,17 @@ package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 import io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.EventBusStats;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.EventDropBreakdown;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 
 /**
@@ -32,6 +37,14 @@ final class BufferedEventDispatcher implements AutoCloseable {
     private static final System.Logger LOGGER =
             System.getLogger(BufferedEventDispatcher.class.getName());
 
+    // impl-671 / spec 918：丢弃原因常量集（值域封闭——WARN 文本/分类键/指标 tag 三处同源）
+    static final String DROP_REASON_OLDEST = "drop-oldest";
+    static final String DROP_REASON_OLDEST_RACE = "drop-oldest-race";
+    static final String DROP_REASON_BLOCK_TIMEOUT = "block-timeout";
+    static final String DROP_REASON_INTERRUPTED = "interrupted";
+    static final String DROP_REASON_DISPATCHER_CLOSED = "dispatcher-closed";
+    static final String DROP_REASON_CLOSED_UNDELIVERED = "closed-undelivered";
+
     private final String sessionId;
     private final EventDispatchConfig config;
     private final Consumer<SessionEvent> deliver;
@@ -40,6 +53,8 @@ final class BufferedEventDispatcher implements AutoCloseable {
     private final AtomicLong enqueued = new AtomicLong();
     private final AtomicLong dispatched = new AtomicLong();
     private final AtomicLong dropped = new AtomicLong();
+    /** impl-653 / spec 900：按原因分类计数（与 dropped 同点累计——守恒不变量）。 */
+    private final ConcurrentHashMap<String, LongAdder> dropsByReason = new ConcurrentHashMap<>();
     private final Thread drainer;
 
     BufferedEventDispatcher(String sessionId, EventDispatchConfig config,
@@ -55,7 +70,7 @@ final class BufferedEventDispatcher implements AutoCloseable {
     /** 入队（溢出按策略处理；丢弃计数 + 低频汇总）。close 后拒绝入队并计丢弃。 */
     void enqueue(SessionEvent event) {
         if (closed.get()) {
-            countDrop(event, "dispatcher-closed");
+            countDrop(event, DROP_REASON_DISPATCHER_CLOSED);
             return;
         }
         enqueued.incrementAndGet();
@@ -67,28 +82,33 @@ final class BufferedEventDispatcher implements AutoCloseable {
                 if (queue.offer(event, config.pushTimeout().toMillis(), TimeUnit.MILLISECONDS)) {
                     return;
                 }
-                countDrop(event, "block-timeout");
+                countDrop(event, DROP_REASON_BLOCK_TIMEOUT);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                countDrop(event, "interrupted");
+                countDrop(event, DROP_REASON_INTERRUPTED);
             }
             return;
         }
         // DROP_OLDEST：挤掉队首最老事件再入队（竞态下二次失败仍丢弃——诚实计数）
         SessionEvent evicted = queue.poll();
         if (evicted != null && evicted != POISON) {
-            countDrop(evicted, "drop-oldest");
+            countDrop(evicted, DROP_REASON_OLDEST);
         }
         if (!queue.offer(event)) {
-            countDrop(event, "drop-oldest-race");
+            countDrop(event, DROP_REASON_OLDEST_RACE);
         }
     }
 
     private void countDrop(SessionEvent event, String reason) {
         long total = dropped.incrementAndGet();
+        dropsByReason.computeIfAbsent(reason, k -> new LongAdder()).increment();
         // impl-41 / spec 13 §T66：丢弃可见性指标（与累计计数同源）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.eventbus.dropped");
+        // impl-671 / spec 918：reason 维度序列（值域封闭 6 常量——基数天然有界；
+        // 与总量 counter 双轨并存，既有面板序列不分裂）
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.eventbus.dropped-reason", "reason", reason);
         if (event != null && event != POISON
                 && (total == 1 || total % EventDispatchConfig.DROP_SUMMARY_EVERY == 0)) {
             LOGGER.log(System.Logger.Level.WARNING,
@@ -116,6 +136,13 @@ final class BufferedEventDispatcher implements AutoCloseable {
         return new EventBusStats(dispatched.get(), dropped.get(), enqueued.get(), queue.size());
     }
 
+    /** impl-653 / spec 900：按原因分类的丢弃快照（守恒：total() == stats().dropped()）。 */
+    EventDropBreakdown dropBreakdown() {
+        Map<String, Long> snapshot = new LinkedHashMap<>();
+        dropsByReason.forEach((reason, adder) -> snapshot.put(reason, adder.sum()));
+        return new EventDropBreakdown(snapshot);
+    }
+
     /** 关闭：毒丸 → 宽限排空 → 硬截断。滞留事件计数为丢弃（可见）。 */
     @Override
     public void close() {
@@ -134,7 +161,7 @@ final class BufferedEventDispatcher implements AutoCloseable {
         // 滞留队列的事件不会再被交付：诚实计数为丢弃
         queue.removeIf(e -> {
             if (e != POISON) {
-                countDrop(e, "closed-undelivered");
+                countDrop(e, DROP_REASON_CLOSED_UNDELIVERED);
                 return true;
             }
             return false;

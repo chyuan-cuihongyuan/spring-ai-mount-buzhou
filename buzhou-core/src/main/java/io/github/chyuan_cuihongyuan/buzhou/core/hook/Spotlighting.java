@@ -17,6 +17,14 @@ public final class Spotlighting {
     /** 默认交织标记字符（INVISIBLE SEPARATOR，不可见、不改变可读文本语义）。 */
     public static final char DEFAULT_MARK_CHAR = '\u2063';
 
+    /** impl-767 / spec 1014：应用与损坏计数（守恒 wrapped == unwrapped + malformed）。 */
+    private static final java.util.concurrent.atomic.AtomicLong wrapped =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong unwrapped =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong malformed =
+            new java.util.concurrent.atomic.AtomicLong();
+
     private Spotlighting() {
     }
 
@@ -35,14 +43,17 @@ public final class Spotlighting {
         if (content == null || !content.contains(BEGIN_HEAD)) {
             return content;
         }
+        wrapped.incrementAndGet(); // spec 1014：含头即计尝试
         int begin = content.indexOf(BEGIN_HEAD);
         int afterTag = content.indexOf("-BEGIN>>>", begin);
         if (afterTag < 0) {
+            malformed.incrementAndGet();
             return content;
         }
         int bodyStart = content.indexOf('\n', afterTag);
         int end = content.indexOf("<<<BUZHOU-DATA-", afterTag + 9);
         if (bodyStart < 0 || end < 0 || end <= bodyStart) {
+            malformed.incrementAndGet();
             return content;
         }
         String body = content.substring(bodyStart + 1, end);
@@ -52,7 +63,20 @@ public final class Spotlighting {
             int bannerEnd = BANNER.length();
             body = body.substring(Math.min(bannerEnd + 1, body.length()));
         }
+        unwrapped.incrementAndGet();
         return stripMark(body, DEFAULT_MARK_CHAR).stripTrailing();
+    }
+
+    /** 应用与损坏只读快照（守恒 wrapped == unwrapped + malformed——spec 1014）。 */
+    public static SpotlightingStats stats() {
+        return new SpotlightingStats(wrapped.get(), unwrapped.get(), malformed.get());
+    }
+
+    /** 进程态清零（测试隔离注入点——BuzhouMetricsHolder 先例；生产勿调）。 */
+    public static void resetForTest() {
+        wrapped.set(0);
+        unwrapped.set(0);
+        malformed.set(0);
     }
 
     /** 短内容逐字符交织（MSRC 全标记）；超长内容降频控制成本（此类内容通常走溢出通道）。 */

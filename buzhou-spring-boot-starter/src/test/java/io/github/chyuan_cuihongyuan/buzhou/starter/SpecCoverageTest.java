@@ -33,7 +33,8 @@ class SpecCoverageTest {
         try (Stream<Path> files = Files.list(repoRoot().resolve("docs/spec"))) {
             return files.map(p -> p.getFileName().toString())
                     .filter(n -> n.endsWith(".md"))
-                    .filter(n -> n.matches("\\d{1,3}-.*\\.md"))
+                    // \d{1,4}：J 会话 1000 系起规格号为四位数（号段制——1000–1149 等）
+                    .filter(n -> n.matches("\\d{1,4}-.*\\.md"))
                     .map(n -> n.substring(0, n.length() - 3))
                     .collect(Collectors.toList());
         }

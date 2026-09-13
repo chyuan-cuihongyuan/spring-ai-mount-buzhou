@@ -29,8 +29,12 @@ public final class BulkheadScalingAdvisor {
     private final AgentBulkhead bulkhead;
     private final long scaleUpThreshold;
     private final int maxMultiplier;
+    /** impl-676 / spec 923：缩容滞回稳定窗数（≥1；默认 1 = 立即回落零变化）。 */
+    private final int stabilizeWindows;
     private final Map<String, Long> lastRejections = new ConcurrentHashMap<>();
     private final Map<String, Integer> lastMultipliers = new ConcurrentHashMap<>();
+    /** impl-676 / spec 923：各 agent 连续空闲窗计数（滞回判定）。 */
+    private final Map<String, Integer> idleWindows = new ConcurrentHashMap<>();
     private final AtomicLong scaleUpAdvice = new AtomicLong();
     private final AtomicLong scaleDownAdvice = new AtomicLong();
     private volatile Map<String, Advice> lastAdvice = Map.of();
@@ -54,6 +58,33 @@ public final class BulkheadScalingAdvisor {
         this.bulkhead = bulkhead;
         this.scaleUpThreshold = scaleUpThreshold;
         this.maxMultiplier = maxMultiplier;
+        this.stabilizeWindows = 1; // 既有语义：立即回落
+    }
+
+    /**
+     * impl-676 / spec 923：带缩容滞回的构造（HPA stabilization window 借鉴——
+     * 扩容即时、缩容需连续 {@code stabilizeWindows} 个空闲窗才回落）。
+     *
+     * @param stabilizeWindows 缩容稳定窗数（≥1；1 = 既有立即回落逐位不变）
+     */
+    public BulkheadScalingAdvisor(AgentBulkhead bulkhead, long scaleUpThreshold,
+            int maxMultiplier, int stabilizeWindows) {
+        if (bulkhead == null) {
+            throw new IllegalArgumentException("bulkhead 必须非空");
+        }
+        if (scaleUpThreshold < 1) {
+            throw new IllegalArgumentException("scaleUpThreshold >= 1（当前 " + scaleUpThreshold + "）");
+        }
+        if (maxMultiplier < 1) {
+            throw new IllegalArgumentException("maxMultiplier >= 1（当前 " + maxMultiplier + "）");
+        }
+        if (stabilizeWindows < 1) {
+            throw new IllegalArgumentException("stabilizeWindows >= 1（当前 " + stabilizeWindows + "）");
+        }
+        this.bulkhead = bulkhead;
+        this.scaleUpThreshold = scaleUpThreshold;
+        this.maxMultiplier = maxMultiplier;
+        this.stabilizeWindows = stabilizeWindows;
     }
 
     /**
@@ -72,8 +103,21 @@ public final class BulkheadScalingAdvisor {
             long window = entry.getValue() - lastRejections.getOrDefault(agent, 0L);
             int multiplier = (int) Math.min(maxMultiplier,
                     Math.max(1L, 1 + window / scaleUpThreshold));
-            advice.put(agent, new Advice(agent, window, multiplier));
             Integer previous = lastMultipliers.get(agent);
+            // impl-676 / spec 923：缩容滞回——回零建议需连续 stabilizeWindows 个
+            // 空闲窗才落地，期间保持上次非 1 建议（扩容路径即时性不变）
+            if (stabilizeWindows > 1 && multiplier == 1
+                    && previous != null && previous > 1) {
+                int idle = idleWindows.merge(agent, 1, Integer::sum);
+                if (idle < stabilizeWindows) {
+                    multiplier = previous;
+                } else {
+                    idleWindows.remove(agent);
+                }
+            } else if (window > 0 || multiplier > 1) {
+                idleWindows.remove(agent);
+            }
+            advice.put(agent, new Advice(agent, window, multiplier));
             if (multiplier > 1) {
                 scaleUpAdvice.incrementAndGet();
                 BuzhouMetricsHolder.metrics().counter("buzhou.bulkhead.scaling.scale-up");

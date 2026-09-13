@@ -42,4 +42,23 @@ public final class SessionExportConditional {
         }
         return new Result(Status.EXPORTED, fresh, fingerprint);
     }
+
+    /**
+     * impl-666 / spec 913：规范化指纹协商——与
+     * {@link SessionExportChecksum#canonicalContentFingerprint} 配对使用（`sha256-j:`
+     * 前缀）。键序漂移不误判变更（联动 e2e 实证：保序协商配规范化指纹会把
+     * UNCHANGED 误判为 EXPORTED——口径必须成对）。入参须为 `sha256-j:` 形态指纹。
+     */
+    public static Result exportIfChangedCanonical(SessionExport fresh,
+            String canonicalIfNoneMatch) {
+        if (fresh == null) {
+            throw new IllegalArgumentException("fresh export 非空");
+        }
+        String fingerprint = SessionExportChecksum.canonicalContentFingerprint(fresh);
+        if (canonicalIfNoneMatch != null && !canonicalIfNoneMatch.isBlank()
+                && canonicalIfNoneMatch.trim().equals(fingerprint)) {
+            return new Result(Status.UNCHANGED, null, fingerprint);
+        }
+        return new Result(Status.EXPORTED, fresh, fingerprint);
+    }
 }

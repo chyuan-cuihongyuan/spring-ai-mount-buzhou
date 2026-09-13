@@ -26,11 +26,49 @@ public final class BuzhouHealthEndpoint {
         Map<String, Object> mechanisms = new LinkedHashMap<>();
         for (BuzhouHealth contributor : contributors) {
             Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("status", contributor.status().name());
+            // impl-670 / spec 917：mechanism/status 读取均隔离（此前仅 details 有
+            // safe 壳——单机制爆炸会炸整个端点，e2e 实证后三处补齐）
+            entry.put("status", safeStatus(contributor));
             entry.put("details", safeDetails(contributor));
-            mechanisms.put(contributor.mechanism(), entry);
+            mechanisms.put(safeMechanism(contributor), entry);
         }
-        return Map.of("mechanisms", mechanisms);
+        // impl-670 / spec 917：聚合评分段（spec 905 装配留位兑现——dashboard 一格）
+        return Map.of("mechanisms", mechanisms, "score", safeScore());
+    }
+
+    /** status 读取隔离（异常降级 DOWN + error 注记——宁报故障不静默）。 */
+    private String safeStatus(BuzhouHealth contributor) {
+        try {
+            return contributor.status().name();
+        } catch (RuntimeException e) {
+            return "DOWN"; // 读取即炸 = 无法确认健康——从严按 DOWN（不静默吞）
+        }
+    }
+
+    /** mechanism 读取隔离（异常降级占位名——键唯一性由类名兜底）。 */
+    private String safeMechanism(BuzhouHealth contributor) {
+        try {
+            return contributor.mechanism();
+        } catch (RuntimeException e) {
+            return "unknown-mechanism@" + contributor.getClass().getName();
+        }
+    }
+
+    /** impl-670 / spec 917：评分投影（compute 异常降级——单点故障不炸端点）。 */
+    private Map<String, Object> safeScore() {
+        try {
+            BuzhouHealthScore.ScoreReport report = BuzhouHealthScore.compute(contributors);
+            Map<String, Object> score = new LinkedHashMap<>();
+            score.put("score", report.score());
+            score.put("tier", report.tier());
+            score.put("upCount", report.upCount());
+            score.put("downCount", report.downCount());
+            score.put("unknownCount", report.unknownCount());
+            score.put("downMechanisms", report.downMechanisms());
+            return score;
+        } catch (RuntimeException e) {
+            return Map.of("scoreError", String.valueOf(e.getMessage()));
+        }
     }
 
     private Map<String, Object> safeDetails(BuzhouHealth contributor) {

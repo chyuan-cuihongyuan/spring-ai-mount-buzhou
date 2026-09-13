@@ -17,6 +17,10 @@
 - `public class HookChain`（spec 646 起 per-hook 计时：`HookTiming` 嵌套 record + `stats()`）
 - `public class HookTimingAggregator`（spec 647——hook 计时进程级聚合，Holder 模式）
 - `public class HookTimingHealth`（spec 647——hook-timing 健康段）
+- `public final class ToolInFlight`（spec 1005——工具在飞并发水位读面：current/peak 双水位 + AutoCloseable 租约恰一次）
+- `public record ToolTimeoutOverrideStats`（spec 1015——超时覆盖命中读面：hitsByPattern 0 = 幽灵覆盖配置）
+- `public final class ToolSlowLog`（spec 1001——工具慢调用榜：Redis SLOWLOG 严格阈值 + 有界 FIFO 环静态读面）
+- `public record TurnLatencyPercentiles`（spec 1010——轮次时延分位数读面：R-7 插值 p50/p95，percentiles() 读面）
 - `public final class ToolTimingAggregator`（spec 700——工具执行 per-tool 耗时聚合，Holder 模式）
 - `public final class ToolTimingHealth`（spec 700——tool-timing 健康段，总耗时降序 top-20）
 - `public class LeaseLostException`
@@ -80,8 +84,11 @@
 - `public final class SpanStatus`
 - `public final class SpawnGate`
 - `public final class Spotlighting`
+- `public record SpotlightingStats`（spec 1014——spotlighting 应用与损坏计数：wrapped == unwrapped + malformed 守恒）
 - `public final class ToolArgsValidator`
 - `public final class ToolErrorFeedback`
+- `public record ToolPolicyMatchDecision`（spec 1000——单次匹配决策：toolName + Outcome(EXACT/GLOB/NONE) + matchedKey）
+- `public record ToolPolicyMatchStats`（spec 1000——进程级决策快照，Σ三分类守恒 == match 调用数）
 - `public final class ToolPolicyMatcher`
 - `public final class ToolValidationFeedback`
 - `public final class WebhookEventForwarder`
@@ -92,6 +99,7 @@
 - `public interface BindingPolicyStore`
 - `public interface BuzhouHealth`
 - `public interface BuzhouHook`
+- `public record ChainComposition`（spec 1002——hook 链解析快照：派发序 + 幽灵禁用集，composition() 读面）
 - `public interface BuzhouMetrics`
 - `public interface CommandBackend`
 - `public interface ContextWindowResolver`
@@ -137,12 +145,14 @@
 - `public record BuzhouWebhookProperties`
 - `public record ClosedSession`
 - `public record EventBusStats`
+- `public record EventBreadcrumb`（spec 1006——会话面包屑：事件时间线尾部环条目，只记 type+时刻不记 payload）
 - `public record EventDispatchConfig`
 - `public record EventRecord`
 - `public record Fact`
 - `public record InMemoryStoreConfig`
 - `public record InjectionSnapshot`
 - `public record LayeredPolicy`
+- `public record PolicyLayerAttribution`（spec 1003——层级归属解析：生效值来自哪一层，getAttributed() 纯函数诊断面）
 - `public record LeaseAcquireResult`
 - `public record LeaseInfo`
 - `public record MaintenanceTrigger`
@@ -671,6 +681,8 @@
 - `Evaluator`（SPI）/ `EvalScore`（passed+detail 512 截断）/ `BuiltInEvaluators`
   （EXACT/CONTAINS 常量 + regex(String) 工厂）
 - `EvalRunner`（run(datasetName, evaluator)）/ `EvalRunResult`（passRate）/ `EvalRunItemResult`
+- `EvalPrunePolicy`（minItems+failRateThreshold，impl-654 / spec 901 失败率中途剪枝 opt-in）
+- `EvalPassAtK`（estimate 连乘无偏公式 / aggregate，impl-655 / spec 902）
 - `EvalQueryService`（allRuns/runs/run/latestRun；只读）
 - `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
 

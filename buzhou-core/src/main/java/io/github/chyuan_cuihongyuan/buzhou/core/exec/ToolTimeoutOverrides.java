@@ -12,6 +12,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class ToolTimeoutOverrides {
 
     private final Map<String, Long> overrides;
+    /** impl-768 / spec 1015：命中读面（按配置模式分桶——0 = 幽灵覆盖）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong> hitsByPattern =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.atomic.AtomicLong lookups = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong hits = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong misses = new java.util.concurrent.atomic.AtomicLong();
 
     public ToolTimeoutOverrides(Map<String, Long> overrides) {
         if (overrides != null) {
@@ -22,6 +28,8 @@ public final class ToolTimeoutOverrides {
             });
         }
         this.overrides = overrides == null ? Map.of() : Map.copyOf(overrides);
+        this.overrides.keySet().forEach(p ->
+                hitsByPattern.put(p, new java.util.concurrent.atomic.AtomicLong()));
     }
 
     /** 全局默认档（无覆盖——全局 toolTimeout 生效）。 */
@@ -31,12 +39,24 @@ public final class ToolTimeoutOverrides {
 
     /** per-tool 生效覆盖毫秒（glob 首个命中；-1 = 用全局；无覆盖 = -1）。 */
     public long timeoutMillisFor(String toolName) {
+        lookups.incrementAndGet();
         for (Map.Entry<String, Long> e : overrides.entrySet()) {
             if (globMatch(e.getKey(), toolName)) {
+                hits.incrementAndGet();
+                hitsByPattern.get(e.getKey()).incrementAndGet();
                 return e.getValue();
             }
         }
+        misses.incrementAndGet();
         return -1;
+    }
+
+    /** 命中读面快照（spec 1015——hitsByPattern 含全部配置模式，0 = 幽灵覆盖）。 */
+    public ToolTimeoutOverrideStats stats() {
+        java.util.Map<String, Long> byPattern = new java.util.LinkedHashMap<>();
+        hitsByPattern.forEach((k, v) -> byPattern.put(k, v.get()));
+        return new ToolTimeoutOverrideStats(lookups.get(), hits.get(),
+                misses.get(), java.util.Collections.unmodifiableMap(byPattern));
     }
 
     /** 极简 glob：{@code *} 通配任意串（31 同法）。 */

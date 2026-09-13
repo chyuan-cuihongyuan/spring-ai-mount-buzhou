@@ -22,6 +22,13 @@ public final class EncryptedSessionExport {
     static final String PURPOSE_AAD = "buzhou.session-export";
 
     private final EnvelopeCipher cipher;
+    /** impl-765 / spec 1012：seal/open 生命周期计数（开失败率=密钥失配第一信号）。 */
+    private final java.util.concurrent.atomic.AtomicLong sealedCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong openedCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong openRejected =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public EncryptedSessionExport(EnvelopeCipher cipher) {
         if (cipher == null) {
@@ -35,12 +42,14 @@ public final class EncryptedSessionExport {
         if (export == null) {
             throw new IllegalArgumentException("SessionExport 必须非空");
         }
+        sealedCount.incrementAndGet();
         return SEAL_PREFIX + cipher.encrypt(export.toJson(), PURPOSE_AAD);
     }
 
     /** 封缄容器 → 导出（标记/密钥/AAD/JSON 任一不符 → DATA_CORRUPTION 带修法）。 */
     public SessionExport open(String sealed) {
         if (!isSealed(sealed)) {
+            openRejected.incrementAndGet();
             throw new BuzhouException(ErrorCode.DATA_CORRUPTION,
                     "非加密会话导出封缄（缺少标记头 " + SEAL_PREFIX + "）——"
                             + "请用 EncryptedSessionExport.seal 生成的封缄，或改用"
@@ -51,13 +60,18 @@ public final class EncryptedSessionExport {
         try {
             json = cipher.decrypt(envelope, PURPOSE_AAD);
         } catch (BuzhouException e) {
+            openRejected.incrementAndGet();
             throw e;
         } catch (RuntimeException e) {
+            openRejected.incrementAndGet();
             throw decryptionFailed(e);
         }
         try {
-            return SessionExport.fromJson(json);
+            SessionExport export = SessionExport.fromJson(json);
+            openedCount.incrementAndGet();
+            return export;
         } catch (RuntimeException e) {
+            openRejected.incrementAndGet();
             throw new BuzhouException(ErrorCode.DATA_CORRUPTION,
                     "解密成功但载荷非合法会话导出 JSON（密钥对、内容被换）", e);
         }
@@ -66,6 +80,15 @@ public final class EncryptedSessionExport {
     /** 封缄形态判定（宿主路由明文/密文两导出形态）。 */
     public static boolean isSealed(String value) {
         return value != null && value.startsWith(SEAL_PREFIX);
+    }
+
+    /** seal/open 生命周期只读快照（spec 1012——开失败率=密钥失配第一信号）。 */
+    public SealStats stats() {
+        return new SealStats(sealedCount.get(), openedCount.get(), openRejected.get());
+    }
+
+    /** 生命周期计数行（不可变）。 */
+    public record SealStats(long sealed, long opened, long openRejected) {
     }
 
     private static BuzhouException decryptionFailed(RuntimeException cause) {

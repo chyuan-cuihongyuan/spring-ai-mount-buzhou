@@ -60,6 +60,9 @@ public class HookedToolCallback implements ToolCallback {
         String result;
         Throwable error = null;
         long startedAt = System.nanoTime();
+        // spec 1005 / T1461：在飞水位（Go NumGoroutine/Hystrix 思想——try/finally 恰一次进出）
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInFlight.Lease inFlight =
+                io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolInFlight.enter(toolName);
         try {
             result = delegate.call(serializeArguments(ctx.arguments()), toolContext);
         } catch (RuntimeException e) {
@@ -67,6 +70,8 @@ public class HookedToolCallback implements ToolCallback {
             error = e;
             result = ToolErrorFeedback.format(toolName, toolInput,
                     "执行失败：" + e.getMessage());
+        } finally {
+            inFlight.close();
         }
         // spec 108 §A / T395：工具调用时长 timer（tag outcome——慢工具/失败工具延迟可分）
         long elapsedNanos = System.nanoTime() - startedAt;
@@ -81,6 +86,9 @@ public class HookedToolCallback implements ToolCallback {
         if (aggregator != null) {
             aggregator.record(toolName, elapsedNanos, error != null);
         }
+        // spec 1001 / T1453：慢调用榜（Redis SLOWLOG 思想——严格大于阈值入有界 FIFO 环，
+        // 不达阈值仅一次 volatile 比较；读面 ToolSlowLog.entries()）
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolSlowLog.record(toolName, elapsedNanos, error != null);
         ctx.markExecuted(result, error);
         // impl-41 / spec 13 §T66：工具调用指标（全部机制的工具都经本回调执行）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()

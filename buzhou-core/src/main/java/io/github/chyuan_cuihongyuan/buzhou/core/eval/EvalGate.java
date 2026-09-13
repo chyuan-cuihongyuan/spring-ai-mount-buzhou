@@ -18,10 +18,25 @@ public final class EvalGate {
     /** 失败项预览上限（防 CI 日志刷屏）。 */
     public static final int PREVIEW_LIMIT = 10;
 
+    /** impl-667 / spec 914：判定历史环容量（超限丢最旧——有界纪律）。 */
+    public static final int HISTORY_CAPACITY = 16;
+
     private final EvalRunner runner;
+    /** impl-667 / spec 914：判定历史环（新→旧；synchronized 单点读写）。 */
+    private final java.util.ArrayDeque<GateDecision> history = new java.util.ArrayDeque<>();
 
     public EvalGate(EvalRunner runner) {
         this.runner = runner;
+    }
+
+    /** 单次门判定留痕（impl-667 / spec 914）。 */
+    public record GateDecision(java.time.Instant at, String datasetName, String runId,
+                               double threshold, double passRate, boolean passed) {
+    }
+
+    /** 判定历史快照（新→旧；不可变；容量 ≤ {@value #HISTORY_CAPACITY}）。 */
+    public synchronized List<GateDecision> history() {
+        return List.copyOf(history);
     }
 
     /** 门判定结果（verdict + 汇总 + 失败项预览 + CI 单行摘要）。 */
@@ -66,9 +81,20 @@ public final class EvalGate {
                     .findFirst().orElse("");
             previews.add(item.itemId() + " [" + item.status() + "] " + detail);
         }
-        return new GateResult(run.passRate() >= clamped, datasetName, run.runId(),
+        GateResult result = new GateResult(run.passRate() >= clamped, datasetName, run.runId(),
                 run.passRate(), clamped, run.total(), run.passed(), run.failed(),
                 run.errored(), List.copyOf(previews));
+        recordDecision(result);
+        return result;
+    }
+
+    /** impl-667 / spec 914：判定入史（环形有界；synchronized 单点）。 */
+    private synchronized void recordDecision(GateResult result) {
+        if (history.size() >= HISTORY_CAPACITY) {
+            history.pollLast();
+        }
+        history.addFirst(new GateDecision(java.time.Instant.now(), result.datasetName(),
+                result.runId(), result.threshold(), result.passRate(), result.passed()));
     }
 
     private static int countNonPass(EvalRunResult run) {

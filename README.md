@@ -521,6 +521,41 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | G 会话收口预检（台账核查） | spec 700–748 连续核查（745 缺位本轮填补）/票 96 张全闭环/impl 对账 + SpecCoverage + 快照比对复跑绿 | [spec 745](docs/spec/745-g-session-audit.md) |
 | 工程门禁 | MessageStore SPI 契约校验套件 | MessageStoreContract 四项语义契约（append/load 保序、未知会话空读、多次追加保序、deleteSession 幂等）——spec 705 同构扩散 | [spec 743](docs/spec/743-messagestore-contract.md) |
 | 工程门禁 | MessageStore 契约接入 H2 | JdbcMessageStore 过四项契约（H2 无 Docker CI 口径）——契约抓出探针会话主键冲突设计缺陷并重构为每检查独立会话（spec 743 复用面） | [spec 744](docs/spec/744-messagestore-h2.md) |
+| 观测与运维 | I 会话 900 系启动 · 事件丢弃按原因分类读面 | EventDropBreakdown（drop-oldest/block-timeout/closed-undelivered 分桶）+ eventDropBreakdown() 读面，ΣbyReason 守恒 == dropped——Sentry discarded events 借鉴（spec 900） | [spec 900](docs/spec/900-event-drop-breakdown.md) |
+| 评估闭环 | 评估失败率中途剪枝 | EvalPrunePolicy（观察窗+失败率阈值）opt-in，串行路径恰停剩余项标 pruned 不烧预算——Optuna pruner 提前停止借鉴（spec 901） | [spec 901](docs/spec/901-eval-prune.md) |
+| 评估闭环 | pass@k 无偏估计器 | EvalPassAtK 连乘无偏公式（HumanEval §2.1）+ 逐项聚合——纯函数不触 store，k 次采样留宿主（spec 902） | [spec 902](docs/spec/902-pass-at-k.md) |
+| 评估闭环 | bootstrap 均值置信区间 | EvalScoreAnalytics.bootstrapMeanInterval（Efron percentile，seed 注入可复现）——小样本 mean 抽样误差显形（spec 903） | [spec 903](docs/spec/903-bootstrap-ci.md) |
+| 会话治理 | 导入审计与严格模式 | SessionExportAudit.audit（未知顶层字段/缺失推荐字段报告）+ fromJsonStrict opt-in 拒绝——宽松路径零变化，pg_restore --exit-on-error / protobuf unknown fields 思想（spec 904） | [spec 904](docs/spec/904-import-audit.md) |
+| 观测与运维 | 健康聚合评分读面 | BuzhouHealthScore（UP=100/UNKNOWN=50 中性/DOWN=0 算术平均 + healthy/degraded/unhealthy 分档常量 + DOWN 清单）——K8s probe aggregate 思想（spec 905） | [spec 905](docs/spec/905-health-score.md) |
+| 观测治理 | 工具耗时火焰图数据面 | 工具耗时 self/cumulative 时间分解读面——Brendan Gregg flamegraph 借鉴（spec 906） | [spec 906](docs/spec/906-flame-timing.md) |
+| 模型韧性 | outbox 投递批量 AIMD 自适应 | 批量加性增、乘性减自适应——TCP 拥塞控制 RFC 5681 直觉（spec 907） | [spec 907](docs/spec/907-aimd-batch.md) |
+| 评估闭环 | k 次 run 稳定性矩阵 | k>2 区分「偶发翻转」与「系统性震荡」——Google FlakyTest 借鉴（spec 908） | [spec 908](docs/spec/908-k-stability.md) |
+| 评估闭环 | 评估分数分位数读面 | EvalScoreAnalytics.percentiles（R-7 线性插值 h=(n−1)·q）——numpy percentile 借鉴（spec 909） | [spec 909](docs/spec/909-percentiles.md) |
+| 模型韧性 | AIMD 自适应批量 yml 装配 | webhookEventForwarder 批量 AIMD yml 装配面（spec 910） | [spec 910](docs/spec/910-aimd-yml.md) |
+| 会话治理 | JCS 规范化内容指纹 | SessionExportChecksum.canonicalContentFingerprint——RFC 8785 JCS 借鉴（spec 911） | [spec 911](docs/spec/911-jcs-fingerprint.md) |
+| 会话治理 | 会话导出 diff 读面 | SessionExportDiff 双导出结构化差异（spec 912） | [spec 912](docs/spec/912-export-diff.md) |
+| 会话治理 | 导出域三件套联动 e2e | 导出域端到端联动验证（spec 913） | [spec 913](docs/spec/913-export-domain-e2e.md) |
+| 观测治理 | gate 判定环形历史读面 | gate 判定历史环时间线（spec 914） | [spec 914](docs/spec/914-gate-history.md) |
+| 观测与运维 | EventDropBreakdown 并发压测 | 丢弃分桶并发压测实证（spec 915） | [spec 915](docs/spec/915-drop-breakdown-stress.md) |
+| 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
+| 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
+| 安全 | 加密封存操作生命周期计数读面 | EncryptedSessionExport sealed/opened/openRejected 三计数（open 三拒绝路径全覆盖）+ 嵌套 SealStats + stats()——age/OpenSSL ops 实践，开失败率=密钥失配第一信号（spec 1012） | [spec 1012](docs/spec/1012-seal-lifecycle-stats.md) |
+| 观测治理 | Hook Replace 载荷应用/丢弃计数读面 | applyReplace boolean 化 + replaceApplied/replaceDropped 实例计数——类型不匹配幽灵载荷静默蒸发的显形，分发行为逐位不变（spec 1013） | [spec 1013](docs/spec/1013-hook-replace-stats.md) |
+| 安全 | Spotlighting 应用与损坏计数读面 | SpotlightingStats（wrapped/unwrapped/malformed 守恒）+ stats()/resetForTest()——含头但结构不完整包裹原样放行的篡改显形，防御覆盖率可见（spec 1014） | [spec 1014](docs/spec/1014-spotlighting-stats.md) |
+| 观测治理 | 超时覆盖命中读面 | ToolTimeoutOverrideStats（lookups/hits/misses 守恒 + hitsByPattern 播种全部模式，0 = 幽灵覆盖配置显形）——feature-flag 评估计数思想（spec 1015） | [spec 1015](docs/spec/1015-timeout-override-stats.md) |
+| 技能治理 | 技能解析未命中计数读面 | SkillResolutionStats（loads/resolved/notFound 守恒，load-only 口径）——幻觉技能名探测，Berkeley function-calling leaderboard 借鉴（spec 1016） | [spec 1016](docs/spec/1016-skill-resolution-stats.md) |
+| 安全 | 沙箱执行结果分桶读面 | LimitedCommandSandbox 嵌套 ExecStats（executions/timeouts/outputTruncations 两轴正交）+ stats()——Firejail/bubblewrap run stats 借鉴（spec 1017） | [spec 1017](docs/spec/1017-sandbox-exec-stats.md) |
+| 安全 | taint 信息流控制生命周期计数读面 | TaintMarkStats + GateStats 四分桶（checked == trusted + approved + blocked 守恒）+ 双 stats()——FIDES 判定分布显形（spec 1018） | [spec 1018](docs/spec/1018-taint-lifecycle-stats.md) |
+| 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
+| 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
+| 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
+| 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
+| 观测治理 | Hook 链解析顺序快照读面 | ChainComposition（派发序显形 + 幽灵禁用集——拼错 disabled 名静默蒸发的信号）composition() 只读快照——Kong plugin priority 借鉴（spec 1002） | [spec 1002](docs/spec/1002-hook-chain-composition.md) |
+| 观测治理 | 策略层级归属读面 | PolicyLayerAttribution（DEFAULTS/YML/BINDING/ABSENT 归属 + getAttributed 同序同判，get() 薄封装零行为变化）——spring config insights 层归因借鉴（spec 1003） | [spec 1003](docs/spec/1003-policy-layer-attribution.md) |
+| 会话治理 | 维护窗历史读面 | MaintenanceGate 闭窗历史环（HistoryEntry：何时/为何/多久 + 窗内拒绝按窗分账）history() 新→旧快照——K8s cordon 事件史借鉴（spec 1004） | [spec 1004](docs/spec/1004-maintenance-history.md) |
+| 观测治理 | 工具在飞并发水位读面 | ToolInFlight（每工具 current/peak/total + 全局双水位 + AutoCloseable 租约恰一次）——Go NumGoroutine/Hystrix 借鉴（spec 1005） | [spec 1005](docs/spec/1005-tool-in-flight.md) |
+| 观测治理 | 会话面包屑环形读面 | EventBreadcrumb 时间线尾部环（deliverEvent 双模式共同漏斗，只记 type 不记 payload）+ breadcrumbs() 新→旧快照——Sentry breadcrumbs 借鉴（spec 1006） | [spec 1006](docs/spec/1006-session-breadcrumbs.md) |
+| 工程门禁 | 全模块测试补全覆盖（K 会话 R1） | JaCoCo 缺口驱动零覆盖清零：6 模块 20 靶点直测（core 16 含 SessionStateStore default 体死路径复活 + guard/spill/resilience/mcp 各 1），豁免入档不硬凑；测试显形三缺陷单列修复（spec 1200） | [spec 1200](docs/spec/1200-test-coverage-completion.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 

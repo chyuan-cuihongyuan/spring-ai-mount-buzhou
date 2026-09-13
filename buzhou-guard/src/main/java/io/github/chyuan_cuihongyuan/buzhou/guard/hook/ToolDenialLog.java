@@ -114,7 +114,8 @@ public final class ToolDenialLog {
         if (truncated) {
             out.put("_truncated", Long.valueOf(AGGREGATE_CAP));
         }
-        // LinkedHashMap 保序不可变包装（Map.copyOf 会丢弃排序——H 会话 849 终验修正）
+        // LinkedHashMap 保序不可变包装（Map.copyOf 会丢弃排序——H 会话 849 终验修正；
+        // T1805 / spec 1200：ImmutableCollections 哈希布局会打散上方排序结果，J 会话独立同修）
         return java.util.Collections.unmodifiableMap(out);
     }
 

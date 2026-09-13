@@ -16,6 +16,13 @@ public class OnloadHook implements BuzhouHook {
 
     private final FileSandbox sandbox;
     private final Map<String, List<LongContentParamPair>> longContentParams;
+    /** impl-761 / spec 1008：回读三计数（守恒：attempts == loaded + failed——命中率 = loaded/attempts）。 */
+    private final java.util.concurrent.atomic.AtomicLong attempts =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong loaded =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong failed =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public OnloadHook(FileSandbox sandbox, Map<String, List<LongContentParamPair>> longContentParams) {
         this.sandbox = sandbox;
@@ -41,6 +48,7 @@ public class OnloadHook implements BuzhouHook {
                 continue;
             }
             String content;
+            attempts.incrementAndGet(); // spec 1008：每个非空 path 参数计一次回读尝试
             try {
                 Path path = sandbox.resolve(raw.toString());
                 content = Files.readString(path);
@@ -48,10 +56,12 @@ public class OnloadHook implements BuzhouHook {
                     throw new OnloadException("加载内容为空：" + path);
                 }
             } catch (Exception e) {
+                failed.incrementAndGet();
                 emitFailed(ctx, pair, raw.toString(), e);
                 return HookResult.block("写侧加载失败（" + pair.pathParam() + "）：" + e.getMessage()
                         + "。请修正路径后重试。");
             }
+            loaded.incrementAndGet();
             if (newArgs == null) {
                 newArgs = new LinkedHashMap<>(args);
             }
@@ -59,6 +69,11 @@ public class OnloadHook implements BuzhouHook {
             newArgs.remove(pair.pathParam());
         }
         return newArgs == null ? HookResult.CONTINUE : HookResult.replace(newArgs);
+    }
+
+    /** 回读命中率只读快照（守恒：attempts == loaded + failed——spec 1008）。 */
+    public SpillOnloadStats stats() {
+        return new SpillOnloadStats(attempts.get(), loaded.get(), failed.get());
     }
 
     private void emitFailed(ToolCallContext ctx, LongContentParamPair pair, String rawPath, Exception e) {
