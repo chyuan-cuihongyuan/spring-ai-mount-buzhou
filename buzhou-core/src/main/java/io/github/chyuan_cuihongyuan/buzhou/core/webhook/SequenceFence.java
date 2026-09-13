@@ -29,6 +29,9 @@ public final class SequenceFence {
     }
 
     private final Map<String, Baseline> baselines = new ConcurrentHashMap<>();
+    /** impl-795 / spec 1043：五态裁决分布（固定键有界——订阅流健康水位）。 */
+    private final Map<String, java.util.concurrent.atomic.AtomicLong> verdictCounts =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
      * 观察一次投递的 seq（旧发送方兼容路径——无纪元，seq 倒退推断为 RESET）。
@@ -48,6 +51,17 @@ public final class SequenceFence {
      * @param seq            信封 seq（null = 旧信封——兼容放行不改基线）
      */
     public Verdict observe(String subscriptionId, Long epoch, Long seq) {
+        Verdict verdict = judge(subscriptionId, epoch, seq);
+        verdictCounts.computeIfAbsent(verdict.name(),
+                k -> new java.util.concurrent.atomic.AtomicLong()).incrementAndGet();
+        return verdict;
+    }
+
+    /**
+     * 判定矩阵（纯函数语义：基线状态迁移按原实现保留——spec 303 判定矩阵逐位不变）。
+     * 返回本次投递的裁决。
+     */
+    private Verdict judge(String subscriptionId, Long epoch, Long seq) {
         if (seq == null) {
             return Verdict.CONTINUE; // 旧信封兼容
         }
@@ -58,7 +72,7 @@ public final class SequenceFence {
         }
         if (epoch == null) {
             // 旧发送方：seq 单独推断（159 既有语义逐位不变）
-            if (seq == baseline.lastSeen()) {
+            if (seq.equals(baseline.lastSeen())) {
                 return Verdict.DUPLICATE;
             }
             if (seq < baseline.lastSeen()) {
@@ -77,7 +91,7 @@ public final class SequenceFence {
             return Verdict.RESET;
         }
         // 同纪元：既有四态
-        if (seq == baseline.lastSeen()) {
+        if (seq.equals(baseline.lastSeen())) {
             return Verdict.DUPLICATE;
         }
         if (seq < baseline.lastSeen()) {
@@ -92,5 +106,31 @@ public final class SequenceFence {
     public GapDetail lastGap(String subscriptionId) {
         Baseline baseline = baselines.get(subscriptionId);
         return baseline == null ? null : new GapDetail(baseline.lastSeen(), baseline.lastSeen());
+    }
+
+    /** 围栏裁决分布只读快照（五桶恒在——spec 1043 订阅流健康水位）。 */
+    public FenceVerdictStats verdictStats() {
+        Map<String, Long> byVerdict = new java.util.TreeMap<>();
+        for (Verdict v : Verdict.values()) {
+            byVerdict.put(v.name(), verdictCount(v.name()));
+        }
+        return new FenceVerdictStats(Map.copyOf(byVerdict));
+    }
+
+    private long verdictCount(String verdict) {
+        return java.util.Optional.ofNullable(verdictCounts.get(verdict))
+                .map(java.util.concurrent.atomic.AtomicLong::get).orElse(0L);
+    }
+
+    /** 围栏裁决分布行（不可变；byVerdict 恒含五态键）。 */
+    public record FenceVerdictStats(Map<String, Long> byVerdict) {
+
+        public FenceVerdictStats {
+            byVerdict = Map.copyOf(byVerdict);
+        }
+
+        public long total() {
+            return byVerdict.values().stream().mapToLong(Long::longValue).sum();
+        }
     }
 }
