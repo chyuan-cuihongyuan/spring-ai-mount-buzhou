@@ -33,6 +33,13 @@ public final class SigningKeyRing {
     private final Map<Integer, PublicKey> verifyKeys = new ConcurrentHashMap<>();
     private final int minVerifyVersion;
     private final SigningKeyPersister persister;
+    /** impl-794 / spec 1042：验钥分布计数（attempt/miss/轮换——重放探测与轮换水位）。 */
+    private final java.util.concurrent.atomic.AtomicLong verifyAttempts =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong verifyKeyMisses =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong rotations =
+            new java.util.concurrent.atomic.AtomicLong();
 
     /** 空环（纯哈希链降级模式；minVerifyVersion = 0）。 */
     public SigningKeyRing() {
@@ -95,6 +102,7 @@ public final class SigningKeyRing {
         }
         this.active = new ActiveKey(version, newKey.getPrivate(), newKey.getPublic());
         verifyKeys.put(version, newKey.getPublic());
+        rotations.incrementAndGet(); // spec 1042：轮换水位
     }
 
     /** 是否有可用签名钥（false = 纯哈希链降级模式）。 */
@@ -118,10 +126,29 @@ public final class SigningKeyRing {
      * 无签名记录（keyVersion=0）不走本入口。
      */
     public PublicKey verifyKey(int version) {
+        verifyAttempts.incrementAndGet(); // spec 1042：验钥尝试分布
         if (version <= 0 || version < minVerifyVersion) {
+            verifyKeyMisses.incrementAndGet();
             return null;
         }
-        return verifyKeys.get(version);
+        PublicKey key = verifyKeys.get(version);
+        if (key == null) {
+            verifyKeyMisses.incrementAndGet(); // 已注册但未入库的版本——同属不可验
+        }
+        return key;
+    }
+
+    /** 验钥分布只读快照（spec 1042——重放探测与轮换水位一屏可读）。 */
+    public KeyRingStats stats() {
+        ActiveKey current = active;
+        return new KeyRingStats(verifyAttempts.get(), verifyKeyMisses.get(),
+                rotations.get(), current == null ? UNVERSIONED : current.version(),
+                minVerifyVersion);
+    }
+
+    /** 验钥分布计数行（不可变；含运行态上下文）。 */
+    public record KeyRingStats(long verifyAttempts, long verifyKeyMisses, long rotations,
+                               int activeVersion, int minVerifyVersion) {
     }
 
     public int minVerifyVersion() {
