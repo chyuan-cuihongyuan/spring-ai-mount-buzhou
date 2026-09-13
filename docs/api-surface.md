@@ -95,6 +95,7 @@
 - `public interface BindingPolicyStore`
 - `public interface BuzhouHealth`
 - `public interface BuzhouHook`
+- `public record ChainComposition`（spec 1002——hook 链解析快照：派发序 + 幽灵禁用集，composition() 读面）
 - `public interface BuzhouMetrics`
 - `public interface CommandBackend`
 - `public interface ContextWindowResolver`

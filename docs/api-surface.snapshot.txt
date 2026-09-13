@@ -222,6 +222,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.WatermarkHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.BuzhouHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ChainComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ContextWatermarkHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookContext

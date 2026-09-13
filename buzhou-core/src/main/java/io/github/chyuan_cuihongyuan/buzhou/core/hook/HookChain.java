@@ -31,14 +31,27 @@ public class HookChain {
     private static final System.Logger LOGGER = System.getLogger(HookChain.class.getName());
 
     private final List<BuzhouHook> hooks;
+    private final Set<String> ghostDisabledNames;
     private final ConcurrentHashMap<String, Timing> timings = new ConcurrentHashMap<>();
 
     public HookChain(Collection<BuzhouHook> hooks, Set<String> disabledHookNames) {
-        this.hooks = hooks.stream()
+        List<BuzhouHook> resolved = hooks.stream()
                 .filter(h -> !disabledHookNames.contains(h.name()))
                 .sorted(Comparator.comparingInt(BuzhouHook::order)
                         .thenComparing(BuzhouHook::name))
                 .toList();
+        this.hooks = resolved;
+        Set<String> present = new java.util.HashSet<>();
+        for (BuzhouHook hook : hooks) {
+            present.add(hook.name());
+        }
+        Set<String> ghosts = new java.util.HashSet<>();
+        for (String disabled : disabledHookNames) {
+            if (!present.contains(disabled)) {
+                ghosts.add(disabled);
+            }
+        }
+        this.ghostDisabledNames = Set.copyOf(ghosts);
     }
 
     public static HookChain of(Collection<BuzhouHook> hooks) {
@@ -47,6 +60,19 @@ public class HookChain {
 
     public List<BuzhouHook> hooks() {
         return hooks;
+    }
+
+    /**
+     * 链解析快照（spec 1002 / Kong plugin priority 思想）：解析后派发序 + 幽灵禁用集
+     * （disabled 配置里未命中任何 hook 的名字——拼错静默蒸发的显形）。只读诊断，
+     * 构造期一次计算，零行为变化。
+     */
+    public ChainComposition composition() {
+        List<String> names = new java.util.ArrayList<>(hooks.size());
+        for (BuzhouHook hook : hooks) {
+            names.add(hook.name());
+        }
+        return new ChainComposition(names, ghostDisabledNames);
     }
 
     public HookResult beforeTurn(TurnContext ctx) {
