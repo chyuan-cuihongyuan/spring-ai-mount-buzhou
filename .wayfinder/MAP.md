@@ -414,3 +414,4 @@
 | #830 | 审计树形健康读数 | [maps/effort-830.md](maps/effort-830.md) | T1161–1162 | 583 |
 | #831 | 会话准入拒绝分布 | [maps/effort-831.md](maps/effort-831.md) | T1163–1164 | 584 |
 | #832 | 技能加载延迟读数 | [maps/effort-832.md](maps/effort-832.md) | T1165–1166 | 585 |
+| #833 | 危险工具命中分布 | [maps/effort-833.md](maps/effort-833.md) | T1167–1168 | 586 |

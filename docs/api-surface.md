@@ -2208,3 +2208,7 @@
   扩散：per-skill 环 32 样本+nearest-rank P50/P95+全历史 max；超 1024
   技能并入 __overflow__ 桶（SkillUsageStats 同款）；slowest() P95 降序；
   loads=近窗语义）
+
+- `DangerousToolHitStats`（嵌套 `ToolHits`）（833——WAF top-rules 观测
+  思想：危险工具命中 per-tool 热力排行（封顶 64+溢出桶/requiredState
+  最近非空/lastSeen max/top(n) 降序）；喂点=GuardHook 装配侧不改拦截）
