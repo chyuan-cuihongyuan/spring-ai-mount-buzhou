@@ -2247,3 +2247,7 @@
 - `IdleDurationHistogram`（嵌套 `BucketRow`）（841——S5 扩散：空闲时长
   固定桶直方（默认 1m/5m/15m/60m 五桶，恰达归右桶）+total/longest+
   人话区间标签快照；AtomicLongArray 桶计数；喂点=Monitor 装配侧）
+
+- `AuthDecisionStats`（嵌套 `Outcome`/`OutcomeCount`/`Report`）（842——
+  Keycloak 决策观测扩散：HITL 认证五态（批准/拒绝/过期/已消费/未知凭证）
+  闭集计数+占比降序快照；synchronized 记账；喂点=GuardAuthApi 装配侧）

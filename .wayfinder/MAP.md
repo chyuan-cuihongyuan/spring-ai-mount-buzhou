@@ -423,3 +423,4 @@
 | #839 | 泄漏疑似对象聚合器 | [maps/effort-839.md](maps/effort-839.md) | T1179–1180 | 592 |
 | #840 | MCP 建连遥测读数 | [maps/effort-840.md](maps/effort-840.md) | T1181–1182 | 593 |
 | #841 | 会话空闲时长分桶直方 | [maps/effort-841.md](maps/effort-841.md) | T1183–1184 | 594 |
+| #842 | HITL 认证决策分布 | [maps/effort-842.md](maps/effort-842.md) | T1185–1186 | 595 |
