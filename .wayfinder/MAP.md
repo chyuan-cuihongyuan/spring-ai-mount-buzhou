@@ -387,3 +387,4 @@
 | #803 | 检索多路改写融合 | [maps/effort-803.md](maps/effort-803.md) | T1107–1108 | 556 |
 | #804 | 嵌入 L2 归一化装饰器 | [maps/effort-804.md](maps/effort-804.md) | T1109–1110 | 557 |
 | #805 | 路由分布倾斜读数 | [maps/effort-805.md](maps/effort-805.md) | T1111–1112 | 558 |
+| #806 | 预算用量分位推荐 | [maps/effort-806.md](maps/effort-806.md) | T1113–1114 | 559 |

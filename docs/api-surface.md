@@ -2091,3 +2091,7 @@
 - `RouteDistributionReadout`（嵌套 `Deviation`/`Report`/`Collector`）（805——
   Spark skew 借鉴：实际调用分布 vs 声明权重偏差 |降序|+gini 基尼集中度+
   dominant 读数；Collector 封顶 32；纯读数不纠偏）
+
+- `BudgetRecommendation`（嵌套 `Report`/`Ring`）（806——k8s VPA 借鉴：
+  用量样本最近秩 P50/P95/P99+⌈P95×(1+headroom)⌉ 推荐档；<5 样本
+  sufficient=false(-1 哨兵)；Ring 1024 FIFO+dropped；纯读数不改预算）

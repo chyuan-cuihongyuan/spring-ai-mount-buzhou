@@ -590,6 +590,7 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 记忆治理 | 检索多路改写融合 | MultiQueryRetriever——查询多变体展开+逐路检索+跨变体 RRF 融合，词形脆弱不再漏召（LangChain MultiQueryRetriever；与 605 双信号融合正交） | [spec 803](docs/spec/803-multi-query-retriever.md) |
 | 缓存与前缀 | 嵌入 L2 归一化装饰器 | NormalizingEmbeddingModel——输出向量逐条单位范数，cosine 退化为点积、跨供应商尺度一致（sentence-transformers normalize_embeddings；721 同模式） | [spec 804](docs/spec/804-normalizing-embedding.md) |
 | 模型路由 | 路由分布倾斜读数 | RouteDistributionReadout——实际调用分布 vs 声明权重偏差降序+gini 集中度+dominant，「50/50 说成 95/5 做」漂移可见（Spark skew；只读不纠偏） | [spec 805](docs/spec/805-route-distribution-skew.md) |
+| 成本归因 | 预算用量分位推荐 | BudgetRecommendation——用量样本 P50/P95/P99+⌈P95×(1+headroom)⌉ 推荐档位，预算从拍脑袋变分位推导（k8s VPA；<5 样本不下结论哨兵） | [spec 806](docs/spec/806-budget-recommendation.md) |
 
 ## 快速开始
 
