@@ -47,6 +47,10 @@ public class BuzhouGuardHealthAutoConfiguration {
 
     @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(name = "org.springframework.boot.health.contributor.HealthIndicator")
+    // T1803 / spec 1200：与外层 auditChainHealth 同条件——delegates 齐备才装配 indicator，
+    // 否则 auditChainHealthIndicator 因 AuditChainHealth 缺席启动崩溃（禁用 guard/审计即触发）
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnBean({
+            AuditRecordStore.class, io.github.chyuan_cuihongyuan.buzhou.guard.audit.SigningKeyRing.class})
     static class GuardHealthIndicatorConfiguration {
 
         @Bean
