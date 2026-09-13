@@ -659,6 +659,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.Model
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteDistributionReadout
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingHealthDampener
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingScheduleAdjuster

@@ -589,6 +589,7 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 观测治理 | 指标新鲜度审计 | MetricFreshnessTracker——BuzhouMetrics 装饰器记名字级最后写入+audit(now, staleAfter) 陈旧清单，「指标为何没数了」从猜变查（Prometheus staleness；gauge 不追踪口径显式） | [spec 802](docs/spec/802-metric-freshness.md) |
 | 记忆治理 | 检索多路改写融合 | MultiQueryRetriever——查询多变体展开+逐路检索+跨变体 RRF 融合，词形脆弱不再漏召（LangChain MultiQueryRetriever；与 605 双信号融合正交） | [spec 803](docs/spec/803-multi-query-retriever.md) |
 | 缓存与前缀 | 嵌入 L2 归一化装饰器 | NormalizingEmbeddingModel——输出向量逐条单位范数，cosine 退化为点积、跨供应商尺度一致（sentence-transformers normalize_embeddings；721 同模式） | [spec 804](docs/spec/804-normalizing-embedding.md) |
+| 模型路由 | 路由分布倾斜读数 | RouteDistributionReadout——实际调用分布 vs 声明权重偏差降序+gini 集中度+dominant，「50/50 说成 95/5 做」漂移可见（Spark skew；只读不纠偏） | [spec 805](docs/spec/805-route-distribution-skew.md) |
 
 ## 快速开始
 

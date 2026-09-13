@@ -2087,3 +2087,7 @@
 - `NormalizingEmbeddingModel`（804——sentence-transformers 借鉴：
   EmbeddingModel 装饰器逐条 L2 归一，cosine 退化为点积；ε=1e-4 已归一
   跳算/零向量透传三计数面；副本语义；721 同模式双路径）
+
+- `RouteDistributionReadout`（嵌套 `Deviation`/`Report`/`Collector`）（805——
+  Spark skew 借鉴：实际调用分布 vs 声明权重偏差 |降序|+gini 基尼集中度+
+  dominant 读数；Collector 封顶 32；纯读数不纠偏）

@@ -386,3 +386,4 @@
 | #802 | 指标新鲜度审计 | [maps/effort-802.md](maps/effort-802.md) | T1105–1106 | 555 |
 | #803 | 检索多路改写融合 | [maps/effort-803.md](maps/effort-803.md) | T1107–1108 | 556 |
 | #804 | 嵌入 L2 归一化装饰器 | [maps/effort-804.md](maps/effort-804.md) | T1109–1110 | 557 |
+| #805 | 路由分布倾斜读数 | [maps/effort-805.md](maps/effort-805.md) | T1111–1112 | 558 |
