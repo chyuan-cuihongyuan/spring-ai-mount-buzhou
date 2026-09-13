@@ -46,6 +46,7 @@
 - `public class StructuredOutputException`
 - `public class TokenBudgetHook`
 - `public class TableContextWindowResolver`（spec 707——模型上下文窗口表 + 覆盖，自 internal.token 迁出）
+- `public record WindowResolutionStats`（spec 1028——模型窗口解析分布：override/内置/回退三路计数 + 已解析模型窗快照）
 - `public enum CancelMode`
 - `public enum ErrorCode`
 - `public enum OnFail`
