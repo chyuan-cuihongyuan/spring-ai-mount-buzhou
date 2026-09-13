@@ -527,6 +527,10 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 评估闭环 | bootstrap 均值置信区间 | EvalScoreAnalytics.bootstrapMeanInterval（Efron percentile，seed 注入可复现）——小样本 mean 抽样误差显形（spec 903） | [spec 903](docs/spec/903-bootstrap-ci.md) |
 | 会话治理 | 导入审计与严格模式 | SessionExportAudit.audit（未知顶层字段/缺失推荐字段报告）+ fromJsonStrict opt-in 拒绝——宽松路径零变化，pg_restore --exit-on-error / protobuf unknown fields 思想（spec 904） | [spec 904](docs/spec/904-import-audit.md) |
 | 观测与运维 | 健康聚合评分读面 | BuzhouHealthScore（UP=100/UNKNOWN=50 中性/DOWN=0 算术平均 + healthy/degraded/unhealthy 分档常量 + DOWN 清单）——K8s probe aggregate 思想（spec 905） | [spec 905](docs/spec/905-health-score.md) |
+| 观测治理 | 工具耗时火焰图数据面 | 工具耗时 self/cumulative 时间分解读面——Brendan Gregg flamegraph 借鉴（spec 906） | [spec 906](docs/spec/906-flame-timing.md) |
+| 模型韧性 | outbox 投递批量 AIMD 自适应 | 批量加性增、乘性减自适应——TCP 拥塞控制 RFC 5681 直觉（spec 907） | [spec 907](docs/spec/907-aimd-batch.md) |
+| 评估闭环 | k 次 run 稳定性矩阵 | k>2 区分「偶发翻转」与「系统性震荡」——Google FlakyTest 借鉴（spec 908） | [spec 908](docs/spec/908-k-stability.md) |
+| 评估闭环 | 评估分数分位数读面 | EvalScoreAnalytics.percentiles（R-7 线性插值 h=(n−1)·q）——numpy percentile 借鉴（spec 909） | [spec 909](docs/spec/909-percentiles.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
 | 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
 | 观测治理 | Hook 链解析顺序快照读面 | ChainComposition（派发序显形 + 幽灵禁用集——拼错 disabled 名静默蒸发的信号）composition() 只读快照——Kong plugin priority 借鉴（spec 1002） | [spec 1002](docs/spec/1002-hook-chain-composition.md) |
