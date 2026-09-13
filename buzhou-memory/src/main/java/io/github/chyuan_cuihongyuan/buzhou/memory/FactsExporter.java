@@ -29,6 +29,13 @@ public final class FactsExporter implements SessionExportExtension {
             System.getLogger(FactsExporter.class.getName());
 
     private final SessionStateStore stateStore;
+    /** impl-777 / spec 1024：facts 流转行数计数（迁移完整性第一读数）。 */
+    private final java.util.concurrent.atomic.AtomicLong factsExported =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong factsImported =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong importFailures =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public FactsExporter(SessionStateStore stateStore) {
         this.stateStore = stateStore;
@@ -56,7 +63,9 @@ public final class FactsExporter implements SessionExportExtension {
             rows.add(row);
         });
         try {
-            return MAPPER.writeValueAsString(rows);
+            String json = MAPPER.writeValueAsString(rows);
+            factsExported.addAndGet(rows.size()); // spec 1024：导出行数
+            return json;
         } catch (Exception e) {
             LOGGER.log(System.Logger.Level.WARNING, "facts 段导出失败（跳过）：" + e.getMessage());
             return null;
@@ -65,21 +74,34 @@ public final class FactsExporter implements SessionExportExtension {
 
     @Override
     public void importSegment(String targetSessionId, String json) {
+        List<Map<String, Object>> rows;
         try {
-            List<Map<String, Object>> rows = MAPPER.readValue(json,
+            rows = MAPPER.readValue(json,
                     new TypeReference<List<Map<String, Object>>>() {
                     });
-            for (Map<String, Object> row : rows) {
-                stateStore.put(targetSessionId, new StateEntry(
-                        String.valueOf(row.get("key")),
-                        String.valueOf(row.get("value")),
-                        row.get("producer") == null ? "facts-export" : String.valueOf(row.get("producer")),
-                        row.get("createdTurn") instanceof Number n ? n.intValue() : 0,
-                        row.get("ttlTurns") instanceof Number n ? n.intValue() : null,
-                        Instant.now()));
-            }
         } catch (Exception e) {
+            importFailures.incrementAndGet(); // spec 1024：导入失败入桶后照抛（原语义不变）
             throw new IllegalStateException("facts 段导入失败：" + e.getMessage(), e);
         }
+        for (Map<String, Object> row : rows) {
+            stateStore.put(targetSessionId, new StateEntry(
+                    String.valueOf(row.get("key")),
+                    String.valueOf(row.get("value")),
+                    row.get("producer") == null ? "facts-export" : String.valueOf(row.get("producer")),
+                    row.get("createdTurn") instanceof Number n ? n.intValue() : 0,
+                    row.get("ttlTurns") instanceof Number n ? n.intValue() : null,
+                    Instant.now()));
+        }
+        factsImported.addAndGet(rows.size()); // spec 1024：导入行数（全量成功才计）
+    }
+
+    /** facts 流转行数只读快照（spec 1024——导出/导入对账迁移完整性）。 */
+    public FactsFlowStats stats() {
+        return new FactsFlowStats(factsExported.get(), factsImported.get(),
+                importFailures.get());
+    }
+
+    /** 流转计数行（不可变）。 */
+    public record FactsFlowStats(long factsExported, long factsImported, long importFailures) {
     }
 }
