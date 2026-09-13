@@ -525,6 +525,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 评估闭环 | 评估失败率中途剪枝 | EvalPrunePolicy（观察窗+失败率阈值）opt-in，串行路径恰停剩余项标 pruned 不烧预算——Optuna pruner 提前停止借鉴（spec 901） | [spec 901](docs/spec/901-eval-prune.md) |
 | 评估闭环 | pass@k 无偏估计器 | EvalPassAtK 连乘无偏公式（HumanEval §2.1）+ 逐项聚合——纯函数不触 store，k 次采样留宿主（spec 902） | [spec 902](docs/spec/902-pass-at-k.md) |
 | 评估闭环 | bootstrap 均值置信区间 | EvalScoreAnalytics.bootstrapMeanInterval（Efron percentile，seed 注入可复现）——小样本 mean 抽样误差显形（spec 903） | [spec 903](docs/spec/903-bootstrap-ci.md) |
+| 会话治理 | 导入审计与严格模式 | SessionExportAudit.audit（未知顶层字段/缺失推荐字段报告）+ fromJsonStrict opt-in 拒绝——宽松路径零变化，pg_restore --exit-on-error / protobuf unknown fields 思想（spec 904） | [spec 904](docs/spec/904-import-audit.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
