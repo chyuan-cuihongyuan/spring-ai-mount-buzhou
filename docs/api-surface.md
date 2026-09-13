@@ -2070,3 +2070,7 @@
   watch 工具滑窗连续失败达 maxViolations 自动封禁 banSeconds，beforeTool
   拦截带剩余秒；(session,tool) 键有界 256 + truncated；成功不重置、到期
   惰性解除、snapshot() 只读快照）
+
+- `RedisValueSizeAudit`（嵌套 `Finding`/`FamilyTotal`/`Report`）（801——Redis
+  BIGKEY 借鉴：采样 (键→字节) 九族前缀归类+WARN/CRIT 两档定级+Top32+按族
+  聚合+治理提示；纯函数与连接解耦，采样归调用方）

@@ -779,6 +779,7 @@ buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisSessionL
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisSessionStateStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisSummaryStore
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisUnitOfWork
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisValueSizeAudit
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisVirtualKeyBudgetBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.WriteFailurePolicy
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.config.BuzhouRedisStoreAutoConfiguration

@@ -585,6 +585,7 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 分组 | 能力 | 一句话 | 详设 |
 |------|------|--------|------|
 | 护栏 | 工具自动封禁 | ToolAutoBanHook——受监视工具滑窗连续失败达阈值自动封禁+beforeTool 拦截报剩余秒+快照读数，失效工具止损从盯梢变自动（fail2ban maxretry/findtime/bantime） | [spec 800](docs/spec/800-tool-auto-ban.md) |
+| 持久化 | Redis 大值审计 | RedisValueSizeAudit——采样字节九族归类+WARN/CRIT 定级+Top32+按族聚合+治理提示，哪个命名空间在吃内存结构化（redis-cli --bigkeys 思想，纯函数） | [spec 801](docs/spec/801-redis-value-size-audit.md) |
 
 ## 快速开始
 
