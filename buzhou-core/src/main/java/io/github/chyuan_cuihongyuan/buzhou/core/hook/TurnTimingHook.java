@@ -5,6 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -101,5 +102,47 @@ public final class TurnTimingHook implements BuzhouHook {
             }
             return new TurnStats(count, (double) sum / count, max, last);
         }
+    }
+
+    /**
+     * 滚动窗口分位数读数（impl-763 / spec 1010——R-7 线性插值，与 spec 909 同口径；
+     * 空窗/未知会话零值行）。avg 藏尾、max 单点噪声——p95 才是「用户体感一轮」。
+     */
+    public TurnLatencyPercentiles percentiles(String sessionId) {
+        SessionTiming timing;
+        synchronized (sessions) {
+            timing = sessions.get(sessionId);
+        }
+        if (timing == null) {
+            return new TurnLatencyPercentiles(0, 0, 0, 0);
+        }
+        List<Long> sorted;
+        synchronized (timing.samplesMillis) {
+            if (timing.samplesMillis.isEmpty()) {
+                return new TurnLatencyPercentiles(0, 0, 0, 0);
+            }
+            sorted = new java.util.ArrayList<>(timing.samplesMillis);
+        }
+        sorted.sort(Long::compare);
+        long max = sorted.getLast();
+        return new TurnLatencyPercentiles(sorted.size(),
+                percentile(sorted, 0.50), percentile(sorted, 0.95), max);
+    }
+
+    /** R-7 线性插值分位（h=(n−1)·q——升序样本；q∈[0,1]）。 */
+    static double percentile(List<Long> sortedSamples, double q) {
+        if (sortedSamples.isEmpty()) {
+            throw new IllegalArgumentException("样本非空");
+        }
+        if (q < 0 || q > 1) {
+            throw new IllegalArgumentException("q 须在 [0,1]（当前 " + q + "）");
+        }
+        double h = (sortedSamples.size() - 1) * q;
+        int lo = (int) Math.floor(h);
+        long base = sortedSamples.get(lo);
+        if (lo + 1 >= sortedSamples.size()) {
+            return base;
+        }
+        return base + (h - lo) * (sortedSamples.get(lo + 1) - base);
     }
 }

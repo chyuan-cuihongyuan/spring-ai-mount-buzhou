@@ -240,6 +240,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.Spotlighting
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnContext
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnLatencyPercentiles
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnTimingHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector

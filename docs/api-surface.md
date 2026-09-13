@@ -19,6 +19,7 @@
 - `public class HookTimingHealth`（spec 647——hook-timing 健康段）
 - `public final class ToolInFlight`（spec 1005——工具在飞并发水位读面：current/peak 双水位 + AutoCloseable 租约恰一次）
 - `public final class ToolSlowLog`（spec 1001——工具慢调用榜：Redis SLOWLOG 严格阈值 + 有界 FIFO 环静态读面）
+- `public record TurnLatencyPercentiles`（spec 1010——轮次时延分位数读面：R-7 插值 p50/p95，percentiles() 读面）
 - `public final class ToolTimingAggregator`（spec 700——工具执行 per-tool 耗时聚合，Holder 模式）
 - `public final class ToolTimingHealth`（spec 700——tool-timing 健康段，总耗时降序 top-20）
 - `public class LeaseLostException`
