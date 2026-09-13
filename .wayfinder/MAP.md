@@ -4,7 +4,7 @@
 > 每个 effort 一张 map（`maps/effort-<N>.md`），#2–#10 的运行期 tracker 约定存档于 `maps/readme-effort-NN.md`；C 会话进度台账 = `maps/progress-effort-300.md`。
 > 票号全局连续 **T1–T690**（T231–T239 跳号未用；#222 的 T579/T580 仅记于 map、票文件未落盘；**下一张 = T691**）；impl 切片文件 **01–184**（#14 起 impl 记录随票，票内编号累计至 372；编号史见 [impl/README.md](impl/README.md)）。
 > effort #1–#349 全部闭合（A/B/C 三期自迭代会话收口，C 会话台账见 [maps/progress-effort-300.md](maps/progress-effort-300.md)）；D 会话（400 系，#400–#429 / specs 400–429 / T691–T750 / impl 373–402）已收口。
-> **并行会话**：E 会话（500 系，PR#19 已合并）、F 会话（600 系，2026-09-13 收口：spec 600–649 / T851–T950 / impl 453–502 全档）——新号段裁决见各自 map；**G 会话（700 系 / T951–T1050 / impl 503–552 / specs 700–749，2026-09-13 启动，进行中）**。
+> **并行会话**：E 会话（500 系，PR#19 已合并）、F 会话（600 系，2026-09-13 收口：spec 600–649 / T851–T950 / impl 453–502 全档）、G 会话（700 系，2026-09-13 收口：spec 700–749 / T951–T1050 / impl 503–552 全档）——新号段裁决见各自 map；**H 会话（800 系 / T1051–T1250 / impl 553–652 / specs 800–899，2026-09-13 启动，进行中）**。
 
 **开新 effort**：新建 `maps/effort-350.md` 起续号（`.wayfinder350–399` 号段为 C 会话保留段，新自迭代会话按其台账裁决开 400 系），在下表登记一行；票从 T691 起、impl 从 373 起全局续号。tracker 约定见 [README.md](README.md)。
 
@@ -324,6 +324,7 @@
 | #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
 | **#600（总图）** | **已收口（2026-09-13）** — F 会话 600 系 50 轮自迭代 | [maps/effort-600.md](maps/effort-600.md) | T851–T950 | 453–502 |
 | **#700（总图）** | **已收口（2026-09-13，spec 749 / T1050 / impl 552）** — G 会话 700 系 50 轮自迭代（借鉴高价值开源项目；工具耗时聚合 / 缓存 SWR / 慢启动 / Retry-After 规避 / MCP keepalive / 归档 PDB / 契约套件 / 边界守卫 / …台账见 map） | [maps/effort-700.md](maps/effort-700.md) | T951–T1050 | 503–552 |
+| **#800（总图）** | **进行中（2026-09-13 启动）** — H 会话 800 系 100 轮自迭代（借鉴高价值开源项目；outbox 积压面 / 事件丢弃计数 / Envoy 弹摘语义 / retry budget / webhook HMAC / pass@k / Merkle 审计根 / …台账见 map） | [maps/effort-800.md](maps/effort-800.md) | T1051–T1250 | 553–652 |
 
 ## 跨 effort 悬留
 

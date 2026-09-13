@@ -521,6 +521,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | G 会话收口预检（台账核查） | spec 700–748 连续核查（745 缺位本轮填补）/票 96 张全闭环/impl 对账 + SpecCoverage + 快照比对复跑绿 | [spec 745](docs/spec/745-g-session-audit.md) |
 | 工程门禁 | MessageStore SPI 契约校验套件 | MessageStoreContract 四项语义契约（append/load 保序、未知会话空读、多次追加保序、deleteSession 幂等）——spec 705 同构扩散 | [spec 743](docs/spec/743-messagestore-contract.md) |
 | 工程门禁 | MessageStore 契约接入 H2 | JdbcMessageStore 过四项契约（H2 无 Docker CI 口径）——契约抓出探针会话主键冲突设计缺陷并重构为每检查独立会话（spec 743 复用面） | [spec 744](docs/spec/744-messagestore-h2.md) |
+| 观测与运维 | H 会话 800 系启动 · 事件丢弃按原因分类读面 | EventDropBreakdown（drop-oldest/block-timeout/closed-undelivered 分桶）+ eventDropBreakdown() 读面，ΣbyReason 守恒 == dropped——Sentry discarded events 借鉴（spec 800） | [spec 800](docs/spec/800-event-drop-breakdown.md) |
 
 ## 快速开始
 

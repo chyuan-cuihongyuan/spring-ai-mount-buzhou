@@ -3,12 +3,17 @@ package io.github.chyuan_cuihongyuan.buzhou.core.internal.session;
 import io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.EventBusStats;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.EventDropBreakdown;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 
 /**
@@ -40,6 +45,8 @@ final class BufferedEventDispatcher implements AutoCloseable {
     private final AtomicLong enqueued = new AtomicLong();
     private final AtomicLong dispatched = new AtomicLong();
     private final AtomicLong dropped = new AtomicLong();
+    /** impl-553 / spec 800：按原因分类计数（与 dropped 同点累计——守恒不变量）。 */
+    private final ConcurrentHashMap<String, LongAdder> dropsByReason = new ConcurrentHashMap<>();
     private final Thread drainer;
 
     BufferedEventDispatcher(String sessionId, EventDispatchConfig config,
@@ -86,6 +93,7 @@ final class BufferedEventDispatcher implements AutoCloseable {
 
     private void countDrop(SessionEvent event, String reason) {
         long total = dropped.incrementAndGet();
+        dropsByReason.computeIfAbsent(reason, k -> new LongAdder()).increment();
         // impl-41 / spec 13 §T66：丢弃可见性指标（与累计计数同源）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.eventbus.dropped");
@@ -114,6 +122,13 @@ final class BufferedEventDispatcher implements AutoCloseable {
 
     EventBusStats stats() {
         return new EventBusStats(dispatched.get(), dropped.get(), enqueued.get(), queue.size());
+    }
+
+    /** impl-553 / spec 800：按原因分类的丢弃快照（守恒：total() == stats().dropped()）。 */
+    EventDropBreakdown dropBreakdown() {
+        Map<String, Long> snapshot = new LinkedHashMap<>();
+        dropsByReason.forEach((reason, adder) -> snapshot.put(reason, adder.sum()));
+        return new EventDropBreakdown(snapshot);
     }
 
     /** 关闭：毒丸 → 宽限排空 → 硬截断。滞留事件计数为丢弃（可见）。 */
