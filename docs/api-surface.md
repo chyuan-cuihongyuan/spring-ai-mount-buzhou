@@ -2239,3 +2239,7 @@
 - `LeakSuspectAggregator`（嵌套 `SuspectType`/`Report`）（839——泄漏聚合：
   实现 LeakListener 按描述稳键（截 64）聚合 count/maxAge/lastSeen，键封顶
   32+溢出桶+count 降序排行；检测器零变更；快照近似口径）
+
+- `McpConnectTelemetry`（嵌套 `ServerTelemetry`）（840——gRPC channelz
+  思想：per-server 建连成败/连续失败 streak/lastDuration（负=未知保留）/
+  近窗 16 成功率+worstFirst 失败降序；server 封顶 32；喂点=工厂装配侧）

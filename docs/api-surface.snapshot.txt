@@ -530,6 +530,7 @@ buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.InMemoryToolSetSpecStore
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpCapabilitySnapshot
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpClientRegistry
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConcurrencyView
+buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectTelemetry
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnection
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectionFactory
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpDirectoryDiff

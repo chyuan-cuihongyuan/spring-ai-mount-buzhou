@@ -421,3 +421,4 @@
 | #838 | 选举竞争读数 | [maps/effort-838.md](maps/effort-838.md) | T1175–1176 | 590 |
 | #837 | 限流键热点读数 | [maps/effort-837.md](maps/effort-837.md) | T1177–1178 | 591 |
 | #839 | 泄漏疑似对象聚合器 | [maps/effort-839.md](maps/effort-839.md) | T1179–1180 | 592 |
+| #840 | MCP 建连遥测读数 | [maps/effort-840.md](maps/effort-840.md) | T1181–1182 | 593 |
