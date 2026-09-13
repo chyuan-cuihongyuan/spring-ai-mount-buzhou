@@ -2186,3 +2186,7 @@
 - `PricingCoverageAudit`（嵌套 `Report`）（827——LiteLLM model_prices
   覆盖思想：被调用模型 vs 价表键集三层匹配（精确/大小写/provider 前缀
   剥离）+覆盖率+unknown 典序封顶 32；空调用 1.0/空表 0 空真语义；纯函数）
+
+- `TimedDataSource`（828——HikariCP 池等待思想：DataSource 装饰器两种
+  getConnection nanoTime finally 计时进 StoreLatencyRing（其余方法纯委托，
+  异常照记照抛）；与 810 store 操作计时正交两层）

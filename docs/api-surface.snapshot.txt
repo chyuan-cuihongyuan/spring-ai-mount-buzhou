@@ -785,6 +785,7 @@ buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.JdbcSummaryStor
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.JdbcToolCallLog
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.JdbcUnitOfWork
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.SchemaMigrator
+buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.TimedDataSource
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.WriteFailurePolicy
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config.BuzhouJdbcStoreAutoConfiguration
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config.JdbcStoreProperties
