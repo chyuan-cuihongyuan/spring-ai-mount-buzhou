@@ -325,7 +325,7 @@
 | **#600（总图）** | **已收口（2026-09-13）** — F 会话 600 系 50 轮自迭代 | [maps/effort-600.md](maps/effort-600.md) | T851–T950 | 453–502 |
 | **#700（总图）** | **已收口（2026-09-13，spec 749 / T1050 / impl 552）** — G 会话 700 系 50 轮自迭代（借鉴高价值开源项目；工具耗时聚合 / 缓存 SWR / 慢启动 / Retry-After 规避 / MCP keepalive / 归档 PDB / 契约套件 / 边界守卫 / …台账见 map） | [maps/effort-700.md](maps/effort-700.md) | T951–T1050 | 503–552 |
 | **#700（总图·并行会话）** | **进行中** — 并行 G 会话 700 系总图（工具耗时聚合 / 缓存容量上限 / 慢启动 / Retry-After / 契约测试基类 / …台账见 map） | [maps/effort-700-g-total.md](maps/effort-700-g-total.md) | T951–（至 T1050） | 503–（至 552） |
-| **#800（总图）** | **进行中（2026-09-13 立桩，号段声明先行入 main——G 会撞号教训制度化）** — H 会话 800 系 50 轮自迭代（fail2ban 自动封禁 / Redis 大值审计 / 燃烧率 / dist-tag / 写放大 / crash-loop / …台账见 map） | [maps/progress-effort-800.md](maps/progress-effort-800.md) | T1101–T1200 | 553–602 |
+| **#800（总图）** | **已收口（2026-09-13，spec 849 / T1200 / impl 601）** — H 会话 800 系 50 轮自迭代（fail2ban 自动封禁 / Redis 大值审计 / 燃烧率 / dist-tag / 写放大 / crash-loop / …台账见 map） | [maps/progress-effort-800.md](maps/progress-effort-800.md) | T1101–T1200 | 553–601 |
 | #700 | 能力门决策审计读数 | [maps/effort-700.md](maps/effort-700.md) | T1000–1001 | 600 |
 | #701 | 语义缓存权重预算驱逐 | [maps/effort-701.md](maps/effort-701.md) | T1002–1003 | 601 |
 | #702 | 断路器变迁事件流读数 | [maps/effort-702.md](maps/effort-702.md) | T1004–1005 | 602 |

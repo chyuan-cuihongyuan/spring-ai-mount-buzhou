@@ -591,6 +591,50 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 缓存与前缀 | 嵌入 L2 归一化装饰器 | NormalizingEmbeddingModel——输出向量逐条单位范数，cosine 退化为点积、跨供应商尺度一致（sentence-transformers normalize_embeddings；721 同模式） | [spec 804](docs/spec/804-normalizing-embedding.md) |
 | 模型路由 | 路由分布倾斜读数 | RouteDistributionReadout——实际调用分布 vs 声明权重偏差降序+gini 集中度+dominant，「50/50 说成 95/5 做」漂移可见（Spark skew；只读不纠偏） | [spec 805](docs/spec/805-route-distribution-skew.md) |
 | 成本归因 | 预算用量分位推荐 | BudgetRecommendation——用量样本 P50/P95/P99+⌈P95×(1+headroom)⌉ 推荐档位，预算从拍脑袋变分位推导（k8s VPA；<5 样本不下结论哨兵） | [spec 806](docs/spec/806-budget-recommendation.md) |
+| 模型路由 | 路由分布倾斜读数 | RouteDistributionReadout——实际调用分布 vs 声明权重偏差降序+gini 集中度+dominant，「50/50 说成 95/5 做」漂移可见（Spark skew；只读不纠偏） | [spec 805](docs/spec/805-route-distribution-skew.md) |
+| 护栏 | 签名密钥轮换到期审计 | KeyRotationAudit——密钥龄 OVERDUE/DUE_SOON/OK 三档+UNKNOWN_ACTIVE 账本异常面+最坏排序，SigningKeyRing 零侵入（cert-manager 证书到期监控；纯读数不轮换） | [spec 807](docs/spec/807-key-rotation-audit.md) |
+| 导出治理 | 导出内容去重统计 | ExportDedupeStats——精确串值重复计数+节省字符+savingsRatio+Top16 preview 截 32 隐私，空块计 items 不计重复（restic dedupe stats；字符口径与 738 一致） | [spec 808](docs/spec/808-export-dedupe-stats.md) |
+| 并发治理 | 作业死信台账 | JobDeadLetterLog——DelayedJobQueue 可选失败观察者(2 参构造 null=原行为)停尸明细环 64+按键聚合 64+totalFailed，message 截 200（sidekiq dead set；不重投） | [spec 809](docs/spec/809-job-dead-letter.md) |
+| 存储治理 | 存储提交延迟环形读数 | StoreLatencyRing+TimedMessageStore——per-op FIFO 128 样本环+最近秩 P50/P95+操作名封顶 16，MessageStore 装饰器三方法 finally 计时异常照记（etcd backend commit latency；行为零变更） | [spec 810](docs/spec/810-store-latency-ring.md) |
+| 模型韧性 | 断路器 crash-loop 检测 | CircuitCrashLoopDetector——滑窗 OPEN≥minOpens 转 looping 闩锁态(窗口滑过不自动解除、唯 recordRecovery 清除)，loopsDetected 边沿计数（k8s CrashLoopBackOff 语义对齐；旁路不改断路器） | [spec 811](docs/spec/811-circuit-crash-loop.md) |
+| 观测治理 | 观测管道内存限流器 | PipelineMemoryLimiter——在途权重总量判定 tryAdmit(CAS 无锁拒收不记账)+release 归账防负，拒绝只发信号（OTel memory_limiter；8 线程守恒压测） | [spec 812](docs/spec/812-pipeline-memory-limiter.md) |
+| 技能治理 | 技能发布通道解析 | SkillChannelResolver——(名,版本,通道) 注册表纯解析：显式通道→回退 latest→全表最高，点分数值段+prerelease 低于 release（pnpm/yarn dist-tag；只读零 store 侵入） | [spec 813](docs/spec/813-skill-channel-resolver.md) |
+| MCP 治理 | MCP 断路器变迁台账 | McpBreakerTransitionJournal——702 同模式扩散 server 聚合熔断：三路径后 stateOf 差分采样入账+环形 64+trips/recovers 聚合 32（采样型差分口径显式） | [spec 814](docs/spec/814-mcp-breaker-journal.md) |
+| Spill 治理 | Spill 写放大读数 | SpillWriteAmplifier——逻辑/物理字节累计+放大率+近窗 64 样本均值与最近秩 P95（RocksDB bytes_written/bytes_logical 口径；store 主路径零侵入） | [spec 815](docs/spec/815-spill-write-amplifier.md) |
+| 记忆治理 | 记忆分层容量读数 | MemoryHierarchyCapacity——core-summary/archival-facts/recall-window 三层 items/chars+可选 cap 水位三级（MemGPT/Letta 分层借鉴；Snapshot 调用方采集） | [spec 816](docs/spec/816-memory-hierarchy-capacity.md) |
+| 观测治理 | SLO 多窗燃烧率判定 | SloMultiWindowBurn——快慢双窗同超阈值且样本足才判 incident，独热带毛刺/渗漏诊断 reason（Google SRE Workbook multiwindow；组合式判定脑 ErrorBudget 零变更） | [spec 817](docs/spec/817-slo-multiwindow-burn.md) |
+| 模型韧性 | 限流自适应收紧器 | AdaptiveRateTightener——429 乘性收缩(下限封底)+保持窗后乘性步进恢复纯时间推导（AWS adaptive mode 客户端节流；乘数接线归调用方） | [spec 818](docs/spec/818-adaptive-rate-tightener.md) |
+| 预算治理 | Token 估算校准偏差审计 | EstimatorCalibrationAudit——估算 vs 模型真实 usage 成对入账：相对误差均值+偏高偏低占比+近窗 P95（预测校准思想；事后审计不改估算器） | [spec 819](docs/spec/819-estimator-calibration.md) |
+| 护栏 | 护栏豁免登记面 | GuardExemptionRegistry——机制×主体显式有时限豁免：惰性过期计数+同键覆盖续期+封顶 64 truncated（ESLint suppressions 带过期；不自动接线 hook 零变化） | [spec 820](docs/spec/820-guard-exemption-registry.md) |
+| 工具治理 | 目录 lint 严重度分级 | LintSeverityGrader——DENY/WARN/HINT 三档默认映射+withRule 不可变定制+严重序典序破平+未知规则保守 HINT（rust-clippy 分级；纯分级不阻断） | [spec 821](docs/spec/821-lint-severity-grader.md) |
+| MCP 治理 | MCP 能力协商快照 | McpCapabilitySnapshot——连接 seam 三观察点单点快照：排序名册+hint 覆盖/只读/破坏计数+确定性指纹（LSP capabilities；835 diff 的基线输入形状） | [spec 822](docs/spec/822-mcp-capability-snapshot.md) |
+| 启动治理 | 启动阶段耗时读数 | StartupPhaseTiming——装配阶段 start/end 句柄计时留痕(未结束 -1 哨兵+end 首末幂等+升序快照+封顶 64)，Clock 注入（Spring Boot ApplicationStartup；零 lifecycle 侵入） | [spec 823](docs/spec/823-startup-phase-timing.md) |
+| 会话治理 | 取消原因分布读数 | CancelCauseDistribution——606 五类闭集计数/份额/lastSeen 降序面+dominant 平局声明序（Temporal 取消观测；闭集天然有界） | [spec 824](docs/spec/824-cancel-cause-distribution.md) |
+| 会话治理 | 会话迁移对账 | MigrationReconciliation——源/目标导出四维对账：消息计数/轮次范围/首尾 id(仅 keepIds)/状态键缺失明细封顶 8（gh-ost 在线迁移对账；重映射跳过 id 比对） | [spec 825](docs/spec/825-migration-reconciliation.md) |
+| 护栏 | 注入检测分级策略 | InjectionParanoiaPolicy——L1-L4 标准阈值表(0.95/0.85/0.70/0.50)+BLOCK/LOG/ALLOW 三态裁决(0.10 观察带)，分数越界截断（ModSecurity paranoia levels；classifier 零变更） | [spec 826](docs/spec/826-injection-paranoia-policy.md) |
+| 成本归因 | 定价表覆盖审计 | PricingCoverageAudit——被调用模型 vs 价表键集三层匹配(精确/大小写/剥 provider 前缀)+覆盖率+unknown 典序封顶 32（LiteLLM model_prices；空调用 1.0/空表 0 空真） | [spec 827](docs/spec/827-pricing-coverage-audit.md) |
+| 持久化 | 计时连接池 DataSource | TimedDataSource——两种 getConnection nanoTime finally 计时进 StoreLatencyRing(含池等待，与 810 正交两层)（HikariCP 池等待指标；其余方法纯委托） | [spec 828](docs/spec/828-timed-datasource.md) |
+| 记忆治理 | 事实合并决策分布 | FactMergeDecisionDistribution——9 段×3 决策(CREATED/KEPT/SUPERSEDED) 闭集记账+supersededRatio+段行声明序（mem0 冲突解决统计扩散；reconcile 零变更） | [spec 829](docs/spec/829-fact-merge-decisions.md) |
+| 护栏 | 审计树形健康读数 | AuditTreeHealthReadout——叶数→深度(32−lz 技巧)/nextPow2/补位叶/满树判定，细高树 vs 矮胖健康量化（CT 树语义扩散；纯形状不校验内容） | [spec 830](docs/spec/830-audit-tree-health.md) |
+| 背压治理 | 会话准入拒绝分布 | SpawnRejectionDistribution——拒绝原因开集聚合：键封顶 16 truncated+count/lastSeen 降序+dominant 平局稳定（k8s admission 拒绝读数；gate 零变更） | [spec 831](docs/spec/831-spawn-rejection-distribution.md) |
+| 技能治理 | 技能加载延迟读数 | SkillLoadLatency——per-skill 环 32 样本+nearest-rank P50/P95+全历史 max，超 1024 技能并入溢出桶+slowest() P95 降序（LangSmith 延迟分析扩散；loads=近窗语义） | [spec 832](docs/spec/832-skill-load-latency.md) |
+| 护栏 | 危险工具命中分布 | DangerousToolHitStats——per-tool 命中热力排行：封顶 64+溢出桶/requiredState 最近非空/lastSeen max/top(n) 降序（WAF top-rules 观测；不改拦截行为） | [spec 833](docs/spec/833-dangerous-tool-hit-stats.md) |
+| 上下文治理 | 上下文截断统计 | ContextTruncationStats——跨截断机制 chars 聚合：策略键封顶 8 超限并入溢出桶(量净计)+events/chars 双累计+chars 降序（HF truncation_strategy；喂点=机制装配侧） | [spec 834](docs/spec/834-context-truncation-stats.md) |
+| 观测治理 | 尾采样决策台账 | TailSamplingDecisionLog——trace 采样决策环形明细 64+决策×原因聚合(键封顶 16+溢出桶带决策维)+keptRatio（OTel tail_sampling；与 eval 采样域正交） | [spec 835](docs/spec/835-tail-sampling-decision-log.md) |
+| 模型韧性 | 半开探测成功率读数 | HalfOpenProbeStats——per-model 探测成败累计+连续失败 streak(成功清零)+近窗 20 成功率（Resilience4j probe 语义扩散，与 811 互补；模型封顶 32） | [spec 836](docs/spec/836-halfopen-probe-stats.md) |
+| 模型韧性 | 限流键热点读数 | RateLimitKeyHotspot——限流键申请热力排行：键封顶 128+溢出桶/requests+amount 毫账累计/lastSeen+top 降序（Envoy 键域观测；补位轮 effort 连续性恢复） | [spec 837](docs/spec/837-ratelimit-key-hotspot.md) |
+| 持久化 | 选举竞争读数 | LeaderElectionStats——选主四态(获选/续期/让位/失位)原子计数+contentionRatio 竞争烈度（Redisson RedLock 竞争统计；归类归调用方零变更） | [spec 838](docs/spec/838-leader-election-stats.md) |
+| 泄漏治理 | 泄漏疑似对象聚合器 | LeakSuspectAggregator——实现 LeakListener 按描述稳键(截 64)聚合 count/maxAge/lastSeen，键封顶 32+溢出桶+count 降序排行（换题 S9；检测器零变更） | [spec 839](docs/spec/839-leak-suspect-aggregator.md) |
+| MCP 治理 | MCP 建连遥测读数 | McpConnectTelemetry——per-server 建连成败+连续失败 streak+lastDuration+近窗 16 成功率+worstFirst 失败降序（gRPC channelz 思想；与 722/822 三层正交） | [spec 840](docs/spec/840-mcp-connect-telemetry.md) |
+| 会话治理 | 会话空闲时长分桶直方 | IdleDurationHistogram——可配升序边界(默认 1m/5m/15m/60m 五桶，恰达归右桶)桶计数+total/longest+人话区间标签快照（S5 扩散；AtomicLongArray） | [spec 841](docs/spec/841-idle-duration-histogram.md) |
+| 护栏 | HITL 认证决策分布 | AuthDecisionStats——五态闭集(批准/拒绝/过期/已消费/未知凭证)计数+占比降序快照（Keycloak 决策观测扩散；GuardAuthApi 零变更） | [spec 842](docs/spec/842-auth-decision-stats.md) |
+| Spill 治理 | 证据引用失效率读数 | EvidenceRefValidity——被引用 URI vs 存在性谓词失效率对账：失效样本典序封顶 16+空集空真（S3 presigned 时限校验；谓词注入零触碰） | [spec 843](docs/spec/843-evidence-ref-validity.md) |
+| 记忆治理 | 摘要降级原因分布 | SummaryDegradeReasons——五态闭集(超限/生成失败/空内容/策略强制/未知)计数+占比降序快照（Envoy degraded 扩散；SummaryDegrader 零变更） | [spec 844](docs/spec/844-summary-degrade-reasons.md) |
+| 提示词治理 | Prompt 回滚使用读数 | RollbackUsageStats——prompt 回滚聚合：名封顶 64+溢出桶/rollbacks/最近版本对/lastSeen，次数降序典序破平（S6 Langfuse rollback 观测面） | [spec 845](docs/spec/845-rollback-usage-stats.md) |
+| 观测治理 | 死信重投成功率读数 | DeadLetterRedeliveryStats——重投 attempts/successes/successRate+连续失败 streak(成功清零) 原子记账（sidekiq retry set 扩散；重投语义归调用方） | [spec 846](docs/spec/846-deadletter-redelivery-stats.md) |
+| 评估治理 | 数据集近重复读数 | DatasetNearDuplicateStats——trigram Jaccard 两两对账+并查集成簇：duplicatePairs/largestCluster/uniqueRatio，条目封顶 200 截断（Cleanlab 数据质量；714 同源扩散） | [spec 847](docs/spec/847-dataset-near-duplicate.md) |
+| 配置治理 | 配置默认偏离审计 | ConfigDeviationAudit——当前值 vs 出厂默认偏离对账(无基线不裁决)+偏离清单典序封顶+偏离率（Spring Boot configuration metadata 扩散；与 ConfigDiff 辨义） | [spec 848](docs/spec/848-config-deviation-audit.md) |
+| 收口 | H 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门/覆盖门全过+台账 50/50 归档——effort 800–849 连续无缺位（R39 补位轮制度化） | [spec 849](docs/spec/849-h-session-closing.md) |
 
 ## 快速开始
 
