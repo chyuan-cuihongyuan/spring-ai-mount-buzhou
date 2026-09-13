@@ -20,13 +20,14 @@
 ## Decisions so far
 
 - [工具策略匹配决策读面的形态裁决](../tickets/T1451-policy-match-decision-shape.md) — ToolPolicyMatchDecision（EXACT/GLOB/NONE + matchedKey）+ ToolPolicyMatchStats 快照（Σ守恒 == match 调用数，recent 有界环 32）；match 返回值逐位不变，stats()/resetStats() 读面（OPA decision log）。
+- [慢调用榜读面的形态裁决](../tickets/T1453-slow-log-shape.md) — ToolSlowLog（Redis SLOWLOG：严格大于阈值入有界 FIFO 环 32、entries() 新→旧现场、configureThreshold/reset）；HookedToolCallback 与 timer 同点接线，只记名不记参（红线）；聚合面之外的单次现场。
 
 ## 150 轮台账
 
 | # | 主题 | 借鉴源 | 票 | impl | spec | 状态 |
 |---|------|--------|----|------|------|------|
 | 1 | 工具策略匹配决策读面（EXACT/GLOB/未命中分类 + 有界最近决策环） | OPA decision log | T1451–T1452 | 753 | 1000 | ✅ |
-| 2 | （开工时按缺口核查选题，候选见下） | — | T1453–T1454 | 754 | 1001 |  |
+| 2 | 工具慢调用榜读面（严格阈值 + 有界 FIFO 环 + 单次现场） | Redis SLOWLOG | T1453–T1454 | 754 | 1001 | ✅ |
 
 （2–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。）
 

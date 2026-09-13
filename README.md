@@ -528,6 +528,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 导入审计与严格模式 | SessionExportAudit.audit（未知顶层字段/缺失推荐字段报告）+ fromJsonStrict opt-in 拒绝——宽松路径零变化，pg_restore --exit-on-error / protobuf unknown fields 思想（spec 904） | [spec 904](docs/spec/904-import-audit.md) |
 | 观测与运维 | 健康聚合评分读面 | BuzhouHealthScore（UP=100/UNKNOWN=50 中性/DOWN=0 算术平均 + healthy/degraded/unhealthy 分档常量 + DOWN 清单）——K8s probe aggregate 思想（spec 905） | [spec 905](docs/spec/905-health-score.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
+| 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
