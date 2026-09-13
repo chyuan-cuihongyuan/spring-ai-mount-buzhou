@@ -370,6 +370,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CompositeAttachmentRenderer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextWindowResolver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EstimatorCalibrationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.Fact
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.FactStore

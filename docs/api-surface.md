@@ -2148,3 +2148,7 @@
 - `AdaptiveRateTightener`（818——AWS adaptive mode 借鉴：429 乘性收缩
   （下限 minMultiplier）+保持窗后乘性步进恢复纯时间推导（无线程确定性）；
   乘数接线归调用方不改 backend SPI；模型封顶 32）
+
+- `EstimatorCalibrationAudit`（嵌套 `Calibration`）（819——预测校准思想：
+  估算 vs 模型真实 usage 成对入账——相对误差均值/偏高偏低占比/近窗
+  P95 绝对误差；actual≤0 忽略；事后审计不改估算器）
