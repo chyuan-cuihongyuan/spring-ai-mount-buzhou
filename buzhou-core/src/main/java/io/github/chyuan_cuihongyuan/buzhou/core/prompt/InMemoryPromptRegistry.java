@@ -22,6 +22,13 @@ public final class InMemoryPromptRegistry implements PromptRegistry {
     }
 
     private final Map<String, NameState> states = new ConcurrentHashMap<>();
+    /** impl-791 / spec 1039：解析分布计数（守恒 attempts == hits + misses）。 */
+    private final java.util.concurrent.atomic.AtomicLong resolutions =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong hits =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong misses =
+            new java.util.concurrent.atomic.AtomicLong();
 
     @Override
     public PromptVersion publish(String name, String body, String note) {
@@ -64,16 +71,37 @@ public final class InMemoryPromptRegistry implements PromptRegistry {
 
     @Override
     public Optional<PromptVersion> resolve(String name, String label) {
+        resolutions.incrementAndGet(); // spec 1039：解析分布
         NameState state = name == null ? null : states.get(name);
         if (state == null || label == null) {
+            misses.incrementAndGet();
             return Optional.empty();
         }
         Integer version = state.labels.get(label);
-        return version == null ? Optional.empty() : resolveVersion(name, version);
+        if (version == null) {
+            misses.incrementAndGet();
+            return Optional.empty();
+        }
+        Optional<PromptVersion> result = findVersion(name, version);
+        if (result.isPresent()) {
+            hits.incrementAndGet();
+        } else {
+            misses.incrementAndGet();
+        }
+        return result;
     }
 
-    @Override
-    public Optional<PromptVersion> resolveVersion(String name, int version) {
+    /** 解析分布只读快照（守恒 attempts == hits + misses——spec 1039）。 */
+    public PromptResolutionStats resolutionStats() {
+        return new PromptResolutionStats(resolutions.get(), hits.get(), misses.get());
+    }
+
+    /** 解析分布计数行（不可变）。 */
+    public record PromptResolutionStats(long attempts, long hits, long misses) {
+    }
+
+    /** 版本定点解析核心（无计数——由公共入口统一计）。 */
+    private Optional<PromptVersion> findVersion(String name, int version) {
         NameState state = name == null ? null : states.get(name);
         if (state == null) {
             return Optional.empty();
@@ -82,6 +110,27 @@ public final class InMemoryPromptRegistry implements PromptRegistry {
             return state.versions.stream()
                     .filter(v -> v.version() == version)
                     .findFirst();
+        }
+    }
+
+    @Override
+    public Optional<PromptVersion> resolveVersion(String name, int version) {
+        resolutions.incrementAndGet(); // spec 1039：解析分布
+        NameState state = name == null ? null : states.get(name);
+        if (state == null) {
+            misses.incrementAndGet();
+            return Optional.empty();
+        }
+        synchronized (state) {
+            Optional<PromptVersion> result = state.versions.stream()
+                    .filter(v -> v.version() == version)
+                    .findFirst();
+            if (result.isPresent()) {
+                hits.incrementAndGet();
+            } else {
+                misses.incrementAndGet();
+            }
+            return result;
         }
     }
 
