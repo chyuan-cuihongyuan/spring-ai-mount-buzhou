@@ -20,9 +20,18 @@ import java.util.Optional;
  */
 public class RedisSessionLeaseStore implements SessionLeaseStore {
 
-    /** acquire：EXISTS 即占用失败返回 0；否则 INCR 取 token、写 lease、PEXPIRE，返回 token(≥1)。 */
+    /** impl-683 / spec 930（契约抓出语义缺陷修复）：同 owner 重入续期幂等（SPI「已是持有人则
+     * 续期并返回原 token」语义，LeaderElector 同款）；异 owner 才拒。空闲 INCR 取 token、
+     * 写 lease、PEXPIRE，返回 token(≥1)。 */
     private static final String ACQUIRE_SCRIPT = """
-            if redis.call('EXISTS', KEYS[1]) == 1 then return 0 end
+            if redis.call('EXISTS', KEYS[1]) == 1 then
+                if redis.call('HGET', KEYS[1], 'owner') == ARGV[1] then
+                    local token = redis.call('HGET', KEYS[1], 'fencingToken')
+                    redis.call('PEXPIRE', KEYS[1], tonumber(ARGV[4]))
+                    return tonumber(token)
+                end
+                return 0
+            end
             local token = redis.call('INCR', KEYS[2])
             redis.call('HSET', KEYS[1], 'owner', ARGV[1], 'fencingToken', token,
                        'acquiredAt', ARGV[2], 'expiresAt', ARGV[3])
