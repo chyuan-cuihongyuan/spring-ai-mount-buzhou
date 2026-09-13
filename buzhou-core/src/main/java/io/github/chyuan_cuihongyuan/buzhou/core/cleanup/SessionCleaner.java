@@ -34,6 +34,15 @@ public final class SessionCleaner {
     private final RunRegistry runRegistry;
     private final ToolCallLog toolCallLog;
     private final List<SessionCleanupContributor> contributors;
+    /** impl-783 / spec 1030：级联清理聚合计数（目标失败分布——持续故障显形）。 */
+    private final java.util.concurrent.atomic.AtomicLong deleteCalls =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong cleanedTargets =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong failedTargets =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong> failuresByTarget =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     /** 仅五槽核心 store（既有组合的最小级联）。 */
     public SessionCleaner(BuzhouStores stores) {
@@ -67,6 +76,7 @@ public final class SessionCleaner {
 
     /** 一次级联：逐目标隔离删除、失败聚合报告。目标槽位为 null 时跳过（不进报告）。 */
     public SessionCleanupResult deleteSession(String sessionId) {
+        deleteCalls.incrementAndGet(); // spec 1030：聚合计数
         List<String> cleaned = new ArrayList<>();
         Map<String, RuntimeException> failures = new LinkedHashMap<>();
         if (stores != null) {
@@ -109,10 +119,30 @@ public final class SessionCleaner {
         try {
             deletion.run();
             cleaned.add(name);
+            cleanedTargets.incrementAndGet(); // spec 1030
         } catch (RuntimeException e) {
+            failedTargets.incrementAndGet();
+            failuresByTarget.computeIfAbsent(name, k -> new java.util.concurrent.atomic.AtomicLong())
+                    .incrementAndGet(); // spec 1030：目标失败分布
             LOGGER.log(System.Logger.Level.ERROR,
                     "会话清理目标失败（已隔离，继续其余目标）：target={0}", name, e);
             failures.put(name, e);
+        }
+    }
+
+    /** 级联清理聚合只读快照（spec 1030——目标失败分布直读，持续故障显形）。 */
+    public CleanupStats cleanupStats() {
+        Map<String, Long> byTarget = new java.util.TreeMap<>();
+        failuresByTarget.forEach((name, counter) -> byTarget.put(name, counter.get()));
+        return new CleanupStats(deleteCalls.get(), cleanedTargets.get(),
+                failedTargets.get(), Map.copyOf(byTarget));
+    }
+
+    /** 聚合计数行（不可变；failuresByTarget 仅含发生过失败的目标）。 */
+    public record CleanupStats(long deleteCalls, long cleanedTargets, long failedTargets,
+                               Map<String, Long> failuresByTarget) {
+        public CleanupStats {
+            failuresByTarget = Map.copyOf(failuresByTarget);
         }
     }
 }

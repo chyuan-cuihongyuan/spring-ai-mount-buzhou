@@ -576,6 +576,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 手动压缩操作分布读面 | ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages 守恒）+ opStats()——K8s 事件聚合思想（spec 1027） | [spec 1027](docs/spec/1027-compact-op-stats.md) |
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
+| 会话治理 | 会话级联清理聚合计数读面 | SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()——PostgreSQL autovacuum stats 思想（spec 1030） | [spec 1030](docs/spec/1030-cleanup-stats.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
 | 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
