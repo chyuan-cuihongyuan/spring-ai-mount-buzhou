@@ -2152,3 +2152,7 @@
 - `EstimatorCalibrationAudit`（嵌套 `Calibration`）（819——预测校准思想：
   估算 vs 模型真实 usage 成对入账——相对误差均值/偏高偏低占比/近窗
   P95 绝对误差；actual≤0 忽略；事后审计不改估算器）
+
+- `GuardExemptionRegistry`（嵌套 `Exemption`/`Snapshot`）（820——ESLint
+  suppressions 带过期借鉴：机制×主体显式有时限豁免登记——惰性过期计数/
+  同键覆盖续期/封顶 64+truncated；不自动接线 hook 默认零变化）
