@@ -524,6 +524,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测与运维 | I 会话 900 系启动 · 事件丢弃按原因分类读面 | EventDropBreakdown（drop-oldest/block-timeout/closed-undelivered 分桶）+ eventDropBreakdown() 读面，ΣbyReason 守恒 == dropped——Sentry discarded events 借鉴（spec 900） | [spec 900](docs/spec/900-event-drop-breakdown.md) |
 | 评估闭环 | 评估失败率中途剪枝 | EvalPrunePolicy（观察窗+失败率阈值）opt-in，串行路径恰停剩余项标 pruned 不烧预算——Optuna pruner 提前停止借鉴（spec 901） | [spec 901](docs/spec/901-eval-prune.md) |
 | 评估闭环 | pass@k 无偏估计器 | EvalPassAtK 连乘无偏公式（HumanEval §2.1）+ 逐项聚合——纯函数不触 store，k 次采样留宿主（spec 902） | [spec 902](docs/spec/902-pass-at-k.md) |
+| 评估闭环 | bootstrap 均值置信区间 | EvalScoreAnalytics.bootstrapMeanInterval（Efron percentile，seed 注入可复现）——小样本 mean 抽样误差显形（spec 903） | [spec 903](docs/spec/903-bootstrap-ci.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
