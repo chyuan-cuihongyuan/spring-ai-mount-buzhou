@@ -599,6 +599,14 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 749-final-verification（补登） | I/J 会话产出引用补全 | [spec 749](docs/spec/749-final-verification.md) |
 | 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
 | 评估闭环 | 快照数据集隔离性深验 | 三断言（源变靶不变/删源靶活/nextId 续起不碰撞）——spec 187 隔离语义收口薄加固轮（spec 949） | [spec 949](docs/spec/949-snapshot-isolation.md) |
+| 评估闭环 | 数据集输入长度画像 | EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars）——评估成本画像，超长项预算失控点（spec 942） | [spec 942](docs/spec/942-input-profile.md) |
+| 会话治理 | 摘要存储水位读面 | InMemorySummaryStore.watermark（activeSessions/maxSessions）——水位系列第三站（spec 950） | [spec 950](docs/spec/950-summary-watermark.md) |
+| 记忆治理 | token 估算统计读面 | TokenEstimateStats——token 估算链路计数对账（spec 1033） | [spec 1033](docs/spec/1033-token-estimate-stats.md) |
+| 记忆治理 | 词法排序统计读面 | LexicalRankStats——检索词法排序链路计数（spec 1034） | [spec 1034](docs/spec/1034-lexical-rank-stats.md) |
+| 模型韧性 | MCP 解析统计读面 | McpParseStats——MCP 工具清单解析成败计数（spec 1036） | [spec 1036](docs/spec/1036-mcp-parse-stats.md) |
+| 安全 | 权限统计读面 | PermissionStats——权限判定分布聚合（spec 1037） | [spec 1037](docs/spec/1037-permission-stats.md) |
+| memory | 摘要桥接统计读面 | SummaryBridgeStats——摘要桥接链路计数对账（spec 1038） | [spec 1038](docs/spec/1038-summary-bridge-stats.md) |
+| prompt 域 | 提示词解析统计读面 | PromptResolutionStats——提示词解析成败计数对账（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | 评估闭环 | k 次防抖门 | EvalGate.enforceStable（k 次全过才过 + 早停 + 历史容量校验）——flaky 误报防护从严门（spec 943） | [spec 943](docs/spec/943-stable-gate.md) |
