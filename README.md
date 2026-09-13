@@ -550,6 +550,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | memory | 事实衰减预报读法 | FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉，floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路，衰减预警→主动 reinforce（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | exec 治理 | 软截止预警集成 | HarnessToolCallingManager 软截止窗（setSoftDeadlineWindow + 一次性 WARN/counter + beginTurn 复位）——spec 921 集成留位兑现（spec 927） | [spec 927](docs/spec/927-soft-deadline-integration.md) |
 | 会话治理 | pruned run 审计查询 | EvalQueryService.runsWithPruned（pruned 项筛选 + PrunedRunSummary 降序投影）——spec 901 剪枝审计入口（spec 928） | [spec 928](docs/spec/928-pruned-query.md) |
+| 模型韧性 | webhook 死信环形上限 | MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧保最新）——dead.* 存量从无限累积到环形封顶，有界纪律（spec 937） | [spec 937](docs/spec/937-deadletter-cap.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
@@ -571,6 +572,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
 | 会话治理 | pruned run 审计查询 | EvalQueryService.runsWithPruned（pruned 项筛选 + PrunedRunSummary 降序投影）——spec 901 剪枝审计入口（spec 928） | [spec 928](docs/spec/928-pruned-query.md) |
+| 模型韧性 | webhook 死信环形上限 | MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧保最新）——dead.* 存量从无限累积到环形封顶，有界纪律（spec 937） | [spec 937](docs/spec/937-deadletter-cap.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
 | 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
