@@ -2267,3 +2267,7 @@
 - `DeadLetterRedeliveryStats`（846——sidekiq retry set 扩散：死信重投
   attempts/successes/successRate/连续失败 streak 原子记账（成功清零）；
   重投语义归调用方，喂点=重投路径装配侧）
+
+- `DatasetNearDuplicateStats`（嵌套 `Report`）（847——Cleanlab 数据质量
+  思想：trigram Jaccard 两两对账+并查集成簇——duplicatePairs/largestCluster/
+  uniqueRatio；条目封顶 200 截断+truncated；threshold (0,1] fail-fast）

@@ -111,6 +111,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.RetryCategory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.AbRunJsonlExporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.BuiltInEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetExpectations
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetNearDuplicateStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalCaseAmplifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetCsv
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalDatasetMeta
