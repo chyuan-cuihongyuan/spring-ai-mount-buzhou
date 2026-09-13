@@ -538,6 +538,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | gate 判定环形历史读面 | gate 判定历史环时间线（spec 914） | [spec 914](docs/spec/914-gate-history.md) |
 | 观测与运维 | EventDropBreakdown 并发压测 | 丢弃分桶并发压测实证（spec 915） | [spec 915](docs/spec/915-drop-breakdown-stress.md) |
 | 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
+| 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
 | 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |

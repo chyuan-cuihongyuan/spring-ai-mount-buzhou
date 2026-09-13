@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -136,6 +137,33 @@ public class DiskSpillStore implements SpillStore {
                         }
                     })
                     .sum();
+        } catch (IOException e) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                    "spill 磁盘 IO 失败", e);
+        }
+    }
+
+    /**
+     * 容量水位快照（impl-764 / spec 1011——Redis INFO memory /
+     * pg_database_size 思想；与配额守卫 {@code totalSpillBytes()} 同口径 walk，
+     * 一次遍历同时计字节与条数）。
+     */
+    public synchronized SpillUsage usage() {
+        if (!Files.isDirectory(rootDir)) {
+            return new SpillUsage(0, 0);
+        }
+        try (Stream<Path> walk = Files.walk(rootDir)) {
+            List<Path> dataFiles = walk.filter(p -> p.toString().endsWith(DATA_SUFFIX)).toList();
+            long total = 0;
+            for (Path p : dataFiles) {
+                try {
+                    total += Files.size(p);
+                } catch (IOException e) {
+                    // 读不到的残缺文件不计——配额守卫同口径
+                }
+            }
+            return new SpillUsage(total, dataFiles.size());
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
