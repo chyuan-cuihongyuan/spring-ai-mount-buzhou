@@ -413,6 +413,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStoreContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ObservabilityStoreContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.RateLimitBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy
@@ -441,7 +442,6 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.UnitOfWork
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver
-buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.WindowResolutionStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.DeadLetterRedeliveryStats

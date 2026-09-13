@@ -549,9 +549,29 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 会话索引存量水位读面 | InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构（spec 925） | [spec 925](docs/spec/925-index-watermark.md) |
 | memory | 事实衰减预报读法 | FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉，floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路，衰减预警→主动 reinforce（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | exec 治理 | 软截止预警集成 | HarnessToolCallingManager 软截止窗（setSoftDeadlineWindow + 一次性 WARN/counter + beginTurn 复位）——spec 921 集成留位兑现（spec 927） | [spec 927](docs/spec/927-soft-deadline-integration.md) |
+| 会话治理 | pruned run 审计查询 | EvalQueryService.runsWithPruned（pruned 项筛选 + PrunedRunSummary 降序投影）——spec 901 剪枝审计入口（spec 928） | [spec 928](docs/spec/928-pruned-query.md) |
+| 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
+| 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
+| 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
+| 观测治理 | 健康评分端点装配 | /actuator/buzhou 快照加 score 段（投影+safeScore 降级）；实证修复端点 mechanism/status 裸调用无隔离——spec 905 装配留位兑现（spec 917） | [spec 917](docs/spec/917-score-assembly.md) |
+| 观测治理 | 丢弃计数 reason 维度指标 | DROP_REASON_* 六常量统一三处字面量 + 双轨指标（总量保留+dropped-reason 值域封闭）——breakdown 键与 tag 同源（spec 918） | [spec 918](docs/spec/918-drop-reason-metric.md) |
+| 会话治理 | 加密导出×审计×指纹联动 e2e | 密文进明文审计 fail-closed 固化/seal→open→严格导入全链/nonce 密文不同内容指纹稳定（spec 919） | [spec 919](docs/spec/919-encrypted-export-e2e.md) |
+| 模型韧性 | webhook 限流器余量快照读面 | WebhookRateLimiter.snapshot（同锁强一致 tokens/capacity/refill/deferred 四值投影）——TurnRateLimitHook.availableSnapshot 同构（spec 920） | [spec 920](docs/spec/920-ratelimit-snapshot.md) |
+| 会话治理 | TurnDeadline 软截止窗口读法 | withinSoftWindow 预警窗判定 + softDeadlineAt 预警绝对时刻——K8s graceful period 分层语义（spec 921） | [spec 921](docs/spec/921-soft-window.md) |
+| 持久化 | SessionLeaseStore 契约校验套件 | 九项租约语义检查静态 verify（acquire 幂等互斥/renew 限定/steal fence 递增/deleteSession 幂等）——spec 705/743 同构（spec 922） | [spec 922](docs/spec/922-lease-contract.md) |
+| 观测治理 | 扩缩容建议缩容滞回 | stabilizeWindows opt-in（回零需连续 N 空闲窗，扩容即时不对称）——HPA stabilization window（spec 923） | [spec 923](docs/spec/923-scaling-hysteresis.md) |
+| 观测治理 | 观测存储水位读面 | InMemoryObservabilityStore.watermark（activeSessions/totalRecords vs 上限 + 逐出透传）——Redis INFO memory（spec 924） | [spec 924](docs/spec/924-obs-watermark.md) |
+| 观测治理 | 会话索引存量水位读面 | InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构（spec 925） | [spec 925](docs/spec/925-index-watermark.md) |
+| 会话治理 | 剪枝边界深验 | minItems==total 不残缺/阈值极小首 fail 即剪/memo 共存不绕裁决——901 边界组合收口（spec 931） | [spec 931](docs/spec/931-prune-edge-deep.md) |
+| 评估闭环 | 剪枝 run 有效通过率口径 | EvalRunResult.prunedCount() + effectivePassRate()（分母排除 pruned）——双口径显式并存，总量防刷分（spec 933） | [spec 933](docs/spec/933-effective-passrate.md) |
+| 评估闭环 | GateResult 有效通过率透出 | GateResult 加 effectivePassRate 组件（11 参新构造 + 10 参兼容 NaN 委托）——剪枝 run 门结果双口径同屏（spec 934） | [spec 934](docs/spec/934-gate-effective-passrate.md) |
+| 会话治理 | ExportManifest 规范化摘要 | addCanonical/verifyCanonical 配对（canonicalJson 单点提级）——911 JCS 向 manifest 扩散，键序漂移不误报（spec 935） | [spec 935](docs/spec/935-manifest-canonical.md) |
+| memory | 事实衰减预报读法 | FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉，floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路，衰减预警→主动 reinforce（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
+| exec 治理 | 软截止预警集成 | HarnessToolCallingManager 软截止窗（setSoftDeadlineWindow + 一次性 WARN/counter + beginTurn 复位）——spec 921 集成留位兑现（spec 927） | [spec 927](docs/spec/927-soft-deadline-integration.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
 | 会话治理 | pruned run 审计查询 | EvalQueryService.runsWithPruned（pruned 项筛选 + PrunedRunSummary 降序投影）——spec 901 剪枝审计入口（spec 928） | [spec 928](docs/spec/928-pruned-query.md) |
+| 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
 | 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
 | 安全 | 加密封存操作生命周期计数读面 | EncryptedSessionExport sealed/opened/openRejected 三计数（open 三拒绝路径全覆盖）+ 嵌套 SealStats + stats()——age/OpenSSL ops 实践，开失败率=密钥失配第一信号（spec 1012） | [spec 1012](docs/spec/1012-seal-lifecycle-stats.md) |
@@ -566,11 +586,6 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 安全 | HITL 审批操作分布读面 | GuardAuthApi 嵌套 AuthOperationStats（approved/rejected/revoked 三计数）+ stats()——审批聚合视图，事件流之外的直读水位（spec 1021） | [spec 1021](docs/spec/1021-auth-operation-stats.md) |
 | 安全 | 加密消息存储操作计数读面 | EncryptingMessageStore 嵌套 CryptoStoreStats（encrypted/decrypted/passthrough 双向透传分计）+ stats()——信封加密 ops 可视性（spec 1022） | [spec 1022](docs/spec/1022-crypto-store-stats.md) |
 | 安全 | 密钥扫描计数读面 | SecretScanner 嵌套 SecretScanStats（scanCalls/findings/redactions，findings 水位=泄漏趋势）+ stats()——Gitleaks findings 借鉴（spec 1023） | [spec 1023](docs/spec/1023-secret-scan-stats.md) |
-| 记忆治理 | facts 段导入导出行数读面 | FactsExporter 嵌套 FactsFlowStats（factsExported/factsImported/importFailures 照抛）+ stats()——rsync --stats 迁移完整性思想（spec 1024） | [spec 1024](docs/spec/1024-facts-flow-stats.md) |
-| 安全 | 内嵌策略引擎判定分布读面 | EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒）+ stats()——OPA 判定分布谱系，FIDES approver 通道压力显形（spec 1025） | [spec 1025](docs/spec/1025-policy-engine-stats.md) |
-| 安全 | 事实注入覆盖读面 | FactAttachmentRenderer 嵌套 FactInjectStats（renders/factsInjected/factsOmitted，max-inject-chars 配置水位）+ stats()——两参 render 收敛委托输出恒等（spec 1026） | [spec 1026](docs/spec/1026-fact-inject-coverage.md) |
-| 记忆治理 | 手动压缩操作分布读面 | ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages 守恒）+ opStats()——K8s 事件聚合思想（spec 1027） | [spec 1027](docs/spec/1027-compact-op-stats.md) |
-| 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
