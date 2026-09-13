@@ -33,6 +33,9 @@ public class HookChain {
     private final List<BuzhouHook> hooks;
     private final Set<String> ghostDisabledNames;
     private final ConcurrentHashMap<String, Timing> timings = new ConcurrentHashMap<>();
+    /** impl-766 / spec 1013：Replace 载荷应用/丢弃计数（幽灵载荷显形）。 */
+    private final AtomicLong replaceApplied = new AtomicLong();
+    private final AtomicLong replaceDropped = new AtomicLong();
 
     public HookChain(Collection<BuzhouHook> hooks, Set<String> disabledHookNames) {
         List<BuzhouHook> resolved = hooks.stream()
@@ -183,7 +186,11 @@ public class HookChain {
             HookResult result = call.apply(hook, ctx);
             record(hook, callback, System.nanoTime() - start);
             if (result instanceof HookResult.Replace replace) {
-                applyReplace(ctx, replace.payload());
+                if (applyReplace(ctx, replace.payload())) {
+                    replaceApplied.incrementAndGet();
+                } else {
+                    replaceDropped.incrementAndGet(); // spec 1013：幽灵载荷——类型不匹配静默跳过，显形
+                }
                 continue;
             }
             if (result instanceof HookResult.Block block) {
@@ -210,7 +217,11 @@ public class HookChain {
         }
     }
 
-    private void applyReplace(HookContext ctx, Object payload) {
+    /**
+     * 应用 Replace 载荷到上下文。@return 是否真实应用（载荷与上下文类型不匹配
+     * 时 false——丢弃显形计入 {@link #replaceDroppedCount()}，行为仍为静默跳过）。
+     */
+    private boolean applyReplace(HookContext ctx, Object payload) {
         switch (ctx) {
             case ToolCallContext toolCtx -> {
                 if (toolCtx.result() == null && payload instanceof Map<?, ?> map) {
@@ -220,23 +231,41 @@ public class HookChain {
                 } else {
                     toolCtx.replaceResult(payload);
                 }
+                return true;
             }
             case ModelCallContext modelCtx -> {
                 if (payload instanceof org.springframework.ai.chat.client.ChatClientRequest request) {
                     modelCtx.replaceRequest(request);
+                    return true;
                 } else if (payload instanceof org.springframework.ai.chat.client.ChatClientResponse response) {
                     modelCtx.replaceResponse(response);
+                    return true;
                 }
+                return false;
             }
             case TurnContext turnCtx -> {
                 if (turnCtx.response() == null && payload instanceof String input) {
                     turnCtx.replaceInput(input);
+                    return true;
                 } else if (payload instanceof String response) {
                     turnCtx.replaceResponse(response);
+                    return true;
                 }
+                return false;
             }
             default -> {
+                return false;
             }
         }
+    }
+
+    /** Replace 载荷应用累计（spec 1013）。 */
+    public long replaceAppliedCount() {
+        return replaceApplied.get();
+    }
+
+    /** Replace 载荷丢弃累计（类型不匹配静默跳过——幽灵载荷显形，spec 1013）。 */
+    public long replaceDroppedCount() {
+        return replaceDropped.get();
     }
 }

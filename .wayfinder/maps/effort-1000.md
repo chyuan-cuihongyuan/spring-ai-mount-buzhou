@@ -32,6 +32,7 @@
 - [轮次时延分位数读面的形态裁决](../tickets/T1471-turn-percentiles-shape.md) — TurnLatencyPercentiles（count/p50/p95/max）+ TurnTimingHook.percentiles 对既有 64 样本窗 R-7 插值（纯函数直测）；不改正史 record TurnStats——补 spec 191 自己的 p95 用户故事（numpy percentile 同口径）。
 - [spill 容量水位读面的形态裁决](../tickets/T1473-spill-usage-shape.md) — SpillUsage（totalBytes/entryCount）+ DiskSpillStore.usage() 与配额守卫同口径 walk（synchronized 同锁）；配额上限不入快照——调用方自持配置（Redis INFO memory / pg_database_size）。
 - [加密封存操作生命周期计数读面的形态裁决](../tickets/T1475-seal-stats-shape.md) — EncryptedSessionExport sealed/opened/openRejected 三计数（open 三条 DATA_CORRUPTION 拒绝路径全覆盖，异常照抛）+ 嵌套 SealStats + stats()；开失败率=密钥轮换错配第一信号（age/OpenSSL ops 实践）。
+- [Hook Replace 载荷应用/丢弃计数读面的形态裁决](../tickets/T1477-replace-stats-shape.md) — applyReplace boolean 化 + replaceApplied/replaceDropped 实例计数与双 getter；类型不匹配载荷静默跳过的显形（分发行为逐位不变）；与 R3 幽灵禁用同族。
 
 ## 150 轮台账
 
@@ -50,7 +51,8 @@
 | 11 | 轮次时延分位数读面（R-7 插值 p50/p95） | numpy percentile | T1471–T1472 | 763 | 1010 | ✅ |
 | 12 | spill 容量水位读面（totalBytes/entryCount 快照） | Redis INFO memory | T1473–T1474 | 764 | 1011 | ✅ |
 | 13 | 加密封存操作生命周期计数读面（sealed/opened/openRejected） | age/OpenSSL ops | T1475–T1476 | 765 | 1012 | ✅ |
-| 14 | （开工时按缺口核查选题，候选见下） | — | T1477–T1478 | 766 | 1013 |  |
+| 14 | Hook Replace 载荷应用/丢弃计数读面（幽灵载荷显形） | 静默蒸发显形谱系 | T1477–T1478 | 766 | 1013 | ✅ |
+| 15 | （开工时按缺口核查选题，候选见下） | — | T1479–T1480 | 767 | 1014 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 
