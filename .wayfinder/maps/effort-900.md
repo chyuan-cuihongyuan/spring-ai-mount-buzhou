@@ -26,6 +26,7 @@
 - [bootstrap 均值置信区间](../tickets/T1257-bootstrap-ci-shape.md) — EvalScoreAnalytics.bootstrapMeanInterval（Efron percentile + SplittableRandom 固定 seed 可复现）+ MeanInterval record；扩同类不炸类，嵌套 record 不进快照面（spec 903）。
 - [导入审计与严格模式](../tickets/T1259-import-strict-shape.md) — SessionExportAudit.audit（未知顶层字段/缺失推荐字段只读报告，空消息数组合法不算缺失）+ fromJsonStrict opt-in 拒绝（pg_restore --exit-on-error / protobuf unknown fields）。
 - [健康聚合评分读面](../tickets/T1261-health-score-shape.md) — BuzhouHealthScore（UP=100/UNKNOWN=50/DOWN=0 算术平均 + 分档常量 HEALTHY_FLOOR=90/DEGRADED_FLOOR=70 + ScoreReport 含 DOWN 清单）；纯函数端点接线留装配轮（K8s probe aggregate）。
+- [工具耗时火焰图数据面](../tickets/T1263-flame-timing-shape.md) — ToolGraphAnalyzer.timings（TOOL 子集 parentSpanId 树 + self/cumulative 分解 + 环防护 + RUNNING 计 0 + 稳定排序）+ ToolTimingProfile（flamegraph；与 core ToolTimingAggregator spec 700 热路径互补的离线全量面）。
 
 ## 100 轮台账
 
@@ -37,9 +38,10 @@
 | 4 | bootstrap 均值置信区间 | Efron bootstrap percentile | T1257–T1258 | 656 | 903 | ✅ |
 | 5 | 导入审计与严格模式 | pg_restore --exit-on-error / protobuf unknown fields | T1259–T1260 | 657 | 904 | ✅ |
 | 6 | 健康聚合评分读面（原列候选 prompt 前缀缓存统计 ruled-out——PromptPrefixCache.Stats 已覆盖；技能使用统计 ruled-out——SkillUsageStats 已存在） | K8s probe aggregate | T1261–T1262 | 658 | 905 | ✅ |
-| 7 | （开工时按缺口核查选题，候选见下） | — | T1263–T1264 | 659 | 906 |  |
+| 7 | 工具耗时火焰图数据面（reask 上限 ruled-out——BoundedToolCallingAdvisor×ToolRetryPolicy 已覆盖；EWMA ruled-out——FallbackLatencyTracker 已覆盖；归档回读 ruled-out——SessionArchiver.verify 已覆盖；配额预测 ruled-out——CostForecast 已覆盖） | brendangregg/FlameGraph | T1263–T1264 | 659 | 906 | ✅ README 行欠账 |
+| 8 | （开工时按缺口核查选题，候选见下） | — | T1265–T1266 | 660 | 907 |  |
 
-（2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
+（2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表。**工作区并发警示**：同机另有会话共享工作区（1000 系 / T1451+ / impl 753+）——每轮提交必须精确路径 add，勿 git add -A；README 行受其未提交 spec 引用阻塞时欠账下轮补。候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账）
 

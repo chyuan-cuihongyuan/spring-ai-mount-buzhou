@@ -152,4 +152,96 @@ public final class ToolGraphAnalyzer {
             inPath.remove(next);
         }
     }
+
+    /**
+     * impl-659 / spec 906：per-tool 耗时画像（flamegraph self/cumulative 思想）——
+     * 「哪个工具自身最耗时」（self）vs「哪条 agent-as-tool 调用链最贵」（cumulative）。
+     *
+     * <p>TOOL span 过滤口径同 {@link #analyze(List)}（kind 忽略大小写）；层级按
+     * {@code parentSpanId} 在 TOOL 子集内解析（父不在集合=根；parent 指针环经
+     * visiting 防护——数据损坏断开记 0 不死循环）；span 耗时 = {@code endedAt −
+     * startedAt}（RUNNING 中间态/null 端点计 0——诚实不估；负值时钟偏移夹 0）。
+     *
+     * <p>输出按 {@code totalSelfMs} 降序 + tool 字典序 tie-break（稳定确定——
+     * 火焰图宽板块在前直觉）。与 core 的 ToolTimingAggregator（spec 700 进程内
+     * 热路径）互补：本面为离线全量 span 历史归因。
+     */
+    public record ToolTimingProfile(String tool, long calls, long totalSelfMs,
+                                    long totalCumulativeMs) {
+    }
+
+    public static List<ToolTimingProfile> timings(List<SpanRecord> spans) {
+        if (spans == null) {
+            throw new IllegalArgumentException("spans 必须非空");
+        }
+        List<SpanRecord> toolSpans = spans.stream()
+                .filter(s -> s.kind() != null && s.kind().equalsIgnoreCase("TOOL"))
+                .toList();
+
+        Map<String, SpanRecord> byId = new LinkedHashMap<>();
+        for (SpanRecord span : toolSpans) {
+            if (span.spanId() != null) {
+                byId.put(span.spanId(), span);
+            }
+        }
+        Map<String, List<SpanRecord>> childrenOf = new LinkedHashMap<>();
+        for (SpanRecord span : toolSpans) {
+            SpanRecord parent = span.parentSpanId() == null ? null : byId.get(span.parentSpanId());
+            if (parent == null || parent == span) {
+                continue; // 根（父不在 TOOL 集 / 自环）——无入边
+            }
+            childrenOf.computeIfAbsent(parent.spanId(), k -> new ArrayList<>()).add(span);
+        }
+
+        Map<String, Long> cumulativeMemo = new LinkedHashMap<>();
+        java.util.Set<String> visiting = new java.util.HashSet<>();
+        Map<String, long[]> byTool = new LinkedHashMap<>(); // [calls, selfMs, cumulativeMs]
+        for (SpanRecord span : toolSpans) {
+            long self = durationMs(span);
+            long cumulative = cumulativeMs(span, childrenOf, cumulativeMemo, visiting);
+            long[] totals = byTool.computeIfAbsent(span.name(), k -> new long[3]);
+            totals[0]++;
+            totals[1] += self;
+            totals[2] += cumulative;
+        }
+
+        List<ToolTimingProfile> profiles = new ArrayList<>();
+        byTool.forEach((tool, totals) -> profiles.add(
+                new ToolTimingProfile(tool, totals[0], totals[1], totals[2])));
+        profiles.sort(Comparator.comparingLong(ToolTimingProfile::totalSelfMs).reversed()
+                .thenComparing(ToolTimingProfile::tool));
+        return List.copyOf(profiles);
+    }
+
+    /** span 耗时（毫秒；null 端点/RUNNING 计 0；负值时钟偏移夹 0）。 */
+    private static long durationMs(SpanRecord span) {
+        if (span.startedAt() == null || span.endedAt() == null) {
+            return 0;
+        }
+        long millis = java.time.Duration.between(span.startedAt(), span.endedAt()).toMillis();
+        return Math.max(0, millis);
+    }
+
+    /** 子树累计耗时（含自身；环断开记 0——数据损坏诚实容忍）。 */
+    private static long cumulativeMs(SpanRecord span, Map<String, List<SpanRecord>> childrenOf,
+            Map<String, Long> memo, java.util.Set<String> visiting) {
+        if (span.spanId() != null) {
+            Long cached = memo.get(span.spanId());
+            if (cached != null) {
+                return cached;
+            }
+            if (!visiting.add(span.spanId())) {
+                return 0; // parent 指针环——断开
+            }
+        }
+        long total = durationMs(span);
+        for (SpanRecord child : childrenOf.getOrDefault(span.spanId(), List.of())) {
+            total += cumulativeMs(child, childrenOf, memo, visiting);
+        }
+        if (span.spanId() != null) {
+            visiting.remove(span.spanId());
+            memo.put(span.spanId(), total);
+        }
+        return total;
+    }
 }
