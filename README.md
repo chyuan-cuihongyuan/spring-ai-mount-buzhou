@@ -602,6 +602,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
 | 会话治理 | 剪枝边界深验 | minItems==total 不残缺/阈值极小首 fail 即剪/memo 共存不绕裁决——901 边界组合收口（spec 931） | [spec 931](docs/spec/931-prune-edge-deep.md) |
+| 工程门禁 | 周期对账轮（spec 932 缺位补位） | 四账核对：spec/票/impl/快照；票号双占用三组改号、impl 680 补写、553-652 归属核清（spec 932） | [spec 932](docs/spec/932-periodic-audit.md) |
 | 评估闭环 | 剪枝 run 有效通过率口径 | EvalRunResult.prunedCount() + effectivePassRate()（分母排除 pruned）——双口径显式并存，总量防刷分（spec 933） | [spec 933](docs/spec/933-effective-passrate.md) |
 | 评估闭环 | GateResult 有效通过率透出 | GateResult 加 effectivePassRate 组件（11 参新构造 + 10 参兼容 NaN 委托）——剪枝 run 门结果双口径同屏（spec 934） | [spec 934](docs/spec/934-gate-effective-passrate.md) |
 | 会话治理 | ExportManifest 规范化摘要 | addCanonical/verifyCanonical 配对（canonicalJson 单点提级）——911 JCS 向 manifest 扩散，键序漂移不误报（spec 935） | [spec 935](docs/spec/935-manifest-canonical.md) |
