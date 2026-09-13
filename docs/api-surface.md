@@ -2259,3 +2259,7 @@
 - `SummaryDegradeReasons`（嵌套 `Reason`/`ReasonCount`/`Report`）（844——
   Envoy degraded 扩散：摘要降级五态闭集（超限/生成失败/空内容/策略强制/
   未知）计数+占比降序快照；synchronized 记账；喂点=降级管线装配侧）
+
+- `RollbackUsageStats`（嵌套 `PromptRollbacks`/`Report`）（845——S6 扩散：
+  prompt 回滚使用聚合（名封顶 64+溢出桶/rollbacks/lastFrom/lastTo/lastSeen，
+  次数降序典序破平）；喂点=回滚执行处装配侧，registry 零变更）
