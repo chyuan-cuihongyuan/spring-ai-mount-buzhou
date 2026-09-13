@@ -97,6 +97,26 @@ public final class EvalGate {
         return result;
     }
 
+    /**
+     * impl-690 / spec 938：阈值漂移读面——相邻判定 threshold 不同的次数
+     * （「CI 红了就调阈值」的流程不健康信号显形）。纯函数零副作用。
+     */
+    public record ThresholdDrift(int transitions, int sampled) {
+    }
+
+    public static ThresholdDrift thresholdDrift(List<GateDecision> historyList) {
+        if (historyList == null || historyList.size() < 2) {
+            return new ThresholdDrift(0, Math.max(0, historyList == null ? 0 : historyList.size() - 1));
+        }
+        int transitions = 0;
+        for (int i = 1; i < historyList.size(); i++) {
+            if (historyList.get(i).threshold() != historyList.get(i - 1).threshold()) {
+                transitions++;
+            }
+        }
+        return new ThresholdDrift(transitions, historyList.size() - 1);
+    }
+
     /** impl-667 / spec 914：判定入史（环形有界；synchronized 单点）。 */
     private synchronized void recordDecision(GateResult result) {
         if (history.size() >= HISTORY_CAPACITY) {
