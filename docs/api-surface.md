@@ -147,6 +147,7 @@
 - `public record InMemoryStoreConfig`
 - `public record InjectionSnapshot`
 - `public record LayeredPolicy`
+- `public record PolicyLayerAttribution`（spec 1003——层级归属解析：生效值来自哪一层，getAttributed() 纯函数诊断面）
 - `public record LeaseAcquireResult`
 - `public record LeaseInfo`
 - `public record MaintenanceTrigger`

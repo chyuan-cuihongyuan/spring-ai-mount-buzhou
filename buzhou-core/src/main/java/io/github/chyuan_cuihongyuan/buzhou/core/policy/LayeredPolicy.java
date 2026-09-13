@@ -16,15 +16,28 @@ public record LayeredPolicy(
     }
 
     public Object get(String dottedKey) {
+        return getAttributed(dottedKey).value();
+    }
+
+    /**
+     * 层级归属解析（spec 1003 / spring config insights layer attribution 借鉴）：
+     * 与 {@link #get(String)} 同序同判（binding > yml > defaults 首中即胜），
+     * 另显形生效值来自哪一层。纯函数诊断面。
+     */
+    public PolicyLayerAttribution getAttributed(String dottedKey) {
         Object value = lookup(binding, dottedKey);
         if (value != null) {
-            return value;
+            return new PolicyLayerAttribution(dottedKey, PolicyLayerAttribution.Layer.BINDING, value);
         }
         value = lookup(yml, dottedKey);
         if (value != null) {
-            return value;
+            return new PolicyLayerAttribution(dottedKey, PolicyLayerAttribution.Layer.YML, value);
         }
-        return lookup(defaults, dottedKey);
+        value = lookup(defaults, dottedKey);
+        if (value != null) {
+            return new PolicyLayerAttribution(dottedKey, PolicyLayerAttribution.Layer.DEFAULTS, value);
+        }
+        return new PolicyLayerAttribution(dottedKey, PolicyLayerAttribution.Layer.ABSENT, null);
     }
 
     public Map<String, Object> getMap(String dottedKey) {
