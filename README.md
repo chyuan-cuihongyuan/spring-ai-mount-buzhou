@@ -610,6 +610,10 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 安全 | 权限统计读面 | PermissionStats——权限判定分布聚合（spec 1037） | [spec 1037](docs/spec/1037-permission-stats.md) |
 | memory | 摘要桥接统计读面 | SummaryBridgeStats——摘要桥接链路计数对账（spec 1038） | [spec 1038](docs/spec/1038-summary-bridge-stats.md) |
 | prompt 域 | 提示词解析统计读面 | PromptResolutionStats——提示词解析成败计数对账（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
+| 工具治理 | todo 动作分布读面 | TodoTool 嵌套 TodoActionStats（list/upsert/remove/clear/other 白名单五桶有界）+ actionStats()——操作分布显形（spec 1040） | [spec 1040](docs/spec/1040-todo-action-stats.md) |
+| 会话治理 | time-travel fork 操作计数读面 | SessionForks 嵌套 ForkStats（forksCreated/messagesCopied）+ stats()——LangGraph fork 使用水位（spec 1041） | [spec 1041](docs/spec/1041-fork-operation-stats.md) |
+| 安全 | 签名验钥分布读面 | SigningKeyRing 嵌套 KeyRingStats（verifyAttempts/verifyKeyMisses/rotations + activeVersion/minVerifyVersion 上下文）+ stats()——cert-manager/keyring ops 思想（spec 1042） | [spec 1042](docs/spec/1042-keyring-stats.md) |
+| webhook 投递 | 围栏裁决分布读面 | SequenceFence 嵌套 FenceVerdictStats（CONTINUE/GAP/DUPLICATE/RESET/STALE 五态分桶守恒）+ verdictStats()——Kafka epoch/consumer-lag 谱系续 spec 303（spec 1043） | [spec 1043](docs/spec/1043-fence-verdict-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
