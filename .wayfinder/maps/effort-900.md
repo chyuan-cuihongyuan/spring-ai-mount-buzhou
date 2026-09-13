@@ -31,6 +31,7 @@
 - [k 次 run 稳定性矩阵](../tickets/T1267-k-stability-shape.md) — EvalFlakinessDetector.analyzeK（跨 run 逐项对齐 + 红绿一致率 + 漂移不入分母 + runId 重复 fail-fast）+ KStabilityReport/KItemVerdict（spec 513 k 泛化留位；与 pass@k 902 概率口径互补）。
 - [评估分数分位数读面](../tickets/T1269-percentiles-shape.md) — EvalScoreAnalytics.percentiles（R-7 线性插值 + LinkedHashMap 保序 + NaN fail-fast）；与 bootstrap 903 / passesAtThresholds 747 三面互补。
 - [AIMD 自适应批量 yml 装配](../tickets/T1271-aimd-yml-shape.md) — webhookEventForwarder bean 点 Binder 直读 buzhou.webhook.adaptive-batch（缺省 false 逐字节不变）→ setter——spec 105 include-types 同法（D/G 装配轮模式）。
+- [JCS 规范化内容指纹](../tickets/T1273-jcs-fingerprint-shape.md) — canonicalContentFingerprint（递归 Map 键排序规范化 + sha256-j: 新前缀防混用；数字文本原样诚实入档）——RFC 8785 JCS 思想，指纹绑定内容而非键序。
 
 ## 100 轮台账
 
@@ -47,7 +48,8 @@
 | 9 | k 次 run 稳定性矩阵（LRU-K ruled-out——InMemoryMessageStore noeviction 语义无驱逐落点；游标稳定性 ruled-out——spec 631 keyset 已覆盖；影子分叉报告 ruled-out——ShadowProbe.Snapshot 聚合面已覆盖） | Google flaky-tests / k 次 A/A | T1267–T1268 | 661 | 908 | ✅ README 行欠账（906/907/908 三行，README 竞争解除后一并补） |
 | 10 | 评估分数分位数读面（R-7 口径）+ 周期全仓 verify（中断：同工作区他方未跟踪半成品 SpotlightingTest 红灯污染 core——非本会话回归，全量留他方静止窗口复跑） | numpy percentile R-7 | T1269–T1270 | 662 | 909 | ✅ README 行欠账（906–909 四行） |
 | 11 | AIMD 自适应批量 yml 装配（装配轮；PriorityLane aging ruled-out——超时让位语义已替代且 aging 与不剥夺模型叠加复杂） | D/G 装配轮模式（spec 105 同法） | T1271–T1272 | 663 | 910 | ✅ README 行欠账（906–910 五行） |
-| 12 | （开工时按缺口核查选题，候选见下） | — | T1273–T1274 | 664 | 911 |  |
+| 12 | JCS 规范化内容指纹 | RFC 8785 JCS | T1273–T1274 | 664 | 911 | ✅ README 行欠账（906–911 六行） |
+| 13 | （开工时按缺口核查选题，候选见下） | — | T1275–T1276 | 665 | 912 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表。**工作区并发警示**：同机另有会话共享工作区（1000 系 / T1451+ / impl 753+）——每轮提交必须精确路径 add，勿 git add -A；README 行受其未提交 spec 引用阻塞时欠账下轮补。候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 
