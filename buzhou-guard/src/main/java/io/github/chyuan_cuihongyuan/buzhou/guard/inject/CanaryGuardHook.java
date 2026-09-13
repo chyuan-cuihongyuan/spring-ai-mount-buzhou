@@ -50,6 +50,13 @@ public class CanaryGuardHook implements BuzhouHook {
 
     private final String canary;
     private final double similarityThreshold;
+    /** impl-772 / spec 1019：金丝雀播撒/泄漏/变体拦截计数（Thinkst Canary 信号）。 */
+    private final java.util.concurrent.atomic.AtomicLong planted =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong leaked =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong variantBlocked =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public CanaryGuardHook() {
         this(randomCanary(), 0.6);
@@ -92,6 +99,7 @@ public class CanaryGuardHook implements BuzhouHook {
         messages.addFirst(new SystemMessage(canaryInstruction()));
         Prompt augmented = new Prompt(messages, prompt.getOptions());
         ctx.replaceRequest(ctx.request().mutate().prompt(augmented).build());
+        planted.incrementAndGet(); // spec 1019：金丝雀播撒计数（幂等注入不重复计）
         return HookResult.CONTINUE;
     }
 
@@ -103,6 +111,7 @@ public class CanaryGuardHook implements BuzhouHook {
         String output = String.valueOf(ctx.result());
         if (output.contains(canary)) {
             // 密语泄漏：拦截 + 录入拒识记忆（自硬化）
+            leaked.incrementAndGet(); // spec 1019
             recordRejected(ctx, output);
             emit(ctx, "guard.canary.leaked");
             ctx.replaceResult(INTERCEPT_NOTICE);
@@ -110,11 +119,21 @@ public class CanaryGuardHook implements BuzhouHook {
         }
         String variant = matchRejectedVariant(ctx, output);
         if (variant != null) {
+            variantBlocked.incrementAndGet(); // spec 1019：变体拦截计数
             emit(ctx, "guard.canary.variant.blocked");
             ctx.replaceResult(INTERCEPT_NOTICE);
             return HookResult.CONTINUE;
         }
         return HookResult.CONTINUE;
+    }
+
+    /** 金丝雀生命周期只读快照（spec 1019——泄漏/变体触发即间接注入在场的铁证）。 */
+    public CanaryStats stats() {
+        return new CanaryStats(planted.get(), leaked.get(), variantBlocked.get());
+    }
+
+    /** 金丝雀计数行（不可变）。 */
+    public record CanaryStats(long planted, long leaked, long variantBlocked) {
     }
 
     private void recordRejected(ToolCallContext ctx, String output) {
