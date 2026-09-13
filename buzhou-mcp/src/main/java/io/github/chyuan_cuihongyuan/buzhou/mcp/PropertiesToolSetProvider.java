@@ -33,9 +33,33 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class PropertiesToolSetProvider implements ToolSetProvider {
 
     private final List<ToolSetSpec> specs;
+    /** impl-788 / spec 1036：装配解析统计（server/bindings/skipped——静默跳过显形）。 */
+    private static final java.util.concurrent.atomic.AtomicLong SERVERS_PARSED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BINDINGS_PARSED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BINDINGS_SKIPPED =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public PropertiesToolSetProvider(List<ToolSetSpec> specs) {
         this.specs = List.copyOf(specs);
+    }
+
+    /** 装配解析统计只读快照（spec 1036——skipped 即被静默跳过的非法 binding 项）。 */
+    public static PropertiesParseStats parseStats() {
+        return new PropertiesParseStats(SERVERS_PARSED.get(), BINDINGS_PARSED.get(),
+                BINDINGS_SKIPPED.get());
+    }
+
+    /** 解析计数行（不可变）。 */
+    public record PropertiesParseStats(long servers, long bindings, long bindingsSkipped) {
+    }
+
+    /** 进程态清零（测试隔离注入点——静态先例；生产勿调）。 */
+    public static void resetForTest() {
+        SERVERS_PARSED.set(0);
+        BINDINGS_PARSED.set(0);
+        BINDINGS_SKIPPED.set(0);
     }
 
     /** 从 yml map（{@code buzhou.mcp.servers} 的值，name → 连接描述 map）解析。 */
@@ -49,6 +73,7 @@ public class PropertiesToolSetProvider implements ToolSetProvider {
                             "buzhou.mcp.servers." + e.getKey() + " must be a map");
                 }
                 specs.add(parseSpec(e.getKey(), (Map<String, Object>) raw));
+                SERVERS_PARSED.incrementAndGet();
             }
         }
         return new PropertiesToolSetProvider(specs);
@@ -76,6 +101,9 @@ public class PropertiesToolSetProvider implements ToolSetProvider {
                 if (item instanceof Map<?, ?> b) {
                     bindings.add(new ToolSetSpec.Binding(
                             String.valueOf(b.get("appId")), String.valueOf(b.get("agentName"))));
+                    BINDINGS_PARSED.incrementAndGet();
+                } else {
+                    BINDINGS_SKIPPED.incrementAndGet(); // spec 1036：非法项静默跳过显形
                 }
             }
         }
