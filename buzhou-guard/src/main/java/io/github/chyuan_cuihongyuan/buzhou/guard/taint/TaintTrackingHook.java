@@ -24,6 +24,11 @@ public class TaintTrackingHook implements BuzhouHook {
     public static final String STATE_KEY = "taint.context";
 
     private final SessionStateStore stateStore;
+    /** impl-771 / spec 1018：打标生命周期计数（首跃迁显形）。 */
+    private final java.util.concurrent.atomic.AtomicLong marksApplied =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong firstMarks =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public TaintTrackingHook(SessionStateStore stateStore) {
         this.stateStore = stateStore;
@@ -47,12 +52,23 @@ public class TaintTrackingHook implements BuzhouHook {
         boolean newlyTainted = !isTainted(stateStore, ctx.sessionId());
         stateStore.put(ctx.sessionId(), new StateEntry(STATE_KEY,
                 "UNTRUSTED:" + ctx.toolName(), "TaintTrackingHook", ctx.turn(), null, Instant.now()));
+        marksApplied.incrementAndGet(); // spec 1018：打标生命周期计数
         if (newlyTainted) {
+            firstMarks.incrementAndGet();
             ctx.emitEvent(new SessionEvent("guard.taint.marked",
                     Map.of("sessionId", ctx.sessionId(), "source", ctx.toolName(),
                             "label", "UNTRUSTED"), Instant.now()));
         }
         return HookResult.CONTINUE;
+    }
+
+    /** 打标只读快照（spec 1018：marksApplied 含重复打标；firstMarks 仅首次跃迁）。 */
+    public TaintMarkStats stats() {
+        return new TaintMarkStats(marksApplied.get(), firstMarks.get());
+    }
+
+    /** 打标计数行（不可变）。 */
+    public record TaintMarkStats(long marksApplied, long firstMarks) {
     }
 
     /** 当前上下文是否 tainted（无 state = TRUSTED）。 */
