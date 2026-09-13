@@ -26,12 +26,29 @@ public final class LexicalSkillRanker {
     private static final Pattern ASCII_TOKEN = Pattern.compile("[a-zA-Z0-9]+");
     private static final Pattern CJK_CHAR = Pattern.compile("[\\u4e00-\\u9fff]");
 
+    /** impl-787 / spec 1035：排序生效计数（reordered/runs 长期近零 = 词法路空转信号）。 */
+    private final java.util.concurrent.atomic.AtomicLong runs =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong reordered =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 排序生效只读快照（spec 1035）。 */
+    public RankStats stats() {
+        return new RankStats(runs.get(), reordered.get());
+    }
+
+    /** 排序计数行（不可变）。 */
+    public record RankStats(long runs, long reordered) {
+    }
+
     /** 排序（BM25 降序、并列保原序稳定）；hint 无有效 token → 原样返回。 */
     public List<SkillMetadata> rank(List<SkillMetadata> candidates, String queryHint) {
         if (candidates == null || candidates.size() <= 1
                 || queryHint == null || queryHint.isBlank()) {
             return candidates;
         }
+        runs.incrementAndGet(); // spec 1035：有效 BM25 运行计数
+        List<String> before = candidates.stream().map(SkillMetadata::name).toList();
         List<String> queryTokens = tokenize(queryHint);
         if (queryTokens.isEmpty()) {
             return candidates;
@@ -72,6 +89,17 @@ public final class LexicalSkillRanker {
         List<SkillMetadata> ranked = new ArrayList<>(candidates.size());
         for (Scored s : scored) {
             ranked.add(candidates.get(s.index()));
+        }
+        // spec 1035：生效显形——输出序与输入序不同才计 reordered
+        boolean changed = false;
+        for (int i = 0; i < ranked.size(); i++) {
+            if (ranked.get(i) != candidates.get(i)) {
+                changed = true;
+                break;
+            }
+        }
+        if (changed) {
+            reordered.incrementAndGet();
         }
         return ranked;
     }

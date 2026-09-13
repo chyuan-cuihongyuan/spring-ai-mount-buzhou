@@ -44,6 +44,7 @@
 - [内嵌策略引擎判定分布读面的形态裁决](../tickets/T1501-policy-engine-stats-shape.md) — EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒 == decide 调用数）+ stats()；FIDES approver 通道压力显形（OPA 判定分布谱系）。首入 guard policy 包。
 - [审计收集器采集与持久化失败计数读面的形态裁决](../tickets/T1513-audit-ingest-stats-shape.md) — AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()；持久化失败连续=审计断链风险水位（Splunk HEC ingestion stats）。首入 guard audit 包。
 - [token 估算调用量与总量读面的形态裁决](../tickets/T1519-token-estimate-stats-shape.md) — CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()；预算面估算总量显形（进程级静态先例）。
+- [词法排序生效计数读面的形态裁决](../tickets/T1521-lexical-rank-stats-shape.md) — LexicalSkillRanker 嵌套 RankStats（runs/reordered——排序器空转显形）+ stats()；reordered/runs 长期近零=词法路配置错位信号。首入 buzhou-skill 模块。
 - [打转检测触发聚合读面的形态裁决](../tickets/T1517-repetition-stats-shape.md) — RepetitionDetectorHook 嵌套 RepetitionStats（fires/blocks/maxRunSeen 峰值）+ stats()；LLM 打转频率调参水位（spec 1032）。首入 core/runaway 包。
 - [会话级联清理聚合计数读面的形态裁决](../tickets/T1511-cleanup-stats-shape.md) — SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()；目标持续故障显形（PostgreSQL autovacuum stats 思想）。首入 core/cleanup 包。
 - [手动压缩操作分布读面的形态裁决](../tickets/T1505-compact-op-stats-shape.md) — ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages，守恒前三和 == attempts）+ opStats()；逐次 CompactResult 之外的跨调用聚合水位（K8s 事件聚合思想）。首入 memory compact 包。
@@ -92,7 +93,8 @@
 | 32 | 审计收集器采集与持久化失败计数读面 | Splunk HEC ingestion stats | T1513–T1514 | 784 | 1031 | ✅ |
 | 33 | 打转检测触发聚合读面（fires/blocks/maxRunSeen） | LLM 打转检测 | T1517–T1518 | 785 | 1032 | ✅ |
 | 34 | token 估算调用量与总量读面（静态三计数） | 预算面可观测性 | T1519–T1520 | 786 | 1033 | ✅ |
-| 35 | （开工时按缺口核查选题，候选见下） | — | T1521–T1522 | 787 | 1034 |  |
+| 35 | 词法排序生效计数读面（runs/reordered——排序器空转显形） | 混合排序生效水位 | T1521–T1522 | 787 | 1034 | ✅ |
+| 36 | （开工时按缺口核查选题，候选见下） | — | T1523–T1524 | 788 | 1036 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 
