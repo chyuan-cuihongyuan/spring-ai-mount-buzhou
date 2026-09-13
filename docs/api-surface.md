@@ -2222,3 +2222,7 @@
   （835——OTel tail_sampling 借鉴：trace 采样决策环形明细 64+决策×原因
   聚合（键封顶 16+溢出桶带决策维）+keptRatio；与 eval 采样域正交；
   喂点=采样器装配侧）
+
+- `HalfOpenProbeStats`（嵌套 `ProbeStats`）（836——Resilience4j probe 语义
+  扩散：per-model 探测成败累计+连续失败 streak（成功清零）+近窗 20 成功率；
+  与 811 crash-loop 互补（频次 vs 质量）；模型封顶 32；读数不控许可）

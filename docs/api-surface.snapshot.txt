@@ -681,6 +681,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.Ide
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.quota.SessionQuotaHook
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.AdaptiveRateTightener
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.GcraRateLimitBackend
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.HalfOpenProbeStats
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.InMemoryRateLimitBackend
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimitExceededException
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.ModelRateLimiter
