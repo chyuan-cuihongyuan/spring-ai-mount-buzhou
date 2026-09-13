@@ -12,6 +12,7 @@ import org.springframework.ai.tool.definition.ToolDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * todo — 会话作用域任务清单（无害，默认开）。
@@ -29,6 +30,14 @@ public class TodoTool implements ToolCallback {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final TodoStore store;
+    /** impl-792 / spec 1040：动作分发分布（白名单五桶——未知动作归 other，基数安全）。 */
+    private final Map<String, java.util.concurrent.atomic.AtomicLong> actionCounts =
+            new java.util.concurrent.ConcurrentHashMap<>(Map.of(
+                    "list", new java.util.concurrent.atomic.AtomicLong(),
+                    "upsert", new java.util.concurrent.atomic.AtomicLong(),
+                    "remove", new java.util.concurrent.atomic.AtomicLong(),
+                    "clear", new java.util.concurrent.atomic.AtomicLong(),
+                    "other", new java.util.concurrent.atomic.AtomicLong()));
 
     public TodoTool(TodoStore store) {
         this.store = store;
@@ -72,6 +81,7 @@ public class TodoTool implements ToolCallback {
         try {
             JsonNode args = MAPPER.readTree(toolInput);
             String action = args.path("action").asText("");
+            countAction(action); // spec 1040：动作分发分布（list/upsert/remove/clear 之外归 other）
             return switch (action) {
                 case "list" -> render(store.load(sessionId));
                 case "upsert" -> upsert(sessionId, args, currentTurn);
@@ -84,6 +94,34 @@ public class TodoTool implements ToolCallback {
             };
         } catch (Exception e) {
             return "todo 失败：" + e.getMessage();
+        }
+    }
+
+    /** 动作分布计数（白名单五桶：list/upsert/remove/clear + other；有界基数）。 */
+    private void countAction(String action) {
+        String bucket = switch (action) {
+            case "list", "upsert", "remove", "clear" -> action;
+            default -> "other";
+        };
+        actionCounts.get(bucket).incrementAndGet();
+    }
+
+    /** 动作分布只读快照（不可变；含 other 桶）。 */
+    public TodoActionStats actionStats() {
+        Map<String, Long> out = new java.util.TreeMap<>();
+        actionCounts.forEach((k, v) -> out.put(k, v.get()));
+        return new TodoActionStats(Map.copyOf(out));
+    }
+
+    /** 动作分布计数行（不可变；byAction 恒含 list/upsert/remove/clear/other 五键）。 */
+    public record TodoActionStats(Map<String, Long> byAction) {
+
+        public TodoActionStats {
+            byAction = Map.copyOf(byAction);
+        }
+
+        public long total() {
+            return byAction.values().stream().mapToLong(Long::longValue).sum();
         }
     }
 
