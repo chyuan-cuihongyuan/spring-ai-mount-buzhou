@@ -2263,3 +2263,7 @@
 - `RollbackUsageStats`（嵌套 `PromptRollbacks`/`Report`）（845——S6 扩散：
   prompt 回滚使用聚合（名封顶 64+溢出桶/rollbacks/lastFrom/lastTo/lastSeen，
   次数降序典序破平）；喂点=回滚执行处装配侧，registry 零变更）
+
+- `DeadLetterRedeliveryStats`（846——sidekiq retry set 扩散：死信重投
+  attempts/successes/successRate/连续失败 streak 原子记账（成功清零）；
+  重投语义归调用方，喂点=重投路径装配侧）

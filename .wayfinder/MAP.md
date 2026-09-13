@@ -427,3 +427,4 @@
 | #843 | 证据引用失效率读数 | [maps/effort-843.md](maps/effort-843.md) | T1187–1188 | 596 |
 | #844 | 摘要降级原因分布 | [maps/effort-844.md](maps/effort-844.md) | T1189–1190 | 597 |
 | #845 | Prompt 回滚使用读数 | [maps/effort-845.md](maps/effort-845.md) | T1191–1192 | 598 |
+| #846 | 死信重投成功率读数 | [maps/effort-846.md](maps/effort-846.md) | T1193–1194 | 599 |
