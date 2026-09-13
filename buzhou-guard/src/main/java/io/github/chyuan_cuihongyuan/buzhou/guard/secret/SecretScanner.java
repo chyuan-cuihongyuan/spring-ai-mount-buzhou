@@ -24,6 +24,13 @@ public final class SecretScanner {
 
     private final Set<SecretType> enabledTypes;
     private final Double minEntropy;
+    /** impl-776 / spec 1023：扫描/命中/脱敏计数（Gitleaks findings 水位）。 */
+    private final java.util.concurrent.atomic.AtomicLong scanCalls =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong findings =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong redactions =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public SecretScanner() {
         this(EnumSet.allOf(SecretType.class));
@@ -50,6 +57,7 @@ public final class SecretScanner {
         if (text == null || text.isEmpty()) {
             return matches;
         }
+        scanCalls.incrementAndGet(); // spec 1023：扫描执行计数（空文本早退不计）
         boolean entropyGate = minEntropy != null && minEntropy > 0;
         for (SecretType type : SecretType.values()) {
             if (!enabledTypes.contains(type)) {
@@ -65,6 +73,7 @@ public final class SecretScanner {
             }
         }
         matches.sort((a, b) -> Integer.compare(a.start(), b.start()));
+        findings.addAndGet(matches.size());
         return matches;
     }
 
@@ -93,12 +102,13 @@ public final class SecretScanner {
      * 块体本就非可打印密文形状（Base64 私钥体无签名——BEGIN 行标记即泄漏事实）。 */
     public String redact(String text) {
         if (text == null || text.isEmpty() || text.contains(PLACEHOLDER_PREFIX)) {
-            return text; // 幂等：占位符已是脱敏产物
+            return text; // 幂等：占位符已是脱敏产物（不计——非扫描语义）
         }
         List<SecretMatch> matches = scan(text);
         if (matches.isEmpty()) {
             return text;
         }
+        redactions.incrementAndGet(); // spec 1023：实际发生替换
         StringBuilder sb = new StringBuilder(text.length());
         int cursor = 0;
         for (SecretMatch m : matches) {
@@ -111,5 +121,14 @@ public final class SecretScanner {
         }
         sb.append(text.substring(cursor));
         return sb.toString();
+    }
+
+    /** 扫描/命中/脱敏只读快照（spec 1023——findings 水位是泄漏趋势第一信号）。 */
+    public SecretScanStats stats() {
+        return new SecretScanStats(scanCalls.get(), findings.get(), redactions.get());
+    }
+
+    /** 扫描计数行（不可变）。 */
+    public record SecretScanStats(long scanCalls, long findings, long redactions) {
     }
 }
