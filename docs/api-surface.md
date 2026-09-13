@@ -2117,3 +2117,7 @@
 - `CircuitCrashLoopDetector`（嵌套 `LoopState`）（811——k8s CrashLoopBackOff
   借鉴：滑窗 OPEN ≥minOpens(≥2) 转 looping 闩锁态（窗口滑过不解、唯
   recordRecovery 清），loopsDetected 边沿计数；模型封顶 32；旁路读数）
+
+- `PipelineMemoryLimiter`（嵌套 `LimiterStats`）（812——OTel memory_limiter
+  借鉴：在途权重总量判定 tryAdmit/release（CAS 无锁、拒收不记账、归账
+  防负）；单位无关、拒绝只发信号；stats 四口径）
