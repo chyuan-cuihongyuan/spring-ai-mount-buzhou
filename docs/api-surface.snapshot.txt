@@ -533,6 +533,7 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.CompactionListener
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.CompactionRatioStats
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.FactsExporter
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.InjectionViewProcessor
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.MemoryHierarchyCapacity
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.MemoryModule
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.SessionForks
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.SummaryProvenanceListener

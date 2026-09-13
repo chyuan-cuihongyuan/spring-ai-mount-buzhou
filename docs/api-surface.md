@@ -2135,3 +2135,8 @@
 - `SpillWriteAmplifier`（嵌套 `Stats`）（815——RocksDB 写放大口径借鉴：
   逻辑/物理字节累计计数+近窗 64 样本均值与最近秩 P95；逻辑 ≤0 忽略防 ∞；
   记账脑零 store 侵入）
+
+- `MemoryHierarchyCapacity`（嵌套 `LayerUsage`/`Snapshot`/`Report`）（816——
+  MemGPT 分层借鉴：core-summary/archival-facts/recall-window 三层
+  items/chars+可选 cap 水位 OK<80%≤WARN<100%≤FULL（cap≤0 不设限）；
+  Snapshot 由调用方采集零 store 侵入）
