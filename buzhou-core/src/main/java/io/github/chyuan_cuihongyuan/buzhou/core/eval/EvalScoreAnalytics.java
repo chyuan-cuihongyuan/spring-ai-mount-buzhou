@@ -132,4 +132,44 @@ public final class EvalScoreAnalytics {
         upperIdx = Math.max(0, Math.min(resamples - 1, upperIdx));
         return new MeanInterval(resampleMeans[lowerIdx], resampleMeans[upperIdx], pointEstimate);
     }
+
+    /**
+     * impl-662 / spec 909：排序分位数（R-7 线性插值口径——numpy/Excel 默认，
+     * {@code h = (n−1)·q} 线性插值；口径显式入档可复现）。长尾标准问法
+     * （「P95 多少」）的直接读面。
+     *
+     * @param samples   样本分数（非空；NaN fail-fast——spec 903 同纪律）
+     * @param quantiles 分位请求 ∈ 开区间 (0,1)，非空
+     * @return q → 分位值（LinkedHashMap，按入参序）
+     */
+    public static Map<Double, Double> percentiles(double[] samples, double... quantiles) {
+        if (samples == null || samples.length == 0) {
+            throw new IllegalArgumentException("samples 必须非空");
+        }
+        for (double s : samples) {
+            if (Double.isNaN(s)) {
+                throw new IllegalArgumentException("samples 含 NaN——先清洗");
+            }
+        }
+        if (quantiles == null || quantiles.length == 0) {
+            throw new IllegalArgumentException("quantiles 必须非空");
+        }
+        for (double q : quantiles) {
+            if (q <= 0 || q >= 1) {
+                throw new IllegalArgumentException("quantile 须 ∈ 开区间 (0,1)，收到 " + q);
+            }
+        }
+        double[] sorted = samples.clone();
+        Arrays.sort(sorted);
+        int n = sorted.length;
+        Map<Double, Double> out = new LinkedHashMap<>();
+        for (double q : quantiles) {
+            double h = (n - 1) * q;
+            int lower = (int) Math.floor(h);
+            int upper = Math.min(lower + 1, n - 1);
+            double value = sorted[lower] + (h - lower) * (sorted[upper] - sorted[lower]);
+            out.put(q, value);
+        }
+        return out;
+    }
 }
