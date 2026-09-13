@@ -2182,3 +2182,7 @@
   ModSecurity paranoia levels 借鉴：L1-L4 标准阈值表（0.95/0.85/0.70/0.50）
   +BLOCK/LOG/ALLOW 三态裁决（0.10 观察带）；分数截断+≥ 边界；纯映射
   classifier 零变更）
+
+- `PricingCoverageAudit`（嵌套 `Report`）（827——LiteLLM model_prices
+  覆盖思想：被调用模型 vs 价表键集三层匹配（精确/大小写/provider 前缀
+  剥离）+覆盖率+unknown 典序封顶 32；空调用 1.0/空表 0 空真语义；纯函数）

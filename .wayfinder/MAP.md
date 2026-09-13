@@ -408,3 +408,4 @@
 | #824 | 取消原因分布读数 | [maps/effort-824.md](maps/effort-824.md) | T1149–1150 | 577 |
 | #825 | 会话迁移对账 | [maps/effort-825.md](maps/effort-825.md) | T1151–1152 | 578 |
 | #826 | 注入检测分级策略 | [maps/effort-826.md](maps/effort-826.md) | T1153–1154 | 579 |
+| #827 | 定价表覆盖审计 | [maps/effort-827.md](maps/effort-827.md) | T1155–1156 | 580 |

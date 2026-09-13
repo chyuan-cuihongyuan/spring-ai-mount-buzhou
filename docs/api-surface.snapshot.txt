@@ -19,6 +19,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelBudgetGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedgerJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.PeriodBudgetHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingCoverageAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
