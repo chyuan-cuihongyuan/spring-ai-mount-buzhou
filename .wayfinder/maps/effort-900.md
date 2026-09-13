@@ -36,6 +36,7 @@
 - [导出域三件套联动 e2e](../tickets/T1277-export-domain-e2e-shape.md) — 五场景编排闭环**实证抓到真实联动缺陷**：exportIfChanged 硬编码保序指纹与 sha256-j: 不成对→键序漂移误判 EXPORTED；修复=新增 exportIfChangedCanonical 配对重载（既有面不动）。教训：指纹口径必须与协商口径成对（G r39 时刻重现）。
 - [gate 判定环形历史读面](../tickets/T1279-gate-history-shape.md) — EvalGate.GateDecision 环形史（HISTORY_CAPACITY=16 新→旧不可变快照 + enforce 尾部单点入史）——K8s Events 事件史思想，判定轨迹可读（「最近拒几次/趋势/阈值是否过严」）。
 - [EventDropBreakdown 并发压测](../tickets/T1281-drop-breakdown-stress-shape.md) — 4000 并发 enqueue 守恒不变量精确成立（ΣbyReason == dropped）+ 分类值域封闭 + 三实例隔离（G r47 压测模式；秒级完成无锁路径验证）。
+- [pruned×稳定性×gate 联动补验](../tickets/T1283-pruned-stability-shape.md) — **实证抓到真实语义缺陷**：pruned 流入 analyzeK/analyze 被红绿映射当绿（假稳定）；修复=按有效样本判定（null=缺项/pruned，<2 不 compared）+ KItemVerdict null 容忍不可变。gate×剪枝 run 正常固化。
 
 ## 100 轮台账
 
@@ -57,7 +58,8 @@
 | 14 | 导出域三件套联动 e2e（**抓到并修复真实联动缺陷**：exportIfChangedCanonical 配对重载补齐） | G 会话补验轮模式 | T1277–T1278 | 666 | 913 | ✅ README 行欠账（906–913 八行） |
 | 15 | gate 判定环形历史读面 | K8s Events 事件史 | T1279–T1280 | 667 | 914 | ✅ README 行欠账（906–914 九行） |
 | 16 | EventDropBreakdown 并发压测（SsrfGuard DNS rebinding ruled-out——全 IP 解析+混合应答防护已有；HttpRequestTool 响应上限 ruled-out——流式截断已有） | G r47 压测模式 | T1281–T1282 | 668 | 915 | ✅ README 行欠账（906–915 十行） |
-| 17 | （开工时按缺口核查选题，候选见下） | — | T1283–T1284 | 669 | 916 |  |
+| 17 | pruned×稳定性×gate 联动补验（**抓到并修复真实语义缺陷**：pruned 污染稳定性判定→按有效样本判定） | G r39 补验先例 | T1283–T1284 | 669 | 916 | ✅ README 行欠账（906–916 十一行） |
+| 18 | （开工时按缺口核查选题，候选见下） | — | T1285–T1286 | 670 | 917 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表。**工作区并发警示**：同机另有会话共享工作区（1000 系 / T1451+ / impl 753+）——每轮提交必须精确路径 add，勿 git add -A；README 行受其未提交 spec 引用阻塞时欠账下轮补。候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 

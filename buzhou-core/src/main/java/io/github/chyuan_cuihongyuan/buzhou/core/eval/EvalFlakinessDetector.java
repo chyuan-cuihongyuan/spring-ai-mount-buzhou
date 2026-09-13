@@ -55,6 +55,11 @@ public final class EvalFlakinessDetector {
                 drift.add(id); // 单侧项 = 数据集漂移（不算抖动）
                 continue;
             }
+            // impl-669 / spec 916：pruned = 无有效样本——该项本次比对不计入分母
+            if (EvalRunItemResult.STATUS_PRUNED.equals(a)
+                    || EvalRunItemResult.STATUS_PRUNED.equals(b)) {
+                continue;
+            }
             compared++;
             if (isRed(a) != isRed(b)) {
                 flaky.add(new FlakyItem(id, a, b));
@@ -85,6 +90,12 @@ public final class EvalFlakinessDetector {
      * <p>与 pass@k（spec 902 通过概率口径）互补：本面是 verdict 一致性口径。
      */
     public record KItemVerdict(String itemId, List<String> statuses, boolean stable) {
+        public KItemVerdict {
+            // statuses 可含 null（pruned = 无有效样本，spec 916）——List.copyOf 拒 null，
+            // 用 ArrayList 包装的 unmodifiable 视图（null 容忍不可变）
+            statuses = statuses == null ? List.of()
+                    : java.util.Collections.unmodifiableList(new ArrayList<>(statuses));
+        }
     }
 
     /** k 次稳定性报告（flakyRate = flaky / compared，0 项约定 0.0——空集合法）。 */
@@ -105,13 +116,17 @@ public final class EvalFlakinessDetector {
                 throw new IllegalArgumentException("runId 重复（同 run 自比无意义）：" + run.runId());
             }
         }
-        // itemId -> 各 run 的 status（LinkedHashMap 保持首 run 项序）
+        // itemId -> 各 run 的 status（LinkedHashMap 保持首 run 项序）。
+        // impl-669 / spec 916：pruned = 该 run 无有效样本（置 null → 单侧排除路径，
+        // 防「真 fail + 多次 pruned」被红绿映射误判稳定绿）。
         Map<String, List<String>> perItem = new LinkedHashMap<>();
         for (int runIdx = 0; runIdx < runs.size(); runIdx++) {
             for (EvalRunItemResult item : runs.get(runIdx).items()) {
+                String effective = EvalRunItemResult.STATUS_PRUNED.equals(item.status())
+                        ? null : item.status();
                 perItem.computeIfAbsent(item.itemId(), k -> new ArrayList<>(
                                 java.util.Collections.nCopies(runs.size(), (String) null)))
-                        .set(runIdx, item.status());
+                        .set(runIdx, effective);
             }
         }
         int compared = 0;
@@ -119,16 +134,20 @@ public final class EvalFlakinessDetector {
         List<KItemVerdict> verdicts = new ArrayList<>();
         for (Map.Entry<String, List<String>> entry : perItem.entrySet()) {
             List<String> statuses = entry.getValue();
-            if (statuses.stream().anyMatch(java.util.Objects::isNull)) {
-                continue; // 单侧项 = 数据集漂移（不入分母——两 run 版同口径）
+            // impl-669 / spec 916：按有效样本判定（null = 缺项或 pruned）——有效样本
+            // ≥ 2 才可比（不足 = 漂移/样本不足，不入分母）；仅用有效样本判一致性。
+            List<String> effective = statuses.stream()
+                    .filter(java.util.Objects::nonNull).toList();
+            if (effective.size() < 2) {
+                continue;
             }
             compared++;
-            boolean firstRed = isRed(statuses.get(0));
-            boolean consistent = statuses.stream().allMatch(s -> isRed(s) == firstRed);
+            boolean firstRed = isRed(effective.get(0));
+            boolean consistent = effective.stream().allMatch(s -> isRed(s) == firstRed);
             if (consistent) {
                 stable++;
             }
-            verdicts.add(new KItemVerdict(entry.getKey(), List.copyOf(statuses), consistent));
+            verdicts.add(new KItemVerdict(entry.getKey(), statuses, consistent));
         }
         int flaky = compared - stable;
         double rate = compared == 0 ? 0.0 : (double) flaky / compared;
