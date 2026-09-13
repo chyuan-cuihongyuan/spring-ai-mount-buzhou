@@ -424,3 +424,4 @@
 | #840 | MCP 建连遥测读数 | [maps/effort-840.md](maps/effort-840.md) | T1181–1182 | 593 |
 | #841 | 会话空闲时长分桶直方 | [maps/effort-841.md](maps/effort-841.md) | T1183–1184 | 594 |
 | #842 | HITL 认证决策分布 | [maps/effort-842.md](maps/effort-842.md) | T1185–1186 | 595 |
+| #843 | 证据引用失效率读数 | [maps/effort-843.md](maps/effort-843.md) | T1187–1188 | 596 |

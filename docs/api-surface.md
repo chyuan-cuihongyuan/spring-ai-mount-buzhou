@@ -2251,3 +2251,7 @@
 - `AuthDecisionStats`（嵌套 `Outcome`/`OutcomeCount`/`Report`）（842——
   Keycloak 决策观测扩散：HITL 认证五态（批准/拒绝/过期/已消费/未知凭证）
   闭集计数+占比降序快照；synchronized 记账；喂点=GuardAuthApi 装配侧）
+
+- `EvidenceRefValidity`（嵌套 `Report`）（843——S3 presigned 时限校验
+  思想：被引用 spill URI 集合 vs 存在性谓词失效率对账——失效样本典序
+  封顶 16；谓词注入零文件系统触碰；ledger 包私有边界保持）
