@@ -52,4 +52,29 @@ public record FactDecayPolicy(double halfLifeTurns, double floor) {
     public boolean injectable(double confidence, int elapsedTurns) {
         return decayed(confidence, elapsedTurns) >= floor;
     }
+
+    /**
+     * impl-679 / spec 926：衰减预报——「还有几轮衰出注入」的逆函数读法
+     * （predict_linear 同思路，对象为 fact 生命周期；批量预报可提前刷新
+     * 高价值事实——衰减预警→主动 reinforce）。
+     *
+     * <p>解析 {@code confidence × 2^(−t/h) = floor} 得 {@code t = h × log2(confidence/floor)}
+     * 向上取整。floor = 0 时永不过滤（injectable 恒真）返回 {@code Long.MAX_VALUE}。
+     *
+     * @param confidence 当前置信度 ∈ (0,1]
+     * @return 距衰出的轮数（0 = 已衰出；Long.MAX_VALUE = floor 为 0 永不衰出）
+     */
+    public long turnsUntilFloor(double confidence) {
+        if (!(confidence > 0 && confidence <= 1)) {
+            throw new IllegalArgumentException("confidence 须 ∈ (0,1]，收到 " + confidence);
+        }
+        if (floor == 0) {
+            return Long.MAX_VALUE; // 永不过滤
+        }
+        if (confidence <= floor) {
+            return 0; // 已衰出
+        }
+        double turns = halfLifeTurns * (Math.log(confidence / floor) / Math.log(2));
+        return (long) Math.ceil(turns);
+    }
 }
