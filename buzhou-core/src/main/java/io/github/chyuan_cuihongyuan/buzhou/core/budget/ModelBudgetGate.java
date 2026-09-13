@@ -22,6 +22,13 @@ public class ModelBudgetGate implements BuzhouHook {
     private final Map<String, Long> budgets;
     private final String modelName;
     private final ModelCostLedger ledger;
+    /** impl-782 / spec 1029：闸判定分布计数（守恒 checks == allowed + blocked）。 */
+    private final java.util.concurrent.atomic.AtomicLong checks =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong allowed =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong blocked =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public ModelBudgetGate(Map<String, Long> budgets, String modelName, ModelCostLedger ledger) {
         if (budgets == null || budgets.isEmpty()) {
@@ -58,13 +65,25 @@ public class ModelBudgetGate implements BuzhouHook {
 
     @Override
     public HookResult beforeModel(ModelCallContext ctx) {
+        checks.incrementAndGet(); // spec 1029：闸判定分布
         if (!exhausted()) {
+            allowed.incrementAndGet();
             return HookResult.CONTINUE;
         }
+        blocked.incrementAndGet();
         long spent = ledger.costOf(modelName);
         return HookResult.block("[MODEL-BUDGET] 模型 " + modelName + " 已记账 "
                 + spent + " microUsd ≥ 预算 " + budgets.get(modelName)
                 + "——本轮拦截（请调整预算 buzhou.budget.model-budget." + modelName
                 + " 或更换模型）");
+    }
+
+    /** 闸判定分布只读快照（守恒 checks == allowed + blocked——spec 1029）。 */
+    public BudgetGateStats stats() {
+        return new BudgetGateStats(checks.get(), allowed.get(), blocked.get());
+    }
+
+    /** 闸判定计数行（不可变）。 */
+    public record BudgetGateStats(long checks, long allowed, long blocked) {
     }
 }
