@@ -2294,6 +2294,10 @@
   契约校验套件九项语义静态收集范式，第三方 store 自证工具；H 会话收口
   合并时 api-surface 补档）
 
+- `ToolCallOutcomeStats`（I 会话 944 产出——工具调用结局四桶+other 分布纯函数）
+- `SessionIndexStoreContract`（I 会话 945 产出——SessionIndexStore SPI 契约
+  校验套件五项语义静态收集范式；契约系列第五站）
+
 - `ObservabilityStoreContract`（I 会话 936 产出——ObservabilityStore SPI 契约
   校验套件八项语义静态收集范式：span/event 保序、快照写读一致、未知会话空读、
   跨会话隔离、deleteSession 幂等、eventsOfSpan 过滤；契约系列收口最后核心 SPI）

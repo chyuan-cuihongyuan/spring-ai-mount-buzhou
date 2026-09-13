@@ -318,6 +318,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunStatus
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLogEntry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcomeStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.AdvisoryFileLock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.MaintenanceTrigger
@@ -419,6 +420,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradeHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ReadDegradePolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexStoreContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionLeaseStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionLeaseStoreContract
