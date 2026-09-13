@@ -2099,3 +2099,7 @@
 - `KeyRotationAudit`（嵌套 `Finding`/`Report`）（807——cert-manager 借鉴：
   签名钥龄 OVERDUE/DUE_SOON/OK 三档+UNKNOWN_ACTIVE 账本异常面，最坏排序；
   SigningKeyRing 零侵入，激活账由 persister 侧提供）
+
+- `ExportDedupeStats`（嵌套 `DuplicateBlock`/`Report`）（808——restic dedupe
+  stats 借鉴：导出内容块精确重复计数+savingsRatio+Top16（preview 截 32
+  隐私）；空块计 items 不计重复；字符口径与 738 一致）

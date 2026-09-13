@@ -178,6 +178,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportDedupeStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.PostmortemBundle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.FactConflictAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStore
