@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -100,6 +101,18 @@ class EventDropBreakdownTest {
         EventDropBreakdown breakdown = new EventDropBreakdown(Map.of("drop-oldest", 2L));
         assertThatThrownBy(() -> breakdown.byReason().put("x", 1L))
                 .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void breakdownKeysAlignedWithMetricConstants() {
+        // spec 918：breakdown 的 reason 键与指标 tag 常量同源（口径一致防漂移）
+        assertThat(Set.of(BufferedEventDispatcher.DROP_REASON_OLDEST,
+                BufferedEventDispatcher.DROP_REASON_OLDEST_RACE,
+                BufferedEventDispatcher.DROP_REASON_BLOCK_TIMEOUT,
+                BufferedEventDispatcher.DROP_REASON_INTERRUPTED,
+                BufferedEventDispatcher.DROP_REASON_DISPATCHER_CLOSED,
+                BufferedEventDispatcher.DROP_REASON_CLOSED_UNDELIVERED))
+                .contains("drop-oldest", "block-timeout", "closed-undelivered");
     }
 
     @Test
