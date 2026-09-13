@@ -610,6 +610,7 @@ buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.OtelBridge
 buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.OtelBridgeConfig
 buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.config.BuzhouOtelAutoConfiguration
 buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.config.OtelProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.Classification
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.DefaultErrorClassifier
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ErrorCategory

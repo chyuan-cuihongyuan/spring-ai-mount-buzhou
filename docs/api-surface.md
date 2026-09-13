@@ -2113,3 +2113,7 @@
   封顶 16 truncated；纯读数）
 - `TimedMessageStore`（810——MessageStore 装饰器，三方法 nanoTime finally
   计时进环，异常照记照抛；行为零变更）
+
+- `CircuitCrashLoopDetector`（嵌套 `LoopState`）（811——k8s CrashLoopBackOff
+  借鉴：滑窗 OPEN ≥minOpens(≥2) 转 looping 闩锁态（窗口滑过不解、唯
+  recordRecovery 清），loopsDetected 边沿计数；模型封顶 32；旁路读数）

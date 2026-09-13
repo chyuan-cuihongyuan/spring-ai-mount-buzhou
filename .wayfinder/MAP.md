@@ -392,3 +392,4 @@
 | #808 | 导出内容去重统计 | [maps/effort-808.md](maps/effort-808.md) | T1117–1118 | 561 |
 | #809 | 作业死信台账 | [maps/effort-809.md](maps/effort-809.md) | T1119–1120 | 562 |
 | #810 | 存储提交延迟环形读数 | [maps/effort-810.md](maps/effort-810.md) | T1121–1122 | 563 |
+| #811 | 断路器 crash-loop 检测 | [maps/effort-811.md](maps/effort-811.md) | T1123–1124 | 564 |
