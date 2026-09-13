@@ -602,11 +602,15 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 评估闭环 | 数据集输入长度画像 | EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars）——评估成本画像，超长项预算失控点（spec 942） | [spec 942](docs/spec/942-input-profile.md) |
 | 会话治理 | 摘要存储水位读面 | InMemorySummaryStore.watermark（activeSessions/maxSessions）——水位系列第三站（spec 950） | [spec 950](docs/spec/950-summary-watermark.md) |
 | 记忆治理 | token 估算统计读面 | TokenEstimateStats——token 估算链路计数对账（spec 1033） | [spec 1033](docs/spec/1033-token-estimate-stats.md) |
+| 成本预算 | token 估算调用量与总量读面 | CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()——预算面估算总量显形（spec 1033） | [spec 1033](docs/spec/1033-token-estimate-stats.md) |
 | 记忆治理 | 词法排序统计读面 | LexicalRankStats——检索词法排序链路计数（spec 1034） | [spec 1034](docs/spec/1034-lexical-rank-stats.md) |
+| 技能治理 | 词法排序生效计数读面 | LexicalSkillRanker 嵌套 RankStats（runs/reordered——排序器空转显形）+ stats()——混合排序生效水位（spec 1034） | [spec 1034](docs/spec/1034-lexical-rank-stats.md) |
 | 模型韧性 | MCP 解析统计读面 | McpParseStats——MCP 工具清单解析成败计数（spec 1036） | [spec 1036](docs/spec/1036-mcp-parse-stats.md) |
+| MCP 热插拔 | properties 装配解析统计读面 | PropertiesToolSetProvider 静态三计数（servers/bindings/bindingsSkipped——非 Map binding 项静默跳过显形）+ parseStats()——清单解析统计思想（spec 1036） | [spec 1036](docs/spec/1036-mcp-parse-stats.md) |
 | 安全 | 权限统计读面 | PermissionStats——权限判定分布聚合（spec 1037） | [spec 1037](docs/spec/1037-permission-stats.md) |
 | memory | 摘要桥接统计读面 | SummaryBridgeStats——摘要桥接链路计数对账（spec 1038） | [spec 1038](docs/spec/1038-summary-bridge-stats.md) |
 | prompt 域 | 提示词解析统计读面 | PromptResolutionStats——提示词解析成败计数对账（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
+| 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | 评估闭环 | k 次防抖门 | EvalGate.enforceStable（k 次全过才过 + 早停 + 历史容量校验）——flaky 误报防护从严门（spec 943） | [spec 943](docs/spec/943-stable-gate.md) |
