@@ -41,6 +41,7 @@
 - [金丝雀生命周期计数读面的形态裁决](../tickets/T1489-canary-stats-shape.md) — CanaryGuardHook 嵌套 CanaryStats（planted 播撒幂等不重复计 / leaked 泄漏 / variantBlocked 变体拦截）+ stats()；泄漏与变体触发即间接注入在场的铁证（Thinkst Canary）。
 - [事实采集隔离硬化与计数读面的形态裁决](../tickets/T1491-fact-collector-isolation-shape.md) — FactCollectorHook 逐定义 try/catch 隔离（judge/save 异常不再炸 afterTool 链——监听器隔离惯例对齐）+ FactCollectionStats（saved/failures）+ stats()；本轮含行为改进（隔离语义）。
 - [HITL 审批操作分布读面的形态裁决](../tickets/T1493-auth-operation-stats-shape.md) — GuardAuthApi 嵌套 AuthOperationStats（approved/rejected/revoked 三计数）+ stats()；事件流之外的进程内聚合水位（与 R19 门判定分轴——台账操作轴）。
+- [加密消息存储操作计数读面的形态裁决](../tickets/T1495-crypto-store-stats-shape.md) — EncryptingMessageStore 嵌套 CryptoStoreStats（encrypted/decrypted/passthrough 双向透传分计）+ stats()；解密失败照抛不计（完整性优先语义不变）——信封加密 ops 可视性。首入 crypto 包。
 
 ## 150 轮台账
 
@@ -68,7 +69,8 @@
 | 20 | 金丝雀生命周期计数读面（播撒/泄漏/变体拦截） | Thinkst Canary | T1489–T1490 | 772 | 1019 | ✅ |
 | 21 | 事实采集隔离硬化与计数读面（judge/save 隔离 + saved/failures） | 监听器隔离惯例推广 | T1491–T1492 | 773 | 1020 | ✅ |
 | 22 | HITL 审批操作分布读面（approved/rejected/revoked） | 审批聚合视图 | T1493–T1494 | 774 | 1021 | ✅ |
-| 23 | （开工时按缺口核查选题，候选见下） | — | T1495–T1496 | 775 | 1022 |  |
+| 23 | 加密消息存储操作计数读面（encrypted/decrypted/passthrough） | 信封加密 ops 可视性 | T1495–T1496 | 775 | 1022 | ✅ |
+| 24 | （开工时按缺口核查选题，候选见下） | — | T1497–T1498 | 776 | 1023 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 

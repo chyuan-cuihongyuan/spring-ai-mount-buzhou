@@ -31,6 +31,13 @@ public final class EncryptingMessageStore implements MessageStore {
 
     private final MessageStore delegate;
     private final EnvelopeCipher cipher;
+    /** impl-775 / spec 1022：加密存储操作计数（覆盖率与透传残留直读）。 */
+    private final java.util.concurrent.atomic.AtomicLong encrypted =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong decrypted =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong passthrough =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public EncryptingMessageStore(MessageStore delegate, EnvelopeCipher cipher) {
         this.delegate = java.util.Objects.requireNonNull(delegate);
@@ -71,13 +78,24 @@ public final class EncryptingMessageStore implements MessageStore {
         return delegate;
     }
 
+    /** 加密存储操作只读快照（spec 1022——加密覆盖与透传残留直读）。 */
+    public CryptoStoreStats stats() {
+        return new CryptoStoreStats(encrypted.get(), decrypted.get(), passthrough.get());
+    }
+
+    /** 操作计数行（不可变）。 */
+    public record CryptoStoreStats(long encrypted, long decrypted, long passthrough) {
+    }
+
     // ---- 载体往返 ----
 
     private BuzhouMessage toCarrier(BuzhouMessage message) {
         if (EnvelopeCipher.isEnvelope(message.content())) {
-            return message; // 已是信封——不再包装（幂等安全）
+            passthrough.incrementAndGet(); // spec 1022：已信封——不再包装（幂等安全）
+            return message;
         }
         String envelope = cipher.encrypt(serialize(message), aadOf(message));
+        encrypted.incrementAndGet();
         return new BuzhouMessage(message.id(), message.sessionId(), message.turnSeq(),
                 message.seqInTurn(), Role.USER, envelope, List.of(), null, null, null,
                 Map.of(), message.createdAt());
@@ -85,9 +103,12 @@ public final class EncryptingMessageStore implements MessageStore {
 
     private BuzhouMessage fromCarrier(BuzhouMessage stored) {
         if (!EnvelopeCipher.isEnvelope(stored.content())) {
-            return stored; // 旧明文透传（迁移友好）
+            passthrough.incrementAndGet(); // spec 1022：旧明文透传（迁移友好）
+            return stored;
         }
-        return deserialize(cipher.decrypt(stored.content(), aadOf(stored)));
+        BuzhouMessage restored = deserialize(cipher.decrypt(stored.content(), aadOf(stored)));
+        decrypted.incrementAndGet();
+        return restored;
     }
 
     private static String aadOf(BuzhouMessage message) {
