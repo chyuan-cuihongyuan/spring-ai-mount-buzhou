@@ -598,6 +598,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 748-execution-policy-readout（补登） | I/J 会话产出引用补全 | [spec 748](docs/spec/748-execution-policy-readout.md) |
 | 观测治理 | 749-final-verification（补登） | I/J 会话产出引用补全 | [spec 749](docs/spec/749-final-verification.md) |
 | 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
+| 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |

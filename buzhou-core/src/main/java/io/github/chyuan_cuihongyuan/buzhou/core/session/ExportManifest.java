@@ -101,7 +101,7 @@ public final class ExportManifest {
      * 与 {@link #verifyCanonical} 配对使用（规范化口径）。
      */
     public static Verification verifySubset(String manifestJson, Map<String, String> contents) {
-        if (contents == null) {
+        if (contents == null || contents.isEmpty()) {
             throw new IllegalArgumentException("contents 必须非空（子集校验至少验一项；全量校验用 verify）");
         }
         Map<String, String> canonicalized = new LinkedHashMap<>();
