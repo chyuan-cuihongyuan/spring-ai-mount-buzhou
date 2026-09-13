@@ -29,4 +29,22 @@ public record EvalRunResult(String runId, String datasetName, Instant startedAt,
     public double passRate() {
         return total == 0 ? 0.0 : (double) passed / total;
     }
+
+    /**
+     * impl-685 / spec 933：剪枝项计数（status = pruned 的条数——spec 901 算力止损
+     * 事件量级）。
+     */
+    public long prunedCount() {
+        return items.stream().filter(i -> "pruned".equals(i.status())).count();
+    }
+
+    /**
+     * impl-685 / spec 933：有效通过率——分母排除 pruned 项（「真实评估质量」口径；
+     * 剪枝 run 的 {@link #passRate()} 总量口径会被 pruned 稀释，双口径显式并存——
+     * CI 硬门用总量口径防剪枝刷分）。分母为 0（全 pruned/空集）约定 0.0。
+     */
+    public double effectivePassRate() {
+        int effective = total - (int) prunedCount();
+        return effective <= 0 ? 0.0 : (double) passed / effective;
+    }
 }

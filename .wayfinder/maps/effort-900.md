@@ -46,6 +46,7 @@
 - [租约契约接入 H2/JDBC](../tickets/T1309-h2-lease-contract-shape.md) — **契约抓到并修复真实 SQL 语义缺陷**：release 曾 DELETE 行致 fence 空间重置（重取恒 1，token 单调性破坏）→ 软过期（expires_at=now）由 tryAcquire 过期转移分支接管 fence+1。JdbcSessionLeaseStore 九项全过。
 - [租约契约接入 Redis](../tickets/T1311-redis-lease-contract-shape.md) — **契约抓到并修复真实语义缺陷**：RedisSessionLeaseStore.tryAcquire 无幂等重入（EXISTS 即拒，违反 SPI「同 owner 续期」语义）→ ACQUIRE_SCRIPT 加同 owner 重入分支（PEXPIRE 续期返回原 token）。jedismock 九项全过。
 - [剪枝边界深验](../tickets/T1303-prune-edge-shape.md) — minItems==total 不残缺/阈值极小首 fail 即剪/memo 共存不绕裁决——薄加固轮（901 边界组合收口）。
+- [剪枝 run 有效通过率口径](../tickets/T1305-effective-passrate-shape.md) — EvalRunResult.prunedCount() + effectivePassRate()（分母排除 pruned；全 pruned 约定 0.0）——双口径显式并存，总量口径防剪枝刷分（CI 硬门），有效口径反映真实质量。
 - [扩缩容建议缩容滞回](../tickets/T1297-scaling-hysteresis-shape.md) — BulkheadScalingAdvisor stabilizeWindows opt-in（回零建议需连续 N 空闲窗才回落，期间保持上次非 1 建议；扩容即时不对称——HPA stabilization window；默认 1 逐位不变）。
 - [观测存储水位读面](../tickets/T1299-obs-watermark-shape.md) — InMemoryObservabilityStore.watermark（activeSessions/maxSessions/totalRecords/maxRecordsPerSession/sessionsEvicted 投影）——Redis INFO memory 思想，internal 读面（逐出开始发生前可见容量压力）。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
@@ -86,6 +87,7 @@
 | 30 | 租约契约接入 H2/JDBC（**抓到并修复 release fence 重置缺陷**：DELETE→软过期保 token 单调） | spec 732/744 接入先例 | T1309–T1310 | 682 | 929 | ✅ |
 | 31 | 租约契约接入 Redis（**抓到并修复幂等重入缺失缺陷**：ACQUIRE_SCRIPT 加同 owner 重入续期分支） | spec 922 契约扩散 | T1311–T1312 | 683 | 930 | ✅ |
 | 32 | 剪枝边界深验（薄加固轮） | G 深验模式 | T1303–T1304 号段回用修正 | 684 | 931 | ✅ |
+| 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1305–T1306 号段复用 | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
 
