@@ -54,6 +54,8 @@
 - [ObservabilityStore 契约校验套件](../tickets/T1315-obs-contract-shape.md) — 八项语义检查（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存实现接入——契约系列收口最后核心 SPI（922/929/930/936 四 SPI 全覆盖）。
 - [webhook 死信环形上限](../tickets/T1317-deadletter-cap-shape.md) — MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧，保留最新排障价值）——有界纪律（ErrorSignatures/TagCardinalityGuard 同先例），渐进收敛无尖峰。
 - [数据集输入长度画像](../tickets/T1327-input-profile-shape.md) — EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars，R-7 同口径内联）——评估成本画像，超长项与预算失控点探测（票号改号：T1317/T1318 与 spec 937 冲突）。
+- [k 次防抖门](../tickets/T1329-stable-gate-shape.md) — EvalGate.enforceStable（k 次全过才过 + 早停 + k≤HISTORY_CAPACITY 校验）——flaky 误报防护的从严门，复用既有管线全继承。
+- [工具调用结局分布读面](../tickets/T1329-outcome-stats-shape.md) — ToolCallOutcomeStats.stats 四桶+other 收容桶（守恒不破枚举扩展）——spec 50 日志的根因分诊聚合面（TIMEOUT 高=超时配置，CANCELLED 高=取消风暴）。
 - [gate 阈值漂移读面](../tickets/T1319-threshold-drift-shape.md) — EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形（914 历史面聚合视图）。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
 - [事实衰减预报读法](../tickets/T1299-decay-forecast-shape.md) — FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉ + floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路（对象 fact 生命周期），衰减预警→主动 reinforce。
@@ -99,6 +101,8 @@
 | 37 | webhook 死信环形上限 | 有界纪律（ErrorSignatures 同款） | T1317–T1318 | 689 | 937 | ✅ |
 | 38 | gate 阈值漂移读面 | spec 914 历史面聚合 | T1319–T1320 | 690 | 938 | ✅ |
 | 42 | 数据集输入长度画像（票号改号：T1317/T1318 与 spec 937 冲突→T1327/T1328） | 成本画像 | T1327–T1328 | 691 | 942 | ✅ |
+| 43 | k 次防抖门 | flaky CI 防抖惯例 | T1329–T1330 | 692 | 943 | ✅ |
+| 44 | 工具调用结局分布读面 | spec 50 聚合面 | T1329–T1332 票号沿用修正 | 693 | 944 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
