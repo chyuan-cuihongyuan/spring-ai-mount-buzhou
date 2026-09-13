@@ -600,6 +600,7 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.tool.ReviseSummarySecti
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.ObservabilityConfig
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.ObservabilityModule
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.PipelineMemoryLimiter
+buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.TailSamplingDecisionLog
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.advisor.ObservabilityAdvisor
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.advisor.ObservabilitySessionState
 buzhou-observability|io.github.chyuan_cuihongyuan.buzhou.observability.analytics.SpanStatusDistribution

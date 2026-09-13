@@ -416,3 +416,4 @@
 | #832 | 技能加载延迟读数 | [maps/effort-832.md](maps/effort-832.md) | T1165–1166 | 585 |
 | #833 | 危险工具命中分布 | [maps/effort-833.md](maps/effort-833.md) | T1167–1168 | 586 |
 | #834 | 上下文截断统计 | [maps/effort-834.md](maps/effort-834.md) | T1169–1170 | 587 |
+| #835 | 尾采样决策台账 | [maps/effort-835.md](maps/effort-835.md) | T1171–1172 | 588 |

@@ -2217,3 +2217,8 @@
   HF truncation_strategy 思想：跨截断机制 chars 聚合（策略键封顶 8+
   __overflow__ 桶量净计；events/chars 双累计；chars 降序）；喂点=机制
   装配侧零侵入）
+
+- `TailSamplingDecisionLog`（嵌套 `Decision`/`Entry`/`ReasonCount`/`Report`）
+  （835——OTel tail_sampling 借鉴：trace 采样决策环形明细 64+决策×原因
+  聚合（键封顶 16+溢出桶带决策维）+keptRatio；与 eval 采样域正交；
+  喂点=采样器装配侧）

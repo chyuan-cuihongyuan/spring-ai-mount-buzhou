@@ -1,6 +1,5 @@
 # effort #834 — 上下文截断统计
 
-- 会话：H 会话 800 系第 34 轮（续）｜ 第 35 轮主体
 - 会话：H 会话 800 系第 35 轮 ｜ spec [834](../../../docs/spec/834-context-truncation-stats.md) ｜ 票 [T1169](../tickets/T1169-context-truncation-stats.md)/[T1170](../tickets/T1170-context-truncation-stats-verify.md) ｜ impl587
 - 借鉴：HuggingFace tokenizer truncation_strategy（huggingface/transformers ≈150K star）——截掉什么/多少是可见性侵蚀量
 
