@@ -2061,3 +2061,12 @@
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
 
+
+## effort #800–#849 新增公共面（H 会话 / spec 800–849 / impl-553–602，@since 1.0.0）
+
+> H 会话 800 系逐轮入档（同口径：src/main 非 internal 包 public 类型）。
+
+- `ToolAutoBanHook`（嵌套 `ActiveBan`/`BanSnapshot`）（800——fail2ban 借鉴：
+  watch 工具滑窗连续失败达 maxViolations 自动封禁 banSeconds，beforeTool
+  拦截带剩余秒；(session,tool) 键有界 256 + truncated；成功不重置、到期
+  惰性解除、snapshot() 只读快照）

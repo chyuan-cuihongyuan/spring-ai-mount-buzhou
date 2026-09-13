@@ -376,6 +376,7 @@
 | #747 | 相似度阈值反事实对照 | [maps/effort-747.md](maps/effort-747.md) | T1096–1097 | 631 续 |
 | #748 | 执行策略汇总读数 | [maps/effort-748.md](maps/effort-748.md) | T1098–1099 | 649 |
 | #749 | 收口终验 | [maps/effort-749.md](maps/effort-749.md) | —（全闭环） | — |
+| #800 | 工具自动封禁 | [maps/effort-800.md](maps/effort-800.md) | T1101–1102 | 553 |
 
 ## 跨 effort 悬留
 

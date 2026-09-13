@@ -578,6 +578,14 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 护栏 | 导出脱敏命中计数 | SessionExportSanitizer hitCounts/totalHits——PiiType 与自定义规则归因，「导出脱敏动了多少刀」可审计（合规证据面） | [spec 743](docs/spec/743-sanitizer-hit-counts.md) |
 | MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 
+## 生产级纵深 IX（H 会话 800 系增量）
+
+H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 护栏 | 工具自动封禁 | ToolAutoBanHook——受监视工具滑窗连续失败达阈值自动封禁+beforeTool 拦截报剩余秒+快照读数，失效工具止损从盯梢变自动（fail2ban maxretry/findtime/bantime） | [spec 800](docs/spec/800-tool-auto-ban.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
