@@ -599,6 +599,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 749-final-verification（补登） | I/J 会话产出引用补全 | [spec 749](docs/spec/749-final-verification.md) |
 | 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
+| memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
+| 评估闭环 | k 次防抖门 | EvalGate.enforceStable（k 次全过才过 + 早停 + 历史容量校验）——flaky 误报防护从严门（spec 943） | [spec 943](docs/spec/943-stable-gate.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
@@ -628,8 +630,6 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 手动压缩操作分布读面 | ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages 守恒）+ opStats()——K8s 事件聚合思想（spec 1027） | [spec 1027](docs/spec/1027-compact-op-stats.md) |
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
-| 成本预算 | token 估算调用量与总量读面 | CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()——预算面估算总量显形（spec 1033） | [spec 1033](docs/spec/1033-token-estimate-stats.md) |
-| 成本预算 | token 估算调用量与总量读面 | CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()——预算面估算总量显形（spec 1033） | [spec 1033](docs/spec/1033-token-estimate-stats.md) |
 | 安全 | 审计收集器采集与持久化失败计数读面 | AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()——Splunk HEC ingestion stats 借鉴（spec 1031） | [spec 1031](docs/spec/1031-audit-ingest-stats.md) |
 | 观测治理 | 打转检测触发聚合读面 | RepetitionDetectorHook 嵌套 RepetitionStats（fires/blocks/maxRunSeen 峰值）+ stats()——LLM 打转频率调参水位（spec 1032） | [spec 1032](docs/spec/1032-repetition-stats.md) |
 | 会话治理 | 会话级联清理聚合计数读面 | SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()——PostgreSQL autovacuum stats 思想（spec 1030） | [spec 1030](docs/spec/1030-cleanup-stats.md) |

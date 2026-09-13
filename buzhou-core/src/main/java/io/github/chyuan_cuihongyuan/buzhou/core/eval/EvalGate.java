@@ -117,6 +117,28 @@ public final class EvalGate {
         return new ThresholdDrift(transitions, historyList.size() - 1);
     }
 
+    /**
+     * impl-692 / spec 943：k 次防抖门——「k 次全过才过」的从严门（flaky 数据集/
+     * 抖动 judge 误报防护）。循环 k 次既有 enforce（落盘/历史/指标全继承），
+     * 任一失败即 fail。k ∈ [1, HISTORY_CAPACITY]（防历史环溢出丢失前序判定）。
+     * 返回最后一次 GateResult；全量判定经 {@link #history()} 可查。
+     */
+    public GateResult enforceStable(String datasetName, Evaluator evaluator,
+                                    double threshold, int k) {
+        if (k < 1 || k > HISTORY_CAPACITY) {
+            throw new IllegalArgumentException("k 须 ∈ [1, " + HISTORY_CAPACITY + "]，收到 " + k);
+        }
+        GateResult last = null;
+        for (int i = 0; i < k; i++) {
+            last = enforce(datasetName, evaluator, threshold);
+            if (!last.passed()) {
+                // 早停：任一失败即 fail（后续判定浪费算力）——已跑判定留史可查
+                break;
+            }
+        }
+        return last;
+    }
+
     /** impl-667 / spec 914：判定入史（环形有界；synchronized 单点）。 */
     private synchronized void recordDecision(GateResult result) {
         if (history.size() >= HISTORY_CAPACITY) {
