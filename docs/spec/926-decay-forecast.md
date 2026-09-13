@@ -1,6 +1,6 @@
 # 926 — 事实衰减预报读法
 
-> 来源：I 会话第 27 轮 = effort #926（[T1299](../../.wayfinder/tickets/T1299-decay-forecast-shape.md) / [T1300](../../.wayfinder/tickets/T1300-decay-forecast-verify.md) / impl 679）。prometheus predict_linear 同思路（对象换成 fact 生命周期）：「还有多久衰出」一读即知。
+> 来源：I 会话第 27 轮 = effort #926（[T1321](../../.wayfinder/tickets/T1321-decay-forecast-shape.md) / [T1322](../../.wayfinder/tickets/T1322-decay-forecast-verify.md) / impl 679）。prometheus predict_linear 同思路（对象换成 fact 生命周期）：「还有多久衰出」一读即知。
 
 ## 背景
 

@@ -1,5 +1,5 @@
 ---
-id: T1305
+id: T1323
 title: 剪枝 run 有效通过率口径的形态裁决
 type: task
 status: closed

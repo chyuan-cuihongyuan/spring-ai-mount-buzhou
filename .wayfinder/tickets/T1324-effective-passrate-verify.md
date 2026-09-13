@@ -1,5 +1,5 @@
 ---
-id: T1306
+id: T1324
 title: 剪枝 run 有效通过率口径的验证
 type: task
 status: closed

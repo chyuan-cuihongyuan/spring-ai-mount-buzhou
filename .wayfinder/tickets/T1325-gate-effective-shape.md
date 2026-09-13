@@ -1,5 +1,5 @@
 ---
-id: T1307
+id: T1325
 title: GateResult 有效通过率透出的形态裁决
 type: task
 status: closed

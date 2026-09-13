@@ -1,5 +1,5 @@
 ---
-id: T1300
+id: T1322
 title: 事实衰减预报读法的验证
 type: task
 status: closed

@@ -187,11 +187,26 @@ final class WebhookOutbox {
     }
 
     /** 死信隔离：outbox 键迁移 dead 键，容量随之释放（索引键同删）。 */
+    /** impl-689 / spec 937：死信环形上限（有界纪律——超限丢最旧，防无限累积）。 */
+    static final int MAX_DEAD_LETTERS = 256;
+
     void markDead(OutboxRecord record) {
         store.delete(SESSION_ID, OUTBOX_PREFIX + record.eventId());
         store.delete(SESSION_ID, dueKey(record));
+        evictOldestDeadIfFull();
         store.put(SESSION_ID, new StateEntry(DEAD_PREFIX + record.eventId(),
                 toJson(record), "webhook-outbox", 0, null, Instant.now()));
+    }
+
+    /** impl-689 / spec 937：死信达上限时丢最旧一条（按 createdAt 升序——全量 O(n)，n≤上限+1）。 */
+    private void evictOldestDeadIfFull() {
+        int count = store.countByPrefix(SESSION_ID, DEAD_PREFIX);
+        if (count < MAX_DEAD_LETTERS) {
+            return;
+        }
+        deadLetters(Integer.MAX_VALUE).stream()
+                .min(java.util.Comparator.comparingLong(d -> d.createdAt().toEpochMilli()))
+                .ifPresent(oldest -> store.delete(SESSION_ID, DEAD_PREFIX + oldest.eventId()));
     }
 
     /** spec 58 §A / T259：容量计数走 countByPrefix 下推（append 热路径不再全量读值）。 */

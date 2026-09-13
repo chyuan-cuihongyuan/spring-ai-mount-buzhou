@@ -1,6 +1,6 @@
 # 934 — GateResult 有效通过率透出
 
-> 来源：I 会话第 34 轮 = effort #934（[T1307](../../.wayfinder/tickets/T1307-gate-effective-shape.md) / [T1308](../../.wayfinder/tickets/T1308-gate-effective-verify.md) / impl 686）。spec 933 口径收口的门面透出（spec 82 EvalRunResult 9→10 参兼容构造先例同款）。
+> 来源：I 会话第 34 轮 = effort #934（[T1325](../../.wayfinder/tickets/T1325-gate-effective-shape.md) / [T1326](../../.wayfinder/tickets/T1326-gate-effective-verify.md) / impl 686）。spec 933 口径收口的门面透出（spec 82 EvalRunResult 9→10 参兼容构造先例同款）。
 
 ## 背景
 

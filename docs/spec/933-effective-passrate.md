@@ -1,6 +1,6 @@
 # 933 — 剪枝 run 有效通过率口径
 
-> 来源：I 会话第 33 轮 = effort #933（[T1305](../../.wayfinder/tickets/T1305-effective-passrate-shape.md) / [T1306](../../.wayfinder/tickets/T1306-effective-passrate-verify.md) / impl 685）。spec 901 剪枝的口径收口（双口径显式并存）。
+> 来源：I 会话第 33 轮 = effort #933（[T1323](../../.wayfinder/tickets/T1323-effective-passrate-shape.md) / [T1324](../../.wayfinder/tickets/T1324-effective-passrate-verify.md) / impl 685）。spec 901 剪枝的口径收口（双口径显式并存）。
 
 ## 背景
 

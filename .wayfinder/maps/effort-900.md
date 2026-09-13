@@ -52,6 +52,8 @@
 - [GateResult 有效通过率透出](../tickets/T1307-gate-effective-shape.md) — GateResult 加 effectivePassRate 组件（11 参新构造 + 10 参兼容 NaN 委托，spec 82 先例）+ enforce 填充——剪枝 run 门结果双口径同屏，passed 判定仍总量口径防刷分。
 - [ExportManifest 规范化摘要](../tickets/T1313-manifest-canonical-shape.md) — addCanonical/verifyCanonical 配对（canonicalJson 单点提级复用；首版 readTree JsonNode 未落 Map 分支的缺陷经 DBG 实证修正）——911 JCS 向 manifest 扩散（键序漂移不误报 mismatch）。
 - [ObservabilityStore 契约校验套件](../tickets/T1315-obs-contract-shape.md) — 八项语义检查（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存实现接入——契约系列收口最后核心 SPI（922/929/930/936 四 SPI 全覆盖）。
+- [webhook 死信环形上限](../tickets/T1317-deadletter-cap-shape.md) — MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧，保留最新排障价值）——有界纪律（ErrorSignatures/TagCardinalityGuard 同先例），渐进收敛无尖峰。
+- [gate 阈值漂移读面](../tickets/T1319-threshold-drift-shape.md) — EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形（914 历史面聚合视图）。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
 - [事实衰减预报读法](../tickets/T1299-decay-forecast-shape.md) — FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉ + floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路（对象 fact 生命周期），衰减预警→主动 reinforce。
 - [软截止预警集成](../tickets/T1293-soft-window-shape.md) — HarnessToolCallingManager.setSoftDeadlineWindow + awaitCompletion 软窗检查（一次性 WARN + counter buzhou.turn.soft-deadline + beginTurn 复位）——spec 921 集成留位兑现（派发行为零变化；Mimosa 误报拦截整合测试，旗标语义拆分直测）。
@@ -90,10 +92,12 @@
 | 30 | 租约契约接入 H2/JDBC（**抓到并修复 release fence 重置缺陷**：DELETE→软过期保 token 单调） | spec 732/744 接入先例 | T1309–T1310 | 682 | 929 | ✅ |
 | 31 | 租约契约接入 Redis（**抓到并修复幂等重入缺失缺陷**：ACQUIRE_SCRIPT 加同 owner 重入续期分支） | spec 922 契约扩散 | T1311–T1312 | 683 | 930 | ✅ |
 | 32 | 剪枝边界深验（薄加固轮） | G 深验模式 | T1303–T1304 号段回用修正 | 684 | 931 | ✅ |
-| 34 | GateResult 有效通过率透出 | spec 82 兼容构造先例 | T1307–T1308 号段复用 | 686 | 934 | ✅ |
+| 34 | GateResult 有效通过率透出 | spec 82 兼容构造先例 | T1325–T1326（原 T1307–T1308 双占用改号） | 686 | 934 | ✅ |
 | 35 | ExportManifest 规范化摘要（911 JCS 向 manifest 扩散） | RFC 8785 延续 | T1313–T1314 | 687 | 935 | ✅ |
 | 36 | ObservabilityStore 契约校验套件 | spec 922 契约系列收口 | T1315–T1316 | 688 | 936 | ✅ |
-| 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1305–T1306 号段复用 | 685 | 933 | ✅ |
+| 37 | webhook 死信环形上限 | 有界纪律（ErrorSignatures 同款） | T1317–T1318 | 689 | 937 | ✅ |
+| 38 | gate 阈值漂移读面 | spec 914 历史面聚合 | T1319–T1320 | 690 | 938 | ✅ |
+| 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
 

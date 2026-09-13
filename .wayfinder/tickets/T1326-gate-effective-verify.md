@@ -1,5 +1,5 @@
 ---
-id: T1308
+id: T1326
 title: GateResult 有效通过率透出的验证
 type: task
 status: closed
