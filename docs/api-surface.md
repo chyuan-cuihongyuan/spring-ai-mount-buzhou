@@ -2230,3 +2230,8 @@
 - `LeaderElectionStats`（嵌套 `Outcome`）（838——Redisson RedLock 竞争
   统计思想：选主四态（获选/续期/让位/失位）原子计数+contentionRatio
   竞争烈度；归类归调用方选举行为零变更）
+
+- `RateLimitKeyHotspot`（嵌套 `KeyDemand`）（837——Envoy 键域观测思想：
+  限流键申请热力排行（键封顶 128+溢出桶/requests+amount 毫账累计+lastSeen/
+  top 降序典序破平）；键拼装归调用方 backend SPI 零变更；补位轮——R38
+  跳号缺位即时填补）

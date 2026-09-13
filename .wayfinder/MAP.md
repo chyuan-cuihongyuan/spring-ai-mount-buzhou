@@ -419,3 +419,4 @@
 | #835 | 尾采样决策台账 | [maps/effort-835.md](maps/effort-835.md) | T1171–1172 | 588 |
 | #836 | 半开探测成功率读数 | [maps/effort-836.md](maps/effort-836.md) | T1173–1174 | 589 |
 | #838 | 选举竞争读数 | [maps/effort-838.md](maps/effort-838.md) | T1175–1176 | 590 |
+| #837 | 限流键热点读数 | [maps/effort-837.md](maps/effort-837.md) | T1177–1178 | 591 |
