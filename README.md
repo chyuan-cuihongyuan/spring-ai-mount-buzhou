@@ -547,6 +547,11 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 扩缩容建议缩容滞回 | stabilizeWindows opt-in（回零需连续 N 空闲窗，扩容即时不对称）——HPA stabilization window（spec 923） | [spec 923](docs/spec/923-scaling-hysteresis.md) |
 | 观测治理 | 观测存储水位读面 | InMemoryObservabilityStore.watermark（activeSessions/totalRecords vs 上限 + 逐出透传）——Redis INFO memory（spec 924） | [spec 924](docs/spec/924-obs-watermark.md) |
 | 观测治理 | 会话索引存量水位读面 | InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构（spec 925） | [spec 925](docs/spec/925-index-watermark.md) |
+| memory | 事实衰减预报读法 | FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉，floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路，衰减预警→主动 reinforce（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
+| exec 治理 | 软截止预警集成 | HarnessToolCallingManager 软截止窗（setSoftDeadlineWindow + 一次性 WARN/counter + beginTurn 复位）——spec 921 集成留位兑现（spec 927） | [spec 927](docs/spec/927-soft-deadline-integration.md) |
+| 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
+| 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
+| 会话治理 | pruned run 审计查询 | EvalQueryService.runsWithPruned（pruned 项筛选 + PrunedRunSummary 降序投影）——spec 901 剪枝审计入口（spec 928） | [spec 928](docs/spec/928-pruned-query.md) |
 | 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
 | 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
 | 安全 | 加密封存操作生命周期计数读面 | EncryptedSessionExport sealed/opened/openRejected 三计数（open 三拒绝路径全覆盖）+ 嵌套 SealStats + stats()——age/OpenSSL ops 实践，开失败率=密钥失配第一信号（spec 1012） | [spec 1012](docs/spec/1012-seal-lifecycle-stats.md) |
