@@ -2121,3 +2121,8 @@
 - `PipelineMemoryLimiter`（嵌套 `LimiterStats`）（812——OTel memory_limiter
   借鉴：在途权重总量判定 tryAdmit/release（CAS 无锁、拒收不记账、归账
   防负）；单位无关、拒绝只发信号；stats 四口径）
+
+- `SkillChannelResolver`（嵌套 `Entry`）（813——pnpm/yarn dist-tag 借鉴：
+  (技能名,版本,通道) 注册表纯解析——显式通道→回退 latest→全表最高；
+  点分数值段比较+prerelease 低于 release（semver）；同通道收敛高版本；
+  只读零 store 侵入）

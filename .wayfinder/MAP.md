@@ -394,3 +394,4 @@
 | #810 | 存储提交延迟环形读数 | [maps/effort-810.md](maps/effort-810.md) | T1121–1122 | 563 |
 | #811 | 断路器 crash-loop 检测 | [maps/effort-811.md](maps/effort-811.md) | T1123–1124 | 564 |
 | #812 | 观测管道内存限流器 | [maps/effort-812.md](maps/effort-812.md) | T1125–1126 | 565 |
+| #813 | 技能发布通道解析 | [maps/effort-813.md](maps/effort-813.md) | T1127–1128 | 566 |
