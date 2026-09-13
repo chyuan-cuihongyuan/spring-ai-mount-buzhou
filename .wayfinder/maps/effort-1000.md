@@ -27,6 +27,7 @@
 - [插叙轮：SpecCoverage 门四位数扩容] — \d{1,3}→\d{1,4}（1000 系起四位数 spec 曾成门盲区）+ 补 I 会话 906–909 README 行；隔离 worktree reactor 联编双门验证绿——号段制跨入四位数后的门维护责任。
 - [会话面包屑环形读面的形态裁决](../tickets/T1463-breadcrumbs-shape.md) — EventBreadcrumb（type+时刻，不记 payload 红线）+ 内部 BreadcrumbRing（32 新→旧）；deliverEvent 双模式共同漏斗一行记录；AgentSession.breadcrumbs() default 空表 + DefaultAgentSession 覆写（Sentry breadcrumbs）。
 - [凭证租约生命周期计数读面的形态裁决](../tickets/T1465-lease-stats-shape.md) — SecretLeases 补 renew 轴（renewed/renewRejected：缺失拒与过期拒两路计数）+ SecretLeaseStats 五字段统一快照；既有三 getter 兼容保留——续租拒绝率=TTL 过短信号（Vault lease lifecycle）。
+- [spill 回读命中率读面的形态裁决](../tickets/T1467-spill-onload-stats-shape.md) — SpillOnloadStats（attempts/loaded/failed 守恒）OnloadHook 回灌点计数；回读失败=spill 侵蚀信号，命中率消费方自算（PostgreSQL buffer hit-ratio）。首入 spill 模块。
 
 ## 150 轮台账
 
@@ -40,7 +41,8 @@
 | 6 | 工具在飞并发水位读面（current/peak 双水位 + 恰一次租约） | Go NumGoroutine/Hystrix | T1461–T1462 | 758 | 1005 | ✅ |
 | 7 | 会话面包屑环形读面（时间线尾部环 + 双模式漏斗） | Sentry breadcrumbs | T1463–T1464 | 759 | 1006 | ✅ |
 | 8 | 凭证租约生命周期计数读面（补 renew 轴 + 统一快照） | Vault lease lifecycle | T1465–T1466 | 760 | 1007 | ✅ |
-| 9 | （开工时按缺口核查选题，候选见下） | — | T1467–T1468 | 761 | 1008 |  |
+| 9 | spill 回读命中率读面（attempts/loaded/failed 守恒） | PostgreSQL buffer hit-ratio | T1467–T1468 | 761 | 1008 | ✅ |
+| 10 | （开工时按缺口核查选题，候选见下） | — | T1469–T1470 | 762 | 1009 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 

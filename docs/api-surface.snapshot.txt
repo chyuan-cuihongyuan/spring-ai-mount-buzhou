@@ -744,6 +744,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillGuardModule
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillHandle
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillModule
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillOffloadHook
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillOnloadStats
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillPairAudit
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillQuota
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillService

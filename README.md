@@ -539,6 +539,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 工具在飞并发水位读面 | ToolInFlight（每工具 current/peak/total + 全局双水位 + AutoCloseable 租约恰一次）——Go NumGoroutine/Hystrix 借鉴（spec 1005） | [spec 1005](docs/spec/1005-tool-in-flight.md) |
 | 观测治理 | 会话面包屑环形读面 | EventBreadcrumb 时间线尾部环（deliverEvent 双模式共同漏斗，只记 type 不记 payload）+ breadcrumbs() 新→旧快照——Sentry breadcrumbs 借鉴（spec 1006） | [spec 1006](docs/spec/1006-session-breadcrumbs.md) |
 | 模型韧性 | 凭证租约生命周期计数读面 | SecretLeaseStats 五计数快照（补 renew 轴：续租成功/被拒——拒绝率高=TTL 过短信号）——Vault lease lifecycle 借鉴（spec 1007） | [spec 1007](docs/spec/1007-lease-lifecycle-stats.md) |
+| 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
