@@ -671,6 +671,7 @@
 - `Evaluator`（SPI）/ `EvalScore`（passed+detail 512 截断）/ `BuiltInEvaluators`
   （EXACT/CONTAINS 常量 + regex(String) 工厂）
 - `EvalRunner`（run(datasetName, evaluator)）/ `EvalRunResult`（passRate）/ `EvalRunItemResult`
+- `EvalPrunePolicy`（minItems+failRateThreshold，impl-654 / spec 901 失败率中途剪枝 opt-in）
 - `EvalQueryService`（allRuns/runs/run/latestRun；只读）
 - `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
 

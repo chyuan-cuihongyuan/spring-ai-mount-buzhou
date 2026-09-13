@@ -68,6 +68,9 @@ public final class EvalRunner {
     /** spec 734 / T1068：最近一次 run 与其前一次的数据集指纹是否不同（首跑 false——读数面）。 */
     private volatile boolean lastFingerprintChanged;
 
+    /** impl-654 / spec 901：失败率中途剪枝策略（null = 关——默认零行为变化；仅串行路径生效）。 */
+    private volatile EvalPrunePolicy prunePolicy;
+
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
         this.runtime = runtime;
@@ -272,6 +275,16 @@ public final class EvalRunner {
         this.expectationsWarnOnly = warnOnly;
     }
 
+    /**
+     * impl-654 / spec 901：失败率中途剪枝（Optuna pruner 提前停止思想——opt-in，
+     * null = 关闭零变化）。仅串行路径生效：串行跑满观察窗后若 fail+error 占比
+     * 达阈值，剩余项标 {@code pruned} 不执行（run 照常落盘/发事件/计指标）。
+     * 并行路径诚实不生效（invokeAll 无低成本中途取消——入档边界）。
+     */
+    public void setPrunePolicy(EvalPrunePolicy prunePolicy) {
+        this.prunePolicy = prunePolicy;
+    }
+
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
     public EvalRunResult run(String datasetName, Evaluator evaluator) {
         return run(datasetName, evaluator, 1); // spec 68：默认串行零变化
@@ -317,9 +330,34 @@ public final class EvalRunner {
         List<EvalRunItemResult> results;
         if (workers == 1 || items.size() <= 1) {
             results = new ArrayList<>();
+            EvalPrunePolicy prune = prunePolicy; // spec 901：快照读（volatile 单读免竞态漂移）
+            EvalRunItemResult prunedSignal = null;
             for (EvalItem item : items) {
-                results.add(budgetedItem(spent, item,
-                        () -> memoizedItem(runId, datasetName, item, evaluator)));
+                if (prunedSignal != null) {
+                    // spec 901：剪枝已触发——剩余项不执行（算力止损），诚实标 pruned
+                    results.add(new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_PRUNED,
+                            "[PRUNED] 失败率达阈值（≥" + prune.failRateThreshold() + "）——本项未执行",
+                            "", 0));
+                    continue;
+                }
+                EvalRunItemResult r = budgetedItem(spent, item,
+                        () -> memoizedItem(runId, datasetName, item, evaluator));
+                results.add(r);
+                if (prune != null && results.size() >= prune.minItems()) {
+                    long bad = results.stream().filter(x ->
+                            EvalRunItemResult.STATUS_FAIL.equals(x.status())
+                                    || EvalRunItemResult.STATUS_ERROR.equals(x.status())).count();
+                    if ((double) bad / results.size() >= prune.failRateThreshold()) {
+                        prunedSignal = r;
+                        LOGGER.log(System.Logger.Level.WARNING,
+                                "评估中途剪枝触发（runId={0}, dataset={1}, 已完成={2}, 失败={3}"
+                                        + "、阈值={4}）——剩余 {5} 项标 pruned 未执行",
+                                runId, datasetName, results.size(), bad,
+                                prune.failRateThreshold(), items.size() - results.size());
+                        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                                .counter("buzhou.eval.run.pruned");
+                    }
+                }
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];

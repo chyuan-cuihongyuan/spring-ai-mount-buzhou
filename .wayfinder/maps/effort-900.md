@@ -21,13 +21,15 @@
 ## Decisions so far
 
 - [事件丢弃按原因分类读面](../tickets/T1251-event-drop-breakdown-shape.md) — EventDropBreakdown（drop-oldest/block-timeout/closed-undelivered 等分桶）+ eventDropBreakdown() 读面（SYNC empty 与 eventBusStats 同构）；ΣbyReason 守恒 == dropped；EventBusStats 原样不动（Sentry discarded events）。
+- [评估失败率中途剪枝](../tickets/T1253-eval-prune-shape.md) — EvalPrunePolicy（minItems 观察窗 + failRateThreshold）opt-in；仅串行路径生效恰停剩余项 pruned；指标 buzhou.eval.run.pruned + WARN（Optuna pruner；并行路径 invokeAll 无低成本中途取消——诚实入档不伪实现）。
 
 ## 100 轮台账
 
 | # | 主题 | 借鉴源 | 票 | impl | spec | 状态 |
 |---|------|--------|----|------|------|------|
 | 1 | 事件丢弃按原因分类读面（原列「outbox 积压深度健康面」ruled-out——spec 135 已覆盖） | Sentry discarded events | T1251–T1252 | 653 | 900 | ✅ |
-| 2 | （开工时按缺口核查选题，候选见下） | — | T1253–T1254 | 654 | 901 |  |
+| 2 | 评估失败率中途剪枝 | Optuna pruner | T1253–T1254 | 654 | 901 | ✅ |
+| 3 | （开工时按缺口核查选题，候选见下） | — | T1255–T1256 | 655 | 902 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 
