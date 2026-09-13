@@ -388,3 +388,4 @@
 | #804 | 嵌入 L2 归一化装饰器 | [maps/effort-804.md](maps/effort-804.md) | T1109–1110 | 557 |
 | #805 | 路由分布倾斜读数 | [maps/effort-805.md](maps/effort-805.md) | T1111–1112 | 558 |
 | #806 | 预算用量分位推荐 | [maps/effort-806.md](maps/effort-806.md) | T1113–1114 | 559 |
+| #807 | 签名密钥轮换到期审计 | [maps/effort-807.md](maps/effort-807.md) | T1115–1116 | 560 |

@@ -2095,3 +2095,7 @@
 - `BudgetRecommendation`（嵌套 `Report`/`Ring`）（806——k8s VPA 借鉴：
   用量样本最近秩 P50/P95/P99+⌈P95×(1+headroom)⌉ 推荐档；<5 样本
   sufficient=false(-1 哨兵)；Ring 1024 FIFO+dropped；纯读数不改预算）
+
+- `KeyRotationAudit`（嵌套 `Finding`/`Report`）（807——cert-manager 借鉴：
+  签名钥龄 OVERDUE/DUE_SOON/OK 三档+UNKNOWN_ACTIVE 账本异常面，最坏排序；
+  SigningKeyRing 零侵入，激活账由 persister 侧提供）
