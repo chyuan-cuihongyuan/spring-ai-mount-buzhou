@@ -399,3 +399,4 @@
 | #815 | Spill 写放大读数 | [maps/effort-815.md](maps/effort-815.md) | T1131–1132 | 568 |
 | #816 | 记忆分层容量读数 | [maps/effort-816.md](maps/effort-816.md) | T1133–1134 | 569 |
 | #817 | SLO 多窗燃烧率判定 | [maps/effort-817.md](maps/effort-817.md) | T1135–1136 | 570 |
+| #818 | 限流自适应收紧器 | [maps/effort-818.md](maps/effort-818.md) | T1137–1138 | 571 |

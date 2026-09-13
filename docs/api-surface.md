@@ -2144,3 +2144,7 @@
 - `SloMultiWindowBurn`（嵌套 `Verdict`）（817——Google SRE Workbook
   multi-window 借鉴：快慢双窗 burnRate 同超阈值且样本足才判 incident，
   独热带毛刺/渗漏诊断 reason；组合式 ErrorBudget 零变更判定脑）
+
+- `AdaptiveRateTightener`（818——AWS adaptive mode 借鉴：429 乘性收缩
+  （下限 minMultiplier）+保持窗后乘性步进恢复纯时间推导（无线程确定性）；
+  乘数接线归调用方不改 backend SPI；模型封顶 32）
