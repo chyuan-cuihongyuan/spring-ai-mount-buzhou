@@ -629,6 +629,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
 | 成本预算 | token 估算调用量与总量读面 | CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()——预算面估算总量显形（spec 1033） | [spec 1033](docs/spec/1033-token-estimate-stats.md) |
+| 成本预算 | token 估算调用量与总量读面 | CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()——预算面估算总量显形（spec 1033） | [spec 1033](docs/spec/1033-token-estimate-stats.md) |
 | 安全 | 审计收集器采集与持久化失败计数读面 | AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()——Splunk HEC ingestion stats 借鉴（spec 1031） | [spec 1031](docs/spec/1031-audit-ingest-stats.md) |
 | 观测治理 | 打转检测触发聚合读面 | RepetitionDetectorHook 嵌套 RepetitionStats（fires/blocks/maxRunSeen 峰值）+ stats()——LLM 打转频率调参水位（spec 1032） | [spec 1032](docs/spec/1032-repetition-stats.md) |
 | 会话治理 | 会话级联清理聚合计数读面 | SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()——PostgreSQL autovacuum stats 思想（spec 1030） | [spec 1030](docs/spec/1030-cleanup-stats.md) |

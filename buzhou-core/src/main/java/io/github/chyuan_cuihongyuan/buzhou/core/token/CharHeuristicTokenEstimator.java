@@ -18,8 +18,17 @@ public class CharHeuristicTokenEstimator implements TokenEstimator {
     private static final int CHARS_PER_TOKEN_CJK = 2;
     private static final double JSON_UPLIFT = 1.15;
 
+    /** impl-786 / spec 1033：估算调用量与总量进程级读面（预算面可观测性）。 */
+    private static final java.util.concurrent.atomic.AtomicLong estimateCalls =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong batchCalls =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong totalEstimatedTokens =
+            new java.util.concurrent.atomic.AtomicLong();
+
     @Override
     public int estimate(String text) {
+        estimateCalls.incrementAndGet(); // spec 1033：调用量显形
         if (text == null || text.isEmpty()) {
             return 0;
         }
@@ -34,14 +43,36 @@ public class CharHeuristicTokenEstimator implements TokenEstimator {
         if (looksLikeJson(text)) {
             tokens *= JSON_UPLIFT;
         }
-        return (int) Math.ceil(tokens);
+        int result = (int) Math.ceil(tokens);
+        totalEstimatedTokens.addAndGet(result);
+        return result;
     }
 
     @Override
     public int estimateMessages(List<Message> messages) {
-        return messages.stream()
+        batchCalls.incrementAndGet(); // spec 1033：批量估算调用量
+        int total = messages.stream()
                 .mapToInt(m -> estimate(m.getText()) + 4 + mediaCharge(m))
                 .sum();
+        return total;
+    }
+
+    /** 估算调用量与总量只读快照（静态进程级——调用点内联构造先例）。 */
+    public static TokenEstimateStats stats() {
+        return new TokenEstimateStats(estimateCalls.get(), batchCalls.get(),
+                totalEstimatedTokens.get());
+    }
+
+    /** 进程态清零（测试隔离注入点——生产勿调）。 */
+    public static void resetForTest() {
+        estimateCalls.set(0);
+        batchCalls.set(0);
+        totalEstimatedTokens.set(0);
+    }
+
+    /** 估算计数行（不可变）。 */
+    public record TokenEstimateStats(long estimateCalls, long batchCalls,
+                                     long totalEstimatedTokens) {
     }
 
     /**
