@@ -44,6 +44,7 @@
 - [内嵌策略引擎判定分布读面的形态裁决](../tickets/T1501-policy-engine-stats-shape.md) — EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒 == decide 调用数）+ stats()；FIDES approver 通道压力显形（OPA 判定分布谱系）。首入 guard policy 包。
 - [手动压缩操作分布读面的形态裁决](../tickets/T1505-compact-op-stats-shape.md) — ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages，守恒前三和 == attempts）+ opStats()；逐次 CompactResult 之外的跨调用聚合水位（K8s 事件聚合思想）。首入 memory compact 包。
 - [模型窗口解析分布读面的形态裁决](../tickets/T1507-window-resolution-stats-shape.md) — TableContextWindowResolver 嵌套 WindowResolutionStats（override/builtIn/fallback 三路守恒 + resolvedWindows 有界快照）；yml 覆盖拼错=幽灵覆盖显形、未知模型回退规模可见。首入 core/token 包。
+- [模型预算闸判定分布读面的形态裁决](../tickets/T1509-budget-gate-stats-shape.md) — ModelBudgetGate 嵌套 BudgetGateStats 三桶（checks/allowed/blocked 守恒 == beforeModel 调用数）+ stats()；连续拦截水位=预算配置合理性第一信号（SRE 预算耗尽告警思想）。
 - [事实注入覆盖读面的形态裁决](../tickets/T1503-fact-inject-coverage-shape.md) — FactAttachmentRenderer 嵌套 FactInjectStats（renders/factsInjected/factsOmitted）+ stats()；两参 render 收敛为 MAX_VALUE 委托（输出恒等）；max-inject-chars 配置水位（spec 07 渲染端）。
 - [事实采集隔离硬化与计数读面的形态裁决](../tickets/T1491-fact-collector-isolation-shape.md) — FactCollectorHook 逐定义 try/catch 隔离（judge/save 异常不再炸 afterTool 链——监听器隔离惯例对齐）+ FactCollectionStats（saved/failures）+ stats()；本轮含行为改进（隔离语义）。
 - [HITL 审批操作分布读面的形态裁决](../tickets/T1493-auth-operation-stats-shape.md) — GuardAuthApi 嵌套 AuthOperationStats（approved/rejected/revoked 三计数）+ stats()；事件流之外的进程内聚合水位（与 R19 门判定分轴——台账操作轴）。
