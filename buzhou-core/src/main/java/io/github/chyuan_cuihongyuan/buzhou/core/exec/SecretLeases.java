@@ -29,6 +29,11 @@ public final class SecretLeases {
             new java.util.concurrent.atomic.AtomicLong();
     private final java.util.concurrent.atomic.AtomicLong revoked =
             new java.util.concurrent.atomic.AtomicLong();
+    /** impl-760 / spec 1007：续租生命周期计数（renew 轴——Vault lease lifecycle 信号）。 */
+    private final java.util.concurrent.atomic.AtomicLong renewed =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong renewRejected =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public SecretLeases() {
         this(Clock.systemUTC());
@@ -70,12 +75,14 @@ public final class SecretLeases {
     public void renew(String name, Duration ttl) {
         Lease lease = leases.get(name);
         if (lease == null) {
+            renewRejected.incrementAndGet(); // spec 1007：租约缺失拒
             throw new IllegalStateException("租约不存在（需重新签发）：" + name);
         }
         synchronized (lease) {
             if (clock.millis() >= lease.expireAtMillis()) {
                 leases.remove(name, lease);
                 expired.incrementAndGet();
+                renewRejected.incrementAndGet(); // spec 1007：过期拒（防旧凭证无限复活）
                 throw new IllegalStateException("租约已过期（需重新签发）：" + name);
             }
             if (ttl == null || ttl.isZero() || ttl.isNegative()) {
@@ -84,6 +91,7 @@ public final class SecretLeases {
             Lease extended = new Lease(lease.leaseId(), lease.value(),
                     clock.millis() + ttl.toMillis());
             leases.put(name, extended);
+            renewed.incrementAndGet();
         }
     }
 
@@ -118,5 +126,11 @@ public final class SecretLeases {
 
     public long revokedCount() {
         return revoked.get();
+    }
+
+    /** 生命周期五计数统一快照（与既有 getter 同源恒等——spec 1007）。 */
+    public SecretLeaseStats stats() {
+        return new SecretLeaseStats(issued.get(), expired.get(), revoked.get(),
+                renewed.get(), renewRejected.get());
     }
 }

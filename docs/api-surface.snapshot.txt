@@ -151,6 +151,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LaneLimitingToolCallba
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.MemoizedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeaseStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolArgsValidator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage
