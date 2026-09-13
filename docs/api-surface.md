@@ -2074,3 +2074,8 @@
 - `RedisValueSizeAudit`（嵌套 `Finding`/`FamilyTotal`/`Report`）（801——Redis
   BIGKEY 借鉴：采样 (键→字节) 九族前缀归类+WARN/CRIT 两档定级+Top32+按族
   聚合+治理提示；纯函数与连接解耦，采样归调用方）
+
+- `MetricFreshnessTracker`（嵌套 `StaleMetric`/`FreshnessReport`）（802——
+  Prometheus staleness 借鉴：BuzhouMetrics 装饰器记录 counter/timer 名字级
+  最后写入（gauge 不追踪），audit(now, staleAfter) 陈旧年龄降序清单；
+  名字封顶 512+清单封顶 64+truncated；零委托变更纯旁路）
