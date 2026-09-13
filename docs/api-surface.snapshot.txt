@@ -350,6 +350,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportChecksum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportConditional
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportExtension
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionExportSizeAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeatureStore

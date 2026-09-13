@@ -28,6 +28,7 @@
 - [会话面包屑环形读面的形态裁决](../tickets/T1463-breadcrumbs-shape.md) — EventBreadcrumb（type+时刻，不记 payload 红线）+ 内部 BreadcrumbRing（32 新→旧）；deliverEvent 双模式共同漏斗一行记录；AgentSession.breadcrumbs() default 空表 + DefaultAgentSession 覆写（Sentry breadcrumbs）。
 - [凭证租约生命周期计数读面的形态裁决](../tickets/T1465-lease-stats-shape.md) — SecretLeases 补 renew 轴（renewed/renewRejected：缺失拒与过期拒两路计数）+ SecretLeaseStats 五字段统一快照；既有三 getter 兼容保留——续租拒绝率=TTL 过短信号（Vault lease lifecycle）。
 - [spill 回读命中率读面的形态裁决](../tickets/T1467-spill-onload-stats-shape.md) — SpillOnloadStats（attempts/loaded/failed 守恒）OnloadHook 回灌点计数；回读失败=spill 侵蚀信号，命中率消费方自算（PostgreSQL buffer hit-ratio）。首入 spill 模块。
+- [J 系周期预检轮（R10）的范围裁决](../tickets/T1469-periodic-audit-shape.md) — 隔离 worktree 全仓 verify + 双门复跑 + 台账对账；三处主仓红收口（guard ToolDenialLog 保序、910–915 README 行、SessionExportDiff 快照行）；单模块跑两假红陷阱再证入档。
 
 ## 150 轮台账
 
@@ -42,7 +43,8 @@
 | 7 | 会话面包屑环形读面（时间线尾部环 + 双模式漏斗） | Sentry breadcrumbs | T1463–T1464 | 759 | 1006 | ✅ |
 | 8 | 凭证租约生命周期计数读面（补 renew 轴 + 统一快照） | Vault lease lifecycle | T1465–T1466 | 760 | 1007 | ✅ |
 | 9 | spill 回读命中率读面（attempts/loaded/failed 守恒） | PostgreSQL buffer hit-ratio | T1467–T1468 | 761 | 1008 | ✅ |
-| 10 | （开工时按缺口核查选题，候选见下） | — | T1469–T1470 | 762 | 1009 |  |
+| 10 | 周期预检（全仓 verify + 双门 + 三处主仓红收口） | G/H 系收口预检惯例 | T1469–T1470 | 762 | 1009 | ✅ |
+| 11 | （开工时按缺口核查选题，候选见下） | — | T1471–T1472 | 763 | 1010 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 

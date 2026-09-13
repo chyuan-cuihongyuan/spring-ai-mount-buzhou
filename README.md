@@ -531,6 +531,14 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | outbox 投递批量 AIMD 自适应 | 批量加性增、乘性减自适应——TCP 拥塞控制 RFC 5681 直觉（spec 907） | [spec 907](docs/spec/907-aimd-batch.md) |
 | 评估闭环 | k 次 run 稳定性矩阵 | k>2 区分「偶发翻转」与「系统性震荡」——Google FlakyTest 借鉴（spec 908） | [spec 908](docs/spec/908-k-stability.md) |
 | 评估闭环 | 评估分数分位数读面 | EvalScoreAnalytics.percentiles（R-7 线性插值 h=(n−1)·q）——numpy percentile 借鉴（spec 909） | [spec 909](docs/spec/909-percentiles.md) |
+| 模型韧性 | AIMD 自适应批量 yml 装配 | webhookEventForwarder 批量 AIMD yml 装配面（spec 910） | [spec 910](docs/spec/910-aimd-yml.md) |
+| 会话治理 | JCS 规范化内容指纹 | SessionExportChecksum.canonicalContentFingerprint——RFC 8785 JCS 借鉴（spec 911） | [spec 911](docs/spec/911-jcs-fingerprint.md) |
+| 会话治理 | 会话导出 diff 读面 | SessionExportDiff 双导出结构化差异（spec 912） | [spec 912](docs/spec/912-export-diff.md) |
+| 会话治理 | 导出域三件套联动 e2e | 导出域端到端联动验证（spec 913） | [spec 913](docs/spec/913-export-domain-e2e.md) |
+| 观测治理 | gate 判定环形历史读面 | gate 判定历史环时间线（spec 914） | [spec 914](docs/spec/914-gate-history.md) |
+| 观测与运维 | EventDropBreakdown 并发压测 | 丢弃分桶并发压测实证（spec 915） | [spec 915](docs/spec/915-drop-breakdown-stress.md) |
+| 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
+| 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
 | 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
 | 观测治理 | Hook 链解析顺序快照读面 | ChainComposition（派发序显形 + 幽灵禁用集——拼错 disabled 名静默蒸发的信号）composition() 只读快照——Kong plugin priority 借鉴（spec 1002） | [spec 1002](docs/spec/1002-hook-chain-composition.md) |
