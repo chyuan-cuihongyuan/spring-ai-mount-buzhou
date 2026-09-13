@@ -404,3 +404,4 @@
 | #820 | 护栏豁免登记面 | [maps/effort-820.md](maps/effort-820.md) | T1141–1142 | 573 |
 | #821 | 目录 lint 严重度分级 | [maps/effort-821.md](maps/effort-821.md) | T1143–1144 | 574 |
 | #822 | MCP 能力协商快照 | [maps/effort-822.md](maps/effort-822.md) | T1145–1146 | 575 |
+| #823 | 启动阶段耗时读数 | [maps/effort-823.md](maps/effort-823.md) | T1147–1148 | 576 |

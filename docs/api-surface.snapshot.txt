@@ -95,6 +95,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ErrorBudgetPropertie
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ReloadableConfig
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.RepetitionProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.SessionDisruptionBudgetProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.StartupPhaseTiming
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ToolKillSwitchProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ToolLoopProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingMessageStore

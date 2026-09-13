@@ -2165,3 +2165,7 @@
 - `McpCapabilitySnapshot`（嵌套 `Snapshot`）（822——LSP capabilities 思想：
   连接 seam 三观察点单点快照——排序名册+hint 覆盖/只读/破坏计数+确定性
   指纹（排序 join）；seam 异常逐路降级空真；706 diff 的基线输入形状）
+
+- `StartupPhaseTiming`（嵌套 `StepTiming`/`Step`）（823——Spring Boot
+  ApplicationStartup 借鉴：装配阶段 start/end 句柄耗时留痕（未结束 -1
+  哨兵、end 首末幂等），升序快照；步骤封顶 64；喂点归应用侧零侵入）
