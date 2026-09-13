@@ -384,3 +384,4 @@
 - effort #15 的 Not-yet-specified 雾区（Redis 向量存储与跨实例共享语义缓存、共享熔断/配额原子化、outbox SCAN 下推、观测 OLAP、skill 语义排序）为 #16+ 候选，见 [maps/effort-15.md](maps/effort-15.md)。
 | #801 | Redis 大值审计 | [maps/effort-801.md](maps/effort-801.md) | T1103–1104 | 554 |
 | #802 | 指标新鲜度审计 | [maps/effort-802.md](maps/effort-802.md) | T1105–1106 | 555 |
+| #803 | 检索多路改写融合 | [maps/effort-803.md](maps/effort-803.md) | T1107–1108 | 556 |

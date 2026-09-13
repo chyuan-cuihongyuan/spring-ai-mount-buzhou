@@ -587,6 +587,7 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 护栏 | 工具自动封禁 | ToolAutoBanHook——受监视工具滑窗连续失败达阈值自动封禁+beforeTool 拦截报剩余秒+快照读数，失效工具止损从盯梢变自动（fail2ban maxretry/findtime/bantime） | [spec 800](docs/spec/800-tool-auto-ban.md) |
 | 持久化 | Redis 大值审计 | RedisValueSizeAudit——采样字节九族归类+WARN/CRIT 定级+Top32+按族聚合+治理提示，哪个命名空间在吃内存结构化（redis-cli --bigkeys 思想，纯函数） | [spec 801](docs/spec/801-redis-value-size-audit.md) |
 | 观测治理 | 指标新鲜度审计 | MetricFreshnessTracker——BuzhouMetrics 装饰器记名字级最后写入+audit(now, staleAfter) 陈旧清单，「指标为何没数了」从猜变查（Prometheus staleness；gauge 不追踪口径显式） | [spec 802](docs/spec/802-metric-freshness.md) |
+| 记忆治理 | 检索多路改写融合 | MultiQueryRetriever——查询多变体展开+逐路检索+跨变体 RRF 融合，词形脆弱不再漏召（LangChain MultiQueryRetriever；与 605 双信号融合正交） | [spec 803](docs/spec/803-multi-query-retriever.md) |
 
 ## 快速开始
 

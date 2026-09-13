@@ -2079,3 +2079,7 @@
   Prometheus staleness 借鉴：BuzhouMetrics 装饰器记录 counter/timer 名字级
   最后写入（gauge 不追踪），audit(now, staleAfter) 陈旧年龄降序清单；
   名字封顶 512+清单封顶 64+truncated；零委托变更纯旁路）
+
+- `MultiQueryRetriever`（嵌套 `Result`）（803——LangChain MultiQueryRetriever
+  借鉴：查询多变体展开+逐路检索+跨变体 RRF k=60 融合，消息 id 去重累加，
+  变体封顶 8、生成器/单路双层 fail-open；与 605 单查询双信号融合正交）
