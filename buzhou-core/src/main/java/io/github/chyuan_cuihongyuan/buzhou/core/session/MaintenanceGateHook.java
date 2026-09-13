@@ -36,6 +36,7 @@ public final class MaintenanceGateHook implements BuzhouHook {
             return HookResult.CONTINUE;
         }
         BuzhouMetricsHolder.metrics().counter(BLOCKED_COUNTER, 1);
+        gate.noteRefused(); // spec 1004：拒绝数按窗分账（闭窗史 HistoryEntry.refusals）
         return HookResult.block(gate.refusalMessage());
     }
 

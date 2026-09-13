@@ -23,6 +23,7 @@
 - [慢调用榜读面的形态裁决](../tickets/T1453-slow-log-shape.md) — ToolSlowLog（Redis SLOWLOG：严格大于阈值入有界 FIFO 环 32、entries() 新→旧现场、configureThreshold/reset）；HookedToolCallback 与 timer 同点接线，只记名不记参（红线）；聚合面之外的单次现场。
 - [Hook 链解析顺序快照读面的形态裁决](../tickets/T1455-hook-composition-shape.md) — ChainComposition（resolvedHookNames 派发序 + ghostDisabledNames 幽灵禁用集）composition() 构造期快照；拼错 disabled 名静默蒸发的显形，零行为变化（Kong plugin priority）。
 - [策略层级归属读面的形态裁决](../tickets/T1457-policy-layer-attribution-shape.md) — PolicyLayerAttribution（DEFAULTS/YML/BINDING/ABSENT + value）+ LayeredPolicy.getAttributed 同序同判；get() 薄封装重构零行为变化；无计数器（无生产调用方不设假面）（spring config insights 层归因）。
+- [维护窗历史读面的形态裁决](../tickets/T1459-maintenance-history-shape.md) — MaintenanceGate.HistoryEntry 闭窗历史环 16 新→旧（何时/为何/多久/refusals 按窗分账）+ history() 快照 + noteRefused 包内计数（Hook 同点补一行）；begin/end 对外语义不变（K8s cordon 事件史）。
 
 ## 150 轮台账
 
@@ -32,7 +33,8 @@
 | 2 | 工具慢调用榜读面（严格阈值 + 有界 FIFO 环 + 单次现场） | Redis SLOWLOG | T1453–T1454 | 754 | 1001 | ✅ |
 | 3 | Hook 链解析顺序快照读面（派发序显形 + 幽灵禁用检测） | Kong plugin priority | T1455–T1456 | 755 | 1002 | ✅ |
 | 4 | 策略层级归属读面（DEFAULTS/YML/BINDING/ABSENT 归因） | spring config insights | T1457–T1458 | 756 | 1003 | ✅ |
-| 5 | （开工时按缺口核查选题，候选见下） | — | T1459–T1460 | 757 | 1004 |  |
+| 5 | 维护窗历史读面（闭窗环 + 窗内拒绝分账） | K8s cordon 事件史 | T1459–T1460 | 757 | 1004 | ✅ |
+| 6 | （开工时按缺口核查选题，候选见下） | — | T1461–T1462 | 758 | 1005 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 

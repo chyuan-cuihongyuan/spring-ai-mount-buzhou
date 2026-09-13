@@ -531,6 +531,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
 | 观测治理 | Hook 链解析顺序快照读面 | ChainComposition（派发序显形 + 幽灵禁用集——拼错 disabled 名静默蒸发的信号）composition() 只读快照——Kong plugin priority 借鉴（spec 1002） | [spec 1002](docs/spec/1002-hook-chain-composition.md) |
 | 观测治理 | 策略层级归属读面 | PolicyLayerAttribution（DEFAULTS/YML/BINDING/ABSENT 归属 + getAttributed 同序同判，get() 薄封装零行为变化）——spring config insights 层归因借鉴（spec 1003） | [spec 1003](docs/spec/1003-policy-layer-attribution.md) |
+| 会话治理 | 维护窗历史读面 | MaintenanceGate 闭窗历史环（HistoryEntry：何时/为何/多久 + 窗内拒绝按窗分账）history() 新→旧快照——K8s cordon 事件史借鉴（spec 1004） | [spec 1004](docs/spec/1004-maintenance-history.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
