@@ -429,3 +429,4 @@
 | #845 | Prompt 回滚使用读数 | [maps/effort-845.md](maps/effort-845.md) | T1191–1192 | 598 |
 | #846 | 死信重投成功率读数 | [maps/effort-846.md](maps/effort-846.md) | T1193–1194 | 599 |
 | #847 | 数据集近重复读数 | [maps/effort-847.md](maps/effort-847.md) | T1195–1196 | 600 |
+| #848 | 配置默认偏离审计 | [maps/effort-848.md](maps/effort-848.md) | T1197–1198 | 600 续 |

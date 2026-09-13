@@ -2271,3 +2271,8 @@
 - `DatasetNearDuplicateStats`（嵌套 `Report`）（847——Cleanlab 数据质量
   思想：trigram Jaccard 两两对账+并查集成簇——duplicatePairs/largestCluster/
   uniqueRatio；条目封顶 200 截断+truncated；threshold (0,1] fail-fast）
+
+- `ConfigDeviationAudit`（嵌套 `Deviation`/`Report`）（848——Spring Boot
+  configuration metadata 扩散：当前值 vs 出厂默认偏离对账（String.equals，
+  无基线不裁决），偏离清单典序封顶 32+偏离率；与 ConfigDiff 快照间 diff
+  辨义）

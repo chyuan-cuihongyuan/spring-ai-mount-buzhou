@@ -87,6 +87,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouToolsPropertie
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouTurnRateLimitProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouVirtualKeyProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ChaosProperties
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDeviationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDoctor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigDriftAuditor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigFingerprint
