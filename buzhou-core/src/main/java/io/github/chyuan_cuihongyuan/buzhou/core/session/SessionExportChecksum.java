@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.session;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,43 @@ public final class SessionExportChecksum {
         } catch (Exception e) {
             throw new IllegalStateException("规范化指纹计算失败", e);
         }
+    }
+
+    /**
+     * impl-687 / spec 935：单点规范化入口（供同包 ExportManifest 等复用）——
+     * 解析 JSON → 递归 Map 键排序 → 紧凑序列化。非法 JSON 抛 IllegalArgumentException。
+     */
+    static String canonicalJson(String json) {
+        try {
+            // readValue 到 LinkedHashMap（非 readTree JsonNode）——树落在 java.util.Map
+            // 分支，递归键排序才能生效
+            Map<String, Object> root = MAPPER.readValue(json,
+                    new com.fasterxml.jackson.core.type.TypeReference<
+                            java.util.LinkedHashMap<String, Object>>() {
+                    });
+            Map<String, Object> canonical = canonicalizeMap(root);
+            return MAPPER.writeValueAsString(canonical);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("规范化解析失败", e);
+        }
+    }
+
+    private static Object canonicalizeAny(Object node) {
+        if (node instanceof Map<?, ?> map) {
+            Map<String, Object> sorted = new java.util.TreeMap<>();
+            map.forEach((key, value) -> sorted.put(String.valueOf(key), canonicalizeAny(value)));
+            return sorted;
+        }
+        if (node instanceof List<?> list) {
+            List<Object> copied = new ArrayList<>(list.size());
+            for (Object element : list) {
+                copied.add(canonicalizeAny(element));
+            }
+            return copied;
+        }
+        return node;
     }
 
     /** 顶层规范化：doc 恒为 Map → 递归排序键。 */

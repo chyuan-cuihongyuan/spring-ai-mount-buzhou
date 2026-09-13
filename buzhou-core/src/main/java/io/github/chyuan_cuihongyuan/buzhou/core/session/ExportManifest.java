@@ -39,6 +39,19 @@ public final class ExportManifest {
         return this;
     }
 
+    /**
+     * impl-687 / spec 935：规范化登记——JSON 树递归键排序后 sha256（spec 911 JCS
+     * 同源单点实现 SessionExportChecksum.canonicalJson）。键序漂移不误报 mismatch；
+     * 与 {@link #add} 并存（同批登记用同一方法即自洽——混用由运维纪律约束）。
+     */
+    public ExportManifest addCanonical(String sessionId, String contentJson) {
+        if (sessionId == null || sessionId.isBlank() || contentJson == null) {
+            throw new IllegalArgumentException("sessionId 非空、content 非 null");
+        }
+        digests.put(sessionId, sha256(SessionExportChecksum.canonicalJson(contentJson).strip()));
+        return this;
+    }
+
     /** 清单 JSON（entries 按 id 序 + totalDigest 一票总凭证）。 */
     public String manifestJson() {
         try {
@@ -62,6 +75,23 @@ public final class ExportManifest {
         digests.forEach((id, digest) -> canonical.append(id).append('=')
                 .append(digest).append(';'));
         return sha256(canonical.toString());
+    }
+
+    /**
+     * impl-687 / spec 935：规范化校验——与 {@link #addCanonical} 配对（内容先
+     * canonicalJson 再比对；「口径必须成对」教训同 spec 913）。键序漂移不误报。
+     */
+    public static Verification verifyCanonical(String manifestJson, Map<String, String> contents) {
+        if (contents == null) {
+            return verify(manifestJson, null);
+        }
+        Map<String, String> canonicalized = new LinkedHashMap<>();
+        contents.forEach((id, content) -> {
+            if (id != null && content != null) {
+                canonicalized.put(id, SessionExportChecksum.canonicalJson(content));
+            }
+        });
+        return verify(manifestJson, canonicalized);
     }
 
     /**
