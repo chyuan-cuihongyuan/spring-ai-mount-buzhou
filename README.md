@@ -577,6 +577,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
+| 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1015） | [spec 1015](docs/spec/1010-turn-latency-percentiles.md) |
 | 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
 | 安全 | 加密封存操作生命周期计数读面 | EncryptedSessionExport sealed/opened/openRejected 三计数（open 三拒绝路径全覆盖）+ 嵌套 SealStats + stats()——age/OpenSSL ops 实践，开失败率=密钥失配第一信号（spec 1012） | [spec 1012](docs/spec/1012-seal-lifecycle-stats.md) |
 | 观测治理 | Hook Replace 载荷应用/丢弃计数读面 | applyReplace boolean 化 + replaceApplied/replaceDropped 实例计数——类型不匹配幽灵载荷静默蒸发的显形，分发行为逐位不变（spec 1013） | [spec 1013](docs/spec/1013-hook-replace-stats.md) |
@@ -590,6 +591,12 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 安全 | HITL 审批操作分布读面 | GuardAuthApi 嵌套 AuthOperationStats（approved/rejected/revoked 三计数）+ stats()——审批聚合视图，事件流之外的直读水位（spec 1021） | [spec 1021](docs/spec/1021-auth-operation-stats.md) |
 | 安全 | 加密消息存储操作计数读面 | EncryptingMessageStore 嵌套 CryptoStoreStats（encrypted/decrypted/passthrough 双向透传分计）+ stats()——信封加密 ops 可视性（spec 1022） | [spec 1022](docs/spec/1022-crypto-store-stats.md) |
 | 安全 | 密钥扫描计数读面 | SecretScanner 嵌套 SecretScanStats（scanCalls/findings/redactions，findings 水位=泄漏趋势）+ stats()——Gitleaks findings 借鉴（spec 1023） | [spec 1023](docs/spec/1023-secret-scan-stats.md) |
+| 记忆治理 | facts 段导入导出行数读面 | FactsExporter 嵌套 FactsFlowStats（factsExported/factsImported/importFailures 照抛）+ stats()——rsync --stats 迁移完整性思想（spec 1024） | [spec 1024](docs/spec/1024-facts-flow-stats.md) |
+| 安全 | 内嵌策略引擎判定分布读面 | EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒）+ stats()——OPA 判定分布谱系，FIDES approver 通道压力显形（spec 1025） | [spec 1025](docs/spec/1025-policy-engine-stats.md) |
+| 安全 | 事实注入覆盖读面 | FactAttachmentRenderer 嵌套 FactInjectStats（renders/factsInjected/factsOmitted，max-inject-chars 配置水位）+ stats()——两参 render 收敛委托输出恒等（spec 1026） | [spec 1026](docs/spec/1026-fact-inject-coverage.md) |
+| 记忆治理 | 手动压缩操作分布读面 | ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages 守恒）+ opStats()——K8s 事件聚合思想（spec 1027） | [spec 1027](docs/spec/1027-compact-op-stats.md) |
+| 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
+| 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
 | 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
@@ -599,6 +606,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 维护窗历史读面 | MaintenanceGate 闭窗历史环（HistoryEntry：何时/为何/多久 + 窗内拒绝按窗分账）history() 新→旧快照——K8s cordon 事件史借鉴（spec 1004） | [spec 1004](docs/spec/1004-maintenance-history.md) |
 | 观测治理 | 工具在飞并发水位读面 | ToolInFlight（每工具 current/peak/total + 全局双水位 + AutoCloseable 租约恰一次）——Go NumGoroutine/Hystrix 借鉴（spec 1005） | [spec 1005](docs/spec/1005-tool-in-flight.md) |
 | 观测治理 | 会话面包屑环形读面 | EventBreadcrumb 时间线尾部环（deliverEvent 双模式共同漏斗，只记 type 不记 payload）+ breadcrumbs() 新→旧快照——Sentry breadcrumbs 借鉴（spec 1006） | [spec 1006](docs/spec/1006-session-breadcrumbs.md) |
+| 模型韧性 | 凭证租约生命周期计数读面 | SecretLeaseStats 五计数快照（补 renew 轴：续租成功/被拒——拒绝率高=TTL 过短信号）——Vault lease lifecycle 借鉴（spec 1007） | [spec 1007](docs/spec/1007-lease-lifecycle-stats.md) |
 | 工程门禁 | 全模块测试补全覆盖（K 会话 R1） | JaCoCo 缺口驱动零覆盖清零：6 模块 20 靶点直测（core 16 含 SessionStateStore default 体死路径复活 + guard/spill/resilience/mcp 各 1），豁免入档不硬凑；测试显形三缺陷单列修复（spec 1200） | [spec 1200](docs/spec/1200-test-coverage-completion.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
