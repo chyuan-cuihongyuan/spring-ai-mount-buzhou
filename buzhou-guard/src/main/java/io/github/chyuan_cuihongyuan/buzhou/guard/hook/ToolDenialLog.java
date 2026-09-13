@@ -114,7 +114,9 @@ public final class ToolDenialLog {
         if (truncated) {
             out.put("_truncated", Long.valueOf(AGGREGATE_CAP));
         }
-        return Map.copyOf(out);
+        // T1805 / spec 1200：Map.copyOf 不保序（ImmutableCollections 哈希布局）——
+        // 会打散上方排序结果；有序快照必须用 unmodifiable 包装
+        return java.util.Collections.unmodifiableMap(out);
     }
 
     /** 聚合是否触顶（有 (role,tool) 对未被计入）。 */
