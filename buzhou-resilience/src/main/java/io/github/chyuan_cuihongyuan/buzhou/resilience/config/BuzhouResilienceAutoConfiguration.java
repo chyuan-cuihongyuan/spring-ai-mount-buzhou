@@ -180,15 +180,25 @@ public class BuzhouResilienceAutoConfiguration {
     @Bean
     @org.springframework.context.annotation.Conditional(
             BuzhouResilienceAutoConfiguration.CapabilityPresentCondition.class)
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.capability.CapabilityDecisionAudit
+    buzhouCapabilityDecisionAudit() {
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.capability
+                .CapabilityDecisionAudit();
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Conditional(
+            BuzhouResilienceAutoConfiguration.CapabilityPresentCondition.class)
     public RuntimeConfig capabilityGateRuntimeConfig(
             io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilityRegistry registry,
+            io.github.chyuan_cuihongyuan.buzhou.resilience.capability.CapabilityDecisionAudit audit,
             org.springframework.core.env.Environment env) {
         String modelName = env.getProperty("buzhou.model-name", "unknown");
         return new RuntimeConfig(java.util.List.of(), java.util.Set.of(), java.util.Set.of(),
                 null, java.util.List.of(), java.util.Map.of(), java.util.List.of(),
                 java.util.List.of(ctx -> ctx.addAdvisor(
                         new io.github.chyuan_cuihongyuan.buzhou.resilience.capability
-                                .CapabilityGateAdvisor(registry, modelName))),
+                                .CapabilityGateAdvisor(registry, modelName, audit))),
                 null);
     }
 

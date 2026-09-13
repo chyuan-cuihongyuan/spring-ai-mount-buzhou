@@ -919,7 +919,7 @@ public class DefaultAgentSession implements AgentSession {
                 : java.util.Optional.of(dispatcher.stats());
     }
 
-    /** impl-553 / spec 800：buffered 模式的丢弃分类快照（「为什么丢」）；SYNC 返回空。 */
+    /** impl-653 / spec 900：buffered 模式的丢弃分类快照（「为什么丢」）；SYNC 返回空。 */
     @Override
     public java.util.Optional<io.github.chyuan_cuihongyuan.buzhou.core.session.EventDropBreakdown> eventDropBreakdown() {
         BufferedEventDispatcher dispatcher = eventDispatcher;

@@ -69,14 +69,50 @@ public final class SessionExportSanitizer {
                 summary.tokenEstimate(), summary.createdAt());
     }
 
+    /** spec 743 / T1086：脱敏命中计数（type/规则名 → 次数，累计跨 sanitize 调用）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong>
+            hitCounts = new java.util.concurrent.ConcurrentHashMap<>();
+
     private String redact(String text) {
         if (text == null || text.isEmpty()) {
             return text;
         }
         String redacted = detector.redact(text, enabledTypes);
+        for (PiiDetector.PiiMatch match : detector.scan(text)) {
+            if (enabledTypes.contains(match.type())) {
+                hitCounts.computeIfAbsent(match.type().name(),
+                        k -> new java.util.concurrent.atomic.AtomicLong()).incrementAndGet();
+            }
+        }
         if (!customRules.isEmpty()) {
+            String before = redacted;
             redacted = customRules.redact(redacted);
+            if (!redacted.equals(before)) {
+                for (CustomPiiRules.Rule rule : customRules.rules()) {
+                    java.util.regex.Matcher matcher = rule.pattern().matcher(before);
+                    int ruleHits = 0;
+                    while (matcher.find()) {
+                        ruleHits++;
+                    }
+                    if (ruleHits > 0) {
+                        hitCounts.computeIfAbsent("custom:" + rule.name(),
+                                k -> new java.util.concurrent.atomic.AtomicLong()).addAndGet(ruleHits);
+                    }
+                }
+            }
         }
         return redacted;
+    }
+
+    /** spec 743：命中计数只读视图（type 名/规则名 → 次数）。 */
+    public Map<String, Long> hitCounts() {
+        Map<String, Long> view = new java.util.LinkedHashMap<>();
+        hitCounts.forEach((k, v) -> view.put(k, v.get()));
+        return view;
+    }
+
+    /** spec 743：命中总数。 */
+    public long totalHits() {
+        return hitCounts.values().stream().mapToLong(java.util.concurrent.atomic.AtomicLong::get).sum();
     }
 }

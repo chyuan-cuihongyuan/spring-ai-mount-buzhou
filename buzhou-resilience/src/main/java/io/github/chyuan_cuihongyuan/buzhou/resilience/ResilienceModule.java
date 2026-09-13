@@ -204,7 +204,8 @@ public final class ResilienceModule {
         io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore =
                 properties.responseCache() != null && properties.responseCache().effectiveEnabled()
                         ? new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore(
-                                properties.responseCache().maxEntries(), properties.responseCache().ttl())
+                                properties.responseCache().maxEntries(), properties.responseCache().ttl(),
+                                properties.responseCache().maxWeightChars(), java.time.Clock.systemUTC())
                         : null;
         // spec 641 / T932：miss 惊群合并器（进程级共享——并发合并的价值在跨会话收敛；
         // coalescing opt-in 且缓存已启用才建，默认 null = 零注入零开销）
@@ -225,7 +226,13 @@ public final class ResilienceModule {
             io.github.chyuan_cuihongyuan.buzhou.resilience.config.ResilienceProperties.SemanticCache sc =
                     properties.semanticCache();
             semanticCacheStore = new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore(
-                    sc.maxEntries(), sc.ttl(), sc.similarityThreshold());
+                    sc.maxEntries(), sc.ttl(), sc.similarityThreshold(), sc.maxWeightChars(),
+                    java.time.Clock.systemUTC());
+            if (sc.embeddingMaxBatch() > 0) {
+                // spec 723 / T1046：批量嵌入切分（opt-in——批量写入超供应商 cap 不再 400）
+                semanticEmbeddingModel = new io.github.chyuan_cuihongyuan.buzhou.resilience.cache
+                        .ChunkingEmbeddingModel(semanticEmbeddingModel, sc.embeddingMaxBatch());
+            }
         }
         RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,

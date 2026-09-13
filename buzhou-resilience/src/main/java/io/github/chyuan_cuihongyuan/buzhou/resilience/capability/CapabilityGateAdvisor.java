@@ -34,10 +34,18 @@ public final class CapabilityGateAdvisor implements BaseAdvisor {
 
     private final ModelCapabilityRegistry registry;
     private final String modelName;
+    private final CapabilityDecisionAudit audit;
 
     public CapabilityGateAdvisor(ModelCapabilityRegistry registry, String modelName) {
+        this(registry, modelName, null);
+    }
+
+    /** spec 700：audit nullable（null=零审计，直构调用向后兼容）。 */
+    public CapabilityGateAdvisor(ModelCapabilityRegistry registry, String modelName,
+                                 CapabilityDecisionAudit audit) {
         this.registry = registry;
         this.modelName = modelName == null ? "unknown" : modelName;
+        this.audit = audit;
     }
 
     @Override
@@ -74,23 +82,32 @@ public final class CapabilityGateAdvisor implements BaseAdvisor {
         return streamChain.nextStream(request);
     }
 
-    /** 未注册模型零门；注册且缺能力 → ARGS_VALIDATION_FAILED（NON_RETRYABLE）。 */
+    /** 未注册模型零门；注册且缺能力 → ARGS_VALIDATION_FAILED（NON_RETRYABLE），throw 前审计留痕（spec 700 旁路）。 */
     private void gate(ChatClientRequest request) {
         ModelCapabilities capabilities = registry.of(modelName);
         if (capabilities == null) {
-            return; // 未注册 = 零门透传（声明渐进、不声明不误拦）
+            return; // 未注册 = 零门透传（声明渐进、不声明不误拦；门未裁决——不计 admit）
         }
         if (requiresVision(request) && !capabilities.vision()) {
+            if (audit != null) {
+                audit.recordDeny(modelName, "vision");
+            }
             throw new BuzhouException(ErrorCode.ARGS_VALIDATION_FAILED,
                     "模型 " + modelName + " 未声明 vision 能力（buzhou.resilience."
                             + "model-capabilities." + modelName + ".vision=false）——"
                             + "多模态请求被能力门事前拦截，请路由到具备视觉能力的模型");
         }
         if (requiresTools(request) && !capabilities.tools()) {
+            if (audit != null) {
+                audit.recordDeny(modelName, "tools");
+            }
             throw new BuzhouException(ErrorCode.ARGS_VALIDATION_FAILED,
                     "模型 " + modelName + " 未声明 tools 能力（buzhou.resilience."
                             + "model-capabilities." + modelName + ".tools=false）——"
                             + "带工具请求被能力门事前拦截，请路由到支持 function calling 的模型");
+        }
+        if (audit != null) {
+            audit.recordAdmit(modelName);
         }
     }
 

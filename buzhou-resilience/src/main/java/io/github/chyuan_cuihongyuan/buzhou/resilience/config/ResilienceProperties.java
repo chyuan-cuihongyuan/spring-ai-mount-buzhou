@@ -411,11 +411,12 @@ public record ResilienceProperties(
             Boolean enabled,
             Integer maxEntries,
             Duration ttl,
+            Long maxWeightChars,
             Boolean coalescing) {
 
-        /** 3 参便捷构造（spec 641 之前调用方；coalescing 缺省关）。 */
+        /** 3 参便捷构造（spec 641/745 之前调用方；权重预算与 coalescing 缺省关）。 */
         public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl) {
-            this(enabled, maxEntries, ttl, null);
+            this(enabled, maxEntries, ttl, 0L, null);
         }
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（便捷构造不参与绑定）。 */
@@ -423,6 +424,11 @@ public record ResilienceProperties(
         public ResponseCache {
             maxEntries = maxEntries == null ? 256 : maxEntries;
             ttl = ttl == null ? Duration.ofHours(1) : ttl;
+            maxWeightChars = maxWeightChars == null ? 0L : maxWeightChars;
+            if (maxWeightChars < 0) {
+                throw new IllegalArgumentException(
+                        "response-cache.max-weight-chars（" + maxWeightChars + "）必须 >= 0（0=关）");
+            }
         }
 
         /** 生效开关（显式开启）。 */
@@ -447,17 +453,26 @@ public record ResilienceProperties(
      * @param similarityThreshold cosine 命中阈值（默认 0.95；越高越保守）
      * @param maxEntries         LRU 容量（默认 128；桶内线性扫描量级由 perf 哨兵钉住）
      * @param ttl                条目 TTL（默认 1h；惰性过期）
+     * @param maxWeightChars     权重预算字符数（spec 701；默认 0=关——>0 时按响应字符数腾挪驱逐，
+     *                           Caffeine weigher 思想）
+     * @param embeddingMaxBatch  嵌入批量上限（spec 723；默认 0=关——>0 时 EmbeddingModel 包
+     *                           ChunkingEmbeddingModel 切块，批量写入超供应商 cap 不再 400）
      */
     public record SemanticCache(
             Boolean enabled,
             Double similarityThreshold,
             Integer maxEntries,
-            Duration ttl) {
+            Duration ttl,
+            Integer maxWeightChars,
+            Integer embeddingMaxBatch) {
 
+        @org.springframework.boot.context.properties.bind.ConstructorBinding
         public SemanticCache {
             similarityThreshold = similarityThreshold == null ? 0.95 : similarityThreshold;
             maxEntries = maxEntries == null ? 128 : maxEntries;
             ttl = ttl == null ? Duration.ofHours(1) : ttl;
+            maxWeightChars = maxWeightChars == null ? 0 : maxWeightChars;
+            embeddingMaxBatch = embeddingMaxBatch == null ? 0 : embeddingMaxBatch;
             if (!(similarityThreshold > 0.0 && similarityThreshold <= 1.0)) {
                 throw new IllegalArgumentException(
                         "semantic-cache.similarity-threshold（" + similarityThreshold + "）必须在 (0,1]");
@@ -470,6 +485,25 @@ public record ResilienceProperties(
                 throw new IllegalArgumentException(
                         "semantic-cache.ttl（" + ttl + "）必须为正时长");
             }
+            if (maxWeightChars < 0) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.max-weight-chars（" + maxWeightChars + "）必须 >= 0（0=关）");
+            }
+            if (embeddingMaxBatch < 0) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.embedding-max-batch（" + embeddingMaxBatch + "）必须 >= 0（0=关）");
+            }
+        }
+
+        /** 4 参兼容构造（spec 701 之前调用方；maxWeightChars/embeddingMaxBatch = 关）。 */
+        public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries, Duration ttl) {
+            this(enabled, similarityThreshold, maxEntries, ttl, 0, 0);
+        }
+
+        /** 5 参兼容构造（spec 701 形态；embeddingMaxBatch = 关）。 */
+        public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries,
+                Duration ttl, Integer maxWeightChars) {
+            this(enabled, similarityThreshold, maxEntries, ttl, maxWeightChars, 0);
         }
 
         /** 生效开关（显式开启）。 */

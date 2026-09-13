@@ -1861,3 +1861,203 @@
 - GuardModule `assemblySummary()`（549——装配 hook 名列表读数，支持包
   /排障「guard 挂了哪些钩子」一屏可读；加法方法无新类型）
 
+## effort #700–#749 新增公共面（G 会话 / spec 700–749 / impl-600–649，@since 1.0.0）
+
+> G 会话 700 系逐轮入档（同口径：src/main 非 internal 包 public 类型）。
+
+**buzhou-resilience**
+
+- `CapabilityDecisionAudit`（嵌套 `Decision`/`Report`）（700——OPA Decision
+  Logs 思想：能力门 deny 环形留痕容量 64+dropped 计数、admit 只计数、
+  denyByModel 聚合、snapshot() 不可变报告；CapabilityGateAdvisor 3 参
+  构造接线，纯旁路拒绝行为零变化）
+
+- SemanticCacheStore 权重预算族（701——`maxWeightChars` 5 参构造+
+  `maxWeightChars()`/`totalWeightChars()`/`weightEvictionCount()` 读数+
+  estimateChars 估算口径；evictedCount 口径不混；加法方法无新顶层类型）
+
+- `CircuitTransitionJournal`（嵌套 `Transition`/`Report`）（702——
+  Resilience4j EventConsumer 思想：进程级变迁环形留痕容量 64+dropped、
+  per-model trips/recoveries/halfOpens 聚合；内嵌 ModelCircuitBreaker
+  恒开旁路，`transitionJournal()` getter 暴露）
+
+- `RoutingHealthDampener`（703——HAProxy agent-check 思想：attach 原语
+  跳闸压权至地板/恢复回声明权重；ModelCircuitBreaker 加
+  `addTransitionListener` 监听缝，listener 异常隔离不伤状态机）
+
+- `PromptComposition`（嵌套 `Section`/`Report`）（704——Langfuse prompt
+  analytics 思想：analyze(Prompt) 按角色聚合 chars/messages/share 降序+
+  字典序稳定；TOOL 载荷从 getResponses()responseData 计量；纯函数读数）
+
+- `RedisKeyLayoutAudit`（嵌套 `Finding`）（705——fsck 思想：audit(prefix)
+  结构性对抗模拟产出三族碰撞 Finding（RESERVED_SEGMENT/
+  SPAN_INDEX_CLASH/COLON_SUFFIX_TRICK）+reservedSegments() 读数+
+  isSafeSessionId 摄入守卫谓词；纯静态不改键形状）
+
+- `McpDirectoryDiff`（嵌套 `SyncStatus`/`ChangeKind`/`ToolChange`/
+  `ServerDiff`/`Report`）（706——ArgoCD diff 思想：两份 toolHints 快照
+  plan 式差异，per-server 四态+三类变更+危险方向翻转 risky 标记；
+  纯函数无状态字典序确定序）
+
+- `SpillPairAudit`（嵌套 `Finding`/`Report`）（707——Git fsck 思想：
+  audit(rootDir) 只读扫 .spill/.meta 配对残缺（DATA_WITHOUT_META 带字节/
+  META_WITHOUT_DATA），双写崩溃窗口的配额吞噬证据；三层完整性矩阵中层）
+
+- EvalRunner `setMemoizationKey`（708——scikit-learn Pipeline memory 思想：
+  项级结果记忆化 opt-in，sig=sha256(dataset|itemId|input|expected|key)，
+  命中 detail `[MEMO]` 前缀+hits/misses 计数，ERROR 不缓存；加法方法
+  无新顶层类型）
+
+- ExperimentBucketer 到期族（709——GrowthBook feature expiry：构造器扩
+  `expiresAt`+`Clock`，assign() 过期按未入组返回 null+`__expired__` 独立
+  桶+每实验一次 WARN，`expiredExperiments()`/`expiresAt(name)` 读数；
+  加法方法无新顶层类型）
+
+- ExperimentBucketer holdout 层（710——Statsig holdout layer：构造器再扩
+  `holdoutPercent`，sha256("holdout|unitKey") 跨实验一致排除+`__holdout__`
+  独立桶，`holdoutPercent()` 读数；加法方法无新顶层类型）
+
+- `TurnSequenceAudit`（嵌套 `Marker`/`Finding`）（711——Kafka offset 审计
+  思想：audit(List<Marker>) 单遍判消息序列 GAP/DUPLICATE/OUT_OF_ORDER，
+  调用方投影解耦 store SPI；纯函数只读）
+
+- SpanStatusDistribution `healthSummary`（嵌套 `HealthSummary`）（720
+  修正轮——R13 曾在 core 重建撞 543；增量收敛到既有 analytics 类：
+  runningResidue 泄漏信号+errorRate 口径显式；无新顶层类型）
+
+- EvalDatasetMeta `tags` 组件 + EvalDatasetStore `tagDataset`/`untagDataset`/
+  `listDatasetsByTag`（713——Langfuse dataset tags 思想：归一 `[a-z0-9:-]`
+  幂等打标/圈选；旧记录解码空表零迁移；tags 不入 fingerprint）
+
+- BuiltInEvaluators `similarity(minRatio)`（714——HELM grading scales 思想：
+  字符 trigram Jaccard 模糊判定，detail 携带分数留痕；minRatio∈[0,1]
+  fail-fast；加法方法无新顶层类型）
+
+- `FormatPreservingMasker`（715——Presidio format-preserving 思想的
+  结构化简化版：maskPhone/maskIdCard/maskEmail/maskIp+通用 mask 保长
+  打星，形状校验复用 PiiDetector 口径、失败全星 fail-closed；纯静态）
+
+- `TodoStalenessAudit`（嵌套 `Row`/`Report`）（716——agent todo 纪律面板：
+  analyze 轮次年龄+滞留清单降序+promptHint 一行人话；staleAfterTurns≤0
+  只报统计；纯读数不自动清理）
+
+- `FactConflictAudit`（嵌套 `Kind`/`Row`/`Report`）（717——mem0 冲突治理
+  思想：audit(List<SharedFact>) 按键分组判 CONFLICT/DUPLICATE，entries
+  证据全列；Objects.equals 保守口径；纯函数快照审计）
+
+- EvalRunner `setDriftBaseline`/`lastDriftDelta`（718——Evidently drift
+  思想：opt-in 通过率基线漂移告警，基线=同数据集早于本次最近 window 次
+  均值（防自污染），|Δ|≥warnShift WARN+计数；复用 run 落盘零新存储；
+  加法方法无新顶层类型）
+
+- `ProviderRateLimitSignals`（嵌套 `Pressure`/`Signals`）（719——OpenAI
+  x-ratelimit 头思想：parse(HttpHeaders) 解析余量/上限/reset+utilization
+  +三级压力分级；全 null-safe fail-safe 无头 empty；纯静态解析原语）
+
+- `ChunkingEmbeddingModel`（721——OpenAI embeddings 批量上限思想：
+  call 按 maxBatchSize 切块顺序调 delegate+全局 index 重排拼接，≤max
+  直通；default embed 方法经 call 自动受益）
+
+- SemanticCache `embeddingMaxBatch` 组件（723——721 装配兑现：yml
+  semantic-cache.embedding-max-batch（默认 0=关），ResilienceModule 在
+  语义缓存装配点包装 ChunkingEmbeddingModel；metadata 登记；加法组件
+  +兼容构造，无新顶层类型）
+
+- `StateTtlCoverage`（嵌套 `Row`/`Report`）（724——S3 生命周期审计思想：
+  analyze(Map<String,StateEntry>) 永生键计数+coverage（total=0 空真
+  1.0）+byProducer 归因；纯函数读数）
+
+- RoutingHealthDampener 半开中点档（725——HAProxy slow-start：HALF_OPEN
+  权重=(floor+declared)/2 向下取整，CLOSED 回声明值；加法行为无新类型）
+
+- `EventTypeDistribution`（嵌套 `Row`/`Report`）（726——Grafana Loki top-k
+  思想：of(List<EventRecord>) type 计数降序+字典序稳定+topType 占比；
+  类型不假设闭集；纯函数读数）
+
+- `RedisKeyLayoutHealth`（727——705 审计接线：implements BuzhouHealth，
+  mechanism=redis-key-layout 恒 UP，details 聚合三族碰撞计数+保留段；
+  随 BuzhouRedisStoreAutoConfiguration 条件装配）
+
+- `SpillPairHealth`（728——707 审计接线：implements BuzhouHealth，
+  mechanism=spill-pair 禁用 UNKNOWN/启用恒 UP，details 五项统计；
+  随 BuzhouSpillHealthAutoConfiguration 装配）
+
+- `ObservabilityCapacityHealth`（729——容量逐出读数接线：implements
+  BuzhouHealth，mechanism=memory-observability 恒 UP，details
+  used/max/utilization/evicted；InMemoryObservabilityStore 加逐出计数
+  与三读数（sessionCount 提升 public））
+
+- ProviderRateLimitSignals `parseFlexible`（730——719 扩散：跨供应商归一，
+  OpenAI 头优先不混合来源，缺项回退 Anthropic anthropic-ratelimit-*；
+  加法方法无新顶层类型）
+
+- `EvalScoreAnalytics`（嵌套 `Report`）（731——714 消费端：similarityScores
+  正则解析 run 明细中的 similarity= 分数→scored/min/max/mean/scores；
+  无分数项跳过诚实计数；纯函数）
+
+- `EventPayloadSizeAudit`（嵌套 `Row`/`Report`）（732——Sentry payload 限额
+  思想：analyze(List<EventRecord>) Jackson 序列化字节按类型聚合
+  （count/total/max，totalBytes 降序）+serialized/skipped 诚实计数；
+  纯函数读数）
+
+- ResponseCacheStore 权重预算族（737——701 对称落地：maxWeightChars
+  4 参构造+maxWeightChars/totalWeightChars/weightEvictionCount 读数+
+  替换同键回收/TTL 即弃回收；加法方法无新顶层类型）
+
+- `PromptUsageGaps`（嵌套 `Report`）（733——401×使用统计联合读数：
+  analyze(declaredNames, rows) 零使用差集+孤儿统计漂移信号；纯函数）
+
+- `EventPairingAudit`（嵌套 `Finding`/`Report`）（735——请求/应答型事件
+  spanId 内 min 配对，差集产出 UNPAIRED_REQUEST/UNPAIRED_RESPONSE+paired
+  计数；规则表调用方供给；纯函数）
+
+- `SpanParentIntegrityAudit`（嵌套 `Finding`/`Report`）（736——OTel trace
+  树语义：audit(List<SpanRecord>) 悬空父引用发现+totalSpans/rootSpans；
+  纯函数）
+
+- `SessionExportSizeAudit`（嵌套 `Segment`/`Report`）（738——成本归因：
+  analyze(SessionExport) 按段字符归因 messages/summary/state/ext:*+占比
+  守恒；纯函数读数）
+
+- `EventTypePresenceGate`（嵌套 `Report`）（739——726 对偶：gate(events,
+  expectedTypes) 期望类型差集 missing 字典序；空契约不误报；纯函数）
+
+- ResponseCache `maxWeightChars` 组件（745——737 装配兑现：yml
+  response-cache.max-weight-chars（默认 0=关），ResilienceModule 装配点
+  透传；加法组件+兼容构造，无新顶层类型）
+
+- CapabilityDecisionAudit.Report `denyByCapability`（746——700 深化：
+  snapshot 即时聚合 vision/tools 分布，与 denyByModel 正交双视角；
+  record 组件扩展，无新顶层类型）
+
+- ResilienceStats `updateProviderUtilization`/`lastProviderUtilization`
+  （740——719 信号聚合接线：NaN 起始+details 条件出现；加法方法无新
+  顶层类型）
+
+- HybridSkillRanker `semanticWeight`/`lexicalWeight`/`fusedCount`
+  （744——605 声明生效确认面：构造期权重读数+RRF 融合完成计数；加法
+  方法无新顶层类型）
+
+- EvalRunner `executionPolicy`（748——五件套策略一屏确认：预算/重试/
+  超时/记忆化/漂移当前态 Map 回显；加法方法无新顶层类型）
+
+- `SharedFactFootprint`（嵌套 `Row`/`Report`）（741——410 事实库 owner
+  治理：analyze(List<SharedFact>) owner 维度 facts/eternal 降序归因；
+  值不读取隐私口径；纯函数）
+
+- SessionExportSanitizer `hitCounts`/`totalHits`（743——导出脱敏命中计数：
+  PiiType 名+custom:规则名归因；CustomPiiRules 加 rules() 只读访问器；
+  加法方法无新顶层类型）
+
+- DiskSpillStore `totalRetainedOrphans`/`lastSweepRetained`（742——impl-38
+  孤儿扫描的证据面：被 fork 引用保留的孤儿累计/最近保留数（-1 哨兵）；
+  加法方法无新顶层类型）
+
+- EvalRunner `lastFingerprintChanged`（734——82 指纹消费信号：当前 vs 最近
+  历史 run 指纹不同置位+计数+INFO；diff 明细归 EvalRunDiff；加法方法
+  无新顶层类型）
+
+- `McpConcurrencyView`（722——610 并发闸读数面：server/limit/available/
+  inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
+  `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
+

@@ -23,6 +23,18 @@ public class BuzhouSpillHealthAutoConfiguration {
         return new SpillHealth(enabled, Path.of(configured));
     }
 
+    /**
+     * spec 728 / T1054 族：spill 配对完整性健康面（707 审计接线）——独立机制
+     * spill-pair；禁用 UNKNOWN，启用恒 UP（残缺 findings 是数据）。
+     */
+    @Bean
+    public SpillPairHealth spillPairHealth(org.springframework.core.env.Environment env) {
+        boolean enabled = env.getProperty("buzhou.spill.enabled", Boolean.class, true);
+        String configured = env.getProperty("buzhou.spill.root-dir", String.class,
+                System.getProperty("java.io.tmpdir") + "/buzhou-spill");
+        return new SpillPairHealth(enabled, Path.of(configured));
+    }
+
     @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(name = "org.springframework.boot.health.contributor.HealthIndicator")
     static class SpillHealthIndicatorConfiguration {

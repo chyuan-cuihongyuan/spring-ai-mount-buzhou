@@ -118,7 +118,7 @@ public interface AgentSession extends AutoCloseable {
     }
 
     /**
-     * impl-553 / spec 800：事件丢弃按原因分类快照（Sentry discarded events 借鉴——
+     * impl-653 / spec 900：事件丢弃按原因分类快照（Sentry discarded events 借鉴——
      * {@code drop-oldest} / {@code block-timeout} / {@code closed-undelivered} 等
      * 「为什么丢」结构化可读）。仅 {@code buffered} 分发模式适用；SYNC（默认）返回空。
      * 守恒不变量：{@link EventDropBreakdown#total()} 恒等于 {@link #eventBusStats()}

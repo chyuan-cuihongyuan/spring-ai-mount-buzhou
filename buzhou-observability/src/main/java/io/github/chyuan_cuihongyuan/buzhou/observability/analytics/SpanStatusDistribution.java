@@ -42,4 +42,36 @@ public final class SpanStatusDistribution {
     public static Map<String, Map<String, Long>> analyze(ObservabilityStore store, String sessionId) {
         return analyze(store.spansOfSession(sessionId));
     }
+
+    /**
+     * 健康摘要（spec 720 / T1040，712 修正轮——R13 曾在 core 重建同面撞本类，
+     * 增量价值收敛到这里）：runningResidue = 开启后未关闭的 span 数（泄漏/
+     * 崩溃残留信号）；errorRate = ERROR / total（total=0 诚实 0.0，分母含
+     * RUNNING/CANCELLED——口径显式无「终态率」歧义变体）。
+     */
+    public record HealthSummary(long total, long runningResidue, double errorRate) {
+    }
+
+    public static HealthSummary healthSummary(List<SpanRecord> spans) {
+        if (spans == null) {
+            throw new IllegalArgumentException("spans 必须非空");
+        }
+        long total = 0;
+        long errors = 0;
+        long running = 0;
+        for (SpanRecord span : spans) {
+            if (span == null) {
+                continue;
+            }
+            total++;
+            String status = span.status() == null || span.status().isEmpty()
+                    ? "UNSET" : span.status().toUpperCase();
+            if ("ERROR".equals(status)) {
+                errors++;
+            } else if ("RUNNING".equals(status)) {
+                running++;
+            }
+        }
+        return new HealthSummary(total, running, total == 0 ? 0.0 : (double) errors / total);
+    }
 }

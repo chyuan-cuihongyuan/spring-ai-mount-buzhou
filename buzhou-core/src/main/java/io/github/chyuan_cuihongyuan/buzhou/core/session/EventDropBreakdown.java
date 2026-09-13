@@ -3,7 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.session;
 import java.util.Map;
 
 /**
- * impl-553 / spec 800：事件丢弃按原因分类快照（Sentry discarded events 借鉴——
+ * impl-653 / spec 900：事件丢弃按原因分类快照（Sentry discarded events 借鉴——
  * 「为什么丢」一读即知，不只有总量）。
  *
  * <p>{@code buffered} 分发模式的丢弃现场在 {@code BufferedEventDispatcher.countDrop}

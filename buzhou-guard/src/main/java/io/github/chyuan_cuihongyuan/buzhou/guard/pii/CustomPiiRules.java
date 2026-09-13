@@ -43,6 +43,11 @@ public final class CustomPiiRules {
         return rules.isEmpty();
     }
 
+    /** 规则清单只读视图（spec 743 / T1086：命中计数归因用）。 */
+    public List<Rule> rules() {
+        return rules;
+    }
+
     /** 应用全部自定义规则（不做占位符短路——叠加场景：内置结果之上继续脱自定义； 幂等由规则特异性保证）。 */
     public String redact(String text) {
         if (text == null || text.isEmpty() || rules.isEmpty()) {

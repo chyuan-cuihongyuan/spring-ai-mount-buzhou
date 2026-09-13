@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * impl-553 / spec 800：事件丢弃按原因分类读面——DROP_OLDEST 分桶、
+ * impl-653 / spec 900：事件丢弃按原因分类读面——DROP_OLDEST 分桶、
  * close 滞留分桶、守恒不变量（ΣbyReason == dropped）、快照不可变、EMPTY 常量语义。
  */
 class EventDropBreakdownTest {

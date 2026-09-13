@@ -29,6 +29,11 @@ public final class EvalRunner {
     /** run 记录键前缀（与数据集键同合成会话、不同前缀段）。 */
     static final String RUN_PREFIX = "eval.run.";
 
+    /** spec 708：memo 键前缀（同合成会话、run/数据集前缀段外独立）。 */
+    static final String MEMO_PREFIX = "eval.memo.";
+
+    private static final System.Logger LOGGER = System.getLogger(EvalRunner.class.getName());
+
     static final int ACTUAL_PREVIEW_LIMIT = 2048;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -49,6 +54,19 @@ public final class EvalRunner {
     private volatile boolean expectationsWarnOnly;
     /** spec 609 / T868：项级超时预算（null = 不设——零行为变化；挂死项收敛 error 不拖死整跑）。 */
     private volatile java.time.Duration perItemTimeout;
+
+    /** spec 708 / T1016：项级记忆化键（null/blank = 关——默认零行为；判定身份指纹由调用方拼装）。 */
+    private volatile String memoizationKey;
+
+    /** spec 718 / T1036：漂移基线窗（0 = 关——默认零行为）。 */
+    private volatile int driftWindow;
+    /** spec 718：漂移告警线（绝对差值 ∈ (0,1]）。 */
+    private volatile double driftWarnShift;
+    /** spec 718：最近一次 run 的 passRate−baseline（无基线 = NaN——读数面）。 */
+    private volatile double lastDriftDelta = Double.NaN;
+
+    /** spec 734 / T1068：最近一次 run 与其前一次的数据集指纹是否不同（首跑 false——读数面）。 */
+    private volatile boolean lastFingerprintChanged;
 
     public EvalRunner(AgentRuntime runtime, EvalDatasetStore datasetStore,
             SessionStateStore stateStore) {
@@ -89,6 +107,156 @@ public final class EvalRunner {
             throw new IllegalArgumentException("perItemTimeout 必须为正时长（当前 " + timeout + "）");
         }
         this.perItemTimeout = timeout;
+    }
+
+    /**
+     * spec 708 / T1016（scikit-learn Pipeline memory 借鉴）：项级记忆化——
+     * sig = sha256(dataset|itemId|input|expected|key) 与上轮一致即复用判定
+     * 跳过模型调用（detail 加 [MEMO] 前缀）；数据集就地改项自动失配。
+     * key 是判定身份指纹（judge 实现+模型+模板版本由调用方拼装），换 key =
+     * 全量重跑。null/blank = 关（默认零行为）。ERROR 项不缓存（瞬时故障
+     * 不固化）；memo 读写失败降级直跑（优化不是依赖）。
+     */
+    public void setMemoizationKey(String key) {
+        this.memoizationKey = key == null || key.isBlank() ? null : key;
+    }
+
+    /**
+     * spec 718 / T1036（Evidently drift 借鉴）：通过率漂移基线——run 完成后取
+     * 同数据集早于本次的最近 {@code window} 次 passRate 均值为基线，
+     * |当前−基线| ≥ warnShift → WARN+计数。无历史样本跳过；只告警不阻断。
+     * 默认关（window=0）。window≥0、warnShift∈(0,1] fail-fast。
+     */
+    public void setDriftBaseline(int window, double warnShift) {
+        if (window < 0) {
+            throw new IllegalArgumentException("漂移窗口非负（0 = 关；当前 " + window + "）");
+        }
+        if (window > 0 && !(warnShift > 0.0 && warnShift <= 1.0)) {
+            throw new IllegalArgumentException("漂移告警线必须在 (0,1]（当前 " + warnShift + "）");
+        }
+        this.driftWindow = window;
+        this.driftWarnShift = warnShift;
+    }
+
+    /** spec 718：最近一次 run 的 passRate−baseline（无基线 = NaN）。 */
+    public double lastDriftDelta() {
+        return lastDriftDelta;
+    }
+
+    /**
+     * spec 748 / T1098：执行策略汇总读数（一屏确认五件套当前态）——
+     * runBudgetChars / errorRetryOnce / perItemTimeoutMs（null=未设）/
+     * memoizationKey（null=关）/ driftWindow / driftWarnShift。
+     * 排障「为什么这个 run 有 [RUN-BUDGET]/[MEMO]」的配置证据面。
+     */
+    public Map<String, Object> executionPolicy() {
+        Map<String, Object> policy = new LinkedHashMap<>();
+        policy.put("runBudgetChars", runBudgetChars);
+        policy.put("errorRetryOnce", errorRetryOnce);
+        policy.put("perItemTimeoutMs", perItemTimeout == null ? null : perItemTimeout.toMillis());
+        policy.put("memoizationKey", memoizationKey);
+        policy.put("driftWindow", driftWindow);
+        policy.put("driftWarnShift", driftWindow > 0 ? driftWarnShift : null);
+        return policy;
+    }
+
+    /** spec 734：最近一次 run 的数据集指纹相对其前一次是否变化（首跑 false）。 */
+    public boolean lastFingerprintChanged() {
+        return lastFingerprintChanged;
+    }
+
+    /**
+     * spec 734：数据集指纹变更检测（82 指纹入档的消费信号）——当前 run 指纹
+     * 与最近一次历史 run 不同即置位+计数。就地改项/增删项都会变指纹——
+     * diff 明细归 EvalRunDiff，本面只做「变了」的一眼信号。
+     */
+    private void checkFingerprintChange(String datasetName, EvalRunResult result) {
+        try {
+            String latest = null;
+            Instant latestAt = Instant.EPOCH;
+            for (StateEntry entry : stateStore
+                    .scanByPrefix(EvalDatasetStore.SESSION_ID, RUN_PREFIX).values()) {
+                try {
+                    Map<String, Object> map = decodeMap(entry.value());
+                    if (!datasetName.equals(map.get("datasetName"))) {
+                        continue;
+                    }
+                    Instant startedAt = Instant.parse(String.valueOf(map.get("startedAt")));
+                    if (startedAt.isAfter(latestAt) && startedAt.isBefore(result.startedAt())) {
+                        latestAt = startedAt;
+                        Object fp = map.get("datasetFingerprint");
+                        latest = fp == null ? null : String.valueOf(fp);
+                    }
+                } catch (RuntimeException malformedRunRecord) {
+                    // 跳过坏记录
+                }
+            }
+            String current = result.datasetFingerprint();
+            boolean changed = latest != null && current != null && !latest.equals(current);
+            lastFingerprintChanged = changed;
+            if (changed) {
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.eval.fingerprint.changed");
+                LOGGER.log(System.Logger.Level.INFO,
+                        "数据集指纹变更：dataset=" + datasetName + " 前值 " + latest
+                                + " → 现值 " + current + "（diff 明细见 EvalRunDiff）");
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "指纹变更检测失败（跳过）：" + String.valueOf(e.getMessage()));
+        }
+    }
+
+    /**
+     * spec 718：漂移判定（run 落盘后调用——基线只取早于本次的记录）。
+     * 读历史失败降级跳过（观测面故障不放大）。
+     */
+    private void checkDrift(String datasetName, EvalRunResult result) {
+        int window = driftWindow;
+        if (window <= 0) {
+            return;
+        }
+        try {
+            record Sample(Instant startedAt, double passRate) {
+            }
+            List<Sample> history = new ArrayList<>();
+            stateStore.scanByPrefix(EvalDatasetStore.SESSION_ID, RUN_PREFIX)
+                    .values().forEach(entry -> {
+                        try {
+                            Map<String, Object> map = decodeMap(entry.value());
+                            if (!datasetName.equals(map.get("datasetName"))) {
+                                return;
+                            }
+                            Instant startedAt = Instant.parse(String.valueOf(map.get("startedAt")));
+                            if (!startedAt.isBefore(result.startedAt())) {
+                                return; // 只取早于本次的 run——基线防自污染
+                            }
+                            history.add(new Sample(startedAt,
+                                    ((Number) map.getOrDefault("passRate", 0)).doubleValue()));
+                        } catch (RuntimeException malformedRunRecord) {
+                            // 单条坏记录跳过——漂移面不因存量脏数据失效
+                        }
+                    });
+            history.sort(java.util.Comparator.comparing(Sample::startedAt).reversed());
+            List<Sample> windowed = history.stream().limit(window).toList();
+            if (windowed.isEmpty()) {
+                return; // 首跑无基线
+            }
+            double baseline = windowed.stream().mapToDouble(Sample::passRate).average().orElse(0);
+            double delta = result.passRate() - baseline;
+            lastDriftDelta = delta;
+            if (Math.abs(delta) >= driftWarnShift) {
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.eval.drift.alerts");
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "评估通过率漂移：dataset=" + datasetName + " runId=" + result.runId()
+                                + " 当前 " + result.passRate() + " vs 基线 " + baseline
+                                + "（差 " + delta + " ≥ 告警线 " + driftWarnShift + "）");
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "漂移基线读取失败（跳过判定）：" + String.valueOf(e.getMessage()));
+        }
     }
 
     /** 装载 run 前期望门禁（失败 fail-fast 挂 EVAL_OPERATION_INVALID——脏数据零 token 成本出局）。 */
@@ -151,7 +319,7 @@ public final class EvalRunner {
             results = new ArrayList<>();
             for (EvalItem item : items) {
                 results.add(budgetedItem(spent, item,
-                        () -> runItemWithRetry(runId, item, evaluator)));
+                        () -> memoizedItem(runId, datasetName, item, evaluator)));
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
@@ -161,7 +329,7 @@ public final class EvalRunner {
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
                     byIndex[index] = budgetedItem(spent, item,
-                            () -> runItemWithRetry(runId, item, evaluator));
+                            () -> memoizedItem(runId, datasetName, item, evaluator));
                     return null;
                 });
             }
@@ -186,6 +354,10 @@ public final class EvalRunner {
         stateStore.put(EvalDatasetStore.SESSION_ID,
                 new StateEntry(RUN_PREFIX + runId, encode(resultToMap(result)),
                         "eval", 0, null, finishedAt));
+        // spec 718 / T1036：通过率漂移判定（落盘后——基线只取早于本次的记录）
+        checkDrift(datasetName, result);
+        // spec 734 / T1068：数据集指纹变更信号
+        checkFingerprintChange(datasetName, result);
         // spec 111 §A / T403：run 总时长 timer（per-item durationMs 之外的整跑视角）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .timer("buzhou.eval.run.duration",
@@ -210,6 +382,76 @@ public final class EvalRunner {
                 .counter("buzhou.eval.error-retried");
         return new EvalRunItemResult(item.id(), second.status(),
                 "[RETRIED] " + second.detail(), second.actualPreview(), second.durationMs());
+    }
+
+    /**
+     * spec 708 / T1016：项级记忆化包装——命中即复用上轮三态结果（跳过模型
+     * 调用与 judge），miss/失配照常执行后回写；ERROR 不缓存；读写失败降级
+     * 直跑（WARN 一次——优化不是依赖）。包装在 retry 外层：命中零重试语义。
+     */
+    private EvalRunItemResult memoizedItem(String runId, String datasetName,
+            EvalItem item, Evaluator evaluator) {
+        String key = memoizationKey;
+        if (key == null) {
+            return runItemWithRetry(runId, item, evaluator);
+        }
+        String memoKey = MEMO_PREFIX + datasetName + "." + item.id();
+        String sig = memoSig(datasetName, item, key);
+        try {
+            var existing = stateStore.get(EvalDatasetStore.SESSION_ID, memoKey);
+            if (existing.isPresent()) {
+                Map<String, Object> memo = decodeMap(existing.get().value());
+                if (sig.equals(memo.get("sig"))) {
+                    io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                            .counter("buzhou.eval.memo.hits");
+                    return new EvalRunItemResult(item.id(), (String) memo.get("status"),
+                            "[MEMO] " + memo.get("detail"),
+                            (String) memo.get("actual"),
+                            memo.get("durationMs") == null ? 0L
+                                    : ((Number) memo.get("durationMs")).longValue());
+                }
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "memo 读取失败（降级直跑）：" + String.valueOf(e.getMessage()));
+        }
+        EvalRunItemResult result = runItemWithRetry(runId, item, evaluator);
+        io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                .counter("buzhou.eval.memo.misses");
+        if (!EvalRunItemResult.STATUS_ERROR.equals(result.status())) {
+            try {
+                Map<String, Object> memo = new LinkedHashMap<>();
+                memo.put("sig", sig);
+                memo.put("status", result.status());
+                memo.put("detail", result.detail());
+                memo.put("actual", result.actualPreview());
+                memo.put("durationMs", result.durationMs());
+                stateStore.put(EvalDatasetStore.SESSION_ID,
+                        new StateEntry(memoKey, encode(memo), "eval", 0, null, Instant.now()));
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.WARNING,
+                        "memo 回写失败（忽略——优化不是依赖）：" + String.valueOf(e.getMessage()));
+            }
+        }
+        return result;
+    }
+
+    /** 记忆化签名（sha256 hex——数据/判定身份任一变化即失配）。 */
+    private static String memoSig(String datasetName, EvalItem item, String key) {
+        String material = datasetName + "|" + item.id() + "|"
+                + (item.input() == null ? "" : item.input()) + "|"
+                + (item.expected() == null ? "" : item.expected()) + "|" + key;
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(material.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 不可用", e);
+        }
     }
 
     /**

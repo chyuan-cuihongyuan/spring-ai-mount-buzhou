@@ -32,6 +32,11 @@ public class DiskSpillStore implements SpillStore {
 
     /** spec 26 / T105 / impl-80：证据引用账本（fork 引用计数共享——最后引用者关闭）。 */
     private final EvidenceRefLedger refLedger;
+    /** spec 742 / T1086：累计保留的孤儿 spill（fork 引用仍活——衰减治理证据）。 */
+    private final java.util.concurrent.atomic.AtomicLong totalRetainedOrphans =
+            new java.util.concurrent.atomic.AtomicLong();
+    /** spec 742：最近一次 sweep 保留数（-1 = 从未执行）。 */
+    private volatile int lastSweepRetained = -1;
 
     /** spec 40 §A / T151 / impl-122：落盘静态加密（null = 直通，零行为变化）。 */
     private final SpillCipher cipher;
@@ -151,6 +156,7 @@ public class DiskSpillStore implements SpillStore {
         }
         java.util.Set<String> live = liveSessionIds == null ? java.util.Set.of() : liveSessionIds;
         int deleted = 0;
+        int retainedTotal = 0;
         try (Stream<Path> agents = Files.list(rootDir)) {
             for (Path agentDir : agents.filter(Files::isDirectory).toList()) {
                 try (Stream<Path> sessions = Files.list(agentDir)) {
@@ -159,10 +165,13 @@ public class DiskSpillStore implements SpillStore {
                             continue;
                         }
                         int retained = 0;
+                        // spec 742：本轮本目录保留数（计入 sweep 总保留）
+                        // spec 742 / T1086：保留计数（fork 引用仍活——衰减治理证据）
                         try (Stream<Path> files = Files.list(sessionDir)) {
                             for (Path file : files.filter(p -> p.toString().endsWith(DATA_SUFFIX)).toList()) {
                                 if (!refLedger.referrers(uriOf(file)).isEmpty()) {
                                     retained++; // fork 仍引用（属主会话已亡）：物理保留
+                                    totalRetainedOrphans.incrementAndGet(); // spec 742：累计保留证据
                                     continue;
                                 }
                                 deleteQuietly(file);
@@ -173,6 +182,7 @@ public class DiskSpillStore implements SpillStore {
                         if (retained == 0) {
                             deleteQuietly(sessionDir);
                         }
+                        retainedTotal += retained;
                     }
                 }
             }
@@ -181,6 +191,7 @@ public class DiskSpillStore implements SpillStore {
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
                     "spill 磁盘 IO 失败", e);
         }
+        lastSweepRetained = retainedTotal; // spec 742：本轮保留数入档
         return deleted;
     }
 
@@ -459,5 +470,15 @@ public class DiskSpillStore implements SpillStore {
             Files.deleteIfExists(path);
         } catch (IOException ignored) {
         }
+    }
+
+    /** spec 742 / T1086：累计保留的孤儿 spill 读数（fork 引用仍活——物理保留证据）。 */
+    public long totalRetainedOrphans() {
+        return totalRetainedOrphans.get();
+    }
+
+    /** spec 742 / T1086：最近一次 sweep 的保留数（-1 = 从未执行）。 */
+    public int lastSweepRetained() {
+        return lastSweepRetained;
     }
 }

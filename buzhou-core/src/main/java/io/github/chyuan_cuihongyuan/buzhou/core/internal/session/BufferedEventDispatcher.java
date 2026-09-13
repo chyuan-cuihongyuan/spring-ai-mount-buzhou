@@ -45,7 +45,7 @@ final class BufferedEventDispatcher implements AutoCloseable {
     private final AtomicLong enqueued = new AtomicLong();
     private final AtomicLong dispatched = new AtomicLong();
     private final AtomicLong dropped = new AtomicLong();
-    /** impl-553 / spec 800：按原因分类计数（与 dropped 同点累计——守恒不变量）。 */
+    /** impl-653 / spec 900：按原因分类计数（与 dropped 同点累计——守恒不变量）。 */
     private final ConcurrentHashMap<String, LongAdder> dropsByReason = new ConcurrentHashMap<>();
     private final Thread drainer;
 
@@ -124,7 +124,7 @@ final class BufferedEventDispatcher implements AutoCloseable {
         return new EventBusStats(dispatched.get(), dropped.get(), enqueued.get(), queue.size());
     }
 
-    /** impl-553 / spec 800：按原因分类的丢弃快照（守恒：total() == stats().dropped()）。 */
+    /** impl-653 / spec 900：按原因分类的丢弃快照（守恒：total() == stats().dropped()）。 */
     EventDropBreakdown dropBreakdown() {
         Map<String, Long> snapshot = new LinkedHashMap<>();
         dropsByReason.forEach((reason, adder) -> snapshot.put(reason, adder.sum()));

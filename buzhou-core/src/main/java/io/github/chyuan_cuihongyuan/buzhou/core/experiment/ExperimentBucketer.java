@@ -26,9 +26,42 @@ public final class ExperimentBucketer {
     static final int TOTAL_BUCKETS = 100;
 
     private final Map<String, Map<String, Integer>> experiments;
+    /** spec 709 / T1018：可选到期时刻（实验 → 到期；无声明 = 永不过期）。 */
+    private final Map<String, java.time.Instant> expiresAt;
+    /** spec 710 / T1020：全局 holdout 比例（0..100；哈希不含实验名——层语义跨实验一致排除）。 */
+    private final int holdoutPercent;
+    private final java.time.Clock clock;
+    /** 到期已 WARN 过的实验（每实验一次——不刷屏）。 */
+    private final java.util.Set<String> expiredWarned = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final Map<String, Map<String, AtomicLong>> exposures = new LinkedHashMap<>();
 
     public ExperimentBucketer(Map<String, Map<String, Integer>> experiments) {
+        this(experiments, Map.of(), 0, java.time.Clock.systemUTC());
+    }
+
+    /**
+     * spec 709 / T1018（GrowthBook feature expiry 借鉴）：带到期声明构造——
+     * assign() 惰性判定，过期实验按未入组处理（曝光计 __expired__ 独立桶）、
+     * 返回 null；声明保留可审计。expiresAt 值 null fail-fast。
+     */
+    public ExperimentBucketer(Map<String, Map<String, Integer>> experiments,
+                              Map<String, java.time.Instant> expiresAt, java.time.Clock clock) {
+        this(experiments, expiresAt, 0, clock);
+    }
+
+    /**
+     * spec 710 / T1020（Statsig holdout layer 借鉴）：再加全局 holdout 层——
+     * holdoutPercent∈[0,100] 的 unit（sha256("holdout|unitKey") 口径，跨实验
+     * 一致排除）在所有实验按未入组处理（曝光计 __holdout__ 独立桶）。
+     */
+    public ExperimentBucketer(Map<String, Map<String, Integer>> experiments,
+                              Map<String, java.time.Instant> expiresAt, int holdoutPercent,
+                              java.time.Clock clock) {
+        if (holdoutPercent < 0 || holdoutPercent > TOTAL_BUCKETS) {
+            throw new IllegalArgumentException(
+                    "holdoutPercent 必须在 [0,100]（当前 " + holdoutPercent + "）");
+        }
+        this.holdoutPercent = holdoutPercent;
         Map<String, Map<String, Integer>> validated = new LinkedHashMap<>();
         experiments.forEach((name, variants) -> {
             if (variants == null || variants.isEmpty()) {
@@ -52,6 +85,46 @@ public final class ExperimentBucketer {
             exposures.put(name, counters);
         });
         this.experiments = Map.copyOf(validated);
+        Map<String, java.time.Instant> validatedExpiry = new java.util.LinkedHashMap<>();
+        if (expiresAt != null) {
+            expiresAt.forEach((name, at) -> {
+                if (at == null) {
+                    throw new IllegalArgumentException(
+                            "实验 " + name + " 的 expiresAt 时刻为 null（不声明到期请勿放入该表）");
+                }
+                validatedExpiry.put(name, at);
+            });
+        }
+        this.expiresAt = Map.copyOf(validatedExpiry);
+        this.clock = clock == null ? java.time.Clock.systemUTC() : clock;
+    }
+
+    /** 已过期实验集合（声明保留、行为停用——审计面）。 */
+    public java.util.Set<String> expiredExperiments() {
+        java.time.Instant now = java.time.Instant.now(clock);
+        java.util.Set<String> expired = new java.util.LinkedHashSet<>();
+        expiresAt.forEach((name, at) -> {
+            if (now.isAfter(at)) {
+                expired.add(name);
+            }
+        });
+        return expired;
+    }
+
+    /** 某实验到期时刻（无声明 = empty）。 */
+    public java.util.Optional<java.time.Instant> expiresAt(String experiment) {
+        return java.util.Optional.ofNullable(expiresAt.get(experiment));
+    }
+
+    /** spec 710：全局 holdout 比例读数。 */
+    public int holdoutPercent() {
+        return holdoutPercent;
+    }
+
+    /** 是否已到期（惰性判定共用口径）。 */
+    private boolean expired(String experiment) {
+        java.time.Instant at = expiresAt.get(experiment);
+        return at != null && java.time.Instant.now(clock).isAfter(at);
     }
 
     /** 已声明实验数（观测）。 */
@@ -66,6 +139,28 @@ public final class ExperimentBucketer {
     public String assign(String experiment, String unitKey) {
         Map<String, Integer> variants = experiments.get(experiment);
         if (variants == null || unitKey == null || unitKey.isEmpty()) {
+            return null;
+        }
+        if (expired(experiment)) {
+            // spec 709：到期自动停——按未入组但计独立桶（不混自然余量口径）
+            exposures.get(experiment).computeIfAbsent("__expired__", k -> new AtomicLong())
+                    .incrementAndGet();
+            BuzhouMetricsHolder.metrics().counter("buzhou.experiment.expired",
+                    "experiment", experiment);
+            if (expiredWarned.add(experiment)) {
+                System.getLogger(ExperimentBucketer.class.getName()).log(
+                        System.Logger.Level.WARNING,
+                        "实验已到期自动停（声明保留、行为停用）：" + experiment
+                                + "，到期 " + expiresAt.get(experiment));
+            }
+            return null;
+        }
+        if (holdoutPercent > 0 && floorMod100("holdout", unitKey) < holdoutPercent) {
+            // spec 710：全局 holdout 层——跨实验一致排除（哈希不含实验名）
+            exposures.get(experiment).computeIfAbsent("__holdout__", k -> new AtomicLong())
+                    .incrementAndGet();
+            BuzhouMetricsHolder.metrics().counter("buzhou.experiment.holdout",
+                    "experiment", experiment);
             return null;
         }
         int bucket = floorMod100(experiment, unitKey);
