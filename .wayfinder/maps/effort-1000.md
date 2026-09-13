@@ -35,6 +35,7 @@
 - [Hook Replace 载荷应用/丢弃计数读面的形态裁决](../tickets/T1477-replace-stats-shape.md) — applyReplace boolean 化 + replaceApplied/replaceDropped 实例计数与双 getter；类型不匹配载荷静默跳过的显形（分发行为逐位不变）；与 R3 幽灵禁用同族。
 - [Spotlighting 应用与损坏计数读面的形态裁决](../tickets/T1479-spotlighting-stats-shape.md) — SpotlightingStats（wrapped/unwrapped/malformed 守恒）+ stats()/resetForTest()；含头但结构不完整的包裹原样放行的篡改/截断显形（安全控制覆盖率）；行为逐位不变。
 - [超时覆盖命中读面的形态裁决](../tickets/T1481-timeout-override-stats-shape.md) — ToolTimeoutOverrideStats（lookups/hits/misses + hitsByPattern 播种全部配置模式，0 = 幽灵覆盖配置显形）；timeoutMillisFor 返回值逐位不变；顺带入档存量口径：Map.copyOf 不保「首中即胜」调用方顺序（feature-flag 评估计数思想）。
+- [技能解析未命中计数读面的形态裁决](../tickets/T1483-skill-resolution-stats-shape.md) — SkillResolutionStats（loads/resolved/notFound 守恒）+ resolutionStats()；load-only 口径（清单枚举不计——防渲染流量污染幻觉信号）；模型幻觉技能名探测，与 I 池使用统计分轴（Berkeley function-calling leaderboard）。首入 skills 模块。
 
 ## 150 轮台账
 
@@ -56,7 +57,8 @@
 | 14 | Hook Replace 载荷应用/丢弃计数读面（幽灵载荷显形） | 静默蒸发显形谱系 | T1477–T1478 | 766 | 1013 | ✅ |
 | 15 | Spotlighting 应用与损坏计数读面（防御覆盖 + 篡改显形） | 静默蒸发显形谱系 | T1479–T1480 | 767 | 1014 | ✅ |
 | 16 | 超时覆盖命中读面（幽灵覆盖配置显形） | feature-flag 评估计数 | T1481–T1482 | 768 | 1015 | ✅ |
-| 17 | （开工时按缺口核查选题，候选见下） | — | T1483–T1484 | 769 | 1016 |  |
+| 17 | 技能解析未命中计数读面（幻觉技能名探测） | Berkeley function-calling | T1483–T1484 | 769 | 1016 | ✅ |
+| 18 | （开工时按缺口核查选题，候选见下） | — | T1485–T1486 | 770 | 1017 |  |
 
 （5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
 

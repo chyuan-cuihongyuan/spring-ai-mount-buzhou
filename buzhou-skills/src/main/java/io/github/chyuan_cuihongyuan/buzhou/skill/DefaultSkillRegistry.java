@@ -31,6 +31,14 @@ public class DefaultSkillRegistry implements SkillRegistry {
     private record CachedResolve(Optional<Skill> skill, long expiresAtNanos) {
     }
 
+    /** impl-769 / spec 1016：模型面解析计数（幻觉技能名探测——load-only 口径）。 */
+    private final java.util.concurrent.atomic.AtomicLong loads =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong resolvedCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong notFound =
+            new java.util.concurrent.atomic.AtomicLong();
+
     public DefaultSkillRegistry(Map<String, ClasspathSkillEntry> classpathSkills,
                                 SkillStore dbStore, PolicyConfigProvider policyProvider,
                                 boolean dbEnabled, int catalogMaxEntries) {
@@ -91,7 +99,14 @@ public class DefaultSkillRegistry implements SkillRegistry {
 
     @Override
     public Optional<Skill> load(String appId, String agentName, String name) {
-        return resolve(name);
+        loads.incrementAndGet(); // spec 1016：幻觉技能名探测（仅模型面入口计数）
+        Optional<Skill> skill = resolve(name);
+        if (skill.isPresent()) {
+            resolvedCount.incrementAndGet();
+        } else {
+            notFound.incrementAndGet();
+        }
+        return skill;
     }
 
     @Override
@@ -142,6 +157,11 @@ public class DefaultSkillRegistry implements SkillRegistry {
             return resolved;
         }
         return entry == null ? Optional.empty() : Optional.of(entry.skill());
+    }
+
+    /** 模型面解析只读快照（守恒 loads == resolved + notFound——spec 1016）。 */
+    public SkillResolutionStats resolutionStats() {
+        return new SkillResolutionStats(loads.get(), resolvedCount.get(), notFound.get());
     }
 
     /** DB 动态 Skill 覆盖查询（PUBLISHED 才参与解析）；未启用 DB 时恒空。 */
