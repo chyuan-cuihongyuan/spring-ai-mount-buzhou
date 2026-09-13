@@ -632,6 +632,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 手动压缩操作分布读面 | ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages 守恒）+ opStats()——K8s 事件聚合思想（spec 1027） | [spec 1027](docs/spec/1027-compact-op-stats.md) |
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
+| 安全 | 工具权限判定分布读面 | ToolPermissions 嵌套 PermissionStats 四桶（checks/allowed/deniedUndefinedRole/deniedByRules 守恒）+ stats()——K8s RBAC audit 思想，fail-closed 拼错角色显形（spec 1037） | [spec 1037](docs/spec/1037-permission-stats.md) |
 | MCP 热插拔 | properties 装配解析统计读面 | PropertiesToolSetProvider 静态三计数（servers/bindings/bindingsSkipped——非 Map binding 项静默跳过显形）+ parseStats()——清单解析统计思想（spec 1036） | [spec 1036](docs/spec/1036-mcp-parse-stats.md) |
 | 技能治理 | 词法排序生效计数读面 | LexicalSkillRanker 嵌套 RankStats（runs/reordered——排序器空转显形）+ stats()——混合排序生效水位（spec 1034） | [spec 1034](docs/spec/1034-lexical-rank-stats.md) |
 | 安全 | 审计收集器采集与持久化失败计数读面 | AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()——Splunk HEC ingestion stats 借鉴（spec 1031） | [spec 1031](docs/spec/1031-audit-ingest-stats.md) |
