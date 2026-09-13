@@ -2177,3 +2177,8 @@
 - `MigrationReconciliation`（嵌套 `Reconciliation`）（825——gh-ost 对账
   思想：源/目标导出四维对账（消息计数/轮次范围/首尾 id 仅 keepIds/状态
   键+缺失明细封顶 8）；重映射语义跳过 id 比对；只读不修复）
+
+- `InjectionParanoiaPolicy`（嵌套 `Level`/`Action`/`Decision`）（826——
+  ModSecurity paranoia levels 借鉴：L1-L4 标准阈值表（0.95/0.85/0.70/0.50）
+  +BLOCK/LOG/ALLOW 三态裁决（0.10 观察带）；分数截断+≥ 边界；纯映射
+  classifier 零变更）
