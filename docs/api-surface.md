@@ -2190,3 +2190,8 @@
 - `TimedDataSource`（828——HikariCP 池等待思想：DataSource 装饰器两种
   getConnection nanoTime finally 计时进 StoreLatencyRing（其余方法纯委托，
   异常照记照抛）；与 810 store 操作计时正交两层）
+
+- `FactMergeDecisionDistribution`（嵌套 `Decision`/`SectionRow`/`Report`）
+  （829——mem0 冲突解决统计扩散：9 段×3 决策（CREATED/KEPT/SUPERSEDED）
+  闭集记账+supersededRatio+段行声明序；喂点=EVENT_RECONCILED 消费者，
+  reconcile 零变更）

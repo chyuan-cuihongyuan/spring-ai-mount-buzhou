@@ -410,3 +410,4 @@
 | #826 | 注入检测分级策略 | [maps/effort-826.md](maps/effort-826.md) | T1153–1154 | 579 |
 | #827 | 定价表覆盖审计 | [maps/effort-827.md](maps/effort-827.md) | T1155–1156 | 580 |
 | #828 | 连接池获取计时装饰器 | [maps/effort-828.md](maps/effort-828.md) | T1157–1158 | 581 |
+| #829 | 事实合并决策分布 | [maps/effort-829.md](maps/effort-829.md) | T1159–1160 | 582 |
