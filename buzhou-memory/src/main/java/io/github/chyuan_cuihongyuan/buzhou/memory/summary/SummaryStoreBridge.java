@@ -13,18 +13,55 @@ import java.util.Optional;
 public class SummaryStoreBridge {
 
     private final SummaryStore store;
+    /** impl-790 / spec 1038：操作与代数回退计数（回退=旧快照覆盖异常信号）。 */
+    private final java.util.concurrent.atomic.AtomicLong saves =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong loads =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong generationRegressions =
+            new java.util.concurrent.atomic.AtomicLong();
+    /** per-session 最近写入代数（有界 LRU 1024——TurnTimingHook 同先例）。 */
+    private final java.util.LinkedHashMap<String, Long> lastGeneration =
+            new java.util.LinkedHashMap<>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(
+                        Map.Entry<String, Long> eldest) {
+                    return size() > 1024;
+                }
+            };
 
     public SummaryStoreBridge(SummaryStore store) {
         this.store = store;
     }
 
     public Optional<NineSectionSummary> loadLatest(String sessionId) {
+        loads.incrementAndGet(); // spec 1038：操作计数
         return store.latest(sessionId).map(this::fromStored);
     }
 
     public void save(String sessionId, NineSectionSummary summary) {
+        saves.incrementAndGet(); // spec 1038：保存计数
+        Long lastGen = lastGeneration.get(sessionId);
+        if (lastGen != null && summary.generation() < lastGen) {
+            generationRegressions.incrementAndGet(); // 代数回退——旧快照覆盖异常信号
+        }
+        lastGeneration.put(sessionId, summary.generation());
         store.save(sessionId, new StructuredSummary(sessionId, 0, toStoredSections(summary),
                 summary.render().length(), Instant.now()));
+    }
+
+    /** 代数回退累计（spec 1038 读面）。 */
+    public long generationRegressions() {
+        return generationRegressions.get();
+    }
+
+    /** 操作与代数回退只读快照（spec 1038）。 */
+    public SummaryStoreStats stats() {
+        return new SummaryStoreStats(saves.get(), loads.get(), generationRegressions.get());
+    }
+
+    /** 操作计数行（不可变）。 */
+    public record SummaryStoreStats(long saves, long loads, long generationRegressions) {
     }
 
     private Map<String, String> toStoredSections(NineSectionSummary summary) {
