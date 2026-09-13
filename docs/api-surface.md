@@ -83,6 +83,7 @@
 - `public final class SpanStatus`
 - `public final class SpawnGate`
 - `public final class Spotlighting`
+- `public record SpotlightingStats`（spec 1014——spotlighting 应用与损坏计数：wrapped == unwrapped + malformed 守恒）
 - `public final class ToolArgsValidator`
 - `public final class ToolErrorFeedback`
 - `public record ToolPolicyMatchDecision`（spec 1000——单次匹配决策：toolName + Outcome(EXACT/GLOB/NONE) + matchedKey）

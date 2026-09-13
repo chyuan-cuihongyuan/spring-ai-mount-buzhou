@@ -237,6 +237,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.OnFail
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.SessionEventContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.SessionStateHandle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.Spotlighting
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.SpotlightingStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnContext
