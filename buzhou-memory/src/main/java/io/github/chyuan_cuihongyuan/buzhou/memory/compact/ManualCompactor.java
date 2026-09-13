@@ -53,6 +53,17 @@ public final class ManualCompactor {
     private final SummaryFactReconciler reconciler;
     private final BiTemporalFactLedger biTemporal;
     private final java.util.function.Consumer<io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent> eventSink;
+    /** impl-780 / spec 1027：操作分布计数（守恒 completed + skipped + failed == attempts）。 */
+    private final java.util.concurrent.atomic.AtomicLong compactAttempts =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong completed =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong skipped =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong failed =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong foldedMessages =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public ManualCompactor(MessageStore messageStore, SummaryStoreBridge summaryBridge,
                            SummaryGenerator summaryGenerator, ChatModel summaryModel,
@@ -94,8 +105,10 @@ public final class ManualCompactor {
 
     /** 手动压缩：把已完成早前轮次折入九段式结构化摘要（管线与 compact_now 完全一致）。 */
     public CompactResult compact(String sessionId) {
+        compactAttempts.incrementAndGet(); // spec 1027：操作分布计数
         List<BuzhouMessage> history = messageStore.load(sessionId);
         if (history.isEmpty()) {
+            skipped.incrementAndGet();
             return CompactResult.skip();
         }
         int currentTurn = history.stream().mapToInt(BuzhouMessage::turnSeq).max().orElse(1);
@@ -108,6 +121,7 @@ public final class ManualCompactor {
                 .filter(m -> !summarizedIds.contains(m.id()))
                 .toList();
         if (toSummarize.isEmpty()) {
+            skipped.incrementAndGet();
             return CompactResult.skip();
         }
         try {
@@ -122,11 +136,25 @@ public final class ManualCompactor {
                         eventSink, biTemporal);
             }
             summaryBridge.save(sessionId, merged);
+            completed.incrementAndGet();
+            foldedMessages.addAndGet(toSummarize.size());
             return new CompactResult(false, toSummarize.size(), alreadyCovered + 1, cutoffTurn,
                     (int) merged.generation(), merged.render().length() / 4, null);
         } catch (RuntimeException e) {
+            failed.incrementAndGet();
             return CompactResult.failed(e.getMessage());
         }
+    }
+
+    /** 操作分布只读快照（守恒：completed + skipped + failed == attempts——spec 1027）。 */
+    public CompactOpStats opStats() {
+        return new CompactOpStats(compactAttempts.get(), completed.get(), skipped.get(),
+                failed.get(), foldedMessages.get());
+    }
+
+    /** 操作分布计数行（不可变）。 */
+    public record CompactOpStats(long attempts, long completed, long skipped, long failed,
+                                 long foldedMessages) {
     }
 
     /** 类型化导出：当前最新九段式摘要（无摘要 = empty）。 */
