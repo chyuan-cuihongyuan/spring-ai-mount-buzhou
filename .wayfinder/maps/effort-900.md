@@ -59,6 +59,9 @@
 - [工具调用结局分布读面](../tickets/T1329-outcome-stats-shape.md) — ToolCallOutcomeStats.stats 四桶+other 收容桶（守恒不破枚举扩展）——spec 50 日志的根因分诊聚合面（TIMEOUT 高=超时配置，CANCELLED 高=取消风暴）。
 - [gate 阈值漂移读面](../tickets/T1319-threshold-drift-shape.md) — EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形（914 历史面聚合视图）。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
+- [快照数据集隔离性深验](../tickets/T1333-snapshot-isolation-shape.md) — 三断言（源变靶不变/删源靶活/nextId 续起不碰撞）——薄加固轮（spec 187 隔离语义收口）。
+- [outbox 重试次数分布读面](../tickets/T1321-index-contract-shape.md 之外独立票) — WebhookOutbox.retryDistribution（attempts 分桶 TreeMap 升序 + appendRetry 包级退避落盘 + entry 包级可见性）——重试积压结构可见（spec 948）。
+- [ElasticBudgetPool 并发守恒压测](../tickets/T1309-h2-lease-contract-shape.md 之外独立) — 8 线程×500 借还 Σheld+surplus==capacity 守恒 + base 保底不吃borrow + budget 域容量不灭不失（G r47 压测模式；spec 947 前插随轮补）。
 - [事实衰减预报读法](../tickets/T1299-decay-forecast-shape.md) — FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉ + floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路（对象 fact 生命周期），衰减预警→主动 reinforce。
 - [软截止预警集成](../tickets/T1293-soft-window-shape.md) — HarnessToolCallingManager.setSoftDeadlineWindow + awaitCompletion 软窗检查（一次性 WARN + counter buzhou.turn.soft-deadline + beginTurn 复位）——spec 921 集成留位兑现（派发行为零变化；Mimosa 误报拦截整合测试，旗标语义拆分直测）。
 
@@ -105,6 +108,9 @@
 | 43 | k 次防抖门 | flaky CI 防抖惯例 | T1329–T1330 | 692 | 943 | ✅ |
 | 44 | 工具调用结局分布读面 | spec 50 聚合面 | T1329–T1332 票号沿用修正 | 693 | 944 | ✅ |
 | 45 | SessionIndexStore 契约校验套件 | spec 922 契约系列 | T1321–T1322 号段复用注记（index-contract） | 694 | 945 | ✅ |
+| 46 | outbox 重试次数分布读面 | 重试积压结构可见 | T1319–T1320 号段复用注记 | 695 | 948 | ✅ |
+| 47 | ElasticBudgetPool 并发守恒压测 | G r47 压测模式 | T1321–T1322 号段复用注记 | 696 | 947 | ✅ |
+| 48 | 快照数据集隔离性深验 | G 深验模式 | T1333–T1334 | 697 | 949 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
