@@ -42,7 +42,16 @@ public final class EvalGate {
     /** 门判定结果（verdict + 汇总 + 失败项预览 + CI 单行摘要）。 */
     public record GateResult(boolean passed, String datasetName, String runId,
                              double passRate, double threshold, int total, int passedCount,
-                             int failed, int errored, List<String> failurePreviews) {
+                             int failed, int errored, List<String> failurePreviews,
+                             double effectivePassRate) {
+
+        /** 10 参兼容构造（spec 933 前旧形态：无有效口径，NaN = 语义「未计算」）。 */
+        public GateResult(boolean passed, String datasetName, String runId,
+                          double passRate, double threshold, int total, int passedCount,
+                          int failed, int errored, List<String> failurePreviews) {
+            this(passed, datasetName, runId, passRate, threshold, total, passedCount,
+                    failed, errored, failurePreviews, Double.NaN);
+        }
 
         /** CI 单行摘要（人读；exit-code 由宿主按 {@link #passed()} 定）。 */
         public String summary() {
@@ -83,7 +92,7 @@ public final class EvalGate {
         }
         GateResult result = new GateResult(run.passRate() >= clamped, datasetName, run.runId(),
                 run.passRate(), clamped, run.total(), run.passed(), run.failed(),
-                run.errored(), List.copyOf(previews));
+                run.errored(), List.copyOf(previews), run.effectivePassRate());
         recordDecision(result);
         return result;
     }

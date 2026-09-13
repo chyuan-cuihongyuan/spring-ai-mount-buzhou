@@ -49,6 +49,7 @@
 - [剪枝 run 有效通过率口径](../tickets/T1305-effective-passrate-shape.md) — EvalRunResult.prunedCount() + effectivePassRate()（分母排除 pruned；全 pruned 约定 0.0）——双口径显式并存，总量口径防剪枝刷分（CI 硬门），有效口径反映真实质量。
 - [扩缩容建议缩容滞回](../tickets/T1297-scaling-hysteresis-shape.md) — BulkheadScalingAdvisor stabilizeWindows opt-in（回零建议需连续 N 空闲窗才回落，期间保持上次非 1 建议；扩容即时不对称——HPA stabilization window；默认 1 逐位不变）。
 - [观测存储水位读面](../tickets/T1299-obs-watermark-shape.md) — InMemoryObservabilityStore.watermark（activeSessions/maxSessions/totalRecords/maxRecordsPerSession/sessionsEvicted 投影）——Redis INFO memory 思想，internal 读面（逐出开始发生前可见容量压力）。
+- [GateResult 有效通过率透出](../tickets/T1307-gate-effective-shape.md) — GateResult 加 effectivePassRate 组件（11 参新构造 + 10 参兼容 NaN 委托，spec 82 先例）+ enforce 填充——剪枝 run 门结果双口径同屏，passed 判定仍总量口径防刷分。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
 - [事实衰减预报读法](../tickets/T1299-decay-forecast-shape.md) — FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉ + floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路（对象 fact 生命周期），衰减预警→主动 reinforce。
 - [软截止预警集成](../tickets/T1293-soft-window-shape.md) — HarnessToolCallingManager.setSoftDeadlineWindow + awaitCompletion 软窗检查（一次性 WARN + counter buzhou.turn.soft-deadline + beginTurn 复位）——spec 921 集成留位兑现（派发行为零变化；Mimosa 误报拦截整合测试，旗标语义拆分直测）。
@@ -87,6 +88,7 @@
 | 30 | 租约契约接入 H2/JDBC（**抓到并修复 release fence 重置缺陷**：DELETE→软过期保 token 单调） | spec 732/744 接入先例 | T1309–T1310 | 682 | 929 | ✅ |
 | 31 | 租约契约接入 Redis（**抓到并修复幂等重入缺失缺陷**：ACQUIRE_SCRIPT 加同 owner 重入续期分支） | spec 922 契约扩散 | T1311–T1312 | 683 | 930 | ✅ |
 | 32 | 剪枝边界深验（薄加固轮） | G 深验模式 | T1303–T1304 号段回用修正 | 684 | 931 | ✅ |
+| 34 | GateResult 有效通过率透出 | spec 82 兼容构造先例 | T1307–T1308 号段复用 | 686 | 934 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1305–T1306 号段复用 | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
