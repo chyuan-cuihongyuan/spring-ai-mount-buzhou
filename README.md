@@ -537,6 +537,16 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 导出域三件套联动 e2e | 导出域端到端联动验证（spec 913） | [spec 913](docs/spec/913-export-domain-e2e.md) |
 | 观测治理 | gate 判定环形历史读面 | gate 判定历史环时间线（spec 914） | [spec 914](docs/spec/914-gate-history.md) |
 | 观测与运维 | EventDropBreakdown 并发压测 | 丢弃分桶并发压测实证（spec 915） | [spec 915](docs/spec/915-drop-breakdown-stress.md) |
+| 观测治理 | pruned×稳定性×gate 联动补验 | pruned 不入稳定性分母（按有效样本判定，防假稳定）+ KItemVerdict null 容忍——G r39 补验先例（spec 916） | [spec 916](docs/spec/916-pruned-stability.md) |
+| 观测治理 | 健康评分端点装配 | /actuator/buzhou 快照加 score 段（投影+safeScore 降级）；实证修复端点 mechanism/status 裸调用无隔离——spec 905 装配留位兑现（spec 917） | [spec 917](docs/spec/917-score-assembly.md) |
+| 观测治理 | 丢弃计数 reason 维度指标 | DROP_REASON_* 六常量统一三处字面量 + 双轨指标（总量保留+dropped-reason 值域封闭）——breakdown 键与 tag 同源（spec 918） | [spec 918](docs/spec/918-drop-reason-metric.md) |
+| 会话治理 | 加密导出×审计×指纹联动 e2e | 密文进明文审计 fail-closed 固化/seal→open→严格导入全链/nonce 密文不同内容指纹稳定（spec 919） | [spec 919](docs/spec/919-encrypted-export-e2e.md) |
+| 模型韧性 | webhook 限流器余量快照读面 | WebhookRateLimiter.snapshot（同锁强一致 tokens/capacity/refill/deferred 四值投影）——TurnRateLimitHook.availableSnapshot 同构（spec 920） | [spec 920](docs/spec/920-ratelimit-snapshot.md) |
+| 会话治理 | TurnDeadline 软截止窗口读法 | withinSoftWindow 预警窗判定 + softDeadlineAt 预警绝对时刻——K8s graceful period 分层语义（spec 921） | [spec 921](docs/spec/921-soft-window.md) |
+| 持久化 | SessionLeaseStore 契约校验套件 | 九项租约语义检查静态 verify（acquire 幂等互斥/renew 限定/steal fence 递增/deleteSession 幂等）——spec 705/743 同构（spec 922） | [spec 922](docs/spec/922-lease-contract.md) |
+| 观测治理 | 扩缩容建议缩容滞回 | stabilizeWindows opt-in（回零需连续 N 空闲窗，扩容即时不对称）——HPA stabilization window（spec 923） | [spec 923](docs/spec/923-scaling-hysteresis.md) |
+| 观测治理 | 观测存储水位读面 | InMemoryObservabilityStore.watermark（activeSessions/totalRecords vs 上限 + 逐出透传）——Redis INFO memory（spec 924） | [spec 924](docs/spec/924-obs-watermark.md) |
+| 观测治理 | 会话索引存量水位读面 | InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构（spec 925） | [spec 925](docs/spec/925-index-watermark.md) |
 | 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
 | 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
 | 安全 | 加密封存操作生命周期计数读面 | EncryptedSessionExport sealed/opened/openRejected 三计数（open 三拒绝路径全覆盖）+ 嵌套 SealStats + stats()——age/OpenSSL ops 实践，开失败率=密钥失配第一信号（spec 1012） | [spec 1012](docs/spec/1012-seal-lifecycle-stats.md) |

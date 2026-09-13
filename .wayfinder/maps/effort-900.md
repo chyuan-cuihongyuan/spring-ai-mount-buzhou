@@ -65,19 +65,19 @@
 | 11 | AIMD 自适应批量 yml 装配（装配轮；PriorityLane aging ruled-out——超时让位语义已替代且 aging 与不剥夺模型叠加复杂） | D/G 装配轮模式（spec 105 同法） | T1271–T1272 | 663 | 910 | ✅ README 行欠账（906–910 五行） |
 | 12 | JCS 规范化内容指纹 | RFC 8785 JCS | T1273–T1274 | 664 | 911 | ✅ README 行欠账（906–911 六行） |
 | 13 | 会话导出 diff 读面 | spec 719 ConfigDiff 同构（kubectl diff） | T1275–T1276 | 665 | 912 | ✅ README 行欠账（906–912 七行） |
-| 14 | 导出域三件套联动 e2e（**抓到并修复真实联动缺陷**：exportIfChangedCanonical 配对重载补齐） | G 会话补验轮模式 | T1277–T1278 | 666 | 913 | ✅ README 行欠账（906–913 八行） |
-| 15 | gate 判定环形历史读面 | K8s Events 事件史 | T1279–T1280 | 667 | 914 | ✅ README 行欠账（906–914 九行） |
-| 16 | EventDropBreakdown 并发压测（SsrfGuard DNS rebinding ruled-out——全 IP 解析+混合应答防护已有；HttpRequestTool 响应上限 ruled-out——流式截断已有） | G r47 压测模式 | T1281–T1282 | 668 | 915 | ✅ README 行欠账（906–915 十行） |
-| 17 | pruned×稳定性×gate 联动补验（**抓到并修复真实语义缺陷**：pruned 污染稳定性判定→按有效样本判定） | G r39 补验先例 | T1283–T1284 | 669 | 916 | ✅ README 行欠账（906–916 十一行） |
-| 18 | 健康评分端点装配（spec 905 留位兑现；**顺带实证修复既有缺陷**：端点 mechanism/status 裸调用三处 safe 壳化） | spec 905 装配留位 | T1285–T1286 | 670 | 917 | ✅ README 行欠账（906–917 十二行） |
-| 19 | 丢弃计数 reason 维度指标（口径统一轮） | spec 900×13 口径统一 | T1287–T1288 | 671 | 918 | ✅ README 行欠账（906–918 十三行） |
-| 20 | 加密导出×审计×指纹联动 e2e + 周期 verify | G 补验轮模式 | T1289–T1290 | 672 | 919 | ✅ README 行欠账（906–919 十四行） |
-| 21 | webhook 限流器余量快照读面 | TurnRateLimitHook 同构 | T1291–T1292 | 673 | 920 | ✅ README 行欠账（906–920 十五行） |
-| 22 | TurnDeadline 软截止窗口读法（租户窗口用量 ruled-out——TurnRateLimitHook per-key snapshot 已覆盖） | K8s graceful period | T1293–T1294 | 674 | 921 | ✅ README 行欠账（906–921 十六行） |
-| 23 | SessionLeaseStore 契约校验套件 | spec 705/743 同构（Pact） | T1295–T1296 | 675 | 922 | ✅ README 行欠账（906–922 十七行） |
-| 24 | 扩缩容建议缩容滞回（事件重放序号缺口 ruled-out——SequenceFence 五态已覆盖） | K8s HPA stabilization | T1297–T1298 | 676 | 923 | ✅ README 行欠账（906–923 十八行） |
-| 25 | 观测存储水位读面 | Redis INFO memory | T1299–T1300 | 677 | 924 | ✅ README 行欠账（906–924 十九行） |
-| 26 | 会话索引存量水位读面（spec 924 同构） | Redis INFO memory 同构 | T1301–T1302 | 678 | 925 | ✅ README 行欠账（906–925 二十行） |
+| 14 | 导出域三件套联动 e2e（**抓到并修复真实联动缺陷**：exportIfChangedCanonical 配对重载补齐） | G 会话补验轮模式 | T1277–T1278 | 666 | 913 | ✅ |
+| 15 | gate 判定环形历史读面 | K8s Events 事件史 | T1279–T1280 | 667 | 914 | ✅ |
+| 16 | EventDropBreakdown 并发压测（SsrfGuard DNS rebinding ruled-out——全 IP 解析+混合应答防护已有；HttpRequestTool 响应上限 ruled-out——流式截断已有） | G r47 压测模式 | T1281–T1282 | 668 | 915 | ✅ |
+| 17 | pruned×稳定性×gate 联动补验（**抓到并修复真实语义缺陷**：pruned 污染稳定性判定→按有效样本判定） | G r39 补验先例 | T1283–T1284 | 669 | 916 | ✅ |
+| 18 | 健康评分端点装配（spec 905 留位兑现；**顺带实证修复既有缺陷**：端点 mechanism/status 裸调用三处 safe 壳化） | spec 905 装配留位 | T1285–T1286 | 670 | 917 | ✅ |
+| 19 | 丢弃计数 reason 维度指标（口径统一轮） | spec 900×13 口径统一 | T1287–T1288 | 671 | 918 | ✅ |
+| 20 | 加密导出×审计×指纹联动 e2e + 周期 verify | G 补验轮模式 | T1289–T1290 | 672 | 919 | ✅ |
+| 21 | webhook 限流器余量快照读面 | TurnRateLimitHook 同构 | T1291–T1292 | 673 | 920 | ✅ |
+| 22 | TurnDeadline 软截止窗口读法（租户窗口用量 ruled-out——TurnRateLimitHook per-key snapshot 已覆盖） | K8s graceful period | T1293–T1294 | 674 | 921 | ✅ |
+| 23 | SessionLeaseStore 契约校验套件 | spec 705/743 同构（Pact） | T1295–T1296 | 675 | 922 | ✅ |
+| 24 | 扩缩容建议缩容滞回（事件重放序号缺口 ruled-out——SequenceFence 五态已覆盖） | K8s HPA stabilization | T1297–T1298 | 676 | 923 | ✅ |
+| 25 | 观测存储水位读面 | Redis INFO memory | T1299–T1300 | 677 | 924 | ✅ |
+| 26 | 会话索引存量水位读面（spec 924 同构） | Redis INFO memory 同构 | T1301–T1302 | 678 | 925 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表。**工作区并发警示**：同机另有会话共享工作区（1000 系 / T1451+ / impl 753+）——每轮提交必须精确路径 add，勿 git add -A；README 行受其未提交 spec 引用阻塞时欠账下轮补。候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
