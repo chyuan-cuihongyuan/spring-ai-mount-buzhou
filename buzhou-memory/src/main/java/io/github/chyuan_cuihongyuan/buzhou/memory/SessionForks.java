@@ -27,6 +27,11 @@ public final class SessionForks {
 
     private final MessageStore messageStore;
     private final CompletedTurnDetector detector;
+    /** impl-793 / spec 1041：fork 操作计数（time-travel 使用水位）。 */
+    private final java.util.concurrent.atomic.AtomicLong forksCreated =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong messagesCopied =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public SessionForks(MessageStore messageStore) {
         this(messageStore, new DefaultCompletedTurnDetector());
@@ -68,7 +73,18 @@ public final class SessionForks {
                         m.metadata(), m.createdAt()))
                 .toList();
         messageStore.append(newSessionId, history);
+        forksCreated.incrementAndGet(); // spec 1041：fork 使用水位
+        messagesCopied.addAndGet(history.size());
         return newSessionId;
+    }
+
+    /** fork 操作只读快照（spec 1041——使用水位与复制量）。 */
+    public ForkStats stats() {
+        return new ForkStats(forksCreated.get(), messagesCopied.get());
+    }
+
+    /** fork 计数行（不可变）。 */
+    public record ForkStats(long forksCreated, long messagesCopied) {
     }
 
     private static String fingerprint(List<BuzhouMessage> messages) {

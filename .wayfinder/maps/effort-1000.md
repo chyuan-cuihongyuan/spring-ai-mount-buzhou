@@ -46,6 +46,7 @@
 - [提示词注册表解析分布读面的形态裁决](../tickets/T1531-prompt-resolution-stats-shape.md) — InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒）+ resolutionStats()；计数收敛到公共解析核心（resolve 双入口与 resolveVersion 不重复计）；解析返回值与异常语义逐位不变——提示词名拼错/标签缺失=配置错误信号，R17 技能轴的 prompt 域分轴。
 - [token 估算调用量与总量读面的形态裁决](../tickets/T1519-token-estimate-stats-shape.md) — CharHeuristicTokenEstimator 静态三计数（estimateCalls/batchCalls/totalEstimatedTokens）+ stats()/resetForTest()；预算面估算总量显形（进程级静态先例）。
 - [MCP properties 装配解析统计读面的形态裁决](../tickets/T1523-mcp-parse-stats-shape.md) — PropertiesToolSetProvider 静态三计数（servers/bindings/bindingsSkipped）+ parseStats()/resetForTest()；非 Map binding 项静默跳过显形（幽灵配置族）。首入 buzhou-mcp 模块。
+- [time-travel fork 操作计数读面的形态裁决](../tickets/T1535-fork-stats-shape.md) — SessionForks 嵌套 ForkStats（forksCreated/messagesCopied）+ stats()；fork 使用水位与复制量（LangGraph get_state_history/fork 思想）。首入 buzhou-memory 模块读面。
 - [工具权限判定分布读面的形态裁决](../tickets/T1527-permission-stats-shape.md) — ToolPermissions 嵌套 PermissionStats 四桶（checks/allowed/deniedUndefinedRole/deniedByRules 守恒）+ stats()；fail-closed 拼错角色显形（K8s RBAC audit 思想）。
 - [词法排序生效计数读面的形态裁决](../tickets/T1521-lexical-rank-stats-shape.md) — LexicalSkillRanker 嵌套 RankStats（runs/reordered——排序器空转显形）+ stats()；reordered/runs 长期近零=词法路配置错位信号。首入 buzhou-skill 模块。
 - [打转检测触发聚合读面的形态裁决](../tickets/T1517-repetition-stats-shape.md) — RepetitionDetectorHook 嵌套 RepetitionStats（fires/blocks/maxRunSeen 峰值）+ stats()；LLM 打转频率调参水位（spec 1032）。首入 core/runaway 包。
