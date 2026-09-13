@@ -523,6 +523,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | MessageStore 契约接入 H2 | JdbcMessageStore 过四项契约（H2 无 Docker CI 口径）——契约抓出探针会话主键冲突设计缺陷并重构为每检查独立会话（spec 743 复用面） | [spec 744](docs/spec/744-messagestore-h2.md) |
 | 观测与运维 | I 会话 900 系启动 · 事件丢弃按原因分类读面 | EventDropBreakdown（drop-oldest/block-timeout/closed-undelivered 分桶）+ eventDropBreakdown() 读面，ΣbyReason 守恒 == dropped——Sentry discarded events 借鉴（spec 900） | [spec 900](docs/spec/900-event-drop-breakdown.md) |
 | 评估闭环 | 评估失败率中途剪枝 | EvalPrunePolicy（观察窗+失败率阈值）opt-in，串行路径恰停剩余项标 pruned 不烧预算——Optuna pruner 提前停止借鉴（spec 901） | [spec 901](docs/spec/901-eval-prune.md) |
+| 评估闭环 | pass@k 无偏估计器 | EvalPassAtK 连乘无偏公式（HumanEval §2.1）+ 逐项聚合——纯函数不触 store，k 次采样留宿主（spec 902） | [spec 902](docs/spec/902-pass-at-k.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
