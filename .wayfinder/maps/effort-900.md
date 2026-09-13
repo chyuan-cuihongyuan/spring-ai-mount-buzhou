@@ -25,6 +25,7 @@
 - [pass@k 无偏估计器](../tickets/T1255-pass-at-k-shape.md) — EvalPassAtK 连乘无偏公式（HumanEval §2.1，无组合数溢出）+ aggregate 逐项平均；纯函数不触 store，k 次采样留宿主（spec 513 边界一致）。
 - [bootstrap 均值置信区间](../tickets/T1257-bootstrap-ci-shape.md) — EvalScoreAnalytics.bootstrapMeanInterval（Efron percentile + SplittableRandom 固定 seed 可复现）+ MeanInterval record；扩同类不炸类，嵌套 record 不进快照面（spec 903）。
 - [导入审计与严格模式](../tickets/T1259-import-strict-shape.md) — SessionExportAudit.audit（未知顶层字段/缺失推荐字段只读报告，空消息数组合法不算缺失）+ fromJsonStrict opt-in 拒绝（pg_restore --exit-on-error / protobuf unknown fields）。
+- [健康聚合评分读面](../tickets/T1261-health-score-shape.md) — BuzhouHealthScore（UP=100/UNKNOWN=50/DOWN=0 算术平均 + 分档常量 HEALTHY_FLOOR=90/DEGRADED_FLOOR=70 + ScoreReport 含 DOWN 清单）；纯函数端点接线留装配轮（K8s probe aggregate）。
 
 ## 100 轮台账
 
@@ -35,7 +36,8 @@
 | 3 | pass@k 无偏估计器 | HumanEval/Codex §2.1 | T1255–T1256 | 655 | 902 | ✅ |
 | 4 | bootstrap 均值置信区间 | Efron bootstrap percentile | T1257–T1258 | 656 | 903 | ✅ |
 | 5 | 导入审计与严格模式 | pg_restore --exit-on-error / protobuf unknown fields | T1259–T1260 | 657 | 904 | ✅ |
-| 6 | （开工时按缺口核查选题，候选见下） | — | T1261–T1262 | 658 | 905 |  |
+| 6 | 健康聚合评分读面（原列候选 prompt 前缀缓存统计 ruled-out——PromptPrefixCache.Stats 已覆盖；技能使用统计 ruled-out——SkillUsageStats 已存在） | K8s probe aggregate | T1261–T1262 | 658 | 905 | ✅ |
+| 7 | （开工时按缺口核查选题，候选见下） | — | T1263–T1264 | 659 | 906 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 
