@@ -349,4 +349,25 @@ public class InMemoryObservabilityStore implements ObservabilityStore {
     public int maxSessions() {
         return maxSessions;
     }
+
+    /**
+     * impl-677 / spec 924：存量水位读面（Redis INFO memory 的 used vs maxmemory
+     * 直觉——「观测存量贴上限了吗」一读即知，逐出开始发生前可见容量压力）。
+     */
+    public record Watermark(int activeSessions, int maxSessions, long totalRecords,
+                            int maxRecordsPerSession, int sessionsEvicted) {
+    }
+
+    /** 水位快照（synchronized 读一致性；纯读面——逐出/丢弃既有行为零变化）。 */
+    public synchronized Watermark watermark() {
+        long total = 0;
+        for (CopyOnWriteArrayList<SpanRecord> list : spans.values()) {
+            total += list.size();
+        }
+        for (CopyOnWriteArrayList<EventRecord> list : events.values()) {
+            total += list.size();
+        }
+        return new Watermark(sessionActivity.size(), maxSessions, total,
+                maxRecordsPerSession, (int) evictedSessions.get());
+    }
 }
