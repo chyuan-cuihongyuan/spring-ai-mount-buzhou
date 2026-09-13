@@ -4,7 +4,7 @@
 > 每个 effort 一张 map（`maps/effort-<N>.md`），#2–#10 的运行期 tracker 约定存档于 `maps/readme-effort-NN.md`；C 会话进度台账 = `maps/progress-effort-300.md`。
 > 票号全局连续 **T1–T690**（T231–T239 跳号未用；#222 的 T579/T580 仅记于 map、票文件未落盘；**下一张 = T691**）；impl 切片文件 **01–184**（#14 起 impl 记录随票，票内编号累计至 372；编号史见 [impl/README.md](impl/README.md)）。
 > effort #1–#349 全部闭合（A/B/C 三期自迭代会话收口，C 会话台账见 [maps/progress-effort-300.md](maps/progress-effort-300.md)）；D 会话（400 系，#400–#429 / specs 400–429 / T691–T750 / impl 373–402）已收口。
-> **并行会话**：E 会话（500 系，PR#19 已合并）、F 会话（600 系，2026-09-13 收口）、G 会话（700 系，2026-09-13 收口：spec 700–749 / T951–T1050 / impl 503–552 全档；并行 G 双线 T951–T1099 重叠并存，见 effort-700-g-total.md）——新号段裁决见各自 map；**H 会话（800 系，2026-09-13 立桩：specs 800–849 / T1101–T1200 / impl 553–602，progress-effort-800.md，进行中）**；**I 会话（900 系，2026-09-13 启动：specs 900–999 / T1251–T1450 / impl 653–752，effort-900.md，进行中——fetch+双查 main 后让出 800 系改投 900 系）**。
+> **并行会话**：E 会话（500 系，PR#19 已合并）、F 会话（600 系，2026-09-13 收口）、G 会话（700 系，2026-09-13 收口：spec 700–749 / T951–T1050 / impl 503–552 全档；并行 G 双线 T951–T1099 重叠并存，见 effort-700-g-total.md）——新号段裁决见各自 map；**H 会话（800 系，2026-09-13 收口：specs 800–849 / T1101–T1200 / impl 553–601 全档，progress-effort-800.md）**；**I 会话（900 系，2026-09-13 启动：specs 900–999 / T1251–T1450 / impl 653–752，effort-900.md，进行中——fetch+双查 main 后让出 800 系改投 900 系）**。
 
 **开新 effort**：新建 `maps/effort-350.md` 起续号（`.wayfinder350–399` 号段为 C 会话保留段，新自迭代会话按其台账裁决开 400 系），在下表登记一行；票从 T691 起、impl 从 373 起全局续号。tracker 约定见 [README.md](README.md)。
 
@@ -324,10 +324,8 @@
 | #549 | guard 装配摘要读数 | [maps/effort-549.md](maps/effort-549.md) | T859–860 | 451 |
 | **#600（总图）** | **已收口（2026-09-13）** — F 会话 600 系 50 轮自迭代 | [maps/effort-600.md](maps/effort-600.md) | T851–T950 | 453–502 |
 | **#700（总图）** | **已收口（2026-09-13，spec 749 / T1050 / impl 552）** — G 会话 700 系 50 轮自迭代（借鉴高价值开源项目；工具耗时聚合 / 缓存 SWR / 慢启动 / Retry-After 规避 / MCP keepalive / 归档 PDB / 契约套件 / 边界守卫 / …台账见 map） | [maps/effort-700.md](maps/effort-700.md) | T951–T1050 | 503–552 |
-<<<<<<< HEAD
-=======
 | **#700（总图·并行会话）** | **进行中** — 并行 G 会话 700 系总图（工具耗时聚合 / 缓存容量上限 / 慢启动 / Retry-After / 契约测试基类 / …台账见 map） | [maps/effort-700-g-total.md](maps/effort-700-g-total.md) | T951–（至 T1050） | 503–（至 552） |
-| **#800（总图）** | **进行中（2026-09-13 立桩，号段声明先行入 main——G 会撞号教训制度化）** — H 会话 800 系 50 轮自迭代（fail2ban 自动封禁 / Redis 大值审计 / 燃烧率 / dist-tag / 写放大 / crash-loop / …台账见 map） | [maps/progress-effort-800.md](maps/progress-effort-800.md) | T1101–T1200 | 553–602 |
+| **#800（总图）** | **已收口（2026-09-13，spec 849 / T1200 / impl 601）** — H 会话 800 系 50 轮自迭代（fail2ban 自动封禁 / Redis 大值审计 / 燃烧率 / dist-tag / 写放大 / crash-loop / …台账见 map） | [maps/progress-effort-800.md](maps/progress-effort-800.md) | T1101–T1200 | 553–601 |
 | #700 | 能力门决策审计读数 | [maps/effort-700.md](maps/effort-700.md) | T1000–1001 | 600 |
 | #701 | 语义缓存权重预算驱逐 | [maps/effort-701.md](maps/effort-701.md) | T1002–1003 | 601 |
 | #702 | 断路器变迁事件流读数 | [maps/effort-702.md](maps/effort-702.md) | T1004–1005 | 602 |
@@ -378,10 +376,59 @@
 | #747 | 相似度阈值反事实对照 | [maps/effort-747.md](maps/effort-747.md) | T1096–1097 | 631 续 |
 | #748 | 执行策略汇总读数 | [maps/effort-748.md](maps/effort-748.md) | T1098–1099 | 649 |
 | #749 | 收口终验 | [maps/effort-749.md](maps/effort-749.md) | —（全闭环） | — |
->>>>>>> origin/main
-| **#900（总图）** | **进行中（2026-09-13 启动，I 会话——fetch+双查 main 后让出 800 系改投 900 系，遵守号段声明先行制度）** — I 会话 900 系 100 轮自迭代（借鉴高价值开源项目；事件丢弃分类 / Envoy 弹摘语义 / pass@k / rsync 滚动校验 / …台账见 map） | [maps/effort-900.md](maps/effort-900.md) | T1251–T1450 | 653–752 |
+| #800 | 工具自动封禁 | [maps/effort-800.md](maps/effort-800.md) | T1101–1102 | 553 |
 
 ## 跨 effort 悬留
 
 - effort #1 的 [T10（修 CI OS 缺陷）](tickets/T10-fix-ci-os-specific-defect.md) 为 HITL/环境遗留票——后续 CI 已转绿（见各收口记录），该票状态以 ticket 文件为准。
 - effort #15 的 Not-yet-specified 雾区（Redis 向量存储与跨实例共享语义缓存、共享熔断/配额原子化、outbox SCAN 下推、观测 OLAP、skill 语义排序）为 #16+ 候选，见 [maps/effort-15.md](maps/effort-15.md)。
+| #801 | Redis 大值审计 | [maps/effort-801.md](maps/effort-801.md) | T1103–1104 | 554 |
+| #802 | 指标新鲜度审计 | [maps/effort-802.md](maps/effort-802.md) | T1105–1106 | 555 |
+| #803 | 检索多路改写融合 | [maps/effort-803.md](maps/effort-803.md) | T1107–1108 | 556 |
+| #804 | 嵌入 L2 归一化装饰器 | [maps/effort-804.md](maps/effort-804.md) | T1109–1110 | 557 |
+| #805 | 路由分布倾斜读数 | [maps/effort-805.md](maps/effort-805.md) | T1111–1112 | 558 |
+| #806 | 预算用量分位推荐 | [maps/effort-806.md](maps/effort-806.md) | T1113–1114 | 559 |
+| #807 | 签名密钥轮换到期审计 | [maps/effort-807.md](maps/effort-807.md) | T1115–1116 | 560 |
+| #808 | 导出内容去重统计 | [maps/effort-808.md](maps/effort-808.md) | T1117–1118 | 561 |
+| #809 | 作业死信台账 | [maps/effort-809.md](maps/effort-809.md) | T1119–1120 | 562 |
+| #810 | 存储提交延迟环形读数 | [maps/effort-810.md](maps/effort-810.md) | T1121–1122 | 563 |
+| #811 | 断路器 crash-loop 检测 | [maps/effort-811.md](maps/effort-811.md) | T1123–1124 | 564 |
+| #812 | 观测管道内存限流器 | [maps/effort-812.md](maps/effort-812.md) | T1125–1126 | 565 |
+| #813 | 技能发布通道解析 | [maps/effort-813.md](maps/effort-813.md) | T1127–1128 | 566 |
+| #814 | MCP 断路器变迁台账 | [maps/effort-814.md](maps/effort-814.md) | T1129–1130 | 567 |
+| #815 | Spill 写放大读数 | [maps/effort-815.md](maps/effort-815.md) | T1131–1132 | 568 |
+| #816 | 记忆分层容量读数 | [maps/effort-816.md](maps/effort-816.md) | T1133–1134 | 569 |
+| #817 | SLO 多窗燃烧率判定 | [maps/effort-817.md](maps/effort-817.md) | T1135–1136 | 570 |
+| #818 | 限流自适应收紧器 | [maps/effort-818.md](maps/effort-818.md) | T1137–1138 | 571 |
+| #819 | Token 估算校准审计 | [maps/effort-819.md](maps/effort-819.md) | T1139–1140 | 572 |
+| #820 | 护栏豁免登记面 | [maps/effort-820.md](maps/effort-820.md) | T1141–1142 | 573 |
+| #821 | 目录 lint 严重度分级 | [maps/effort-821.md](maps/effort-821.md) | T1143–1144 | 574 |
+| #822 | MCP 能力协商快照 | [maps/effort-822.md](maps/effort-822.md) | T1145–1146 | 575 |
+| #823 | 启动阶段耗时读数 | [maps/effort-823.md](maps/effort-823.md) | T1147–1148 | 576 |
+| #824 | 取消原因分布读数 | [maps/effort-824.md](maps/effort-824.md) | T1149–1150 | 577 |
+| #825 | 会话迁移对账 | [maps/effort-825.md](maps/effort-825.md) | T1151–1152 | 578 |
+| #826 | 注入检测分级策略 | [maps/effort-826.md](maps/effort-826.md) | T1153–1154 | 579 |
+| #827 | 定价表覆盖审计 | [maps/effort-827.md](maps/effort-827.md) | T1155–1156 | 580 |
+| #828 | 连接池获取计时装饰器 | [maps/effort-828.md](maps/effort-828.md) | T1157–1158 | 581 |
+| #829 | 事实合并决策分布 | [maps/effort-829.md](maps/effort-829.md) | T1159–1160 | 582 |
+| #830 | 审计树形健康读数 | [maps/effort-830.md](maps/effort-830.md) | T1161–1162 | 583 |
+| #831 | 会话准入拒绝分布 | [maps/effort-831.md](maps/effort-831.md) | T1163–1164 | 584 |
+| #832 | 技能加载延迟读数 | [maps/effort-832.md](maps/effort-832.md) | T1165–1166 | 585 |
+| #833 | 危险工具命中分布 | [maps/effort-833.md](maps/effort-833.md) | T1167–1168 | 586 |
+| #834 | 上下文截断统计 | [maps/effort-834.md](maps/effort-834.md) | T1169–1170 | 587 |
+| #835 | 尾采样决策台账 | [maps/effort-835.md](maps/effort-835.md) | T1171–1172 | 588 |
+| #836 | 半开探测成功率读数 | [maps/effort-836.md](maps/effort-836.md) | T1173–1174 | 589 |
+| #838 | 选举竞争读数 | [maps/effort-838.md](maps/effort-838.md) | T1175–1176 | 590 |
+| #837 | 限流键热点读数 | [maps/effort-837.md](maps/effort-837.md) | T1177–1178 | 591 |
+| #839 | 泄漏疑似对象聚合器 | [maps/effort-839.md](maps/effort-839.md) | T1179–1180 | 592 |
+| #840 | MCP 建连遥测读数 | [maps/effort-840.md](maps/effort-840.md) | T1181–1182 | 593 |
+| #841 | 会话空闲时长分桶直方 | [maps/effort-841.md](maps/effort-841.md) | T1183–1184 | 594 |
+| #842 | HITL 认证决策分布 | [maps/effort-842.md](maps/effort-842.md) | T1185–1186 | 595 |
+| #843 | 证据引用失效率读数 | [maps/effort-843.md](maps/effort-843.md) | T1187–1188 | 596 |
+| #844 | 摘要降级原因分布 | [maps/effort-844.md](maps/effort-844.md) | T1189–1190 | 597 |
+| #845 | Prompt 回滚使用读数 | [maps/effort-845.md](maps/effort-845.md) | T1191–1192 | 598 |
+| #846 | 死信重投成功率读数 | [maps/effort-846.md](maps/effort-846.md) | T1193–1194 | 599 |
+| #847 | 数据集近重复读数 | [maps/effort-847.md](maps/effort-847.md) | T1195–1196 | 600 |
+| #848 | 配置默认偏离审计 | [maps/effort-848.md](maps/effort-848.md) | T1197–1198 | 600 续 |
+| #849 | 收口终验 | [maps/effort-849.md](maps/effort-849.md) | —（全闭环） | 601 |
+| **#900（总图）** | **进行中（2026-09-13 启动，I 会话——fetch+双查 main 后让出 800 系改投 900 系，遵守号段声明先行制度）** — I 会话 900 系 100 轮自迭代（借鉴高价值开源项目；事件丢弃分类 / Envoy 弹摘语义 / pass@k / rsync 滚动校验 / …台账见 map） | [maps/effort-900.md](maps/effort-900.md) | T1251–T1450 | 653–752 |

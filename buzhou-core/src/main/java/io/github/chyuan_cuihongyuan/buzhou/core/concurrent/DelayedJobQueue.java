@@ -43,13 +43,24 @@ public final class DelayedJobQueue implements AutoCloseable {
     private final Clock clock;
     private final Map<String, Scheduled> jobs = new ConcurrentHashMap<>();
     private final AtomicLong failed = new AtomicLong();
+    private final java.util.function.BiConsumer<String, Throwable> failureObserver;
 
     public DelayedJobQueue() {
         this(Clock.systemUTC());
     }
 
     public DelayedJobQueue(Clock clock) {
+        this(clock, null);
+    }
+
+    /**
+     * spec 809 / T1119：带失败观察者构造（死信台账挂接点）——作业异常时回调
+     * {@code (jobKey, error)}（观察者内部异常亦被隔离，不影响调度线程）；
+     * null = 原行为（吞 + 计数）。
+     */
+    public DelayedJobQueue(Clock clock, java.util.function.BiConsumer<String, Throwable> failureObserver) {
         this.clock = clock == null ? Clock.systemUTC() : clock;
+        this.failureObserver = failureObserver;
         this.scheduler = Executors.newSingleThreadScheduledExecutor(
                 BuzhouThreadFactory.platform("buzhou-delayed-jobs"));
     }
@@ -110,6 +121,13 @@ public final class DelayedJobQueue implements AutoCloseable {
             failed.incrementAndGet();
             io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                     .counter("buzhou.jobs.failed");
+            if (failureObserver != null) {
+                try {
+                    failureObserver.accept(jobKey, e);
+                } catch (RuntimeException ignored) {
+                    // 观察者异常隔离——不炸调度线程（与作业异常同口径）
+                }
+            }
         }
     }
 
