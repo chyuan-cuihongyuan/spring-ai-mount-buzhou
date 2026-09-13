@@ -45,6 +45,7 @@
 - [SessionLeaseStore 契约校验套件](../tickets/T1295-lease-contract-shape.md) — 九项语义检查静态 verify（acquire 幂等互斥/renew 持有人限定/release 重取新 fence/steal fence 递增/inspect/deleteSession 幂等）+ 内存实现接入示例——spec 705/743 同构扩散收口核心 SPI（spec 744 每检查独立会话教训沿用）。
 - [扩缩容建议缩容滞回](../tickets/T1297-scaling-hysteresis-shape.md) — BulkheadScalingAdvisor stabilizeWindows opt-in（回零建议需连续 N 空闲窗才回落，期间保持上次非 1 建议；扩容即时不对称——HPA stabilization window；默认 1 逐位不变）。
 - [观测存储水位读面](../tickets/T1299-obs-watermark-shape.md) — InMemoryObservabilityStore.watermark（activeSessions/maxSessions/totalRecords/maxRecordsPerSession/sessionsEvicted 投影）——Redis INFO memory 思想，internal 读面（逐出开始发生前可见容量压力）。
+- [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
 
 ## 100 轮台账
 
@@ -75,7 +76,8 @@
 | 23 | SessionLeaseStore 契约校验套件 | spec 705/743 同构（Pact） | T1295–T1296 | 675 | 922 | ✅ README 行欠账（906–922 十七行） |
 | 24 | 扩缩容建议缩容滞回（事件重放序号缺口 ruled-out——SequenceFence 五态已覆盖） | K8s HPA stabilization | T1297–T1298 | 676 | 923 | ✅ README 行欠账（906–923 十八行） |
 | 25 | 观测存储水位读面 | Redis INFO memory | T1299–T1300 | 677 | 924 | ✅ README 行欠账（906–924 十九行） |
-| 26 | （开工时按缺口核查选题，候选见下） | — | T1301–T1302 | 678 | 925 |  |
+| 26 | 会话索引存量水位读面（spec 924 同构） | Redis INFO memory 同构 | T1301–T1302 | 678 | 925 | ✅ README 行欠账（906–925 二十行） |
+| 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
 
 （2–100 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表。**工作区并发警示**：同机另有会话共享工作区（1000 系 / T1451+ / impl 753+）——每轮提交必须精确路径 add，勿 git add -A；README 行受其未提交 spec 引用阻塞时欠账下轮补。候选池已预筛一轮——下列主题经预核查 **ruled-out** 不再入池：outbox 积压深度（spec 135）、重试预算（spec 348 RetryBudgetHealth）、webhook HMAC 签名（WebhookSignatures）、技能目录指纹（SkillCatalogFingerprint）、审计链 Merkle 根（spec 404）、健康段属性截断（BuzhouHealth 有界详情纪律已覆盖）、响应缓存统计水位（ResponseCacheStore hit/miss/evicted 已覆盖）、事件丢弃总量计数（EventBusStats.dropped，spec 13）、fail2ban 累进封禁（H 会话 R1 已认领——回避）。）
 
