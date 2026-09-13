@@ -26,6 +26,13 @@ public final class RepetitionDetectorHook implements BuzhouHook {
     private final double similarityPercent;
     private final boolean unstick;
     private final Map<String, TurnRepetitionDetector> detectors = new ConcurrentHashMap<>();
+    /** impl-785 / spec 1032：触发聚合（fires/blocks/maxRunSeen——调参与打转频率相关）。 */
+    private final java.util.concurrent.atomic.AtomicLong fires =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong blocks =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong maxRunSeen =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public RepetitionDetectorHook(int window, double similarityPercent, boolean unstick) {
         this.window = window;
@@ -50,14 +57,29 @@ public final class RepetitionDetectorHook implements BuzhouHook {
         }
         Optional<TurnRepetitionDetector.Verdict> verdict =
                 detectorFor(ctx.sessionId()).record(textOf(ctx.response()));
-        if (verdict.isPresent() && unstick) {
-            return HookResult.block(MARKER + "\n检测到连续 " + verdict.get().runLength()
-                    + " 次近乎相同的输出（相似度 "
-                    + String.format("%.0f%%", verdict.get().similarity() * 100)
-                    + "）——你在打转。请立刻换策略：改用其他工具/换个角度回答/"
-                    + "直接给出当前结论收束任务。");
+        if (verdict.isPresent()) {
+            fires.incrementAndGet(); // spec 1032：触发聚合
+            int runLength = verdict.get().runLength();
+            maxRunSeen.updateAndGet(prev -> Math.max(prev, runLength));
+            if (unstick) {
+                blocks.incrementAndGet();
+                return HookResult.block(MARKER + "\n检测到连续 " + verdict.get().runLength()
+                        + " 次近乎相同的输出（相似度 "
+                        + String.format("%.0f%%", verdict.get().similarity() * 100)
+                        + "）——你在打转。请立刻换策略：改用其他工具/换个角度回答/"
+                        + "直接给出当前结论收束任务。");
+            }
         }
         return HookResult.CONTINUE;
+    }
+
+    /** 触发聚合只读快照（spec 1032——fires 含 observe-only；maxRunSeen 为 verdict 时刻峰值）。 */
+    public RepetitionStats stats() {
+        return new RepetitionStats(fires.get(), blocks.get(), (int) maxRunSeen.get());
+    }
+
+    /** 触发聚合计数行（不可变）。 */
+    public record RepetitionStats(long fires, long blocks, int maxRunSeen) {
     }
 
     /** 会话当前 run 长（观测面/测试）。 */

@@ -43,6 +43,7 @@
 - [facts 段导入导出行数读面的形态裁决](../tickets/T1499-facts-flow-stats-shape.md) — FactsExporter 嵌套 FactsFlowStats（factsExported/factsImported/importFailures 照抛）+ stats()；导出/导入对账迁移完整性（rsync --stats）。首入 memory 模块。
 - [内嵌策略引擎判定分布读面的形态裁决](../tickets/T1501-policy-engine-stats-shape.md) — EmbeddedPolicyEngine 嵌套 PolicyDecisionStats 四桶（allow/deny/escalate/escalateApproved 守恒 == decide 调用数）+ stats()；FIDES approver 通道压力显形（OPA 判定分布谱系）。首入 guard policy 包。
 - [审计收集器采集与持久化失败计数读面的形态裁决](../tickets/T1513-audit-ingest-stats-shape.md) — AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()；持久化失败连续=审计断链风险水位（Splunk HEC ingestion stats）。首入 guard audit 包。
+- [打转检测触发聚合读面的形态裁决](../tickets/T1517-repetition-stats-shape.md) — RepetitionDetectorHook 嵌套 RepetitionStats（fires/blocks/maxRunSeen 峰值）+ stats()；LLM 打转频率调参水位（spec 1032）。首入 core/runaway 包。
 - [会话级联清理聚合计数读面的形态裁决](../tickets/T1511-cleanup-stats-shape.md) — SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()；目标持续故障显形（PostgreSQL autovacuum stats 思想）。首入 core/cleanup 包。
 - [手动压缩操作分布读面的形态裁决](../tickets/T1505-compact-op-stats-shape.md) — ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages，守恒前三和 == attempts）+ opStats()；逐次 CompactResult 之外的跨调用聚合水位（K8s 事件聚合思想）。首入 memory compact 包。
 - [模型窗口解析分布读面的形态裁决](../tickets/T1507-window-resolution-stats-shape.md) — TableContextWindowResolver 嵌套 WindowResolutionStats（override/builtIn/fallback 三路守恒 + resolvedWindows 有界快照）；yml 覆盖拼错=幽灵覆盖显形、未知模型回退规模可见。首入 core/token 包。
@@ -88,6 +89,8 @@
 | 30 | 模型预算闸判定分布读面（checks/allowed/blocked 守恒） | SRE 预算耗尽告警 | T1509–T1510 | 782 | 1029 | ✅ |
 | 31 | 会话级联清理聚合计数读面（目标失败分布显形） | autovacuum stats | T1511–T1512 | 783 | 1030 | ✅ |
 | 32 | 审计收集器采集与持久化失败计数读面 | Splunk HEC ingestion stats | T1513–T1514 | 784 | 1031 | ✅ |
+| 33 | 打转检测触发聚合读面（fires/blocks/maxRunSeen） | LLM 打转检测 | T1517–T1518 | 785 | 1032 | ✅ |
+| 34 | （开工时按缺口核查选题，候选见下） | — | T1519–T1520 | 786 | 1033 |  |
 | 33 | （开工时按缺口核查选题，候选见下） | — | T1515–T1516 | 785 | 1032 |  |
 | 31 | （开工时按缺口核查选题，候选见下） | — | T1511–T1512 | 783 | 1030 |  |
 
