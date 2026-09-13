@@ -99,4 +99,15 @@ public class InMemorySummaryStore implements SummaryStore {
         }
         return deleted;
     }
+    /**
+     * impl-698 / spec 950：摘要存储水位（spec 924 水位系列第三站）——
+     * summary 会话数 vs maxSessions 上限，贴顶即新会话摘要不可写的容量前兆。
+     */
+    public record Watermark(int activeSessions, int maxSessions) {
+    }
+
+    /** 水位快照（读一致性；纯读面零行为变化）。 */
+    public synchronized Watermark watermark() {
+        return new Watermark(bySession.size(), maxSessions);
+    }
 }

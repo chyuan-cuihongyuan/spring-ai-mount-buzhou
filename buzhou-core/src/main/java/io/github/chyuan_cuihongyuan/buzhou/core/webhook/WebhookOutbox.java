@@ -214,6 +214,29 @@ final class WebhookOutbox {
         return store.countByPrefix(SESSION_ID, OUTBOX_PREFIX);
     }
 
+    /** impl-694 / spec 948 配套：退避记录落盘（包级——测试与恢复工具用）。 */
+    synchronized void appendRetry(OutboxRecord record) {
+        store.put(SESSION_ID, entry(record));
+        store.put(SESSION_ID, indexEntry(dueKey(record), record.eventId()));
+    }
+
+    /**
+     * impl-694 / spec 948：outbox 重试次数分布（attempts → 条数，TreeMap 升序）——
+     * 「重试积压集中在首轮还是深轮」一读即知（attempts=0 首投、≥1 退避重试中）。
+     * 纯读面零行为变化。
+     */
+    java.util.Map<Integer, Integer> retryDistribution() {
+        java.util.Map<Integer, Integer> dist = new java.util.TreeMap<>();
+        for (Map.Entry<String, StateEntry> e
+                : store.scanByPrefix(SESSION_ID, OUTBOX_PREFIX).entrySet()) {
+            OutboxRecord r = parse(e.getValue().value());
+            if (r != null) {
+                dist.merge(r.attempts(), 1, Integer::sum);
+            }
+        }
+        return dist;
+    }
+
     /**
      * spec 135 / T483：最老待投记录（全量扫含<b>退避中</b>——due() 只见到期者；
      * 取 createdAt 最早）。损坏记录跳过（隔离归 due() 路径既有语义）；无积压 = empty。
@@ -286,7 +309,7 @@ final class WebhookOutbox {
         return new StateEntry(dueKey, eventId, "webhook-outbox", 0, null, Instant.now());
     }
 
-    private StateEntry entry(OutboxRecord record) {
+    StateEntry entry(OutboxRecord record) {
         return new StateEntry(OUTBOX_PREFIX + record.eventId(), toJson(record),
                 "webhook-outbox", 0, null, Instant.now());
     }

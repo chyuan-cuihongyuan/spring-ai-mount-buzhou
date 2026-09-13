@@ -27,9 +27,16 @@ public class WriteFileTool implements ToolCallback {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final FileSandbox sandbox;
+    /** impl-698 / spec 951：noclobber 防误覆盖（默认 false=覆盖语义逐位不变）。 */
+    private volatile boolean noclobber;
 
     public WriteFileTool(FileSandbox sandbox) {
         this.sandbox = sandbox;
+    }
+
+    /** 启用 noclobber（目标已存在即拒绝——csh set -C / cp -n 防误覆盖守门语义）。 */
+    public void setNoclobber(boolean noclobber) {
+        this.noclobber = noclobber;
     }
 
     @Override
@@ -66,6 +73,11 @@ public class WriteFileTool implements ToolCallback {
                 return "write_file 失败：content " + content.length() + " 字符超过写入上限 8MB；请分段写入";
             }
             Path target = sandbox.resolveForWrite(raw);
+            // impl-698 / spec 951：noclobber 守门（写盘之前判定——失败路径零副作用，
+            // 不建目录不留 tmp；csh set -C / cp -n 防误覆盖语义）
+            if (noclobber && Files.exists(target)) {
+                return "write_file 拒绝：目标已存在（noclobber 模式）——如需覆盖请先删除该文件或关闭 noclobber";
+            }
             if (target.getParent() != null) {
                 Files.createDirectories(target.getParent());
             }
