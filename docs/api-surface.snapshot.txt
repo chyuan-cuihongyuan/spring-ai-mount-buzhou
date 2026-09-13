@@ -172,6 +172,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultLimiterHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolResultSchemaHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolSlowLog
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimeoutOverrideStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimeoutOverrides
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingAggregator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingHealth

@@ -542,6 +542,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 安全 | 加密封存操作生命周期计数读面 | EncryptedSessionExport sealed/opened/openRejected 三计数（open 三拒绝路径全覆盖）+ 嵌套 SealStats + stats()——age/OpenSSL ops 实践，开失败率=密钥失配第一信号（spec 1012） | [spec 1012](docs/spec/1012-seal-lifecycle-stats.md) |
 | 观测治理 | Hook Replace 载荷应用/丢弃计数读面 | applyReplace boolean 化 + replaceApplied/replaceDropped 实例计数——类型不匹配幽灵载荷静默蒸发的显形，分发行为逐位不变（spec 1013） | [spec 1013](docs/spec/1013-hook-replace-stats.md) |
 | 安全 | Spotlighting 应用与损坏计数读面 | SpotlightingStats（wrapped/unwrapped/malformed 守恒）+ stats()/resetForTest()——含头但结构不完整包裹原样放行的篡改显形，防御覆盖率可见（spec 1014） | [spec 1014](docs/spec/1014-spotlighting-stats.md) |
+| 观测治理 | 超时覆盖命中读面 | ToolTimeoutOverrideStats（lookups/hits/misses 守恒 + hitsByPattern 播种全部模式，0 = 幽灵覆盖配置显形）——feature-flag 评估计数思想（spec 1015） | [spec 1015](docs/spec/1015-timeout-override-stats.md) |
 | 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
