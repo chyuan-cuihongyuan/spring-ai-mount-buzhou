@@ -79,12 +79,13 @@ public class JdbcSessionLeaseStore implements SessionLeaseStore {
         // impl-682 / spec 929（契约抓出语义缺陷修复）：release 软过期（expires_at=now）
         // 而非 DELETE——删行会重置 fencing_token 空间（重取恒为 1），破坏「token 单调于
         // store 生命周期」的多实例 fencing 语义（旧 epoch 延迟写与新时期无法区分）。
-        // 软过期行由 tryAcquire 过期转移分支接管（owner 转移 + fence+1）。
+        // 置 EPOCH 而非 now：MySQL TIMESTAMP 秒级截断/四舍五入会让「now」在同秒内
+        // 仍判有效（inspect isAfter 边界）——EPOCH 无精度歧义，立即过期确定。
         jdbc.update("""
                         UPDATE buzhou_session_lease
                         SET expires_at = ?
                         WHERE session_id = ? AND owner_id = ? AND fencing_token = ?
-                        """, Timestamp.from(Instant.now()), sessionId, ownerId, fencingToken);
+                        """, Timestamp.from(Instant.EPOCH), sessionId, ownerId, fencingToken);
     }
 
     @Override
