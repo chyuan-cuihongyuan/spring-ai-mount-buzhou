@@ -50,7 +50,7 @@ class RepetitionStatsTest {
         }
 
         @Override
-        public ChatClientResponse request() {
+        public org.springframework.ai.chat.client.ChatClientRequest request() {
             return null;
         }
 
