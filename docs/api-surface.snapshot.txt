@@ -329,6 +329,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.ExportManifest
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.FeedbackExporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.ForkLineageWalker
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.IdleDurationHistogram
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.IdleSessionMonitor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.LeaseLostException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.MaintenanceGate

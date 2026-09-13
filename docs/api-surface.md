@@ -2243,3 +2243,7 @@
 - `McpConnectTelemetry`（嵌套 `ServerTelemetry`）（840——gRPC channelz
   思想：per-server 建连成败/连续失败 streak/lastDuration（负=未知保留）/
   近窗 16 成功率+worstFirst 失败降序；server 封顶 32；喂点=工厂装配侧）
+
+- `IdleDurationHistogram`（嵌套 `BucketRow`）（841——S5 扩散：空闲时长
+  固定桶直方（默认 1m/5m/15m/60m 五桶，恰达归右桶）+total/longest+
+  人话区间标签快照；AtomicLongArray 桶计数；喂点=Monitor 装配侧）
