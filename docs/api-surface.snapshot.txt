@@ -323,6 +323,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EncryptedSessionExport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBusStats
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBreadcrumb
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventDropBreakdown
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.ExportManifest

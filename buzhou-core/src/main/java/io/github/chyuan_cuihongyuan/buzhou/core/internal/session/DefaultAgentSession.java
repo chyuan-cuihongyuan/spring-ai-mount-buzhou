@@ -67,6 +67,8 @@ public class DefaultAgentSession implements AgentSession {
     private final ChatClient chatClient;
     private final SessionResourceRegistry registry;
     private final Runnable onClose;
+    /** impl-759 / spec 1006：面包屑环（deliverEvent 单点记录——双模式共同漏斗）。 */
+    private final BreadcrumbRing breadcrumbs = new BreadcrumbRing();
     private final HookChain hookChain;
     private final HookEnvironment hookEnv;
     private final HarnessToolCallingManager toolManager;
@@ -928,6 +930,12 @@ public class DefaultAgentSession implements AgentSession {
                 : java.util.Optional.of(dispatcher.dropBreakdown());
     }
 
+    /** impl-759 / spec 1006：面包屑快照（新→旧；双模式都记录）。 */
+    @Override
+    public java.util.List<io.github.chyuan_cuihongyuan.buzhou.core.session.EventBreadcrumb> breadcrumbs() {
+        return breadcrumbs.snapshot();
+    }
+
     /**
      * impl-30 / spec 13 §core-1：事件分发逐 listener 隔离——hook 链与每个
      * {@link SessionEventListener} 各自 try/catch（ERROR 日志），单个异常不阻断其余
@@ -963,6 +971,7 @@ public class DefaultAgentSession implements AgentSession {
     }
 
     private void deliverEvent(SessionEvent event) {
+        breadcrumbs.record(event.type()); // spec 1006：面包屑时间线尾部（先记后发——失败也留痕）
         try {
             hookChain.fireEvent(new DefaultSessionEventContext(hookEnv, event));
         } catch (RuntimeException e) {

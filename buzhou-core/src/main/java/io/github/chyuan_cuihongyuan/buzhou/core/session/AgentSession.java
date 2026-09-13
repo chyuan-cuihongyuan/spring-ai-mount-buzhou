@@ -127,4 +127,13 @@ public interface AgentSession extends AutoCloseable {
     default java.util.Optional<EventDropBreakdown> eventDropBreakdown() {
         return java.util.Optional.empty();
     }
+
+    /**
+     * impl-759 / spec 1006：会话面包屑（Sentry breadcrumbs 借鉴——最近已交付事件的
+     * 时间线尾部环，新→旧，出事后看最后发生了什么）。双模式（SYNC/buffered）都记录；
+     * 只记事件类型与时刻，不记 payload。默认空表（其他实现零负担）。
+     */
+    default java.util.List<EventBreadcrumb> breadcrumbs() {
+        return java.util.List.of();
+    }
 }

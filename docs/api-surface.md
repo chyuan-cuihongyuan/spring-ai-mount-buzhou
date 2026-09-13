@@ -142,6 +142,7 @@
 - `public record BuzhouWebhookProperties`
 - `public record ClosedSession`
 - `public record EventBusStats`
+- `public record EventBreadcrumb`（spec 1006——会话面包屑：事件时间线尾部环条目，只记 type+时刻不记 payload）
 - `public record EventDispatchConfig`
 - `public record EventRecord`
 - `public record Fact`
