@@ -36,6 +36,11 @@ public final class AuditTrailCollector implements SessionEventListener {
     private final AuditChain chain;
     private final AuditRecordStore store;
     private final Set<String> openSessions = new LinkedHashSet<>();
+    /** impl-784 / spec 1031：采集与持久化失败计数（审计管道健康水位）。 */
+    private final java.util.concurrent.atomic.AtomicLong collected =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong persistFailures =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public AuditTrailCollector(AuditChain chain) {
         this(chain, null);
@@ -62,6 +67,7 @@ public final class AuditTrailCollector implements SessionEventListener {
         if (!AUDITED_TYPES.contains(event.type())) {
             return;
         }
+        collected.incrementAndGet(); // spec 1031：采集计数
         String sessionId = String.valueOf(event.payload().getOrDefault("sessionId", ""));
         appendRecord(sessionId, event.type(), payloadJson(event.payload()),
                 outcomeOf(event.type()));
@@ -89,6 +95,7 @@ public final class AuditTrailCollector implements SessionEventListener {
                 store.append(record);
             } catch (RuntimeException e) {
                 // 审计持久化失败明示（不静默吞审计）；链本身仍在内存可验
+                persistFailures.incrementAndGet(); // spec 1031：持久化失败计数
                 LOG.error("buzhou-guard 审计记录持久化失败 actionType={} recordId={}",
                         actionType, record.recordId(), e);
             }
@@ -101,6 +108,16 @@ public final class AuditTrailCollector implements SessionEventListener {
         } catch (Exception e) {
             return String.valueOf(payload);
         }
+    }
+
+    /** 采集与持久化只读快照（spec 1031——审计管道健康水位）。 */
+    public AuditIngestStats stats() {
+        return new AuditIngestStats(collected.get(), persistFailures.get(),
+                openSessions.size());
+    }
+
+    /** 采集计数行（不可变）。 */
+    public record AuditIngestStats(long collected, long persistFailures, int openSessions) {
     }
 
     private static String outcomeOf(String eventType) {

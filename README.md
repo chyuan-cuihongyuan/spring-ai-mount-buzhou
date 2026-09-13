@@ -627,6 +627,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
 | 会话治理 | 会话级联清理聚合计数读面 | SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()——PostgreSQL autovacuum stats 思想（spec 1030） | [spec 1030](docs/spec/1030-cleanup-stats.md) |
+| 安全 | 审计收集器采集与持久化失败计数读面 | AuditTrailCollector 嵌套 AuditIngestStats（collected/persistFailures/openSessions）+ stats()——Splunk HEC ingestion stats 借鉴（spec 1031） | [spec 1031](docs/spec/1031-audit-ingest-stats.md) |
 | 观测与运维 | 归档 TTL 清扫（补登） | 归档记录按 TTL 过期清扫，容量治理闭环（spec 103） | [spec 103](docs/spec/103-archive-ttl-purge.md) |
 | 观测治理 | 错误签名 JSONL 导出（补登） | 错误签名集 JSONL 批量导出，离线分析通道（spec 112） | [spec 112](docs/spec/112-signatures-jsonl-export.md) |
 | 观测与运维 | 归档明细查询（补登） | 归档批次内逐会话明细查询，凭证可追溯（spec 120） | [spec 120](docs/spec/120-archive-detail-query.md) |
