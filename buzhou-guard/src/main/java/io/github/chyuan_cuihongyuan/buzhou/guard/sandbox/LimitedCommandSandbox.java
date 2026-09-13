@@ -23,6 +23,13 @@ public final class LimitedCommandSandbox implements CommandSandbox {
 
     private final CommandSandbox delegate;
     private final SandboxLimits limits;
+    /** impl-770 / spec 1017：执行结果分桶计数（TIMEOUT/OUTPUT 两轴正交——无加法守恒）。 */
+    private final java.util.concurrent.atomic.AtomicLong executions =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong timeouts =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong outputTruncations =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public LimitedCommandSandbox(CommandSandbox delegate, SandboxLimits limits) {
         this.delegate = delegate;
@@ -53,6 +60,7 @@ public final class LimitedCommandSandbox implements CommandSandbox {
             Duration timeout) {
         Duration effectiveTimeout = effectiveTimeout(timeout);
         CommandResult raw = delegate.run(command, allowedEnv, workDir, effectiveTimeout);
+        executions.incrementAndGet(); // spec 1017：执行完成即计（无论结果）
         return applyLimits(raw, command);
     }
 
@@ -79,16 +87,29 @@ public final class LimitedCommandSandbox implements CommandSandbox {
             stderr = err.value();
         }
         CommandSandbox.CommandResult.KilledReason reason = raw.killedReason();
-        if (raw.timedOut() && reason == null) {
-            reason = CommandSandbox.CommandResult.KilledReason.TIMEOUT;
+        if (raw.timedOut()) {
+            timeouts.incrementAndGet(); // spec 1017：TIMEOUT 归因点
+            if (reason == null) {
+                reason = CommandSandbox.CommandResult.KilledReason.TIMEOUT;
+            }
         }
         if (truncated) {
+            outputTruncations.incrementAndGet(); // spec 1017：OUTPUT 归因点
             reason = CommandSandbox.CommandResult.KilledReason.OUTPUT;
             LOG.warn("沙箱输出超限截断（sandbox={}，maxOutputBytes={}，command 头部={}）",
                     delegate.name(), max, command.isEmpty() ? "" : command.getFirst());
         }
         return new CommandResult(raw.exitCode(), stdout, stderr, raw.timedOut(), truncated,
                 reason);
+    }
+
+    /** 执行结果分桶只读快照（timeouts/outputTruncations 两轴正交——spec 1017）。 */
+    public ExecStats stats() {
+        return new ExecStats(executions.get(), timeouts.get(), outputTruncations.get());
+    }
+
+    /** 执行结果分桶行（不可变）。 */
+    public record ExecStats(long executions, long timeouts, long outputTruncations) {
     }
 
     /** UTF-8 边界安全截断（坏尾字节以替换符呈现）。 */
