@@ -2203,3 +2203,8 @@
 - `SpawnRejectionDistribution`（嵌套 `ReasonCount`/`Report`）（831——k8s
   admission 拒绝读数扩散：SpawnGate 拒绝原因开集聚合（键封顶 16+truncated，
   count/lastSeen 降序+dominant）；喂点=事件消费者，gate 零变更）
+
+- `SkillLoadLatency`（嵌套 `SkillLatency`）（832——LangSmith 延迟分析
+  扩散：per-skill 环 32 样本+nearest-rank P50/P95+全历史 max；超 1024
+  技能并入 __overflow__ 桶（SkillUsageStats 同款）；slowest() P95 降序；
+  loads=近窗语义）
