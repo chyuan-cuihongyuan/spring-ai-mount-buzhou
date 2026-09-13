@@ -43,6 +43,7 @@
 - [webhook 限流器余量快照读面](../tickets/T1291-ratelimit-snapshot-shape.md) — WebhookRateLimiter.snapshot（同锁强一致 tokens/capacity/refillPerSecond/deferred 投影，refill 时点修正与 acquire 同语义）——TurnRateLimitHook.availableSnapshot 先例同构，区分「配置过低」与「突发超预期」。
 - [TurnDeadline 软截止窗口读法](../tickets/T1293-soft-window-shape.md) — withinSoftWindow（remaining ∈ (0,softWindow]，已到期归硬截止语义）+ softDeadlineAt（预警绝对时刻 Optional）——K8s graceful period 分层语义，值对象层不动 exec 内核（集成轮留位）。
 - [SessionLeaseStore 契约校验套件](../tickets/T1295-lease-contract-shape.md) — 九项语义检查静态 verify（acquire 幂等互斥/renew 持有人限定/release 重取新 fence/steal fence 递增/inspect/deleteSession 幂等）+ 内存实现接入示例——spec 705/743 同构扩散收口核心 SPI（spec 744 每检查独立会话教训沿用）。
+- [租约契约接入 H2/JDBC](../tickets/T1309-h2-lease-contract-shape.md) — **契约抓到并修复真实 SQL 语义缺陷**：release 曾 DELETE 行致 fence 空间重置（重取恒 1，token 单调性破坏）→ 软过期（expires_at=now）由 tryAcquire 过期转移分支接管 fence+1。JdbcSessionLeaseStore 九项全过。
 - [扩缩容建议缩容滞回](../tickets/T1297-scaling-hysteresis-shape.md) — BulkheadScalingAdvisor stabilizeWindows opt-in（回零建议需连续 N 空闲窗才回落，期间保持上次非 1 建议；扩容即时不对称——HPA stabilization window；默认 1 逐位不变）。
 - [观测存储水位读面](../tickets/T1299-obs-watermark-shape.md) — InMemoryObservabilityStore.watermark（activeSessions/maxSessions/totalRecords/maxRecordsPerSession/sessionsEvicted 投影）——Redis INFO memory 思想，internal 读面（逐出开始发生前可见容量压力）。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
@@ -80,6 +81,7 @@
 | 25 | 观测存储水位读面 | Redis INFO memory | T1299–T1300 | 677 | 924 | ✅ |
 | 26 | 会话索引存量水位读面（spec 924 同构） | Redis INFO memory 同构 | T1301–T1302 | 678 | 925 | ✅ |
 | 29 | pruned run 审计查询（spec 901 查询面收口） | 审计入口惯例 | T1307–T1308 | 681 | 928 | ✅ |
+| 30 | 租约契约接入 H2/JDBC（**抓到并修复 release fence 重置缺陷**：DELETE→软过期保 token 单调） | spec 732/744 接入先例 | T1309–T1310 | 682 | 929 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |
 
