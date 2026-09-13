@@ -2255,3 +2255,7 @@
 - `EvidenceRefValidity`（嵌套 `Report`）（843——S3 presigned 时限校验
   思想：被引用 spill URI 集合 vs 存在性谓词失效率对账——失效样本典序
   封顶 16；谓词注入零文件系统触碰；ledger 包私有边界保持）
+
+- `SummaryDegradeReasons`（嵌套 `Reason`/`ReasonCount`/`Report`）（844——
+  Envoy degraded 扩散：摘要降级五态闭集（超限/生成失败/空内容/策略强制/
+  未知）计数+占比降序快照；synchronized 记账；喂点=降级管线装配侧）
