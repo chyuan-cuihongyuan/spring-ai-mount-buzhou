@@ -48,7 +48,6 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 |------|--------|------|
 | **模型熔断 + 备模型降级链** | 失败率跳闸→半开探测恢复；主模型熔断 OPEN 后请求零重试直达备模型 | [spec 15](docs/spec/15-model-resilience.md) |
 | **Token/成本预算** | 会话级 token/成本累计（microUsd 整数口径价目换算）+ 三硬顶预算闸 | [spec 16](docs/spec/16-cost-quota.md) |
-| **per-session 日配额** | turns / tool-calls / tokens 每日每会话限额（UTC 日窗，超限 Block） | [spec 16](docs/spec/16-cost-quota.md) |
 | **结构化输出** | `chatForEntity`——schema 注入 + 解析失败 REASK 一次 + 结构化异常 | [spec 19](docs/spec/19-structured-output.md) |
 | **会话 fork** | 历史完整复制 + 预算重置的重试/探索分支 | [spec 20](docs/spec/20-session-fork-webhook-compact.md) |
 | **事件外发 webhook** | 会话事件 at-least-once 投递（HMAC 签名 + 幂等键 + 退避重试） | spec 20 |
@@ -129,10 +128,8 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | | 数据集快照 + run 对比 | 冻结版本（原 id 复制指纹一致）+ 四态迁移 diff | [spec 100](docs/spec/100-dataset-snapshot.md) / [81](docs/spec/81-run-diff.md) |
 | 护栏 | 用户输入 PII 脱敏 + 自定义规则 | beforeTurn 占位符化 + 领域命名正则（Presidio PatternRecognizer） | [spec 106](docs/spec/106-pii-input-redaction.md) / [118](docs/spec/118-custom-pii-rules.md) |
 | 运维与治理 | 配置体检 v2 + 健康段 | 跨键矛盾规则（NOOP 空转/孤儿依赖）+ config-doctor 健康缓存 | [spec 115](docs/spec/115-doctor-cross-key-rules.md) / [107](docs/spec/107-config-doctor-health.md) |
-| | 会话归档治理 | 删除前三槽冷存 + restore 回放 + TTL 清理 + 审计详情 | [spec 97](docs/spec/97-session-archiver.md) / [103](docs/spec/103-archive-ttl-purge.md) / [120](docs/spec/120-archive-detail-query.md) |
 | | 一致性工具 | outbox due 索引审计（孤儿/陈旧/缺失）——投递停摆提前可见 | [spec 96](docs/spec/96-due-index-audit.md) |
 | | webhook 订阅过滤 | include-types 命中才入队（被滤不占容量） | [spec 105](docs/spec/105-webhook-type-filter.md) |
-| 观测 | 错误签名闭环 | tool+model 双族 + 健康段 + JSONL 导出 + 窗口化清零 | [spec 83](docs/spec/83-error-signatures.md)–[85](docs/spec/85-error-signatures-health.md) / [112](docs/spec/112-signatures-jsonl-export.md) / [121](docs/spec/121-signatures-reset.md) |
 | | gzip 导出族 + 时长遥测 | 观测 gzip 三入口（全量/增量/单会话）+ 工具/评估 run 时长 timer | [spec 109](docs/spec/109-observability-gzip-export.md) / [119](docs/spec/119-session-gzip-export.md) / [108](docs/spec/108-tool-duration-timer.md) / [111](docs/spec/111-eval-run-duration-timer.md) |
 | | 技能双遥测 | 目录注入（截断率）+ skill_search 三态命中率 | [spec 110](docs/spec/110-catalog-telemetry.md) / [116](docs/spec/116-skill-search-telemetry.md) |
 | 韧性 | bulkhead 拒绝计数 | per-agent 进程内表 + 健康 topRejected——限流风暴定位 | [spec 117](docs/spec/117-bulkhead-rejection-stats.md) |
@@ -169,7 +166,6 @@ B 会话（.wayfinder200+ 号段）的精选主线（每项默认零行为变化
 | 模型韧性 | 对冲请求 + 端点离群驱逐 | 长尾并发押注先回先得（gRPC hedging）+ 连错端点逐出备选池窗口复池（Envoy） | [spec 137](docs/spec/137-hedged-model.md) / [149](docs/spec/149-model-outlier-ejection.md) |
 | 会话治理 | 会话检疫 + 优雅排水 | 连败指数退避隔离（Erlang supervisor）+ 维护下线拒新等旧排空（K8s drain） | [spec 143](docs/spec/143-session-quarantine.md) / [155](docs/spec/155-session-drain.md) |
 | | spawn 优先级 + 自适应舱 | 三级抢占排队同级 FIFO（OS 多级队列）+ AIMD 动态并发上限（TCP/HPA） | [spec 123](docs/spec/123-spawn-priority.md) / [145](docs/spec/145-adaptive-bulkhead.md) |
-| 缓存与去重 | 共享 Redis 语义缓存 | 桶 HASH + 客户端 cosine 最近邻跨实例命中（RediSearch 语义可移植实现） | [spec 125](docs/spec/125-redis-semantic-vector-cache.md) |
 | 护栏 | PII yml 声明式 + 角色权限 | custom-rules 两形态装配期 fail-fast + 角色通配面 fail-closed（K8s RBAC） | [spec 129](docs/spec/129-pii-yml-custom-rules.md) / [141](docs/spec/141-tool-role-permissions.md) |
 | | 凭证租约 | 密钥 TTL 签发/续租/吊销——泄漏面从永久缩到 TTL 内（Vault） | [spec 153](docs/spec/153-secret-leases.md) |
 | 投递可靠 | outbox 滞后面 + 序号围栏 | 最老积压 age（含退避中）stalled 判定 + 信封单调 seq 缺口显形（Kafka） | [spec 135](docs/spec/135-outbox-lag.md) / [159](docs/spec/159-delivery-seq-fence.md) |
@@ -555,27 +551,10 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
-| 观测治理 | 健康评分端点装配 | /actuator/buzhou 快照加 score 段（投影+safeScore 降级）；实证修复端点 mechanism/status 裸调用无隔离——spec 905 装配留位兑现（spec 917） | [spec 917](docs/spec/917-score-assembly.md) |
-| 观测治理 | 丢弃计数 reason 维度指标 | DROP_REASON_* 六常量统一三处字面量 + 双轨指标（总量保留+dropped-reason 值域封闭）——breakdown 键与 tag 同源（spec 918） | [spec 918](docs/spec/918-drop-reason-metric.md) |
-| 会话治理 | 加密导出×审计×指纹联动 e2e | 密文进明文审计 fail-closed 固化/seal→open→严格导入全链/nonce 密文不同内容指纹稳定（spec 919） | [spec 919](docs/spec/919-encrypted-export-e2e.md) |
-| 模型韧性 | webhook 限流器余量快照读面 | WebhookRateLimiter.snapshot（同锁强一致 tokens/capacity/refill/deferred 四值投影）——TurnRateLimitHook.availableSnapshot 同构（spec 920） | [spec 920](docs/spec/920-ratelimit-snapshot.md) |
-| 会话治理 | TurnDeadline 软截止窗口读法 | withinSoftWindow 预警窗判定 + softDeadlineAt 预警绝对时刻——K8s graceful period 分层语义（spec 921） | [spec 921](docs/spec/921-soft-window.md) |
-| 持久化 | SessionLeaseStore 契约校验套件 | 九项租约语义检查静态 verify（acquire 幂等互斥/renew 限定/steal fence 递增/deleteSession 幂等）——spec 705/743 同构（spec 922） | [spec 922](docs/spec/922-lease-contract.md) |
-| 观测治理 | 扩缩容建议缩容滞回 | stabilizeWindows opt-in（回零需连续 N 空闲窗，扩容即时不对称）——HPA stabilization window（spec 923） | [spec 923](docs/spec/923-scaling-hysteresis.md) |
-| 观测治理 | 观测存储水位读面 | InMemoryObservabilityStore.watermark（activeSessions/totalRecords vs 上限 + 逐出透传）——Redis INFO memory（spec 924） | [spec 924](docs/spec/924-obs-watermark.md) |
-| 观测治理 | 会话索引存量水位读面 | InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构（spec 925） | [spec 925](docs/spec/925-index-watermark.md) |
 | 会话治理 | 剪枝边界深验 | minItems==total 不残缺/阈值极小首 fail 即剪/memo 共存不绕裁决——901 边界组合收口（spec 931） | [spec 931](docs/spec/931-prune-edge-deep.md) |
 | 评估闭环 | 剪枝 run 有效通过率口径 | EvalRunResult.prunedCount() + effectivePassRate()（分母排除 pruned）——双口径显式并存，总量防刷分（spec 933） | [spec 933](docs/spec/933-effective-passrate.md) |
 | 评估闭环 | GateResult 有效通过率透出 | GateResult 加 effectivePassRate 组件（11 参新构造 + 10 参兼容 NaN 委托）——剪枝 run 门结果双口径同屏（spec 934） | [spec 934](docs/spec/934-gate-effective-passrate.md) |
 | 会话治理 | ExportManifest 规范化摘要 | addCanonical/verifyCanonical 配对（canonicalJson 单点提级）——911 JCS 向 manifest 扩散，键序漂移不误报（spec 935） | [spec 935](docs/spec/935-manifest-canonical.md) |
-| memory | 事实衰减预报读法 | FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉，floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路，衰减预警→主动 reinforce（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
-| exec 治理 | 软截止预警集成 | HarnessToolCallingManager 软截止窗（setSoftDeadlineWindow + 一次性 WARN/counter + beginTurn 复位）——spec 921 集成留位兑现（spec 927） | [spec 927](docs/spec/927-soft-deadline-integration.md) |
-| 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
-| 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
-| 会话治理 | pruned run 审计查询 | EvalQueryService.runsWithPruned（pruned 项筛选 + PrunedRunSummary 降序投影）——spec 901 剪枝审计入口（spec 928） | [spec 928](docs/spec/928-pruned-query.md) |
-| 模型韧性 | webhook 死信环形上限 | MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧保最新）——dead.* 存量从无限累积到环形封顶，有界纪律（spec 937） | [spec 937](docs/spec/937-deadletter-cap.md) |
-| 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
-| 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | spill 回读命中率读面 | SpillOnloadStats（attempts/loaded/failed 守恒，回读失败=侵蚀信号）OnloadHook 回灌点计数——PostgreSQL buffer hit-ratio 借鉴（spec 1008） | [spec 1008](docs/spec/1008-spill-onload-stats.md) |
 | 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1015） | [spec 1015](docs/spec/1010-turn-latency-percentiles.md) |
 | 持久化 | spill 容量水位读面 | SpillUsage（totalBytes/entryCount）DiskSpillStore.usage() 与配额守卫同口径 walk——Redis INFO memory / pg_database_size 借鉴（spec 1011） | [spec 1011](docs/spec/1011-spill-usage.md) |
@@ -597,7 +576,6 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 手动压缩操作分布读面 | ManualCompactor 嵌套 CompactOpStats 五计数（attempts/completed/skipped/failed/foldedMessages 守恒）+ opStats()——K8s 事件聚合思想（spec 1027） | [spec 1027](docs/spec/1027-compact-op-stats.md) |
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
-| 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
 | 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
@@ -615,55 +593,6 @@ G 会话（effort #700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 分组 | 能力 | 一句话 | 详设 |
 |------|------|--------|------|
-| 模型韧性 | 能力门决策审计读数 | deny 环形留痕（容量 64+dropped 计数）+admit 计数+denyByModel 聚合+snapshot 不可变报告——「门最近拒了谁」从异常瞬间变成可查询证据面（OPA Decision Logs） | [spec 700](docs/spec/700-capability-decision-audit.md) |
-| 缓存与前缀 | 语义缓存权重预算驱逐 | `max-weight-chars`（默认 0=关）——按响应字符数腾挪驱逐，大响应不再挤出高频短条目；weightEvictions 独立口径（Caffeine weigher） | [spec 701](docs/spec/701-semantic-cache-weight-budget.md) |
-| 模型韧性 | 断路器变迁事件流读数 | CircuitTransitionJournal 进程级变迁环形留痕+per-model trips/recoveries/halfOpens 聚合——「最近跳了谁/多久恢复」不再散落会话事件通道（Resilience4j EventConsumer） | [spec 702](docs/spec/702-circuit-transition-journal.md) |
-| 模型路由 | 健康加权路由抑制原语 | attach(router,breaker,floor)——跳闸压权至地板（全跳不黑洞）恢复回声明值；breaker 加变迁监听缝（HAProxy agent-check） | [spec 703](docs/spec/703-routing-health-dampener.md) |
-| 观测治理 | 提示词角色构成拆解 | PromptComposition.analyze 按角色聚合 chars/messages/share 降序——水位告警后「谁在吃预算」的证据面（Langfuse prompt analytics；纯读数） | [spec 704](docs/spec/704-prompt-composition.md) |
-| 持久化 | Redis 键命名空间碰撞审计 | RedisKeyLayoutAudit 结构性对抗模拟——spev/event 保留段与 lease 冒号后缀三族潜伏碰撞证据+reservedSegments 读数+isSafeSessionId 摄入守卫（fsck 思想+E R12 教训制度化） | [spec 705](docs/spec/705-redis-key-layout-audit.md) |
-| MCP 治理 | 工具目录差异报告 | McpDirectoryDiff 两快照 plan 式 diff——per-server 四态+增/删/翻转明细+危险方向翻转 risky 标记（readOnly→false/destructive→true）（ArgoCD diff） | [spec 706](docs/spec/706-mcp-directory-diff.md) |
-| Spill 治理 | spill 双文件配对巡检 | SpillPairAudit 只读扫 .spill/.meta 配对残缺（双写崩溃窗口）——孤 data 带字节量、配额吞噬可见；三层完整性矩阵中层（Git fsck） | [spec 707](docs/spec/707-spill-pair-audit.md) |
-| 评估闭环 | 评估项结果记忆化 | setMemoizationKey opt-in——sig(数据+judge 身份)未变复用上轮判定跳过模型调用，detail `[MEMO]` 留痕+hits/misses 计数；ERROR 不缓存（scikit-learn Pipeline memory） | [spec 708](docs/spec/708-eval-item-memoization.md) |
-| 评测 | 实验到期自动停 | 构造器扩 expiresAt+Clock——到期按未入组返回 null、曝光计独立 `__expired__` 桶+expiredExperiments 读数（GrowthBook feature expiry） | [spec 709](docs/spec/709-experiment-expiry.md) |
-| 评测 | 全局 holdout 层 | holdoutPercent 构造参数——跨实验一致排除的纯控制组、曝光计 `__holdout__` 独立桶（Statsig holdout layer） | [spec 710](docs/spec/710-experiment-holdout.md) |
-| 持久化 | 消息序列连续性审计 | TurnSequenceAudit 单遍判 GAP/DUPLICATE/OUT_OF_ORDER——store 级丢数据从「上下文缺段」猜测变结构化证据（Kafka offset 审计） | [spec 711](docs/spec/711-turn-sequence-audit.md) |
-| 观测治理 | span 健康摘要（543 补全） | healthSummary——RUNNING 残留（泄漏信号）+errorRate（口径显式）；R13 core 重建撞 543 的修正收敛（OTel span status） | [spec 712](docs/spec/712-span-health-summary.md) |
-| 评估闭环 | 数据集标签与过滤 | EvalDatasetMeta 扩 tags（归一升序不可变）+tag/untag 幂等+listDatasetsByTag 圈选；旧记录零迁移（Langfuse dataset tags） | [spec 713](docs/spec/713-dataset-tags.md) |
-| 评估闭环 | 相似度阈值判定器 | BuiltInEvaluators.similarity(minRatio)——字符 trigram Jaccard 模糊判定+detail 分数留痕，LLM 输出词序微变不再脆判（HELM grading） | [spec 714](docs/spec/714-similarity-evaluator.md) |
-| 护栏 | PII 格式保形掩码 | FormatPreservingMasker——手机/证件/邮箱/IP 保形掩码+形状校验失败全星降级；三形态（占位/掩码/vault）各司其职（Presidio FP） | [spec 715](docs/spec/715-format-preserving-mask.md) |
-| 工具治理 | Todo 陈旧度审计读数 | TodoStalenessAudit 轮次年龄+滞留清单+promptHint 一行人话——agent 任务清单烂掉可见（todo 纪律面板） | [spec 716](docs/spec/716-todo-staleness.md) |
-| 记忆治理 | 共享事实冲突审计 | FactConflictAudit 按键分组判 CONFLICT/DUPLICATE+entries 证据全列——导出/合并/多实例聚合的「精神分裂」可见（mem0 治理） | [spec 717](docs/spec/717-fact-conflict-audit.md) |
-| 评估闭环 | 评估通过率漂移基线 | setDriftBaseline(window,warnShift) opt-in——同数据集近 N 次 passRate 均值基线、|Δ|超线 WARN+计数+lastDriftDelta 读数；防自污染只取早于本次（Evidently drift） | [spec 718](docs/spec/718-eval-drift-baseline.md) |
-| 模型韧性 | 供应商限流头前瞻读数 | ProviderRateLimitSignals 解析 x-ratelimit 余量/reset+utilization+三级压力分级——429 之前的拥挤信号（OpenAI 头约定） | [spec 719](docs/spec/719-provider-ratelimit-signals.md) |
-| 缓存与前缀 | 嵌入超限分批装饰器 | ChunkingEmbeddingModel 按 maxBatchSize 切块顺序调 delegate+全局 index 重排——批量嵌入超供应商 cap 不再 400（OpenAI embeddings 批限） | [spec 721](docs/spec/721-chunking-embedding-model.md) |
-| 缓存与前缀 | 分批嵌入 yml 装配 | semantic-cache.embedding-max-batch（默认 0=关）——语义缓存 EmbeddingModel 自动包 Chunking（721 装配兑现） | [spec 723](docs/spec/723-chunking-embedding-assembly.md) |
-| 持久化 | 会话状态 TTL 覆盖审计 | StateTtlCoverage——永生键（ttlTurns=null）计数+producer 归因+覆盖率——状态膨胀主通道可见（S3 生命周期审计） | [spec 724](docs/spec/724-state-ttl-coverage.md) |
-| 缓存与前缀 | 响应缓存权重预算 | ResponseCacheStore maxWeightChars（默认 0=关）——701 同款按字符数腾挪驱逐+替换回收，精确缓存大响应不再挤占（Caffeine weigher 姊妹轮） | [spec 737](docs/spec/737-response-cache-weight-budget.md) |
-| 模型路由 | 健康压权半开中点渐变 | HALF_OPEN→(floor+declared)/2 中点档——探测期半量试探防二次跳闸，确定性两级阶梯（HAProxy slow-start） | [spec 725](docs/spec/725-dampener-ramp.md) |
-| 观测治理 | 事件类型分布读数 | EventTypeDistribution.of——type 计数降序+topType 占比+自定义类型兼容，「哪类事件在刷屏」一屏可见（Loki top-k） | [spec 726](docs/spec/726-event-type-distribution.md) |
-| 持久化 | Redis 键审计健康面 | RedisKeyLayoutHealth（mechanism=redis-key-layout 恒 UP）——三族碰撞计数+保留段进 actuator/312 读数（705 接线，548 同型） | [spec 727](docs/spec/727-redis-key-layout-health.md) |
-| Spill 治理 | spill 配对健康面 | SpillPairHealth（mechanism=spill-pair，禁用 UNKNOWN）——残缺对计数+吞噬字节进健康读数（707 接线，548 同型） | [spec 728](docs/spec/728-spill-pair-health.md) |
-| 观测治理 | 观测容量健康面 | ObservabilityCapacityHealth（mechanism=memory-observability 恒 UP）——used/max/utilization/evicted 逐出可见，「trace 为何没了」有答案（548 同型） | [spec 729](docs/spec/729-observability-capacity-health.md) |
-| 模型韧性 | 限流头跨供应商归一 | parseFlexible——OpenAI 优先、缺项回退 Anthropic 头名不混合来源（719 扩散） | [spec 730](docs/spec/730-ratelimit-header-normalization.md) |
-| 评估闭环 | 评估分数分布解析 | EvalScoreAnalytics.similarityScores——从 714 detail 留痕解析分数 min/max/mean，「调阈值会多放行多少」有数（714 消费端） | [spec 731](docs/spec/731-eval-score-analytics.md) |
-| 记忆治理 | 共享事实足迹读数 | SharedFactFootprint——owner 维度 facts/eternal 归因降序，事实堆积与永生可见（410 治理；值不读取隐私口径） | [spec 741](docs/spec/741-shared-fact-footprint.md) |
-| Spill 治理 | 孤儿保留计数读数 | totalRetainedOrphans/lastSweepRetained——被 fork 引用保留的孤儿从局部变量升格为证据面，引用泄漏堆积可见（impl-38 深化） | [spec 742](docs/spec/742-sweep-retained-readout.md) |
-| 评估闭环 | 数据集指纹变更信号 | lastFingerprintChanged()+计数——连续跑批中指纹变化即时可见，diff 结论不张冠李戴（82 消费信号） | [spec 734](docs/spec/734-fingerprint-change-signal.md) |
-| 评估闭环 | 相似度阈值反事实对照 | passesAtThresholds——给定候选阈值集分别计算通过数，「阈值调到 X 会多放行几条」一目了然（731 深化） | [spec 747](docs/spec/747-threshold-counterfactual.md) |
-| Skill 体系 | 混合排序融合权重读数 | semanticWeight/lexicalWeight/fusedCount——权重声明是否生效与融合次数一读便知（638 声明生效确认面同型） | [spec 744](docs/spec/744-hybrid-ranker-readout.md) |
-| 模型韧性 | 供应商限流信号 stats 接线 | updateProviderUtilization/lastProviderUtilization（NaN 起始）+details 条件出现——719 信号的聚合归宿（740） | [spec 740](docs/spec/740-provider-signals-stats.md) |
-| 观测治理 | 事件 payload 大小审计 | EventPayloadSizeAudit.analyze——Jackson 字节按类型聚合 total/max 降序，payload 风暴与存储吞噬可见（Sentry 限额思想） | [spec 732](docs/spec/732-event-payload-size-audit.md) |
-| 提示词治理 | 提示词使用缺口读数 | PromptUsageGaps——声明×使用差集：零使用清理候选+孤儿统计漂移信号（401/545 联合读数） | [spec 733](docs/spec/733-prompt-usage-gaps.md) |
-| 观测治理 | 事件配对完整性审计 | EventPairingAudit——请求/应答型事件 spanId 内配对，悬空请求/孤儿应答（中断崩溃/审批悬空）证据化（规则表泛化） | [spec 735](docs/spec/735-event-pairing-audit.md) |
-| 观测治理 | span 父链完整性审计 | SpanParentIntegrityAudit——悬空 parentSpanId（父被逐出/未落库）发现+根计数，trace 树断裂可见（OTel 树语义） | [spec 736](docs/spec/736-span-parent-integrity.md) |
-| 持久化 | 导出体积去向审计 | SessionExportSizeAudit——消息/摘要/状态/扩展段字符归因+占比守恒，「导出为什么大」有数（成本归因） | [spec 738](docs/spec/738-session-export-size-audit.md) |
-| 观测治理 | 事件静默缺失门 | EventTypePresenceGate.gate——期望类型集与观测集差集，「该发生而没发生」的流程断链前向信号（726 对偶） | [spec 739](docs/spec/739-event-presence-gate.md) |
-| 缓存与前缀 | 响应缓存权重预算 yml 装配 | response-cache.max-weight-chars（默认 0=关）——737 原语的装配兑现（723 同模式） | [spec 745](docs/spec/745-response-cache-weight-assembly.md) |
-| 模型韧性 | 能力审计按能力维度聚合 | Report 增 denyByCapability——vision/tools 分布与 denyByModel 正交双视角，补声明还是换模型有数（700 深化） | [spec 746](docs/spec/746-deny-by-capability.md) |
-| 评估闭环 | 执行策略汇总读数 | executionPolicy()——五件套（预算/重试/超时/记忆化/漂移）当前态一屏确认，「为什么有 [RUN-BUDGET]/[MEMO]」的配置证据面（748） | [spec 748](docs/spec/748-execution-policy-readout.md) |
-| 收口 | G 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门修正（regenerate 需系统属性——49 轮静默跳过已补）+覆盖门补档 721/723/738+台账 50/50 归档 | [spec 749](docs/spec/749-final-verification.md) |
-| 护栏 | 导出脱敏命中计数 | SessionExportSanitizer hitCounts/totalHits——PiiType 与自定义规则归因，「导出脱敏动了多少刀」可审计（合规证据面） | [spec 743](docs/spec/743-sanitizer-hit-counts.md) |
-| MCP 治理 | 每连接并发占用视图 | concurrencyViews()——server→limit/available/inFlight 实时占用，610 并发闸从黑盒变读数（etcd/线程池监控惯例） | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
 
 ## 生产级纵深 IX（H 会话 800 系增量）
 
@@ -678,7 +607,6 @@ H 会话（effort #800+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 缓存与前缀 | 嵌入 L2 归一化装饰器 | NormalizingEmbeddingModel——输出向量逐条单位范数，cosine 退化为点积、跨供应商尺度一致（sentence-transformers normalize_embeddings；721 同模式） | [spec 804](docs/spec/804-normalizing-embedding.md) |
 | 模型路由 | 路由分布倾斜读数 | RouteDistributionReadout——实际调用分布 vs 声明权重偏差降序+gini 集中度+dominant，「50/50 说成 95/5 做」漂移可见（Spark skew；只读不纠偏） | [spec 805](docs/spec/805-route-distribution-skew.md) |
 | 成本归因 | 预算用量分位推荐 | BudgetRecommendation——用量样本 P50/P95/P99+⌈P95×(1+headroom)⌉ 推荐档位，预算从拍脑袋变分位推导（k8s VPA；<5 样本不下结论哨兵） | [spec 806](docs/spec/806-budget-recommendation.md) |
-| 模型路由 | 路由分布倾斜读数 | RouteDistributionReadout——实际调用分布 vs 声明权重偏差降序+gini 集中度+dominant，「50/50 说成 95/5 做」漂移可见（Spark skew；只读不纠偏） | [spec 805](docs/spec/805-route-distribution-skew.md) |
 | 护栏 | 签名密钥轮换到期审计 | KeyRotationAudit——密钥龄 OVERDUE/DUE_SOON/OK 三档+UNKNOWN_ACTIVE 账本异常面+最坏排序，SigningKeyRing 零侵入（cert-manager 证书到期监控；纯读数不轮换） | [spec 807](docs/spec/807-key-rotation-audit.md) |
 | 导出治理 | 导出内容去重统计 | ExportDedupeStats——精确串值重复计数+节省字符+savingsRatio+Top16 preview 截 32 隐私，空块计 items 不计重复（restic dedupe stats；字符口径与 738 一致） | [spec 808](docs/spec/808-export-dedupe-stats.md) |
 | 并发治理 | 作业死信台账 | JobDeadLetterLog——DelayedJobQueue 可选失败观察者(2 参构造 null=原行为)停尸明细环 64+按键聚合 64+totalFailed，message 截 200（sidekiq dead set；不重投） | [spec 809](docs/spec/809-job-dead-letter.md) |
@@ -729,18 +657,6 @@ I 会话（effort #900+）部分 spec 未及在 README 登记（H 会话收口�
 
 | 来源 | 吸收登记 | 详设 |
 |------|----------|------|
-| I 会话 #916 | 剪枝×稳定性×gate 联动补验（pruned 状态红绿映射修正） | [spec 916](docs/spec/916-pruned-stability.md) |
-| I 会话 #917 | 分数装配读面 | [spec 917](docs/spec/917-score-assembly.md) |
-| I 会话 #918 | 丢弃原因指标读面 | [spec 918](docs/spec/918-drop-reason-metric.md) |
-| I 会话 #919 | 加密导出端到端补验 | [spec 919](docs/spec/919-encrypted-export-e2e.md) |
-| I 会话 #920 | 限流快照读面 | [spec 920](docs/spec/920-ratelimit-snapshot.md) |
-| I 会话 #921 | 软窗读面 | [spec 921](docs/spec/921-soft-window.md) |
-| I 会话 #922 | 租约契约校验套件 | [spec 922](docs/spec/922-lease-contract.md) |
-| I 会话 #923 | 扩缩容滞回读面 | [spec 923](docs/spec/923-scaling-hysteresis.md) |
-| I 会话 #924 | 观测存储水位读面 | [spec 924](docs/spec/924-obs-watermark.md) |
-| I 会话 #925 | 会话索引水位读面 | [spec 925](docs/spec/925-index-watermark.md) |
-| I 会话 #926 | 事实衰减预报读法 | [spec 926](docs/spec/926-decay-forecast.md) |
-| J 会话 #1007 | 租约生命周期统计读面 | [spec 1007](docs/spec/1007-lease-lifecycle-stats.md) |
 
 ## 快速开始
 
