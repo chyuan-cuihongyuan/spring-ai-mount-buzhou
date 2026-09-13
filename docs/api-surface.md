@@ -2107,3 +2107,9 @@
 - `JobDeadLetterLog`（嵌套 `DeadJob`/`DeadCount`/`Snapshot`）（809——sidekiq
   dead set 借鉴：DelayedJobQueue 可选失败观察者（2 参构造，null=原行为）
   停尸明细环 64+按键聚合 64+totalFailed；message 截 200；不重投）
+
+- `StoreLatencyRing`（嵌套 `OpStats`）（810——etcd backend commit latency
+  借鉴：按操作名 FIFO 128 样本环+count/total/max+最近秩 P50/P95+操作名
+  封顶 16 truncated；纯读数）
+- `TimedMessageStore`（810——MessageStore 装饰器，三方法 nanoTime finally
+  计时进环，异常照记照抛；行为零变更）
