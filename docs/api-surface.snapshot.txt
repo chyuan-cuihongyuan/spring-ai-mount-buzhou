@@ -216,6 +216,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ModelCostHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ObservabilityCapacityHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.SloMultiWindowBurn
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.WatermarkHealth

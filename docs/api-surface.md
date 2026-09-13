@@ -2140,3 +2140,7 @@
   MemGPT 分层借鉴：core-summary/archival-facts/recall-window 三层
   items/chars+可选 cap 水位 OK<80%≤WARN<100%≤FULL（cap≤0 不设限）；
   Snapshot 由调用方采集零 store 侵入）
+
+- `SloMultiWindowBurn`（嵌套 `Verdict`）（817——Google SRE Workbook
+  multi-window 借鉴：快慢双窗 burnRate 同超阈值且样本足才判 incident，
+  独热带毛刺/渗漏诊断 reason；组合式 ErrorBudget 零变更判定脑）
