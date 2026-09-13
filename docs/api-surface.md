@@ -2195,3 +2195,7 @@
   （829——mem0 冲突解决统计扩散：9 段×3 决策（CREATED/KEPT/SUPERSEDED）
   闭集记账+supersededRatio+段行声明序；喂点=EVENT_RECONCILED 消费者，
   reconcile 零变更）
+
+- `AuditTreeHealthReadout`（嵌套 `TreeHealth`）（830——CT 树语义扩散：
+  叶数→深度（32−lz 位技巧）/nextPow2/补位叶/满树判定；纯形状不校验
+  内容；叶数调用方采集零侵入）
