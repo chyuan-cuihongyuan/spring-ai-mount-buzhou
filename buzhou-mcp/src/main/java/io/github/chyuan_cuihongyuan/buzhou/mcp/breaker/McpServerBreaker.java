@@ -18,9 +18,35 @@ import java.util.Map;
 public final class McpServerBreaker {
 
     private final ToolCircuitBreaker breaker;
+    private final McpBreakerTransitionJournal journal;
+    private final Map<String, ToolCircuitBreaker.State> lastStates = new java.util.concurrent.ConcurrentHashMap<>();
 
     public McpServerBreaker(ToolCircuitBreaker.Config config) {
+        this(config, null);
+    }
+
+    /**
+     * spec 814 / T1129：带变迁台账构造——成败记录后检测状态变化，变迁入账
+     * （旁路只读，不碰断路器语义）；journal 可空（原行为）。
+     */
+    public McpServerBreaker(ToolCircuitBreaker.Config config, McpBreakerTransitionJournal journal) {
         this.breaker = new ToolCircuitBreaker(config, null);
+        this.journal = journal;
+    }
+
+    private void journalIfChanged(String serverName) {
+        if (journal == null) {
+            return;
+        }
+        ToolCircuitBreaker.View view = breaker.stateOf(serverName);
+        if (view == null) {
+            return;
+        }
+        ToolCircuitBreaker.State current = view.state();
+        ToolCircuitBreaker.State previous = lastStates.put(serverName, current);
+        if (previous != null && previous != current) {
+            journal.record(serverName, previous.name(), current.name(), System.currentTimeMillis());
+        }
     }
 
     /**
@@ -37,6 +63,7 @@ public final class McpServerBreaker {
             @Override
             public String call(String toolInput) {
                 if (!breaker.tryAcquirePermission(serverName)) {
+                    journalIfChanged(serverName);
                     throw new IllegalStateException("MCP server [" + serverName
                             + "] 熔断 OPEN（连续失败率超阈）——该 server 工具暂时不可用，"
                             + "请改用其他工具或稍后重试");
@@ -44,9 +71,11 @@ public final class McpServerBreaker {
                 try {
                     String result = delegate.call(toolInput);
                     breaker.recordSuccess(serverName);
+                    journalIfChanged(serverName);
                     return result;
                 } catch (RuntimeException e) {
                     breaker.recordFailure(serverName);
+                    journalIfChanged(serverName);
                     throw e;
                 }
             }

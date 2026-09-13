@@ -2126,3 +2126,8 @@
   (技能名,版本,通道) 注册表纯解析——显式通道→回退 latest→全表最高；
   点分数值段比较+prerelease 低于 release（semver）；同通道收敛高版本；
   只读零 store 侵入）
+
+- `McpBreakerTransitionJournal`（嵌套 `Transition`/`ServerCounts`/`Report`）
+  （814——702 模式扩散：McpServerBreaker 可选挂接（2 参构造 null=原行为），
+  stateOf 差分采样入账（同态忽略），环 64+per-server trips/recovers 聚合 32；
+  采样型差分 HALF_OPEN 瞬时不可见口径显式）
