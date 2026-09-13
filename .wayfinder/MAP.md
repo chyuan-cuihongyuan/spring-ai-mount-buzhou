@@ -412,3 +412,4 @@
 | #828 | 连接池获取计时装饰器 | [maps/effort-828.md](maps/effort-828.md) | T1157–1158 | 581 |
 | #829 | 事实合并决策分布 | [maps/effort-829.md](maps/effort-829.md) | T1159–1160 | 582 |
 | #830 | 审计树形健康读数 | [maps/effort-830.md](maps/effort-830.md) | T1161–1162 | 583 |
+| #831 | 会话准入拒绝分布 | [maps/effort-831.md](maps/effort-831.md) | T1163–1164 | 584 |

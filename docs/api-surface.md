@@ -2199,3 +2199,7 @@
 - `AuditTreeHealthReadout`（嵌套 `TreeHealth`）（830——CT 树语义扩散：
   叶数→深度（32−lz 位技巧）/nextPow2/补位叶/满树判定；纯形状不校验
   内容；叶数调用方采集零侵入）
+
+- `SpawnRejectionDistribution`（嵌套 `ReasonCount`/`Report`）（831——k8s
+  admission 拒绝读数扩散：SpawnGate 拒绝原因开集聚合（键封顶 16+truncated，
+  count/lastSeen 降序+dominant）；喂点=事件消费者，gate 零变更）
