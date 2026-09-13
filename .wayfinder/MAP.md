@@ -390,3 +390,4 @@
 | #806 | 预算用量分位推荐 | [maps/effort-806.md](maps/effort-806.md) | T1113–1114 | 559 |
 | #807 | 签名密钥轮换到期审计 | [maps/effort-807.md](maps/effort-807.md) | T1115–1116 | 560 |
 | #808 | 导出内容去重统计 | [maps/effort-808.md](maps/effort-808.md) | T1117–1118 | 561 |
+| #809 | 作业死信台账 | [maps/effort-809.md](maps/effort-809.md) | T1119–1120 | 562 |

@@ -2103,3 +2103,7 @@
 - `ExportDedupeStats`（嵌套 `DuplicateBlock`/`Report`）（808——restic dedupe
   stats 借鉴：导出内容块精确重复计数+savingsRatio+Top16（preview 截 32
   隐私）；空块计 items 不计重复；字符口径与 738 一致）
+
+- `JobDeadLetterLog`（嵌套 `DeadJob`/`DeadCount`/`Snapshot`）（809——sidekiq
+  dead set 借鉴：DelayedJobQueue 可选失败观察者（2 参构造，null=原行为）
+  停尸明细环 64+按键聚合 64+totalFailed；message 截 200；不重投）
