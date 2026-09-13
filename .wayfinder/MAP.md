@@ -396,3 +396,4 @@
 | #812 | 观测管道内存限流器 | [maps/effort-812.md](maps/effort-812.md) | T1125–1126 | 565 |
 | #813 | 技能发布通道解析 | [maps/effort-813.md](maps/effort-813.md) | T1127–1128 | 566 |
 | #814 | MCP 断路器变迁台账 | [maps/effort-814.md](maps/effort-814.md) | T1129–1130 | 567 |
+| #815 | Spill 写放大读数 | [maps/effort-815.md](maps/effort-815.md) | T1131–1132 | 568 |

@@ -2131,3 +2131,7 @@
   （814——702 模式扩散：McpServerBreaker 可选挂接（2 参构造 null=原行为），
   stateOf 差分采样入账（同态忽略），环 64+per-server trips/recovers 聚合 32；
   采样型差分 HALF_OPEN 瞬时不可见口径显式）
+
+- `SpillWriteAmplifier`（嵌套 `Stats`）（815——RocksDB 写放大口径借鉴：
+  逻辑/物理字节累计计数+近窗 64 样本均值与最近秩 P95；逻辑 ≤0 忽略防 ∞；
+  记账脑零 store 侵入）
