@@ -82,6 +82,8 @@
 - `public final class Spotlighting`
 - `public final class ToolArgsValidator`
 - `public final class ToolErrorFeedback`
+- `public record ToolPolicyMatchDecision`（spec 1000——单次匹配决策：toolName + Outcome(EXACT/GLOB/NONE) + matchedKey）
+- `public record ToolPolicyMatchStats`（spec 1000——进程级决策快照，Σ三分类守恒 == match 调用数）
 - `public final class ToolPolicyMatcher`
 - `public final class ToolValidationFeedback`
 - `public final class WebhookEventForwarder`
