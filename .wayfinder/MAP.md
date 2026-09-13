@@ -418,3 +418,4 @@
 | #834 | 上下文截断统计 | [maps/effort-834.md](maps/effort-834.md) | T1169–1170 | 587 |
 | #835 | 尾采样决策台账 | [maps/effort-835.md](maps/effort-835.md) | T1171–1172 | 588 |
 | #836 | 半开探测成功率读数 | [maps/effort-836.md](maps/effort-836.md) | T1173–1174 | 589 |
+| #838 | 选举竞争读数 | [maps/effort-838.md](maps/effort-838.md) | T1175–1176 | 590 |

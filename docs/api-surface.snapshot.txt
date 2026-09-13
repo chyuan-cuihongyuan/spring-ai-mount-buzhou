@@ -799,6 +799,7 @@ buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config.BuzhouJd
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config.JdbcStoreProperties
 buzhou-store-jdbc|io.github.chyuan_cuihongyuan.buzhou.store.jdbc.config.WriteFailurePolicyProperties
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.DegradingObservabilityStore
+buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.LeaderElectionStats
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBulkheadStateBackend
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisBuzhouStores
 buzhou-store-redis|io.github.chyuan_cuihongyuan.buzhou.store.redis.RedisCircuitBreakerStateBackend

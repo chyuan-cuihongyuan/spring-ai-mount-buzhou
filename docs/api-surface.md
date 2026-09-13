@@ -2226,3 +2226,7 @@
 - `HalfOpenProbeStats`（嵌套 `ProbeStats`）（836——Resilience4j probe 语义
   扩散：per-model 探测成败累计+连续失败 streak（成功清零）+近窗 20 成功率；
   与 811 crash-loop 互补（频次 vs 质量）；模型封顶 32；读数不控许可）
+
+- `LeaderElectionStats`（嵌套 `Outcome`）（838——Redisson RedLock 竞争
+  统计思想：选主四态（获选/续期/让位/失位）原子计数+contentionRatio
+  竞争烈度；归类归调用方选举行为零变更）
