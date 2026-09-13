@@ -53,6 +53,7 @@
 - [ExportManifest 规范化摘要](../tickets/T1313-manifest-canonical-shape.md) — addCanonical/verifyCanonical 配对（canonicalJson 单点提级复用；首版 readTree JsonNode 未落 Map 分支的缺陷经 DBG 实证修正）——911 JCS 向 manifest 扩散（键序漂移不误报 mismatch）。
 - [ObservabilityStore 契约校验套件](../tickets/T1315-obs-contract-shape.md) — 八项语义检查（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存实现接入——契约系列收口最后核心 SPI（922/929/930/936 四 SPI 全覆盖）。
 - [webhook 死信环形上限](../tickets/T1317-deadletter-cap-shape.md) — MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧，保留最新排障价值）——有界纪律（ErrorSignatures/TagCardinalityGuard 同先例），渐进收敛无尖峰。
+- [数据集输入长度画像](../tickets/T1327-input-profile-shape.md) — EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars，R-7 同口径内联）——评估成本画像，超长项与预算失控点探测（票号改号：T1317/T1318 与 spec 937 冲突）。
 - [gate 阈值漂移读面](../tickets/T1319-threshold-drift-shape.md) — EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形（914 历史面聚合视图）。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
 - [事实衰减预报读法](../tickets/T1299-decay-forecast-shape.md) — FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉ + floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路（对象 fact 生命周期），衰减预警→主动 reinforce。
@@ -97,6 +98,7 @@
 | 36 | ObservabilityStore 契约校验套件 | spec 922 契约系列收口 | T1315–T1316 | 688 | 936 | ✅ |
 | 37 | webhook 死信环形上限 | 有界纪律（ErrorSignatures 同款） | T1317–T1318 | 689 | 937 | ✅ |
 | 38 | gate 阈值漂移读面 | spec 914 历史面聚合 | T1319–T1320 | 690 | 938 | ✅ |
+| 42 | 数据集输入长度画像（票号改号：T1317/T1318 与 spec 937 冲突→T1327/T1328） | 成本画像 | T1327–T1328 | 691 | 942 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |

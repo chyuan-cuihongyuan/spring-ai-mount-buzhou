@@ -352,4 +352,44 @@ public final class EvalDatasetStore {
     private static String blankToNull(String s) {
         return s == null || s.isBlank() ? null : s;
     }
+    /**
+     * impl-691 / spec 942：数据集输入长度画像（count/total/avg/max/p95）——
+     * 评估成本 ∝ input 字节总量，P95 尾部项是预算失控点。p95 线性插值
+     * （spec 909 同口径内联实现，避免跨类依赖）。空集约定全 0。
+     */
+    public InputProfile inputLengthProfile(String name) {
+        List<EvalItem> items = items(name);
+        int[] lengths = items.stream().mapToInt(i ->
+                i.input() == null ? 0 : i.input().length()).toArray();
+        long total = 0;
+        for (int len : lengths) {
+            total += len;
+        }
+        int max = 0;
+        for (int len : lengths) {
+            max = Math.max(max, len);
+        }
+        double avg = lengths.length == 0 ? 0.0 : (double) total / lengths.length;
+        int p95 = percentile(lengths, 0.95);
+        return new InputProfile(lengths.length, total, avg, max, p95);
+    }
+
+    /** 线性插值分位（h=(n−1)·q，spec 909 同口径）。 */
+    static int percentile(int[] sortedAsc, double q) {
+        int[] sorted = sortedAsc.clone();
+        java.util.Arrays.sort(sorted);
+        int n = sorted.length;
+        if (n == 0) {
+            return 0;
+        }
+        double h = (n - 1) * q;
+        int lower = (int) Math.floor(h);
+        int upper = Math.min(lower + 1, n - 1);
+        return (int) Math.round(sorted[lower] + (h - lower) * (sorted[upper] - sorted[lower]));
+    }
+
+    /** 输入长度画像（impl-691 / spec 942）。 */
+    public record InputProfile(int count, long totalChars, double avgChars, int maxChars,
+                               int p95Chars) {
+    }
 }
