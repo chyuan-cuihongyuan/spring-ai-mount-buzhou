@@ -2161,3 +2161,7 @@
   （821——rust-clippy 分级借鉴：DENY/WARN/HINT 三档默认映射（DUP 破坏
   分发= DENY）+withRule 不可变定制+严重序典序破平；未知规则保守 HINT；
   纯分级不阻断）
+
+- `McpCapabilitySnapshot`（嵌套 `Snapshot`）（822——LSP capabilities 思想：
+  连接 seam 三观察点单点快照——排序名册+hint 覆盖/只读/破坏计数+确定性
+  指纹（排序 join）；seam 异常逐路降级空真；706 diff 的基线输入形状）

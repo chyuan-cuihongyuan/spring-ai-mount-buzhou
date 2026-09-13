@@ -403,3 +403,4 @@
 | #819 | Token 估算校准审计 | [maps/effort-819.md](maps/effort-819.md) | T1139–1140 | 572 |
 | #820 | 护栏豁免登记面 | [maps/effort-820.md](maps/effort-820.md) | T1141–1142 | 573 |
 | #821 | 目录 lint 严重度分级 | [maps/effort-821.md](maps/effort-821.md) | T1143–1144 | 574 |
+| #822 | MCP 能力协商快照 | [maps/effort-822.md](maps/effort-822.md) | T1145–1146 | 575 |
