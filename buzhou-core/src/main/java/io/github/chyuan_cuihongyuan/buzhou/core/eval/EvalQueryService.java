@@ -75,6 +75,35 @@ public final class EvalQueryService {
                 .map(e -> EvalRunner.mapToResult(EvalRunner.decodeMap(e.value())));
     }
 
+    /**
+     * impl-681 / spec 928：发生过剪枝的 run 审计查询（spec 901 剪枝事件的事后
+     * 审计入口——「哪些 run 被剪、剪了多少」按 prunedCount 降序、runId 字典序
+     * tie-break 输出稳定）。纯查询面零行为变化。
+     */
+    public record PrunedRunSummary(String runId, String datasetName,
+                                   long prunedCount, int total) {
+    }
+
+    public List<PrunedRunSummary> runsWithPruned() {
+        return allRuns().stream()
+                .map(summary -> {
+                    EvalRunResult full = run(summary.runId()).orElse(null);
+                    if (full == null) {
+                        return null;
+                    }
+                    long pruned = full.items().stream()
+                            .filter(i -> "pruned".equals(i.status())).count();
+                    return pruned == 0 ? null
+                            : new PrunedRunSummary(full.runId(), full.datasetName(),
+                                    pruned, full.total());
+                })
+                .filter(java.util.Objects::nonNull)
+                .sorted(java.util.Comparator.comparingLong(PrunedRunSummary::prunedCount)
+                        .reversed()
+                        .thenComparing(PrunedRunSummary::runId))
+                .toList();
+    }
+
     /** dataset 最新 run（无 run = empty）。 */
     public Optional<EvalRunResult> latestRun(String datasetName) {
         return runs(datasetName).stream()
