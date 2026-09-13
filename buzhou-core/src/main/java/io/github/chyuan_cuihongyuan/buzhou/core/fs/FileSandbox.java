@@ -23,6 +23,12 @@ public class FileSandbox {
 
     private static final Logger LOG = LoggerFactory.getLogger(FileSandbox.class);
 
+    /** impl-795 / spec 1045：判定计数（逃逸尝试显形——violation() 单点，进程级静态）。 */
+    private static final java.util.concurrent.atomic.AtomicLong resolutions =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong violations =
+            new java.util.concurrent.atomic.AtomicLong();
+
     private final Path root;
     private final List<Path> allowedRoots;
 
@@ -57,6 +63,7 @@ public class FileSandbox {
     }
 
     public Path resolve(String raw) {
+        resolutions.incrementAndGet(); // spec 1045：判定计数
         Path candidate = absolutize(raw);
         Path check = Files.exists(candidate) ? realpath(candidate) : candidate;
         if (!contains(check)) {
@@ -66,6 +73,7 @@ public class FileSandbox {
     }
 
     public Path resolveForWrite(String raw) {
+        resolutions.incrementAndGet(); // spec 1045：判定计数
         Path candidate = absolutize(raw);
         Path parent = candidate.getParent();
         if (parent == null) {
@@ -100,8 +108,24 @@ public class FileSandbox {
 
     /** ticket 29 日志基线：沙箱拒绝统一经此告警（spec 13 §cross-11）后抛出，拒绝可观测。 */
     private static SandboxViolationException violation(String message) {
+        violations.incrementAndGet(); // spec 1045：拒绝判定计数
         LOG.warn("沙箱拒绝：{}", message);
         return new SandboxViolationException(message);
+    }
+
+    /** 沙箱判定分布只读快照（守恒 violations ≤ resolutions——spec 1045）。 */
+    public static SandboxVerdictStats stats() {
+        return new SandboxVerdictStats(resolutions.get(), violations.get());
+    }
+
+    /** 沙箱判定计数行（不可变；进程级）。 */
+    public record SandboxVerdictStats(long resolutions, long violations) {
+    }
+
+    /** 进程态清零（测试隔离注入点——生产勿调）。 */
+    public static void resetForTest() {
+        resolutions.set(0);
+        violations.set(0);
     }
 
     private static Path realpath(Path path) {

@@ -97,6 +97,8 @@
 | 32 | 审计收集器采集与持久化失败计数读面 | Splunk HEC ingestion stats | T1513–T1514 | 784 | 1031 | ✅ |
 | 33 | 打转检测触发聚合读面（fires/blocks/maxRunSeen） | LLM 打转检测 | T1517–T1518 | 785 | 1032 | ✅ |
 | 34 | token 估算调用量与总量读面（静态三计数） | 预算面可观测性 | T1519–T1520 | 786 | 1033 | ✅ |
+| 45 | fs 沙箱判定计数读面（resolutions/violations 守恒） | chroot escape detection | T1545–T1546 | 795 | 1045 | ✅ |
+| 46 | （开工时按缺口核查选题，候选见下） | — | T1547–T1548 | 796 | 1046 |  |
 | 35 | 词法排序生效计数读面（runs/reordered——排序器空转显形） | 混合排序生效水位 | T1521–T1522 | 787 | 1034 | ✅ |
 | 36 | MCP properties 装配解析统计读面（servers/bindings/bindingsSkipped） | 清单解析统计 | T1523–T1524 | 788 | 1036 | ✅ |
 | 37 | 工具权限判定分布读面（allowed/两拒分桶守恒） | K8s RBAC audit | T1527–T1528 | 789 | 1037 | ✅ |
