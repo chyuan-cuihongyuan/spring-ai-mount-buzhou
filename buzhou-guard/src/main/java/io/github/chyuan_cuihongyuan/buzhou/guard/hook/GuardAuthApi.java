@@ -45,6 +45,13 @@ public class GuardAuthApi {
     private final AuthTtl authTtl;
     private final ObservabilityStore observabilityStore;
     private final List<Consumer<SessionEvent>> listeners = new CopyOnWriteArrayList<>();
+    /** impl-774 / spec 1021：HITL 审批操作分布计数（进程内聚合快照——事件流之外的直读水位）。 */
+    private final java.util.concurrent.atomic.AtomicLong approvedCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong rejectedCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong revokedCount =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public GuardAuthApi(SessionStateStore stateStore, AuthTtl authTtl,
                         ObservabilityStore observabilityStore) {
@@ -88,6 +95,7 @@ public class GuardAuthApi {
         stateStore.put(sessionId, new StateEntry(authKey, toJson(record), "guard-auth",
                 grantedTurn, null, Instant.now()));
         emitResponse(sessionId, toolName, fingerprint, optionId, input, "approved");
+        approvedCount.incrementAndGet(); // spec 1021：审批操作分布
         emitAudit(EVENT_AUTH_GRANTED, sessionId, toolName, fingerprint, Map.of(
                 "optionId", normalizedOption,
                 "ttlMode", record.get("ttlMode"),
@@ -106,6 +114,7 @@ public class GuardAuthApi {
                        String optionId, String input) {
         String fingerprint = ArgumentFingerprint.fingerprint(arguments);
         // 不写 auth key（保持未授权）；仅记审计事件
+        rejectedCount.incrementAndGet(); // spec 1021：拒绝操作计数
         emitResponse(sessionId, toolName, fingerprint, optionId, input, "rejected");
     }
 
@@ -114,7 +123,18 @@ public class GuardAuthApi {
         String fingerprint = ArgumentFingerprint.fingerprint(arguments);
         String authKey = ArgumentFingerprint.authKey(toolName, fingerprint);
         stateStore.delete(sessionId, authKey);
+        revokedCount.incrementAndGet(); // spec 1021：撤销操作计数
         emitAudit(EVENT_AUTH_REVOKED, sessionId, toolName, fingerprint, Map.of());
+    }
+
+    /** HITL 审批操作分布只读快照（spec 1021——通过/拒绝/撤销三轴直读水位）。 */
+    public AuthOperationStats stats() {
+        return new AuthOperationStats(approvedCount.get(), rejectedCount.get(),
+                revokedCount.get());
+    }
+
+    /** 审批操作计数行（不可变）。 */
+    public record AuthOperationStats(long approved, long rejected, long revoked) {
     }
 
     /** 查询某工具+参数是否已授权（调试/前端展示用）。 */

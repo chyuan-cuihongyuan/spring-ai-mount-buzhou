@@ -558,6 +558,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 安全 | taint 信息流控制生命周期计数读面 | TaintMarkStats + GateStats 四分桶（checked == trusted + approved + blocked 守恒）+ 双 stats()——FIDES 判定分布显形（spec 1018） | [spec 1018](docs/spec/1018-taint-lifecycle-stats.md) |
 | 安全 | 金丝雀生命周期计数读面 | CanaryGuardHook 嵌套 CanaryStats（planted 播撒幂等不重复计 / leaked 泄漏 / variantBlocked 变体自硬化）+ stats()——Thinkst Canary 触发即铁证思想（spec 1019） | [spec 1019](docs/spec/1019-canary-lifecycle-stats.md) |
 | 安全 | 事实采集隔离硬化与计数读面 | FactCollectorHook 逐定义 judge/save 隔离（单定义异常不再炸 afterTool 链）+ FactCollectionStats（saved/failures）+ stats()——监听器隔离惯例推广（spec 1020） | [spec 1020](docs/spec/1020-fact-collector-isolation.md) |
+| 安全 | HITL 审批操作分布读面 | GuardAuthApi 嵌套 AuthOperationStats（approved/rejected/revoked 三计数）+ stats()——审批聚合视图，事件流之外的直读水位（spec 1021） | [spec 1021](docs/spec/1021-auth-operation-stats.md) |
 | 观测治理 | 轮次时延分位数读面 | TurnLatencyPercentiles（R-7 插值 p50/p95 对既有 64 样本窗，percentiles() 读面）——补 spec 191 用户故事的 p95，numpy percentile 同口径（spec 1010） | [spec 1010](docs/spec/1010-turn-latency-percentiles.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
