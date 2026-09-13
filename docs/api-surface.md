@@ -2073,3 +2073,222 @@
   inFlight 快照，limit=-1 哨兵=未设；McpClientRegistry 加 default
   `concurrencyViews()`，DefaultMcpClientRegistry 覆写）
 
+
+## effort #800–#849 新增公共面（H 会话 / spec 800–849 / impl-553–602，@since 1.0.0）
+
+> H 会话 800 系逐轮入档（同口径：src/main 非 internal 包 public 类型）。
+
+- `ToolAutoBanHook`（嵌套 `ActiveBan`/`BanSnapshot`）（800——fail2ban 借鉴：
+  watch 工具滑窗连续失败达 maxViolations 自动封禁 banSeconds，beforeTool
+  拦截带剩余秒；(session,tool) 键有界 256 + truncated；成功不重置、到期
+  惰性解除、snapshot() 只读快照）
+
+- `RedisValueSizeAudit`（嵌套 `Finding`/`FamilyTotal`/`Report`）（801——Redis
+  BIGKEY 借鉴：采样 (键→字节) 九族前缀归类+WARN/CRIT 两档定级+Top32+按族
+  聚合+治理提示；纯函数与连接解耦，采样归调用方）
+
+- `MetricFreshnessTracker`（嵌套 `StaleMetric`/`FreshnessReport`）（802——
+  Prometheus staleness 借鉴：BuzhouMetrics 装饰器记录 counter/timer 名字级
+  最后写入（gauge 不追踪），audit(now, staleAfter) 陈旧年龄降序清单；
+  名字封顶 512+清单封顶 64+truncated；零委托变更纯旁路）
+
+- `MultiQueryRetriever`（嵌套 `Result`）（803——LangChain MultiQueryRetriever
+  借鉴：查询多变体展开+逐路检索+跨变体 RRF k=60 融合，消息 id 去重累加，
+  变体封顶 8、生成器/单路双层 fail-open；与 605 单查询双信号融合正交）
+
+- `NormalizingEmbeddingModel`（804——sentence-transformers 借鉴：
+  EmbeddingModel 装饰器逐条 L2 归一，cosine 退化为点积；ε=1e-4 已归一
+  跳算/零向量透传三计数面；副本语义；721 同模式双路径）
+
+- `RouteDistributionReadout`（嵌套 `Deviation`/`Report`/`Collector`）（805——
+  Spark skew 借鉴：实际调用分布 vs 声明权重偏差 |降序|+gini 基尼集中度+
+  dominant 读数；Collector 封顶 32；纯读数不纠偏）
+
+- `BudgetRecommendation`（嵌套 `Report`/`Ring`）（806——k8s VPA 借鉴：
+  用量样本最近秩 P50/P95/P99+⌈P95×(1+headroom)⌉ 推荐档；<5 样本
+  sufficient=false(-1 哨兵)；Ring 1024 FIFO+dropped；纯读数不改预算）
+
+- `KeyRotationAudit`（嵌套 `Finding`/`Report`）（807——cert-manager 借鉴：
+  签名钥龄 OVERDUE/DUE_SOON/OK 三档+UNKNOWN_ACTIVE 账本异常面，最坏排序；
+  SigningKeyRing 零侵入，激活账由 persister 侧提供）
+
+- `ExportDedupeStats`（嵌套 `DuplicateBlock`/`Report`）（808——restic dedupe
+  stats 借鉴：导出内容块精确重复计数+savingsRatio+Top16（preview 截 32
+  隐私）；空块计 items 不计重复；字符口径与 738 一致）
+
+- `JobDeadLetterLog`（嵌套 `DeadJob`/`DeadCount`/`Snapshot`）（809——sidekiq
+  dead set 借鉴：DelayedJobQueue 可选失败观察者（2 参构造，null=原行为）
+  停尸明细环 64+按键聚合 64+totalFailed；message 截 200；不重投）
+
+- `StoreLatencyRing`（嵌套 `OpStats`）（810——etcd backend commit latency
+  借鉴：按操作名 FIFO 128 样本环+count/total/max+最近秩 P50/P95+操作名
+  封顶 16 truncated；纯读数）
+- `TimedMessageStore`（810——MessageStore 装饰器，三方法 nanoTime finally
+  计时进环，异常照记照抛；行为零变更）
+
+- `CircuitCrashLoopDetector`（嵌套 `LoopState`）（811——k8s CrashLoopBackOff
+  借鉴：滑窗 OPEN ≥minOpens(≥2) 转 looping 闩锁态（窗口滑过不解、唯
+  recordRecovery 清），loopsDetected 边沿计数；模型封顶 32；旁路读数）
+
+- `PipelineMemoryLimiter`（嵌套 `LimiterStats`）（812——OTel memory_limiter
+  借鉴：在途权重总量判定 tryAdmit/release（CAS 无锁、拒收不记账、归账
+  防负）；单位无关、拒绝只发信号；stats 四口径）
+
+- `SkillChannelResolver`（嵌套 `Entry`）（813——pnpm/yarn dist-tag 借鉴：
+  (技能名,版本,通道) 注册表纯解析——显式通道→回退 latest→全表最高；
+  点分数值段比较+prerelease 低于 release（semver）；同通道收敛高版本；
+  只读零 store 侵入）
+
+- `McpBreakerTransitionJournal`（嵌套 `Transition`/`ServerCounts`/`Report`）
+  （814——702 模式扩散：McpServerBreaker 可选挂接（2 参构造 null=原行为），
+  stateOf 差分采样入账（同态忽略），环 64+per-server trips/recovers 聚合 32；
+  采样型差分 HALF_OPEN 瞬时不可见口径显式）
+
+- `SpillWriteAmplifier`（嵌套 `Stats`）（815——RocksDB 写放大口径借鉴：
+  逻辑/物理字节累计计数+近窗 64 样本均值与最近秩 P95；逻辑 ≤0 忽略防 ∞；
+  记账脑零 store 侵入）
+
+- `MemoryHierarchyCapacity`（嵌套 `LayerUsage`/`Snapshot`/`Report`）（816——
+  MemGPT 分层借鉴：core-summary/archival-facts/recall-window 三层
+  items/chars+可选 cap 水位 OK<80%≤WARN<100%≤FULL（cap≤0 不设限）；
+  Snapshot 由调用方采集零 store 侵入）
+
+- `SloMultiWindowBurn`（嵌套 `Verdict`）（817——Google SRE Workbook
+  multi-window 借鉴：快慢双窗 burnRate 同超阈值且样本足才判 incident，
+  独热带毛刺/渗漏诊断 reason；组合式 ErrorBudget 零变更判定脑）
+
+- `AdaptiveRateTightener`（818——AWS adaptive mode 借鉴：429 乘性收缩
+  （下限 minMultiplier）+保持窗后乘性步进恢复纯时间推导（无线程确定性）；
+  乘数接线归调用方不改 backend SPI；模型封顶 32）
+
+- `EstimatorCalibrationAudit`（嵌套 `Calibration`）（819——预测校准思想：
+  估算 vs 模型真实 usage 成对入账——相对误差均值/偏高偏低占比/近窗
+  P95 绝对误差；actual≤0 忽略；事后审计不改估算器）
+
+- `GuardExemptionRegistry`（嵌套 `Exemption`/`Snapshot`）（820——ESLint
+  suppressions 带过期借鉴：机制×主体显式有时限豁免登记——惰性过期计数/
+  同键覆盖续期/封顶 64+truncated；不自动接线 hook 默认零变化）
+
+- `LintSeverityGrader`（嵌套 `Severity`/`GradedFinding`/`GradeReport`）
+  （821——rust-clippy 分级借鉴：DENY/WARN/HINT 三档默认映射（DUP 破坏
+  分发= DENY）+withRule 不可变定制+严重序典序破平；未知规则保守 HINT；
+  纯分级不阻断）
+
+- `McpCapabilitySnapshot`（嵌套 `Snapshot`）（822——LSP capabilities 思想：
+  连接 seam 三观察点单点快照——排序名册+hint 覆盖/只读/破坏计数+确定性
+  指纹（排序 join）；seam 异常逐路降级空真；706 diff 的基线输入形状）
+
+- `StartupPhaseTiming`（嵌套 `StepTiming`/`Step`）（823——Spring Boot
+  ApplicationStartup 借鉴：装配阶段 start/end 句柄耗时留痕（未结束 -1
+  哨兵、end 首末幂等），升序快照；步骤封顶 64；喂点归应用侧零侵入）
+
+- `CancelCauseDistribution`（嵌套 `CauseCount`/`Report`）（824——Temporal
+  取消观测借鉴：606 五类闭集的计数/份额/lastSeen 分布面（counts 降序+
+  dominant 平局声明序）；synchronized 记账；喂点归装配侧）
+
+- `MigrationReconciliation`（嵌套 `Reconciliation`）（825——gh-ost 对账
+  思想：源/目标导出四维对账（消息计数/轮次范围/首尾 id 仅 keepIds/状态
+  键+缺失明细封顶 8）；重映射语义跳过 id 比对；只读不修复）
+
+- `InjectionParanoiaPolicy`（嵌套 `Level`/`Action`/`Decision`）（826——
+  ModSecurity paranoia levels 借鉴：L1-L4 标准阈值表（0.95/0.85/0.70/0.50）
+  +BLOCK/LOG/ALLOW 三态裁决（0.10 观察带）；分数截断+≥ 边界；纯映射
+  classifier 零变更）
+
+- `PricingCoverageAudit`（嵌套 `Report`）（827——LiteLLM model_prices
+  覆盖思想：被调用模型 vs 价表键集三层匹配（精确/大小写/provider 前缀
+  剥离）+覆盖率+unknown 典序封顶 32；空调用 1.0/空表 0 空真语义；纯函数）
+
+- `TimedDataSource`（828——HikariCP 池等待思想：DataSource 装饰器两种
+  getConnection nanoTime finally 计时进 StoreLatencyRing（其余方法纯委托，
+  异常照记照抛）；与 810 store 操作计时正交两层）
+
+- `FactMergeDecisionDistribution`（嵌套 `Decision`/`SectionRow`/`Report`）
+  （829——mem0 冲突解决统计扩散：9 段×3 决策（CREATED/KEPT/SUPERSEDED）
+  闭集记账+supersededRatio+段行声明序；喂点=EVENT_RECONCILED 消费者，
+  reconcile 零变更）
+
+- `AuditTreeHealthReadout`（嵌套 `TreeHealth`）（830——CT 树语义扩散：
+  叶数→深度（32−lz 位技巧）/nextPow2/补位叶/满树判定；纯形状不校验
+  内容；叶数调用方采集零侵入）
+
+- `SpawnRejectionDistribution`（嵌套 `ReasonCount`/`Report`）（831——k8s
+  admission 拒绝读数扩散：SpawnGate 拒绝原因开集聚合（键封顶 16+truncated，
+  count/lastSeen 降序+dominant）；喂点=事件消费者，gate 零变更）
+
+- `SkillLoadLatency`（嵌套 `SkillLatency`）（832——LangSmith 延迟分析
+  扩散：per-skill 环 32 样本+nearest-rank P50/P95+全历史 max；超 1024
+  技能并入 __overflow__ 桶（SkillUsageStats 同款）；slowest() P95 降序；
+  loads=近窗语义）
+
+- `DangerousToolHitStats`（嵌套 `ToolHits`）（833——WAF top-rules 观测
+  思想：危险工具命中 per-tool 热力排行（封顶 64+溢出桶/requiredState
+  最近非空/lastSeen max/top(n) 降序）；喂点=GuardHook 装配侧不改拦截）
+
+- `ContextTruncationStats`（嵌套 `StrategyTruncation`/`Report`）（834——
+  HF truncation_strategy 思想：跨截断机制 chars 聚合（策略键封顶 8+
+  __overflow__ 桶量净计；events/chars 双累计；chars 降序）；喂点=机制
+  装配侧零侵入）
+
+- `TailSamplingDecisionLog`（嵌套 `Decision`/`Entry`/`ReasonCount`/`Report`）
+  （835——OTel tail_sampling 借鉴：trace 采样决策环形明细 64+决策×原因
+  聚合（键封顶 16+溢出桶带决策维）+keptRatio；与 eval 采样域正交；
+  喂点=采样器装配侧）
+
+- `HalfOpenProbeStats`（嵌套 `ProbeStats`）（836——Resilience4j probe 语义
+  扩散：per-model 探测成败累计+连续失败 streak（成功清零）+近窗 20 成功率；
+  与 811 crash-loop 互补（频次 vs 质量）；模型封顶 32；读数不控许可）
+
+- `LeaderElectionStats`（嵌套 `Outcome`）（838——Redisson RedLock 竞争
+  统计思想：选主四态（获选/续期/让位/失位）原子计数+contentionRatio
+  竞争烈度；归类归调用方选举行为零变更）
+
+- `RateLimitKeyHotspot`（嵌套 `KeyDemand`）（837——Envoy 键域观测思想：
+  限流键申请热力排行（键封顶 128+溢出桶/requests+amount 毫账累计+lastSeen/
+  top 降序典序破平）；键拼装归调用方 backend SPI 零变更；补位轮——R38
+  跳号缺位即时填补）
+
+- `LeakSuspectAggregator`（嵌套 `SuspectType`/`Report`）（839——泄漏聚合：
+  实现 LeakListener 按描述稳键（截 64）聚合 count/maxAge/lastSeen，键封顶
+  32+溢出桶+count 降序排行；检测器零变更；快照近似口径）
+
+- `McpConnectTelemetry`（嵌套 `ServerTelemetry`）（840——gRPC channelz
+  思想：per-server 建连成败/连续失败 streak/lastDuration（负=未知保留）/
+  近窗 16 成功率+worstFirst 失败降序；server 封顶 32；喂点=工厂装配侧）
+
+- `IdleDurationHistogram`（嵌套 `BucketRow`）（841——S5 扩散：空闲时长
+  固定桶直方（默认 1m/5m/15m/60m 五桶，恰达归右桶）+total/longest+
+  人话区间标签快照；AtomicLongArray 桶计数；喂点=Monitor 装配侧）
+
+- `AuthDecisionStats`（嵌套 `Outcome`/`OutcomeCount`/`Report`）（842——
+  Keycloak 决策观测扩散：HITL 认证五态（批准/拒绝/过期/已消费/未知凭证）
+  闭集计数+占比降序快照；synchronized 记账；喂点=GuardAuthApi 装配侧）
+
+- `EvidenceRefValidity`（嵌套 `Report`）（843——S3 presigned 时限校验
+  思想：被引用 spill URI 集合 vs 存在性谓词失效率对账——失效样本典序
+  封顶 16；谓词注入零文件系统触碰；ledger 包私有边界保持）
+
+- `SummaryDegradeReasons`（嵌套 `Reason`/`ReasonCount`/`Report`）（844——
+  Envoy degraded 扩散：摘要降级五态闭集（超限/生成失败/空内容/策略强制/
+  未知）计数+占比降序快照；synchronized 记账；喂点=降级管线装配侧）
+
+- `RollbackUsageStats`（嵌套 `PromptRollbacks`/`Report`）（845——S6 扩散：
+  prompt 回滚使用聚合（名封顶 64+溢出桶/rollbacks/lastFrom/lastTo/lastSeen，
+  次数降序典序破平）；喂点=回滚执行处装配侧，registry 零变更）
+
+- `DeadLetterRedeliveryStats`（846——sidekiq retry set 扩散：死信重投
+  attempts/successes/successRate/连续失败 streak 原子记账（成功清零）；
+  重投语义归调用方，喂点=重投路径装配侧）
+
+- `DatasetNearDuplicateStats`（嵌套 `Report`）（847——Cleanlab 数据质量
+  思想：trigram Jaccard 两两对账+并查集成簇——duplicatePairs/largestCluster/
+  uniqueRatio；条目封顶 200 截断+truncated；threshold (0,1] fail-fast）
+
+- `ConfigDeviationAudit`（嵌套 `Deviation`/`Report`）（848——Spring Boot
+  configuration metadata 扩散：当前值 vs 出厂默认偏离对账（String.equals，
+  无基线不裁决），偏离清单典序封顶 32+偏离率；与 ConfigDiff 快照间 diff
+  辨义）
+
+- `SessionLeaseStoreContract`（I 会话 922 产出——补登：SessionLeaseStore
+  契约校验套件九项语义静态收集范式，第三方 store 自证工具；H 会话收口
+  合并时 api-surface 补档）
