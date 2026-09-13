@@ -52,6 +52,7 @@
 - [GateResult 有效通过率透出](../tickets/T1307-gate-effective-shape.md) — GateResult 加 effectivePassRate 组件（11 参新构造 + 10 参兼容 NaN 委托，spec 82 先例）+ enforce 填充——剪枝 run 门结果双口径同屏，passed 判定仍总量口径防刷分。
 - [ExportManifest 规范化摘要](../tickets/T1313-manifest-canonical-shape.md) — addCanonical/verifyCanonical 配对（canonicalJson 单点提级复用；首版 readTree JsonNode 未落 Map 分支的缺陷经 DBG 实证修正）——911 JCS 向 manifest 扩散（键序漂移不误报 mismatch）。
 - [ObservabilityStore 契约校验套件](../tickets/T1315-obs-contract-shape.md) — 八项语义检查（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存实现接入——契约系列收口最后核心 SPI（922/929/930/936 四 SPI 全覆盖）。
+- [SessionIndexStore 契约校验套件](../tickets/T1321-index-contract-shape.md) — 五项语义检查（往返一致/覆盖幂等/delete 幂等/DELETED 排除/purge 计数+limit+ACTIVE 保护）+ 内存接入——契约系列第五站（spec 945）。
 - [webhook 死信环形上限](../tickets/T1317-deadletter-cap-shape.md) — MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧，保留最新排障价值）——有界纪律（ErrorSignatures/TagCardinalityGuard 同先例），渐进收敛无尖峰。
 - [数据集输入长度画像](../tickets/T1327-input-profile-shape.md) — EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars，R-7 同口径内联）——评估成本画像，超长项与预算失控点探测（票号改号：T1317/T1318 与 spec 937 冲突）。
 - [k 次防抖门](../tickets/T1329-stable-gate-shape.md) — EvalGate.enforceStable（k 次全过才过 + 早停 + k≤HISTORY_CAPACITY 校验）——flaky 误报防护的从严门，复用既有管线全继承。
@@ -103,6 +104,7 @@
 | 42 | 数据集输入长度画像（票号改号：T1317/T1318 与 spec 937 冲突→T1327/T1328） | 成本画像 | T1327–T1328 | 691 | 942 | ✅ |
 | 43 | k 次防抖门 | flaky CI 防抖惯例 | T1329–T1330 | 692 | 943 | ✅ |
 | 44 | 工具调用结局分布读面 | spec 50 聚合面 | T1329–T1332 票号沿用修正 | 693 | 944 | ✅ |
+| 45 | SessionIndexStore 契约校验套件 | spec 922 契约系列 | T1321–T1322 号段复用注记（index-contract） | 694 | 945 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |

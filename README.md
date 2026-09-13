@@ -602,6 +602,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | 评估闭环 | k 次防抖门 | EvalGate.enforceStable（k 次全过才过 + 早停 + 历史容量校验）——flaky 误报防护从严门（spec 943） | [spec 943](docs/spec/943-stable-gate.md) |
 | 观测治理 | 工具调用结局分布读面 | ToolCallOutcomeStats.stats（四桶+other 收容桶，守恒不破枚举扩展）——spec 50 日志根因分诊聚合面（spec 944） | [spec 944](docs/spec/944-outcome-stats.md) |
+| 持久化 | SessionIndexStore 契约校验套件 | 五项语义检查静态 verify（往返/覆盖幂等/delete 幂等/DELETED 排除/purge 计数 limit 尊重 ACTIVE 保护）+ 内存接入——契约系列第五站（spec 945） | [spec 945](docs/spec/945-index-contract.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
