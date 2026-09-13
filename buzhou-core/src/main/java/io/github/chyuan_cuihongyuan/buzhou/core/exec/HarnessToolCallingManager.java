@@ -30,6 +30,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class HarnessToolCallingManager implements ToolCallingManager {
 
+    private static final System.Logger LOGGER =
+            System.getLogger(HarnessToolCallingManager.class.getName());
+
     /** ToolContext 中携带当前会话 id 的键（供内置工具做会话级解析，如 load_skill 绑定校验）。 */
     public static final String SESSION_ID_KEY = "buzhou.sessionId";
 
@@ -96,6 +99,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     /** impl-28：本 Turn 硬 Deadline（none 哨兵 = 不设界，保持既有无限等待行为）。 */
     private volatile io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline turnDeadline =
             io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none();
+    /** impl-678 / spec 921：软截止预警窗（null = 关——默认零行为变化）。 */
+    private volatile java.time.Duration softDeadlineWindow;
+    /** impl-678 / spec 921：本 Turn 是否已预警（软窗一次性——setTurnDeadline 时复位）。 */
+    private final java.util.concurrent.atomic.AtomicBoolean softDeadlineWarned =
+            new java.util.concurrent.atomic.AtomicBoolean();
     /** impl-04 / T30：入参 schema 校验开关（默认开）。 */
     private volatile boolean argsValidation = true;
     /** impl-04 / T30：本 Turn 累计校验反馈次数（BoundedToolCallingAdvisor 在 Turn 开始时复位）。 */
@@ -178,6 +186,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
      * 各等待点统一按本对象递减，嵌套不重新计时。
      */
     public void beginTurn(io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline) {
+        softDeadlineWarned.set(false);
         this.turnDeadline = deadline == null
                 ? io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline.none() : deadline;
     }
@@ -461,6 +470,36 @@ public class HarnessToolCallingManager implements ToolCallingManager {
      * 会话绝不因此僵死。诚实边界：worker 若恰在取消后落盘 COMPLETED/FAILED 结局，事件日志
      * 会追加两条（先 TIMEOUT 后终局），与既有 {@code cancelInFlight} 语义一致。
      */
+    /**
+     * impl-678 / spec 921：软截止预警检查（一次性/turn——首次进入软窗 WARN + counter，
+     * 派发行为零变化；预警供宿主/webhook 提前收尾，K8s SIGTERM 预警语义）。
+     */
+    private void checkSoftDeadlineWindow(
+            io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline deadline) {
+        java.time.Duration window = softDeadlineWindow;
+        if (window == null) {
+            return;
+        }
+        if (deadline.withinSoftWindow(window)
+                && softDeadlineWarned.compareAndSet(false, true)) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.turn.soft-deadline");
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "Turn 进入软截止窗（剩余 {0}ms，软窗 {1}ms）——预算即将耗尽，建议开始收尾",
+                    deadline.remainingMillis(), window.toMillis());
+        }
+    }
+
+    /** impl-678 / spec 921：软截止预警窗配置（null = 关——默认零行为变化）。 */
+    public void setSoftDeadlineWindow(java.time.Duration softWindow) {
+        this.softDeadlineWindow = softWindow;
+    }
+
+    /** impl-678 / spec 921：本 Turn 是否已发软截止预警（观测面）。 */
+    public boolean softDeadlineWarned() {
+        return softDeadlineWarned.get();
+    }
+
     private ToolResponseMessage.ToolResponse awaitCompletion(
             Future<ToolResponseMessage.ToolResponse> future,
             AssistantMessage.ToolCall toolCall) throws Exception {
@@ -468,6 +507,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         if (deadline.isNone()) {
             return future.get();
         }
+        checkSoftDeadlineWindow(deadline);
         long remainingMillis = deadline.remainingMillis();
         if (remainingMillis > 0) {
             try {
