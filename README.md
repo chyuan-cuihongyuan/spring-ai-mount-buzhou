@@ -547,6 +547,56 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | exec 治理 | 软截止预警集成 | HarnessToolCallingManager 软截止窗（setSoftDeadlineWindow + 一次性 WARN/counter + beginTurn 复位）——spec 921 集成留位兑现（spec 927） | [spec 927](docs/spec/927-soft-deadline-integration.md) |
 | 会话治理 | pruned run 审计查询 | EvalQueryService.runsWithPruned（pruned 项筛选 + PrunedRunSummary 降序投影）——spec 901 剪枝审计入口（spec 928） | [spec 928](docs/spec/928-pruned-query.md) |
 | 模型韧性 | webhook 死信环形上限 | MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧保最新）——dead.* 存量从无限累积到环形封顶，有界纪律（spec 937） | [spec 937](docs/spec/937-deadletter-cap.md) |
+| 观测治理 | Redis 语义向量缓存（补登） | I/J 会话产出引用补全 | [spec 125](docs/spec/125-redis-semantic-vector-cache.md) |
+| 观测治理 | 700-capability-decision-audit（补登） | I/J 会话产出引用补全 | [spec 700](docs/spec/700-capability-decision-audit.md) |
+| 观测治理 | 语义缓存权重预算驱逐（补登） | I/J 会话产出引用补全 | [spec 701](docs/spec/701-semantic-cache-weight-budget.md) |
+| 观测治理 | 702-circuit-transition-journal（补登） | I/J 会话产出引用补全 | [spec 702](docs/spec/702-circuit-transition-journal.md) |
+| 观测治理 | 703-routing-health-dampener（补登） | I/J 会话产出引用补全 | [spec 703](docs/spec/703-routing-health-dampener.md) |
+| 观测治理 | 704-prompt-composition（补登） | I/J 会话产出引用补全 | [spec 704](docs/spec/704-prompt-composition.md) |
+| 观测治理 | Redis 键命名空间碰撞审计（补登） | I/J 会话产出引用补全 | [spec 705](docs/spec/705-redis-key-layout-audit.md) |
+| 观测治理 | 706-mcp-directory-diff（补登） | I/J 会话产出引用补全 | [spec 706](docs/spec/706-mcp-directory-diff.md) |
+| 观测治理 | 707-spill-pair-audit（补登） | I/J 会话产出引用补全 | [spec 707](docs/spec/707-spill-pair-audit.md) |
+| 观测治理 | 评估项结果记忆化（补登） | I/J 会话产出引用补全 | [spec 708](docs/spec/708-eval-item-memoization.md) |
+| 观测治理 | 709-experiment-expiry（补登） | I/J 会话产出引用补全 | [spec 709](docs/spec/709-experiment-expiry.md) |
+| 观测治理 | 710-experiment-holdout（补登） | I/J 会话产出引用补全 | [spec 710](docs/spec/710-experiment-holdout.md) |
+| 观测治理 | 711-turn-sequence-audit（补登） | I/J 会话产出引用补全 | [spec 711](docs/spec/711-turn-sequence-audit.md) |
+| 观测治理 | 712-span-health-summary（补登） | I/J 会话产出引用补全 | [spec 712](docs/spec/712-span-health-summary.md) |
+| 观测治理 | 数据集标签与过滤（补登） | I/J 会话产出引用补全 | [spec 713](docs/spec/713-dataset-tags.md) |
+| 观测治理 | 714-similarity-evaluator（补登） | I/J 会话产出引用补全 | [spec 714](docs/spec/714-similarity-evaluator.md) |
+| 观测治理 | 715-format-preserving-mask（补登） | I/J 会话产出引用补全 | [spec 715](docs/spec/715-format-preserving-mask.md) |
+| 观测治理 | Todo 陈旧度审计（补登） | I/J 会话产出引用补全 | [spec 716](docs/spec/716-todo-staleness.md) |
+| 观测治理 | 717-fact-conflict-audit（补登） | I/J 会话产出引用补全 | [spec 717](docs/spec/717-fact-conflict-audit.md) |
+| 观测治理 | 评估通过率漂移基线（补登） | I/J 会话产出引用补全 | [spec 718](docs/spec/718-eval-drift-baseline.md) |
+| 观测治理 | 719-provider-ratelimit-signals（补登） | I/J 会话产出引用补全 | [spec 719](docs/spec/719-provider-ratelimit-signals.md) |
+| 观测治理 | 721-chunking-embedding-model（补登） | I/J 会话产出引用补全 | [spec 721](docs/spec/721-chunking-embedding-model.md) |
+| 观测治理 | MCP 并发占用视图（补登） | I/J 会话产出引用补全 | [spec 722](docs/spec/722-mcp-concurrency-views.md) |
+| 观测治理 | 分批嵌入 yml 装配（补登） | I/J 会话产出引用补全 | [spec 723](docs/spec/723-chunking-embedding-assembly.md) |
+| 观测治理 | 724-state-ttl-coverage（补登） | I/J 会话产出引用补全 | [spec 724](docs/spec/724-state-ttl-coverage.md) |
+| 观测治理 | 725-dampener-ramp（补登） | I/J 会话产出引用补全 | [spec 725](docs/spec/725-dampener-ramp.md) |
+| 观测治理 | 事件类型分布读数（补登） | I/J 会话产出引用补全 | [spec 726](docs/spec/726-event-type-distribution.md) |
+| 观测治理 | 727-redis-key-layout-health（补登） | I/J 会话产出引用补全 | [spec 727](docs/spec/727-redis-key-layout-health.md) |
+| 观测治理 | spill 配对健康面（补登） | I/J 会话产出引用补全 | [spec 728](docs/spec/728-spill-pair-health.md) |
+| 观测治理 | 729-observability-capacity-health（补登） | I/J 会话产出引用补全 | [spec 729](docs/spec/729-observability-capacity-health.md) |
+| 观测治理 | 限流头跨供应商归一解析（补登） | I/J 会话产出引用补全 | [spec 730](docs/spec/730-ratelimit-header-normalization.md) |
+| 观测治理 | 评估分数分布解析（补登） | I/J 会话产出引用补全 | [spec 731](docs/spec/731-eval-score-analytics.md) |
+| 观测治理 | 事件 payload 大小审计（补登） | I/J 会话产出引用补全 | [spec 732](docs/spec/732-event-payload-size-audit.md) |
+| 观测治理 | 提示词使用缺口读数（补登） | I/J 会话产出引用补全 | [spec 733](docs/spec/733-prompt-usage-gaps.md) |
+| 观测治理 | 数据集指纹变更信号（补登） | I/J 会话产出引用补全 | [spec 734](docs/spec/734-fingerprint-change-signal.md) |
+| 观测治理 | 735-event-pairing-audit（补登） | I/J 会话产出引用补全 | [spec 735](docs/spec/735-event-pairing-audit.md) |
+| 观测治理 | 736-span-parent-integrity（补登） | I/J 会话产出引用补全 | [spec 736](docs/spec/736-span-parent-integrity.md) |
+| 观测治理 | 737-response-cache-weight-budget（补登） | I/J 会话产出引用补全 | [spec 737](docs/spec/737-response-cache-weight-budget.md) |
+| 观测治理 | 738-session-export-size-audit（补登） | I/J 会话产出引用补全 | [spec 738](docs/spec/738-session-export-size-audit.md) |
+| 观测治理 | 739-event-presence-gate（补登） | I/J 会话产出引用补全 | [spec 739](docs/spec/739-event-presence-gate.md) |
+| 观测治理 | 供应商限流信号 stats 接线（补登） | I/J 会话产出引用补全 | [spec 740](docs/spec/740-provider-signals-stats.md) |
+| 观测治理 | 741-shared-fact-footprint（补登） | I/J 会话产出引用补全 | [spec 741](docs/spec/741-shared-fact-footprint.md) |
+| 观测治理 | 742-sweep-retained-readout（补登） | I/J 会话产出引用补全 | [spec 742](docs/spec/742-sweep-retained-readout.md) |
+| 观测治理 | 导出脱敏命中计数（补登） | I/J 会话产出引用补全 | [spec 743](docs/spec/743-sanitizer-hit-counts.md) |
+| 观测治理 | 744-hybrid-ranker-readout（补登） | I/J 会话产出引用补全 | [spec 744](docs/spec/744-hybrid-ranker-readout.md) |
+| 观测治理 | 响应缓存权重预算 yml 装配（补登） | I/J 会话产出引用补全 | [spec 745](docs/spec/745-response-cache-weight-assembly.md) |
+| 观测治理 | 746-deny-by-capability（补登） | I/J 会话产出引用补全 | [spec 746](docs/spec/746-deny-by-capability.md) |
+| 观测治理 | 747-threshold-counterfactual（补登） | I/J 会话产出引用补全 | [spec 747](docs/spec/747-threshold-counterfactual.md) |
+| 观测治理 | 748-execution-policy-readout（补登） | I/J 会话产出引用补全 | [spec 748](docs/spec/748-execution-policy-readout.md) |
+| 观测治理 | 749-final-verification（补登） | I/J 会话产出引用补全 | [spec 749](docs/spec/749-final-verification.md) |
 | 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
 | 持久化 | ObservabilityStore 契约校验套件 | 八项语义检查静态 verify（保序/快照写读/空读/隔离/deleteSession 幂等/eventsOfSpan 过滤）+ 内存接入——契约系列收口最后核心 SPI（spec 936） | [spec 936](docs/spec/936-obs-contract.md) |
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
@@ -577,6 +627,10 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 模型窗口解析分布读面 | TableContextWindowResolver 嵌套 WindowResolutionStats（override/内置/回退三路守恒 + resolvedWindows 快照）——LLM 模型目录覆盖思想，幽灵覆盖显形（spec 1028） | [spec 1028](docs/spec/1028-window-resolution-stats.md) |
 | 成本预算 | 模型预算闸判定分布读面 | ModelBudgetGate 嵌套 BudgetGateStats（checks/allowed/blocked 守恒）+ stats()——SRE 预算耗尽告警思想，连续拦截水位直读（spec 1029） | [spec 1029](docs/spec/1029-budget-gate-stats.md) |
 | 会话治理 | 会话级联清理聚合计数读面 | SessionCleaner 嵌套 CleanupStats（deleteCalls/cleanedTargets/failedTargets + failuresByTarget 分桶）+ cleanupStats()——PostgreSQL autovacuum stats 思想（spec 1030） | [spec 1030](docs/spec/1030-cleanup-stats.md) |
+| 观测与运维 | 归档 TTL 清扫（补登） | 归档记录按 TTL 过期清扫，容量治理闭环（spec 103） | [spec 103](docs/spec/103-archive-ttl-purge.md) |
+| 观测治理 | 错误签名 JSONL 导出（补登） | 错误签名集 JSONL 批量导出，离线分析通道（spec 112） | [spec 112](docs/spec/112-signatures-jsonl-export.md) |
+| 观测与运维 | 归档明细查询（补登） | 归档批次内逐会话明细查询，凭证可追溯（spec 120） | [spec 120](docs/spec/120-archive-detail-query.md) |
+| 观测治理 | 错误签名重置（补登） | 签名计数进程态重置，测试隔离与运维清零（spec 121） | [spec 121](docs/spec/121-signatures-reset.md) |
 | 工程门禁 | J 系周期预检（R10） | 隔离 worktree 全仓 verify 16 模块绿 + 双门复跑 + 三处主仓红收口（guard 保序/910–915 README 行/SessionExportDiff 快照行）（spec 1009） | [spec 1009](docs/spec/1009-periodic-audit-r10.md) |
 | 观测治理 | 工具策略匹配决策读面 | ToolPolicyMatcher 判定单点分类 EXACT/GLOB/NONE + 有界最近决策环 + stats() 快照，Σ守恒 == match 调用数——OPA decision log 借鉴（spec 1000） | [spec 1000](docs/spec/1000-policy-match-decision.md) |
 | 观测治理 | 工具慢调用榜读面 | ToolSlowLog（严格大于阈值入有界 FIFO 环 + entries() 新→旧现场）与 spec 108 timer 同点接线——Redis SLOWLOG 借鉴（spec 1001） | [spec 1001](docs/spec/1001-tool-slow-log.md) |
