@@ -128,7 +128,7 @@ HITL 守卫 `beforeTool` 返 BLOCK 时（见 07-hooks），该调用以「等待
 
 > 【推演】被 BLOCK 的调用在并行扇出中按「快速正常返回的任务」处理——不占超时预算、无特例分支。ticket 18 与 25 的衔接缝由本文推演弥合。
 
-> 【推演】Spill 双路径幂等：Hook 层 `afterTool` offload（ticket 23 狗粮原则）与 manager 聚合前终检共用 `SpillStore`；已 spill 的结果带句柄标记，终检测到标记即跳过，不重复落盘。ticket 18（manager 内替换）与 23（Spill Hook 化）的衔接缝由本文推演弥合。
+> 【推演·spec 1539 / design-incompleteness F11 裁定】Spill 双路径幂等的实现定案：**单路径 Hook 化**——CopyOnWriteGuardHook（写侧拦截落盘）+ OnloadHook（执行前还原）双 Hook 覆盖进出两向，manager 聚合前不再设独立终检（Hook 层已是唯一落盘点，无双路径即无幂等问题）；原推演的「manager 终检」形态不采用。
 
 ## 配置项
 

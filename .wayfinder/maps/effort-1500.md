@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [F8/F11 判定收尾的形状裁决](../tickets/T2329-f8-f11-shape.md) — F8 编程面 only（标签语义业务自定无默认可兜）；F11 单路径 Hook 化（无双路径即无幂等问题）——F1-F11 全档闭环。
 - [spec 05 判定项批量回写的形状裁决](../tickets/T2327-spec05-adjudications-shape.md) — F3 per-session 定案（Builder Bean 不采用）/F4 键表实现重写/F6 纯函数口径——F 系判定项全清。
 - [CONTEXT M 系术语段的形状裁决](../tickets/T2323-context-terms-shape.md) — 新节五条术语（一条一机制组跨 spec 聚合）。
 - [A/B 进度读面的形状裁决](../tickets/T2321-ab-progress-shape.md) — CompareProgress + 过程/终态快照（skipped null 占位无对象——终态统一 done=total）；spec 1534 扩散。
@@ -111,6 +112,7 @@
 | 40 | CONTEXT.md M 系术语段（五条：通知/裁决分离等） | 领域术语台账同步 | T2323–T2324 | 1139 | 1536 | ✅ |
 | 41 | 周期预检轮：worktree 全仓 verify——tools RunCommandHardeningTest 稳定红破案（谓词裸 "sleep 30" 子串误伤同机并行会话轮询 shell 命令行——实证 pgrep 命中 N 会话快照循环）；谓词锚定 marker 唯一路径 + 垂死窗口轮询；starter 快照门欠账待 R51 收口统一再生 | 周期 verify + 测试缺陷修复 | — | — | — | ✅ |
 | 42 | spec 05 判定项批量回写（F3 advisor per-session 定案/F4 键表实现重写/F6 随机源口径） | design-incompleteness 判定项清扫 | T2327–T2328 | 1141 | 1538 | ✅ |
+| 43 | F8/F11 判定收尾（编程面 only/单路径 Hook 化——F 系全清） | design-incompleteness 判定项收尾 | T2329–T2330 | 1142 | 1539 | ✅ |
 
 
 ## Out of scope
