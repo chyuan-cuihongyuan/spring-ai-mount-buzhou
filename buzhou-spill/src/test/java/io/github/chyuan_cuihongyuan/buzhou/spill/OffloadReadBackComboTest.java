@@ -52,7 +52,7 @@ class OffloadReadBackComboTest {
                 + os.cleanInline() + os.offloaded() + os.refrains());
         ReadRangeTool.ReadRangeStats rs = ReadRangeTool.stats();
         assertThat(rs.calls()).isEqualTo(rs.reads() + rs.truncatedReads()
-                + rs.totalRejects());
+                + rs.skillReads() + rs.parseRejects() + rs.skillRejects() + rs.failures());
         // 闭环对应：offloaded=1 且回读命中=1
         assertThat(os.offloaded()).isEqualTo(1);
         assertThat(rs.reads()).isEqualTo(1);
