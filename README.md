@@ -808,6 +808,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 实验治理 | 实验分桶均衡审计 | ExperimentBalanceAudit——两段式声明桶集合+喂观测计数：逐桶份额/与均匀份额最大偏移（≤5pp A/A 惯例含端点）+balanced 判定，零分配桶计入（权重键名笔误先于显著性显形）、无样本 -1 哨兵不冒充——A/A test 思想（spec 1421） | [spec 1421](docs/spec/1421-experiment-balance-audit.md) |
 
+| 观测治理 | Hook 顺序碰撞审计 | HookOrderAudit——钩子清单同序碰撞组显形：组内名字典序（=ChainComposition 兜底序，重命名即变序的装配脆性）、组间 order 升序、唯一 order 不占报告；修复=显式错开 order——Spring ordered-bean 审计思想（spec 1422） | [spec 1422](docs/spec/1422-hook-order-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

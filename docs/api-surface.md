@@ -2408,3 +2408,7 @@
   均衡性离线审计——两段式声明桶集合+喂计数（零桶计入），最大份额偏移
   ≤5pp 容差含端点（双比较 1e-9 卫生），无样本 -1 哨兵不冒充均衡；嵌套
   `BalanceReport`/`BucketShare` 不另立面）
+
+- `HookOrderAudit`（1422——Spring ordered-bean 审计思想：钩子清单同序
+  碰撞组显形（组内名字典序=ChainComposition 兜底序——重命名即变序的
+  脆性所在），纯函数只读不裁决；嵌套 `Report`/`OrderGroup` 不另立面）

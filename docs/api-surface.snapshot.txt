@@ -245,6 +245,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ChainComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ContextWatermarkHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookChain
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookContext
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookOrderAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingAggregator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.HookTimingHealth

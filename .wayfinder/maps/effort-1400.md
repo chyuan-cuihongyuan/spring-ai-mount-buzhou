@@ -44,3 +44,4 @@
 - [预算分档分类器的形状裁决](../tickets/T2139-budget-tier-shape.md) — BudgetTierClassifier 纯函数（core/budget）：classify→Tier 三档（WARN_RATIO=0.8/HARD_RATIO=1.0 含端点）+UNKNOWN 畸形哨兵（-1 比率）+四桶计数+verdicts 饱和度降序+tightest(n)——k8s ResourceQuota + SRE headroom 思想；与 1029/806/817 三面辨义。
 - [评估运行年龄台账的形状裁决](../tickets/T2141-eval-age-ledger-shape.md) — **换题轮**（R46 无 probe seam→S9 题注册表年龄化）：EvalRunAgeLedger 公共静态面（Registry.Registration begin/close 双点埋点，registrationId 序号）——Snapshot active/oldestActiveAgeMillis 卡死异味哨兵（无活跃 -1）/maxCompletedDurationMillis 水位/closed——tqdm + k8s 运行时长异味思想。
 - [实验分桶均衡审计的形状裁决](../tickets/T2143-experiment-balance-shape.md) — ExperimentBalanceAudit 纯函数（core/experiment）：两段式 forBuckets→withAssignments（零桶计入不能装不存在）+最大份额偏移≤5pp 含端点（1e-9 卫生余量）+无样本 -1 哨兵不冒充均衡——A/A test 思想。
+- [Hook 顺序碰撞审计的形状裁决](../tickets/T2145-hook-order-audit-shape.md) — HookOrderAudit 纯函数（core/hook）：analyze→同序碰撞组显形（组内名字典序=兜底序即脆性，重命名即变序；组间 order 升序；唯一 order 不占报告）——Spring ordered-bean 审计思想，只读不裁决。
