@@ -1,4 +1,4 @@
-# 795 — fs 沙箱判定计数读面
+# 797 — fs 沙箱判定计数读面
 
 **What to build:** FileSandbox resolutions/violations 两计数 + 嵌套 SandboxVerdictStats + stats() + 逃逸/空路径/守恒测试。
 

@@ -1,6 +1,6 @@
 # 1045 — fs 沙箱判定计数读面
 
-> 来源：J 会话第 45 轮 = effort #1045（[T1545](../../.wayfinder/tickets/T1545-sandbox-verdict-stats-shape.md) / [T1546](../../.wayfinder/tickets/T1546-sandbox-verdict-stats-verify.md) / impl 795）。借鉴：chroot escape detection（逃逸尝试频次与趋势是沙箱健康与攻击面探测的第一信号）。与 R18 命令沙箱分轴（那轴是命令执行结果，本轴是路径判定）。
+> 来源：J 会话第 45 轮 = effort #1045（[T1545](../../.wayfinder/tickets/T1545-sandbox-verdict-stats-shape.md) / [T1546](../../.wayfinder/tickets/T1546-sandbox-verdict-stats-verify.md) / impl 797）。借鉴：chroot escape detection（逃逸尝试频次与趋势是沙箱健康与攻击面探测的第一信号）。与 R18 命令沙箱分轴（那轴是命令执行结果，本轴是路径判定）。
 
 ## Problem Statement
 

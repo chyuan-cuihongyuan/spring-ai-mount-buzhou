@@ -107,7 +107,7 @@
 | 42 | 签名验钥分布读面（verifyAttempts/verifyKeyMisses/rotations） | cert-manager/keyring ops | T1537–T1538 | 794 | 1042 | ✅ |
 | 43 | 围栏裁决分布读面（五态判定分桶守恒） | Kafka epoch/consumer-lag | T1539–T1540 | 795 | 1043 | ✅ |
 | 44 | J 系阶段对账审计轮（R44 五类对账+修复） | G/H 收口预检先例 | T1541–T1542 | 796 | 1044 | ✅ |
-| 45 | fs 沙箱判定计数读面（resolutions/violations 守恒） | chroot escape detection | T1545–T1546 | 795 | 1045 | ✅ |
+| 45 | fs 沙箱判定计数读面（resolutions/violations 守恒） | chroot escape detection | T1545–T1546 | 797 | 1045 | ✅ |
 | 46 | （开工时按缺口核查选题，候选见下） | — | T1547–T1548 | 796 | 1046 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
