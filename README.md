@@ -774,6 +774,14 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 |------|------|--------|------|
 | 会话治理 | SessionObserver 通知面异常隔离 | DefaultAgentSession 12 处观察者裸 forEach 通知点统一改走 notifyObservers 隔离派发——单观察者异常记 ERROR 后继续其余观察者、不向上传播（onOpen 未隔离时观测组件缺陷可炸掉会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想（spec 1500） | [spec 1500](docs/spec/1500-observer-notify-isolation.md) |
 
+## 生产级纵深 XII（N 会话 1600 系增量）
+
+N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 韧性缓存 | 语义缓存 LFU 采样驱逐 | 驱逐从纯 eldest 升级为采样窗口内最低命中数先出（平局取老保 LRU 底线），热 FAQ 条目不被一次性扫描写入冲刷；hotPreservedCount 观测采样实效率——Redis allkeys-lfu + maxmemory-samples 思想（spec 1600） | [spec 1600](docs/spec/1600-semantic-cache-lfu-sampling.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
