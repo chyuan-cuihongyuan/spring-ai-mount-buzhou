@@ -51,7 +51,7 @@ class SpillLifecycleReadoutTest {
         assertThat(os.offloaded()).isEqualTo(1);
 
         EvictHandleTool.EvictStats es = EvictHandleTool.stats();
-        assertThat(es.invocations()).isEqualTo(es.evictions()
+        assertThat(es.attempts()).isEqualTo(es.evictions()
                 + es.badPathRejects() + es.parseRejects());
         assertThat(es.evictions()).isEqualTo(1);
     }
