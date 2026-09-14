@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [read_range 回读判定读面的形态裁决](../tickets/T1579-readrange-stats-shape.md) — ReadRangeTool 静态七计数（calls/reads/truncatedReads/skillReads/parseRejects/skillRejects/failures）+ 嵌套 ReadRangeStats + stats()/resetForTest()；守恒 calls = 六结局桶；与 store 层 ReadAuditTrail 审计流水不同轴共存（S3 TransferManager 分页回读统计）。
 - [Dashboard HTTP 状态分布读面的形态裁决](../tickets/T1577-dashhttp-stats-shape.md) — DashboardHttpServer（internal 包无公共 API 负担）静态八计数（requests/ok/auth/bad/notFound/tooLarge/unimplemented/serverErrors）+ 嵌套 DashboardHttpStats + stats()/resetForTest()；守恒 requests = ok + 六结局桶；400 两源合桶；行为逐位不变（nginx status zone）。
 - [R60 周期预检轮的形状裁决](../tickets/T1575-r60-audit-shape.md) — R51–R59 对账零缺陷（七域读面布局盘点）+ API 快照跨会话欠账就近补账（门 regenerate 指引流程照走，`-am` 解析路径陷阱入档）；复跑 BUILD SUCCESS 验收。
 - [compact_now 手动压缩判定读面的形态裁决](../tickets/T1573-compactnow-stats-shape.md) — CompactNowTool 静态五计数（calls/successes/skippeds/failures/unboundRejects）+ 嵌套 CompactNowStats + stats()/resetForTest()；守恒 calls = 四结局桶；与 R53 evict_handle 同谱系（模型主动维护行为采用率，Anthropic /compact）。
@@ -140,7 +141,8 @@
 | 59 | compact_now 手动压缩判定读面（successes/skippeds/failures/unbound 四桶守恒） | Anthropic /compact 采用率 | T1573–T1574 | 811 | 1059 | ✅ |
 | 60 | 周期预检轮：R51–R59 对账全绿 + API 快照跨会话欠账补账 + 复跑 verify BUILD SUCCESS | 门自带 regenerate 指引就近处置 | T1575–T1576 | 812 | 1060 | ✅ |
 | 61 | Dashboard HTTP 状态分布读面（ok + 六结局桶守恒） | nginx status zone | T1577–T1578 | 813 | 1061 | ✅ |
-| 62 | （开工时按缺口核查选题） | — | T1579–T1580 | 814 | 1062 |  |
+| 62 | read_range 回读判定读面（reads/truncated/skill 三组七桶守恒） | S3 TransferManager 分页回读统计 | T1579–T1580 | 814 | 1062 | ✅ |
+| 63 | （开工时按缺口核查选题） | — | T1581–T1582 | 815 | 1063 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
