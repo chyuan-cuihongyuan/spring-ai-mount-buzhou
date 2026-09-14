@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [读侧 Spotlighting 包裹判定读面的形态裁决](../tickets/T1583-spotlight-stats-shape.md) — SpotlightHook 静态五计数（invocations/wrapped/alreadyWrappedSkips/noticeSkips/errorSkips）+ 嵌套 SpotlightStats + stats()/resetForTest()；守恒 invocations = wrapped + 三跳过桶；包裹覆盖率即注入面收敛度信号（OWASP LLM01 spotlighting 采用率）。
 - [双时序事实台账操作读面的形态裁决](../tickets/T1581-factledger-stats-shape.md) — BiTemporalFactLedger 静态四计数（supersededWrites/historyLookups/validAtLookups/corruptRecordLoads）+ 嵌套 FactLedgerStats + stats()/resetForTest()；写/读两类操作独立计数不设人为守恒（口径诚实）；损坏段装载蒸发显形（bitemporal query/mutation 对账）。
 - [read_range 回读判定读面的形态裁决](../tickets/T1579-readrange-stats-shape.md) — ReadRangeTool 静态七计数（calls/reads/truncatedReads/skillReads/parseRejects/skillRejects/failures）+ 嵌套 ReadRangeStats + stats()/resetForTest()；守恒 calls = 六结局桶；与 store 层 ReadAuditTrail 审计流水不同轴共存（S3 TransferManager 分页回读统计）。
 - [Dashboard HTTP 状态分布读面的形态裁决](../tickets/T1577-dashhttp-stats-shape.md) — DashboardHttpServer（internal 包无公共 API 负担）静态八计数（requests/ok/auth/bad/notFound/tooLarge/unimplemented/serverErrors）+ 嵌套 DashboardHttpStats + stats()/resetForTest()；守恒 requests = ok + 六结局桶；400 两源合桶；行为逐位不变（nginx status zone）。
@@ -144,7 +145,8 @@
 | 61 | Dashboard HTTP 状态分布读面（ok + 六结局桶守恒） | nginx status zone | T1577–T1578 | 813 | 1061 | ✅ |
 | 62 | read_range 回读判定读面（reads/truncated/skill 三组七桶守恒） | S3 TransferManager 分页回读统计 | T1579–T1580 | 814 | 1062 | ✅ |
 | 63 | 双时序事实台账操作读面（写入/两类查询/损坏蒸发四计数） | bitemporal query/mutation 对账 | T1581–T1582 | 815 | 1063 | ✅ |
-| 64 | （开工时按缺口核查选题） | — | T1583–T1584 | 816 | 1064 |  |
+| 64 | 读侧 Spotlighting 包裹判定读面（wrapped + 三跳过桶守恒） | OWASP LLM01 spotlighting 采用率 | T1583–T1584 | 816 | 1064 | ✅ |
+| 65 | （开工时按缺口核查选题） | — | T1585–T1586 | 817 | 1065 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）

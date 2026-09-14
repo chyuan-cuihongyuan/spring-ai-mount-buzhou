@@ -636,6 +636,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
+| 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -701,6 +702,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | SnapshotMessage 补测与跨模块复核（K 会话 R5） | 收紧判据残留归口：compact 构造 null 防御 + Map.copyOf 拷贝语义合同；六小模块 miss≥1 复扫清单化（spec 1204） | [spec 1204](docs/spec/1204-snapshot-message-tightened-sweep.md) |
 | 工程门禁 | K 会话周期对账轮 R6 | 全仓 verify（隔离 worktree CI 等价门）+ K 线工件链五项对账（spec/README/票/impl/map）——SRE Production Readiness Review 思想，R7 起对账/雾区交替（spec 1205） | [spec 1205](docs/spec/1205-k-audit-r6.md) |
 | 工程门禁 | R7 雾区裁决：T1819 治本 + BRANCH/report-aggregate | Webhook 测试 forwarder 收口（谁启动谁收尾）；BRANCH 13 模块实测分布入台账（硬门暂缓有据）；report-aggregate 不引入（模块工程档不动）——ADR 式裁决（spec 1206） | [spec 1206](docs/spec/1206-fog-adjudication-r7.md) |
+| 工程门禁 | R8 分支缺口批次 1：observe-otel | 分支精确定向补测：OtelBridgeSink 61%→87%（重复开启/驱逐护栏/spanName 回退/sessionTrace 上界/类型适配器/故障隔离）+ OtelProperties 100%；显形 T1824 sessionTrace 驱逐 iterator.remove() 缺 next() 致超限后新会话 span 静默丢弃（spec 1207） | [spec 1207](docs/spec/1207-branch-uplift-otel.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
