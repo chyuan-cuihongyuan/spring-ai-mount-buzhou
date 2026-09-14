@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [read_file 读量水位与拒绝分桶读面的形态裁决](../tickets/T1549-readfile-stats-shape.md) — ReadFileTool 静态六计数（attempts/reads/bytesRead/notFileRejects/oversizeRejects/failures）+ 嵌套 ReadFileStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = reads + totalRejects；与 R46 写侧轴间同口径可比（Datadog DogStatsD read/write 对称计量）。
 - [write_file 写入量水位与拒绝分桶读面的形态裁决](../tickets/T1547-writefile-stats-shape.md) — WriteFileTool 静态七计数（attempts/writes/bytesWritten/paramRejects/oversizeRejects/noclobberRejects/failures）+ 嵌套 WriteFileStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = writes + totalRejects（每入口恰落一桶）；call() 返回语义逐位不变（Sentry discarded events + Dropwizard Meter）。
 - [工具策略匹配决策读面的形态裁决](../tickets/T1451-policy-match-decision-shape.md) — ToolPolicyMatchDecision（EXACT/GLOB/NONE + matchedKey）+ ToolPolicyMatchStats 快照（Σ守恒 == match 调用数，recent 有界环 32）；match 返回值逐位不变，stats()/resetStats() 读面（OPA decision log）。
 - [慢调用榜读面的形态裁决](../tickets/T1453-slow-log-shape.md) — ToolSlowLog（Redis SLOWLOG：严格大于阈值入有界 FIFO 环 32、entries() 新→旧现场、configureThreshold/reset）；HookedToolCallback 与 timer 同点接线，只记名不记参（红线）；聚合面之外的单次现场。
@@ -110,7 +111,8 @@
 | 44 | J 系阶段对账审计轮（R44 五类对账+修复） | G/H 收口预检先例 | T1541–T1542 | 796 | 1044 | ✅ |
 | 45 | fs 沙箱判定计数读面（resolutions/violations 守恒） | chroot escape detection | T1545–T1546 | 797 | 1045 | ✅ |
 | 46 | write_file 写入量水位与拒绝分桶读面（attempts/writes/bytesWritten + 四拒绝桶守恒） | Sentry discarded events + Dropwizard Meter | T1547–T1548 | 798 | 1046 | ✅ |
-| 47 | （开工时按缺口核查选题） | — | T1549–T1550 | 799 | 1047 |  |
+| 47 | read_file 读量水位与拒绝分桶读面（attempts/reads/bytesRead + 三拒绝桶守恒） | Datadog DogStatsD read/write 对称计量 | T1549–T1550 | 799 | 1047 | ✅ |
+| 48 | （开工时按缺口核查选题） | — | T1551–T1552 | 800 | 1048 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
