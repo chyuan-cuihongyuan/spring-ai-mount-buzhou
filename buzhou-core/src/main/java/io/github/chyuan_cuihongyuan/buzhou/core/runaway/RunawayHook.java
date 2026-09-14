@@ -102,8 +102,39 @@ public class RunawayHook implements BuzhouHook {
      * + 一次工具超时），非中途精确打断；wall-clock 在步边界检测，与 10 韧性单步 {@code deadline} 正交共存。
      */
     @Override
+    // —— spec 1076 / impl 828：判定分布读面（上游闸门空结果率思想同族；静态面理由
+    // 同 R46–R75 先例）。守恒：invocations = blocked + allowed + disabledSkips。
+    private static final java.util.concurrent.atomic.AtomicLong INVOCATIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BLOCKED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ALLOWED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DISABLED_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** Runaway 判定分布快照（spec 1076）。 */
+    public record RunawayStats(long invocations, long blocked, long allowed, long disabledSkips) {
+    }
+
+    /** 只读快照（守恒 invocations = blocked + allowed + disabledSkips）。 */
+    public static RunawayStats stats() {
+        return new RunawayStats(INVOCATIONS.get(), BLOCKED.get(), ALLOWED.get(),
+                DISABLED_SKIPS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        INVOCATIONS.set(0);
+        BLOCKED.set(0);
+        ALLOWED.set(0);
+        DISABLED_SKIPS.set(0);
+    }
+
     public HookResult beforeModel(ModelCallContext ctx) {
+        INVOCATIONS.incrementAndGet();
         if (!props.enabled()) {
+            DISABLED_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         RunawayCounters.TurnState ts = counters.turnState(ctx.sessionId());
@@ -136,11 +167,13 @@ public class RunawayHook implements BuzhouHook {
         if (maxSteps != null) {
             maybeEmitSoftThreshold(ctx, ts, step, maxSteps);
         }
+        ALLOWED.incrementAndGet();
         return HookResult.CONTINUE;
     }
 
     /** wall-clock 硬顶：limit/value 用毫秒数（reason=wall-clock 区分维度）。 */
     private HookResult wallClockHardStop(ModelCallContext ctx, java.time.Duration limit, java.time.Duration elapsed) {
+        BLOCKED.incrementAndGet();
         emit(ctx, EVENT_HARD_STOP, java.util.Map.ofEntries(
                 java.util.Map.entry("sessionId", ctx.sessionId()),
                 java.util.Map.entry("turn", ctx.turn()),
@@ -324,6 +357,7 @@ public class RunawayHook implements BuzhouHook {
      */
     private HookResult hardStopBlock(io.github.chyuan_cuihongyuan.buzhou.core.hook.HookContext ctx,
                                      String reason, int limit, int value) {
+        BLOCKED.incrementAndGet();
         emit(ctx, EVENT_HARD_STOP, Map.of(
                 "sessionId", ctx.sessionId(),
                 "turn", ctx.turn(),
