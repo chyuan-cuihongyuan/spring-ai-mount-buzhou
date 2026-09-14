@@ -36,6 +36,7 @@
 - [R8 形态裁决：分支缺口批次 1 选题（observe-otel）](../tickets/T1822-branch-uplift-otel-shape.md) — 逐类分支数据精定制导（mutation-testing 式断言思想）：store-redis 缺口大头为容器门控类（covered=0×3，本地不可 uplift，环境约束入档，fake 化被 T1809 否决）→ 靶点定为本地可测的 observe-otel 两类；OtelBridgeSink 按未覆盖分支行号逐一制导 + 防御性不可达分支（record compact 已归一）诚实记录。
 - [R8 验证收口 + T1824 主代码缺陷](../tickets/T1823-branch-uplift-otel-verify.md) — observe-otel 32 用例全绿；OtelBridgeSink 分支 61%→87%、OtelProperties →100%；**分支补测第一轮即显形真实主代码缺陷 T1824**（sessionTrace 驱逐 iterator.remove() 缺 next() → ISE 被故障隔离吞掉 → 超限后新会话 span 静默丢弃，驱逐护栏从未工作）——「缺口=未执行路径=未验证路径」实证。
 - [R9 分支缺口批次 2 选题（observability 两小类）](../tickets/T1825-branch-uplift-observability-shape.md) — 小类先清沉淀 fake 基建（RecordingRecorder/Handle，初始属性袋必须落 handle 对齐真实语义）；ObservabilitySessionState 46%→88%（会话 span 生命周期/usage 聚合/CANCELLED 终态/carrier null 防御）+ ObservableToolCallback 29%→86%（parent 三级解析 ToolContext 载体>字段载体>hooks 兜底/异常 error+close+rethrow）；observability 83 用例全绿；批次 3 = ObservabilityAdvisor（68 missed）/ MicrometerDualWriter（15）留 R10+。
+- [R10 选题：MicrometerDualWriter 单类补测](../tickets/T1827-micrometer-dual-writer-shape.md) — 「无测试文件 > 缺分支」优先级：双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%，observability 94 用例全绿；ObservabilityAdvisor 流式路径顺延 R11 深做。
 
 ## R1 台账（spec 1200 / impl 903）
 

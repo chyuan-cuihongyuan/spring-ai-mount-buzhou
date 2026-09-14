@@ -4,12 +4,12 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** in-progress
+**Status:** done
 
-- [ ] MicrometerDualWriterTest
-- [ ] spec 1209 + README 行
-- [ ] 验证：定向绿 + 分支提升入账
+- [x] MicrometerDualWriterTest（11 用例）
+- [x] spec 1209 + README 行
+- [x] 验证：94 用例全绿；MicrometerDualWriter 67%→93%
 
 ## Done
 
-（收口时填写）
+验证：observability 94 用例全绿；MicrometerDualWriter 分支 93%。commit 见本轮 `test(observability)` 提交。
