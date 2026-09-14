@@ -849,6 +849,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillPairAudit
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillQuota
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillService
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillStore
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillTieringAudit
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillUri
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillUsage
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillWriteAmplifier

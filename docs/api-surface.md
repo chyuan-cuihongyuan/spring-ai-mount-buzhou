@@ -2479,3 +2479,8 @@
   分组检测悬空轮——有 USER 无 ASSISTANT 即悬空（TOOL 链不豁免、仅
   TOOL/SYSTEM 轮不算），样本封顶 8 升序+hasDangling 哨兵，纯函数；嵌套
   `Report` 不另立面）
+
+- `SpillTieringAudit`（1441——MinIO tiering/S3 lifecycle 思想：spill 读侧
+  访问频率分层审计——读事件按 uri 聚合对照存量全集：never/single/multi
+  三桶+hotRatio/coldRatio 派生（空库 -1 哨兵），纯函数；嵌套
+  `TieringReport` 不另立面）

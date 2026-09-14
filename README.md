@@ -932,6 +932,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 工程门禁 | L 会话阶段对账 R40 | LSessionLedgerAuditTest——工件链四面互证对账测试（范围自扩展）：票对公式/impl 切片窗/README 行/spec 号连续性；同批实证修复票号 +2 漂移与 impl 置换——J/K 对账轮先例（spec 1440） | [spec 1440](docs/spec/1440-l-audit-r40.md) |
 
+| Spill 治理 | Spill 冷热分层访问审计 | SpillTieringAudit——读事件按 uri 聚合对照存量全集：never（从未回读冷数据）/single（一次性消费）/multi（≥2 热点）三桶+hotRatio/coldRatio 占比派生（空库 -1 哨兵）；TTL/清理策略与预热依据显形——MinIO tiering 思想（spec 1441） | [spec 1441](docs/spec/1441-spill-tiering-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
