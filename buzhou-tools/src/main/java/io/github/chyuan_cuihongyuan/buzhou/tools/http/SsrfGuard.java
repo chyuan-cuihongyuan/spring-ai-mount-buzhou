@@ -5,6 +5,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * SSRF 防护（spec 06 推演 #10）：默认拦内网段与云元数据端点，可配放行。
@@ -70,6 +71,47 @@ public class SsrfGuard {
     private final List<Cidr> allowlist;
     private final List<String> allowedHosts;
 
+    // —— spec 1048 / impl 800：判定分布读面（Fail2ban 判定链显形 + OPA decision log
+    // 分桶思想；静态面理由同 FileSandbox.stats/WriteFileStats 先例）。
+    // 守恒：checks = 两放行桶 + 三拒绝桶之和（每入口恰落一桶）。
+    private static final AtomicLong CHECKS = new AtomicLong();
+    private static final AtomicLong ALLOWLISTED = new AtomicLong();
+    private static final AtomicLong DNS_ALLOWED = new AtomicLong();
+    private static final AtomicLong EMPTY_HOST_REJECTS = new AtomicLong();
+    private static final AtomicLong DNS_REJECTS = new AtomicLong();
+    private static final AtomicLong BLOCKED_REJECTS = new AtomicLong();
+
+    /** SSRF 判定分布快照（spec 1048）。 */
+    public record SsrfGuardStats(long checks, long allowlisted, long dnsAllowed,
+                                 long emptyHostRejects, long dnsRejects, long blockedRejects) {
+
+        /** 放行总数（两桶之和）。 */
+        public long totalAllowed() {
+            return allowlisted + dnsAllowed;
+        }
+
+        /** 拒绝总数（三桶之和）。 */
+        public long totalRejects() {
+            return emptyHostRejects + dnsRejects + blockedRejects;
+        }
+    }
+
+    /** 只读快照（守恒 checks = totalAllowed() + totalRejects()）。 */
+    public static SsrfGuardStats stats() {
+        return new SsrfGuardStats(CHECKS.get(), ALLOWLISTED.get(), DNS_ALLOWED.get(),
+                EMPTY_HOST_REJECTS.get(), DNS_REJECTS.get(), BLOCKED_REJECTS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        CHECKS.set(0);
+        ALLOWLISTED.set(0);
+        DNS_ALLOWED.set(0);
+        EMPTY_HOST_REJECTS.set(0);
+        DNS_REJECTS.set(0);
+        BLOCKED_REJECTS.set(0);
+    }
+
     public SsrfGuard(boolean blockPrivateRanges, List<String> allowlistEntries) {
         this.blocked = blockPrivateRanges
                 ? DEFAULT_BLOCKED.stream().map(Cidr::parse).toList() : List.of();
@@ -99,16 +141,20 @@ public class SsrfGuard {
      * @return null = 放行；非 null = 拒绝原因
      */
     public String check(String host) {
+        CHECKS.incrementAndGet();
         if (host == null || host.isBlank()) {
+            EMPTY_HOST_REJECTS.incrementAndGet();
             return "目标主机为空";
         }
         if (allowedHosts.contains(host.toLowerCase())) {
+            ALLOWLISTED.incrementAndGet();
             return null;
         }
         InetAddress[] addresses;
         try {
             addresses = InetAddress.getAllByName(host);
         } catch (UnknownHostException e) {
+            DNS_REJECTS.incrementAndGet();
             return "DNS 解析失败（按拒绝处理）：" + host;
         }
         for (InetAddress address : addresses) {
@@ -120,11 +166,13 @@ public class SsrfGuard {
             }
             for (Cidr cidr : blocked) {
                 if (cidr.matches(address)) {
+                    BLOCKED_REJECTS.incrementAndGet();
                     return "SSRF 拦截：目标地址命中内网/元数据拦截段 " + host + " -> "
                             + address.getHostAddress();
                 }
             }
         }
+        DNS_ALLOWED.incrementAndGet();
         return null;
     }
 }
