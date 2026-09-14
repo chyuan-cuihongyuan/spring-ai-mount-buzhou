@@ -4,12 +4,12 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** in-progress
+**Status:** done
 
-- [ ] ObservabilityAdvisorStreamTest（流式 harness + 7 用例）
-- [ ] spec 1212 + README 行
-- [ ] 验证：定向绿 + 分支提升入账
+- [x] ObservabilityAdvisorStreamTest（流式 harness + 7 用例）
+- [x] spec 1212 + README 行
+- [x] 验证：7 用例全绿；ObservabilityAdvisor 56%→69%（累计口径）
 
 ## Done
 
-（收口时填写）
+验证：定向 7/7 全绿；模块全量绿；ObservabilityAdvisor 分支 69%（隔离 worktree 累计口径）。commit 见本轮 `test(observability)` 提交。

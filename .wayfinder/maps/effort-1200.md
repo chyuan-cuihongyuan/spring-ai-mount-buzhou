@@ -41,6 +41,7 @@
 - [R11 验证收口](../tickets/T1830-branch-uplift-batch4-verify.md) — observability 105 用例全绿（新增 11）；主代码零变化。
 - [R12 周期对账轮形态](../tickets/T1831-k-audit-r12-shape.md) — 第二次全仓 verify（隔离 worktree 固定提交点）+ 工件链五项对账（spec 1200–1211/票 T1801–T1832/impl 903–914）；R8–R11 增量 22+11 用例回归确认；R13 = Advisor 流式 harness。
 - [R12 验证收口](../tickets/T1832-k-audit-r12-verify.md) — 全仓 verify BUILD SUCCESS（16 模块三门全过，容器按设计 skip）；工件链五项全 OK（spec 1200–1211/README/票 T1801–T1832/impl 903–914/map）；R8–R11 增量回归确认；R13 = Advisor 流式 harness。
+- [R13 验证收口](../tickets/T1834-advisor-stream-verify.md) — ObservabilityAdvisor 流式 harness 落地（本仓首个 Spring AI 流式 advisor 测试基建，7 用例全绿）：happy path 全断言/usage-only 无首信号/toolCalls 抑制 FINAL_REPLY/流错 ERROR/取消 CANCELLED/parent 三级回退；分支 56%→69%（累计口径）；Spring AI 流式 advisor 测试基建沉淀可复用。
 
 ## R1 台账（spec 1200 / impl 903）
 
