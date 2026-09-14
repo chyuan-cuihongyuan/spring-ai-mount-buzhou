@@ -46,7 +46,7 @@ class ObservabilitySessionStateTest {
                                    SpanContext explicit) {
             opened.add(new Opened(kind, name, parent, attributes, explicit));
             RecordingHandle handle = new RecordingHandle(
-                    new SpanContext("sp-" + opened.size(), "sess-1", 1));
+                    new SpanContext("sp-" + opened.size(), "sess-1", 1), attributes);
             handles.add(handle);
             return handle;
         }
@@ -68,8 +68,9 @@ class ObservabilitySessionStateTest {
         final List<String> closedWith = new ArrayList<>();
         Throwable error;
 
-        RecordingHandle(SpanContext context) {
+        RecordingHandle(SpanContext context, Map<String, Object> initial) {
             this.context = context;
+            attrs.putAll(initial);
         }
 
         @Override
@@ -151,7 +152,7 @@ class ObservabilitySessionStateTest {
         state.onTurnStart(2, "x".repeat(300)); // 长输入截断 + 计数器重置
         state.onTurnEnd(2, "done");
 
-        RecordingHandle secondTurn = recorder.handles.get(1);
+        RecordingHandle secondTurn = recorder.handles.get(2); // 0=session, 1=turn1, 2=turn2
         assertThat(secondTurn.attrs.get("user.input.preview")).asString().hasSize(200);
         assertThat(secondTurn.attrs.get("usage.prompt_tokens")).isEqualTo(0);
         assertThat(secondTurn.attrs.get("usage.completion_tokens")).isEqualTo(0);

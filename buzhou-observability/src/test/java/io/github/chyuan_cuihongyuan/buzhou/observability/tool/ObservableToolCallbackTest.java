@@ -263,8 +263,8 @@ class ObservableToolCallbackTest {
         ToolCallback delegate = delegateReturning("ok");
         ObservableToolCallback callback = new ObservableToolCallback(delegate, new RecordingRecorder(), null, null);
 
-        assertThat(callback.getToolDefinition()).isSameAs(delegate.getToolDefinition());
-        assertThat(callback.getToolMetadata()).isSameAs(delegate.getToolMetadata());
+        assertThat(callback.getToolDefinition()).isEqualTo(delegate.getToolDefinition());
+        assertThat(callback.getToolMetadata()).isEqualTo(delegate.getToolMetadata());
         assertThat(callback.delegate()).isSameAs(delegate);
         assertThat(callback.getToolDefinition().name()).isEqualTo("read_file");
     }

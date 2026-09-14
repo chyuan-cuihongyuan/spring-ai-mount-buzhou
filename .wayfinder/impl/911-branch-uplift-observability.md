@@ -4,13 +4,13 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** in-progress
+**Status:** done
 
-- [ ] ObservabilitySessionStateTest
-- [ ] ObservableToolCallbackTest
-- [ ] spec 1208 + README 行
-- [ ] 验证：定向绿 + 分支提升入账
+- [x] ObservabilitySessionStateTest（9 用例）
+- [x] ObservableToolCallbackTest（8 用例）
+- [x] spec 1208 + README 行
+- [x] 验证：83 用例全绿；SessionState 88% / ToolCallback 86%
 
 ## Done
 
-（收口时填写）
+验证：observability 83 用例全绿；两靶点分支 88%/86%。commit 见本轮 `test(observability)` 提交。

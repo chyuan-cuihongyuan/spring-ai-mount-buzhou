@@ -35,6 +35,7 @@
 - [R7 形态裁决：T1819 治本 + 两雾区处置](../tickets/T1820-fog-adjudication-r7-shape.md) — T1819 治本 = forwarder 登记 + @AfterEach close（构造即自启 dispatcher「谁启动谁收尾」，受害者严格断言不动）；BRANCH 维度 = 13 模块实测 52.1%–81.6%（中位 ~71%）入对账读面台账、硬门暂缓（≥60% 即红容器门控的 store-redis/observe-otel）；report-aggregate = 不引入（新增模块=09 工程档 spec 级变更，价值已被直测纪律覆盖）——**K 线雾区清零**，R9 起对账轮+他线委托议题。
 - [R8 形态裁决：分支缺口批次 1 选题（observe-otel）](../tickets/T1822-branch-uplift-otel-shape.md) — 逐类分支数据精定制导（mutation-testing 式断言思想）：store-redis 缺口大头为容器门控类（covered=0×3，本地不可 uplift，环境约束入档，fake 化被 T1809 否决）→ 靶点定为本地可测的 observe-otel 两类；OtelBridgeSink 按未覆盖分支行号逐一制导 + 防御性不可达分支（record compact 已归一）诚实记录。
 - [R8 验证收口 + T1824 主代码缺陷](../tickets/T1823-branch-uplift-otel-verify.md) — observe-otel 32 用例全绿；OtelBridgeSink 分支 61%→87%、OtelProperties →100%；**分支补测第一轮即显形真实主代码缺陷 T1824**（sessionTrace 驱逐 iterator.remove() 缺 next() → ISE 被故障隔离吞掉 → 超限后新会话 span 静默丢弃，驱逐护栏从未工作）——「缺口=未执行路径=未验证路径」实证。
+- [R9 分支缺口批次 2 选题（observability 两小类）](../tickets/T1825-branch-uplift-observability-shape.md) — 小类先清沉淀 fake 基建（RecordingRecorder/Handle，初始属性袋必须落 handle 对齐真实语义）；ObservabilitySessionState 46%→88%（会话 span 生命周期/usage 聚合/CANCELLED 终态/carrier null 防御）+ ObservableToolCallback 29%→86%（parent 三级解析 ToolContext 载体>字段载体>hooks 兜底/异常 error+close+rethrow）；observability 83 用例全绿；批次 3 = ObservabilityAdvisor（68 missed）/ MicrometerDualWriter（15）留 R10+。
 
 ## R1 台账（spec 1200 / impl 903）
 
