@@ -759,6 +759,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 工具计量 | 工具结果字节直方 | ToolResultSizeHistogram——afterTool 单点记账五幂次边界桶(256B/1K/4K/16K/64K)+溢出桶+totalBytes 精确累计，守恒 successes=Σbuckets、executed=successes+failed，失败不入字节分布——Prometheus histogram 思想，opt-in 只读 Hook（spec 1401） | [spec 1401](docs/spec/1401-tool-result-size-histogram.md) |
 
+| MCP 治理 | 入参 schema 破坏性分级 | McpSchemaCompatGrader——前后两版 inputSchema 客户端守恒视角机判：removed/type_changed/newly_required/enum_narrowed 四破坏轴+解析失败 fail-closed，reasons 典序——buf breaking 思想，822 目录 diff 显式留白轴的延伸（spec 1402） | [spec 1402](docs/spec/1402-mcp-schema-compat-grader.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

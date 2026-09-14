@@ -22,7 +22,7 @@ WebhookOutboxLag / SpawnGatePriorityTest / SleepTimeConsolidationTest。
 
 R1 ✅ 已落地=跨会话轮次并发水位观察者（会话内单飞使 per-model-call 并发失义，改跨会话聚合+顺带实证修复 guard-block span 泄漏）｜
 R2 ✅ 已落地=core/hook（Hook 单点挂法免改 HookedToolCallback）｜
-R3 MCP 工具 schema 破坏性变更分级(buf breaking ≈10K)→mcp｜
+R3 ✅ 已落地=McpSchemaCompatGrader 纯函数（822 显式留白轴）｜
 R4 重试预算 retry budget(Envoy retry budget ≈26K)→resilience｜
 R5 指标基数守卫(Prometheus cardinality limit ≈59K)→core【高危待勘 BuzhouMetrics】｜
 R6 评估确定性种子台账(FoundationDB deterministic simulation ≈15K)→core【高危待勘 EvalRunner】｜

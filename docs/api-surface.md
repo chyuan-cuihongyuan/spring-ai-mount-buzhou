@@ -2315,3 +2315,7 @@
 - `ToolResultSizeHistogram`（1401——Prometheus histogram 思想：工具结果
   UTF-8 字节五幂次边界桶+溢出桶，executed/failed/totalBytes 三总量守恒；
   opt-in afterTool 只读挂法；嵌套 `Snapshot` 不另立面）
+
+- `McpSchemaCompatGrader`（1402——buf breaking 思想：入参 schema 前后两版
+  客户端守恒视角分级（removed/type_changed/newly_required/enum_narrowed
+  四破坏轴+fail-closed），纯函数零 IO；嵌套 `SchemaCompatVerdict` 不另立面）
