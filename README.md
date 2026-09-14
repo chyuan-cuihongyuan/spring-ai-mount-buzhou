@@ -641,6 +641,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | J 系阶段对账审计 R70 | J 会话 R61–R69 工件对账 + 七域读面布局收口（spec 1070） | [spec 1070](docs/spec/1070-j-audit-r70.md) |
 | 工具计量 | http_request 受控头丢弃显形 | 黑名单头试探频次量化（spec 1071） | [spec 1071](docs/spec/1071-headerdrop-stats.md) |
 | 内容防御 | PII 检测引擎读面 | 引擎原生匹配数与业务上报数双层对账显形（spec 1072） | [spec 1072](docs/spec/1072-piidetector-stats.md) |
+| 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 溢出治理 | Spill 溢出 hook 判定读面 | 溢出触发率与降级动作五桶守恒显形（spec 1077） | [spec 1077](docs/spec/1077-spilloffload-stats.md) |
