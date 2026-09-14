@@ -771,6 +771,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 护栏 | PII 检测器合成探针自查 | PiiProbeSelfCheck——内建确定性合成池（正例 EMAIL/手机号/测试 PAN/IPV4+负例×4）穿测 PiiDetector：逐类召回+误报哨兵（恒 0），基线标定锚=全召回；身份证号不入池（撞真实号红线）——spaCy/Presidio 评测思想（spec 1407） | [spec 1407](docs/spec/1407-pii-probe-selfcheck.md) |
 
+| 模型韧性 | 断路器状态时长分析 | CircuitStateDurationAnalyzer——变迁流按模型积段积分：逐状态 total/segments/max+OPEN 占比 openShare（crash-loop 量化画像），无序容忍+采样窗口径入档——Resilience4j state duration 思想，只读零接线（spec 1408） | [spec 1408](docs/spec/1408-circuit-state-duration-analyzer.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

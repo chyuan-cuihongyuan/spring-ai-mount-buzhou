@@ -2333,3 +2333,8 @@
   池穿测 PiiDetector——逐类召回 TypeRecall+误报哨兵 falsePositives（恒 0
   回归哨兵），基线=内建池全召回；身份证号不入池（红线）；嵌套
   `ProbeReport` 不另立面）
+
+- `CircuitStateDurationAnalyzer`（1408——Resilience4j state duration 思想：
+  断路器变迁流按模型积段→逐状态 total/segments/max+OPEN 占比 openShare
+  （crash-loop 量化画像），无序容忍+采样窗口径入档，纯函数零接线；嵌套
+  `StateDuration`/`ModelDurations` 不另立面）

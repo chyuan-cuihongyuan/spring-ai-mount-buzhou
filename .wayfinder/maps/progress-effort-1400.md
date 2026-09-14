@@ -56,7 +56,7 @@ R33 离群驱逐读面(Envoy outlier detection ≈26K)【高危待勘 vs 811/814
 R34 Retry-After 解析器(RFC 7231/Envoy ≈26K)→resilience【高危待勘既有重试策略】｜
 R35 冷热分层访问读数(MinIO tiering ≈52K)【高危待勘 vs 816】→spill｜
 R36 组件版本偏斜报告(k8s version skew ≈115K)【高危待勘 starter 装配面】→starter｜
-R37 断路器状态时长直方(Resilience4j state duration ≈10K)→resilience【高危待勘 vs 836】｜
+R9 ✅ 换题落地=断路器状态时长分析器（R37 题提前；原 R12 混淆矩阵与 JudgeCalibration 半撞换出）｜
 R38 会话所有权转移计数(Kafka rebalance ≈30K)【高危待勘 vs 838 选举】→core｜
 R39 工具依赖图深度扇出读数(Jaeger DAG ≈21K)【高危待勘 vs I 火焰图 timings】→observability｜
 R40 Spill GC 候选标记统计(Go GC mark-sweep, golang ≈130K)【高危待勘 vs 843】→spill｜
