@@ -950,6 +950,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 评估治理 | 轮次采样漏斗读面 | TurnSamplerHook.samplerStats()——采样漏斗六计数：turnsSeen/emptySkipped/shortSkipped/rateSkipped/written/writeFailures（桶口径互斥、写失败 fail-soft 分桶）；「为何没进数据集」按原因归因——Envoy access log sampling 思想（spec 1446） | [spec 1446](docs/spec/1446-turn-sampler-funnel.md) |
 
+| 收口 | L 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门/覆盖门/对账门全绿+台账 50/50 归档——effort 1400–1449 连续（1439 补位轮兑现） | [spec 1449](docs/spec/1449-l-closing.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
