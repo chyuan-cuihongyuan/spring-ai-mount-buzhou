@@ -126,7 +126,11 @@ public class DefaultSessionAssemblyContext implements SessionAssemblyContext {
 
     @Override
     public void addObserver(SessionObserver observer) {
-        observers.add(observer);
+        // spec 1524 / T2299：同实例重复注册去重——双份通知是装配错误信号（静默双计
+        // 会污染观察者读面），幂等注册与 listener 域对齐
+        if (!observers.contains(observer)) {
+            observers.add(observer);
+        }
     }
 
     public List<SessionObserver> observers() {

@@ -5,6 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.TokenEstimator;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
+/** spec 1529 / T2309：摘要降级默认实现——生成失败/超预算时的段落丢弃阶梯（语义降级不崩）。 */
 
 public class DefaultSummaryDegrader implements SummaryDegrader {
 

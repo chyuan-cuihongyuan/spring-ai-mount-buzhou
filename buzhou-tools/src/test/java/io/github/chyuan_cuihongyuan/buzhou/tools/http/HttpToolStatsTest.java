@@ -156,6 +156,24 @@ class HttpToolStatsTest {
         }
     }
 
+
+    @Test
+    void blockedHeadersAreCountedAndRequestStillDelivered() throws Exception {
+        HttpServer server = echoServer();
+        try {
+            String out = tool().call("{\"method\":\"GET\",\"url\":\"http://127.0.0.1:"
+                    + server.getAddress().getPort() + "/echo\",\"headers\":{"
+                    + "\"Host\":\"evil.example.com\",\"Connection\":\"close\",\"X-Ok\":\"1\"}}");
+            assertThat(out).startsWith("HTTP 200"); // 丢弃受控头不影响送达
+        } finally {
+            server.stop(0);
+        }
+
+        HttpRequestTool.HttpToolStats stats = HttpRequestTool.stats();
+        assertThat(stats.headerDrops()).isEqualTo(2); // Host + Connection 两个受控头
+        assertThat(stats.successes()).isEqualTo(1);
+    }
+
     @Test
     void resetForTestZeroesCounters() {
         tool().call("{\"method\":\"TRACE\",\"url\":\"http://x/\"}");

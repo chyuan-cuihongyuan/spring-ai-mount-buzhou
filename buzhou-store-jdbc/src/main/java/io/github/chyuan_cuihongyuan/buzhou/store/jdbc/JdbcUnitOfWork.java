@@ -4,6 +4,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.UnitOfWork;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.function.Supplier;
+/** spec 1529 扩散：事务工作单元 JDBC 实现——跨 store 写入的事务边界（同一 DataSource）。 */
 
 public class JdbcUnitOfWork implements UnitOfWork {
 

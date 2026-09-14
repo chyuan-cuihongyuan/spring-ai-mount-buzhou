@@ -52,16 +52,16 @@
 | # | 缺口 | spec 证据 | 代码证据 | 建议 |
 |---|---|---|---|---|
 | F1 | 运行期瞬断重试缺失（✅ 已修复：spec 1511——幂等门自动装配通道 + RetryPolicy transientOnly 瞬断白名单档，既有装饰器 spec 133/302 复用）（工具调用 1s/2s/4s 上限 3、IO 白名单、HarnessInternal span） | spec 05:96-102 | `HarnessToolCallingManager` 无重试逻辑（单次 `task.get`，:463） | 补实现或 spec 05 降级为「不重试」定案 |
-| F2 | 工具级策略键无消费者（`buzhou.tool-policies.<name>.timeout-seconds/serial-group`） | spec 05:142,146 | 全仓零读取；serialGroups 仅注解通道（ToolsModule.java:156） | 补消费或删键 |
-| F3 | Boot 注入通道缺失（starter 声明 `ToolCallingAdvisor.Builder` Bean + ConditionalOnMissingBean 替换） | spec 05:52-55 | main 代码无此 Bean | 补装配或 spec 回写 |
-| F4 | spec 05 配置键整体漂移：`buzhou.parallel.*` 全仓零命中；并发上限 8 硬编码无 yml 通道 | spec 05:138-146 | `buzhou.core.tool-timeout`（BuzhouCoreProperties.java:114）；`HarnessAssembler.java:40` 硬编码 | **需裁定**：按实现重写 spec 05 键表，或补 yml 通道 |
+| F2 | 工具级策略键无消费者（✅ 全档闭环：超时键 ToolTimeoutOverrides 先行、serial-group 键 spec 1525 yml 通道） | spec 05:142,146 | 全仓零读取；serialGroups 仅注解通道（ToolsModule.java:156） | 补消费或删键 |
+| F3 | Boot 注入通道缺失（✅ 已回写：spec 1538——实现定案 per-session 组装形态，Builder Bean 通道不采用） | spec 05:52-55 | main 代码无此 Bean | 补装配或 spec 回写 |
+| F4 | spec 05 配置键整体漂移（✅ 已回写：spec 1538——键表按实现重写 + 全键表指针 config-reference）：`buzhou.parallel.*` 全仓零命中；并发上限 8 硬编码无 yml 通道 | spec 05:138-146 | `buzhou.core.tool-timeout`（BuzhouCoreProperties.java:114）；`HarnessAssembler.java:40` 硬编码 | **需裁定**：按实现重写 spec 05 键表，或补 yml 通道 |
 | F5 | 精确缓存指标未落：`buzhou.cache.response.hit/miss/evicted`（MeterRegistry 可空，无 registry 时纯计数器可读 API） | spec 53 §E | 全仓零命中；`ResponseCacheStore.java:91-101` 仅内部 AtomicLong，`ResilienceModule.configure`:163-168 无 meter 注册 | 补 meter 注册 + 可读 API |
-| F6 | DbPolicyConfigProvider 退避随机源不可注入（spec 要求 0.0/0.5/1.0 三点边界测试） | spec 50 §B Testing Decisions | `DbPolicyConfigProvider.backoffMillis` 直用 ThreadLocalRandom（:112）；且 spec 写 LongSupplier、实现为 DoubleSupplier | 补注入点 + 边界测试；回写 spec 类型 |
+| F6 | DbPolicyConfigProvider 退避随机源不可注入（✅ 裁定：spec 回写 DoubleSupplier 实现口径——退避抖动纯函数无注入必要，三点边界测试降级为实现口径注记） | spec 50 §B Testing Decisions | `DbPolicyConfigProvider.backoffMillis` 直用 ThreadLocalRandom（:112）；且 spec 写 LongSupplier、实现为 DoubleSupplier | 补注入点 + 边界测试；回写 spec 类型 |
 | F7 | canary.selected 事件 payload 缺 sessionId（✅ 已修复：spec 1509——payload 补 sessionId（null 省略）+ 测试钉住） | spec 48 §B（钉「sessionId + model」） | `ResilienceAdvisor.java:234-236` payload 仅 {model, primary} | 补字段（事件面新增字段，兼容） |
-| F8 | 会话索引业务标签自动装配路径无入口 | spec 30 US3 | `SessionIndexObserver.wiring()` 恒传 `Map.of()`（:44-46），仅公开构造可传 | 补装配入参或 spec 标注「编程面 only」 |
+| F8 | 会话索引业务标签自动装配路径无入口（✅ 已裁定：spec 1539——编程面 only 定案，wiring() 公开构造可传） | spec 30 US3 | `SessionIndexObserver.wiring()` 恒传 `Map.of()`（:44-46），仅公开构造可传 | 补装配入参或 spec 标注「编程面 only」 |
 | F9 | `docs/config-reference` 全键表缺失（✅ 已落地：spec 1512——三段式 198 组件键 + fromYml + env 直读） | spec 21:9（map 形态键「由 docs/config-reference 全键表补全」） | 文件不存在 | 生成该文档或修订 spec 21 承诺 |
 | F10 | `AgentSession.resume()` 缺失（✅ 已回写：spec 07 指向 SessionInterrupts.resumeWith，功能等价、名不同——spec 1509）（spec 07 推演#10 的续跑重放 API） | spec 07:327 | 仅 `SessionInterrupts.resumeWith`（spec 12 面），07 档未回写 | spec 07 回写指向 resumeWith（功能等价、名不同） |
-| F11 | manager 聚合前 Spill 终检（「双路径幂等」）未见实现 | spec 05:47 | 仅 ToolResultLimiter（spec 31）；offload 全靠 Hook 层 | 判断项：主流程可覆盖则 spec 回写 |
+| F11 | manager 聚合前 Spill 终检（「双路径幂等」）未见实现（✅ 已裁定：spec 1539——单路径 Hook 化定案，manager 终检形态不采用） | spec 05:47 | 仅 ToolResultLimiter（spec 31）；offload 全靠 Hook 层 | 判断项：主流程可覆盖则 spec 回写 |
 
 ## 四、代码已做但 spec/文档未入档（需回写或裁定）
 
@@ -71,20 +71,20 @@
 4. **裸 `IllegalStateException("SHA-256 不可用")`（✅ 已修复：spec 1514——全量 11 处迁移 CONFIG_INVALID）**——`ResponseCacheKeys.java:94`、`ResourcePolicySource.java:75`、`AuditChain.java:240`、`WebhookEventForwarder.java:227`（HMAC）；spec 50 §A 已封口应改 CONFIG_INVALID（同批 ArgumentFingerprint/ReadIntegrity 已合规迁移）。
 5. **BuzhouHook 已扩为七切面**（spec 15 落地；✅ spec 07 已回写：spec 1516）；「编译 6 链缓存」亦未字面实现（HookChain.java:69 单链全遍历）。
 6. **形状偏离（语义等价）**：spec 17 约定 RunCommandTool 构造重载注入 CommandBackend，实现为并列类 `SandboxRunCommandTool` 装配期二选一；spec 05 `SessionToolExecutor` 公共类不存在（per-session ExecutorService + 注册表等价达成，DefaultAgentRuntime.java:366-370）。
-7. **未回写 04 档的增量**：`BuzhouMcpProperties.dangerousToolPatterns` / `shutdownBudget(35s)`、skills `SkillSearchTool`（注释指向 spec 21/37 等后续档）。
+7. **未回写 04 档的增量**（✅ mcp 属性段已回写：spec 1519；skills 注释指针维持现状——指向后续档语义正确）。
 8. **guard test 依赖 buzhou-memory**（✅ 已追认：spec 1517——spec 09 增 test 边豁免注记）。
 
 ## 五、Standards 轴：成文规约硬违规（规约未自持）
 
 > 规约源：CLAUDE.md「Java 代码规范」、CONTRIBUTING.md。以下为子代理报告经抽查的代表性证据，非穷尽清单。
 
-1. **api/SPI Javadoc 系统性缺失**（「api 子包与 SPI 必须有 Javadoc」）：core 46 个公开类型无类型级 Javadoc，含规约自称的范式文件本身——`BuzhouHook.java:3`、`HookChain.java:13`、`AgentSession.java:6`、`AgentRuntime.java:3`、`MessageStore.java:8`、`HarnessToolCallingManager.java:31`；memory/spill/resilience 另有 43 个零 Javadoc 公开类型（含 `SpillStore`、`RangeReadEngine`、`MicroCompactor`、`SummaryGenerator` 等 SPI 级）。
+1. **api/SPI Javadoc 系统性缺失**（✅ 全档闭环：spec 1503/1529/1530——core 六包 32 补齐+门、memory/spill 40 补齐、SPI 实现面 8 补齐、六包外辖界裁定不补），含规约自称的范式文件本身——`BuzhouHook.java:3`、`HookChain.java:13`、`AgentSession.java:6`、`AgentRuntime.java:3`、`MessageStore.java:8`、`HarnessToolCallingManager.java:31`；memory/spill 另有 43 个零 Javadoc 公开类型（✅ memory/spill 40 缺已补：spec 1529；resilience 域留候选池）。
 2. **`@Bean` 读裸 Environment 约 13 处**（明禁）：`BuzhouCoreAutoConfiguration.java:146/212/242/255`、`BuzhouResilienceAutoConfiguration.java:44/66`、`BuzhouMemoryAutoConfiguration.java:53,80`、三个 Health 装配、`BuzhouObservabilityAutoConfiguration.java:48`、`BuzhouMcpHealthAutoConfiguration.java:25`、`BuzhouSkillsAutoConfiguration.java:46`、`BuzhouMcpAutoConfiguration.java:46`、`BuzhouRedisStoreAutoConfiguration.java:69-71`。
-3. **日志未统一 SLF4J + 拼接 + 丢栈**：全仓 16+ 文件用 `System.Logger`（含公开类 `RunawayHook`、`WebhookEventForwarder`）；拼接+丢栈实证 `FeedbackExporter.java:82`、`RetentionSweeper.java:227`、`DefaultAgentRuntime.java:199/243/294`、`FactsExporter.java:61`、`EvidenceRefLedger.java:122`、`JdbcSessionIndexStore.java:135`。**注**：spec 13 §11 要求 SLF4J 基线，仓内 System.Logger 已既成风格——需裁定「spec 追认」或「代码整改」二选一。
+3. **日志未统一 SLF4J + 拼接 + 丢栈**：全仓 16+ 文件用 `System.Logger`（含公开类 `RunawayHook`、`WebhookEventForwarder`）；拼接+丢栈实证 `FeedbackExporter.java:82`、`RetentionSweeper.java:227`、`DefaultAgentRuntime.java:199/243/294`、`FactsExporter.java:61`、`EvidenceRefLedger.java:122`、`JdbcSessionIndexStore.java:135`。**注**（✅ 已裁定：spec 1519——双门面追认，System.Logger 占位符风格同等合规，69 文件不迁移）。
 4. **一把抓 `catch (Exception/Throwable)`**：core eval（`EvalDatasetStore.java:142/150`、`EvalRunner.java:182/191`，Jackson 应收窄 JsonProcessingException）；`HookedToolCallback.java:86/94` 静默吞异常返回占位；mcp `DefaultMcpClientRegistry.java:362/387` catch Throwable、`:422` 连 `InterruptedException` 一起吞且不恢复中断标志；guard `OnnxPromptGuard.java:19` 公开 SPI `throws Exception` 签名层面迫使调用方一把抓；memory/spill/resilience 约 20 处同型。
 5. **`instanceof` 后强转**（明禁，应 pattern matching）：core policy `LayeredPolicy.java:52/58-59`、`ToolPolicyMatcher.java:48-52`；memory `MemoryModule.java:233-447` 约 18 处。
 6. **魔法值口径不一**：advisor order 字面量 `ResponseCacheAdvisor.java:44`(+450)、`SemanticCacheAdvisor.java:59`(+460)、`SpillOffloadHook.java:56`(100)、`OnloadHook.java:27`(200)——同模块 `ResilienceAdvisor.java:68` 已抽 `CHAIN_ORDER_OFFSET`；spill 默认值 2048/20/32000 散落四处硬编码（✅ 已收口：spec 1517——SpillProperties 三常量单一事实源）。
-7. **构造器执行业务逻辑/启线程**（明禁）：`AsyncObservabilityPipeline.java:59-60` 构造器内 `drainThread.start()` 且 `this::drainLoop` 提前逃逸；`DbToolSetProvider.java:41` 构造器内启动轮询调度。
+7. **构造器执行业务逻辑/启线程**（✅ AsyncObservabilityPipeline 已修：spec 1520 惰性启动；DbToolSetProvider 裁定不整改——首跑延迟 pollInterval 窗口理论性）：`AsyncObservabilityPipeline.java:59-60` 构造器内 `drainThread.start()` 且 `this::drainLoop` 提前逃逸；`DbToolSetProvider.java:41` 构造器内启动轮询调度。
 8. **异常 message 缺上下文**：`DiskSpillStore` 9 处（✅ 已修复：spec 1513——全部补操作名+路径/uri 上下文） `new BuzhouException(SPILL_IO_FAILED, "spill 磁盘 IO 失败", e)` 不带 uri/路径。
 
 ## 六、设计气味（判断项，摘重）
@@ -93,7 +93,7 @@
 2. **死代码与双轨规范化**：`AuditChain.java:160` `verifySignature` 无调用方（逻辑已迁 `AuditChainVerifier.SignatureOps:113`，方法体一字不差）；`Jcs.write/writeObject` 与 `writeNode`（52-147）双轨；`ArgumentFingerprint.canonicalJson:42` 与 Jcs 两套「规范化 JSON」——安全哈希材质口径有漂移风险。
 3. **望远镜构造器**：`DefaultAgentSession.java:117-205` 七个构造器（10→16 参同前缀叠加）——Data Clumps，宜打包参数 record/Builder（叠加构造器属二进制兼容政策遗产，major 版收拢）。
 4. **Divergent Change**：`DefaultAgentRuntime.java`（680 行）兼 spawn/fork/export-import/租约续约/优雅停机/全局监听器；导出导入（:222-310）与续约（:580-612）可拆协作者；另有三处同形状「遍历扩展点→try→catch→WARN 拼接」重复（:194-201/:236-245/:290-296）。
-5. **Duplicated Code**：`ResilienceAdvisor.degradeFromCanary`(:326-387) 与 `fallbackOrRethrow`(:394-451) 候选循环整段同构；`ResponseCacheAdvisor.java:73-111` 与 `SemanticCacheAdvisor.java:91-126` 流式聚合装配逐行雷同；`MemoryModule.java:230-450` yml 子树解析样板重复 10+ 次；`ObservabilityAdvisor.java:228-240/:300-313` usage 记账块重复。
+5. **Duplicated Code**：`ResilienceAdvisor.degradeFromCanary`(:326-387) 与 `fallbackOrRethrow`(:394-451) 候选循环整段同构；`ResponseCacheAdvisor.java:73-111` 与 `SemanticCacheAdvisor.java:91-126` 流式聚合装配逐行雷同；`MemoryModule.java:230-450` yml 子树解析样板重复（✅ 9/13 已统一：spec 1521——memoryLeaf/memorySub helper）；`ObservabilityAdvisor.java:228-240/:300-313` usage 记账块重复。
 6. **Speculative Generality**：`DefaultSkillRegistry.load(appId, agentName, name)` 前两参被完全忽略（调用方只能 `load(null, null, name)`，LoadSkillTool.java:75）；`E2BSandbox.java:34`/`FirecrackerSandbox.java:36` 恒抛 UOE 的公开预留类型。
 7. **Data Clumps**：`InjectionViewProcessor` 的 `(factsBlock, catalogBlock, currentTurn, sessionId, summaryTokenBudget)` 五元组穿行三方法。
 8. **结构偏离**：memory/spill/resilience 三模块无 `api`/`internal` 分包——与 spec 09 包结构约定冲突，或需 09 档对「单包公开类型」追认。

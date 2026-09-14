@@ -25,6 +25,8 @@ public class PiiRedactionHook implements BuzhouHook {
 
     private final PiiDetector detector;
     private final Set<PiiType> enabledTypes;
+    /** spec 1627 / T2405：豁免登记（null = 不征询）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions;
     /** spec 118 §A / T417：自定义规则（内置五型之外——宿主命名正则；null = 无）。 */
     private final CustomPiiRules customRules;
 
@@ -44,10 +46,21 @@ public class PiiRedactionHook implements BuzhouHook {
     /** spec 731 / T1013：+格式保持模式（true = redact 分派 pseudonymize）。 */
     public PiiRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules,
                             boolean formatPreserving) {
+        this(enabledTypes, customRules, formatPreserving, null);
+    }
+
+    /**
+     * spec 1627 / T2405：+exemptions（null = 不征询——既有调用零行为）。
+     * 双粒度：subject=工具名（该工具输出整体豁免）/ {@code type:TYPE}（该类型不脱敏）。
+     */
+    public PiiRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules,
+                            boolean formatPreserving,
+                            io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions) {
         this.detector = new PiiDetector(formatPreserving);
         this.enabledTypes = EnumSet.copyOf(enabledTypes == null || enabledTypes.isEmpty()
                 ? EnumSet.allOf(PiiType.class) : enabledTypes);
         this.customRules = customRules == null ? new CustomPiiRules(List.of()) : customRules;
+        this.exemptions = exemptions;
     }
 
     @Override
@@ -65,11 +78,29 @@ public class PiiRedactionHook implements BuzhouHook {
         if (ctx.error() != null || ctx.result() == null) {
             return HookResult.CONTINUE;
         }
+        // spec 1627 / T2405：工具级豁免（「该工具输出经核验，整体豁免到 T1」）
+        if (exemptions != null && ctx.toolName() != null
+                && exemptions.exempt("pii-redaction", ctx.toolName(), System.currentTimeMillis())) {
+            PiiHitStats.global().recordExemption(); // spec 1640：豁免跳过与命中对照
+            return HookResult.CONTINUE;
+        }
         String content = String.valueOf(ctx.result());
         if (content.contains(PLACEHOLDER_PREFIX)) {
             return HookResult.CONTINUE; // 幂等：占位符已是脱敏产物（readback 纵深）
         }
-        String redacted = detector.redact(content, enabledTypes);
+        // spec 1627 / T2405：类型级豁免（subject=type:TYPE——「该类型误报率高，豁免到 T1」）
+        Set<PiiType> effectiveTypes = enabledTypes;
+        if (exemptions != null) {
+            long now = System.currentTimeMillis();
+            EnumSet<PiiType> kept = EnumSet.noneOf(PiiType.class);
+            for (PiiType type : enabledTypes) {
+                if (!exemptions.exempt("pii-redaction", "type:" + type.name(), now)) {
+                    kept.add(type);
+                }
+            }
+            effectiveTypes = kept;
+        }
+        String redacted = detector.redact(content, effectiveTypes);
         if (customRules != null && !customRules.isEmpty()) {
             // spec 118 §A / T417：自定义规则叠加（内置结果之上——占位符幂等短路天然防重复）
             redacted = customRules.redact(redacted);

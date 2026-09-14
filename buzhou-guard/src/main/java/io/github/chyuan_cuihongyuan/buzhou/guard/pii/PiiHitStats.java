@@ -66,6 +66,20 @@ public final class PiiHitStats {
     }
 
     /** 记一次内置类型命中（分侧——spec 313）。 */
+    /** spec 1640 / T2431：豁免跳过计数（工具级+类型级合并口径——与命中统计对照面）。 */
+    private final java.util.concurrent.atomic.AtomicLong exemptionsApplied =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** spec 1640：记一次豁免跳过（脱敏被豁免登记放行——与命中分桶对照）。 */
+    public void recordExemption() {
+        exemptionsApplied.incrementAndGet();
+    }
+
+    /** spec 1640：豁免跳过累计。 */
+    public long exemptionsApplied() {
+        return exemptionsApplied.get();
+    }
+
     public void record(PiiType type, Side side) {
         if (type == null) {
             throw new IllegalArgumentException("type must not be null");
@@ -150,6 +164,7 @@ public final class PiiHitStats {
 
     /** 窗口清零（export → reset 循环——每窗口一份合规报表；分侧同清）。 */
     public void reset() {
+        exemptionsApplied.set(0); // spec 1640：豁免计数同步归零
         counts.clear();
         sideCounts.clear();
     }

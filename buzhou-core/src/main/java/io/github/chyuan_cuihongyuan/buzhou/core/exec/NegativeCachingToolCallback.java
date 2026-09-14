@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>失败判定：结构化错误标记（{@link ToolFeedbackType#isErrorFeedback}——执行
  * 失败与校验失败均计）或抛出的 RuntimeException。契约：TTL 短（默认 30s——暂态
  * 故障快速恢复，DNS 负缓存同款短窗纪律）；LRU 封顶；定义透传（装饰器族同款）。
+ * @since 1.0.0
  */
 public final class NegativeCachingToolCallback implements ToolCallback {
 

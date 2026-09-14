@@ -20,6 +20,36 @@ import java.util.regex.Pattern;
  */
 public final class PiiDetector {
 
+    // —— spec 1072 / impl 824：引擎检测读面（Yara 规则引擎统计思想；静态面理由同
+    // R46–R71 先例）。scanCalls 与 scansWithHits 弱校验非硬守恒（口径注释）。
+    private static final java.util.concurrent.atomic.AtomicLong SCAN_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong SCANS_WITH_HITS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong MATCHES_FOUND =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PSEUDONYMIZE_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** PII 检测引擎分布快照（spec 1072）。 */
+    public record PiiDetectorStats(long scanCalls, long scansWithHits,
+                                   long matchesFound, long pseudonymizeCalls) {
+    }
+
+    /** 只读快照（弱校验：scansWithHits ≤ scanCalls；matchesFound 为 dedupe 前口径）。 */
+    public static PiiDetectorStats stats() {
+        return new PiiDetectorStats(SCAN_CALLS.get(), SCANS_WITH_HITS.get(),
+                MATCHES_FOUND.get(), PSEUDONYMIZE_CALLS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        SCAN_CALLS.set(0);
+        SCANS_WITH_HITS.set(0);
+        MATCHES_FOUND.set(0);
+        PSEUDONYMIZE_CALLS.set(0);
+    }
+
     /** 假名化播种基（确定性参数非安全参数——遮蔽非加密，spec 713）。 */
     static final long SURROGATE_SEED = 0x62757A686F75L;
     /** splitmix64 黄金常数（0x9E3779B97F4A7C15）。 */
@@ -64,6 +94,7 @@ public final class PiiDetector {
     /** 扫描（区间升序；重叠去重取先出现者——数字型优先级由扫描顺序决定）。 */
     /** 扫描（区间升序；重叠去重取先出现者——数字型优先级由扫描顺序决定）。 */
     public List<PiiMatch> scan(String text) {
+        SCAN_CALLS.incrementAndGet();
         List<PiiMatch> matches = new ArrayList<>();
         if (text == null || text.isEmpty()) {
             return matches;
@@ -74,7 +105,12 @@ public final class PiiDetector {
         collect(matches, text, CN_PHONE, PiiType.CN_PHONE, null);
         collect(matches, text, IPV4, PiiType.IPV4, null);
         matches.sort(Comparator.comparingInt(PiiMatch::start));
-        return dedupeOverlaps(matches);
+        MATCHES_FOUND.addAndGet(matches.size()); // dedupe 前原生口径（spec 1072）
+        List<PiiMatch> deduped = dedupeOverlaps(matches);
+        if (!deduped.isEmpty()) {
+            SCANS_WITH_HITS.incrementAndGet();
+        }
+        return deduped;
     }
 
     /**
@@ -89,6 +125,7 @@ public final class PiiDetector {
      * 实现，非目标。SURROGATE_SEED 是确定性参数非安全参数（遮蔽非加密）。
      */
     public String pseudonymize(String text, Set<PiiType> enabled) {
+        PSEUDONYMIZE_CALLS.incrementAndGet();
         if (text == null || text.isEmpty() || enabled.isEmpty()) {
             return text;
         }

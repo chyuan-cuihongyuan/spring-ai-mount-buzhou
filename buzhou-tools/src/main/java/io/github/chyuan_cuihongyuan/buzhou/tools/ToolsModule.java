@@ -49,6 +49,8 @@ public final class ToolsModule {
     private final boolean enabled;
     private final List<ToolCallback> tools;
     private final List<String> enabledDangerousToolNames;
+    /** spec 1525：serial-groups yml 通道（构造期从 Builder 拷贝——configure 合并用）。 */
+    private final Map<String, String> ymlSerialGroups;
     private final TodoStore todoStore;
     private final TodoAttachmentRenderer todoAttachmentRenderer;
 
@@ -100,6 +102,7 @@ public final class ToolsModule {
                             : null));
         }
         this.tools = List.copyOf(t);
+        this.ymlSerialGroups = Map.copyOf(builder.ymlSerialGroups);
         // spec 1504 / T2259：危险名单注解驱动——扫描已装配工具的 @BuzhouTool.destructive
         // （保装配序；行为等价替代既往三处手工登记，新工具标注即自动入 HITL 清单）
         List<String> dangerous = new ArrayList<>();
@@ -166,6 +169,8 @@ public final class ToolsModule {
                 serialGroups.put(meta.name(), meta.serialGroup());
             }
         }
+        // spec 1525：yml 显式 serial-groups 覆盖注解通道（同名 yml 优先）
+        serialGroups.putAll(this.ymlSerialGroups);
         return new RuntimeConfig(List.of(), Set.of(), idempotent, null, tools, serialGroups,
                 List.of());
     }
@@ -178,6 +183,9 @@ public final class ToolsModule {
         private boolean readFileEnabled = true;
         private boolean todoEnabled = true;
         private boolean writeFileEnabled = false;
+        /** spec 1525 / T2301：serial-groups yml 通道（design-incompleteness F2 残留收口）——
+         *  工具名 → 组名（注解通道之上的显式覆盖）。 */
+        private Map<String, String> ymlSerialGroups = Map.of();
         private boolean runCommandEnabled = false;
         private boolean httpRequestEnabled = false;
         private Path sandboxRoot = Path.of(System.getProperty("user.dir"));
@@ -350,6 +358,17 @@ public final class ToolsModule {
                     this.ssrfBlockPrivateRanges);
             if (ssrf.get("allowlist") instanceof List<?> list) {
                 this.ssrfAllowlist = list.stream().map(String::valueOf).toList();
+            }
+            // spec 1525 / T2301：serial-groups yml 通道（name → group；F2 残留——此前
+            // 仅 @BuzhouTool 注解通道，yml 键全仓零读取）
+            if (ymlConfig.get("serial-groups") instanceof Map<?, ?> groups) {
+                Map<String, String> parsed = new HashMap<>();
+                groups.forEach((k, v) -> {
+                    if (k != null && v instanceof String g && !g.isBlank()) {
+                        parsed.put(String.valueOf(k), g);
+                    }
+                });
+                this.ymlSerialGroups = Map.copyOf(parsed);
             }
             return this;
         }

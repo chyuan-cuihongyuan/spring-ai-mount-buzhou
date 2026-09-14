@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.function.Function;
+/** spec 1529 / T2309：溢写护栏 Hook——写侧长内容拦截落盘（上下文只留预览+contentPath 参数）。 */
 
 public class SpillOffloadHook implements BuzhouHook {
 
@@ -59,12 +60,52 @@ public class SpillOffloadHook implements BuzhouHook {
         return HOOK_ORDER;
     }
 
+    // —— spec 1077 / impl 829：溢出判定读面（logrotate 轮转率思想；静态面理由同
+    // R46–R76 先例）。守恒：invocations = durableSkips + errorSkips + cleanInline
+    // + offloaded + refrains（每入口恰落一桶）。
+    private static final java.util.concurrent.atomic.AtomicLong INVOCATIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DURABLE_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ERROR_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong CLEAN_INLINE =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong OFFLOADED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong REFRAINS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 溢出判定分布快照（spec 1077）。 */
+    public record SpillOffloadStats(long invocations, long durableSkips, long errorSkips,
+                                    long cleanInline, long offloaded, long refrains) {
+    }
+
+    /** 只读快照（守恒 invocations = 五结局桶之和）。 */
+    public static SpillOffloadStats stats() {
+        return new SpillOffloadStats(INVOCATIONS.get(), DURABLE_SKIPS.get(),
+                ERROR_SKIPS.get(), CLEAN_INLINE.get(), OFFLOADED.get(), REFRAINS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        INVOCATIONS.set(0);
+        DURABLE_SKIPS.set(0);
+        ERROR_SKIPS.set(0);
+        CLEAN_INLINE.set(0);
+        OFFLOADED.set(0);
+        REFRAINS.set(0);
+    }
+
     @Override
     public HookResult afterTool(ToolCallContext ctx) {
+        INVOCATIONS.incrementAndGet();
         if (ctx.error() != null || ctx.result() == null) {
+            ERROR_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         if (SpillThresholds.isDurable(toolPolicies, ctx.toolName())) {
+            DURABLE_SKIPS.incrementAndGet();
             return HookResult.CONTINUE; // T22 durable 覆盖：声明「永不溢出」的输出保持全量内联
         }
         String raw = String.valueOf(ctx.result());
@@ -83,14 +124,18 @@ public class SpillOffloadHook implements BuzhouHook {
             emitDegraded(ctx, ctx.toolCallId(), outcome.uri());
             // onFail 动词汇（T19）：FILTER=透传原文（既有降级语义）；REFRAIN=保守拒答替代
             if (onFail == OnFail.REFRAIN) {
+                REFRAINS.incrementAndGet();
                 return HookResult.replace(REFRAIN_NOTICE);
             }
+            CLEAN_INLINE.incrementAndGet();
             return HookResult.CONTINUE;
         }
         if (outcome.offloaded()) {
             registerReadOnly(ctx, outcome.uri());
+            OFFLOADED.incrementAndGet();
             return HookResult.replace(outcome.text());
         }
+        CLEAN_INLINE.incrementAndGet();
         return HookResult.CONTINUE;
     }
 

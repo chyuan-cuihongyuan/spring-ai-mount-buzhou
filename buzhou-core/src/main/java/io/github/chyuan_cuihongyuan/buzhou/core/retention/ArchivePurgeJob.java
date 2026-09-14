@@ -88,22 +88,52 @@ public class ArchivePurgeJob implements SmartLifecycle, AutoCloseable {
 
     /** 单轮清理（手动/调度共用；返回删除数——损坏归档跳过语义沿用 purgeExpired；
      * 带锁未获锁返回 -1 且 archiver 零调用）。 */
+    // —— spec 1078 / impl 830：任务读面（Quartz/Chron job statistics 思想；静态面理由
+    // 同 R46–R77 先例）。purgedTotal 为跨轮累计无入口守恒（每轮产出可变）。
+    private static final java.util.concurrent.atomic.AtomicLong PURGE_ROUNDS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PURGED_TOTAL =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong SKIPPED_LOCKED_COUNT =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 归档清理任务分布快照（spec 1078）。 */
+    public record PurgeJobStats(long purgeRounds, long purgedTotal, long skippedLocked) {
+    }
+
+    /** 只读快照。 */
+    public static PurgeJobStats stats() {
+        return new PurgeJobStats(PURGE_ROUNDS.get(), PURGED_TOTAL.get(),
+                SKIPPED_LOCKED_COUNT.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        PURGE_ROUNDS.set(0);
+        PURGED_TOTAL.set(0);
+        SKIPPED_LOCKED_COUNT.set(0);
+    }
+
     public int purgeOnce() {
+        PURGE_ROUNDS.incrementAndGet();
         if (lock != null) {
             try {
                 if (!lock.tryAcquire(lockOwner, Instant.now())) {
+                    SKIPPED_LOCKED_COUNT.incrementAndGet();
                     listeners.forEach(listener -> listener.accept(SKIPPED_LOCKED));
                     return SKIPPED_LOCKED;
                 }
             } catch (java.io.IOException e) {
                 LOGGER.log(System.Logger.Level.WARNING,
                         "归档清理抢锁失败（IO）——按未获锁跳过本轮", e);
+                SKIPPED_LOCKED_COUNT.incrementAndGet();
                 listeners.forEach(listener -> listener.accept(SKIPPED_LOCKED));
                 return SKIPPED_LOCKED;
             }
         }
         try {
             int purged = archiver.purgeExpired(ttl, Instant.now());
+            PURGED_TOTAL.addAndGet(Math.max(purged, 0));
             listeners.forEach(listener -> listener.accept(purged));
             if (purged > 0) {
                 LOGGER.log(System.Logger.Level.INFO,

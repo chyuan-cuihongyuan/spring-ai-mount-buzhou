@@ -60,6 +60,10 @@ class EvalRunnerCancelTest {
         EvalRunResult result = evalRunner.run("ds-cancel", evaluator);
 
         assertThat(evaluator.calls.get()).isEqualTo(2); // 未启动项不再执行
+        // spec 1534 / T2319：进度读面——终态快照 done=5（含 3 cancelled 占位）total=5
+        assertThat(evalRunner.progress().total()).isEqualTo(5);
+        assertThat(evalRunner.progress().done()).isEqualTo(5);
+        assertThat(evalRunner.progress().cancelled()).isTrue();
         assertThat(result.items()).hasSize(5);
         assertThat(result.items().get(0).status()).isEqualTo(EvalRunItemResult.STATUS_PASS);
         assertThat(result.items().get(1).status()).isEqualTo(EvalRunItemResult.STATUS_PASS);

@@ -2,6 +2,7 @@ package io.github.chyuan_cuihongyuan.buzhou.spill;
 
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+/** spec 1529 / T2309：溢写服务——落盘/配额/引用记账的门面（工具与 Hook 的共用执行面）。 */
 
 public class SpillService {
 

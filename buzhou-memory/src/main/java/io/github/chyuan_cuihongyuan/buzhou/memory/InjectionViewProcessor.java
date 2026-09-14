@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+/** spec 1529 / T2309：记忆注入视图终处理器——RuntimeConfig 槽位，对注入模型的记忆视图做终改写（事实块/目录块/摘要的组装与预算分配）。 */
 
 public class InjectionViewProcessor implements MemoryViewProcessor {
 

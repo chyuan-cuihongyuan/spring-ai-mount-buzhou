@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+/** spec 1529 扩散：摘要 JDBC 实现——结构化摘要的关系表持久化。 */
 
 public class JdbcSummaryStore implements SummaryStore {
 

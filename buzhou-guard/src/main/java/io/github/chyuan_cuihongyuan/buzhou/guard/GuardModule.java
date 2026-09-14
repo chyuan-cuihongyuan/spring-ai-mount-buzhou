@@ -79,13 +79,15 @@ public final class GuardModule {
         // spec 86 §A / T329：PII 脱敏先于 spotlight（order 70 < 80——先脱敏原文再包裹）
         // spec 731 / T1013：piiPreserveFormat → 假名化模式（同长度同形态替身）
         if (builder.piiRedaction) {
+            // spec 1627 / T2405：PII 脱敏豁免征询（工具级/类型级双粒度）
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat));
+                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat, exemptions));
         }
         // spec 106 §A / T389：用户输入脱敏（beforeTurn replaceInput——与输出侧正交）
         if (builder.piiInputRedaction) {
+            // spec 1632 / T2415：输入侧豁免征询（会话级/类型级双粒度——mechanism 区分）
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook(
-                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat));
+                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat, exemptions));
         }
         // spec 536 / T825：流式回复秘密扫描（400 三缝的第四缝——回复出站流；默认关）
         if (builder.secretStreamRedaction != null && builder.secretStreamRedaction) {

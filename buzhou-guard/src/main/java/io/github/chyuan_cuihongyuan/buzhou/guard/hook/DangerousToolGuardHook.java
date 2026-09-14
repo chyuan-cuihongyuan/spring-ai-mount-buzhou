@@ -74,13 +74,53 @@ public class DangerousToolGuardHook implements BuzhouHook {
         return 300; // spec 07：beforeTool 内置序「副本分离(100) → Onload(200) → HITL(300)」
     }
 
+    // —— spec 1069 / impl 821：守卫判定读面（HITL 授权面对账思想；静态面理由同
+    // R46–R68 先例）。守恒：invocations = 五结局桶之和（escalations = 等待人工确认）。
+    private static final java.util.concurrent.atomic.AtomicLong INVOCATIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DISABLED_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong UNMATCHED_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong AUTHORIZED_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong EXEMPTED_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ESCALATIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 危险工具守卫判定分布快照（spec 1069）。 */
+    public record DangerousToolStats(long invocations, long disabledSkips, long unmatchedSkips,
+                                     long authorizedSkips, long exemptedSkips, long escalations) {
+    }
+
+    /** 只读快照（守恒 invocations = 五结局桶之和）。 */
+    public static DangerousToolStats stats() {
+        return new DangerousToolStats(INVOCATIONS.get(), DISABLED_SKIPS.get(),
+                UNMATCHED_SKIPS.get(), AUTHORIZED_SKIPS.get(),
+                EXEMPTED_SKIPS.get(), ESCALATIONS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        INVOCATIONS.set(0);
+        DISABLED_SKIPS.set(0);
+        UNMATCHED_SKIPS.set(0);
+        AUTHORIZED_SKIPS.set(0);
+        EXEMPTED_SKIPS.set(0);
+        ESCALATIONS.set(0);
+    }
+
     @Override
     public HookResult beforeTool(ToolCallContext ctx) {
+        INVOCATIONS.incrementAndGet();
         if (!config.enabled()) {
+            DISABLED_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         Optional<DangerousToolEntry> matched = matcher.match(ctx.toolName());
         if (matched.isEmpty()) {
+            UNMATCHED_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         DangerousToolEntry entry = matched.get();
@@ -90,18 +130,21 @@ public class DangerousToolGuardHook implements BuzhouHook {
         Optional<StateEntry> auth = stateStore.get(ctx.sessionId(), authKey);
         if (auth.isPresent()
                 && consumeIfOnce(ctx, fingerprint, authKey, auth.get().value())) {
+            AUTHORIZED_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         // spec 1624 / T2399：豁免征询（GuardExemptionRegistry 首个消费者——
         // mechanism=dangerous-tool、subject=工具名；未过期即放行 + 审计事件）
         if (exemptions != null
                 && exemptions.exempt("dangerous-tool", ctx.toolName(), System.currentTimeMillis())) {
+            EXEMPTED_SKIPS.incrementAndGet();
             ctx.emitEvent(new SessionEvent(EVENT_EXEMPTION_APPLIED, Map.of(
                     "toolName", ctx.toolName(),
                     "toolCallId", ctx.toolCallId(),
                     "mechanism", "dangerous-tool"), Instant.now()));
             return HookResult.CONTINUE;
         }
+        ESCALATIONS.incrementAndGet();
         return handleUnauthorized(ctx, entry, fingerprint);
     }
 

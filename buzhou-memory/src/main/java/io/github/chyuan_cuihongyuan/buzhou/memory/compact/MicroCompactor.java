@@ -4,6 +4,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 
 import java.util.List;
 import java.util.function.Function;
+/** spec 1529 / T2309：微压缩 SPI——旧工具返回回收与占位符替换的执行契约。 */
 
 public interface MicroCompactor {
 

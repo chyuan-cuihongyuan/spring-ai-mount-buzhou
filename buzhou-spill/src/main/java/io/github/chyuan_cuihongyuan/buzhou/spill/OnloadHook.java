@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+/** spec 1529 / T2309：回读护栏 Hook——溢写路径参数在工具执行前还原为实际内容（contentPath→content）。 */
 
 public class OnloadHook implements BuzhouHook {
 

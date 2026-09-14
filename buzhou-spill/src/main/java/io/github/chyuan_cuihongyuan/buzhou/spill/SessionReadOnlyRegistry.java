@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+/** spec 1529 / T2309：会话只读注册表——标记只读会话集（禁止写侧工具的结构性守卫数据面）。 */
 
 public class SessionReadOnlyRegistry {
 

@@ -16,6 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * (estimated − actual)/actual（正=高估——预算偏松、负=低估——预算偏紧，
  * 口径 javadoc 声明）；绝对误差样本 = |estimated − actual|。近窗
  * {@value #WINDOW} 对（挤出最老）。actual=0 的对忽略（相对误差无定义）。
+ * @since 1.0.0
  */
 public final class EstimatorCalibrationAudit {
 

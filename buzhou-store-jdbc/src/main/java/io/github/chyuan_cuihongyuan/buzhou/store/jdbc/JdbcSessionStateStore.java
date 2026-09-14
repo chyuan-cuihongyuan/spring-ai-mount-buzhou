@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+/** spec 1529 扩散：会话状态 JDBC 实现——StateEntry 的关系表持久化（键序区间扫描下推 SQL）。 */
 
 public class JdbcSessionStateStore implements SessionStateStore {
 

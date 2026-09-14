@@ -1,6 +1,6 @@
 # 04 Skill 体系与 MCP 热插拔
 
-所属模块：Skill 加载与注入归 `buzhou-core`（`load_skill` 为内置原子工具，见 ticket 19）；Skill 管理 API 与管理页归 `buzhou-observe-dashboard`（开发者控制台，见 ticket 15/16）；MCP 热插拔归独立模块 `buzhou-mcp`。决策来源：ticket 16（Skill 体系）、ticket 17（MCP 热插拔）、ticket 05（配置体系）、ticket 01 调研（`research/spring-ai-surface.md` 第 6 节）。
+所属模块：Skill 加载与注入归 `buzhou-core`（`load_skill` 为内置原子工具，见 ticket 19）；Skill 管理 API 与管理页归 `buzhou-observe-dashboard`（开发者控制台，见 ticket 15/16）；MCP 热插拔归独立模块 `buzhou-mcp`。（装配属性增量 spec 1519 回写：`buzhou.mcp.dangerous-tool-patterns` 缺省七动词前缀 glob（spec 14 §F / spec 1507）、`shutdown-budget` 默认 35s、`per-connection-concurrency-limit` 可选（spec 628）——详表 docs/config-reference.md。）决策来源：ticket 16（Skill 体系）、ticket 17（MCP 热插拔）、ticket 05（配置体系）、ticket 01 调研（`research/spring-ai-surface.md` 第 6 节）。
 
 ## 设计目标
 

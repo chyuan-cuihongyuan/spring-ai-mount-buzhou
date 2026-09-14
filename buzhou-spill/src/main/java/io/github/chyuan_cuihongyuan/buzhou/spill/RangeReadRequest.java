@@ -1,4 +1,5 @@
 package io.github.chyuan_cuihongyuan.buzhou.spill;
+/** spec 1529 / T2309：区间回读请求——模式与区间参数的载体。 */
 
 public record RangeReadRequest(Mode mode, Integer offset, Integer limit,
                                String jsonPath, String cursor, Window window, Integer tailLimit) {

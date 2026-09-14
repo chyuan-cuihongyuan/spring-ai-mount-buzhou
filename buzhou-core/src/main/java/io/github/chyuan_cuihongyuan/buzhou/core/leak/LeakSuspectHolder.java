@@ -7,6 +7,7 @@ import java.util.Optional;
  * 装配侧把聚合器复合进 LeakListener 链（宿主 listener 若有则两者都收），
  * {@link #aggregator()}/{@link #report()} 静态读出——「泄漏是同一处反复漏
  * 还是多处散漏」从日志流水变排行。
+ * @since 1.0.0
  */
 public final class LeakSuspectHolder {
 

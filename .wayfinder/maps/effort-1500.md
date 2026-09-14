@@ -23,6 +23,28 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [雾区池终态裁定的形状裁决](../tickets/T2333-fogpool-adjudication.md) — MCP 动态桥裁定不做（观测+静态双面已覆盖）；长期重构项移交后续；其余已闭环不留。
+- [FAILED_ONLY 占位豁免的形状裁决](../tickets/T2331-failedonly-exempt-shape.md) — 组合测试实证占位（元信息非数据）被截 0 模型丢失成功信号；前缀常量单源 + 豁免纳入。
+- [F8/F11 判定收尾的形状裁决](../tickets/T2329-f8-f11-shape.md) — F8 编程面 only（标签语义业务自定无默认可兜）；F11 单路径 Hook 化（无双路径即无幂等问题）——F1-F11 全档闭环。
+- [spec 05 判定项批量回写的形状裁决](../tickets/T2327-spec05-adjudications-shape.md) — F3 per-session 定案（Builder Bean 不采用）/F4 键表实现重写/F6 纯函数口径——F 系判定项全清。
+- [CONTEXT M 系术语段的形状裁决](../tickets/T2323-context-terms-shape.md) — 新节五条术语（一条一机制组跨 spec 聚合）。
+- [A/B 进度读面的形状裁决](../tickets/T2321-ab-progress-shape.md) — CompareProgress + 过程/终态快照（skipped null 占位无对象——终态统一 done=total）；spec 1534 扩散。
+- [评估进度读面的形状裁决](../tickets/T2319-eval-progress-shape.md) — progress() 不可变快照（三处 volatile 更新点，首版漏 cancelled 占位分支被测试当场抓住）；同步 run 的跨线程轮询面。
+- [M 系运维段的形状裁决](../tickets/T2317-runbook-shape.md) — runbook 第 24 节九行机制表（键/信号/要点）——N 系先例同款。
+- [批预算装配链测试的形状裁决](../tickets/T2315-batch-budget-assembly-shape.md) — 三用例（值透传/显式 0 语义关/缺省零装配）；M 系三 Holder 装配测试全覆盖。
+- [瞬断重试装配链测试的形状裁决](../tickets/T2313-retry-assembly-test-shape.md) — EvalPrune 先例双用例；装配测试当场实证 R13 Duration 转换缺陷（字符串源无转换器炸装配）并修复（DurationStyle 宽松解析）。
+- [Javadoc 全仓收口的形状裁决](../tickets/T2311-javadoc-final-sweep.md) — 8 个补齐（AutoConfig×3+Jdbc SPI×5）；core 六包外 30 个裁定不补（internal 域，门辖界维持）——五-1 终轮闭环。
+- [memory/spill Javadoc 补齐的形状裁决](../tickets/T2309-memory-spill-javadoc-shape.md) — 40 缺全补（角色一句话+spec 引注）；模块级门扩散留候选池；367 用例零回归。
+- [load 已序快路径的形状裁决](../tickets/T2307-load-fastpath-shape.md) — O(n) isSorted 检查免热路径全量排序（正常追加天然有序）；乱序回退全排序；快照语义保持。
+- [批预算错误反馈豁免的形状裁决](../tickets/T2305-error-feedback-exempt-shape.md) — isErrorFeedback 候选跳过（纠错信号保护；全部错误反馈极端批按序截保预算语义）；R29 即时补强。
+- [批级回喂预算的形状裁决](../tickets/T2303-batch-budget-shape.md) — applyBatchBudget 降序贪心截大者（小结果完整）+ BatchResponseBudgetHolder（>0 声明即启用）+ HarnessAssembler 拾取；单工具限幅之上的批维度护栏。
+- [serial-groups yml 通道的形状裁决](../tickets/T2301-serial-groups-yml-shape.md) — fromYml serial-groups map 解析 + configure yml 优先覆盖注解；F2 全档闭环（超时键 ToolTimeoutOverrides 先行）。
+- [配置错误显形双小项的形状裁决](../tickets/T2299-dup-name-observer-shape.md) — hook 重名 WARN（order 平局派发序不稳定+对位歧义）；addObserver 同实例幂等去重（listener 域维持——lambda 多实例 identity 去重无意义）。
+- [A/B 并行波间早停的形状裁决](../tickets/T2297-ab-wave-earlystop-shape.md) — 分波化让 SPRT 早停/宿主取消波间真生效（此前全量派发近似无效）；波内 scored 原子语义不变；16 用例零回归。
+- [并行评估波间剪枝的形状裁决](../tickets/T2295-parallel-prune-shape.md) — 分波执行 + 波间观察窗检查（串行同款语义）：并行剪枝从「诚实不生效」变波间止损；未配策略单波全量零变化；旧行为用例 parallelPathHonestNoPrune 按行为变更纪律改写为 parallelPathPrunesBetweenWaves。
+- [MemoryModule yml 样板统一的形状裁决](../tickets/T2293-memory-yml-dedup-shape.md) — memoryLeaf/memorySub 两 helper 统一 9 处嵌套 instanceof 提取（3 处反射/泛型复杂体保留）；等值重构。
+- [构造器 this 逃逸修复与三裁定的形状裁决](../tickets/T2291-this-escape-shape.md) — AsyncObservabilityPipeline 惰性启动（首事件 CAS）；DbToolSetProvider 首跑延迟窗口理论性不整改；五-2 三键边界追认；六-2 指纹双轨不统一（值稳定性优先）。
+- [日志双门面追认与 spec 04 回写的形状裁决](../tickets/T2289-logger-spec04-shape.md) — 69 文件既成风格不迁移（占位符风格硬约束不变、同文件不混用）；spec 04 补 mcp 装配属性增量。
 - [文档间残留矛盾三裁定的形状裁决](../tickets/T2287-doc-adjudication-shape.md) — perf 10ms/20ms = 目标-红线关系非矛盾；promptfoo star 统一时点注记；spec 09 追认 test 边豁免——design-incompleteness 清单经 M 系 20 轮全部闭环或裁定。
 - [spill 默认值单一事实源与六-6/六-9 裁定的形状裁决](../tickets/T2285-spill-defaults-shape.md) — 三常量落 SpillProperties（threshold 引用 SpillOffloadHook）三处引用收口；六-6 load 前两参 = SPI 扩展位注记保留；六-9 newSingleThreadScheduledExecutor = ScheduledThreadPoolExecutor(1) 等价（delay queue 无无界风险）不整改。
 - [spec 07 回写与序位常量化的形状裁决](../tickets/T2283-spec07-order-consts-shape.md) — spec 07 三处六→七切面；四处 order 魔法值常量化（同值零行为）；CounterAtomicitySpreadTest 经 N 会话承接修复（commit 30197389 引用 M 系 spec1513 记档——跨会话协作闭环确认）。
@@ -41,10 +63,11 @@
 - [核心 API 包类级 Javadoc 覆盖门的形状裁决](../tickets/T2257-api-javadoc-gate-shape.md) — 六包 192 公共类型 32 缺类级 Javadoc（含 AgentSession/BuzhouHook 最核心 API，规范违例）；逐一补齐 + CoreApiJavadocCoverageTest 纪律变测试（注解夹层感知）；Spotless 静态门思想，spec 213 先例。
 - [计时聚合器双子实例清零面的形状裁决](../tickets/T2255-aggregator-reset-shape.md) — HookTimingAggregator/ToolTimingAggregator 各补公开 reset()（清空 timings、幂等、不碰 Holder 开关）：Holder.reset() 只置 null 关聚合，实例账只增不减——测试基线污染与运维基线重建双缺；Prometheus counter reset 语义 + 仓库规范「进程级静态读面须配 reset 注入点」符合性补全，先例 ToolInFlight.reset()。
 
-## Not yet specified
+## Not yet specified（终态档——spec 1541 裁定）
 
-- R17+ 候选池（design-incompleteness 剩余 + 本线副产出）：六-1 DegradingObservabilityStore 双份分叉（redis 版缺 degrade 指标）；五-2 @Bean 裸读 Environment 约 13 处（M 系 R13 装配沿 EvalPrune 先例也用了 getProperty——后续统一整改时一并收口）；五-6 魔法值（advisor order 四处 + spill 默认值散落）；四-5 spec 07「六切面」回写七切面；四-7 spec 04 回写 mcp 属性增量；七-1 README/CLAUDE 机制计数口径（9+韧性=10）；MCP 动态危险名单桥（连接后才知道工具名，静态灌注不适配——雾区）；CounterAtomicitySpreadTest HEAD 既有失败（TokenBudgetHook NPE request()=null——R21 预检轮复查归属）。
-- 规避：N 会话活跃于 resilience（LFU 采样驱逐/SPRT/锁迁移），选题避开其 effort-1600 台账已落主题。
+- MCP 动态危险名单桥：**裁定不做**（McpToolHints 观测面 spec 600 + 静态拦截面 spec 1507/1508 已覆盖；连接生命周期与静态装配语义错配）。
+- 长期重构候选（移交后续会话号段/major 版）：DefaultAgentSession 七构造器望远镜收拢（二进制兼容政策遗产）；DefaultAgentRuntime 拆协作者（spawn/fork/export-import/续约分域）；DegradingObservabilityStore 双份结构收敛（指标分叉已修 spec 1515）。
+- 已闭环不留：五-2（spec 1520 三键边界追认）/CounterAtomicity（N 会话承接 30197389）/低覆盖（全模块饱和）/组合语义（spec 1540）。
 
 ## 轮次台账
 
@@ -70,6 +93,31 @@
 | 18 | spec 07 七切面回写 + 四处序位常量化（N 会话承接 CounterAtomicity 修复闭环确认） | design-incompleteness 四-5/五-6 部分 | T2283–T2284 | 1119 | 1516 | ✅ |
 | 19 | spill 默认值单一事实源（五-6 收口）+ 六-6/六-9 裁定入档 | design-incompleteness 五-6/六-6/六-9 | T2285–T2286 | 1120 | 1517 | ✅ |
 | 20 | 文档间残留矛盾三裁定（perf 口径/promptfoo star/test 边豁免）——design-incompleteness 可做项全档闭环 | design-incompleteness 七-2/七-3/四-8 | T2287–T2288 | 1121 | 1518 | ✅ |
+| 21 | 周期预检轮：全仓 verify 16 模块绿唯快照门红→隔离 worktree 再生快照补账（HEAD 已提交的 10 新类型：M 系 IdempotentToolRetryHolder + 并行会话 9 个 Holder/Hook；api-surface/CONTEXT 计数 466→893 陈旧口径刷新） | 周期 verify + 快照再生 | — | — | — | ✅ |
+| 22 | System.Logger 双门面追认（69 文件既成风格）+ spec 04 mcp 属性回写 | design-incompleteness 五-3/四-7 | T2289–T2290 | 1122 | 1519 | ✅ |
+| 23 | 观测管线构造器 this 逃逸修复（惰性启动）+ 五-2/六-2 指纹/DbToolSetProvider 三裁定 | design-incompleteness 六-7/五-2/六-2 | T2291–T2292 | 1123 | 1520 | ✅ |
+| 24 | MemoryModule yml 解析样板统一（9/13 → 两 helper） | design-incompleteness 六-5 部分 | T2293–T2294 | 1124 | 1521 | ✅ |
+| 25 | 并行评估波间剪枝做实（spec 901「并行诚实不生效」边界收口） | Rayon 分波 cooperative batching 思想 | T2295–T2296 | 1125 | 1522 | ✅ |
+| 26 | A/B 并行波间早停（SPRT/取消波间真生效，spec 1522 扩散） | spec 1522 扩散 | T2297–T2298 | 1126 | 1523 | ✅ |
+| 27 | 配置错误显形双小项（hook 重名 WARN + observer 幂等注册） | Kong 插件重名诊断思想 | T2299–T2300 | 1127 | 1524 | ✅ |
+| 28 | serial-groups yml 通道（F2 残留收口——yml 覆盖注解合并） | design-incompleteness F2 | T2301–T2302 | 1128 | 1525 | ✅ |
+| 29 | 批级工具结果回喂预算（贪心截大者，opt-in） | Anthropic 工具结果 token 预算思想 | T2303–T2304 | 1129 | 1526 | ✅ |
+| 30 | 批预算错误反馈豁免（spec 1526 即时补强） | 「错误即反馈」通道语义的预算域延伸 | T2305–T2306 | 1130 | 1527 | ✅ |
+| 31 | 周期预检轮：主区撞并行 mvn 竞争（匿名类 NoClassDefFound）→隔离 worktree 全仓 verify 16 模块绿唯快照门欠账→再生（M 系 BatchResponseBudgetHolder + 并行 NegativeCachingHolder 两类型补账） | 周期 verify + 快照再生 | — | — | — | ✅ |
+| 32 | InMemoryMessageStore.load 已序免排序快路径（热路径退化点消除） | 有序性检查快路径模式（TimSort 先验同款思想） | T2307–T2308 | 1131 | 1528 | ✅ |
+| 33 | memory/spill 40 个公开类型类级 Javadoc 补齐（五-1 扩散） | R4 core 门的地模块扩散 | T2309–T2310 | 1132 | 1529 | ✅ |
+| 34 | 类级 Javadoc 全仓收口（8 补齐 + 六包外辖界裁定，五-1 终轮） | spec 1503/1529 收口 | T2311–T2312 | 1133 | 1530 | ✅ |
+| 35 | 瞬断重试装配链测试（R13 补账 + Duration 转换缺陷实证修复） | EvalPrune 装配链测试先例 | T2313–T2314 | 1134 | 1531 | ✅ |
+| 36 | 批预算装配链测试（R29 补账——M 系三 Holder 装配测试全覆盖） | 装配链测试扩散 | T2315–T2316 | 1135 | 1532 | ✅ |
+| 37 | M 系增量运维段（runbook 第 24 节九行机制表） | N 系第 23 节同款先例 | T2317–T2318 | 1136 | 1533 | ✅ |
+| 38 | 评估 run 进度读面（progress：done/total/cancelled 跨线程轮询） | tqdm 进度条思想 | T2319–T2320 | 1137 | 1534 | ✅ |
+| 39 | A/B 对比进度读面（spec 1534 扩散：过程+终态快照） | spec 1534 扩散 | T2321–T2322 | 1138 | 1535 | ✅ |
+| 40 | CONTEXT.md M 系术语段（五条：通知/裁决分离等） | 领域术语台账同步 | T2323–T2324 | 1139 | 1536 | ✅ |
+| 41 | 周期预检轮：worktree 全仓 verify——tools RunCommandHardeningTest 稳定红破案（谓词裸 "sleep 30" 子串误伤同机并行会话轮询 shell 命令行——实证 pgrep 命中 N 会话快照循环）；谓词锚定 marker 唯一路径 + 垂死窗口轮询；starter 快照门欠账待 R51 收口统一再生 | 周期 verify + 测试缺陷修复 | — | — | — | ✅ |
+| 42 | spec 05 判定项批量回写（F3 advisor per-session 定案/F4 键表实现重写/F6 随机源口径） | design-incompleteness 判定项清扫 | T2327–T2328 | 1141 | 1538 | ✅ |
+| 43 | F8/F11 判定收尾（编程面 only/单路径 Hook 化——F 系全清） | design-incompleteness 判定项收尾 | T2329–T2330 | 1142 | 1539 | ✅ |
+| 44 | FAILED_ONLY 占位批预算豁免（组合测试实证截 0 缺陷修复） | spec 1526/1527 组合语义 | T2331–T2332 | 1143 | 1540 | ✅ |
+| 45 | 雾区池终态裁定（MCP 动态桥不做/长期重构移交/已闭环不留） | 收口前清理 | T2333–T2334 | 1144 | 1541 | ✅ |
 
 
 ## Out of scope

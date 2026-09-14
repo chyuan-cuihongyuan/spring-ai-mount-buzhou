@@ -23,6 +23,39 @@ import java.util.Locale;
 public class ContentModerationHook implements BuzhouHook {
 
     public static final int ORDER = 210;
+
+    // —— spec 1067 / impl 819：双缝判定读面（OpenAI moderation 双缝覆盖对账思想；静态面
+    // 与 micrometer 后端面互补——R57 先例）。守恒：invocations = 四结局桶之和。
+    private static final java.util.concurrent.atomic.AtomicLong INVOCATIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BLOCKED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong MASKED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong CLEAN_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong NULL_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 内容安全双缝判定分布快照（spec 1067）。 */
+    public record ModerationStats(long invocations, long blocked, long masked,
+                                  long cleanSkips, long nullSkips) {
+    }
+
+    /** 只读快照（守恒 invocations = blocked + masked + cleanSkips + nullSkips）。 */
+    public static ModerationStats stats() {
+        return new ModerationStats(INVOCATIONS.get(), BLOCKED.get(), MASKED.get(),
+                CLEAN_SKIPS.get(), NULL_SKIPS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        INVOCATIONS.set(0);
+        BLOCKED.set(0);
+        MASKED.set(0);
+        CLEAN_SKIPS.set(0);
+        NULL_SKIPS.set(0);
+    }
     /** MASK 动作占位（不回显命中词）。 */
     public static final String MASK_PLACEHOLDER = "[已屏蔽]";
 
@@ -67,38 +100,51 @@ public class ContentModerationHook implements BuzhouHook {
 
     @Override
     public HookResult beforeTurn(TurnContext ctx) {
+        INVOCATIONS.incrementAndGet();
         String input = ctx == null ? null : ctx.input();
+        if (input == null || input.isEmpty()) {
+            NULL_SKIPS.incrementAndGet();
+            return HookResult.CONTINUE;
+        }
         List<String> hits = hitsIn(input);
         if (hits.isEmpty()) {
+            CLEAN_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         BuzhouMetricsHolder.metrics().counter("buzhou.guard.moderation.hits",
                 "seam", "input");
         if (action == Action.BLOCK) {
+            BLOCKED.incrementAndGet();
             return HookResult.block(INPUT_BLOCK_NOTICE);
         }
         String masked = mask(input);
         ctx.replaceInput(masked);
+        MASKED.incrementAndGet();
         return HookResult.CONTINUE;
     }
 
     @Override
     public HookResult afterTool(ToolCallContext ctx) {
+        INVOCATIONS.incrementAndGet();
         if (ctx == null || ctx.error() != null || ctx.result() == null) {
+            NULL_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         String content = String.valueOf(ctx.result());
         List<String> hits = hitsIn(content);
         if (hits.isEmpty()) {
+            CLEAN_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         BuzhouMetricsHolder.metrics().counter("buzhou.guard.moderation.hits",
                 "seam", "tool-output");
         if (action == Action.BLOCK) {
+            BLOCKED.incrementAndGet();
             ctx.replaceResult(TOOL_BLOCK_NOTICE);
             return HookResult.CONTINUE;
         }
         ctx.replaceResult(mask(content));
+        MASKED.incrementAndGet();
         return HookResult.CONTINUE;
     }
 

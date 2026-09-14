@@ -50,9 +50,22 @@ public record ResilienceProperties(
         @Valid ResponseCache responseCache,
         @Valid SemanticCache semanticCache,
         @Valid Hedge hedge,
-        @Valid Outlier outlier) {
+        @Valid Outlier outlier,
+        String jitterMode) {
 
-    /** 16 参兼容构造（spec 1610 之前调用方；outlier = 未配置）。 */
+    /** 17 参兼容构造（spec 1631 之前调用方；jitterMode = EQUAL）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache, Hedge hedge,
+            Outlier outlier) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, responseCache, semanticCache, hedge, outlier, null);
+    }
+
+    /** 16 参兼容构造（spec 1610 之前调用方；outlier/jitterMode 缺省）。 */
     public ResilienceProperties(
             Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
             Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
@@ -60,7 +73,7 @@ public record ResilienceProperties(
             Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache, Hedge hedge) {
         this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
                 retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
-                shadow, responseCache, semanticCache, hedge, null);
+                shadow, responseCache, semanticCache, hedge, null, null);
     }
 
     /** 15 参兼容构造（spec 301 之前调用方；hedge/outlier = 未配置）。 */
@@ -184,14 +197,25 @@ public record ResilienceProperties(
             Integer backoffCap,
             Integer halfOpenSuccessThreshold,
             Duration timeWindow,
-            Duration warmup) {
+            Duration warmup,
+            Duration slowCallDuration,
+            Double slowCallRateThreshold) {
 
-        /** 既有 9 参构造（spec 620 形态；warmup 默认关——零行为变化）。 */
+        /** 既有 10 参构造（spec 1602 形态；慢调用维度关）。 */
+        public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
+                Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
+                Integer backoffCap, Integer halfOpenSuccessThreshold, Duration timeWindow,
+                Duration warmup) {
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
+                    backoffCap, halfOpenSuccessThreshold, timeWindow, warmup, null, null);
+        }
+
+        /** 既有 9 参构造（spec 620 形态；warmup/慢调用默认关）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
                 Integer backoffCap, Integer halfOpenSuccessThreshold, Duration timeWindow) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    backoffCap, halfOpenSuccessThreshold, timeWindow, null);
+                    backoffCap, halfOpenSuccessThreshold, timeWindow, null, null, null);
         }
 
         /** 既有 8 参构造（timeWindow 默认关——count 窗零变化）。 */
@@ -261,6 +285,21 @@ public record ResilienceProperties(
             if (warmup.isNegative()) {
                 throw configError("circuit.warmup", warmup.toString(), "设为非负时长（0 = 不启用）");
             }
+            // spec 1637 / T2425：慢调用维度（null/0 = 关；rate 缺省 0.5 与失败率阈同档）
+            slowCallRateThreshold = slowCallRateThreshold == null ? 0.5 : slowCallRateThreshold;
+            if (slowCallDuration != null && slowCallDuration.isNegative()) {
+                throw configError("circuit.slow-call-duration",
+                        slowCallDuration.toString(), "设为非负时长（null/0 = 不启用）");
+            }
+            if (!(slowCallRateThreshold > 0 && slowCallRateThreshold <= 1)) {
+                throw configError("circuit.slow-call-rate-threshold",
+                        String.valueOf(slowCallRateThreshold), "设为 (0,1]");
+            }
+        }
+
+        /** spec 1637：慢率阈生效值。 */
+        public double effectiveSlowCallRateThreshold() {
+            return slowCallRateThreshold;
         }
 
         /** 连续跳闸自适应冷却倍数（trips 含本次跳闸；cap 封顶）。 */
@@ -595,6 +634,14 @@ public record ResilienceProperties(
         }
         if (jitter != null && (jitter < 0 || jitter > 1)) {
             throw configError("jitter", String.valueOf(jitter), "设为 [0,1]");
+        }
+        // spec 1631 / T2413：抖动模式合法值 fail-fast（EQUAL/FULL/DECORRELATED）
+        if (jitterMode != null && !jitterMode.isBlank()) {
+            try {
+                io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.JitterMode.parse(jitterMode);
+            } catch (IllegalArgumentException e) {
+                throw configError("jitter-mode", jitterMode, "设为 EQUAL / FULL / DECORRELATED");
+            }
         }
         if (deadline != null && deadline.isNegative()) {
             throw configError("deadline", deadline.toString(), "设为正时长，或显式 0 关闭超时");

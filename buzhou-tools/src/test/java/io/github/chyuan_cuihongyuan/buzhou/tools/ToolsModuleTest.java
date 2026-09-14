@@ -38,6 +38,26 @@ class ToolsModuleTest {
         assertThat(module.enabledDangerousToolNames()).isEmpty();
     }
 
+    /** spec 1525 / T2301：serial-groups yml 通道——注解之上的显式覆盖（F2 残留收口）。 */
+    @Test
+    void serialGroupsYmlChannelShouldOverrideAnnotation() {
+        // 注解通道：write_file → file 组（serialGroup = "file"）
+        ToolsModule withYml = ToolsModule
+                .fromYml(stateStore, java.util.Map.of("serial-groups",
+                        java.util.Map.of("read_file", "io-lane", "write_file", "yml-lane")))
+                .writeFileEnabled(true)
+                .readFileEnabled(true)
+                .build();
+        var cfg = withYml.configure();
+        assertThat(cfg.serialGroups()).containsEntry("read_file", "io-lane"); // 无注解工具纯 yml
+        assertThat(cfg.serialGroups()).containsEntry("write_file", "yml-lane"); // yml 覆盖注解
+
+        // 无 yml：注解通道原样（零行为回归）
+        ToolsModule annotationOnly = ToolsModule.builder(stateStore)
+                .writeFileEnabled(true).build();
+        assertThat(annotationOnly.configure().serialGroups()).containsEntry("write_file", "file");
+    }
+
     /** spec 1504 / T2259–T2260：destructive 标注正确性钉住（危险名单注解驱动的元数据防线）。 */
     @Test
     void destructiveAnnotationMarksBuiltInWriteSideToolsOnly() {

@@ -64,6 +64,11 @@ public final class PairwiseEvalRunner {
     /** spec 1506 / T2263：宿主请求取消当前 compare run（项边界生效，spec 1505 同语义）。 */
     private final java.util.concurrent.atomic.AtomicBoolean hostCancel =
             new java.util.concurrent.atomic.AtomicBoolean();
+    /** spec 1535 / T2321：当前 compare 进度快照（done 含 skipped 占位；无活跃 run 全零）。 */
+    public record CompareProgress(String runId, int done, int total, boolean hostCancelled) {
+    }
+
+    private volatile CompareProgress progress = new CompareProgress("", 0, 0, false);
     /** spec 74 §A / T299：run 落盘（null = 不落盘，行为与 #31 一致）。 */
     private final SessionStateStore stateStore;
 
@@ -89,6 +94,11 @@ public final class PairwiseEvalRunner {
         hostCancel.set(true);
     }
 
+    /** spec 1535 / T2321：当前（或最近一次）compare 的进度快照——跨线程轮询面（spec 1534 同款）。 */
+    public CompareProgress progress() {
+        return progress;
+    }
+
     /** 既有 4 参 compare（SPRT 未启用——零行为）。 */
     public PairwiseEvalResult compare(String datasetName, AgentRuntime runtimeA,
             AgentRuntime runtimeB, int parallelism) {
@@ -109,6 +119,7 @@ public final class PairwiseEvalRunner {
         String runId = "ab" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
         hostCancel.set(false); // spec 1506：run 开始清零——上轮残留取消不污染新 run
+        this.progress = new CompareProgress(runId, 0, items.size(), false); // spec 1535
         // spec 1605 / T2361：SPRT 序贯提前终止——达界后未起项跳过（skipped 桶）
         java.util.concurrent.atomic.AtomicInteger liveWinsA = new java.util.concurrent.atomic.AtomicInteger();
         java.util.concurrent.atomic.AtomicInteger liveWinsB = new java.util.concurrent.atomic.AtomicInteger();
@@ -125,31 +136,48 @@ public final class PairwiseEvalRunner {
                 }
                 byIndex[i] = scored(compareItem(runId, items.get(i), runtimeA, runtimeB),
                         liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
+                this.progress = new CompareProgress(runId, i + 1, items.size(),
+                        hostCancel.get()); // spec 1535
             }
         } else {
-            List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
-            for (int i = 0; i < items.size(); i++) {
-                final int index = i;
-                final EvalItem item = items.get(i);
-                tasks.add(() -> {
-                    if (earlyStop.get() || hostCancel.get()) {
-                        return null; // skipped：byIndex 保持 null（SPRT 达界或宿主取消）
-                    }
-                    byIndex[index] = scored(compareItem(runId, item, runtimeA, runtimeB),
-                            liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
-                    return null;
-                });
-            }
+            // spec 1523 / T2297：分波执行（spec 1522 扩散）——SPRT 早停/宿主取消
+            // 在波间真生效（此前全量 invokeAll 派发，task 首行检查只挡未调度项）
             try (java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
-                pool.invokeAll(tasks);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException("A/B 评估并行执行被中断", e);
+                int waveSize = workers;
+                for (int waveStart = 0; waveStart < items.size(); waveStart += waveSize) {
+                    if (earlyStop.get() || hostCancel.get()) {
+                        break; // 剩余项 skipped（byIndex 保持 null）
+                    }
+                    int waveEnd = Math.min(waveStart + waveSize, items.size());
+                    List<java.util.concurrent.Callable<Void>> waveTasks = new ArrayList<>();
+                    for (int i = waveStart; i < waveEnd; i++) {
+                        final int index = i;
+                        final EvalItem item = items.get(i);
+                        waveTasks.add(() -> {
+                            if (earlyStop.get() || hostCancel.get()) {
+                                return null; // skipped：byIndex 保持 null（SPRT 达界或宿主取消）
+                            }
+                            byIndex[index] = scored(compareItem(runId, item, runtimeA, runtimeB),
+                                    liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
+                            return null;
+                        });
+                    }
+                    try {
+                        pool.invokeAll(waveTasks);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("A/B 评估并行执行被中断", e);
+                    }
+                    this.progress = new CompareProgress(runId, waveEnd, items.size(),
+                            hostCancel.get()); // spec 1535：波间快照
+                }
             }
         }
         // Arrays.asList 容 null（SPRT skipped 项位）；List.of 拒 null
         List<PairwiseItemResult> results = java.util.Arrays.asList(byIndex);
+        this.progress = new CompareProgress(runId, items.size(), items.size(),
+                hostCancel.get()); // spec 1535：终态快照（done 含 skipped 占位——与取消终态一致）
         int winsA = 0;
         int winsB = 0;
         int ties = 0;
@@ -240,6 +268,13 @@ public final class PairwiseEvalRunner {
         payload.put("errors", result.summary().errors());
         payload.put("winRateA", result.summary().winRateA());
         payload.put("winRateB", result.summary().winRateB());
+        // spec 1630 / T2411：胜率 95% Wilson 置信区间（不确定性显形——分母含 ties 的 decided 口径）
+        int decidedN = result.summary().winsA() + result.summary().winsB();
+        if (decidedN > 0) {
+            double[] ci = WilsonInterval.of(result.summary().winsA(), decidedN);
+            payload.put("winRateAciLow", Math.round(ci[0] * 10_000) / 10_000.0);
+            payload.put("winRateAciHigh", Math.round(ci[1] * 10_000) / 10_000.0);
+        }
         payload.put("skipped", result.summary().skipped());
         if (result.summary().sprtDecision() != null) {
             payload.put("sprtDecision", result.summary().sprtDecision());

@@ -37,6 +37,11 @@
 - [R8 验证收口 + T1824 主代码缺陷](../tickets/T1823-branch-uplift-otel-verify.md) — observe-otel 32 用例全绿；OtelBridgeSink 分支 61%→87%、OtelProperties →100%；**分支补测第一轮即显形真实主代码缺陷 T1824**（sessionTrace 驱逐 iterator.remove() 缺 next() → ISE 被故障隔离吞掉 → 超限后新会话 span 静默丢弃，驱逐护栏从未工作）——「缺口=未执行路径=未验证路径」实证。
 - [R9 分支缺口批次 2 选题（observability 两小类）](../tickets/T1825-branch-uplift-observability-shape.md) — 小类先清沉淀 fake 基建（RecordingRecorder/Handle，初始属性袋必须落 handle 对齐真实语义）；ObservabilitySessionState 46%→88%（会话 span 生命周期/usage 聚合/CANCELLED 终态/carrier null 防御）+ ObservableToolCallback 29%→86%（parent 三级解析 ToolContext 载体>字段载体>hooks 兜底/异常 error+close+rethrow）；observability 83 用例全绿；批次 3 = ObservabilityAdvisor（68 missed）/ MicrometerDualWriter（15）留 R10+。
 - [R10 选题：MicrometerDualWriter 单类补测](../tickets/T1827-micrometer-dual-writer-shape.md) — 「无测试文件 > 缺分支」优先级：双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%，observability 94 用例全绿；ObservabilityAdvisor 流式路径顺延 R11 深做。
+- [R11 分支批次 4 选题（边缘分支清扫）](../tickets/T1829-branch-uplift-batch4-shape.md) — ThinkingChainExtractor 76%→90%（extraKeys 过滤链/maxChars 钳制/omitted 字符串形态/非 String 忽略）+ DefaultSpanHandle 63%→88%（attributes 批量导入首次被调用/双 close 幂等/显式终态优先/error null 防御）；ObservabilityAdvisor 流式 harness 单列 R12（议程精确化）；ToolGraphAnalyzer 批次 5 候选。
+- [R11 验证收口](../tickets/T1830-branch-uplift-batch4-verify.md) — observability 105 用例全绿（新增 11）；主代码零变化。
+- [R12 周期对账轮形态](../tickets/T1831-k-audit-r12-shape.md) — 第二次全仓 verify（隔离 worktree 固定提交点）+ 工件链五项对账（spec 1200–1211/票 T1801–T1832/impl 903–914）；R8–R11 增量 22+11 用例回归确认；R13 = Advisor 流式 harness。
+- [R12 验证收口](../tickets/T1832-k-audit-r12-verify.md) — 全仓 verify BUILD SUCCESS（16 模块三门全过，容器按设计 skip）；工件链五项全 OK（spec 1200–1211/README/票 T1801–T1832/impl 903–914/map）；R8–R11 增量回归确认；R13 = Advisor 流式 harness。
+- [R13 验证收口](../tickets/T1834-advisor-stream-verify.md) — ObservabilityAdvisor 流式 harness 落地（本仓首个 Spring AI 流式 advisor 测试基建，7 用例全绿）：happy path 全断言/usage-only 无首信号/toolCalls 抑制 FINAL_REPLY/流错 ERROR/取消 CANCELLED/parent 三级回退；分支 56%→69%（累计口径）；Spring AI 流式 advisor 测试基建沉淀可复用。
 
 ## R1 台账（spec 1200 / impl 903）
 

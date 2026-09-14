@@ -32,6 +32,8 @@ public class PiiStreamRedactionHook implements BuzhouHook {
     private final Set<PiiType> enabledTypes;
     private final CustomPiiRules customRules;
     private final int window;
+    /** spec 1643 / T2437：豁免登记（null = 不征询）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions;
 
     public PiiStreamRedactionHook() {
         this(EnumSet.allOf(PiiType.class));
@@ -43,6 +45,12 @@ public class PiiStreamRedactionHook implements BuzhouHook {
 
     /** 全参构造：types null = 全类型；customRules null = 无自定义；window 必须 ≥ 1。 */
     public PiiStreamRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules, int window) {
+        this(enabledTypes, customRules, window, null);
+    }
+
+    /** spec 1643 / T2437：+exemptions（null = 不征询——既有调用零行为；会话/类型双粒度）。 */
+    public PiiStreamRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules, int window,
+            io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions) {
         if (window < 1) {
             throw new IllegalArgumentException("reply window 必须 ≥ 1（实际 " + window + "）");
         }
@@ -51,6 +59,7 @@ public class PiiStreamRedactionHook implements BuzhouHook {
                 ? EnumSet.allOf(PiiType.class) : enabledTypes);
         this.customRules = customRules == null ? new CustomPiiRules(List.of()) : customRules;
         this.window = window;
+        this.exemptions = exemptions;
     }
 
     @Override
@@ -63,15 +72,36 @@ public class PiiStreamRedactionHook implements BuzhouHook {
         return ORDER;
     }
 
-    /** 每轮新建窗口过滤器（有状态——跨 chunk 缓冲；同轮串行回调契约，无需线程安全）。 */
+    /**
+     * 每轮新建窗口过滤器（有状态——跨 chunk 缓冲；同轮串行回调契约，无需线程安全）。
+     * spec 1643 / T2437：类型级豁免剔除（type:TYPE——StreamTextFilter SPI 无会话
+     * 上下文，会话级豁免不适用于流式面——诚实边界）。
+     */
     @Override
     public StreamTextFilter replyStreamFilter() {
-        return new WindowFilter();
+        Set<PiiType> effectiveTypes = enabledTypes;
+        if (exemptions != null) {
+            long now = System.currentTimeMillis();
+            EnumSet<PiiType> kept = EnumSet.noneOf(PiiType.class);
+            for (PiiType type : enabledTypes) {
+                if (!exemptions.exempt("pii-redaction", "type:" + type.name(), now)) {
+                    kept.add(type);
+                }
+            }
+            effectiveTypes = kept;
+        }
+        return new WindowFilter(effectiveTypes);
     }
 
     private final class WindowFilter implements StreamTextFilter {
 
         private final StringBuilder pending = new StringBuilder();
+        /** spec 1643：本轮生效类型（豁免剔除后的视图）。 */
+        private final Set<PiiType> types;
+
+        WindowFilter(Set<PiiType> types) {
+            this.types = types;
+        }
 
         @Override
         public String filter(String chunk) {
@@ -126,7 +156,7 @@ public class PiiStreamRedactionHook implements BuzhouHook {
             String text = pending.toString();
             List<PiiDetector.PiiMatch> hits = detector.scan(text).stream()
                     .filter(m -> enabledTypes.contains(m.type())).toList();
-            String redacted = detector.redact(text, enabledTypes);
+            String redacted = detector.redact(text, types);
             if (!customRules.isEmpty()) {
                 redacted = customRules.redact(redacted);
             }

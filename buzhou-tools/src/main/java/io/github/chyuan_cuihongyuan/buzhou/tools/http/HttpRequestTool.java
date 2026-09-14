@@ -29,11 +29,26 @@ public class HttpRequestTool implements ToolCallback {
     /** 写方法集合（spec 06 推演 #6）——方法粒度 HITL 守卫（ticket 27）接线时消费；当前守卫按工具名整体生效。 */
     public static final Set<String> WRITE_METHODS = Set.of("POST", "PUT", "DELETE", "PATCH");
 
+    /** spec 1629：单头超长（外层返回友好文案、计 OVERSIZE 桶而非 FAILURES）。 */
+    static final class HeaderTooLargeException extends RuntimeException {
+        HeaderTooLargeException(int length) {
+            super("单头值长度 " + length + " 超上限 " + MAX_HEADER_VALUE_CHARS);
+        }
+    }
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
     /** impl-49：响应体读入上限（8MB；Content-Length 预检 + 流式截断兜底，防 OOM）。 */
     static final long MAX_RESPONSE_BYTES = 8L * 1024 * 1024;
     /** impl-49：timeoutSeconds 上限（模型自报时长须有上界）。 */
     static final long MAX_TIMEOUT_SECONDS = 300;
+    /** spec 1629 / T2409：body 直传长度上限（64K 字符——超长走 bodyPath Onload 通道）。 */
+    static final int MAX_BODY_CHARS = 64 * 1024;
+    /** spec 1629：URL 长度上限（8K——HTTP/2 SETTINGS_MAX_HEADER_LIST_STYLE 同思想）。 */
+    static final int MAX_URL_CHARS = 8 * 1024;
+    /** spec 1629：请求头数量上限（64）。 */
+    static final int MAX_HEADERS = 64;
+    /** spec 1629：单头值长度上限（8K 字符）。 */
+    static final int MAX_HEADER_VALUE_CHARS = 8 * 1024;
     /** impl-49：连接级/逐跳头黑名单（模型不可覆盖）。 */
     private static final java.util.Set<String> BLOCKED_HEADERS = java.util.Set.of(
             "host", "content-length", "transfer-encoding", "connection");
@@ -59,11 +74,14 @@ public class HttpRequestTool implements ToolCallback {
     /** spec 1603 / T2357：per-host 并发上限拒绝（limit_conn 桶）。 */
     private static final AtomicLong HOST_LIMIT_REJECTS = new AtomicLong();
     private static final AtomicLong FAILURES = new AtomicLong();
+    /** spec 1071：受控头丢弃旁路量（一次请求可丢多头，不占入口桶）。 */
+    private static final AtomicLong HEADER_DROPS = new AtomicLong();
 
     /** 请求量水位与结果分布快照（spec 1049；spec 1603 扩第七桶 hostLimitRejects）。 */
     public record HttpToolStats(long attempts, long successes, long methodRejects,
                                 long urlRejects, long ssrfRejects, long timeoutParamRejects,
-                                long oversizeRejects, long hostLimitRejects, long failures) {
+                                long oversizeRejects, long hostLimitRejects, long failures,
+                                long headerDrops) {
 
         /** 拒绝总数（七桶之和）。 */
         public long totalRejects() {
@@ -76,7 +94,8 @@ public class HttpRequestTool implements ToolCallback {
     public static HttpToolStats stats() {
         return new HttpToolStats(ATTEMPTS.get(), SUCCESSES.get(), METHOD_REJECTS.get(),
                 URL_REJECTS.get(), SSRF_REJECTS.get(), TIMEOUT_PARAM_REJECTS.get(),
-                OVERSIZE_REJECTS.get(), HOST_LIMIT_REJECTS.get(), FAILURES.get());
+                OVERSIZE_REJECTS.get(), HOST_LIMIT_REJECTS.get(), FAILURES.get(),
+                HEADER_DROPS.get());
     }
 
     /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
@@ -90,6 +109,7 @@ public class HttpRequestTool implements ToolCallback {
         OVERSIZE_REJECTS.set(0);
         HOST_LIMIT_REJECTS.set(0);
         FAILURES.set(0);
+        HEADER_DROPS.set(0);
     }
 
     public HttpRequestTool(SsrfGuard ssrfGuard, Duration defaultTimeout) {
@@ -152,6 +172,26 @@ public class HttpRequestTool implements ToolCallback {
                 URL_REJECTS.incrementAndGet();
                 return "http_request 失败：仅支持 http/https：" + url;
             }
+            // spec 1629 / T2409：输入边界四护栏（Envoy HTTP/2 SETTINGS_MAX_* 思想——
+            // 模型自报的超长输入不进执行层；超长 body 走 bodyPath Onload 通道）
+            if (url.length() > MAX_URL_CHARS) {
+                URL_REJECTS.incrementAndGet();
+                return "http_request 失败：url 长度 " + url.length() + " 超上限 " + MAX_URL_CHARS;
+            }
+            String bodyParam = args.hasNonNull("body") ? args.path("body").asText() : null;
+            if (bodyParam != null && bodyParam.length() > MAX_BODY_CHARS) {
+                OVERSIZE_REJECTS.incrementAndGet();
+                return "http_request 失败：body 长度 " + bodyParam.length()
+                        + " 超上限 " + MAX_BODY_CHARS + "（长内容请用 bodyPath 走框架加载）";
+            }
+            int headerCount = 0;
+            if (args.path("headers").isObject()) {
+                headerCount = args.path("headers").size();
+            }
+            if (headerCount > MAX_HEADERS) {
+                OVERSIZE_REJECTS.incrementAndGet();
+                return "http_request 失败：请求头数量 " + headerCount + " 超上限 " + MAX_HEADERS;
+            }
             String reject = ssrfGuard.check(uri.getHost());
             if (reject != null) {
                 SSRF_REJECTS.incrementAndGet();
@@ -171,7 +211,7 @@ public class HttpRequestTool implements ToolCallback {
                 TIMEOUT_PARAM_REJECTS.incrementAndGet();
                 return "http_request 失败：timeoutSeconds 超出允许范围（1~" + MAX_TIMEOUT_SECONDS + "）";
             }
-            String body = args.hasNonNull("body") ? args.path("body").asText() : null;
+            String body = bodyParam;
 
             HttpRequest.Builder request = HttpRequest.newBuilder(uri)
                     .timeout(Duration.ofSeconds(timeoutSeconds));
@@ -179,9 +219,15 @@ public class HttpRequestTool implements ToolCallback {
             args.path("headers").properties().forEach(h -> {
                 String name = h.getKey().trim();
                 if (BLOCKED_HEADERS.contains(name.toLowerCase(java.util.Locale.ROOT))) {
-                    return; // 静默丢弃受控头
+                    HEADER_DROPS.incrementAndGet(); // spec 1071：受控头丢弃显形
+                    return;
                 }
-                request.header(name, h.getValue().asText());
+                String value = h.getValue().asText();
+                if (value.length() > MAX_HEADER_VALUE_CHARS) {
+                    OVERSIZE_REJECTS.incrementAndGet();
+                    throw new HeaderTooLargeException(value.length());
+                }
+                request.header(name, value);
             });
             request.method(method, body == null
                     ? HttpRequest.BodyPublishers.noBody()
@@ -203,6 +249,8 @@ public class HttpRequestTool implements ToolCallback {
             SUCCESSES.incrementAndGet();
             return "HTTP " + raw.statusCode() + "\n" + responseBody
                     + (truncated ? "\n[响应超过读入上限 8MB，已截断]" : "");
+        } catch (HeaderTooLargeException tooLarge) {
+            return "http_request 失败：" + tooLarge.getMessage();
         } catch (Exception e) {
             FAILURES.incrementAndGet();
             return "http_request 失败：" + e.getMessage();

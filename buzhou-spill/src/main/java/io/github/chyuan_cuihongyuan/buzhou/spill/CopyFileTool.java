@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+/** spec 1529 / T2309：文件复制工具——copy_file 沙箱内文件复制（危险写侧，opt-in）。 */
 
 public class CopyFileTool implements ToolCallback {
 

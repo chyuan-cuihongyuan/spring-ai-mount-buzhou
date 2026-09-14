@@ -391,10 +391,12 @@ public class ResilienceAdvisor implements BaseAdvisor {
             }
         }
         try {
+            long slowStartNs = System.nanoTime(); // spec 1628：主调用时长（慢调用维度喂入）
             ChatClientResponse response = callWithDeadline(
                     () -> timedModelCall(targetName, target.model(), request));
             if (circuit != null) {
-                circuit.recordSuccess(targetName, emitter);
+                circuit.recordSuccess(targetName, emitter,
+                        java.time.Duration.ofNanos(System.nanoTime() - slowStartNs));
                 outlierOk(targetName);
             }
             recordCandidateUsage(targetName, response);
@@ -766,12 +768,37 @@ public class ResilienceAdvisor implements BaseAdvisor {
      * 指数退避 {@code initial * multiplier^(attempt-1)}，钳制到 {@code maxBackoff}，再加 {@code ±jitter} 抖动。
      * 02 号票接入 Retry-After（限流时优先尊重、并钳制到 maxBackoff）。
      */
+    /** spec 1631 / T2413：decorrelated 模式的前次退避（会话内去相关基准）。 */
+    private volatile long previousBackoffMillis;
+
+    /** spec 1631：抖动模式（默认 EQUAL=既有语义；装配侧可配 FULL/DECORRELATED）。 */
+    private volatile JitterMode jitterMode = JitterMode.EQUAL;
+
+    /** spec 1631：注入抖动模式（链式）。 */
+    public ResilienceAdvisor withJitterMode(JitterMode mode) {
+        this.jitterMode = mode == null ? JitterMode.EQUAL : mode;
+        return this;
+    }
+
     private Duration computeBackoff(int attempt) {
         double grown = config.initialBackoff().toMillis() * Math.pow(config.multiplier(), attempt - 1);
         long capped = (long) Math.min(grown, config.maxBackoff().toMillis());
         double j = config.jitter();
-        long jittered = j <= 0 ? capped
-                : (long) (capped * (1.0 - j + 2 * j * ThreadLocalRandom.current().nextDouble()));
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        long jittered;
+        switch (jitterMode) {
+            case FULL -> // spec 1631：random(0, capped)——AWS 推荐防同步
+                    jittered = (long) (capped * random.nextDouble());
+            case DECORRELATED -> { // spec 1631：[base, min(cap, prev×3)]
+                long ceiling = Math.min(capped, Math.max(previousBackoffMillis,
+                        config.initialBackoff().toMillis()) * 3);
+                long floor = Math.min(config.initialBackoff().toMillis(), ceiling);
+                jittered = floor + (long) ((ceiling - floor) * random.nextDouble());
+            }
+            default -> jittered = j <= 0 ? capped
+                    : (long) (capped * (1.0 - j + 2 * j * random.nextDouble()));
+        }
+        previousBackoffMillis = Math.max(1, jittered);
         return Duration.ofMillis(Math.max(1, jittered));
     }
 

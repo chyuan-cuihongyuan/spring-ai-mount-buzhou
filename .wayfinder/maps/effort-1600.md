@@ -97,6 +97,72 @@
 - [R26 形状：泄漏金丝雀接线](../tickets/T2401-r26-canary-shape.md) — spec 528 孤类接线：SessionCanaryHook（beforeTurn 种植确定性令牌 + afterModel 输出扫描——他会话令牌即泄漏事件）；令牌注入面留宿主（honeytoken 需放进数据才可触发——诚实边界随原注）；LayeredPolicy（1003）裁决纯函数工具豁免不清亡
 - [R26 验收](../tickets/T2402-r26-canary-verify.md) — 两断言（他会话令牌→泄漏事件+自会话回显不算/种植确定性）+ registry 既有 4 用例零回归
 
+- [R27 形状：中期对账审计](../tickets/T2403-r27-audit-shape.md) — 26 轮跨 6 模块改动首跑隔离 worktree 全仓 verify：唯一红=API 快照非破坏新增 10 类 → worktree 再生修复+md 入档；工件对账补 spec1622 悬空引用；全部 16xx spec/README/票/impl 双向实存
+- [R27 验收](../tickets/T2404-r27-audit-verify.md) — ApiSurfaceSnapshotTest+SpecCoverageTest 双绿（worktree 实证）+ 对账清单入档
+
+- [R28 形状：PII 豁免双粒度](../tickets/T2405-r28-pii-shape.md) — 820 第二消费者：工具级（该工具输出整体豁免短路）+ 类型级（type:TYPE 从生效集剔除、其余类型照脱）——「规则误报已核验」与「该数据源可信」两种生产痛点各得其所
+- [R28 验收](../tickets/T2406-r28-pii-verify.md) — 三断言（工具级原样透传/类型级 EMAIL 脱敏 PHONE 保留/无豁免基线全脱）+ guard 359 用例
+
+- [R29 形状：熔断慢调用维度](../tickets/T2407-r29-slow-shape.md) — resilience4j slow call rate 思想：withSlowCallPolicy(duration,rate) 链式注入（不扩 Config——零配置零行为），慢样本环形窗与失败窗并行，慢率或失败率任一达界开闸；无时长入账不计慢（既有语义零变化）；advisor 主路径 nanoTime 喂入
+- [R29 验收](../tickets/T2408-r29-slow-verify.md) — 五断言（未注入零行为/慢率开闸零失败前提/快调用不触发/无时长面不计慢/参数校验）+ resilience 389 用例
+
+- [R30 形状：输入边界四护栏](../tickets/T2409-r30-bounds-shape.md) — Envoy HTTP/2 SETTINGS_MAX_* 思想：body 64K（超长走 bodyPath Onload 通道带指引）/URL 8K/头数量 64/单头值 8K——模型自报超长输入不进执行层；单头超限独立异常不计失败桶
+- [R30 验收](../tickets/T2410-r30-bounds-verify.md) — 五断言（四护栏各拒入桶+合规输入零影响）+ tools 118 用例
+
+- [R31 形状：Wilson 置信区间](../tickets/T2411-r31-wilson-shape.md) — 统计报告标准工具（小样本/极端比例不越界不出负值——正态近似的经典缺陷）：ab.run.completed 事件加 winRateA 95% CI（decided 口径分母），与 SPRT 决策面互补的报告面
+- [R31 验收](../tickets/T2412-r31-wilson-verify.md) — 四断言（含点估计/极端不越界/小样本宽于大样本/退化零区间）+ Pairwise 回归
+
+- [R32 形状：退避抖动模式](../tickets/T2413-r32-jitter-shape.md) — AWS「Exponential Backoff and Jitter」思想：JitterMode 可配（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机防同步最优/DECORRELATED=[base,min(cap,prev×3)] 去相关），withJitterMode 链式 + yml jitter-mode；默认 EQUAL 零行为
+- [R32 验收](../tickets/T2414-r32-jitter-verify.md) — 四断言（EQUAL 带内/FULL 全区间有落点/DECORRELATED prev×3 界/解析 fail-fast）+ resilience 393 用例
+
+- [R33 形状：输入侧 PII 豁免](../tickets/T2415-r33-piiin-shape.md) — 820 第三消费者：PiiInputRedactionHook 双粒度（会话级 subject=sessionId「内部已合规通道」+ 类型级 type:TYPE 生效集剔除）——mechanism 域分侧（pii-input-redaction）与输出侧独立豁免；含 J 会话 DangerousToolStatsTest 脱锚解卡（import/包路径/yml 形态三处）
+- [R33 验收](../tickets/T2416-r33-piiin-verify.md) — guard 368 用例全绿（含解卡后的 J 系 4 用例 + 输入侧豁免回归）
+
+- [R34 形状：负缓存装配面](../tickets/T2417-r34-negcache-shape.md) — NegativeCachingHolder（进程级开关默认关 + TTL 可调）+ HarnessAssembler 全工具包装链（未启用原引用透传零开销）——spec 1616 装饰器自宿主 wrap 升级为开关装配
+- [R34 验收](../tickets/T2418-r34-negcache-verify.md) — 两断言（关透传同引用/开包装 TTL 拦截+会话装配链不破坏）+ exec 包 249 用例
+
+- [R35 形状：dashboard gzip](../tickets/T2419-r35-gzip-shape.md) — writeJson 客户端协商 gzip（Accept-Encoding 含 gzip 且响应 ≥512B 才压——阈值下压缩头倒挂）；Content-Encoding 头+体可解压回 JSON
+- [R35 验收](../tickets/T2420-r35-gzip-verify.md) — 两断言（协商压解回/无协商恒明文）+ dashboard 34 用例
+
+- [R36 形状：失败项重跑](../tickets/T2421-r36-rerun-shape.md) — run 加 onlyItemIds 子集重载（null=全量零变化）：上轮 fail/error 的 id 传入即 rerun-failed——CI 红了只重跑失败项省时 + flaky 区分（重跑过=flaky、仍败=真回归）；汇总/落盘口径不变（total=子集数）
+- [R36 验收](../tickets/T2422-r36-rerun-verify.md) — 两断言（失败子集新 runId total=1/null 全量 3）+ eval 包 245 用例
+
+- [R37 形状：校准系数建议](../tickets/T2423-r37-factor-shape.md) — 偏差读数可操作化：meanRelativeError 一阶换算修正系数（1/(1+e)，高估<1 调低），样本不足/零偏差 empty（不基于噪声给建议）
+- [R37 验收](../tickets/T2424-r37-factor-verify.md) — 三断言（高估 0.8 界/低估 >1/不足与零偏差 empty）+ 校准域 10 用例
+
+- [R38 形状：慢调用 yml 装配](../tickets/T2425-r38-slowyml-shape.md) — Circuit 组扩参 slow-call-duration/slow-call-rate-threshold（语义归位熔断组而非顶层 19 参；rate 缺省 0.5 与失败率阈同档；null=维度关）+ Module withSlowCallPolicy 传导
+- [R38 验收](../tickets/T2426-r38-slowyml-verify.md) — 三断言（组归一与缺省/非法 fail-fast/装配端到端 OPEN）+ resilience 396 用例
+
+- [R39 形状：金丝雀 yml 装配](../tickets/T2427-r39-canaryyml-shape.md) — buzhou.guard.leak-canary.salt 声明即启用（salt 防离线推演建议环境变量注入）；编程面 spec 1625 已验，此处补 autoconfig 传导与装配产物复验
+- [R39 验收](../tickets/T2428-r39-canaryyml-verify.md) — 两断言（salt 装配链种植检出+自回显不算/无 salt 零 hook）+ guard 370 用例
+
+- [R40 形状：梯度限流器观测接线](../tickets/T2429-r40-gradient-shape.md) — spec 1617 装配面：executeToolCalls 批耗时经 GradientLimiterHolder 喂入（观测先行不接 tryAcquire 闸——批时延是全局工具路径负载天然信号，闸接入待数据积累独立裁决）
+- [R40 验收](../tickets/T2430-r40-gradient-verify.md) — 两断言（Holder 喂入 View 读数/install 替换重置）+ 梯度域 9 用例
+
+- [R41 形状：PII 豁免计数](../tickets/T2431-r41-piicount-shape.md) — PiiHitStats.recordExemption（工具级+类型级合并口径——与命中统计对照面：「豁免了多少 vs 命中了多少」），reset 同步归零；J 系危险工具 exemptedSkips 对齐补全
+- [R41 验收](../tickets/T2432-r41-piicount-verify.md) — 豁免路径计数断言 + guard 370 用例
+
+- [R42 形状：负缓存 yml 装配](../tickets/T2433-r42-negyml-shape.md) — buzhou.core.negative-cache.{enabled,ttl}（DisposableBean 关闭钩子停用——已包装会话缓存自然过期）——spec 1633 Holder 补配置面
+- [R42 验收](../tickets/T2434-r42-negyml-verify.md) — 三断言（启用+关闭停用/ttl 生效/缺省零 bean）
+
+- [R43 形状：N 系运维手册段](../tickets/T2435-r43-runbook-shape.md) — ops-runbook 第 23 节四族（缓存限流/熔断降级/护栏豁免/工具观测）——16xx 机制的配置键、观测读数与失控信号运维面集中入档
+- [R43 验收](../tickets/T2436-r43-runbook-verify.md) — 段落完整性（四族覆盖 spec 1600-1641 全部可运维机制）
+
+- [R44 形状：流式 PII 类型级豁免](../tickets/T2437-r44-pstream-shape.md) — 820 第四消费者：replyStreamFilter 创建时生效集剔除（type:TYPE）；StreamTextFilter SPI 无会话上下文——会话级豁免不适用流式面（诚实边界）；豁免族四消费者闭环
+- [R44 验收](../tickets/T2438-r44-pstream-verify.md) — 两断言（豁免类型原文保留其余照脱/无豁免双脱）+ guard 372 用例
+
+- [R45 形状：@since 补全](../tickets/T2439-r45-since-shape.md) — N 系 15 个新公开类型 Javadoc 补 @since 1.0.0（api 子包语义版本承诺规范——api-surface 入档类型的文档一致性）
+- [R45 验收](../tickets/T2440-r45-since-verify.md) — 15/15 覆盖 + 五模块编译绿（spill 测试挂为并行会话 .m2 旧 jar 域）
+
+- [R46 形状：快照增量再生](../tickets/T2441-r46-snapshot-shape.md) — R27 后新增 GradientLimiterHolder 等类型快照再生（worktree -am）；同文件并行冲突化解（GuardModule.dangerousTools() 双方同时加——M 系版本保留我方撤）
+- [R46 验收](../tickets/T2442-r46-snapshot-verify.md) — ApiSurfaceSnapshotTest 门绿（worktree 实证）+ guard 376 用例（冲突化解后）
+
+- [R47 形状：MAP 刷新与台账终核](../tickets/T2443-r47-maprefresh-shape.md) — MAP N 系行状态更新（收口中+成果摘要）；台账 46 行无缺号、票 57/impl 50 落盘核对
+- [R47 验收](../tickets/T2444-r47-maprefresh-verify.md) — 台账 gaps=[] + 票/impl 双向实存
+
+- [R48 形状：终验启动](../tickets/T2445-r48-final-shape.md) — 隔离 worktree 全仓 mvn verify 后台启动（R47 工件终核的对账面已在位；验证面结果 R50 回填）
+- [R48 验收](../tickets/T2446-r48-final-verify.md) — verify EXIT 码与失败清单（若有）回填 spec 1648
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -136,3 +202,26 @@
 | R24 | #1623 | 影子读探针接线（spec 189 孤类救活，Istio mirror 思想） | T2397–T2398 | 1176 | 1623 | done |
 | R25 | #1624 | 危险工具 HITL 豁免征询（spec 820 孤类首个消费者） | T2399–T2400 | 1177 | 1624 | done |
 | R26 | #1625 | 跨会话泄漏金丝雀接线（spec 528 孤类救活） | T2401–T2402 | 1178 | 1625 | done |
+| R27 | #1626 | 中期对账审计（全仓 verify + API 快照再生 + 工件对账） | T2403–T2404 | 1179 | 1626 | done |
+| R28 | #1627 | PII 脱敏豁免双粒度（820 第二消费者） | T2405–T2406 | 1180 | 1627 | done |
+| R29 | #1628 | 熔断慢调用率维度（resilience4j slow call rate 思想） | T2407–T2408 | 1181 | 1628 | done |
+| R30 | #1629 | http_request 输入边界四护栏（Envoy SETTINGS_MAX_* 思想） | T2409–T2410 | 1182 | 1629 | done |
+| R31 | #1630 | A/B 胜率 Wilson 置信区间 | T2411–T2412 | 1183 | 1630 | done |
+| R32 | #1631 | 退避抖动模式可配（AWS full/decorrelated jitter 思想） | T2413–T2414 | 1184 | 1631 | done |
+| R33 | #1632 | 输入侧 PII 豁免（820 第三消费者）+ J 系测试解卡 | T2415–T2416 | 1185 | 1632 | done |
+| R34 | #1633 | 负缓存装配面（spec 1616 装饰器 Holder 化） | T2417–T2418 | 1186 | 1633 | done |
+| R35 | #1634 | dashboard 响应 gzip（客户端协商） | T2419–T2420 | 1187 | 1634 | done |
+| R36 | #1635 | eval 失败项重跑（rerun-failed） | T2421–T2422 | 1188 | 1635 | done |
+| R37 | #1636 | 校准系数建议（偏差读数可操作化） | T2423–T2424 | 1189 | 1636 | done |
+| R38 | #1637 | 慢调用维度 yml 装配（circuit 组扩参） | T2425–T2426 | 1190 | 1637 | done |
+| R39 | #1638 | 泄漏金丝雀 yml 装配（spec 1625 配置面补全） | T2427–T2428 | 1191 | 1638 | done |
+| R40 | #1639 | 梯度限流器观测接线（spec 1617 装配面） | T2429–T2430 | 1192 | 1639 | done |
+| R41 | #1640 | PII 豁免计数（与命中统计对照面） | T2431–T2432 | 1193 | 1640 | done |
+| R42 | #1641 | 负缓存 yml 装配（spec 1633 配置面补全） | T2433–T2434 | 1194 | 1641 | done |
+| R43 | #1642 | N 系运维手册段（ops-runbook 第 23 节） | T2435–T2436 | 1195 | 1642 | done |
+| R44 | #1643 | 流式 PII 类型级豁免（820 第四消费者，豁免族闭环） | T2437–T2438 | 1196 | 1643 | done |
+| R45 | #1644 | 新公开类型 @since 补全（Javadoc 规范） | T2439–T2440 | 1197 | 1644 | done |
+| R46 | #1645 | API 快照增量再生 + 同文件并行冲突化解 | T2441–T2442 | 1198 | 1645 | done |
+| R47 | #1646 | MAP 刷新与台账终核 | T2443–T2444 | 1199 | 1646 | done |
+| R48 | #1647 | 终验启动（隔离 worktree 全仓 verify） | T2445–T2446 | 1200 | 1647 | done |
+| R49 | #1648 | 收口 spec 与台账封卷 | T2447–T2448 | 1201 | 1648 | done |

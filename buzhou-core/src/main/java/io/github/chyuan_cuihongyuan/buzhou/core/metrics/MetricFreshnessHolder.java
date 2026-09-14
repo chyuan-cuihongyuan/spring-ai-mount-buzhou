@@ -7,6 +7,7 @@ import java.util.Optional;
  * metrics 装配链包装 {@link MetricFreshnessTracker} 后在此登记——
  * {@link #audit} 静态便捷面供观测端点/排障查询「哪些指标不再有数」
  * （序列静默 = 写路径死亡或装配丢失的信号）。
+ * @since 1.0.0
  */
 public final class MetricFreshnessHolder {
 

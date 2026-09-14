@@ -108,8 +108,10 @@ class EvalPruneTest {
                 assertThat(r.status()).isEqualTo(EvalRunItemResult.STATUS_FAIL));
     }
 
+    /** spec 1522 行为更新：并行路径波间剪枝生效（spec 901「并行诚实不生效」边界已收口）。
+     * 5 项 / workers=4：首波 4 项全 fail 达阈值（minItems=2, 0.5）→ 第 5 项 pruned。 */
     @Test
-    void parallelPathHonestNoPrune() {
+    void parallelPathPrunesBetweenWaves() {
         BuzhouStores stores = Buzhou.inMemoryStores();
         EvalRunner runner = runner(stores, "ds-parallel", 5);
         runner.setPrunePolicy(new EvalPrunePolicy(2, 0.5));
@@ -117,10 +119,10 @@ class EvalPruneTest {
 
         EvalRunResult run = runner.run("ds-parallel", evaluator, 4);
 
-        // 并行路径诚实不剪（spec 901 入档边界）：5 项全跑
-        assertThat(evaluator.calls()).isEqualTo(5);
-        assertThat(run.items()).allSatisfy(r ->
+        assertThat(evaluator.calls()).isEqualTo(4); // 首波 4 项执行，第 5 项不起波
+        assertThat(run.items().subList(0, 4)).allSatisfy(r ->
                 assertThat(r.status()).isEqualTo(EvalRunItemResult.STATUS_FAIL));
+        assertThat(run.items().get(4).status()).isEqualTo(EvalRunItemResult.STATUS_PRUNED);
     }
 
     @Test

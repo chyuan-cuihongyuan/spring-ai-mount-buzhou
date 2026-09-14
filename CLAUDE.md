@@ -94,12 +94,12 @@ mvn -pl buzhou-core test -Dtest=HookChainTest#method    # 单个测试方法
 - 异常 message 必须带关键上下文（入参 / 状态），便于排障。
 
 ### 日志
-- 统一 SLF4J（Lombok `@Slf4j` 或 `LoggerFactory.getLogger`）；占位符 `{}`，**禁止**字符串拼日志。
+- 统一日志门面：SLF4J（Lombok `@Slf4j` / `LoggerFactory.getLogger`）或 JDK 原生 `System.Logger` 皆可（spec 1519 追认——仓内 69 文件既成风格，迁移零收益；同一文件内不混用两种门面）；占位符 `{}`（SLF4J）/ `{0}`（System.Logger）风格强制，**禁止**字符串拼日志。
 - 异常日志 `log.error("msg", e)` 传入异常对象，**禁止** `log.error(e.getMessage())` 丢栈。
 
 ### Spring / AutoConfiguration（项目专项）
 - 每机制模块一个 `Buzhou<Mech>AutoConfiguration`，`@AutoConfiguration` + `@ConditionalOnProperty("buzhou.<mech>.enabled")`；用户可覆盖 bean 加 `@ConditionalOnMissingBean`，装配顺序用 `@AutoConfiguration(before=/after=)`。
-- 配置属性用 `@ConfigurationProperties` record + compact constructor 兜默认值（见 `BuzhouCoreProperties`），**禁止**在 `@Bean` 里读裸 `Environment`。
+- 配置属性用 `@ConfigurationProperties` record + compact constructor 兜默认值（见 `BuzhouCoreProperties`），**禁止**在 `@Bean` 里读裸 `Environment`（spec 1520 追认边界：三键以内的简单 opt-in 装配允许 `Environment.getProperty` 直读——EvalPrunePolicyHolder 等 10 处既成先例；复杂配置面必须 `@ConfigurationProperties` record。）
 
 ### 注释
 - 主语言中文；`api` 子包与 SPI **必须**有 Javadoc（`@param`/`@return`/`@throws`），引用用 `{@link}`/`{@code}`（见 `BuzhouHook`）。

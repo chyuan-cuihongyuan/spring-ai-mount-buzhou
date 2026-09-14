@@ -181,6 +181,10 @@
 - `public sealed interface HookResult`
 - `public final class SessionForkKeys`（spec 640——fork 谱系 state 键常量收口：SOURCE/TURN/PRODUCER 写读两侧同源）
 
+- `public final class GradientAdaptiveLimiter`（spec 1617——延迟梯度自适应并发闸，双 EMA 混合调整）
+- `public final class CatalogDriftHolder`（spec 1613——工具目录漂移看门狗进程级 Holder）
+- `public final class NegativeCachingToolCallback`（spec 1616——工具失败负缓存装饰器，DNS negative caching）
+
 ## buzhou-memory
 
 - `public class BiTemporalFactLedger`
@@ -262,6 +266,8 @@
 - `public record SpillProperties`
 - `public record SpillQuota`
 - `public record SpillUri`
+
+- `public final class SpillWriteRateLimiter`（spec 1619——写盘字节率令牌桶，RocksDB rate limiter）
 
 ## buzhou-observability
 
@@ -400,6 +406,8 @@
 - `public record PolicyDecision`
 - `public record SandboxLimits`
 - `public record VerificationReport`
+
+- `public final class SessionCanaryHook`（spec 1625——跨会话泄漏金丝雀 hook，canarytokens）
 
 ## buzhou-tools
 
@@ -712,7 +720,7 @@
 **buzhou-spring-boot-starter（测试面防线，非运行时 API）**
 
 - `ConfigBindingsMatrixTest`（93 键绑定矩阵；新键必须登记）
-- `ApiSurfaceSnapshotTest` + `docs/api-surface.snapshot.txt`（466 类型黄金快照）
+- `ApiSurfaceSnapshotTest` + `docs/api-surface.snapshot.txt`（897 类型黄金快照）
 - **配置键破坏性改名（pre-1.0，原键本就静默无效——修复性改名）**：
   `buzhou.runaway.per-turn.max-wall-clock` → `per-turn.wall-clock`；
   `buzhou.runaway.session.*` → `runaway.per-session.*`；
@@ -2506,3 +2514,9 @@
 - `SemanticChunkIndex.coverageStats()`（1447——Elasticsearch index stats
   思想：语义切片索引覆盖读面——indexedUries/totalChunks/maxChunksPerUri
   切片失衡定位，实例面只读；嵌套 `CoverageStats` 不另立面）
+- `WilsonInterval`（N 会话 bootstrap CI 域——威尔逊置信区间公共面）
+- `JitterMode`（N 会话 jitter 域——重试抖动模式公共面）
+
+## 跨会话新增公共类型补登二（R70 审计轮代登记，@since 1.0.0）
+- `BatchResponseBudgetHolder`（M 会话 1526 产出——批级工具结果回喂预算进程级开关）
+- `NegativeCachingHolder`（N 会话 1633 产出——负缓存进程级开关 Holder）

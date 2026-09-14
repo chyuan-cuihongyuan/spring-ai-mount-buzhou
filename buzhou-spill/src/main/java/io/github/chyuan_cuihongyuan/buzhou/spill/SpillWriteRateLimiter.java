@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <p>ReentrantLock + Condition（虚拟线程 unmount 不 pin——spec 1606 系纪律）；
  * 0 = 关（acquire 恒 true 零开销——默认零行为）。
+ * @since 1.0.0
  */
 public final class SpillWriteRateLimiter {
 

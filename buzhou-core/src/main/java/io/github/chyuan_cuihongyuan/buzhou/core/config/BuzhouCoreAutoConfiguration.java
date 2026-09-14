@@ -1190,6 +1190,25 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 1641 / T2433：工具失败负缓存自动装配（{@code buzhou.core.negative-cache.
+     * enabled=true} 声明即启用；ttl 可配默认 30s——DNS negative caching 短窗纪律）。
+     * 关闭钩子停用（已包装会话的缓存自然过期）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.core.negative-cache", name = "enabled",
+            havingValue = "true")
+    public org.springframework.beans.factory.DisposableBean buzhouNegativeCacheAdapter(
+            org.springframework.core.env.Environment env) {
+        String ttlText = env.getProperty("buzhou.core.negative-cache.ttl", "30s");
+        java.time.Duration ttl = org.springframework.boot.convert.DurationStyle
+                .detectAndParse(ttlText.trim());
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder.setTtl(ttl);
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder.setEnabled(true);
+        return () -> io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder
+                .setEnabled(false);
+    }
+
+    /**
      * spec 1621 / T2393：会话隔离检疫（spec 143 孤类接线——连续失败阈值 + 指数
      * 退避隔离，Erlang supervisor「let it crash」思想）：opt-in
      * {@code buzhou.quarantine.enabled=true}（默认关——检疫 block 轮次行为面大）；
@@ -1304,6 +1323,21 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 1526 / T2303：批级回喂预算装配（buzhou.core.tool-batch-response-budget > 0
+     * 声明即启用——单工具限幅之上的批内总量护栏）。关闭钩子清 Holder。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.core", name = "tool-batch-response-budget")
+    public org.springframework.beans.factory.DisposableBean buzhouBatchResponseBudgetAdapter(
+            org.springframework.core.env.Environment env) {
+        int budget = env.getProperty("buzhou.core.tool-batch-response-budget",
+                Integer.class, 0);
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder.enable(budget);
+        return io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder::reset;
+    }
+
+    /**
      * impl-701 / spec 958：评估剪枝策略进程级兜底装配（buzhou.eval.prune.enabled=true
      * 声明即启用：min-items/fail-rate-threshold 绑定 EvalPrunePolicy 写入 Holder——
      * RetryBudgetHolder 先例；宿主手动构造的 EvalRunner 惰性拾取）。关闭钩子清理。
@@ -1336,11 +1370,13 @@ public class BuzhouCoreAutoConfiguration {
             org.springframework.core.env.Environment env) {
         int maxAttempts = env.getProperty("buzhou.core.tool-transient-retry.max-attempts",
                 Integer.class, 3);
-        java.time.Duration initialBackoff = env.getProperty(
-                "buzhou.core.tool-transient-retry.initial-backoff", java.time.Duration.class,
+        // spec 1531：Duration 直读在部分属性源下无转换器（装配测试实证）——
+        // DurationStyle 支持 1s/250ms 简写与 ISO 双格式（Spring Boot 宽松时长语义）
+        java.time.Duration initialBackoff = parseDuration(
+                env.getProperty("buzhou.core.tool-transient-retry.initial-backoff"), 
                 java.time.Duration.ofSeconds(1));
-        java.time.Duration maxBackoff = env.getProperty(
-                "buzhou.core.tool-transient-retry.max-backoff", java.time.Duration.class,
+        java.time.Duration maxBackoff = parseDuration(
+                env.getProperty("buzhou.core.tool-transient-retry.max-backoff"),
                 java.time.Duration.ofSeconds(4));
         java.util.List<String> overrides = io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps
                 .sub(env, "buzhou.core.tool-transient-retry")
@@ -1352,6 +1388,21 @@ public class BuzhouCoreAutoConfiguration {
                                 maxAttempts, initialBackoff, maxBackoff, true),
                         java.util.Set.copyOf(overrides)));
         return io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder.Holder::reset;
+    }
+
+    /** spec 1531：宽松时长解析（1s/250ms 简写 + ISO；null/空回默认）。 */
+    private static java.time.Duration parseDuration(String raw, java.time.Duration fallback) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return org.springframework.boot.convert.DurationStyle.detect(raw)
+                    .parse(raw, java.time.temporal.ChronoUnit.MILLIS);
+        } catch (RuntimeException e) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                    "buzhou.core.tool-transient-retry 时长（" + raw + "）非法",
+                    "用 250ms/1s/10m 简写或 ISO-8601（PT0.25S）", e);
+        }
     }
 
     /**

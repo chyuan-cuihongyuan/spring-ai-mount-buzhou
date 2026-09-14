@@ -539,3 +539,52 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   `drain.beginDrain + awaitDrained` 排存量 → 维护 → `gate.end()`——计划内维护的标准序列。
 - **事件去重**：`EventDeduplicator` 包在 fanout 前——完全相同重复（type+键排序 payload 指纹）
   发射侧即拦；deduped 计数高 = 宿主双发 bug 显影剂。
+
+## 23. N 系 1600+ 增量运维段（N 会话 / spec 1600-1641）
+
+### 缓存与限流族（spec 1600/1604/1617/1619）
+
+- 语义缓存 LFU 采样驱逐：`buzhou.resilience.semantic-cache.eviction-sample-size`（0=纯 LRU 默认；观测 `hotPreservedCount/evicted` 比值看采样实效率）。
+- 响应缓存 stale-if-error：`response-cache.stale-window`（模型故障期旧响应救场；`staleReadCount` 持续高=供应商故障时长面）。
+- 梯度并发：`GradientLimiterHolder.view()`（工具批延迟梯度；劣化（gradient<1）持续=工具路径过载前兆）。
+- spill 写限速：`DiskSpillStore(root, quota, cipher, SpillWriteRateLimiter(bytesPerSecond, burst, maxWait))`；`degradedBypasses` 持续增长=限速配置跟不上实际写压。
+
+### 熔断与降级族（spec 1602/1610/1623/1628/1631/1637）
+
+- 启动宽限：`circuit.warmup`（发布后冷启动失败不计开闸；`warmupSuppressedCount`=启动抖动量）。
+- 慢调用跳闸：`circuit.slow-call-duration` + `slow-call-rate-threshold`（默认 0.5；P99 退化供应商在零失败时也会被保护）。
+- 退避抖动模式：`buzhou.resilience.jitter-mode`（EQUAL/FULL/DECORRELATED——重试风暴场景选 FULL）。
+- 离群驱逐：`buzhou.resilience.outlier.*`（opt-in；分类感知默认 NETWORK/SERVER/TIMEOUT；panic 阈值防全逐）。
+- 影子对照：`fallback.shadow-probe-percent`（diverged 持续=备模型行为漂移，容量预案降信心）。
+- 旁路遥测：crash-loop（10 分钟 3 跳闸闩锁）与半开探测质量恒挂（`circuit.crashLoopDetector()/halfOpenProbeStats()`）。
+
+### 护栏豁免族（spec 1624/1627/1632/1640）
+
+- 危险工具豁免：`GuardModule.exemptions().grant("dangerous-tool", 工具名, untilMillis, 理由)`——「已确认过的工具 T1 前不再问」；`snapshot(now)` 审计。
+- PII 豁免双粒度：输出侧（`pii-redaction`×工具名 / `type:TYPE`）与输入侧（`pii-input-redaction`×sessionId / `type:TYPE`）分侧独立；`exemptionsApplied` 持续高于命中数=豁免面过宽信号。
+- 泄漏金丝雀：`buzhou.guard.leak-canary.salt`（env 注入；检出事件 `guard.session.leak-detected` 即跨会话污染证据）。
+
+### 工具与观测族（spec 1603/1616/1620/1626/1634/1641）
+
+- http_request 护栏：per-host 并发（`tools.http-request.max-per-host`）+ 输入边界（body 64K/URL 8K/头 64×8K）——拒绝桶守恒式可观测。
+- 负缓存：`buzhou.core.negative-cache.{enabled,ttl}`（失败工具短 TTL 记忆；`stats().negativeHits`=拦截的重试风暴量）。
+- 目录漂移：`CatalogDriftHolder`（会话构造节拍；`tool.catalog.drifted` 事件=MCP 差量错配/装配漂移）。
+- 空闲水位：`IdleMonitorHolder`（15 分钟阈值清单 + 时长直方——清理调参依据）。
+- 指标新鲜度：`MetricFreshnessHolder.audit(now, staleAfterMs)`（序列静默=写路径死亡/装配丢失）。
+- dashboard gzip：客户端协商自动（≥512B）；无需运维动作。
+
+## 24. M 系 1500+ 增量运维段（M 会话 / spec 1500-1532）
+
+M 会话（effort #1500+）增量机制的运维面：
+
+| 机制 | 键/信号 | 运维要点 |
+|------|---------|----------|
+| 观察者通知隔离（spec 1500/1501） | ERROR 日志「会话观察者回调异常已隔离」/「事件 hook 异常已隔离」 | 单观察者/hook 崩溃不再炸通知链——日志即定位线索（sessionId/hook 名在 message） |
+| 评估 run 取消（spec 1505/1506） | `buzhou.eval.run.cancelled` / `buzhou.eval.ab.cancelled` 指标；结果 items 的 `cancelled` 状态 | 宿主主动止损通道：EvalRunner.requestCancel()（A/B 同）；cancelled 项不进 pass/fail 桶，hostCancelled=true 区分叫停与 SPRT 达界停 |
+| 并行波间剪枝/早停（spec 1522/1523） | `buzhou.eval.run.pruned` 指标 | 并行评估配剪枝策略（EvalPrunePolicy）波间止损生效；A/B SPRT/取消波间真生效 |
+| 危险工具默认动词模式（spec 1507） | `buzhou.mcp.dangerous-tool-patterns`（缺省七动词 glob；显式 `[]` 关闭） | MCP 写侧工具默认进登记面；误伤只读工具时显式配置收窄 |
+| HITL 自动带入桥（spec 1508） | `buzhou.guard.auto-dangerous-bridge`（默认 true） | opt-in 开 write_file/run_command/http_request 即得默认 HITL 拦截（confirm_<name>）；yml 显式条目优先 |
+| 幂等瞬断重试装配（spec 1511） | `buzhou.core.tool-transient-retry.{enabled,max-attempts,initial-backoff,max-backoff,idempotent-overrides}`（时长 1s/250ms 简写或 ISO） | 仅 @BuzhouTool.idempotent=true 或白名单工具重试；瞬断白名单（IO/超时/5xx 族）非瞬断零重试 |
+| 批级回喂预算（spec 1526/1527） | `buzhou.core.tool-batch-response-budget`（>0 启用）；`buzhou.tools.batch-truncated` 指标 | 批总量超限贪心截大者（错误反馈豁免）；配 ToolResultLimiter 单工具限幅构成两级护栏 |
+| serial-groups yml 通道（spec 1525） | `buzhou.tools.serial-groups`（名→组 map） | yml 覆盖注解通道（同名优先）；无注解工具纯 yml 指定 |
+| ConfigMaps 数字键归一（spec 1510） | —（装配层行为） | properties/命令行源的 `key[i].f=v` 列表键从此正确解析（此前静默失效） |

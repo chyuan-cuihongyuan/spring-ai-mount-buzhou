@@ -19,6 +19,7 @@ import java.util.Map;
  * <p><b>诚实边界（spec 528 原注）</b>：检测依赖令牌原样出现（模型改写/截断
  * 不保——概率探针非隔离机制）；令牌进入会话数据的注入面归宿主（本 hook 只
  * 登记 + 扫描——thinkst canarytokens 的 honeytoken 需放进数据才可被触发）。
+ * @since 1.0.0
  */
 public final class SessionCanaryHook implements BuzhouHook {
 

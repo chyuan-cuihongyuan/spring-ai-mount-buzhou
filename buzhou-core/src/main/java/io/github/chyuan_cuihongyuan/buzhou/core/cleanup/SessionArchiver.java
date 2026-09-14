@@ -97,10 +97,42 @@ public final class SessionArchiver {
      * 写回 消息/摘要/状态 三槽）；补偿失败即停止回退——归档键保留（唯一完整副本，
      * 人工介入重试）。
      */
+    // —— spec 1075 / impl 827：归档操作读面（S3 lifecycle 归档统计思想；静态面理由
+    // 同 R46–R74 先例）。口径诚实：异常外溢的入口不入桶。
+    private static final java.util.concurrent.atomic.AtomicLong ARCHIVE_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ARCHIVED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong EMPTY_SKIPPED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PDB_REJECTED =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 归档操作分布快照（spec 1075）。 */
+    public record ArchiveStats(long archiveCalls, long archived,
+                               long emptySkipped, long pdbRejected) {
+    }
+
+    /** 只读快照（四桶覆盖全部正常结局；异常外溢入口不入桶）。 */
+    public static ArchiveStats stats() {
+        return new ArchiveStats(ARCHIVE_CALLS.get(), ARCHIVED.get(),
+                EMPTY_SKIPPED.get(), PDB_REJECTED.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        ARCHIVE_CALLS.set(0);
+        ARCHIVED.set(0);
+        EMPTY_SKIPPED.set(0);
+        PDB_REJECTED.set(0);
+    }
+
     public boolean archive(String sessionId) {
+        ARCHIVE_CALLS.incrementAndGet();
         // spec 704 / T959：PDB 闸——水位不足拒绝自愿驱逐（k8s evict 429 同义）；
         // 计数未知 fail-open（SessionAvailabilityFloor 语义），restore/purge 不受闸
         if (availabilityFloor != null && !availabilityFloor.allowsArchive()) {
+            PDB_REJECTED.incrementAndGet();
             io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                     .counter("buzhou.archive.pdb-rejected");
             return false;
@@ -108,7 +140,11 @@ public final class SessionArchiver {
         // spec 622 / T894：同会话 archive/restore 互斥——并发 archive+restore 交错会把
         // 刚还原的活数据删掉而归档键已被 restore 删除（数据丢失窗）；跨会话不受影响
         synchronized (lockOf(sessionId)) {
-            return archiveLocked(sessionId);
+            boolean ok = archiveLocked(sessionId);
+            if (ok) {
+                ARCHIVED.incrementAndGet();
+            }
+            return ok;
         }
     }
 
@@ -116,6 +152,7 @@ public final class SessionArchiver {
         List<BuzhouMessage> messages = stores.messageStore().load(sessionId);
         Optional<StructuredSummary> summary = stores.summaryStore().latest(sessionId);
         if (messages.isEmpty() && summary.isEmpty()) {
+            EMPTY_SKIPPED.incrementAndGet();
             return false; // 空会话：无可归档内容（诚实不动）
         }
         ArchiveEntry entry = new ArchiveEntry(sessionId, Instant.now(), messages,

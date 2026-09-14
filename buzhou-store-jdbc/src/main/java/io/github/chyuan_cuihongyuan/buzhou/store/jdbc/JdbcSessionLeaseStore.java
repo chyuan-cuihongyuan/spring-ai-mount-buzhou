@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+/** spec 1529 扩散：会话租约 JDBC 实现——原子获取/续期/释放与护栏令牌（fencing token）的关系表语义。 */
 
 public class JdbcSessionLeaseStore implements SessionLeaseStore {
 

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+/** spec 1529 / T2309：已完成轮检测默认实现——微压缩的轮次完结判定（工具结果可回收的安全点）。 */
 
 public class DefaultCompletedTurnDetector implements CompletedTurnDetector {
 

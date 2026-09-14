@@ -48,6 +48,7 @@ import java.util.List;
 @ConditionalOnProperty(prefix = "buzhou.guard", name = "enabled", matchIfMissing = true)
 @org.springframework.boot.context.properties.EnableConfigurationProperties(
         BuzhouPiiVaultProperties.class)
+/** spec 1529 扩散：guard 模块自装配——HITL 危险守卫/审计链/PII/沙箱桥/策略引擎的 bean 装配（buzhou.guard.* 配置驱动 + S2 危险工具自动带入桥 spec 1508）。 */
 public class BuzhouGuardAutoConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuzhouGuardAutoConfiguration.class);
@@ -104,6 +105,12 @@ public class BuzhouGuardAutoConfiguration {
                             "工具 " + name + " 属危险写侧操作，需人工确认后放行");
                 }
             }
+        }
+        // spec 1638 / T2427：泄漏金丝雀 yml 装配（leak-canary.salt 声明即启用——
+        // thinkst canarytokens：salt 是防离线推演的秘密，建议从环境变量注入）
+        String canarySalt = env.getProperty("buzhou.guard.leak-canary.salt");
+        if (canarySalt != null && !canarySalt.isBlank()) {
+            builder.leakCanary(canarySalt.trim());
         }
         // spec 626 / T902：事实衰减 yml 装配（half-life-turns 声明即启用；floor 可选默认 0.25）
         Double halfLifeTurns = env.getProperty(

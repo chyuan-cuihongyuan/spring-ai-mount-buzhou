@@ -19,6 +19,28 @@
 
 ## Decisions so far
 
+- [memory 双台账组合测试轮的形状裁决](../tickets/T1631-dualledger-shape.md) — 纯测试轮第六弹：DualLedgerReadoutTest 钉住 fact/episodic 双台账读面互不串账与 reset 独立隔离。
+- [memory 域双工具组合测试轮的形状裁决](../tickets/T1629-memorytools-shape.md) — 纯测试轮第五弹：MemoryToolsReadoutTest 钉住 compact_now 与 EpisodeLedger 双读面交叉调用下各自守恒保持、互不串账、reset 独立隔离。
+- [双守卫（黑名单+SSRF）组合测试轮的形状裁决](../tickets/T1627-dualguard-shape.md) — 纯测试轮第四弹：DualGuardReadoutTest 钉住双守卫读面同会话独立性与一致性（互不串账、reset 独立隔离）。
+- [Skill 管理操作读面的形态裁决](../tickets/T1625-skilladmin-stats-shape.md) — SkillAdminApi 静态五计数（creates/updates/publishes/disables/deletes 独立口径同 R63）+ 嵌套 SkillAdminStats + stats()/resetForTest()；校验异常不入桶（GitHub repo admin API statistics）。
+- [fs 全链路四读面组合测试轮的形状裁决](../tickets/T1623-fs-chain-shape.md) — 纯测试轮第三弹：FsChainReadoutTest 钉住沙箱/写/读/黑名单四读面在真实工作流链路下的各自守恒保持与跨面字节对称恒等（R45/R46/R47/R51 组合）。
+- [J 系读面统一契约冒烟轮的形状裁决](../tickets/T1621-readout-smoke-shape.md) — starter ReadoutContractSmokeTest 反射驱动 15 读面清单三性质冒烟（stats 组件非负/reset 幂等/重复稳定）；清单显式维护=新读面登记纪律落点（meta-readout）。
+- [双档 run_command 对账组合测试轮的形状裁决](../tickets/T1619-dualmode-shape.md) — 纯测试轮：DualModeRunContrastTest 钉住 timeout=0 双档语义分叉（直执行显式拒绝入桶 vs 沙箱补默认送达）+ 各自守恒保持；防语义分叉被误修齐或回归。
+- [读写对称守恒组合测试轮的形状裁决](../tickets/T1617-rwsymmetry-shape.md) — 纯测试轮（I 系 R52 先例）：ReadWriteSymmetryTest 钉住 bytesWritten==bytesRead 字节口径恒等（ASCII/中文/混合三内容）+ 双侧守恒保持；读面谱系可信度组合语义（spec 1540 先例）。
+- [R80 周期预检轮的形状裁决](../tickets/T1615-r80-audit-shape.md) — R71–R79 对账零缺陷（九域读面布局）+ 跨会话孤儿 spec 补登（三型欠账范式齐备：快照死链/README 死链/孤儿文件）；复跑 BUILD SUCCESS 验收。
+- [Spill 加解密读面的形态裁决](../tickets/T1613-spillcipher-stats-shape.md) — SpillCipher 静态四计数（encryptCalls/encryptFailures/decryptCalls/decryptFailures）+ 嵌套 SpillCipherStats + stats()/resetForTest()；加解密独立双组，失败在异常外溢前落桶（KMS 操作审计）。
+- [归档清理任务读面的形态裁决](../tickets/T1611-purgejob-stats-shape.md) — ArchivePurgeJob 静态三计数（purgeRounds/purgedTotal/skippedLocked）+ 嵌套 PurgeJobStats + stats()/resetForTest()；purgedTotal 跨轮累计无入口守恒（每轮产出可变）；锁跳过显形（Quartz/Chron job statistics）。
+- [Spill 溢出 hook 判定读面的形态裁决](../tickets/T1609-spilloffload-stats-shape.md) — SpillOffloadHook 静态六计数（invocations/durableSkips/errorSkips/cleanInline/offloaded/refrains）+ 嵌套 SpillOffloadStats + stats()/resetForTest()；守恒 invocations = 五结局桶；溢出触发率即管线容量规划信号（logrotate 轮转率）。
+- [Runaway 预算 hook 判定读面的形态裁决](../tickets/T1607-runaway-stats-shape.md) — RunawayHook 静态四计数（invocations/blocked 三硬顶合桶/allowed/disabledSkips）+ 嵌套 RunawayStats + stats()/resetForTest()；守恒 invocations = 三结局桶；预算过紧/过松量化信号（上游闸门空结果率同族）。
+- [会话归档操作读面的形态裁决](../tickets/T1605-archiver-stats-shape.md) — SessionArchiver 静态四计数（archiveCalls/archived/emptySkipped/pdbRejected）+ 嵌套 ArchiveStats + stats()/resetForTest()；异常外溢入口不入桶口径诚实（S3 lifecycle 归档统计）。
+- [沙箱版 run_command 执行分布读面的形态裁决](../tickets/T1603-sandboxrun-stats-shape.md) — SandboxRunCommandTool 静态七计数（calls/runs + blank/blacklist/workdir/timeoutParam/failures 五拒绝桶）+ 嵌套 SandboxRunStats + stats()/resetForTest()；守恒 calls = runs + 五拒绝桶；R52 Out of Scope 误判（装饰同族）就地撤销——实为独立 call 分支实现。
+- [evidence_lookup 证据回查读面的形态裁决](../tickets/T1601-evidlookup-stats-shape.md) — EvidenceLookupTool 静态五计数（calls/misses/hits/completeReads/slicedReads）+ 嵌套 EvidenceLookupStats + stats()/resetForTest()；双守恒 calls = hits + misses、hits = complete + sliced；回查 miss 率即证据链引用失配信号（Redis cache hit-rate）。
+- [PII 检测引擎读面的形态裁决](../tickets/T1599-piidetector-stats-shape.md) — PiiDetector 静态四计数（scanCalls/scansWithHits/matchesFound dedupe 前原生口径/pseudonymizeCalls）+ 嵌套 PiiDetectorStats + stats()/resetForTest()；弱校验口径（引擎 vs 业务 PiiHitStats 双层对账）（Yara 规则引擎统计）。
+- [http_request 受控头丢弃显形的形态裁决](../tickets/T1597-headerdrop-stats-shape.md) — HttpToolStats 追加 headerDrops 第 10 计数（impl-49 黑名单头静默 return 处单点）；旁路修正量不占入口桶（一次请求可丢多头）；适配并行 spec 1603 hostLimitRejects 扩展（OWASP header injection 试探率）。
+- [R70 周期预检轮的形状裁决](../tickets/T1595-r70-audit-shape.md) — R61–R69 对账零缺陷（八域读面布局）+ API 快照跨会话欠账 4 类型两次补账（「加类型不随轮再生」系统性欠账，倡议随轮自带 regenerate）；复跑 BUILD SUCCESS 验收。
+- [危险工具守卫判定读面的形态裁决](../tickets/T1593-dangerous-tool-stats-shape.md) — DangerousToolGuardHook 静态六计数（invocations/disabledSkips/unmatchedSkips/authorizedSkips/exemptedSkips/escalations）+ 嵌套 DangerousToolStats + stats()/resetForTest()；守恒 invocations = 五结局桶；HITL 等待确认量量化显形（授权面对账）。
+- [工具配额消耗读面的形态裁决](../tickets/T1591-toolquota-stats-shape.md) — ToolQuotaHook 静态五计数（calls/allowed/quotaBlocks/unmanagedSkips + excludedTokens 旁路）+ 嵌套 ToolQuotaStats + stats()/resetForTest()；守恒 calls = 三结局桶；配额清单覆盖率对账（per-API quota 消耗对账）。
+- [内容安全词表双缝判定读面的形态裁决](../tickets/T1589-moderation-stats-shape.md) — ContentModerationHook 静态五计数（invocations/blocked/masked/cleanSkips/nullSkips）+ 嵌套 ModerationStats + stats()/resetForTest()；守恒 invocations = 四结局桶（双缝共用桶集）；与 micrometer 后端面互补（R57 先例）。
 - [Deno 沙箱探测读面的形态裁决](../tickets/T1587-denoprobe-stats-shape.md) — DenoSandbox 静态五计数（availableCalls/probeCacheHits/probes/probeSuccesses/probeUnavailables）+ 嵌套 DenoProbeStats + stats()/resetForTest()；双守恒 availableCalls = 缓存命中 + 重探、probes = 成功 + 不可用；probeTtl 误配 0（每调用重探）量化可见（Envoy health check statistics）。
 - [完成轮检测器读面的形态裁决](../tickets/T1585-completedturn-stats-shape.md) — DefaultCompletedTurnDetector 静态三计数（detectCalls/spansDetected/toolCallTurnsSeen）+ 嵌套 CompletedTurnStats + stats()/resetForTest()；弱校验口径（检出率 = 分子/分母，同轮可重复计分母）；悬挂轮全量时检出 0 即压缩管线失能信号（OTel span 完成判定）。
 - [读侧 Spotlighting 包裹判定读面的形态裁决](../tickets/T1583-spotlight-stats-shape.md) — SpotlightHook 静态五计数（invocations/wrapped/alreadyWrappedSkips/noticeSkips/errorSkips）+ 嵌套 SpotlightStats + stats()/resetForTest()；守恒 invocations = wrapped + 三跳过桶；包裹覆盖率即注入面收敛度信号（OWASP LLM01 spotlighting 采用率）。
@@ -150,7 +172,28 @@
 | 64 | 读侧 Spotlighting 包裹判定读面（wrapped + 三跳过桶守恒） | OWASP LLM01 spotlighting 采用率 | T1583–T1584 | 816 | 1064 | ✅ |
 | 65 | 完成轮检测器读面（检出率分子/分母显形） | OTel span 完成判定空结果率 | T1585–T1586 | 817 | 1065 | ✅ |
 | 66 | Deno 沙箱探测读面（缓存命中/重探/成败双守恒） | Envoy health check statistics | T1587–T1588 | 818 | 1066 | ✅ |
-| 67 | （开工时按缺口核查选题） | — | T1589–T1590 | 819 | 1067 |  |
+| 67 | 内容安全词表双缝判定读面（blocked/masked + 两跳过桶守恒） | OpenAI moderation 双缝对账 | T1589–T1590 | 819 | 1067 | ✅ |
+| 68 | 工具配额消耗读面（allowed/quotaBlocks/unmanaged 三桶守恒） | per-API quota 消耗对账 | T1591–T1592 | 820 | 1068 | ✅ |
+| 69 | 危险工具守卫判定读面（五结局桶守恒含 escalations） | HITL 授权面对账 | T1593–T1594 | 821 | 1069 | ✅ |
+| 70 | 周期预检轮：R61–R69 对账全绿 + API 快照跨会话欠账 4 类型两次补账 + 复跑 verify BUILD SUCCESS | 门 regenerate 指引 + cwd 绝对路径纪律 | T1595–T1596 | 822 | 1070 | ✅ |
+| 71 | http_request 受控头丢弃显形（headerDrops 旁路量） | OWASP header injection 试探率 | T1597–T1598 | 823 | 1071 | ✅ |
+| 72 | PII 检测引擎读面（引擎原生匹配与业务上报双层对账） | Yara 规则引擎统计 | T1599–T1600 | 824 | 1072 | ✅ |
+| 73 | evidence_lookup 证据回查读面（命中率/切片率双守恒） | Redis cache hit-rate | T1601–T1602 | 825 | 1073 | ✅ |
+| 74 | 沙箱版 run_command 执行分布读面（runs + 五拒绝桶守恒） | 同 R52 Job status | T1603–T1604 | 826 | 1074 | ✅ |
+| 75 | 会话归档操作读面（archived/emptySkipped/pdbRejected 四桶） | S3 lifecycle 归档统计 | T1605–T1606 | 827 | 1075 | ✅ |
+| 76 | Runaway 预算 hook 判定读面（blocked/allowed/disabled 三桶守恒） | 上游闸门空结果率同族 | T1607–T1608 | 828 | 1076 | ✅ |
+| 77 | Spill 溢出 hook 判定读面（offloaded/cleanInline 等五桶守恒） | logrotate 轮转率 | T1609–T1610 | 829 | 1077 | ✅ |
+| 78 | 归档清理任务读面（purgeRounds/purgedTotal/skippedLocked 三面） | Quartz/Chron job statistics | T1611–T1612 | 830 | 1078 | ✅ |
+| 79 | Spill 加解密读面（加密/解密双组四计数） | KMS 操作审计 | T1613–T1614 | 831 | 1079 | ✅ |
+| 80 | 周期预检轮：R71–R79 对账全绿 + 孤儿 spec 补登（三型欠账范式齐） + 复跑 verify BUILD SUCCESS | 门反向检测就近补登 | T1615–T1616 | 832 | 1080 | ✅ |
+| 81 | 读写对称守恒组合测试轮（bytesWritten==bytesRead 纯测试） | 组合语义 spec 1540 先例 | T1617–T1618 | 833 | 1081 | ✅ |
+| 82 | 双档 run_command 对账组合测试轮（timeout 语义分叉钉住） | 纯测试轮 R81 先例 | T1619–T1620 | 834 | 1082 | ✅ |
+| 83 | J 系读面统一契约冒烟轮（15 读面非负/归零/稳定元验证） | 性质收缩 meta-readout | T1621–T1622 | 835 | 1083 | ✅ |
+| 84 | fs 全链路四读面组合测试轮（沙箱/写/读/黑名单链路守恒） | 纯测试轮第三弹 | T1623–T1624 | 836 | 1084 | ✅ |
+| 85 | Skill 管理操作读面（create/update/publish/disable/delete 五面） | GitHub repo admin API statistics | T1625–T1626 | 837 | 1085 | ✅ |
+| 86 | 双守卫（黑名单+SSRF）组合测试轮（互不串账钉住） | 纯测试轮第四弹 | T1627–T1628 | 838 | 1086 | ✅ |
+| 87 | memory 域双工具组合测试轮（compact_now×episodic 互不串账钉住） | 纯测试轮第五弹 | T1629–T1630 | 839 | 1087 | ✅ || 88 | memory 双台账组合测试轮（fact/episodic 互不串账钉住） | 纯测试轮第六弹 | T1631–T1632 | 840 | 1088 | ✅ |
+| 89 | （开工时按缺口核查选题） | — | T1633–T1634 | 841 | 1089 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）

@@ -45,8 +45,18 @@ public class HookChain {
                 .toList();
         this.hooks = resolved;
         Set<String> present = new java.util.HashSet<>();
+        Set<String> duplicated = new java.util.HashSet<>();
         for (BuzhouHook hook : hooks) {
-            present.add(hook.name());
+            // spec 1524 / T2299：重复 hook 名显形——同名 hook 派发序不稳定（order 平局
+            // 时 name 比较无区分）且 stats/禁用配置按名对位歧义；Kong 插件重名诊断思想
+            if (!present.add(hook.name())) {
+                duplicated.add(hook.name());
+            }
+        }
+        if (!duplicated.isEmpty()) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "重复 hook 名注册（派发序不稳定、stats/禁用对位歧义）：{0}",
+                    duplicated);
         }
         Set<String> ghosts = new java.util.HashSet<>();
         for (String disabled : disabledHookNames) {

@@ -8,6 +8,7 @@ import java.util.List;
  * 进程级特征仓 + 监控器 + 直方图——SessionFeaturesHook（spec 161）喂数、
  * afterTurn 每 32 轮节拍 sweep（空闲清单 + 翻转通知 + 分布入直方）。
  * 纯观测旁路：只判定不动作（压缩/归档以清单为候选——分层诚实）。
+ * @since 1.0.0
  */
 public final class IdleMonitorHolder {
 

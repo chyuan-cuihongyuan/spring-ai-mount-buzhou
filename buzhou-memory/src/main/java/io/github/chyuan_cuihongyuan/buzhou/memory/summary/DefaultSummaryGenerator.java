@@ -8,6 +8,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 
 import java.util.EnumMap;
 import java.util.List;
+/** spec 1529 / T2309：结构化摘要生成默认实现——九段式模板驱动的摘要产出。 */
 
 public class DefaultSummaryGenerator implements SummaryGenerator {
 

@@ -130,6 +130,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private volatile io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog;
     /** impl-10 / T35：并行批回喂策略（默认 ALL；FAILED_ONLY 见枚举语义）。 */
     private volatile BatchFeedbackPolicy batchFeedbackPolicy = BatchFeedbackPolicy.ALL;
+    /** spec 1540：FAILED_ONLY 占位文案前缀（responsesForModel 生成 / applyBatchBudget 豁免共用）。 */
+    static final String FAILED_ONLY_PLACEHOLDER_PREFIX = "[本批有同伴失败";
+
+    /** spec 1526 / T2303：批级回喂预算总字符（0 = 关——默认零行为；超限贪心截大者）。 */
+    private volatile int batchResponseBudgetChars;
     /** spec 122 / impl-271：superstep 原子批开关（默认关=per-tool 既有行为零变化）。 */
     private volatile boolean atomicBatchValidation = false;
     /** spec 31 / T110 / impl-85：工具结果尺寸防护（Holder 默认 20K + read_range 豁免）。 */
@@ -165,6 +170,68 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     }
 
     /** impl-10 / T35：设置批回喂策略（经 SessionAssemblyContext.toolManager() 注入）。 */
+    /** spec 1526 / T2303：批级回喂预算（正数启用；0 = 关）。 */
+    public void setBatchResponseBudget(int budgetChars) {
+        this.batchResponseBudgetChars = Math.max(0, budgetChars);
+    }
+
+    /** spec 1526：批级预算整备——总量超限时按响应长度降序贪心截大者（保留尽量多的
+     * 小结果完整），截断件带批级预算标记与保留量；预算 0 = 原样透传零行为。 */
+    private java.util.List<ToolResponseMessage.ToolResponse> applyBatchBudget(
+            java.util.List<ToolResponseMessage.ToolResponse> responses) {
+        int budget = batchResponseBudgetChars;
+        if (budget <= 0 || responses.isEmpty()) {
+            return responses;
+        }
+        long total = responses.stream().mapToLong(r -> r.responseData() == null
+                ? 0 : r.responseData().length()).sum();
+        if (total <= budget) {
+            return responses;
+        }
+        // 降序索引（只读排序视图，不改原回喂序）
+        Integer[] byLenDesc = new Integer[responses.size()];
+        for (int i = 0; i < byLenDesc.length; i++) {
+            byLenDesc[i] = i;
+        }
+        java.util.Arrays.sort(byLenDesc, (a, b) -> Integer.compare(
+                responses.get(b).responseData() == null ? 0 : responses.get(b).responseData().length(),
+                responses.get(a).responseData() == null ? 0 : responses.get(a).responseData().length()));
+        java.util.List<ToolResponseMessage.ToolResponse> out = new java.util.ArrayList<>(responses);
+        long overflow = total - budget;
+        int truncatedCount = 0;
+        for (int idx : byLenDesc) {
+            if (overflow <= 0) {
+                break;
+            }
+            ToolResponseMessage.ToolResponse r = out.get(idx);
+            int len = r.responseData() == null ? 0 : r.responseData().length();
+            if (len == 0) {
+                continue;
+            }
+            // spec 1527 / T2305：错误反馈豁免——结构化纠错信号是模型自纠的关键输入
+            // （且通常很短），截断它省不了预算却毁纠错；全部候选为错误反馈时按序截。
+            // spec 1540 / T2331：FAILED_ONLY 占位同豁免——元信息非数据，截到 0 字符
+            // 会让模型完全丢失该工具已成功的信号（组合测试实证 54 字符被清空）
+            if (isErrorFeedback(r.responseData())
+                    || r.responseData().startsWith(FAILED_ONLY_PLACEHOLDER_PREFIX)) {
+                continue;
+            }
+            int cut = (int) Math.min(len, overflow + 1); // +1 保证有前进
+            int keep = Math.max(0, len - cut);
+            out.set(idx, new ToolResponseMessage.ToolResponse(r.id(), r.name(),
+                    r.responseData().substring(0, keep)
+                            + "\n[批级预算截断：原 " + len + " 字符保留 " + keep
+                            + "——批内回喂总量超限，最大结果优先截断，可经工具重查]"));
+            overflow -= (len - keep);
+            truncatedCount++;
+        }
+        if (truncatedCount > 0) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.tools.batch-truncated", truncatedCount);
+        }
+        return out;
+    }
+
     public void setBatchFeedbackPolicy(BatchFeedbackPolicy policy) {
         this.batchFeedbackPolicy = policy == null ? BatchFeedbackPolicy.ALL : policy;
     }
@@ -309,6 +376,20 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         if (toolCalls.isEmpty()) {
             return delegate.executeToolCalls(prompt, chatResponse);
         }
+        // spec 1639 / T2429：工具批耗时喂梯度限流器（观测先行——不接 tryAcquire 闸；
+        // 批时延是全局工具路径负载的天然信号，数据积累后闸接入独立裁决）
+        long batchStartNs = System.nanoTime();
+        try {
+            return executeToolCallsTracked(prompt, chatResponse, toolCalls);
+        } finally {
+            GradientLimiterHolder.limiter().record(
+                    (System.nanoTime() - batchStartNs) / 1_000_000);
+        }
+    }
+
+    private ToolExecutionResult executeToolCallsTracked(Prompt prompt, ChatResponse chatResponse,
+            List<AssistantMessage.ToolCall> toolCalls) {
+        AssistantMessage assistantMessage = chatResponse.getResult().getOutput();
 
         ToolCallingChatOptions options = prompt.getOptions() instanceof ToolCallingChatOptions t
                 ? t : ToolCallingChatOptions.builder().build();
@@ -403,7 +484,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         List<Message> conversationHistory = new ArrayList<>(prompt.getInstructions());
         conversationHistory.add(assistantMessage);
         conversationHistory.add(ToolResponseMessage.builder()
-                .responses(responsesForModel(responses)).build());
+                .responses(applyBatchBudget(responsesForModel(responses))).build());
         return ToolExecutionResult.builder()
                 .conversationHistory(conversationHistory)
                 .returnDirect(returnDirect)
@@ -559,7 +640,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 return r;
             }
             return new ToolResponseMessage.ToolResponse(r.id(), r.name(),
-                    "[本批有同伴失败：此工具已成功执行，结果已入事件日志（toolCallId="
+                    FAILED_ONLY_PLACEHOLDER_PREFIX + "：此工具已成功执行，结果已入事件日志（toolCallId="
                             + r.id() + "）可回查；本轮仅回喂失败信号]");
         }).toList();
     }

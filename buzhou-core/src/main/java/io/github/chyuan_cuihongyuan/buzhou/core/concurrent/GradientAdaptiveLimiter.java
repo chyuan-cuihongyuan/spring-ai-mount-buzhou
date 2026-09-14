@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>容错带内不动（防抖——tolerance 默认 {@value #DEFAULT_TOLERANCE_PCT}%）</li>
  * </ul>
  * 无等待语义：tryAcquire 超当前上限 fail-fast（信号质量优先，与 AdaptiveBulkhead 同词汇）。
+ * @since 1.0.0
  */
 public final class GradientAdaptiveLimiter {
 

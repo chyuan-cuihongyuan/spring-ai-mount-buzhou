@@ -22,7 +22,7 @@
 
 1. As a 平台运维, I want 按 app/agent/状态列出会话, so that 排障找会话不再翻库。
 2. As a 平台运维, I want 最近活跃优先排序, so that 热点会话一眼可见。
-3. As a 应用开发者, I want 业务标签挂进索引, so that 按业务维度检索会话。
+3. As a 应用开发者, I want 业务标签（spec 1539 回写：yml 装配通道不开——SessionIndexObserver.wiring() 公开构造可传 map，编程面 only 口径定案）挂进索引, so that 按业务维度检索会话。
 4. As a SRE, I want 索引故障绝不影响会话主链, so that 查询面故障不放大为业务故障。
 5. As a dashboard 消费者, I want 分页查询, so that 大会话量下列表可用。
 

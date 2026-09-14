@@ -74,6 +74,12 @@ public final class EvalRunner {
      */
     private volatile boolean cancelRequested;
 
+    /** spec 1534 / T2319：当前 run 进度快照（done 含 pruned/cancelled 占位项；无活跃 run 全零）。 */
+    public record EvalRunProgress(String runId, int done, int total, boolean cancelled) {
+    }
+
+    private volatile EvalRunProgress progress = new EvalRunProgress("", 0, 0, false);
+
     /** impl-654 / spec 901：失败率中途剪枝策略（null = 关——默认零行为变化；仅串行路径生效）。 */
     private volatile EvalPrunePolicy prunePolicy;
 
@@ -301,9 +307,51 @@ public final class EvalRunner {
         cancelRequested = true;
     }
 
+    /**
+     * spec 1534 / T2319：当前（或最近一次）run 的进度快照——宿主轮询面（UI/日志/探活）：
+     * done 为已完成项数（含 pruned/cancelled 占位），无活跃 run 时为最近一次终态。
+     */
+    public EvalRunProgress progress() {
+        return progress;
+    }
+
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
     public EvalRunResult run(String datasetName, Evaluator evaluator) {
         return run(datasetName, evaluator, 1); // spec 68：默认串行零变化
+    }
+
+    /**
+     * spec 1522 / T2295：并行波间剪枝判定——串行同款观察窗语义（已完成 ≥ minItems
+     * 且 fail+error 占比 ≥ threshold，分母为已完成项数）。策略 null 恒 false（零行为）。
+     */
+    private boolean shouldPruneParallel(EvalPrunePolicy prune, EvalRunItemResult[] byIndex,
+            int doneUpTo, String runId, String datasetName) {
+        if (prune == null) {
+            return false;
+        }
+        int done = 0;
+        int bad = 0;
+        for (int i = 0; i < doneUpTo; i++) {
+            EvalRunItemResult r = byIndex[i];
+            if (r == null) {
+                continue;
+            }
+            done++;
+            if (EvalRunItemResult.STATUS_FAIL.equals(r.status())
+                    || EvalRunItemResult.STATUS_ERROR.equals(r.status())) {
+                bad++;
+            }
+        }
+        if (done >= prune.minItems() && (double) bad / done >= prune.failRateThreshold()) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "评估并行波间剪枝触发（runId={0}, dataset={1}, 已完成={2}, 失败={3}、阈值={4}）"
+                            + "——剩余项标 pruned 未执行",
+                    runId, datasetName, done, bad, prune.failRateThreshold());
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.eval.run.pruned");
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -313,10 +361,23 @@ public final class EvalRunner {
      * 事件与串行同口径（全部项完成后一次进行）。项内异常经既有三态收敛（不炸整跑）。
      */
     public EvalRunResult run(String datasetName, Evaluator evaluator, int parallelism) {
+        return run(datasetName, evaluator, parallelism, null);
+    }
+
+    /**
+     * spec 1635 / T2421：按 id 子集重跑（rerun-failed——上轮 fail/error 项的 itemId
+     * 传入即失败重跑；null = 全量既有语义）。CI 红了只重跑失败项省时 + flaky 区分
+     * （重跑过=flaky、仍败=真回归）。汇总/落盘/事件口径不变（total=子集数）。
+     */
+    public EvalRunResult run(String datasetName, Evaluator evaluator, int parallelism,
+            java.util.Set<String> onlyItemIds) {
         List<EvalItem> items = datasetStore.dataset(datasetName)
                 .map(meta -> datasetStore.items(datasetName))
                 .orElseThrow(() -> new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
                         "数据集未建：" + datasetName + "（修法：先 createDataset 再 run）"));
+        if (onlyItemIds != null) {
+            items = items.stream().filter(i -> onlyItemIds.contains(i.id())).toList();
+        }
         if (expectations != null) {
             DatasetExpectations.Result gate = expectations.validate(items);
             if (!gate.passed()) {
@@ -339,6 +400,7 @@ public final class EvalRunner {
         String runId = "r" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
         cancelRequested = false; // spec 1505：run 开始清零——上轮残留取消不污染新 run
+        this.progress = new EvalRunProgress(runId, 0, items.size(), false); // spec 1534
         try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_EVAL, runId)) {
         Instant startedAt = Instant.now();
         int workers = Math.max(1, Math.min(32, parallelism)); // clamp 1..32
@@ -356,6 +418,7 @@ public final class EvalRunner {
                     // 未启动项不再启动，与剪枝的失败率止损语义分立）
                     results.add(new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_CANCELLED,
                             "[CANCELLED] 宿主请求取消——本项未执行", "", 0));
+                    this.progress = new EvalRunProgress(runId, results.size(), items.size(), true); // spec 1534
                     continue;
                 }
                 if (prunedSignal != null) {
@@ -368,6 +431,8 @@ public final class EvalRunner {
                 EvalRunItemResult r = budgetedItem(spent, item,
                         () -> memoizedItem(runId, datasetName, item, evaluator));
                 results.add(r);
+                this.progress = new EvalRunProgress(runId, results.size(), items.size(),
+                        cancelRequested); // spec 1534
                 if (prune != null && results.size() >= prune.minItems()) {
                     long bad = results.stream().filter(x ->
                             EvalRunItemResult.STATUS_FAIL.equals(x.status())
@@ -386,31 +451,57 @@ public final class EvalRunner {
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
-            List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
-            for (int i = 0; i < items.size(); i++) {
-                final int index = i;
-                final EvalItem item = items.get(i);
-                tasks.add(() -> {
-                    if (cancelRequested) {
-                        // spec 1505 / T2261：宿主请求取消——本项未启动（项边界生效，
-                        // 与串行路径同语义；invokeAll 全量派发故检查在 task 首行）
-                        byIndex[index] = new EvalRunItemResult(item.id(),
-                                EvalRunItemResult.STATUS_CANCELLED,
-                                "[CANCELLED] 宿主请求取消——本项未执行", "", 0);
-                        return null;
-                    }
-                    byIndex[index] = budgetedItem(spent, item,
-                            () -> memoizedItem(runId, datasetName, item, evaluator));
-                    return null;
-                });
-            }
+            // spec 1522 / T2295：分波执行——并行路径失败率剪枝做实（spec 901 此前
+            // 「并行诚实不生效」边界收口）：items 按 workers 分块，每波完成后按串行
+            // 同款观察窗语义检查，达阈值剩余项标 pruned 不再起波；未配策略时单波
+            // 全量等价既有 invokeAll（零行为变化）；取消（spec 1505）优先检查。
+            EvalPrunePolicy parallelPrune = prunePolicy != null
+                    ? prunePolicy : EvalPrunePolicyHolder.current();
             try (java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
-                pool.invokeAll(tasks);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
-                        "评估并行执行被中断（dataset=" + datasetName + "）");
+                int waveSize = workers;
+                boolean pruned = false;
+                for (int waveStart = 0; waveStart < items.size() && !pruned; waveStart += waveSize) {
+                    int waveEnd = Math.min(waveStart + waveSize, items.size());
+                    List<java.util.concurrent.Callable<Void>> waveTasks = new ArrayList<>();
+                    for (int i = waveStart; i < waveEnd; i++) {
+                        final int index = i;
+                        final EvalItem item = items.get(i);
+                        waveTasks.add(() -> {
+                            if (cancelRequested) {
+                                // spec 1505 / T2261：宿主请求取消——本项未启动（项边界生效，
+                                // 与串行路径同语义；波内派发故检查在 task 首行）
+                                byIndex[index] = new EvalRunItemResult(item.id(),
+                                        EvalRunItemResult.STATUS_CANCELLED,
+                                        "[CANCELLED] 宿主请求取消——本项未执行", "", 0);
+                                return null;
+                            }
+                            byIndex[index] = budgetedItem(spent, item,
+                                    () -> memoizedItem(runId, datasetName, item, evaluator));
+                            return null;
+                        });
+                    }
+                    try {
+                        pool.invokeAll(waveTasks);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
+                                "评估并行执行被中断（dataset=" + datasetName + "）");
+                    }
+                    pruned = shouldPruneParallel(parallelPrune, byIndex, waveEnd, runId, datasetName);
+                    this.progress = new EvalRunProgress(runId, waveEnd, items.size(),
+                            cancelRequested); // spec 1534：波间快照
+                }
+                if (pruned) {
+                    // 剪枝波后的剩余项（循环退出时未起波）标 pruned
+                    for (int i = 0; i < items.size(); i++) {
+                        if (byIndex[i] == null) {
+                            byIndex[i] = new EvalRunItemResult(items.get(i).id(),
+                                    EvalRunItemResult.STATUS_PRUNED,
+                                    "[PRUNED] 失败率达阈值（并行波间剪枝）——本项未执行", "", 0);
+                        }
+                    }
+                }
             }
             results = List.of(byIndex); // 按项序聚合（与串行同序）
         }

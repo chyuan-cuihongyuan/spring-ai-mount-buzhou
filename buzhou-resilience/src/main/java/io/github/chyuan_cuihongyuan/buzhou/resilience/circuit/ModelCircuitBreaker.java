@@ -71,6 +71,10 @@ public final class ModelCircuitBreaker {
     /** spec 1602：宽限期内跳闸判定被豁免的累计（观测面——启动抖动量的可见读数）。 */
     private final java.util.concurrent.atomic.AtomicLong warmupSuppressed =
             new java.util.concurrent.atomic.AtomicLong();
+    /** spec 1628 / T2407：慢调用阈值（null = 慢调用维度关——默认零行为）。 */
+    private volatile java.time.Duration slowCallDurationThreshold;
+    /** spec 1628：慢调用率跳闸阈（0..1）。 */
+    private volatile double slowCallRateThreshold = Double.NaN;
     /** spec 1611 / T2373：crash-loop 旁路读数（null = 不喂——装配侧注入）。 */
     private volatile io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector crashLoop;
     /** spec 1611 / T2373：半开探测质量旁路读数（null = 不喂）。 */
@@ -186,6 +190,28 @@ public final class ModelCircuitBreaker {
     }
 
     /**
+     * spec 1628 / T2407：慢调用率跳闸维度注入（resilience4j slow call rate 思想——
+     * 未到超时但持续慢也是可用性问题；durationThreshold null = 关零行为）。
+     * 成功调用 duration ≥ 阈值计慢样本；窗口慢率 ≥ rateThreshold 且样本足即开闸。
+     */
+    public ModelCircuitBreaker withSlowCallPolicy(java.time.Duration durationThreshold,
+            double rateThreshold) {
+        if (durationThreshold != null && (!(rateThreshold > 0 && rateThreshold <= 1))) {
+            throw new IllegalArgumentException(
+                    "slowCallRateThreshold 必须在 (0,1]（当前 " + rateThreshold + "）");
+        }
+        this.slowCallDurationThreshold = durationThreshold;
+        this.slowCallRateThreshold = rateThreshold;
+        return this;
+    }
+
+    /** 带调用时长的成功入账（spec 1628：duration ≥ slow 阈值计慢样本；未注入维度零行为）。 */
+    public void recordSuccess(String modelName, Consumer<SessionEvent> emitter,
+            java.time.Duration callDuration) {
+        circuit(modelName).record(Outcome.SUCCESS, emitter, callDuration);
+    }
+
+    /**
      * spec 1611 / T2373：注入旁路遥测（链式；任一 null = 该面不喂）。纯读数旁路——
      * 不改状态机行为；喂点=跳闸/恢复变迁 + 半开探测成败（spec 811/836 指定挂点）。
      */
@@ -268,6 +294,10 @@ public final class ModelCircuitBreaker {
         private long effectiveCooldownMs;
         /** 计数窗口：true=失败样本（ring buffer，满窗移出最老）。 */
         private boolean[] window;
+        /** spec 1628 / T2407：慢样本环形（null = 维度未注入——懒建）。 */
+        private boolean[] windowSlow;
+        /** spec 1628：窗口慢样本计数。 */
+        private int slowCalls;
         /** spec 620 / T890：样本时间戳（与 window 平行的 ring——timeWindow>0 时老样本出率计算）。 */
         private long[] windowAt;
         private int samples;
@@ -318,8 +348,17 @@ public final class ModelCircuitBreaker {
             }
         }
 
-        /** 逻辑调用终态入账：HALF_OPEN 解探测；CLOSED 入窗口（IGNORED 不入）；OPEN 丢弃旧世代样本。 */
+        /** 逻辑调用终态入账（无时长面——slow 记 false，既有语义零变化）。 */
         synchronized void record(Outcome outcome, Consumer<SessionEvent> emitter) {
+            record(outcome, emitter, null);
+        }
+
+        /**
+         * spec 1628：带时长入账——duration ≥ slowCallDurationThreshold 记慢样本
+         * （维度未注入恒 false）；CLOSED 判定在失败率之上叠加慢率跳闸。
+         */
+        synchronized void record(Outcome outcome, Consumer<SessionEvent> emitter,
+                java.time.Duration callDuration) {
             if (state == CircuitState.HALF_OPEN) {
                 probesInFlight = Math.max(0, probesInFlight - 1);
                 if (outcome == Outcome.FAILURE) {
@@ -344,7 +383,13 @@ public final class ModelCircuitBreaker {
             if (outcome == Outcome.IGNORED) {
                 return; // 非可用性失败（RATE_LIMIT/CONTENT/AUTH/UNKNOWN）：不进窗口
             }
-            append(outcome == Outcome.FAILURE);
+            boolean slow = slowCallDurationThreshold != null && callDuration != null
+                    && !callDuration.isNegative()
+                    && callDuration.compareTo(slowCallDurationThreshold) >= 0;
+            if (slow && windowSlow == null) {
+                windowSlow = new boolean[window.length];
+            }
+            append(outcome == Outcome.FAILURE, slow);
             long timeWindowMs = config.timeWindow().toMillis();
             int effectiveSamples = samples;
             double rate;
@@ -369,7 +414,12 @@ public final class ModelCircuitBreaker {
             } else {
                 rate = samples == 0 ? 0.0 : (double) failures / samples;
             }
-            if (effectiveSamples >= config.minCalls() && rate >= config.failureRateThreshold()) {
+            double slowRate = effectiveSamples == 0 || slowCalls == 0
+                    ? 0.0 : (double) slowCalls / effectiveSamples;
+            boolean slowTrip = !Double.isNaN(slowCallRateThreshold)
+                    && slowRate >= slowCallRateThreshold;
+            if (effectiveSamples >= config.minCalls()
+                    && (rate >= config.failureRateThreshold() || slowTrip)) {
                 if (warmupUntil != null && java.time.Instant.now(clock).isBefore(warmupUntil)) {
                     // spec 1602 / T2355：启动宽限——冷启动失败（建连/TLS/预热抖动）不计开闸
                     //（K8s startupProbe 思想：startup 通过前 liveness 不生效；宽限结束后
@@ -385,15 +435,24 @@ public final class ModelCircuitBreaker {
             return state;
         }
 
-        private void append(boolean failure) {
+        private void append(boolean failure, boolean slow) {
             int size = window.length;
             if (samples >= size && window[samples % size]) {
                 failures--; // 满窗移出最老样本
             }
+            if (samples >= size && windowSlow != null && windowSlow[samples % size]) {
+                slowCalls--; // spec 1628：满窗移出最老慢样本
+            }
             window[samples % size] = failure;
+            if (windowSlow != null) {
+                windowSlow[samples % size] = slow;
+            }
             windowAt[samples % size] = java.time.Instant.now(clock).toEpochMilli();
             if (failure) {
                 failures++;
+            }
+            if (slow) {
+                slowCalls++;
             }
             samples++;
         }
@@ -481,6 +540,7 @@ public final class ModelCircuitBreaker {
             windowAt = new long[config.windowSize()];
             samples = 0;
             failures = 0;
+                    slowCalls = 0; // spec 1628：窗口重置同步清慢样本
         }
 
         private Duration probeEscapeAfter() {
