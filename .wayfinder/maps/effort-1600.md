@@ -25,6 +25,9 @@
 - [R2 形状：MCP 连接最大寿命](../tickets/T2353-r2-lifetime-shape.md) — HikariCP maxLifetime 思想：连接到寿退役重建（复用 spec 703 rebuildEntry 排水口径），在飞连接推迟到下轮（归还时退役语义）
 - [R2 验收](../tickets/T2354-r2-lifetime-verify.md) — 伪连接+可控时钟四断言：未到寿不动/到寿重建/在飞推迟/关零行为
 
+- [R3 形状：熔断启动宽限](../tickets/T2355-r3-warmup-shape.md) — K8s startupProbe 思想：进程构造后 warmup 期内的跳闸判定豁免（窗口照记、成功照常冲淡——宽限结束已积累样本立即恢复完整判定，只放过启动抖动不放过真故障）
+- [R4 验收](../tickets/T2356-r3-warmup-verify.md) — 可控时钟四断言：宽限内豁免/宽限后恢复跳/成功冲淡自愈/默认关零变化
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -40,3 +43,4 @@
 |---|---|---|---|---|---|---|
 | R1 | #1600 | 语义缓存 LFU 采样驱逐（Redis allkeys-lfu 思想） | T2351–T2352 | 1153 | 1600 | done |
 | R2 | #1601 | MCP 连接最大寿命（HikariCP maxLifetime 思想） | T2353–T2354 | 1154 | 1601 | done |
+| R3 | #1602 | 熔断启动宽限期（K8s startupProbe 思想） | T2355–T2356 | 1155 | 1602 | done |

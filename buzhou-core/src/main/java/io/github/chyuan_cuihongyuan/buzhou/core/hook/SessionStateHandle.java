@@ -2,6 +2,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.hook;
 
 import java.util.Optional;
 
+/**
+ * 会话状态 CAS 访问器——hook 内对会话状态做原子 compareAndSwap。
+ */
 public interface SessionStateHandle {
 
     <T> Optional<T> get(String key, Class<T> type);

@@ -7,6 +7,9 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 观测持久化 SPI——span / 事件记录的写入与查询。
+ */
 public interface ObservabilityStore {
 
     void saveSpans(List<SpanRecord> spans);

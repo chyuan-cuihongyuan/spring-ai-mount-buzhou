@@ -625,6 +625,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | J 系阶段对账审计 R50 | J 会话 R46–R49 工件对账 + spec 1048 跨会话冲突合成留痕（spec 1050） | [spec 1050](docs/spec/1050-j-audit-r50.md) |
 | 工具计量 | 命令黑名单拦截判定读面 | 黑名单命中/放行比显形，二桶守恒（spec 1051） | [spec 1051](docs/spec/1051-blacklist-stats.md) |
 | 工具计量 | run_command 执行结果分布读面 | 执行结局九桶守恒，参数/运行时分轴（spec 1052） | [spec 1052](docs/spec/1052-runcommand-stats.md) |
+| 溢出治理 | evict_handle 逐出判定读面 | 模型主动逐出采用率与拒绝分桶显形，三桶守恒（spec 1053） | [spec 1053](docs/spec/1053-evict-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -687,6 +688,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | 低覆盖类批次 1（K 会话 R2） | 低覆盖档（<50% 且 miss≥10）清点：guard PolicyGateHook 三态裁决/taint 映射/事件/指标四合同面 + memory RecallSearchTool 四模输出/降级/截断十断言面（spec 1201） | [spec 1201](docs/spec/1201-low-coverage-batch1.md) |
 | 工程门禁 | skills RedisSkillStore 契约接入（K 会话 R3） | SkillStore 契约范式补链：Redis 实现接同一契约基类（真实 redis:7-alpine 容器，无 Docker 跳过）+ 重启存活加验；修正 R1 审计漏扫 skills（spec 1202） | [spec 1202](docs/spec/1202-redis-skill-store-contract.md) |
 | 工程门禁 | core 零覆盖尾巴清扫（K 会话 R4） | 判据收紧 miss≥5→miss≥1 后复扫：AttachmentRenderer default 截断合同四断言 + CommandOutcome success 谓词矩阵（超时优先于退出码）；core 证据改走隔离 worktree（spec 1203） | [spec 1203](docs/spec/1203-core-zero-tail-sweep.md) |
+| 工程门禁 | SnapshotMessage 补测与跨模块复核（K 会话 R5） | 收紧判据残留归口：compact 构造 null 防御 + Map.copyOf 拷贝语义合同；六小模块 miss≥1 复扫清单化（spec 1204） | [spec 1204](docs/spec/1204-snapshot-message-tightened-sweep.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
@@ -785,6 +787,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 |------|------|--------|------|
 | 韧性缓存 | 语义缓存 LFU 采样驱逐 | 驱逐从纯 eldest 升级为采样窗口内最低命中数先出（平局取老保 LRU 底线），热 FAQ 条目不被一次性扫描写入冲刷；hotPreservedCount 观测采样实效率——Redis allkeys-lfu + maxmemory-samples 思想（spec 1600） | [spec 1600](docs/spec/1600-semantic-cache-lfu-sampling.md) |
 | MCP 治理 | 连接最大寿命 | 到寿 ACTIVE 连接退役重建（复用探活失败同款排水+原样重建口径），在飞调用推迟下轮（归还时退役语义）——防长连接状态腐化/漂移累积；HikariCP maxLifetime 思想（spec 1601） | [spec 1601](docs/spec/1601-mcp-connection-maxlifetime.md) |
+| 韧性治理 | 熔断启动宽限期 | 进程冷启动期（circuit.warmup）跳闸判定豁免——建连/TLS/预热抖动不计开闸，窗口照记、成功照常冲淡；宽限结束已积累样本立即恢复完整判定（真故障仍跳），warmupSuppressedCount 观测启动抖动量——K8s startupProbe 思想（spec 1602） | [spec 1602](docs/spec/1602-circuit-warmup.md) |
 
 ## 快速开始
 

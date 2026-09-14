@@ -3,6 +3,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.spi;
 import java.time.Instant;
 import java.util.Map;
 
+/**
+ * 观测 span 持久化记录（ObservabilityStore span 族载荷）。
+ */
 public record SpanRecord(
         String spanId,
         String parentSpanId,

@@ -3,6 +3,10 @@ package io.github.chyuan_cuihongyuan.buzhou.core.session;
 import org.springframework.ai.chat.model.ChatResponse;
 import reactor.core.publisher.Flux;
 
+/**
+ * 会话入口——chat / chatForEntity / stream 三通道对话，rateTurn 轮次反馈，
+ * emitEvent 自定义事件，cancel 模式化取消，close 清理优先收尾（AutoCloseable）。
+ */
 public interface AgentSession extends AutoCloseable {
 
     String sessionId();

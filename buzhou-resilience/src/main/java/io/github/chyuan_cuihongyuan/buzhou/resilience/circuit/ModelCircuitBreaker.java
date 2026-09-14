@@ -66,6 +66,11 @@ public final class ModelCircuitBreaker {
     private final java.util.List<java.util.function.Consumer<CircuitTransitionJournal.Transition>>
             transitionListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, ModelCircuit> circuits = new ConcurrentHashMap<>();
+    /** spec 1602 / T2355：启动宽限期截止（构造时刻 + warmup；null = 关）。 */
+    private final Instant warmupUntil;
+    /** spec 1602：宽限期内跳闸判定被豁免的累计（观测面——启动抖动量的可见读数）。 */
+    private final java.util.concurrent.atomic.AtomicLong warmupSuppressed =
+            new java.util.concurrent.atomic.AtomicLong();
 
     public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats) {
         this(config, stats, java.time.Clock.systemUTC());
@@ -88,6 +93,9 @@ public final class ModelCircuitBreaker {
         this.stats = stats;
         this.clock = clock == null ? java.time.Clock.systemUTC() : clock;
         this.shared = shared;
+        // spec 1602 / T2355：启动宽限截止时刻（warmup=0/null = 关——零行为变化）
+        Duration warmup = config.warmup();
+        this.warmupUntil = warmup == null || warmup.isZero() ? null : clock.instant().plus(warmup);
         this.failureCategories = config.failureCategories().stream()
                 .map(c -> c.toUpperCase(Locale.ROOT))
                 .collect(Collectors.toUnmodifiableSet());
@@ -168,6 +176,11 @@ public final class ModelCircuitBreaker {
     }
 
     /** 逻辑调用成功（含返回了 CONTENT 静默拒绝的响应——provider 可用性正常）。 */
+    /** spec 1602：宽限期内跳闸判定被豁免的累计（观测面）。 */
+    public long warmupSuppressedCount() {
+        return warmupSuppressed.get();
+    }
+
     public void recordSuccess(String modelName, Consumer<SessionEvent> emitter) {
         circuit(modelName).record(Outcome.SUCCESS, emitter);
     }
@@ -325,6 +338,13 @@ public final class ModelCircuitBreaker {
                 rate = samples == 0 ? 0.0 : (double) failures / samples;
             }
             if (effectiveSamples >= config.minCalls() && rate >= config.failureRateThreshold()) {
+                if (warmupUntil != null && java.time.Instant.now(clock).isBefore(warmupUntil)) {
+                    // spec 1602 / T2355：启动宽限——冷启动失败（建连/TLS/预热抖动）不计开闸
+                    //（K8s startupProbe 思想：startup 通过前 liveness 不生效；宽限结束后
+                    // 已积累样本立即恢复完整判定——真故障仍会被跳，只放过启动抖动）
+                    warmupSuppressed.incrementAndGet();
+                    return;
+                }
                 transition(CircuitState.OPEN, emitter);
             }
         }

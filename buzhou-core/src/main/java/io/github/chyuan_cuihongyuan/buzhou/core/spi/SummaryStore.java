@@ -3,6 +3,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.spi;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 摘要持久化 SPI——记忆压缩摘要的存取。
+ */
 public interface SummaryStore {
 
     long save(String sessionId, StructuredSummary summary);

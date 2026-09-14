@@ -3,6 +3,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.spi;
 import java.time.Duration;
 import java.util.Optional;
 
+/**
+ * 会话租约 SPI——同会话单活跃实例的获取 / 续期 / 释放与护栏令牌（fence）。
+ */
 public interface SessionLeaseStore {
 
     LeaseAcquireResult tryAcquire(String sessionId, String ownerId, Duration ttl);

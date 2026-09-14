@@ -171,21 +171,30 @@ public record ResilienceProperties(
             List<String> failureCategories,
             Integer backoffCap,
             Integer halfOpenSuccessThreshold,
-            Duration timeWindow) {
+            Duration timeWindow,
+            Duration warmup) {
+
+        /** 既有 9 参构造（spec 620 形态；warmup 默认关——零行为变化）。 */
+        public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
+                Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
+                Integer backoffCap, Integer halfOpenSuccessThreshold, Duration timeWindow) {
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
+                    backoffCap, halfOpenSuccessThreshold, timeWindow, null);
+        }
 
         /** 既有 8 参构造（timeWindow 默认关——count 窗零变化）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
                 Integer backoffCap, Integer halfOpenSuccessThreshold) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    backoffCap, halfOpenSuccessThreshold, null);
+                    backoffCap, halfOpenSuccessThreshold, null, null);
         }
 
         /** 既有 6 参便捷构造（backoffCap/halfOpen/timeWindow 默认，二进制/源码兼容既有调用点）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    null, null, null);
+                    null, null, null, null);
         }
 
         /** 7 参便捷构造（halfOpenSuccessThreshold/timeWindow 默认）。 */
@@ -193,7 +202,7 @@ public record ResilienceProperties(
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
                 Integer backoffCap) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    backoffCap, null, null);
+                    backoffCap, null, null, null);
         }
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察修复——缺注解时 yml 键静默不生效）。 */
@@ -234,6 +243,11 @@ public record ResilienceProperties(
             timeWindow = timeWindow == null ? Duration.ZERO : timeWindow;
             if (timeWindow.isNegative()) {
                 throw configError("circuit.time-window", timeWindow.toString(), "设为非负时长（0 = 不启用）");
+            }
+            // spec 1602 / T2355：启动宽限（K8s startupProbe 思想——进程冷启动失败不计开闸；0 = 关）
+            warmup = warmup == null ? Duration.ZERO : warmup;
+            if (warmup.isNegative()) {
+                throw configError("circuit.warmup", warmup.toString(), "设为非负时长（0 = 不启用）");
             }
         }
 
