@@ -23,6 +23,40 @@ public final class ToolQuotaHook implements BuzhouHook {
 
     private final Map<String, Integer> quotas;
 
+    // —— spec 1068 / impl 820：配额消耗读面（per-API quota 对账思想；静态面理由同
+    // R46–R67 先例）。守恒：calls = allowed + quotaBlocks + unmanagedSkips；
+    // excludedTokens 为旁路修正量不占入口桶。
+    private static final java.util.concurrent.atomic.AtomicLong CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ALLOWED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong QUOTA_BLOCKS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong UNMANAGED_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong EXCLUDED_TOKENS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 配额消耗分布快照（spec 1068）。 */
+    public record ToolQuotaStats(long calls, long allowed, long quotaBlocks,
+                                 long unmanagedSkips, long excludedTokens) {
+    }
+
+    /** 只读快照（守恒 calls = allowed + quotaBlocks + unmanagedSkips）。 */
+    public static ToolQuotaStats stats() {
+        return new ToolQuotaStats(CALLS.get(), ALLOWED.get(), QUOTA_BLOCKS.get(),
+                UNMANAGED_SKIPS.get(), EXCLUDED_TOKENS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        CALLS.set(0);
+        ALLOWED.set(0);
+        QUOTA_BLOCKS.set(0);
+        UNMANAGED_SKIPS.set(0);
+        EXCLUDED_TOKENS.set(0);
+    }
+
     public ToolQuotaHook(Map<String, Integer> toolQuotas) {
         Map<String, Integer> normalized = new LinkedHashMap<>();
         if (toolQuotas != null) {
@@ -47,7 +81,9 @@ public final class ToolQuotaHook implements BuzhouHook {
 
     @Override
     public HookResult beforeTool(ToolCallContext ctx) {
+        CALLS.incrementAndGet();
         if (ctx == null || ctx.toolName() == null) {
+            UNMANAGED_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         Integer limit = quotas.get(ctx.toolName());
@@ -55,6 +91,7 @@ public final class ToolQuotaHook implements BuzhouHook {
             limit = quotas.get(WILDCARD); // 未列名走通配默认
         }
         if (limit == null) {
+            UNMANAGED_SKIPS.incrementAndGet();
             return HookResult.CONTINUE; // 零配置零限制
         }
         String key = STATE_PREFIX + ctx.toolName();
@@ -64,16 +101,19 @@ public final class ToolQuotaHook implements BuzhouHook {
                     try {
                         return Integer.parseInt(s);
                     } catch (NumberFormatException e) {
+                        EXCLUDED_TOKENS.incrementAndGet(); // 坏值静默修正显形
                         return 0;
                     }
                 })
                 .orElse(0);
         if (used >= limit) {
+            QUOTA_BLOCKS.incrementAndGet();
             BuzhouMetricsHolder.metrics().counter(BLOCKED_COUNTER, 1, "tool", ctx.toolName());
             return HookResult.block("本会话工具「" + ctx.toolName() + "」调用已达上限（"
                     + limit + " 次）——请改用其他工具或结束当前任务");
         }
         ctx.state().put(key, String.valueOf(used + 1)); // 放行即计（被拒不重复计）
+        ALLOWED.incrementAndGet();
         return HookResult.CONTINUE;
     }
 }
