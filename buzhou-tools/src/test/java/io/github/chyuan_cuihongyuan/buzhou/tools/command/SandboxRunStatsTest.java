@@ -66,7 +66,7 @@ class SandboxRunStatsTest {
         SandboxRunCommandTool tool = tool(okBackend());
         tool.call("{\"command\":\"   \"}");              // blank
         tool.call("{\"command\":\"rm -rf /\"}");         // blacklist
-        tool.call("{\"command\":\"echo x\",\"workdir\":\"../evil\"}"); // workdir 非法段
+        tool.call("{\"command\":\"echo x\",\"workdir\":\"no-such-dir\"}"); // 目录不存在
         tool.call("{\"command\":\"echo x\",\"timeoutSeconds\":601}"); // timeout 越界（上限 600s）
 
         SandboxRunCommandTool.SandboxRunStats stats = SandboxRunCommandTool.stats();
@@ -74,6 +74,7 @@ class SandboxRunStatsTest {
         assertThat(stats.blacklistRejects()).isEqualTo(1);
         assertThat(stats.workdirRejects()).isEqualTo(1);
         assertThat(stats.timeoutParamRejects()).isEqualTo(1);
+        // 合并桶注记：非法段（../evil）走 throw→failures，目录不存在走 workdirRejects
         assertThat(stats.runs()).isZero();
     }
 
