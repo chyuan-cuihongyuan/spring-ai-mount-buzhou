@@ -60,7 +60,7 @@ class TodoHttpComboTest {
                 + server.getAddress().getPort() + "/data\"}");
         assertThat(httpOut).startsWith("HTTP 200");
         // todo 更新
-        String todoOut = todo.call("{\"action\":\"upsert\",\"todos\":[]}");
+        String todoOut = todo.call("{\"action\":\"upsert\",\"todos\":[{\"content\":\"step\",\"status\":\"pending\"}]}");
         assertThat(todoOut).isNotNull();
 
         HttpRequestTool.HttpToolStats hs = HttpRequestTool.stats();
