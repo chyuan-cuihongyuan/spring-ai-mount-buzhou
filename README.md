@@ -652,6 +652,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 溢出治理 | SpillService 幂等复用读面 | 服务层五分支守恒显形，复用率可对账（spec 1101） | [spec 1101](docs/spec/1101-spillsvc-idem-stats.md) |
 | 溢出治理 | offload→readBack 双轴闭环组合测试 | 溢出落盘与回读闭环计数一致性钉住（spec 1093） | [spec 1093](docs/spec/1093-offread-combo.md) |
+| 溢出治理 | cipher×readBack 组合测试轮 | 加密回读解密调用联动钉住（spec 1106） | [spec 1106](docs/spec/1106-cipherread-combo.md) |
 | 溢出治理 | Spill 溢出 hook 判定读面 | 溢出触发率与降级动作五桶守恒显形（spec 1077） | [spec 1077](docs/spec/1077-spilloffload-stats.md) |
 | 溢出治理 | Spill 加解密读面 | 加解密操作量与失败分布显形（spec 1079） | [spec 1079](docs/spec/1079-spillcipher-stats.md) |
 | 溢出治理 | offload×cipher 加密联动组合测试 | 加密配置真实生效联动钉住（spec 1097） | [spec 1097](docs/spec/1097-offcipher-combo.md) |

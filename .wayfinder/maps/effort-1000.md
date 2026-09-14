@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [cipher×readBack 组合测试轮的形状裁决](../tickets/T1671-cipherread-shape.md) — 纯测试轮第十二弹：CipherReadBackComboTest 钉住加密回读的解密调用联动 + ReadRangeStats 守恒。
 - [双档读写四象限对照组合测试轮的形状裁决](../tickets/T1665-dualrw-shape.md) — 纯测试轮第十四弹：DualModeRwSymmetryTest 钉住读写对跨两档组装对称恒等 + 双守恒保持。
 - [todo×http 跨工具工作流组合测试轮的形状裁决](../tickets/T1667-todohttp-shape.md) — 纯测试轮第十五弹：TodoHttpComboTest 钉住同会话交叉调用下双读面独立互不串账 + reset 独立隔离。
 - [冒烟清单第三扩展轮的形状裁决](../tickets/T1663-smokeext3-shape.md) — 纯测试轮：ReadoutContractSmokeTest 清单纳入 SkillAdminApi/SpillService（15→17 成员）。
@@ -220,6 +221,8 @@
 | 100 | 周期预检轮·百轮节点：R91–R99 对账全绿 + 组合测试系列成型 + observability 反压环境 flake 处置 + 复跑 verify BUILD SUCCESS | 隔离重跑实证非缺陷 | T1659–T1660 | 852 | 1100 | ✅ |
 | 101 | SpillService 幂等复用读面（五分支守恒：新落盘/幂等复用/降级/阈值内） | 幂等重试复用率对账 | T1661–T1662 | 853 | 1101 | ✅ |
 | 102 | 冒烟清单第三扩展轮（SkillAdmin/SpillService 纳入 17 读面冒烟） | 登记纪律持续闭环 | T1663–T1664 | 854 | 1102 | ✅ |
+| 106 | cipher×readBack 组合测试轮（解密调用随回读联动） | 纯测试轮第十二弹 | T1671–T1672 | 858 | 1106 | ✅ |
+| 107 | （开工时按缺口核查选题） | — | T1673–T1674 | 859 | 1107 |  |
 | 103 | 双档读写四象限对照组合测试轮（读写对跨两档对称恒等） | 纯测试轮第十四弹 | T1665–T1666 | 855 | 1103 | ✅ || 104 | todo×http 跨工具工作流组合测试轮（双读面独立互不串账） | 纯测试轮第十五弹 | T1667–T1668 | 856 | 1104 | ✅ |
 | 105 | （开工时按缺口核查选题） | — | T1669–T1670 | 857 | 1105 |  |
 
