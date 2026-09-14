@@ -73,8 +73,9 @@ class DualModeRunContrastTest {
         sandbox.call("{\"command\":\"echo c\"}");                        // runs
         sandbox.call("{\"command\":\"echo d\",\"timeoutSeconds\":0}");  // timeout 拒
         SandboxRunCommandTool.SandboxRunStats ss = SandboxRunCommandTool.stats();
-        assertThat(ss.attempts())
-                .isEqualTo(ss.runs() + ss.canceled() + ss.timeouts() + ss.totalRejects());
+        assertThat(ss.calls())
+                .isEqualTo(ss.runs() + ss.blankRejects() + ss.blacklistRejects()
+                        + ss.workdirRejects() + ss.timeoutParamRejects() + ss.failures());
     }
 
     @Test
