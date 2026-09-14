@@ -105,11 +105,11 @@ public final class PiiDetector {
         collect(matches, text, CN_PHONE, PiiType.CN_PHONE, null);
         collect(matches, text, IPV4, PiiType.IPV4, null);
         matches.sort(Comparator.comparingInt(PiiMatch::start));
+        MATCHES_FOUND.addAndGet(matches.size()); // dedupe 前原生口径（spec 1072）
         List<PiiMatch> deduped = dedupeOverlaps(matches);
         if (!deduped.isEmpty()) {
             SCANS_WITH_HITS.incrementAndGet();
         }
-        MATCHES_FOUND.addAndGet(deduped.size());
         return deduped;
     }
 
