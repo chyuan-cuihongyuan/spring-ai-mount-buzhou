@@ -636,6 +636,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | J 系阶段对账审计 R60 | J 会话 R51–R59 工件对账 + 七域读面布局盘点（spec 1060） | [spec 1060](docs/spec/1060-j-audit-r60.md) |
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
 | 观测治理 | J 系阶段对账审计 R70 | J 会话 R61–R69 工件对账 + 七域读面布局收口（spec 1070） | [spec 1070](docs/spec/1070-j-audit-r70.md) |
+| 工具计量 | http_request 受控头丢弃显形 | 黑名单头试探频次量化（spec 1071） | [spec 1071](docs/spec/1071-headerdrop-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
 | 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
@@ -878,6 +879,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 并发治理 | 梯度限流器观测接线 | executeToolCalls 批耗时经 GradientLimiterHolder 喂入梯度限流器（观测先行——View 读数显形全局工具路径延迟梯度；tryAcquire 闸接入待数据积累独立裁决）——spec 1617 装配面（spec 1639） | [spec 1639](docs/spec/1639-gradient-wiring.md) |
 | 护栏治理 | PII 豁免计数 | PiiHitStats.recordExemption——「豁免了多少 vs 命中了多少」对照面（豁免失控显形：exemptionsApplied 持续高于命中数=豁免面过宽），reset 同步归零（spec 1640） | [spec 1640](docs/spec/1640-pii-exemption-count.md) |
 | 工具治理 | 负缓存 yml 装配 | buzhou.core.negative-cache.{enabled,ttl}（默认 30s——DNS 短窗纪律）声明即启用，DisposableBean 关闭钩子停用（已包装会话缓存自然过期）——spec 1633 配置面补全（spec 1641） | [spec 1641](docs/spec/1641-negative-cache-yml.md) |
+| 文档治理 | N 系运维手册段 | ops-runbook 第 23 节四族（缓存限流/熔断降级/护栏豁免/工具观测）——spec 1600-1641 全部可运维机制的配置键、观测读数与失控信号集中入档（spec 1642） | [spec 1642](docs/spec/1642-n-runbook.md) |
 | 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 韧性治理 | 退避抖动模式可配 | jitter-mode（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机——防重试风暴同步最优/DECORRELATED=[base,min(cap,prev×3)] 与前次去相关）——AWS「Exponential Backoff and Jitter」思想，默认 EQUAL 零行为（spec 1631） | [spec 1631](docs/spec/1631-jitter-mode.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |

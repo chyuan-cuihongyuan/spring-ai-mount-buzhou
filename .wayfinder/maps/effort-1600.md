@@ -145,6 +145,9 @@
 - [R42 形状：负缓存 yml 装配](../tickets/T2433-r42-negyml-shape.md) — buzhou.core.negative-cache.{enabled,ttl}（DisposableBean 关闭钩子停用——已包装会话缓存自然过期）——spec 1633 Holder 补配置面
 - [R42 验收](../tickets/T2434-r42-negyml-verify.md) — 三断言（启用+关闭停用/ttl 生效/缺省零 bean）
 
+- [R43 形状：N 系运维手册段](../tickets/T2435-r43-runbook-shape.md) — ops-runbook 第 23 节四族（缓存限流/熔断降级/护栏豁免/工具观测）——16xx 机制的配置键、观测读数与失控信号运维面集中入档
+- [R43 验收](../tickets/T2436-r43-runbook-verify.md) — 段落完整性（四族覆盖 spec 1600-1641 全部可运维机制）
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -200,3 +203,4 @@
 | R40 | #1639 | 梯度限流器观测接线（spec 1617 装配面） | T2429–T2430 | 1192 | 1639 | done |
 | R41 | #1640 | PII 豁免计数（与命中统计对照面） | T2431–T2432 | 1193 | 1640 | done |
 | R42 | #1641 | 负缓存 yml 装配（spec 1633 配置面补全） | T2433–T2434 | 1194 | 1641 | done |
+| R43 | #1642 | N 系运维手册段（ops-runbook 第 23 节） | T2435–T2436 | 1195 | 1642 | done |

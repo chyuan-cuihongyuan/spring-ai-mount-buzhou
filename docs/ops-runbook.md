@@ -539,3 +539,36 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
   `drain.beginDrain + awaitDrained` 排存量 → 维护 → `gate.end()`——计划内维护的标准序列。
 - **事件去重**：`EventDeduplicator` 包在 fanout 前——完全相同重复（type+键排序 payload 指纹）
   发射侧即拦；deduped 计数高 = 宿主双发 bug 显影剂。
+
+## 23. N 系 1600+ 增量运维段（N 会话 / spec 1600-1641）
+
+### 缓存与限流族（spec 1600/1604/1617/1619）
+
+- 语义缓存 LFU 采样驱逐：`buzhou.resilience.semantic-cache.eviction-sample-size`（0=纯 LRU 默认；观测 `hotPreservedCount/evicted` 比值看采样实效率）。
+- 响应缓存 stale-if-error：`response-cache.stale-window`（模型故障期旧响应救场；`staleReadCount` 持续高=供应商故障时长面）。
+- 梯度并发：`GradientLimiterHolder.view()`（工具批延迟梯度；劣化（gradient<1）持续=工具路径过载前兆）。
+- spill 写限速：`DiskSpillStore(root, quota, cipher, SpillWriteRateLimiter(bytesPerSecond, burst, maxWait))`；`degradedBypasses` 持续增长=限速配置跟不上实际写压。
+
+### 熔断与降级族（spec 1602/1610/1623/1628/1631/1637）
+
+- 启动宽限：`circuit.warmup`（发布后冷启动失败不计开闸；`warmupSuppressedCount`=启动抖动量）。
+- 慢调用跳闸：`circuit.slow-call-duration` + `slow-call-rate-threshold`（默认 0.5；P99 退化供应商在零失败时也会被保护）。
+- 退避抖动模式：`buzhou.resilience.jitter-mode`（EQUAL/FULL/DECORRELATED——重试风暴场景选 FULL）。
+- 离群驱逐：`buzhou.resilience.outlier.*`（opt-in；分类感知默认 NETWORK/SERVER/TIMEOUT；panic 阈值防全逐）。
+- 影子对照：`fallback.shadow-probe-percent`（diverged 持续=备模型行为漂移，容量预案降信心）。
+- 旁路遥测：crash-loop（10 分钟 3 跳闸闩锁）与半开探测质量恒挂（`circuit.crashLoopDetector()/halfOpenProbeStats()`）。
+
+### 护栏豁免族（spec 1624/1627/1632/1640）
+
+- 危险工具豁免：`GuardModule.exemptions().grant("dangerous-tool", 工具名, untilMillis, 理由)`——「已确认过的工具 T1 前不再问」；`snapshot(now)` 审计。
+- PII 豁免双粒度：输出侧（`pii-redaction`×工具名 / `type:TYPE`）与输入侧（`pii-input-redaction`×sessionId / `type:TYPE`）分侧独立；`exemptionsApplied` 持续高于命中数=豁免面过宽信号。
+- 泄漏金丝雀：`buzhou.guard.leak-canary.salt`（env 注入；检出事件 `guard.session.leak-detected` 即跨会话污染证据）。
+
+### 工具与观测族（spec 1603/1616/1620/1626/1634/1641）
+
+- http_request 护栏：per-host 并发（`tools.http-request.max-per-host`）+ 输入边界（body 64K/URL 8K/头 64×8K）——拒绝桶守恒式可观测。
+- 负缓存：`buzhou.core.negative-cache.{enabled,ttl}`（失败工具短 TTL 记忆；`stats().negativeHits`=拦截的重试风暴量）。
+- 目录漂移：`CatalogDriftHolder`（会话构造节拍；`tool.catalog.drifted` 事件=MCP 差量错配/装配漂移）。
+- 空闲水位：`IdleMonitorHolder`（15 分钟阈值清单 + 时长直方——清理调参依据）。
+- 指标新鲜度：`MetricFreshnessHolder.audit(now, staleAfterMs)`（序列静默=写路径死亡/装配丢失）。
+- dashboard gzip：客户端协商自动（≥512B）；无需运维动作。
