@@ -62,15 +62,12 @@ class ToolSetPollStatsTest {
 
     @Test
     void failingLoadCountsItsBucketAndStillPropagates() {
-        // 匿名子类覆写 loadAll 抛错：直调路径失败入桶后异常照旧外溢（行为逐位不变）
-        InMemoryToolSetSpecStore broken = new InMemoryToolSetSpecStore() {
-            @Override
-            public List<ToolSetSpec> loadAll() {
-                throw new IllegalStateException("db down");
-            }
-        };
+        // 故障开关式 store：构造期正常（初始快照加载），其后 loadAll 抛错——
+        // 直调路径失败入桶后异常照旧外溢（行为逐位不变）
+        BrokenAfterConstructionStore broken = new BrokenAfterConstructionStore();
         DbToolSetProvider provider = new DbToolSetProvider(broken, Duration.ofHours(1));
         try {
+            broken.broken = true;
             org.assertj.core.api.Assertions.assertThatThrownBy(
                             () -> broken.replaceAll(List.of(spec("a"))))
                     .isInstanceOf(IllegalStateException.class);
@@ -81,6 +78,19 @@ class ToolSetPollStatsTest {
         DbToolSetProvider.ToolSetPollStats stats = DbToolSetProvider.stats();
         assertThat(stats.refreshFailures()).isEqualTo(1);
         assertThat(stats.changesDetected()).isZero();
+    }
+
+    /** 构造期正常、开关打开后 loadAll 抛错的存储（构造器初始快照加载须先成功）。 */
+    private static final class BrokenAfterConstructionStore extends InMemoryToolSetSpecStore {
+        volatile boolean broken;
+
+        @Override
+        public List<ToolSetSpec> loadAll() {
+            if (broken) {
+                throw new IllegalStateException("db down");
+            }
+            return super.loadAll();
+        }
     }
 
     @Test
