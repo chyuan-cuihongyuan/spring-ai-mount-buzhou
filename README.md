@@ -668,6 +668,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | memory 双台账组合测试 | fact/episodic 双台账读面互不串账钉住（spec 1088） | [spec 1088](docs/spec/1088-dualledger-readout.md) |
 | 工具计量 | 沙箱版 run_command 执行分布读面 | 沙箱档送达率与五拒绝桶守恒显形（spec 1074） | [spec 1074](docs/spec/1074-sandboxrun-stats.md) |
 | 工具计量 | 双守卫（黑名单+SSRF）组合测试 | 双守卫独立性与一致性互不串账钉住（spec 1086） | [spec 1086](docs/spec/1086-dualguard-readout.md) |
+| 租户隔离 | 租户沙箱×读写链路组合测试 | 租户面读写对称与越界拒绝计数钉住（spec 1099） | [spec 1099](docs/spec/1099-tenant-rw-chain.md) |
 | 工具计量 | 读写对称守恒组合测试 | bytesWritten/bytesRead 字节口径恒等钉住（spec 1081） | [spec 1081](docs/spec/1081-rw-symmetry.md) |
 | 工具计量 | fs 全链路四读面组合测试 | 沙箱/写/读/黑名单链路守恒与对称恒等（spec 1084） | [spec 1084](docs/spec/1084-fs-chain-readout.md) |
 | 工具计量 | 双档 run_command 对账组合测试 | timeout 语义分叉钉住防修齐回归（spec 1082） | [spec 1082](docs/spec/1082-dualmode-contrast.md) |
