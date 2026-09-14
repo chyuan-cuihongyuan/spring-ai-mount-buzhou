@@ -67,7 +67,7 @@ class SandboxRunStatsTest {
         tool.call("{\"command\":\"   \"}");              // blank
         tool.call("{\"command\":\"rm -rf /\"}");         // blacklist
         tool.call("{\"command\":\"echo x\",\"workdir\":\"../evil\"}"); // workdir 非法段
-        tool.call("{\"command\":\"echo x\",\"timeoutSeconds\":0}");    // timeout 越界
+        tool.call("{\"command\":\"echo x\",\"timeoutSeconds\":601}"); // timeout 越界（上限 600s）
 
         SandboxRunCommandTool.SandboxRunStats stats = SandboxRunCommandTool.stats();
         assertThat(stats.blankRejects()).isEqualTo(1);
@@ -83,7 +83,7 @@ class SandboxRunStatsTest {
         tool.call("{\"command\":\"echo one\"}");         // runs
         tool.call("{\"command\":\"\"}");                  // blank
         tool.call("{\"command\":\"shutdown now\"}");      // blacklist
-        tool.call("{\"command\":\"echo x\",\"timeoutSeconds\":0}"); // timeout
+        tool.call("{\"command\":\"echo x\",\"timeoutSeconds\":601}"); // timeout
         tool.call("{\"command\":\"echo two\"}");         // runs
 
         SandboxRunCommandTool.SandboxRunStats stats = SandboxRunCommandTool.stats();
