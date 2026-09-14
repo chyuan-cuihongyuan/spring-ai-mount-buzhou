@@ -6,10 +6,10 @@
 
 **Status:** done
 
-- [ ] 九计数落点（record 三分支 + recall 四分支；fewShotBlock 复用 recall 计数）
-- [ ] EpisodicMemoryStats 嵌套 record + stats() + resetForTest()
-- [ ] EpisodicMemoryStatsTest（写入/丢弃/失败/命中/空召/双守恒/reset 七测）
-- [ ] spec 1055 + README 行（嵌套类型不动 API 快照）
+- [x] 九计数落点（record 三分支 + recall 四分支；fewShotBlock 复用 recall 计数）
+- [x] EpisodicMemoryStats 嵌套 record + stats() + resetForTest()
+- [x] EpisodicMemoryStatsTest（写入/丢弃/失败/命中/空召/双守恒/reset 七测）
+- [x] spec 1055 + README 行（嵌套类型不动 API 快照）
 
 ## Done
 
