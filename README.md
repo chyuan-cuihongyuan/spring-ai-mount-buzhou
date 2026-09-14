@@ -948,6 +948,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 观测治理 | 事件去重聚合读面 | EventDeduplicator.deduplicationStats()——passed/deduped 双计数（守恒 seen=passed+deduped）+去重率派生（0 总量 -1 哨兵）+ringSize/capacity 环占用；重复事件注入压力从静默 counter 变比率显形，reset 只清计数不清环——SendGrid/Mailgun webhook replay 思想（spec 1448） | [spec 1448](docs/spec/1448-event-dedup-stats.md) |
 
+| 评估治理 | 轮次采样漏斗读面 | TurnSamplerHook.samplerStats()——采样漏斗六计数：turnsSeen/emptySkipped/shortSkipped/rateSkipped/written/writeFailures（桶口径互斥、写失败 fail-soft 分桶）；「为何没进数据集」按原因归因——Envoy access log sampling 思想（spec 1446） | [spec 1446](docs/spec/1446-turn-sampler-funnel.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

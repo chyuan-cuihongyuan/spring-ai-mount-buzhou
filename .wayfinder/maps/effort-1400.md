@@ -70,3 +70,4 @@
 - [导出清单校验统计读面的形状裁决](../tickets/T2185-manifest-verify-stats-shape.md) — **1439 补位轮**（H R39 补位先例）：ExportManifestVerifyStats 静态面（三受踪包装零侵入）——verifies=ok+failed 守恒+mismatched/missing/unexpected 明细桶+lastEntryKind——TUF 校验遥测思想。
 - [语义切片索引覆盖读面的形状裁决](../tickets/T2193-chunk-coverage-shape.md) — SemanticChunkIndex 增量 coverageStats()（indexedUries/totalChunks/maxChunksPerUri/largestUri 切片失衡定位）——Elasticsearch index stats 思想。
 - [事件去重聚合读面的形状裁决](../tickets/T2195-event-dedup-stats-shape.md) — **换题轮**（FeedbackExporter 画像面过窄）：EventDeduplicator 增量 passed/deduped 双计数+DeduplicationStats（ringSize/capacity+deduplicationRatio -1 哨兵）+reset 只清计数不清环——SendGrid/Mailgun webhook replay 遥测思想。
+- [轮次采样漏斗读面的形状裁决](../tickets/T2199-sampler-funnel-shape.md) — TurnSamplerHook 静态漏斗增量（turnsSeen/emptySkipped/shortSkipped/rateSkipped/written/writeFailures 六计数，桶口径互斥）——Envoy access log sampling 思想，「为何没进数据集」按原因归因。
