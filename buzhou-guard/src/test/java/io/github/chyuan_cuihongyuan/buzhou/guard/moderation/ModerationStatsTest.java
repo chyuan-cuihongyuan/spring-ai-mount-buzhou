@@ -37,8 +37,8 @@ class ModerationStatsTest {
     void blockActionCountsBlocked() {
         ContentModerationHook hook = new ContentModerationHook(
                 List.of("competitor-x"), ContentModerationHook.Action.BLOCK);
-        HookResult result = hook.afterTool(toolCtx(env, "提到 Competitor-X 价格"));
-        assertThat(result).isInstanceOf(HookResult.Block.class);
+        // 工具缝 BLOCK 是替换语义（CONTINUE + 告示文本），非 Block 返回
+        hook.afterTool(toolCtx(env, "提到 Competitor-X 价格"));
 
         ContentModerationHook.ModerationStats stats = ContentModerationHook.stats();
         assertThat(stats.invocations()).isEqualTo(1);
