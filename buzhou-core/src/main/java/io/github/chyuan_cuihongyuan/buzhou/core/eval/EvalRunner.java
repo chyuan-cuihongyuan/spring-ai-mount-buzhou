@@ -74,6 +74,12 @@ public final class EvalRunner {
      */
     private volatile boolean cancelRequested;
 
+    /** spec 1534 / T2319：当前 run 进度快照（done 含 pruned/cancelled 占位项；无活跃 run 全零）。 */
+    public record EvalRunProgress(String runId, int done, int total, boolean cancelled) {
+    }
+
+    private volatile EvalRunProgress progress = new EvalRunProgress("", 0, 0, false);
+
     /** impl-654 / spec 901：失败率中途剪枝策略（null = 关——默认零行为变化；仅串行路径生效）。 */
     private volatile EvalPrunePolicy prunePolicy;
 
@@ -301,6 +307,14 @@ public final class EvalRunner {
         cancelRequested = true;
     }
 
+    /**
+     * spec 1534 / T2319：当前（或最近一次）run 的进度快照——宿主轮询面（UI/日志/探活）：
+     * done 为已完成项数（含 pruned/cancelled 占位），无活跃 run 时为最近一次终态。
+     */
+    public EvalRunProgress progress() {
+        return progress;
+    }
+
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
     public EvalRunResult run(String datasetName, Evaluator evaluator) {
         return run(datasetName, evaluator, 1); // spec 68：默认串行零变化
@@ -386,6 +400,7 @@ public final class EvalRunner {
         String runId = "r" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
         cancelRequested = false; // spec 1505：run 开始清零——上轮残留取消不污染新 run
+        this.progress = new EvalRunProgress(runId, 0, items.size(), false); // spec 1534
         try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_EVAL, runId)) {
         Instant startedAt = Instant.now();
         int workers = Math.max(1, Math.min(32, parallelism)); // clamp 1..32
@@ -403,6 +418,7 @@ public final class EvalRunner {
                     // 未启动项不再启动，与剪枝的失败率止损语义分立）
                     results.add(new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_CANCELLED,
                             "[CANCELLED] 宿主请求取消——本项未执行", "", 0));
+                    this.progress = new EvalRunProgress(runId, results.size(), items.size(), true); // spec 1534
                     continue;
                 }
                 if (prunedSignal != null) {
@@ -415,6 +431,8 @@ public final class EvalRunner {
                 EvalRunItemResult r = budgetedItem(spent, item,
                         () -> memoizedItem(runId, datasetName, item, evaluator));
                 results.add(r);
+                this.progress = new EvalRunProgress(runId, results.size(), items.size(),
+                        cancelRequested); // spec 1534
                 if (prune != null && results.size() >= prune.minItems()) {
                     long bad = results.stream().filter(x ->
                             EvalRunItemResult.STATUS_FAIL.equals(x.status())
@@ -471,6 +489,8 @@ public final class EvalRunner {
                                 "评估并行执行被中断（dataset=" + datasetName + "）");
                     }
                     pruned = shouldPruneParallel(parallelPrune, byIndex, waveEnd, runId, datasetName);
+                    this.progress = new EvalRunProgress(runId, waveEnd, items.size(),
+                            cancelRequested); // spec 1534：波间快照
                 }
                 if (pruned) {
                     // 剪枝波后的剩余项（循环退出时未起波）标 pruned

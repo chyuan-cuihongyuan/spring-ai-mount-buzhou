@@ -44,6 +44,8 @@ public final class GuardModule {
     private final List<BuzhouHook> hooks;
     /** spec 1624 / T2399：豁免登记（危险工具 HITL 征询面；宿主经 exemptions() grant/revoke）。 */
     private final GuardExemptionRegistry exemptions;
+    /** M 系读数承接：最终危险工具清单（装配后视图——auto 桥并入后）。 */
+    private final java.util.List<io.github.chyuan_cuihongyuan.buzhou.guard.config.DangerousToolEntry> dangerousToolEntries;
     private final GuardAuthApi authApi;
     private final AttachmentRenderer attachmentRenderer;
     private final FactStore factStore;
@@ -63,6 +65,7 @@ public final class GuardModule {
                         new DefaultFactStore(builder.stores.sessionStateStore()), builder.factDecay);
         List<BuzhouHook> h = new ArrayList<>();
         this.exemptions = new GuardExemptionRegistry();
+        this.dangerousToolEntries = java.util.List.copyOf(builder.dangerousTools());
         if (builder.enabled) {
             // spec 1624 / T2399：危险工具 HITL 豁免征询接线（registry 首个消费者）
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHook(
@@ -442,6 +445,11 @@ public final class GuardModule {
          * spec 1508 / T2267：已显式配置（yml / 编程）的危险工具名快照——供自动
          * 带入桥去重（显式条目优先，自动默认不重复登记）。
          */
+        /** 装配期条目视图（Module 构造消费）。 */
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.guard.config.DangerousToolEntry> dangerousTools() {
+            return dangerousTools;
+        }
+
         public java.util.Set<String> configuredDangerousToolNames() {
             java.util.Set<String> names = new java.util.HashSet<>();
             for (DangerousToolEntry entry : dangerousTools) {
