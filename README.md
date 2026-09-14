@@ -870,6 +870,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具治理 | 负缓存装配面 | NegativeCachingHolder 进程级开关（默认关零包装）+ 会话装配链全工具包装——失败短 TTL 记忆（DNS negative caching，spec 1616）从宿主手动 wrap 升级为开关装配，未启用原引用透传（spec 1633） | [spec 1633](docs/spec/1633-negative-cache-assembly.md) |
 | 观测治理 | dashboard 响应 gzip | writeJson 客户端协商（Accept-Encoding 含 gzip 且响应 ≥512B 才压——阈值下压缩头倒挂）；面板 JSON 数十 KB 起带宽显著削减（spec 1634） | [spec 1634](docs/spec/1634-dashboard-gzip.md) |
 | 评估闭环 | eval 失败项重跑 | run(..., onlyItemIds) 子集重载——上轮 fail/error 的 id 传入即 rerun-failed：CI 红了只重跑失败项省时 + flaky 区分（重跑过=flaky、仍败=真回归）；null 全量零变化（spec 1635） | [spec 1635](docs/spec/1635-eval-rerun-failed.md) |
+| 预算治理 | 校准系数建议 | calibrationFactorSuggestion——持续偏差给出把估算拉回真值的乘法系数（高估→<1 调低，一阶换算 1/(1+e)）；样本不足/零偏差 empty（不基于噪声给建议）——spec 1618 读数的可操作化（spec 1636） | [spec 1636](docs/spec/1636-calibration-factor.md) |
 | 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 韧性治理 | 退避抖动模式可配 | jitter-mode（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机——防重试风暴同步最优/DECORRELATED=[base,min(cap,prev×3)] 与前次去相关）——AWS「Exponential Backoff and Jitter」思想，默认 EQUAL 零行为（spec 1631） | [spec 1631](docs/spec/1631-jitter-mode.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |

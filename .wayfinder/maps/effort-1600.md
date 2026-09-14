@@ -127,6 +127,9 @@
 - [R36 形状：失败项重跑](../tickets/T2421-r36-rerun-shape.md) — run 加 onlyItemIds 子集重载（null=全量零变化）：上轮 fail/error 的 id 传入即 rerun-failed——CI 红了只重跑失败项省时 + flaky 区分（重跑过=flaky、仍败=真回归）；汇总/落盘口径不变（total=子集数）
 - [R36 验收](../tickets/T2422-r36-rerun-verify.md) — 两断言（失败子集新 runId total=1/null 全量 3）+ eval 包 245 用例
 
+- [R37 形状：校准系数建议](../tickets/T2423-r37-factor-shape.md) — 偏差读数可操作化：meanRelativeError 一阶换算修正系数（1/(1+e)，高估<1 调低），样本不足/零偏差 empty（不基于噪声给建议）
+- [R37 验收](../tickets/T2424-r37-factor-verify.md) — 三断言（高估 0.8 界/低估 >1/不足与零偏差 empty）+ 校准域 10 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -176,3 +179,4 @@
 | R34 | #1633 | 负缓存装配面（spec 1616 装饰器 Holder 化） | T2417–T2418 | 1186 | 1633 | done |
 | R35 | #1634 | dashboard 响应 gzip（客户端协商） | T2419–T2420 | 1187 | 1634 | done |
 | R36 | #1635 | eval 失败项重跑（rerun-failed） | T2421–T2422 | 1188 | 1635 | done |
+| R37 | #1636 | 校准系数建议（偏差读数可操作化） | T2423–T2424 | 1189 | 1636 | done |
