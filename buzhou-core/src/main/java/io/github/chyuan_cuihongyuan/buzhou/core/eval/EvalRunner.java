@@ -307,6 +307,40 @@ public final class EvalRunner {
     }
 
     /**
+     * spec 1522 / T2295：并行波间剪枝判定——串行同款观察窗语义（已完成 ≥ minItems
+     * 且 fail+error 占比 ≥ threshold，分母为已完成项数）。策略 null 恒 false（零行为）。
+     */
+    private boolean shouldPruneParallel(EvalPrunePolicy prune, EvalRunItemResult[] byIndex,
+            int doneUpTo, String runId, String datasetName) {
+        if (prune == null) {
+            return false;
+        }
+        int done = 0;
+        int bad = 0;
+        for (int i = 0; i < doneUpTo; i++) {
+            EvalRunItemResult r = byIndex[i];
+            if (r == null) {
+                continue;
+            }
+            done++;
+            if (EvalRunItemResult.STATUS_FAIL.equals(r.status())
+                    || EvalRunItemResult.STATUS_ERROR.equals(r.status())) {
+                bad++;
+            }
+        }
+        if (done >= prune.minItems() && (double) bad / done >= prune.failRateThreshold()) {
+            LOGGER.log(System.Logger.Level.WARNING,
+                    "评估并行波间剪枝触发（runId={0}, dataset={1}, 已完成={2}, 失败={3}、阈值={4}）"
+                            + "——剩余项标 pruned 未执行",
+                    runId, datasetName, done, bad, prune.failRateThreshold());
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.eval.run.pruned");
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 带并行度的评估 run（spec 68 §A / T287，LangSmith/DeepEval 并行评估借鉴）：
      * 虚拟线程池并行执行项（每项仍独占隔离 eval 会话）；<b>结果按数据集项序聚合</b>
      * （与串行同序——确定性不因并行漂移）；并行度 clamp 1..32（防失控）；汇总/落盘/
@@ -386,31 +420,55 @@ public final class EvalRunner {
             }
         } else {
             EvalRunItemResult[] byIndex = new EvalRunItemResult[items.size()];
-            List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
-            for (int i = 0; i < items.size(); i++) {
-                final int index = i;
-                final EvalItem item = items.get(i);
-                tasks.add(() -> {
-                    if (cancelRequested) {
-                        // spec 1505 / T2261：宿主请求取消——本项未启动（项边界生效，
-                        // 与串行路径同语义；invokeAll 全量派发故检查在 task 首行）
-                        byIndex[index] = new EvalRunItemResult(item.id(),
-                                EvalRunItemResult.STATUS_CANCELLED,
-                                "[CANCELLED] 宿主请求取消——本项未执行", "", 0);
-                        return null;
-                    }
-                    byIndex[index] = budgetedItem(spent, item,
-                            () -> memoizedItem(runId, datasetName, item, evaluator));
-                    return null;
-                });
-            }
+            // spec 1522 / T2295：分波执行——并行路径失败率剪枝做实（spec 901 此前
+            // 「并行诚实不生效」边界收口）：items 按 workers 分块，每波完成后按串行
+            // 同款观察窗语义检查，达阈值剩余项标 pruned 不再起波；未配策略时单波
+            // 全量等价既有 invokeAll（零行为变化）；取消（spec 1505）优先检查。
+            EvalPrunePolicy parallelPrune = prunePolicy != null
+                    ? prunePolicy : EvalPrunePolicyHolder.current();
             try (java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
-                pool.invokeAll(tasks);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
-                        "评估并行执行被中断（dataset=" + datasetName + "）");
+                int waveSize = workers;
+                boolean pruned = false;
+                for (int waveStart = 0; waveStart < items.size() && !pruned; waveStart += waveSize) {
+                    int waveEnd = Math.min(waveStart + waveSize, items.size());
+                    List<java.util.concurrent.Callable<Void>> waveTasks = new ArrayList<>();
+                    for (int i = waveStart; i < waveEnd; i++) {
+                        final int index = i;
+                        final EvalItem item = items.get(i);
+                        waveTasks.add(() -> {
+                            if (cancelRequested) {
+                                // spec 1505 / T2261：宿主请求取消——本项未启动（项边界生效，
+                                // 与串行路径同语义；波内派发故检查在 task 首行）
+                                byIndex[index] = new EvalRunItemResult(item.id(),
+                                        EvalRunItemResult.STATUS_CANCELLED,
+                                        "[CANCELLED] 宿主请求取消——本项未执行", "", 0);
+                                return null;
+                            }
+                            byIndex[index] = budgetedItem(spent, item,
+                                    () -> memoizedItem(runId, datasetName, item, evaluator));
+                            return null;
+                        });
+                    }
+                    try {
+                        pool.invokeAll(waveTasks);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
+                                "评估并行执行被中断（dataset=" + datasetName + "）");
+                    }
+                    pruned = shouldPruneParallel(parallelPrune, byIndex, waveEnd, runId, datasetName);
+                }
+                if (pruned) {
+                    // 剪枝波后的剩余项（循环退出时未起波）标 pruned
+                    for (int i = 0; i < items.size(); i++) {
+                        if (byIndex[i] == null) {
+                            byIndex[i] = new EvalRunItemResult(items.get(i).id(),
+                                    EvalRunItemResult.STATUS_PRUNED,
+                                    "[PRUNED] 失败率达阈值（并行波间剪枝）——本项未执行", "", 0);
+                        }
+                    }
+                }
             }
             results = List.of(byIndex); // 按项序聚合（与串行同序）
         }

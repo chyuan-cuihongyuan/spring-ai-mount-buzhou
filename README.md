@@ -821,6 +821,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 文档门禁 | 日志双门面追认 + spec 04 属性回写（五-3/四-7） | SLF4J/System.Logger 双门面追认（69 文件既成风格不迁移，占位符风格硬约束不变）；spec 04 补 mcp 装配属性增量（dangerous-tool-patterns 缺省七动词/shutdown-budget/config-reference 指针）（spec 1519） | [spec 1519](docs/spec/1519-logger-spec04-adjudication.md) |
 | 并发治理 | 观测管线构造器 this 逃逸修复 + 三裁定（六-7/五-2/六-2） | AsyncObservabilityPipeline 构造器立即 start 改首事件 CAS 惰性启动（零事件零线程）；CLAUDE 追认三键内 getProperty 直读边界；指纹双轨不统一裁定（值稳定性优先）（spec 1520） | [spec 1520](docs/spec/1520-this-escape-adjudications.md) |
 | 工程卫生 | MemoryModule yml 解析样板统一（六-5 部分） | 13 处嵌套 instanceof 提取样板 → memoryLeaf/memorySub 两 helper 统一 9 处（3 处反射/泛型复杂体保留）——等值重构（spec 1521） | [spec 1521](docs/spec/1521-memory-yml-dedup.md) |
+| 评估治理 | 并行评估波间剪枝（spec 901 边界收口） | 并行路径分波执行（cooperative batching）：每波 invokeAll 后按串行同款观察窗检查失败率，达阈值剩余项 pruned 不再起波——配置剪枝的并行大 run 从「诚实不剪」变「波间止损」；未配策略单波全量零变化（spec 1522） | [spec 1522](docs/spec/1522-eval-parallel-prune.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
