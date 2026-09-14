@@ -160,6 +160,9 @@
 - [R47 形状：MAP 刷新与台账终核](../tickets/T2443-r47-maprefresh-shape.md) — MAP N 系行状态更新（收口中+成果摘要）；台账 46 行无缺号、票 57/impl 50 落盘核对
 - [R47 验收](../tickets/T2444-r47-maprefresh-verify.md) — 台账 gaps=[] + 票/impl 双向实存
 
+- [R48 形状：终验启动](../tickets/T2445-r48-final-shape.md) — 隔离 worktree 全仓 mvn verify 后台启动（R47 工件终核的对账面已在位；验证面结果 R50 回填）
+- [R48 验收](../tickets/T2446-r48-final-verify.md) — verify EXIT 码与失败清单（若有）回填 spec 1648
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -220,3 +223,5 @@
 | R45 | #1644 | 新公开类型 @since 补全（Javadoc 规范） | T2439–T2440 | 1197 | 1644 | done |
 | R46 | #1645 | API 快照增量再生 + 同文件并行冲突化解 | T2441–T2442 | 1198 | 1645 | done |
 | R47 | #1646 | MAP 刷新与台账终核 | T2443–T2444 | 1199 | 1646 | done |
+| R48 | #1647 | 终验启动（隔离 worktree 全仓 verify） | T2445–T2446 | 1200 | 1647 | done |
+| R49 | #1648 | 收口 spec 与台账封卷 | T2447–T2448 | 1201 | 1648 | done |

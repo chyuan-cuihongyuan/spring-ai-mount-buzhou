@@ -58,14 +58,21 @@ class RunCommandHardeningTest {
         Thread.sleep(300);
         caller.interrupt();
         caller.join(5000);
-        // 进程树被杀：sh 与 sleep 都死——用 pgrep 侧证（POSIX 环境下）
-        ProcessHandle.allProcesses()
-                .filter(p -> p.info().commandLine().map(c -> c.contains("sleep 30")).orElse(false))
-                .findAny()
-                .ifPresent(handle -> {
-                    // 若仍存活则失败（destroyForcibly 已调用后应已死或垂死）
-                    assertThat(handle.isAlive()).isFalse();
-                });
+        // 进程树被杀：sh 与 sleep 都死——用 pgrep 侧证（POSIX 环境下）。
+        // spec 1537 / T2325：匹配谓词锚定 marker 唯一路径——裸 "sleep 30" 子串会误伤
+        // 同机无关进程的命令行（多会话共享机器上并行 shell 的轮询循环实证误红）；
+        // destroyForcibly 后垂死窗口一并轮询等待
+        String uniqueCmd = "sleep 30 && touch " + marker;
+        ProcessHandle stray = ProcessHandle.allProcesses()
+                .filter(p -> p.info().commandLine().map(c -> c.contains(uniqueCmd)).orElse(false))
+                .findAny().orElse(null);
+        if (stray != null) {
+            long deadline = System.currentTimeMillis() + 2_000;
+            while (stray.isAlive() && System.currentTimeMillis() < deadline) {
+                Thread.sleep(50);
+            }
+            assertThat(stray.isAlive()).isFalse();
+        }
         assertThat(marker).doesNotExist();
     }
 

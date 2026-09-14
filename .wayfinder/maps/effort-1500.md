@@ -108,6 +108,7 @@
 | 38 | 评估 run 进度读面（progress：done/total/cancelled 跨线程轮询） | tqdm 进度条思想 | T2319–T2320 | 1137 | 1534 | ✅ |
 | 39 | A/B 对比进度读面（spec 1534 扩散：过程+终态快照） | spec 1534 扩散 | T2321–T2322 | 1138 | 1535 | ✅ |
 | 40 | CONTEXT.md M 系术语段（五条：通知/裁决分离等） | 领域术语台账同步 | T2323–T2324 | 1139 | 1536 | ✅ |
+| 41 | 周期预检轮：worktree 全仓 verify——tools RunCommandHardeningTest 稳定红破案（谓词裸 "sleep 30" 子串误伤同机并行会话轮询 shell 命令行——实证 pgrep 命中 N 会话快照循环）；谓词锚定 marker 唯一路径 + 垂死窗口轮询；starter 快照门欠账待 R51 收口统一再生 | 周期 verify + 测试缺陷修复 | — | — | — | ✅ |
 
 
 ## Out of scope
