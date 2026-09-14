@@ -130,6 +130,9 @@
 - [R37 形状：校准系数建议](../tickets/T2423-r37-factor-shape.md) — 偏差读数可操作化：meanRelativeError 一阶换算修正系数（1/(1+e)，高估<1 调低），样本不足/零偏差 empty（不基于噪声给建议）
 - [R37 验收](../tickets/T2424-r37-factor-verify.md) — 三断言（高估 0.8 界/低估 >1/不足与零偏差 empty）+ 校准域 10 用例
 
+- [R38 形状：慢调用 yml 装配](../tickets/T2425-r38-slowyml-shape.md) — Circuit 组扩参 slow-call-duration/slow-call-rate-threshold（语义归位熔断组而非顶层 19 参；rate 缺省 0.5 与失败率阈同档；null=维度关）+ Module withSlowCallPolicy 传导
+- [R38 验收](../tickets/T2426-r38-slowyml-verify.md) — 三断言（组归一与缺省/非法 fail-fast/装配端到端 OPEN）+ resilience 396 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -180,3 +183,4 @@
 | R35 | #1634 | dashboard 响应 gzip（客户端协商） | T2419–T2420 | 1187 | 1634 | done |
 | R36 | #1635 | eval 失败项重跑（rerun-failed） | T2421–T2422 | 1188 | 1635 | done |
 | R37 | #1636 | 校准系数建议（偏差读数可操作化） | T2423–T2424 | 1189 | 1636 | done |
+| R38 | #1637 | 慢调用维度 yml 装配（circuit 组扩参） | T2425–T2426 | 1190 | 1637 | done |

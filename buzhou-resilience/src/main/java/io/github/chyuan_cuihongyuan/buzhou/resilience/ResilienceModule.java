@@ -135,6 +135,8 @@ public final class ResilienceModule {
         // 熔断器（impl-56）与限流器（impl-59 修正）：进程级单例——provider 健康与 RPM/TPM 容量都是
         // 进程级事实，configure 每 context 一次、经 customizer 闭包注入全部会话
         // （此前限流器在 customize() 内建，N 会话 = N 倍限额）。
+        // spec 1637 / T2425：慢调用维度（circuit 组 slow-call-duration 声明即启用）
+        java.time.Duration slowCallDuration = properties.circuit().slowCallDuration();
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
                 ? new ModelCircuitBreaker(properties.circuit(), stats, java.time.Clock.systemUTC(), circuitBackend)
                         // spec 1611 / T2373：旁路遥测恒挂（纯读数、有界内存——702 journal 同款；
@@ -143,6 +145,8 @@ public final class ResilienceModule {
                                 new io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector(
                                         CIRCUIT_CRASH_LOOP_MIN_OPENS, CIRCUIT_CRASH_LOOP_WINDOW_MILLIS),
                                 new io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.HalfOpenProbeStats())
+                        .withSlowCallPolicy(slowCallDuration,
+                                properties.circuit().effectiveSlowCallRateThreshold())
                 : null;
         // spec 638 / T926：时间窗生效读面（0=count 窗——声明是否生效一读便知）
         if (stats != null) {

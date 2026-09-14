@@ -197,14 +197,25 @@ public record ResilienceProperties(
             Integer backoffCap,
             Integer halfOpenSuccessThreshold,
             Duration timeWindow,
-            Duration warmup) {
+            Duration warmup,
+            Duration slowCallDuration,
+            Double slowCallRateThreshold) {
 
-        /** 既有 9 参构造（spec 620 形态；warmup 默认关——零行为变化）。 */
+        /** 既有 10 参构造（spec 1602 形态；慢调用维度关）。 */
+        public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
+                Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
+                Integer backoffCap, Integer halfOpenSuccessThreshold, Duration timeWindow,
+                Duration warmup) {
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
+                    backoffCap, halfOpenSuccessThreshold, timeWindow, warmup, null, null);
+        }
+
+        /** 既有 9 参构造（spec 620 形态；warmup/慢调用默认关）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
                 Integer backoffCap, Integer halfOpenSuccessThreshold, Duration timeWindow) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    backoffCap, halfOpenSuccessThreshold, timeWindow, null);
+                    backoffCap, halfOpenSuccessThreshold, timeWindow, null, null, null);
         }
 
         /** 既有 8 参构造（timeWindow 默认关——count 窗零变化）。 */
@@ -274,6 +285,21 @@ public record ResilienceProperties(
             if (warmup.isNegative()) {
                 throw configError("circuit.warmup", warmup.toString(), "设为非负时长（0 = 不启用）");
             }
+            // spec 1637 / T2425：慢调用维度（null/0 = 关；rate 缺省 0.5 与失败率阈同档）
+            slowCallRateThreshold = slowCallRateThreshold == null ? 0.5 : slowCallRateThreshold;
+            if (slowCallDuration != null && slowCallDuration.isNegative()) {
+                throw configError("circuit.slow-call-duration",
+                        slowCallDuration.toString(), "设为非负时长（null/0 = 不启用）");
+            }
+            if (!(slowCallRateThreshold > 0 && slowCallRateThreshold <= 1)) {
+                throw configError("circuit.slow-call-rate-threshold",
+                        String.valueOf(slowCallRateThreshold), "设为 (0,1]");
+            }
+        }
+
+        /** spec 1637：慢率阈生效值。 */
+        public double effectiveSlowCallRateThreshold() {
+            return slowCallRateThreshold;
         }
 
         /** 连续跳闸自适应冷却倍数（trips 含本次跳闸；cap 封顶）。 */
