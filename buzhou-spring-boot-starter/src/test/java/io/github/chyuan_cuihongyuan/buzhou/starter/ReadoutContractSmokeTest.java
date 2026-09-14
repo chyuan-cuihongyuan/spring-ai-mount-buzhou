@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ReadoutContractSmokeTest {
 
-    /** J 系 R46–R77 带 stats()+resetForTest() 统一形状的读面清单（显式维护，13 成员）。
+    /** J 系 R46–R77 带 stats()+resetForTest() 统一形状的读面清单（显式维护，15 成员）。
      * R40 TodoTool（actionStats 形状）与 R2 ToolSlowLog（reset() 形状）暂不符合同一
      * 反射契约，留后续统一形状后纳入。 */
     private static final List<Class<?>> READOUTS = List.of(
@@ -30,7 +30,9 @@ class ReadoutContractSmokeTest {
             io.github.chyuan_cuihongyuan.buzhou.spill.ReadRangeTool.class,          // R62
             io.github.chyuan_cuihongyuan.buzhou.memory.episodic.EpisodeLedger.class, // R55
             io.github.chyuan_cuihongyuan.buzhou.memory.tool.CompactNowTool.class,   // R59
-            io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox.class           // R45
+            io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox.class,          // R45
+            io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob.class, // R78
+            io.github.chyuan_cuihongyuan.buzhou.spill.SpillCipher.class             // R79
     );
 
     private static long[] longComponents(Object stats) throws Exception {
