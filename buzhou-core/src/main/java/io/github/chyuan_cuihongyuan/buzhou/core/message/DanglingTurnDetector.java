@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 /**
- * 悬空轮检测器（spec 1437 / T2179 / impl 1091）——Temporal activity 检测
+ * 悬空轮检测器（spec 1439 / T2179 / impl 1091）——Temporal activity 检测
  * 思想（中断后「activity 无结果」是恢复语义的边界形态）：会话被取消/中断/
  * 崩溃重启后，history 里可能留下**有 USER 输入但无 ASSISTANT 回复**的悬空轮
  * ——续聊时模型看到「自己被问了却没答」的历史，回复质量与上下文一致性受损。
