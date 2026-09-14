@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [SkillAdmin×Search 可见性联动组合测试轮的形状裁决](../tickets/T1645-adminsearch-shape.md) — 纯测试轮第十弹：SkillAdminSearchComboTest 钉住发布/下架→搜索命中联动 + 双读面各自守恒保持。
 - [guard 三 hook 链顺序协作组合测试轮的形状裁决](../tickets/T1643-trihook-shape.md) — 纯测试轮第九弹：TriHookChainReadoutTest 钉住 SecretScan(40)→Spotlight(80)→Moderation(210) 三读面链中计数一致与各自守恒保持。
 - [offload→readBack 双轴闭环组合测试轮的形状裁决](../tickets/T1641-offread-shape.md) — 纯测试轮第八弹：OffloadReadBackComboTest 钉住溢出落盘→分段回读闭环计数一致性（offloaded/reads 闭环对应）+ 双读面各自守恒。
 - [Spotlight×Moderation 顺序协作组合测试轮的形状裁决](../tickets/T1639-spotmod-shape.md) — 纯测试轮第七弹：SpotlightModerationComboTest 钉住同 ctx 连续两 hook（先包裹 ORDER 80 后检查 ORDER 210）双读面计数一致与各自守恒保持。
@@ -204,7 +205,8 @@
 | 91 | 冒烟清单扩展轮（ArchivePurgeJob/SpillCipher 纳入 15 读面冒烟） | 清单同步扩展纪律 | T1637–T1638 | 843 | 1091 | ✅ || 92 | Spotlight×Moderation 顺序协作组合测试轮（双读面计数一致） | 纯测试轮第七弹 | T1639–T1640 | 844 | 1092 | ✅ |
 | 93 | offload→readBack 双轴闭环组合测试轮（闭环计数一致） | 纯测试轮第八弹 | T1641–T1642 | 845 | 1093 | ✅ |
 | 94 | guard 三 hook 链顺序协作组合测试轮（脱敏→包裹→检查三读面一致） | 纯测试轮第九弹 | T1643–T1644 | 846 | 1094 | ✅ |
-| 95 | （开工时按缺口核查选题） | — | T1645–T1646 | 847 | 1095 |  |
+| 95 | SkillAdmin×Search 可见性联动组合测试轮（发布/下架→搜索命中联动） | 纯测试轮第十弹 | T1645–T1646 | 847 | 1095 | ✅ |
+| 96 | （开工时按缺口核查选题） | — | T1647–T1648 | 848 | 1096 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
