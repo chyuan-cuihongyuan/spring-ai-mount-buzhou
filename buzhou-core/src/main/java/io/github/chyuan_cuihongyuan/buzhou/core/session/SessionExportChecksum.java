@@ -80,7 +80,9 @@ public final class SessionExportChecksum {
             }
             return hex.toString();
         } catch (Exception e) {
-            throw new IllegalStateException("SHA-256 不可用", e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+            io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.CONFIG_INVALID,
+            "SHA-256 摘要不可用（JVM 环境缺陷——该必需算法被裁剪）", e);
         }
     }
 

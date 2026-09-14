@@ -68,7 +68,7 @@
 1. **webhook 中断判 FATAL 直接死信**（`WebhookEventForwarder.java:213-215`）——spec 24 死信口径仅「4xx 即死 / IOException、5xx 重试」，中断死信未文档化（停机窗口事件只能靠 `replayDeadLetters` 补投）。
 2. **损坏未决记录就地隔离为死信 attempts=-1**（`WebhookOutbox.java:173-181`）——spec 24 未规定，spec 37 §B 仅提「损坏死信重放时丢弃」；javadoc 已自记，spec 未回写。
 3. **缓存键多采 model**（`ResponseCacheKeys.java:55` `options.getModel()`）——spec 53 §A 明文采样仅类名 + temperature/topP/topK/maxTokens。
-4. **裸 `IllegalStateException("SHA-256 不可用")` 残留四处**——`ResponseCacheKeys.java:94`、`ResourcePolicySource.java:75`、`AuditChain.java:240`、`WebhookEventForwarder.java:227`（HMAC）；spec 50 §A 已封口应改 CONFIG_INVALID（同批 ArgumentFingerprint/ReadIntegrity 已合规迁移）。
+4. **裸 `IllegalStateException("SHA-256 不可用")`（✅ 已修复：spec 1514——全量 11 处迁移 CONFIG_INVALID）**——`ResponseCacheKeys.java:94`、`ResourcePolicySource.java:75`、`AuditChain.java:240`、`WebhookEventForwarder.java:227`（HMAC）；spec 50 §A 已封口应改 CONFIG_INVALID（同批 ArgumentFingerprint/ReadIntegrity 已合规迁移）。
 5. **BuzhouHook 已扩为七切面**（`onModelError`，BuzhouHook.java:36，spec 15 落地）——spec 07「六切面」未回写；「编译 6 链缓存」亦未字面实现（HookChain.java:69 单链全遍历）。
 6. **形状偏离（语义等价）**：spec 17 约定 RunCommandTool 构造重载注入 CommandBackend，实现为并列类 `SandboxRunCommandTool` 装配期二选一；spec 05 `SessionToolExecutor` 公共类不存在（per-session ExecutorService + 注册表等价达成，DefaultAgentRuntime.java:366-370）。
 7. **未回写 04 档的增量**：`BuzhouMcpProperties.dangerousToolPatterns` / `shutdownBudget(35s)`、skills `SkillSearchTool`（注释指向 spec 21/37 等后续档）。

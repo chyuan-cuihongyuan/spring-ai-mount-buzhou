@@ -179,18 +179,6 @@ public final class AuditChain {
         }
     }
 
-    private boolean verifySignature(AgentAuditRecord record, PublicKey key) {
-        try {
-            Signature verifier = Signature.getInstance("SHA256withECDSA");
-            verifier.initVerify(key);
-            verifier.update(Jcs.canonicalize(record.unsignedMap())
-                    .getBytes(StandardCharsets.UTF_8));
-            return verifier.verify(p1363ToDer(Base64Url.decode(record.signature())));
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     /** DER ECDSA-Sig-Value → IEEE P1363 r||s（定长 32+32）。 */
     static byte[] derToP1363(byte[] der) {
         int idx = 2; // SEQUENCE + 长度（P-256 恒短于 128 → 单字节长度）
@@ -259,7 +247,9 @@ public final class AuditChain {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
                     .digest(content.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
-            throw new IllegalStateException("SHA-256 不可用", e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+            io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.CONFIG_INVALID,
+            "SHA-256 摘要不可用（JVM 环境缺陷——该必需算法被裁剪）", e);
         }
     }
 

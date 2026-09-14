@@ -803,6 +803,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 韧性执行 | 幂等工具瞬断重试自动装配（F1 落地） | buzhou.core.tool-transient-retry.enabled=true——@BuzhouTool.idempotent 或白名单工具装配期自动包既有 RetryingToolCallback（spec 05 承诺的声明式收口）；RetryPolicy 新增 transientOnly 瞬断白名单档（IO/超时族+类名启发+cause 链，非瞬断零重试；默认 false 语义不变）（spec 1511） | [spec 1511](docs/spec/1511-tool-transient-retry.md) |
 | 文档门禁 | 配置全键表 config-reference（F9 闭环） | docs/config-reference.md 三段式全键表——57 record/198 组件键 + fromYml 子键（4 模块）+ Environment 直读键（34 个），spec 21 承诺落地（spec 1512） | [spec 1512](docs/spec/1512-config-reference.md) |
 | 工程卫生 | 中断恢复与异常上下文（五-4 部分/五-8） | mcp shutdown 排空等待不再吞 InterruptedException（收窄 catch + 恢复中断位提前停止——JCIP 纪律）；DiskSpillStore 9 处裸异常 message 补操作名+路径/uri/sessionId 上下文（spec 1513） | [spec 1513](docs/spec/1513-interrupt-context-hygiene.md) |
+| 工程卫生 | SHA-256 裸异常迁移 CONFIG_INVALID + 审计死代码 | 11 处 IllegalStateException("SHA-256 不可用")（全量重扫较评审清单多 5 处）统一迁移结构化 BuzhouException(CONFIG_INVALID/FATAL)（可分类可观测）；AuditChain.verifySignature 零调用死方法删除（逻辑已迁 AuditChainVerifier）（spec 1514） | [spec 1514](docs/spec/1514-sha256-config-invalid.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
