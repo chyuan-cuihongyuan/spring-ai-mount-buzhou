@@ -64,3 +64,4 @@
 - [L 会话阶段对账轮的形状裁决](../tickets/T2181-l-audit-shape.md) — **里程碑对账轮**：LSessionLedgerAuditTest 对账测试（范围自扩展+四面互证：票对公式/impl ±1 窗/README 行/spec 号连续性）——同批修复实证漂移：R31-R39 票号 +2 重编号、R39 effort/spec 错标 1439→1438、impl 1083/1084/1085 置换——J/K 对账轮先例 + SRE Production Readiness Review 思想。
 - [Spill 冷热分层访问审计的形状裁决](../tickets/T2183-spill-tiering-shape.md) — SpillTieringAudit 纯函数（spill）：读事件按 uri 聚合对照存量全集——never/single/multi 三桶+hotRatio/coldRatio 派生（空库 -1 哨兵）——MinIO tiering/S3 lifecycle 思想（与 843/815 三者辨义）。
 - [门阈值敏感性扫描的形状裁决](../tickets/T2185-gate-sensitivity-shape.md) — GateThresholdSensitivity 纯函数（core/eval）：analyze(scores, threshold, δ)→δ 带计数+tighten/loosen 翻转分向+sensitivityRatio 派生（左闭右开带、-1 哨兵、δ 负值 fail-fast）——scikit-learn validation_curve 思想。
+- [Saga 运行静态读数的形状裁决](../tickets/T2187-saga-stats-shape.md) — CompensatingBatch.sagaStats() 静态面（既有类增量）：runs/successes/compensationRuns/compensationFailures 漏斗+conserved 守恒+lastFailedStep 断点步名（currentStep 追踪）——Seata 事务度量思想。

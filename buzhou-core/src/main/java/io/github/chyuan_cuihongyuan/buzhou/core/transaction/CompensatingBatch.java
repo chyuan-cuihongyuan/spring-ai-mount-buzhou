@@ -24,6 +24,56 @@ public final class CompensatingBatch {
 
     private static final String COUNTER_COMPENSATED = "buzhou.saga.compensated";
     private static final String COUNTER_COMPENSATION_FAILED = "buzhou.saga.compensation-failed";
+
+    // spec 1443 / T2183：saga 运行静态读数（进程级先例——metrics counter 之外的
+    // 聚合面：成功率/补偿触发率/断点步名）。resetForTest 为归零注入点。
+    private static final java.util.concurrent.atomic.AtomicLong RUNS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong SUCCESSES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong COMPENSATION_RUNS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong COMPENSATION_FAILURES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong STEPS_EXECUTED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static volatile String lastFailedStep = null;
+    private static volatile String currentStepName = null;
+
+    /** 只读快照：saga 运行漏斗（runs=successes+compensationRuns 守恒）。 */
+    public static SagaStats sagaStats() {
+        return new SagaStats(RUNS.get(), SUCCESSES.get(), COMPENSATION_RUNS.get(),
+                COMPENSATION_FAILURES.get(), STEPS_EXECUTED.get(), lastFailedStep);
+    }
+
+    /** 测试归零口。 */
+    public static void resetSagaStatsForTest() {
+        RUNS.set(0);
+        SUCCESSES.set(0);
+        COMPENSATION_RUNS.set(0);
+        COMPENSATION_FAILURES.set(0);
+        STEPS_EXECUTED.set(0);
+        lastFailedStep = null;
+        currentStepName = null;
+    }
+
+    /**
+     * @param runs                  累计 saga 运行数
+     * @param successes             全步成功数
+     * @param compensationRuns      触发补偿的运行数
+     * @param compensationFailures  补偿自身失败数（人工介入断点）
+     * @param stepsExecuted         累计执行步数
+     * @param lastFailedStep        末次失败步名（null = 从未失败）
+     */
+    public record SagaStats(long runs, long successes, long compensationRuns,
+                            long compensationFailures, long stepsExecuted,
+                            String lastFailedStep) {
+
+        /** 守恒式：runs = successes + compensationRuns。 */
+        public boolean conserved() {
+            return runs == successes + compensationRuns;
+        }
+    }
     private static final System.Logger LOGGER =
             System.getLogger(CompensatingBatch.class.getName());
 
@@ -77,12 +127,18 @@ public final class CompensatingBatch {
         }
         List<Completed> completed = new ArrayList<>();
         Object last = null;
+        RUNS.incrementAndGet();
         try {
             for (Step<?> step : steps) {
+                currentStepName = step.name();
                 last = inTransaction(uow, sessionId, step.action());
                 completed.add(new Completed(step, last));
+                STEPS_EXECUTED.incrementAndGet();
             }
+            SUCCESSES.incrementAndGet();
         } catch (RuntimeException e) {
+            COMPENSATION_RUNS.incrementAndGet();
+            lastFailedStep = currentStepName;
             unwind(uow, sessionId, completed);
             throw e;
         }
@@ -111,6 +167,7 @@ public final class CompensatingBatch {
                 BuzhouMetricsHolder.metrics().counter(COUNTER_COMPENSATED, 1,
                         "step", done.step().name());
             } catch (RuntimeException compFailure) {
+                COMPENSATION_FAILURES.incrementAndGet();
                 BuzhouMetricsHolder.metrics().counter(COUNTER_COMPENSATION_FAILED, 1,
                         "step", done.step().name());
                 LOGGER.log(System.Logger.Level.ERROR,
