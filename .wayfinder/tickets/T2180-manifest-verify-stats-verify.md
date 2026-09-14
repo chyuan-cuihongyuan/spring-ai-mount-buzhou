@@ -1,5 +1,5 @@
 ---
-id: T2186
+id: T2180
 title: 校验漏斗与明细桶的验证
 type: task
 status: closed
