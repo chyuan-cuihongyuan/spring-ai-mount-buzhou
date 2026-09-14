@@ -53,6 +53,17 @@ cp settings.xml ~/.m2/settings.xml   # 首次执行一次即可，之后 mvn 直
 - **持久化 SPI 契约测试**：`buzhou-core` 发布 test-jar，内含 `AbstractBuzhouStoresContractTest`；store 实现模块（jdbc / redis）依赖该 test-jar 并继承契约测试类，保证所有存储实现语义一致。新增 store 实现时复用此模式（索引契约同款：`AbstractSessionIndexContractTest`）。
 - **黄金轨迹回归集**（spec 32/34）：机制行为改动须跑 examples `golden/` 包——`EventSequenceAssert`（testsupport）收集会话/全局事件流，断言类型子序列、间隔约束（neverAfter）、计数与 payload；`attach(session)` 会话面、`attachGlobal(runtime)` 全局面（forked 等发往分支通道的事件）。新机制落地时补一条确定性轨迹（脚本化输入→序列断言）。
 
+## 每次提交的标准工作流（wayfinder 四步）
+
+本仓库的每一轮提交（每轮工作产出一个 commit）都走同一条四步流水线，产物全部落盘（agent 侧常设授权与完整细则见根 [AGENTS.md](AGENTS.md)「每次提交的标准工作流」章节）：
+
+1. **`/wayfinder` 生成 map**：新 effort 先占号段（efforts / specs / 票 T / impl / 分支名，`git fetch` 后确认 `origin/main` 上该号段空闲），map 落 `.wayfinder/maps/effort-<N>.md` 并挂入总索引 `.wayfinder/MAP.md`；决策票落 `.wayfinder/tickets/T<n>-<slug>.md`，动工前先把 `assignee` 写自己（claim）。
+2. **`/to-spec` 生成 spec**：综合既有讨论产出 spec，落 `docs/spec/<NNNN>-<slug>.md`（编号续接现有号段），并同步 `docs/spec/README.md` 的引用（Spec 覆盖门要求 README 链接实存）。
+3. **`/to-tickets` 生成 tickets**：把 spec 拆成 tracer-bullet 纵切片票，一票一文件落 `.wayfinder/tickets/`（行式 frontmatter `Type:` / `Status:` / `blocked-by:` / `assignee:`，全部 blocked-by closed 才算 unblocked）；实现切片登记 `.wayfinder/impl/`（编号史见 [impl/README.md](.wayfinder/impl/README.md)）。
+4. **`/implement` 实现**：按票实现——优先 TDD（在 spec 既定 seam）、常跑单测、收尾全量 `mvn verify`，`/code-review` 复查后提交。
+
+纯合并 / 用户当场豁免的轮次不强制走此流程。
+
 ## 提交约定
 
 - 提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/)：`feat:` / `fix:` / `docs:` / `refactor:` / `test:` / `chore:` …
