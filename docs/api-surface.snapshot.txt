@@ -335,6 +335,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.AdvisoryFileLock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.MaintenanceTrigger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.ObservabilityTtl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweepFreshness
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweepReport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.RetentionSweeper
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.SessionHistoryPolicy

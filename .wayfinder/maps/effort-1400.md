@@ -49,3 +49,4 @@
 - [轮次限速 per-key 拒绝榜的形状裁决](../tickets/T2149-turn-ratelimit-blocked-shape.md) — TurnRateLimitHook 增量 blockedByKeys（256 折叠纪律）+blockedSnapshot 次数降序典序+resetBlockedForTest 清榜不清桶——Cloudflare WAF top-rules 思想，限流治理按 key 的拒绝分布显形。
 - [会话历史形态审计的形状裁决](../tickets/T2151-conversation-shape-shape.md) — ConversationShapeAudit 纯函数（core/message）：roleHistogram 降序典序+连续同角色非 TOOL 异常对数+空内容（带 toolCalls 空 content 为正常形态）+maxTurnGap 乱序写入嫌疑——MLflow 数据画像思想，上下文污染前的形态信号。
 - [用户输入重复审计的形状裁决](../tickets/T2153-input-duplication-shape.md) — UserInputDuplicationAudit 纯函数（core/message）：归一化（trim+小写+空白折叠+截断 64）+consecutiveDuplicatePairs+maxRepeatRun+topRepeated（≥2 入榜容量 8 降序典序）——Rasa 对话分析思想，复读=最强挫败信号。
+- [保留清扫新鲜度追踪器的形状裁决](../tickets/T2155-sweep-freshness-shape.md) — RetentionSweepFreshness implements Consumer<RetentionSweepReport>（addSweepListener seam 零侵入挂载）：sweepCount/lastSweepAt/staleMillis 调用方时钟/maxGapMillis 间隔水位/failureCount 复用 fullySucceeded——Airflow scheduler heartbeat 思想。

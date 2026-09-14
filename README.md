@@ -852,6 +852,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 会话治理 | 用户输入重复审计 | UserInputDuplicationAudit——USER 输入归一化（trim/小写/空白折叠/截断 64）后审计：连续复读对+最长复读游程+distinctInputs 多样性+topRepeated 榜（≥2 才入容量 8 降序典序）；复读=最强挫败信号——Rasa 对话分析思想（spec 1426） | [spec 1426](docs/spec/1426-user-input-duplication-audit.md) |
 
+| 治理 | 保留清扫新鲜度追踪 | RetentionSweepFreshness——addSweepListener 零侵入挂载：sweepCount+lastSweepAt+staleMillis（now−末次，调用方时钟）+maxGapMillis 相邻间隔水位（调度抖动/停摆显形）+failureCount 未完全成功分桶；清扫停摆=保留承诺静默失效的先行显形——Airflow scheduler heartbeat 思想（spec 1427） | [spec 1427](docs/spec/1427-retention-sweep-freshness.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

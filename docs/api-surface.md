@@ -2427,3 +2427,8 @@
   形态审计——归一化（trim/小写/空白折叠/截断 64）+连续复读对+最长游程
   +distinctInputs+topRepeated（≥2 入榜容量 8），纯函数；嵌套
   `DuplicationReport` 不另立面）
+
+- `RetentionSweepFreshness`（1427——Airflow scheduler heartbeat 思想：保留
+  清扫新鲜度追踪（addSweepListener 零侵入挂载）——sweepCount/lastSweepAt/
+  staleMillis（调用方时钟）/maxGapMillis 间隔水位/failureCount；嵌套
+  `Snapshot` 不另立面）
