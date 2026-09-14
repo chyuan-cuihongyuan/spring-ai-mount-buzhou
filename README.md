@@ -795,6 +795,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 安全治理 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core DangerousToolRegistry 进程级桥（模块解耦不破白名单）——tools 装配后灌注危险名单，guard afterName 保时序默认并入三参 HITL 条目（yml 显式优先去重）；opt-in 开 write_file 即得默认审批拦截（spec 1508） | [spec 1508](docs/spec/1508-dangerous-tool-bridge.md) |
 | 韧性观测 | canary.selected 事件会话归属补齐（F7）+ spec 07 续跑名回写（F10） | payload 补 sessionId（多会话监听面可定位，常量 Javadoc 自钉「sessionId + model」此前未兑现）；spec 07 的 AgentSession.resume() 推演名回写指向 SessionInterrupts.resumeWith（功能等价）——design-incompleteness F 系清扫轮（spec 1509） | [spec 1509](docs/spec/1509-canary-payload-f7-f10.md) |
 | 装配治理 | ConfigMaps indexed 属性数字键归一 | properties/命令行/env-var 源的 key[i].f=v 从 Binder mapOf 弱点绑出的 Map 形态归一为数值序 List——guard dangerous-tools 等一切 fromYml 列表键在这些源下此前静默失效（YAML 源正常）；混合键不误伤（spec 1510） | [spec 1510](docs/spec/1510-configmaps-indexed-coerce.md) |
+| 韧性执行 | 幂等工具瞬断重试自动装配（F1 落地） | buzhou.core.tool-transient-retry.enabled=true——@BuzhouTool.idempotent 或白名单工具装配期自动包既有 RetryingToolCallback（spec 05 承诺的声明式收口）；RetryPolicy 新增 transientOnly 瞬断白名单档（IO/超时族+类名启发+cause 链，非瞬断零重试；默认 false 语义不变）（spec 1511） | [spec 1511](docs/spec/1511-tool-transient-retry.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

@@ -22,7 +22,8 @@ import java.time.Duration;
 public final class RetryingToolCallback implements ToolCallback {
 
     /** 重试策略（maxAttempts≥1；backoff 正值；1 = 零重试裸行为）。 */
-    public record RetryPolicy(int maxAttempts, Duration initialBackoff, Duration maxBackoff) {
+    public record RetryPolicy(int maxAttempts, Duration initialBackoff, Duration maxBackoff,
+                              boolean transientOnly) {
         public RetryPolicy {
             if (maxAttempts < 1 || initialBackoff == null || initialBackoff.isNegative()
                     || maxBackoff == null || maxBackoff.isNegative()
@@ -32,8 +33,43 @@ public final class RetryingToolCallback implements ToolCallback {
             }
         }
 
+        /** 既有 3 参形态（transientOnly=false——spec 133 语义不变，兼容调用方）。 */
+        public RetryPolicy(int maxAttempts, Duration initialBackoff, Duration maxBackoff) {
+            this(maxAttempts, initialBackoff, maxBackoff, false);
+        }
+
         public static RetryPolicy defaults() {
             return new RetryPolicy(3, Duration.ofMillis(50), Duration.ofMillis(500));
+        }
+
+        /**
+         * spec 1511 / T2273：瞬断白名单判定（spec 05「运行期瞬断重试」推演——
+         * Resilience4j 默认边界 + Claude Code 网络类重试范围）：IO/超时族 +
+         * 类名启发（连接重置/网关/5xx 包装族——core 零网络库依赖故类名匹配）；
+         * 参数错误、业务异常不在此列。
+         */
+        public static boolean isTransient(Throwable error) {
+            // 沿 cause 链查三层（包装异常根因判定 + 环防御）：RuntimeException(IOException)
+            // 类包装在工具适配层常见
+            Throwable current = error;
+            for (int depth = 0; depth < 3 && current != null; depth++) {
+                if (matchesTransient(current)) {
+                    return true;
+                }
+                current = current.getCause() == current ? null : current.getCause();
+            }
+            return false;
+        }
+
+        private static boolean matchesTransient(Throwable error) {
+            if (error instanceof java.io.IOException
+                    || error instanceof java.util.concurrent.TimeoutException) {
+                return true;
+            }
+            String name = error.getClass().getSimpleName();
+            return name.contains("Connect") || name.contains("Reset")
+                    || name.contains("ServiceUnavailable") || name.contains("BadGateway")
+                    || name.contains("GatewayTimeout") || name.contains("SocketTimeout");
         }
     }
 
@@ -109,6 +145,10 @@ public final class RetryingToolCallback implements ToolCallback {
                         ? delegate.call(toolInput)
                         : delegate.call(toolInput, toolContext);
             } catch (RuntimeException e) {
+                // spec 1511 / T2273：瞬断白名单档——非瞬断（参数/业务类）即弃，原样上抛
+                if (policy.transientOnly() && !RetryPolicy.isTransient(e)) {
+                    throw e;
+                }
                 last = e;
             }
         }

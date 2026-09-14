@@ -1288,6 +1288,38 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 1511 / T2273：幂等工具瞬断重试自动装配通道（buzhou.core.tool-transient-retry.
+     * enabled=true 声明即启用）——@BuzhouTool.idempotent=true 或显式白名单内的工具在
+     * 会话装配期自动包既有 RetryingToolCallback（spec 133 装饰器；此前靠宿主手动包装）。
+     * max-attempts/initial-backoff/max-backoff 透传 RetryPolicy；idempotent-overrides
+     * 经 ConfigMaps 数字键归一（spec 1510）绑列表。关闭钩子清 Holder。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.core.tool-transient-retry", name = "enabled", havingValue = "true")
+    public org.springframework.beans.factory.DisposableBean buzhouIdempotentToolRetryAdapter(
+            org.springframework.core.env.Environment env) {
+        int maxAttempts = env.getProperty("buzhou.core.tool-transient-retry.max-attempts",
+                Integer.class, 3);
+        java.time.Duration initialBackoff = env.getProperty(
+                "buzhou.core.tool-transient-retry.initial-backoff", java.time.Duration.class,
+                java.time.Duration.ofSeconds(1));
+        java.time.Duration maxBackoff = env.getProperty(
+                "buzhou.core.tool-transient-retry.max-backoff", java.time.Duration.class,
+                java.time.Duration.ofSeconds(4));
+        java.util.List<String> overrides = io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps
+                .sub(env, "buzhou.core.tool-transient-retry")
+                .get("idempotent-overrides") instanceof java.util.List<?> list
+                ? list.stream().map(String::valueOf).toList() : java.util.List.of();
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder.Holder.enable(
+                new io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback.RetryPolicy(
+                                maxAttempts, initialBackoff, maxBackoff, true),
+                        java.util.Set.copyOf(overrides)));
+        return io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder.Holder::reset;
+    }
+
+    /**
      * 工具结果限幅器全局默认（spec 31 / T110 / impl-85）：启动期据配置设定 Holder；
      * 会话装配时 toolManager 从 Holder 取初值（可经 toolManager() per-session 覆盖）。
      */
@@ -1569,6 +1601,12 @@ public class BuzhouCoreAutoConfiguration {
             io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics metrics =
                     new io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics(
                             registry);
+            // spec 1614 / T2379：新鲜度追踪恒包（spec 802 孤类接线——有界 512 名纯旁路；
+            // audit 面经 MetricFreshnessHolder 静态查询）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessTracker freshness =
+                    new io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessTracker(metrics);
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessHolder.install(freshness);
+            metrics = freshness;
             // spec 160 / T513：tag 基数守卫 opt-in（默认关零变化；开 = 装饰后安装——
             // per-(名,键) 值集封顶越限折 __overflow__，Loki cardinality limit 借鉴）
             if (env.getProperty("buzhou.metrics.cardinality-guard.enabled", Boolean.class,

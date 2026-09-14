@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [幂等工具瞬断重试自动装配通道的形状裁决](../tickets/T2273-transient-retry-shape.md) — 动工查重修正：RetryingToolCallback 已存在（spec 133/302），F1 残留=自动装配通道+瞬断白名单；IdempotentToolRetryHolder（幂等门：注解/白名单）+ RetryPolicy transientOnly 档（isTransient 白名单 cause 链三层，默认 false 既有语义不变）。
 - [ConfigMaps indexed 属性数字键归一的形状裁决](../tickets/T2271-indexed-coerce-shape.md) — properties/命令行/env-var 源的 key[i].f=v 被 Binder mapOf 绑成 Map 形态（{key={0={f=v}}}），fromYml 列表键静默失效；normalizeValue 数字键全集按数值序转 List（防字典序 10<2），混合键保持 Map，嵌套递归。
 - [design-incompleteness 小缺口清扫的形状裁决](../tickets/T2269-f7-f10-sweep-shape.md) — F7：canary.selected payload 补 sessionId（常量 Javadoc 自钉未兑现，null 省略条件包含）；F10：spec 07 resume 推演名回写指向 resumeWith；F 系查重入档：F1 瞬断重试/F9 config-reference 留候选池，F2 部分修 F5 已修。
 - [危险工具默认 HITL 自动带入桥的形状裁决](../tickets/T2267-dangerous-bridge-shape.md) — core 进程级 DangerousToolRegistry 桥（供给方 tools 灌注/消费方 guard 并入，双方只见 core 白名单不破）；guard autoconfig afterName 字符串引用保装配时序；三参默认形态并入 + yml 显式优先去重 + auto-dangerous-bridge=false 逃生；S2 硬偏差闭环。副产出发现：ConfigMaps.sub 对 properties 源 indexed 属性绑 Map 而非 List（guard dangerous-tools 在 .properties 源下静默失效的既有坑，候选池）。
@@ -53,6 +54,7 @@
 | 10 | design-incompleteness 小缺口清扫（F7 canary payload + F10 spec 回写） | 评审清单驱动选题 | T2269–T2270 | 1112 | 1509 | ✅ |
 | 11 | 周期预检轮：全仓 clean verify——三轮后全绿（①自造构建竞争 NoClassDefFound 非缺陷；②LaneLimitingToolCallbackWaitTest 时序 flake 57μs 越界就近处置：容差 1ms→50ms 常量化；③17 模块 BUILD SUCCESS 含 JaCoCo/enforcer/Spec 双门） | 周期 verify + flake 就近处置 | — | — | — | ✅ |
 | 12 | ConfigMaps indexed 属性数字键归一（properties 源列表键静默失效修复） | Spring Binder mapOf 弱点的通用 coerce（R9 副产出发现） | T2271–T2272 | 1113 | 1510 | ✅ |
+| 13 | 幂等工具瞬断重试自动装配通道（F1 落地：查重发现既有装饰器，补声明式装配+瞬断档） | spec 05 承诺 × AWS SDK 幂等重试纪律 | T2273–T2274 | 1114 | 1511 | ✅ |
 
 
 ## Out of scope
