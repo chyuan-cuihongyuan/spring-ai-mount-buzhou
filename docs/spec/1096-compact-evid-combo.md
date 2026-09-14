@@ -1,6 +1,6 @@
-# 1094 — compact×evidence 交叉组合测试轮
+# 1096 — compact×evidence 交叉组合测试轮
 
-> 来源：J 会话第 96 轮 = effort #1094（[T1643](../../.wayfinder/tickets/T1643-compact-evid-shape.md) / [T1644](../../.wayfinder/tickets/T1644-compact-evid-verify.md) / impl 846）。纯测试轮第十一弹（R81–R89 先例）。
+> 来源：J 会话第 96 轮 = effort #1096（编号修正轮：原占 1094 与 R94 撞号，改空闲号 1096；[T1651](../../.wayfinder/tickets/T1651-compact-evid-shape.md) / [T1652](../../.wayfinder/tickets/T1652-compact-evid-verify.md) / impl 848）。纯测试轮第十一弹（R81–R89 先例）。
 
 ## Problem Statement
 

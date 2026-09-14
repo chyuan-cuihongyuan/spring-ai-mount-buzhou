@@ -1,5 +1,5 @@
 ---
-id: T1643
+id: T1651
 title: compact×evidence 交叉组合测试轮的形状裁决
 type: task
 status: closed
