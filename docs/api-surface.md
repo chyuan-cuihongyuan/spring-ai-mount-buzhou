@@ -2417,3 +2417,8 @@
   transformers 语义自检思想：合成句对穿测 EmbeddingProvider——相似对
   余弦序判定（免绝对阈值）+minMargin+orderHolds 回归哨兵+维度显形（换
   模型伴生信号），纯函数；嵌套 `ProbeReport` 不另立面）
+
+- `ConversationShapeAudit`（1425——MLflow 数据画像思想：会话历史结构
+  形态审计——roleHistogram（数量降序）+连续同角色非 TOOL 异常对+空内容
+  计数（带 toolCalls 为正常形态）+maxTurnGap 乱序嫌疑，纯函数；嵌套
+  `ShapeReport` 不另立面）

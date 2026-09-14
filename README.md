@@ -848,6 +848,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 并发治理 | 轮次限速拒绝榜 | TurnRateLimitHook.blockedSnapshot()——per-key 累计被拦次数（次数降序同次数字典序），256 封顶折 __overflow__，reset 清榜不清桶；「哪个租户在反复触发限速」从 Block 文案逐条捞变一表显形——Cloudflare WAF top-rules 思想（spec 1424） | [spec 1424](docs/spec/1424-turn-ratelimit-blocked-snapshot.md) |
 
+| 会话治理 | 会话历史形态审计 | ConversationShapeAudit——roleHistogram 角色直方（降序典序）+连续同角色非 TOOL 相邻对（history 写坏信号）+空内容计数（带 toolCalls 为正常形态）+maxTurnGap 跳变（回放/乱序嫌疑）；上下文污染前的形态信号——MLflow 数据画像思想（spec 1425） | [spec 1425](docs/spec/1425-conversation-shape-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
