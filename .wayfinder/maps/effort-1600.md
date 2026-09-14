@@ -112,6 +112,9 @@
 - [R31 形状：Wilson 置信区间](../tickets/T2411-r31-wilson-shape.md) — 统计报告标准工具（小样本/极端比例不越界不出负值——正态近似的经典缺陷）：ab.run.completed 事件加 winRateA 95% CI（decided 口径分母），与 SPRT 决策面互补的报告面
 - [R31 验收](../tickets/T2412-r31-wilson-verify.md) — 四断言（含点估计/极端不越界/小样本宽于大样本/退化零区间）+ Pairwise 回归
 
+- [R32 形状：退避抖动模式](../tickets/T2413-r32-jitter-shape.md) — AWS「Exponential Backoff and Jitter」思想：JitterMode 可配（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机防同步最优/DECORRELATED=[base,min(cap,prev×3)] 去相关），withJitterMode 链式 + yml jitter-mode；默认 EQUAL 零行为
+- [R32 验收](../tickets/T2414-r32-jitter-verify.md) — 四断言（EQUAL 带内/FULL 全区间有落点/DECORRELATED prev×3 界/解析 fail-fast）+ resilience 393 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -156,3 +159,4 @@
 | R29 | #1628 | 熔断慢调用率维度（resilience4j slow call rate 思想） | T2407–T2408 | 1181 | 1628 | done |
 | R30 | #1629 | http_request 输入边界四护栏（Envoy SETTINGS_MAX_* 思想） | T2409–T2410 | 1182 | 1629 | done |
 | R31 | #1630 | A/B 胜率 Wilson 置信区间 | T2411–T2412 | 1183 | 1630 | done |
+| R32 | #1631 | 退避抖动模式可配（AWS full/decorrelated jitter 思想） | T2413–T2414 | 1184 | 1631 | done |
