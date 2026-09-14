@@ -1,5 +1,5 @@
 ---
-id: T2194
+id: T2196
 title: 索引覆盖计数与失衡定位的验证
 type: task
 status: closed

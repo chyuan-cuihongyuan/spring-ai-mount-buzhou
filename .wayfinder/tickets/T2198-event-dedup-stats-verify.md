@@ -1,5 +1,5 @@
 ---
-id: T2196
+id: T2198
 title: 去重率派生与 reset 只清计数的验证
 type: task
 status: closed

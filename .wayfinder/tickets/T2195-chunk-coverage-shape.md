@@ -1,5 +1,5 @@
 ---
-id: T2193
+id: T2195
 title: 语义切片索引覆盖读面（SemanticChunkIndex 增量）的形状裁决
 type: task
 status: closed

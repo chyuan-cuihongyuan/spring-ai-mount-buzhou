@@ -1,6 +1,6 @@
 # 1447 — 语义切片索引覆盖读面
 
-> 来源：L 会话第 47 轮 = effort #1447（票 T2193 / T2194 / impl 1099）。借鉴：Elasticsearch index stats（分片分布失衡 = 索引策略倾斜的第一信号）。
+> 来源：L 会话第 47 轮 = effort #1447（票 T2195 / T2196 / impl 1099）。借鉴：Elasticsearch index stats（分片分布失衡 = 索引策略倾斜的第一信号）。
 
 ## Problem Statement
 

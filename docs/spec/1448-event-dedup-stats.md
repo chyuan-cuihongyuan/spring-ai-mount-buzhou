@@ -1,6 +1,6 @@
 # 1448 — 事件去重聚合读面
 
-> 来源：L 会话第 48 轮 = effort #1448（票 T2195 / T2196 / impl 1100）。**换题记录**：R48 原题 FeedbackExporter 画像面过窄——换入事件去重聚合轴。借鉴：SendGrid/Mailgun webhook replay 遥测（重复事件注入压力=去重率直接显形）。
+> 来源：L 会话第 48 轮 = effort #1448（票 T2197 / T2198 / impl 1100）。**换题记录**：R48 原题 FeedbackExporter 画像面过窄——换入事件去重聚合轴。借鉴：SendGrid/Mailgun webhook replay 遥测（重复事件注入压力=去重率直接显形）。
 
 ## Problem Statement
 
