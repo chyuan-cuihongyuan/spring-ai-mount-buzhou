@@ -1,10 +1,10 @@
 ---
-id: T2200
+id: T2194
 title: 采样漏斗分桶与归因的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2199
+blocked-by: T2193
 created: 2026-09-14
 ---
 

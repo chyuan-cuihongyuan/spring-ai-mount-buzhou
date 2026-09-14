@@ -1,6 +1,6 @@
 # 1446 — 轮次采样漏斗读面
 
-> 来源：L 会话第 49 轮 = effort #1446（票 T2199 / T2200 / impl 1101）。借鉴：Envoy access log sampling（采样决策漏斗——「为何这条没进数据集」按原因显形而非静默消失）。
+> 来源：L 会话第 49 轮 = effort #1446（票 T2193 / T2194 / impl 1101）。借鉴：Envoy access log sampling（采样决策漏斗——「为何这条没进数据集」按原因显形而非静默消失）。
 
 ## Problem Statement
 
