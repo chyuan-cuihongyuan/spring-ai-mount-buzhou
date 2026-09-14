@@ -105,6 +105,12 @@ public class BuzhouGuardAutoConfiguration {
                 }
             }
         }
+        // spec 1638 / T2427：泄漏金丝雀 yml 装配（leak-canary.salt 声明即启用——
+        // thinkst canarytokens：salt 是防离线推演的秘密，建议从环境变量注入）
+        String canarySalt = env.getProperty("buzhou.guard.leak-canary.salt");
+        if (canarySalt != null && !canarySalt.isBlank()) {
+            builder.leakCanary(canarySalt.trim());
+        }
         // spec 626 / T902：事实衰减 yml 装配（half-life-turns 声明即启用；floor 可选默认 0.25）
         Double halfLifeTurns = env.getProperty(
                 "buzhou.guard.fact-decay.half-life-turns", Double.class);
