@@ -79,6 +79,9 @@
 - [R20 形状：spill 写速率限速](../tickets/T2389-r20-ratelimit-shape.md) — RocksDB rate limiter 思想：令牌桶节流（bytes/s + burst 突发容忍 + maxWait 软限速超时放行 degraded 计数——限速器故障不放大成 spill 失败）；ReentrantLock+Condition（虚拟线程 unmount）；opt-in null=关
 - [R20 验收](../tickets/T2390-r20-ratelimit-verify.md) — 五断言（burst 吸收/超速节流/超时放行/关闭零开销/集成写不破）+ spill 180 用例
 
+- [R21 形状：空闲监控全链接线](../tickets/T2391-r21-idle-shape.md) — spec 179/841 双孤类+喂数面 SessionFeaturesHook（spec 161，本身也未装配）三件一次接线：IdleMonitorHolder 进程级（store/monitor/histogram）+ SessionFeaturesHook afterTurn 每 32 轮节拍 sweep + 装配 bean 默认开（纯记账旁路）
+- [R21 验收](../tickets/T2392-r21-idle-verify.md) — 全链三断言（sweep 判空闲+翻转通知+直方入账/Holder 便捷面/hook 喂数）+ 既有 12 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -112,3 +115,4 @@
 | R18 | #1617 | 梯度式自适应并发闸（Netflix Gradient2 思想） | T2385–T2386 | 1170 | 1617 | done |
 | R19 | #1618 | Token 校准审计接线（spec 819 孤类救活） | T2387–T2388 | 1171 | 1618 | done |
 | R20 | #1619 | spill 写速率限速（RocksDB rate limiter 思想） | T2389–T2390 | 1172 | 1619 | done |
+| R21 | #1620 | 空闲监控全链接线（spec 161/179/841 三孤类救活） | T2391–T2392 | 1173 | 1620 | done |

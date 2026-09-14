@@ -16,8 +16,12 @@ public final class SessionFeaturesHook implements BuzhouHook {
 
     private final SessionFeatureStore store;
 
+    /** spec 1620 / T2391：afterTurn sweep 节拍计数（进程级摊薄）。 */
+    private static final java.util.concurrent.atomic.AtomicInteger TURN_COUNTER =
+            new java.util.concurrent.atomic.AtomicInteger();
+
     public SessionFeaturesHook(SessionFeatureStore store) {
-        this.store = store == null ? new SessionFeatureStore() : store;
+        this.store = store == null ? IdleMonitorHolder.store() : store;
     }
 
     @Override
@@ -29,6 +33,19 @@ public final class SessionFeaturesHook implements BuzhouHook {
     public HookResult beforeTurn(TurnContext ctx) {
         if (ctx != null && ctx.sessionId() != null) {
             store.recordTurnStart(ctx.sessionId());
+        }
+        return HookResult.CONTINUE;
+    }
+
+    @Override
+    public HookResult afterTurn(TurnContext ctx) {
+        // spec 1620 / T2391：空闲监控节拍（每 32 轮 sweep——纯观测旁路；sweep 失败不伤轮次）
+        if (TURN_COUNTER.incrementAndGet() % IdleMonitorHolder.SWEEP_EVERY_TURNS == 0) {
+            try {
+                IdleMonitorHolder.sweepAndRecord(java.time.Instant.now());
+            } catch (RuntimeException ignored) {
+                // 观测旁路失败静默（下轮再扫）
+            }
         }
         return HookResult.CONTINUE;
     }

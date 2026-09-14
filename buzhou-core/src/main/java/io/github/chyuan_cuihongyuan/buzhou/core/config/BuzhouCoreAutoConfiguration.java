@@ -1190,6 +1190,18 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 1620 / T2391：会话特征采集 hook（spec 161 喂数 + spec 179/841 空闲监控
+     * 节拍）——挂 hook 即累积特征与空闲水位（纯记账旁路）；显式 false 关闭。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.session.features", name = "enabled",
+            havingValue = "true", matchIfMissing = true)
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook buzhouSessionFeaturesHook() {
+        return new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook(
+                io.github.chyuan_cuihongyuan.buzhou.core.session.IdleMonitorHolder.store());
+    }
+
+    /**
      * spec 302 / T596：进程级重试预算装配——{@code buzhou.backpressure.retry-budget} 任一键
      * 配置即启用（percent/min-balance，组内默认见 {@link BuzhouBackpressureProperties.RetryBudgetParams}），
      * 设定 {@code RetryBudgetHolder} 供模型重试（ResilienceAdvisor）与工具重试
