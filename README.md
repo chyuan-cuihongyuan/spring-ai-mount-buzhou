@@ -650,6 +650,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 溢出治理 | offload→readBack 双轴闭环组合测试 | 溢出落盘与回读闭环计数一致性钉住（spec 1093） | [spec 1093](docs/spec/1093-offread-combo.md) |
 | 溢出治理 | Spill 溢出 hook 判定读面 | 溢出触发率与降级动作五桶守恒显形（spec 1077） | [spec 1077](docs/spec/1077-spilloffload-stats.md) |
 | 溢出治理 | Spill 加解密读面 | 加解密操作量与失败分布显形（spec 1079） | [spec 1079](docs/spec/1079-spillcipher-stats.md) |
+| 溢出治理 | offload×cipher 加密联动组合测试 | 加密配置真实生效联动钉住（spec 1097） | [spec 1097](docs/spec/1097-offcipher-combo.md) |
 | 溢出治理 | spill 域 offload+evict 生命周期组合测试 | 溢出→逐出→回读链路双读面守恒钉住（spec 1089） | [spec 1089](docs/spec/1089-spillchain-readout.md) |
 | 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
 | 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
