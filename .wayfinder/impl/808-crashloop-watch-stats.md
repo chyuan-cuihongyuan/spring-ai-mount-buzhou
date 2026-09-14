@@ -6,10 +6,10 @@
 
 **Status:** done
 
-- [ ] 四计数落点（入表 OPEN/封顶丢弃/循环闩锁/恢复清除）
-- [ ] CrashLoopWatchStats 嵌套 record + stats() + resetForTest()
-- [ ] CrashLoopWatchStatsTest（记录/截断/成环/恢复再成环/null 不入账/reset 六测）
-- [ ] spec 1056 + README 行（嵌套类型不动 API 快照）
+- [x] 四计数落点（入表 OPEN/封顶丢弃/循环闩锁/恢复清除）
+- [x] CrashLoopWatchStats 嵌套 record + stats() + resetForTest()
+- [x] CrashLoopWatchStatsTest（记录/截断/成环/恢复再成环/null 不入账/reset 六测）
+- [x] spec 1056 + README 行（嵌套类型不动 API 快照）
 
 ## Done
 

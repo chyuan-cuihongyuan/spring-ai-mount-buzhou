@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [崩循环探测器类级水位读面的形态裁决](../tickets/T1567-crashloop-stats-shape.md) — CircuitCrashLoopDetector 静态四计数（opensRecorded/opensTruncated/loopsDetected/recoveriesRecorded）+ 嵌套 CrashLoopWatchStats + stats()/resetForTest()；MAX_MODELS 截断从布尔升格为量化对账信号，null/空白不入桶口径诚实（kube-state-metrics）。
 - [情景记忆读写双守恒读面的形态裁决](../tickets/T1565-episodic-stats-shape.md) — EpisodeLedger 静态九计数双守恒（写侧 recordCalls=recorded+recordDropped+recordFailures / 读侧 recallCalls=recallHits+recallEmpties+recallDropped）+ 嵌套 EpisodicMemoryStats + stats()/resetForTest()；fewShotBlock 经 recallExamples 同点计数；J 系首个 memory 域轮（mem0 episodic 命中率）。
 - [str_replace 编辑判定读面的形态裁决](../tickets/T1563-strreplace-stats-shape.md) — StrReplaceTool 静态七计数（attempts/successes + param/missingFile/notFound/ambiguous/failures 五拒绝桶）+ 嵌套 StrReplaceStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = successes + totalRejects；notFound/ambiguous 分布即提示词引导有效性信号（Anthropic text editor）。
 - [evict_handle 逐出判定读面的形态裁决](../tickets/T1561-evict-stats-shape.md) — EvictHandleTool 静态四计数（attempts/evictions/badPathRejects/parseRejects）+ 嵌套 EvictStats + stats()/resetForTest()；守恒 attempts = evictions + 两拒绝桶；J 系首个 spill 域轮（Anthropic tool_result 清除采用率）。
@@ -128,7 +129,8 @@
 | 53 | evict_handle 逐出判定读面（evictions + 两拒绝桶守恒） | Anthropic tool_result 清除采用率 | T1561–T1562 | 805 | 1053 | ✅ |
 | 54 | str_replace 编辑判定读面（successes + notFound/ambiguous 等五拒绝桶守恒） | Anthropic text editor str_replace | T1563–T1564 | 806 | 1054 | ✅ |
 | 55 | 情景记忆读写双守恒读面（record 三桶 + recall 三桶双恒等式） | mem0 episodic memory 命中率 | T1565–T1566 | 807 | 1055 | ✅ |
-| 56 | （开工时按缺口核查选题） | — | T1567–T1568 | 808 | 1056 |  |
+| 56 | 崩循环探测器类级水位读面（OPEN 量/封顶截断量/循环检出/恢复四计数） | kube-state-metrics crashloop 总账 | T1567–T1568 | 808 | 1056 | ✅ |
+| 57 | （开工时按缺口核查选题） | — | T1569–T1570 | 809 | 1057 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
