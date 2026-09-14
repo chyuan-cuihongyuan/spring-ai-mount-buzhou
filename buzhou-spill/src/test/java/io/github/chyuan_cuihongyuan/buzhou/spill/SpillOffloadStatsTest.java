@@ -49,7 +49,7 @@ class SpillOffloadStatsTest {
     void oversizedOutputCountsOffloaded() {
         SpillOffloadHook hook = hook();
         HookResult result = invoke(hook, "big_tool", "x".repeat(THRESHOLD + 500));
-        assertThat(result).isEqualTo(HookResult.CONTINUE); // 溢出替换文本（CONTINUE 语义）
+        assertThat(result).isInstanceOf(HookResult.Replace.class); // 溢出替换为句柄文本
 
         SpillOffloadHook.SpillOffloadStats stats = SpillOffloadHook.stats();
         assertThat(stats.invocations()).isEqualTo(1);
