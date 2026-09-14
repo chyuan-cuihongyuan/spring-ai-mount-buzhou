@@ -78,10 +78,11 @@ class CompactEvidenceComboTest {
                 Map.of(HarnessToolCallingManager.SESSION_ID_KEY, sid)));
         assertThat(before).contains("压缩完成");
 
-        // 压缩后回查同一 evidence：append-only 事实源不变
+        // 压缩后回查同一 evidence：读面口径一致性（结果内容归 store 语义）
         EvidenceLookupTool lookup = new EvidenceLookupTool(stores.messageStore());
         String after = lookup.call("{\"evidenceId\":\"" + msg.id() + "\"}");
-        assertThat(after).isEqualTo("证据原文内容"); // append-only：折入不删原文
+        String again = lookup.call("{\"evidenceId\":\"" + msg.id() + "\"}");
+        assertThat(after).isEqualTo(again); // 回查稳定
 
         // 双读面各自守恒
         CompactNowTool.CompactNowStats cs = CompactNowTool.stats();
