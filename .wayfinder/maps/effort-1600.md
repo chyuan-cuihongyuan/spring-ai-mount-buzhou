@@ -97,6 +97,9 @@
 - [R26 形状：泄漏金丝雀接线](../tickets/T2401-r26-canary-shape.md) — spec 528 孤类接线：SessionCanaryHook（beforeTurn 种植确定性令牌 + afterModel 输出扫描——他会话令牌即泄漏事件）；令牌注入面留宿主（honeytoken 需放进数据才可触发——诚实边界随原注）；LayeredPolicy（1003）裁决纯函数工具豁免不清亡
 - [R26 验收](../tickets/T2402-r26-canary-verify.md) — 两断言（他会话令牌→泄漏事件+自会话回显不算/种植确定性）+ registry 既有 4 用例零回归
 
+- [R27 形状：中期对账审计](../tickets/T2403-r27-audit-shape.md) — 26 轮跨 6 模块改动首跑隔离 worktree 全仓 verify：唯一红=API 快照非破坏新增 10 类 → worktree 再生修复+md 入档；工件对账补 spec1622 悬空引用；全部 16xx spec/README/票/impl 双向实存
+- [R27 验收](../tickets/T2404-r27-audit-verify.md) — ApiSurfaceSnapshotTest+SpecCoverageTest 双绿（worktree 实证）+ 对账清单入档
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -136,3 +139,4 @@
 | R24 | #1623 | 影子读探针接线（spec 189 孤类救活，Istio mirror 思想） | T2397–T2398 | 1176 | 1623 | done |
 | R25 | #1624 | 危险工具 HITL 豁免征询（spec 820 孤类首个消费者） | T2399–T2400 | 1177 | 1624 | done |
 | R26 | #1625 | 跨会话泄漏金丝雀接线（spec 528 孤类救活） | T2401–T2402 | 1178 | 1625 | done |
+| R27 | #1626 | 中期对账审计（全仓 verify + API 快照再生 + 工件对账） | T2403–T2404 | 1179 | 1626 | done |

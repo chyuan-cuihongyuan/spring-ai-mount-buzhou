@@ -181,6 +181,10 @@
 - `public sealed interface HookResult`
 - `public final class SessionForkKeys`（spec 640——fork 谱系 state 键常量收口：SOURCE/TURN/PRODUCER 写读两侧同源）
 
+- `public final class GradientAdaptiveLimiter`（spec 1617——延迟梯度自适应并发闸，双 EMA 混合调整）
+- `public final class CatalogDriftHolder`（spec 1613——工具目录漂移看门狗进程级 Holder）
+- `public final class NegativeCachingToolCallback`（spec 1616——工具失败负缓存装饰器，DNS negative caching）
+
 ## buzhou-memory
 
 - `public class BiTemporalFactLedger`
@@ -262,6 +266,8 @@
 - `public record SpillProperties`
 - `public record SpillQuota`
 - `public record SpillUri`
+
+- `public final class SpillWriteRateLimiter`（spec 1619——写盘字节率令牌桶，RocksDB rate limiter）
 
 ## buzhou-observability
 
@@ -400,6 +406,8 @@
 - `public record PolicyDecision`
 - `public record SandboxLimits`
 - `public record VerificationReport`
+
+- `public final class SessionCanaryHook`（spec 1625——跨会话泄漏金丝雀 hook，canarytokens）
 
 ## buzhou-tools
 

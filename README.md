@@ -847,6 +847,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 韧性治理 | 影子读探针接线 | 主路成功后确定性采样（sha256(key)%100）对照首个备模型——agreed/diverged 双计数 + 分歧样本环（「备模型若被启用结果是否一致」的容量预案信心面）；旁路异常全吞、会话关闭竞态 REE 防护——Istio mirror 思想，spec 189 孤类救活（spec 1623） | [spec 1623](docs/spec/1623-shadow-probe-wiring.md) |
 | 护栏治理 | 危险工具 HITL 豁免征询 | GuardExemptionRegistry 首个消费者——危险工具授权检查后征询豁免（「这条告警我看过、豁免到 T1」ESLint suppressions 思想）：未过期即放行 + guard.exemption.applied 审计事件，过期/撤销/无豁免恢复确认流程；GuardModule.exemptions() 暴露 grant/revoke——spec 820 孤类救活（spec 1624） | [spec 1624](docs/spec/1624-dangerous-tool-exemption.md) |
 | 护栏治理 | 跨会话泄漏金丝雀接线 | SessionCanaryHook——每会话种植专属确定性令牌（sha256(sessionId|salt)），afterModel 扫描模型输出：他会话令牌出现即跨会话污染信号（guard.session.leak-detected 事件），自会话回显不算；opt-in leakCanary(salt)——thinkst canarytokens 思想，spec 528 孤类救活（spec 1625） | [spec 1625](docs/spec/1625-session-canary-wiring.md) |
+| 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |
 
 ## 快速开始
 
