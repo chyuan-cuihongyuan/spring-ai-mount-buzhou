@@ -30,8 +30,11 @@ class MemoryToolsReadoutTest {
 
     @Test
     void crossCallsKeepBothReadoutsConsistent() {
-        CompactNowTool compact = new CompactNowTool(new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge(new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryStore()),
-                null, null, null, 2);
+        CompactNowTool compact = new CompactNowTool(
+                new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemoryMessageStore(),
+                new io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySummaryStore()),
+                null, null, 2);
         compact.call("{}", null); // unboundRejects
 
         EpisodeLedger ledger = new EpisodeLedger(stateStore, text -> new float[]{1f, 0f});
