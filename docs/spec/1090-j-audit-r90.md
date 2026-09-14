@@ -15,7 +15,7 @@ J 系 R81–R89 全量工件对账 + 隔离 worktree 全仓 verify + 双门复�
 
 ## 验收
 
-隔离 worktree（HEAD=R89 后干净基线）全仓 `mvn verify`：BUILD SUCCESS + 全模块 SUCCESS + 双文档门绿。
+隔离 worktree 全仓 `mvn verify` 三轮实测：首轮红 = 1085 README 吞噬（三型之一）、复跑红 = R90 自身 spec 1090 README 行遗漏（审计轮工件自首）、补登后**第三轮（HEAD=5dd12397）BUILD SUCCESS：17 模块 SUCCESS、总时长 2:50、双文档门绿**——验收通过（三型欠账中两型在本轮实证再现并即时修复）。
 
 ## Out of Scope
 

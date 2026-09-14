@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [R90 周期预检轮的形状裁决](../tickets/T1635-r90-audit-shape.md) — R81–R89 对账 + 三型欠账中两型实证再现并即时修复（1085 吞噬 + 1090 自漏）；复跑 BUILD SUCCESS 验收。
 - [memory 双台账组合测试轮的形状裁决](../tickets/T1631-dualledger-shape.md) — 纯测试轮第六弹：DualLedgerReadoutTest 钉住 fact/episodic 双台账读面互不串账与 reset 独立隔离。
 - [memory 域双工具组合测试轮的形状裁决](../tickets/T1629-memorytools-shape.md) — 纯测试轮第五弹：MemoryToolsReadoutTest 钉住 compact_now 与 EpisodeLedger 双读面交叉调用下各自守恒保持、互不串账、reset 独立隔离。
 - [双守卫（黑名单+SSRF）组合测试轮的形状裁决](../tickets/T1627-dualguard-shape.md) — 纯测试轮第四弹：DualGuardReadoutTest 钉住双守卫读面同会话独立性与一致性（互不串账、reset 独立隔离）。
@@ -195,7 +196,8 @@
 | 87 | memory 域双工具组合测试轮（compact_now×episodic 互不串账钉住） | 纯测试轮第五弹 | T1629–T1630 | 839 | 1087 | ✅ |
 | 88 | memory 双台账组合测试轮（fact/episodic 互不串账钉住） | 纯测试轮第六弹 | T1631–T1632 | 840 | 1088 | ✅ |
 | 89 | spill 域 offload+evict 生命周期组合测试轮（溢出→逐出→回读链路） | 纯测试轮第七弹 | T1633–T1634 | 841 | 1089 | ✅ |
-| 90 | （开工时按缺口核查选题；**R90 周期预检轮**） | — | T1635–T1636 | 842 | 1090 |  |
+| 90 | 周期预检轮：R81–R89 对账 + README 1085 吞噬与 1090 自漏双修复 + 复跑 verify BUILD SUCCESS | 覆盖门双向检测实证 | T1635–T1636 | 842 | 1090 | ✅ |
+| 91 | （开工时按缺口核查选题） | — | T1637–T1638 | 843 | 1091 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
