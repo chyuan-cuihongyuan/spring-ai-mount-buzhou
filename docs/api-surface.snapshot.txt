@@ -159,6 +159,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunPlanJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.GradientLimiterHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LaneLimitingToolCallback

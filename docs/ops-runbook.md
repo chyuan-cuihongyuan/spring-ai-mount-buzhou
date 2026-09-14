@@ -572,3 +572,19 @@ OPEN 拒绝（N 实例不再各自烧窗口、N 倍流量打向故障方）；�
 - 空闲水位：`IdleMonitorHolder`（15 分钟阈值清单 + 时长直方——清理调参依据）。
 - 指标新鲜度：`MetricFreshnessHolder.audit(now, staleAfterMs)`（序列静默=写路径死亡/装配丢失）。
 - dashboard gzip：客户端协商自动（≥512B）；无需运维动作。
+
+## 24. M 系 1500+ 增量运维段（M 会话 / spec 1500-1532）
+
+M 会话（effort #1500+）增量机制的运维面：
+
+| 机制 | 键/信号 | 运维要点 |
+|------|---------|----------|
+| 观察者通知隔离（spec 1500/1501） | ERROR 日志「会话观察者回调异常已隔离」/「事件 hook 异常已隔离」 | 单观察者/hook 崩溃不再炸通知链——日志即定位线索（sessionId/hook 名在 message） |
+| 评估 run 取消（spec 1505/1506） | `buzhou.eval.run.cancelled` / `buzhou.eval.ab.cancelled` 指标；结果 items 的 `cancelled` 状态 | 宿主主动止损通道：EvalRunner.requestCancel()（A/B 同）；cancelled 项不进 pass/fail 桶，hostCancelled=true 区分叫停与 SPRT 达界停 |
+| 并行波间剪枝/早停（spec 1522/1523） | `buzhou.eval.run.pruned` 指标 | 并行评估配剪枝策略（EvalPrunePolicy）波间止损生效；A/B SPRT/取消波间真生效 |
+| 危险工具默认动词模式（spec 1507） | `buzhou.mcp.dangerous-tool-patterns`（缺省七动词 glob；显式 `[]` 关闭） | MCP 写侧工具默认进登记面；误伤只读工具时显式配置收窄 |
+| HITL 自动带入桥（spec 1508） | `buzhou.guard.auto-dangerous-bridge`（默认 true） | opt-in 开 write_file/run_command/http_request 即得默认 HITL 拦截（confirm_<name>）；yml 显式条目优先 |
+| 幂等瞬断重试装配（spec 1511） | `buzhou.core.tool-transient-retry.{enabled,max-attempts,initial-backoff,max-backoff,idempotent-overrides}`（时长 1s/250ms 简写或 ISO） | 仅 @BuzhouTool.idempotent=true 或白名单工具重试；瞬断白名单（IO/超时/5xx 族）非瞬断零重试 |
+| 批级回喂预算（spec 1526/1527） | `buzhou.core.tool-batch-response-budget`（>0 启用）；`buzhou.tools.batch-truncated` 指标 | 批总量超限贪心截大者（错误反馈豁免）；配 ToolResultLimiter 单工具限幅构成两级护栏 |
+| serial-groups yml 通道（spec 1525） | `buzhou.tools.serial-groups`（名→组 map） | yml 覆盖注解通道（同名优先）；无注解工具纯 yml 指定 |
+| ConfigMaps 数字键归一（spec 1510） | —（装配层行为） | properties/命令行源的 `key[i].f=v` 列表键从此正确解析（此前静默失效） |

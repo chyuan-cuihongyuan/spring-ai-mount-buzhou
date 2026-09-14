@@ -637,6 +637,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
 | 观测治理 | J 系阶段对账审计 R70 | J 会话 R61–R69 工件对账 + 七域读面布局收口（spec 1070） | [spec 1070](docs/spec/1070-j-audit-r70.md) |
 | 工具计量 | http_request 受控头丢弃显形 | 黑名单头试探频次量化（spec 1071） | [spec 1071](docs/spec/1071-headerdrop-stats.md) |
+| 内容防御 | PII 检测引擎读面 | 引擎原生匹配数与业务上报数双层对账显形（spec 1072） | [spec 1072](docs/spec/1072-piidetector-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
 | 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
@@ -836,6 +837,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 文档门禁 | 类级 Javadoc 全仓收口（五-1 终轮） | 8 个补齐（AutoConfig×3+JdbcStore 五 SPI 实现——契约消费方可见面）；core 六包外 30 个裁定不补（internal 实现域，门辖界=语义 API 承诺面）（spec 1530） | [spec 1530](docs/spec/1530-javadoc-final-sweep.md) |
 | 测试门禁 | 瞬断重试装配链测试（spec 1511 补账） | enabled 声明即 Holder 生效四断言 + 缺省零装配；装配测试当场实证并修复 Duration 转换缺陷（DurationStyle 宽松解析 1s/250ms+ISO，非法 fail-fast）（spec 1531） | [spec 1531](docs/spec/1531-retry-assembly-test.md) |
 | 测试门禁 | 批预算装配链测试（spec 1526 补账） | 三用例——值声明透传/显式 0 仍装配但语义关（条件命中与语义开关解耦）/缺省零装配；M 系三个 Holder 装配测试全覆盖（spec 1532） | [spec 1532](docs/spec/1532-batch-budget-assembly-test.md) |
+| 运维文档 | M 系增量运维段（runbook 第 24 节） | 九行机制表——通知隔离日志定位/评估取消与波间止损指标/危险模式与 HITL 桥开关/瞬断重试与批预算配置族/serial-groups yml/ConfigMaps 归一（spec 1533） | [spec 1533](docs/spec/1533-runbook-m-series.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
