@@ -72,7 +72,19 @@ public class ResponseCacheAdvisor implements BaseAdvisor {
             cacheIfTerminal(key, coalesced);
             return new ChatClientResponse(coalesced, request.context());
         }
-        ChatClientResponse response = callChain.nextCall(request);
+        // spec 1604 / T2359：stale-if-error（Varnish grace / RFC 5861 思想）——模型调用失败
+        // （熔断拒绝/网络/供应商故障）且宽限窗内有过期缓存 → 旧响应救场不抛（staleReads
+        // 可观测）；无救场条目则异常照抛（失败语义不静默吞）
+        ChatClientResponse response;
+        try {
+            response = callChain.nextCall(request);
+        } catch (RuntimeException e) {
+            var stale = store.getStale(key);
+            if (stale.isPresent()) {
+                return new ChatClientResponse(stale.get(), request.context());
+            }
+            throw e;
+        }
         cacheIfTerminal(key, response.chatResponse());
         return response;
     }

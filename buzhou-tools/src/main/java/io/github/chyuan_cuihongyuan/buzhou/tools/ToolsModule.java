@@ -56,7 +56,6 @@ public final class ToolsModule {
         this.enabled = builder.enabled;
         FileSandbox sandbox = new FileSandbox(builder.sandboxRoot, builder.allowedPaths);
         List<ToolCallback> t = new ArrayList<>();
-        List<String> dangerous = new ArrayList<>();
         if (builder.readFileEnabled) {
             t.add(new ReadFileTool(sandbox));
         }
@@ -68,7 +67,6 @@ public final class ToolsModule {
         }
         if (builder.writeFileEnabled) {
             t.add(new WriteFileTool(sandbox));
-            dangerous.add("write_file");
         }
         if (builder.runCommandEnabled) {
             if (builder.commandBackend != null) {
@@ -91,7 +89,6 @@ public final class ToolsModule {
                                 ? io.github.chyuan_cuihongyuan.buzhou.tools.command.RunCommandTool.DEFAULT_MAX_OUTPUT_BYTES
                                 : builder.runCommandMaxOutputBytes));
             }
-            dangerous.add("run_command");
         }
         if (builder.httpRequestEnabled) {
             t.add(new HttpRequestTool(
@@ -101,9 +98,17 @@ public final class ToolsModule {
                             ? new io.github.chyuan_cuihongyuan.buzhou.tools.http.PerHostConcurrencyGuard(
                                     builder.httpMaxPerHost)
                             : null));
-            dangerous.add("http_request");
         }
         this.tools = List.copyOf(t);
+        // spec 1504 / T2259：危险名单注解驱动——扫描已装配工具的 @BuzhouTool.destructive
+        // （保装配序；行为等价替代既往三处手工登记，新工具标注即自动入 HITL 清单）
+        List<String> dangerous = new ArrayList<>();
+        for (ToolCallback tool : this.tools) {
+            BuzhouTool meta = tool.getClass().getAnnotation(BuzhouTool.class);
+            if (meta != null && meta.destructive()) {
+                dangerous.add(meta.name());
+            }
+        }
         this.enabledDangerousToolNames = List.copyOf(dangerous);
         this.todoAttachmentRenderer = this.todoStore == null ? null
                 : new TodoAttachmentRenderer(this.todoStore);

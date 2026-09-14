@@ -38,6 +38,24 @@ class ToolsModuleTest {
         assertThat(module.enabledDangerousToolNames()).isEmpty();
     }
 
+    /** spec 1504 / T2259–T2260：destructive 标注正确性钉住（危险名单注解驱动的元数据防线）。 */
+    @Test
+    void destructiveAnnotationMarksBuiltInWriteSideToolsOnly() {
+        assertThat(io.github.chyuan_cuihongyuan.buzhou.tools.command.RunCommandTool.class
+                .getAnnotation(io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool.class).destructive()).isTrue();
+        assertThat(io.github.chyuan_cuihongyuan.buzhou.tools.command.SandboxRunCommandTool.class
+                .getAnnotation(io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool.class).destructive()).isTrue();
+        assertThat(io.github.chyuan_cuihongyuan.buzhou.tools.file.WriteFileTool.class
+                .getAnnotation(io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool.class).destructive()).isTrue();
+        assertThat(io.github.chyuan_cuihongyuan.buzhou.tools.http.HttpRequestTool.class
+                .getAnnotation(io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool.class).destructive()).isTrue();
+        // 只读 / 幂等工具不标（不误伤）
+        assertThat(io.github.chyuan_cuihongyuan.buzhou.tools.file.ReadFileTool.class
+                .getAnnotation(io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool.class).destructive()).isFalse();
+        assertThat(io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoTool.class
+                .getAnnotation(io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouTool.class).destructive()).isFalse();
+    }
+
     @Test
     void optInAddsDangerousToolsAndGuardNames() {
         ToolsModule module = ToolsModule.builder(stateStore)

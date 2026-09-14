@@ -205,7 +205,8 @@ public final class ResilienceModule {
                 properties.responseCache() != null && properties.responseCache().effectiveEnabled()
                         ? new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore(
                                 properties.responseCache().maxEntries(), properties.responseCache().ttl(),
-                                properties.responseCache().maxWeightChars(), java.time.Clock.systemUTC())
+                                properties.responseCache().maxWeightChars(),
+                                properties.responseCache().staleWindow(), java.time.Clock.systemUTC())
                         : null;
         // spec 641 / T932：miss 惊群合并器（进程级共享——并发合并的价值在跨会话收敛；
         // coalescing opt-in 且缓存已启用才建，默认 null = 零注入零开销）

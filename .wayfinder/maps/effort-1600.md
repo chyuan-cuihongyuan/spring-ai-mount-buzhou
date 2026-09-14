@@ -31,6 +31,9 @@
 - [R4 形状：http_request per-host 并发闸](../tickets/T2357-r4-limiterconn-shape.md) — Nginx limit_conn 思想：同 host 在飞请求超上限快速失败（拒绝不排队），CAS 计数器实现，第七拒绝桶进守恒式
 - [R4 验收](../tickets/T2358-r4-limiterconn-verify.md) — 闸单测四断言 + 工具集成（占满拒绝/释放放行/守恒式/无闸零变化）
 
+- [R5 形状：响应缓存 stale-if-error](../tickets/T2359-r5-stale-shape.md) — Varnish grace / RFC 5861 思想：staleWindow 内过期条目保留，模型调用失败时 getStale 救场不抛；无救场条目异常照抛（失败语义不静默吞）
+- [R5 验收](../tickets/T2360-r5-stale-verify.md) — store 宽限语义四断言 + advisor 失败救场两断言 + 默认关零变化
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -48,3 +51,4 @@
 | R2 | #1601 | MCP 连接最大寿命（HikariCP maxLifetime 思想） | T2353–T2354 | 1154 | 1601 | done |
 | R3 | #1602 | 熔断启动宽限期（K8s startupProbe 思想） | T2355–T2356 | 1155 | 1602 | done |
 | R4 | #1603 | http_request per-host 并发上限（Nginx limit_conn 思想） | T2357–T2358 | 1156 | 1603 | done |
+| R5 | #1604 | 响应缓存 stale-if-error（Varnish grace / RFC 5861 思想） | T2359–T2360 | 1157 | 1604 | done |

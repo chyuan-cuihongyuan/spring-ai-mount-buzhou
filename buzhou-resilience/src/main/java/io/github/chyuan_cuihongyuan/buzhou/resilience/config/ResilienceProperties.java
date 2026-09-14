@@ -426,11 +426,18 @@ public record ResilienceProperties(
             Integer maxEntries,
             Duration ttl,
             Long maxWeightChars,
-            Boolean coalescing) {
+            Boolean coalescing,
+            Duration staleWindow) {
 
         /** 3 参便捷构造（spec 641/745 之前调用方；权重预算与 coalescing 缺省关）。 */
         public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl) {
-            this(enabled, maxEntries, ttl, 0L, null);
+            this(enabled, maxEntries, ttl, 0L, null, null);
+        }
+
+        /** 5 参兼容构造（spec 1604 之前调用方；staleWindow 缺省关）。 */
+        public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl,
+                Long maxWeightChars, Boolean coalescing) {
+            this(enabled, maxEntries, ttl, maxWeightChars, coalescing, null);
         }
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（便捷构造不参与绑定）。 */
@@ -442,6 +449,11 @@ public record ResilienceProperties(
             if (maxWeightChars < 0) {
                 throw new IllegalArgumentException(
                         "response-cache.max-weight-chars（" + maxWeightChars + "）必须 >= 0（0=关）");
+            }
+            staleWindow = staleWindow == null ? Duration.ZERO : staleWindow;
+            if (staleWindow.isNegative()) {
+                throw new IllegalArgumentException(
+                        "response-cache.stale-window（" + staleWindow + "）必须为非负时长（0=关）");
             }
         }
 

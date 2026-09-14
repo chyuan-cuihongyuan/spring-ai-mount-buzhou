@@ -627,6 +627,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具计量 | run_command 执行结果分布读面 | 执行结局九桶守恒，参数/运行时分轴（spec 1052） | [spec 1052](docs/spec/1052-runcommand-stats.md) |
 | 溢出治理 | evict_handle 逐出判定读面 | 模型主动逐出采用率与拒绝分桶显形，三桶守恒（spec 1053） | [spec 1053](docs/spec/1053-evict-stats.md) |
 | 溢出治理 | str_replace 编辑判定读面 | 编辑成功与 notFound/ambiguous 失败模式分桶显形，六桶守恒（spec 1054） | [spec 1054](docs/spec/1054-strreplace-stats.md) |
+| 记忆治理 | 情景记忆读写双守恒读面 | 情景库写入量与召回命中率显形，双守恒（spec 1055） | [spec 1055](docs/spec/1055-episodic-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -791,6 +792,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | MCP 治理 | 连接最大寿命 | 到寿 ACTIVE 连接退役重建（复用探活失败同款排水+原样重建口径），在飞调用推迟下轮（归还时退役语义）——防长连接状态腐化/漂移累积；HikariCP maxLifetime 思想（spec 1601） | [spec 1601](docs/spec/1601-mcp-connection-maxlifetime.md) |
 | 韧性治理 | 熔断启动宽限期 | 进程冷启动期（circuit.warmup）跳闸判定豁免——建连/TLS/预热抖动不计开闸，窗口照记、成功照常冲淡；宽限结束已积累样本立即恢复完整判定（真故障仍跳），warmupSuppressedCount 观测启动抖动量——K8s startupProbe 思想（spec 1602） | [spec 1602](docs/spec/1602-circuit-warmup.md) |
 | 工具治理 | http_request per-host 并发上限 | 同 host 在飞请求超上限快速失败（拒绝不排队——保护目标服务与本进程连接资源不被单 host 打满）；hostLimitRejects 第七拒绝桶进守恒式——Nginx limit_conn 思想（spec 1603） | [spec 1603](docs/spec/1603-http-perhost-limit.md) |
+| 韧性缓存 | 响应缓存 stale-if-error | stale-window 内过期条目保留——模型调用失败（熔断/网络/供应商故障）时旧响应救场不抛（staleReads 可观测），无救场条目异常照抛；流式不救场（out-of-scope）——Varnish grace / RFC 5861 思想（spec 1604） | [spec 1604](docs/spec/1604-response-cache-stale-if-error.md) |
 
 ## 快速开始
 
