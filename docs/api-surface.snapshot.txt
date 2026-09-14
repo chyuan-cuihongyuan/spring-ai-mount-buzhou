@@ -253,6 +253,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.Spotlighting
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.SpotlightingStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolInputSizeHistogram
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolResultSizeHistogram
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnLatencyPercentiles

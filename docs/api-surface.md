@@ -2363,3 +2363,7 @@
   仅在途轮记未决键+轮终结消费入环（环 64+P50/P95 recent-rank）+无轮取消
   不入账，单会话实例构造期绑定（TurnErrorSampler 同型装配）；嵌套
   `CancelLatencyStats` 不另立面）
+
+- `ToolInputSizeHistogram`（1412——spec 1401 结果侧的对称镜像（Datadog
+  DogStatsD read/write 对称 tag 思想）：入参 Jackson 序列化 UTF-8 字节
+  同款五幂次边界桶+溢出，beforeTool 只读 opt-in；嵌套 `Snapshot` 不另立面）
