@@ -188,6 +188,9 @@ public class HarnessAssembler {
         if (toolBaggage != null) {
             toolManager.setToolBaggage(toolBaggage);
         }
+        // spec 1526 / T2303：批级回喂预算进程级兜底（0 = 关零行为）
+        toolManager.setBatchResponseBudget(
+                io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder.current());
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
                 appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager, env::emit);
         // spec 1511 / T2273：幂等工具瞬断重试自动装配——Holder 未开启（null）时原引用
@@ -209,6 +212,10 @@ public class HarnessAssembler {
         // MCP 等动态工具集经 SessionAssemblyCustomizer.addToolCallbacks 注入（spec 04 / ticket 22）
         allToolCallbacks.addAll(assemblyCtx.extraTools());
         List<ToolCallback> wrapped = applyWrappers(allToolCallbacks, assemblyCtx.toolWrappers());
+        // spec 1633 / T2417：失败负缓存包装（NegativeCachingHolder 未启用 = 原引用透传）
+        wrapped = wrapped.stream()
+                .map(io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder::wrap)
+                .toList();
         ToolCallback[] allTools = wrapped.toArray(new ToolCallback[0]);
         // spec 1613 / T2377：会话构造节拍拍目录指纹（spec 201 看门狗接线——进程级基线
         // 跨会话；首拍建基线，后续变化 WARN + 计数。纯旁路，不影响构造）
