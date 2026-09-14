@@ -12,7 +12,7 @@
 | MCP 工具风险 | LangChain（100K+）、MCP elicitation 规范 | 不信任 server 自报元数据，按客户端自己的风险分类登记危险工具名 |
 | 工具沙箱 | OpenHands（55K+） | 超时/取消杀进程树并告知 agent；环境变量最小化（白名单）；输出有界 |
 | 配置元数据 | Spring Boot 官方 processor 文档 | annotationProcessorPaths + optional；additional-metadata 只在被 processor 合并时生效（本仓现状=无效，必须补 processor） |
-| redteam 真实性 | promptfoo 官方 guardrails 指南（promptfoo ~5K★，注记：事实源为官方文档而非项目 star 数） | target 返回 `{output, guardrails:{flagged}}` 契约；HTTP target 用 `transformResponse` 从响应头派生 flagged；`type: guardrails` 断言；CI 按 eval 退出码门禁 |
+| redteam 真实性 | promptfoo 官方 guardrails 指南（promptfoo ~24K★@2026-09 调研时点；spec 1517 口径统一——star 为时点函数，事实源为官方文档而非 star 数） | target 返回 `{output, guardrails:{flagged}}` 契约；HTTP target 用 `transformResponse` 从响应头派生 flagged；`type: guardrails` 断言；CI 按 eval 退出码门禁 |
 
 ## §1 管理端点/调试 UI 安全
 
@@ -68,7 +68,7 @@ guard CommandSandbox 完整接线：本轮不做（run_command 黑名单+kill+en
 
 ## §6 redteam/评测门真实性
 
-**事实源**：promptfoo 官方 Testing Guardrails 指南（promptfoo 本体 ~5K★ 注记；契约是官方文档事实）。
+**事实源**：promptfoo 官方 Testing Guardrails 指南（promptfoo 本体 ~24K★@2026-09 调研时点；契约是官方文档事实）。
 
 要点：target 返回 `{output, guardrails:{flagged, ...}}`；HTTP provider 经 `transformResponse` 从响应头（如 `x-content-filtered`）派生 flagged；断言用 `type: guardrails`；CI 按退出码门禁；护栏评测关注 F1（真/假阳性平衡）。
 

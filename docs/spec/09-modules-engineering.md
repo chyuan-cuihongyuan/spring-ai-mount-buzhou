@@ -67,7 +67,7 @@
 
 依赖规则：
 
-1. 上表即**允许依赖白名单**——feature 模块（4–14）之间禁止互相依赖；跨机制协作一律走 core 事件总线或 core SPI。
+1. 上表即**允许依赖白名单**——feature 模块（4–14）之间禁止互相依赖；跨机制协作一律走 core 事件总线或 core SPI。（spec 1517 追认：**test 边豁免**——测试代码对其他 feature 模块的依赖仅限测试夹具复用（pom test scope，如 guard 测试复用 buzhou-memory 测试基建），运行期星形拓扑不受影响；ModuleBoundaryGuard 只扫 src/main/java 同此口径。）
 2. `buzhou-observe-otel` / `buzhou-observe-dashboard` 依赖 `buzhou-observability` 是星形图中唯一允许的「同域二层边」；二者互不依赖。
 3. store 实现只依赖 core 的 SPI 包，不被任何 feature 模块依赖——由用户按需引入、绑定级配置激活。
 4. community extension（`buzhou-config-nacos`、`buzhou-tokenizer-jtokkit` 等）遵循同一规则：只依赖 core，不进 starter 聚合。

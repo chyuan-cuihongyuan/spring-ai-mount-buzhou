@@ -811,6 +811,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 存储治理 | 降级存储契约对齐 + 机制计数口径（六-1/七-1） | redis 版 DegradingObservabilityStore 补 buzhou.store.write.failures{policy=degrade} 指标（jdbc 先例同款——同名策略两库观测一致）；README 九大机制升十大（模型韧性层入列，与 CLAUDE 口径统一）（spec 1515） | [spec 1515](docs/spec/1515-store-contract-align.md) |
 | 工程卫生 | spec 07 七切面回写 + 序位常量化（四-5/五-6 部分） | spec 07 三处「六切面」追认七切面（onModelError spec 15 落地后）；四处 advisor/hook 序位魔法值（+450/+460/100/200）抽常量+链位注释——ResilienceAdvisor.CHAIN_ORDER_OFFSET 先例同款，同值零行为变化（spec 1516） | [spec 1516](docs/spec/1516-spec07-order-consts.md) |
 | 工程卫生 | spill 默认值单一事实源（五-6 收口） | 2048/20/32000 散落四处收口 SpillProperties 三常量（threshold 引用 SpillOffloadHook 既有常量）——改默认值从散弹变单点；六-6 死参数（SPI 扩展位注记）/六-9 调度器工厂（delay queue 无无界风险）裁定入档（spec 1517） | [spec 1517](docs/spec/1517-spill-defaults-ssot.md) |
+| 文档门禁 | 文档间残留矛盾三裁定（七-2/七-3/四-8） | perf 口径澄清（10ms 目标/20ms 哨兵红线的目标-红线关系）；promptfoo star 统一 24K★@2026-09 时点注记；spec 09 追认 test 边豁免（ModuleBoundaryGuard 只扫 src/main 同口径）——design-incompleteness 可做项全部闭环（spec 1518） | [spec 1518](docs/spec/1518-doc-adjudications.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

@@ -24,14 +24,26 @@ class MicrometerDualWriterTest {
         final ConcurrentLinkedQueue<String> counters = new ConcurrentLinkedQueue<>();
         final ConcurrentLinkedQueue<String> timers = new ConcurrentLinkedQueue<>();
 
+        /** k1=v1,k2=v2 形式（奇数位标签截尾）。 */
+        static String fmt(String... tagKeyValue) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i + 1 < tagKeyValue.length; i += 2) {
+                if (i > 0) {
+                    sb.append(',');
+                }
+                sb.append(tagKeyValue[i]).append('=').append(tagKeyValue[i + 1]);
+            }
+            return sb.toString();
+        }
+
         @Override
         public void counter(String name, long delta, String... tagKeyValue) {
-            counters.add(name + ":" + delta + ":" + String.join("=", tagKeyValue));
+            counters.add(name + ":" + delta + ":" + fmt(tagKeyValue));
         }
 
         @Override
         public void timer(String name, Duration duration, String... tagKeyValue) {
-            timers.add(name + ":" + duration.toMillis() + ":" + String.join("=", tagKeyValue));
+            timers.add(name + ":" + duration.toMillis() + ":" + fmt(tagKeyValue));
         }
     }
 

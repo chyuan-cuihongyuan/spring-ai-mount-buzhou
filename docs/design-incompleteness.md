@@ -72,7 +72,7 @@
 5. **BuzhouHook 已扩为七切面**（spec 15 落地；✅ spec 07 已回写：spec 1516）；「编译 6 链缓存」亦未字面实现（HookChain.java:69 单链全遍历）。
 6. **形状偏离（语义等价）**：spec 17 约定 RunCommandTool 构造重载注入 CommandBackend，实现为并列类 `SandboxRunCommandTool` 装配期二选一；spec 05 `SessionToolExecutor` 公共类不存在（per-session ExecutorService + 注册表等价达成，DefaultAgentRuntime.java:366-370）。
 7. **未回写 04 档的增量**：`BuzhouMcpProperties.dangerousToolPatterns` / `shutdownBudget(35s)`、skills `SkillSearchTool`（注释指向 spec 21/37 等后续档）。
-8. **guard test 依赖 buzhou-memory**（pom 仅 test 边）——与 spec 09「feature 模块严禁互依」字面相抵；建议 09 档追认「test 边豁免」或改夹具。
+8. **guard test 依赖 buzhou-memory**（✅ 已追认：spec 1517——spec 09 增 test 边豁免注记）。
 
 ## 五、Standards 轴：成文规约硬违规（规约未自持）
 
@@ -102,8 +102,8 @@
 ## 七、文档间残留矛盾（未同步，需裁定口径）
 
 1. **机制计数口径**（✅ 已统一：spec 1515——README 升十大机制）：README「九大机制」+ 生产级纵深分节 vs CLAUDE.md「十大机制」（韧性层入列）——叙事 framing 差，建议统一为「9 + 韧性 = 10」或 README 升韧性为第十机制。
-2. **perf 口径**：spec 51 §C「rateTurn 写入 ≤10ms 量级」 vs 哨兵硬顶 20ms（`PerfEffort10SentinelsTest.java:41`、docs/perf/baseline.md:56）。
-3. **promptfoo star 数**：oss-perimeter-hardening.md:15/71/85 称 ~5K★ vs redteam/README.md:3 与 oss-perfect-tier23.md 称 24,206★。
+2. **perf 口径**（✅ 已澄清：spec 1517——10ms 目标量级/20ms 哨兵红线的目标-红线关系）：spec 51 §C「rateTurn 写入 ≤10ms 量级」 vs 哨兵硬顶 20ms（`PerfEffort10SentinelsTest.java:41`、docs/perf/baseline.md:56）。
+3. **promptfoo star 数**（✅ 已统一：spec 1517——24K★@2026-09 时点注记）：oss-perimeter-hardening.md:15/71/85 称 ~5K★ vs redteam/README.md:3 与 oss-perfect-tier23.md 称 24,206★。
 4. **api-surface.md 主清单与 snapshot 数量口径差**：md 为散文清单（实测约 414 条），snapshot 466 条为黄金面——建议 md 头部注明「以 snapshot 为准」。
 5. **spec 03 模块表归属残留**：`ObservabilityStore` SPI 实际在 `core.spi`（同 ToolSetSpec/ToolSetProvider），03 档模块表与 04 档未逐行回写（01 档本次已回写归属）。
 6. **历史计数不可验**：spec 31「289 用例」等历史测试计数无重跑通道，不判漂移、建议后续档只写「全绿」口径。

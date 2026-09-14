@@ -48,6 +48,40 @@ public final class DenoSandbox implements CommandSandbox {
     private record ProbeResult(long probedAtMillis, boolean available) {
     }
 
+    // —— spec 1066 / impl 818：探测读面（Envoy health check statistics 思想；静态面理由
+    // 同 R46–R65 先例，进程级探测面跨实例聚合）。双守恒：availableCalls = probeCacheHits
+    // + probes；probes = probeSuccesses + probeUnavailables。
+    private static final java.util.concurrent.atomic.AtomicLong AVAILABLE_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PROBE_CACHE_HITS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PROBES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PROBE_SUCCESSES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PROBE_UNAVAILABLES =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** Deno 探测分布快照（spec 1066）。 */
+    public record DenoProbeStats(long availableCalls, long probeCacheHits, long probes,
+                                 long probeSuccesses, long probeUnavailables) {
+    }
+
+    /** 只读快照（双守恒见类注）。 */
+    public static DenoProbeStats stats() {
+        return new DenoProbeStats(AVAILABLE_CALLS.get(), PROBE_CACHE_HITS.get(),
+                PROBES.get(), PROBE_SUCCESSES.get(), PROBE_UNAVAILABLES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        AVAILABLE_CALLS.set(0);
+        PROBE_CACHE_HITS.set(0);
+        PROBES.set(0);
+        PROBE_SUCCESSES.set(0);
+        PROBE_UNAVAILABLES.set(0);
+    }
+
     private DenoSandbox(Builder builder) {
         this.denoBinary = builder.denoBinary;
         this.allowRead = List.copyOf(builder.allowRead);
@@ -136,18 +170,26 @@ public final class DenoSandbox implements CommandSandbox {
     public boolean available() {
         // 探测：deno --version 退出码 0（经注入的 launcher 执行；失败/异常 = 不可用）
         // impl-40：结果按 TTL 缓存（探测是额外进程开销；失效即重探）
+        AVAILABLE_CALLS.incrementAndGet();
         ProbeResult cached = probeCache;
         long now = System.currentTimeMillis();
         if (cached != null && probeTtl.toMillis() > 0
                 && now - cached.probedAtMillis() < probeTtl.toMillis()) {
+            PROBE_CACHE_HITS.incrementAndGet();
             return cached.available();
         }
+        PROBES.incrementAndGet();
         boolean available;
         try {
             available = launcher.launch(List.of(denoBinary, "--version"), Map.of(), null,
                     Duration.ofSeconds(5)).success();
         } catch (Exception e) {
             available = false;
+        }
+        if (available) {
+            PROBE_SUCCESSES.incrementAndGet();
+        } else {
+            PROBE_UNAVAILABLES.incrementAndGet();
         }
         probeCache = new ProbeResult(now, available);
         return available;

@@ -26,7 +26,7 @@
 
 - TTFT 打点开销：带打点 vs 不带打点的流式吞吐 delta（宽幅 10×；打点为纳秒级 nanoTime 两次 +
   一次 map 写——预期近零）。
-- rateTurn 写入开销：单次反馈（state put + 事件）≤ 10ms 量级。
+- rateTurn 写入开销：单次反馈（state put + 事件）≤ 10ms 量级（spec 1517 口径澄清：10ms 为目标量级，perf 哨兵 CI 硬顶 20ms——两者为目标与红线关系非矛盾）。
 - 候选限流闸开销：带闸 vs 不带闸的降级路径延迟 delta（预检两次 map 查找——预期近零）。
 - shadow 提交开销：主路径成功返回延迟 delta（提交即返回——预期 <1ms）。
 - baseline 落档 docs/perf/baseline.md（第四批四哨兵）。
