@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [Skill 管理操作读面的形态裁决](../tickets/T1625-skilladmin-stats-shape.md) — SkillAdminApi 静态五计数（creates/updates/publishes/disables/deletes 独立口径同 R63）+ 嵌套 SkillAdminStats + stats()/resetForTest()；校验异常不入桶（GitHub repo admin API statistics）。
 - [fs 全链路四读面组合测试轮的形状裁决](../tickets/T1623-fs-chain-shape.md) — 纯测试轮第三弹：FsChainReadoutTest 钉住沙箱/写/读/黑名单四读面在真实工作流链路下的各自守恒保持与跨面字节对称恒等（R45/R46/R47/R51 组合）。
 - [J 系读面统一契约冒烟轮的形状裁决](../tickets/T1621-readout-smoke-shape.md) — starter ReadoutContractSmokeTest 反射驱动 15 读面清单三性质冒烟（stats 组件非负/reset 幂等/重复稳定）；清单显式维护=新读面登记纪律落点（meta-readout）。
 - [双档 run_command 对账组合测试轮的形状裁决](../tickets/T1619-dualmode-shape.md) — 纯测试轮：DualModeRunContrastTest 钉住 timeout=0 双档语义分叉（直执行显式拒绝入桶 vs 沙箱补默认送达）+ 各自守恒保持；防语义分叉被误修齐或回归。
@@ -186,7 +187,8 @@
 | 82 | 双档 run_command 对账组合测试轮（timeout 语义分叉钉住） | 纯测试轮 R81 先例 | T1619–T1620 | 834 | 1082 | ✅ |
 | 83 | J 系读面统一契约冒烟轮（15 读面非负/归零/稳定元验证） | 性质收缩 meta-readout | T1621–T1622 | 835 | 1083 | ✅ |
 | 84 | fs 全链路四读面组合测试轮（沙箱/写/读/黑名单链路守恒） | 纯测试轮第三弹 | T1623–T1624 | 836 | 1084 | ✅ |
-| 85 | （开工时按缺口核查选题） | — | T1625–T1626 | 837 | 1085 |  |
+| 85 | Skill 管理操作读面（create/update/publish/disable/delete 五面） | GitHub repo admin API statistics | T1625–T1626 | 837 | 1085 | ✅ |
+| 86 | （开工时按缺口核查选题） | — | T1627–T1628 | 838 | 1086 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）

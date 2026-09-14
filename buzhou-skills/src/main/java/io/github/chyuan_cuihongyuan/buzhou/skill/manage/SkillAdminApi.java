@@ -24,6 +24,39 @@ import java.util.Optional;
  */
 public class SkillAdminApi {
 
+    // —— spec 1085 / impl 837：管理操作读面（GitHub repo admin API statistics 思想；
+    // 静态面理由同 R46–R84 先例）。五操作类型独立计数不设统一守恒（口径同 R63）。
+    private static final java.util.concurrent.atomic.AtomicLong CREATES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong UPDATES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PUBLISHES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DISABLES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DELETES =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** Skill 管理操作分布快照（spec 1085）。 */
+    public record SkillAdminStats(long creates, long updates, long publishes,
+                                  long disables, long deletes) {
+    }
+
+    /** 只读快照（五操作独立计数）。 */
+    public static SkillAdminStats stats() {
+        return new SkillAdminStats(CREATES.get(), UPDATES.get(), PUBLISHES.get(),
+                DISABLES.get(), DELETES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        CREATES.set(0);
+        UPDATES.set(0);
+        PUBLISHES.set(0);
+        DISABLES.set(0);
+        DELETES.set(0);
+    }
+
     private final SkillStore dbStore;
     private final Map<String, ClasspathSkillEntry> classpathSkills;
     private final BindingPolicyStore bindingStore;
@@ -68,7 +101,9 @@ public class SkillAdminApi {
         DbSkillRecord draft = new DbSkillRecord(null, name, description == null ? "" : description,
                 allowedTools, body == null ? "" : body, SkillStatus.DRAFT, createdBy,
                 null, null, 0);
-        return dbStore.save(draft);
+        DbSkillRecord saved = dbStore.save(draft);
+        CREATES.incrementAndGet();
+        return saved;
     }
 
     /** 编辑 DB Skill（仅 DB；内置只读）。 */
@@ -83,6 +118,7 @@ public class SkillAdminApi {
                 existing.createdAt(), existing.updatedAt(), existing.version());
         DbSkillRecord saved = dbStore.save(updated);
         invalidateCatalogCache();
+        UPDATES.incrementAndGet();
         return saved;
     }
 
@@ -98,7 +134,9 @@ public class SkillAdminApi {
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SKILL_OPERATION_INVALID,
                     "Skill 已是上架状态：" + name);
         }
-        return transition(existing, SkillStatus.PUBLISHED);
+        DbSkillRecord saved = transition(existing, SkillStatus.PUBLISHED);
+        PUBLISHES.incrementAndGet();
+        return saved;
     }
 
     /** 下架：PUBLISHED → DISABLED（运行时不可见，同名内置自动恢复）；非上架状态拒绝。 */
@@ -110,7 +148,9 @@ public class SkillAdminApi {
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SKILL_OPERATION_INVALID,
                     "仅上架状态可下架（当前 " + existing.status() + "）：" + name);
         }
-        return transition(existing, SkillStatus.DISABLED);
+        DbSkillRecord saved = transition(existing, SkillStatus.DISABLED);
+        DISABLES.incrementAndGet();
+        return saved;
     }
 
     /** 删除 DB Skill（仅 DB；删除后同名内置自动恢复可见）。 */
@@ -118,6 +158,7 @@ public class SkillAdminApi {
         requireDbEnabled();
         boolean deleted = dbStore.deleteByName(name);
         if (deleted) {
+            DELETES.incrementAndGet();
             invalidateCatalogCache();
         }
         return deleted;
