@@ -844,6 +844,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 并发健康 | WebhookOutbox 锁迁移 | append/appendRetry/orphanIndexCount/requeueDead 的 monitor → ReentrantLock wrapper（锁内 store put/scan 在虚拟线程 dispatcher 下 unmount 而非 pin）——spec 1606 审计中危 #1 落地（spec 1609） | [spec 1609](docs/spec/1609-webhook-outbox-reentrantlock.md) |
 | 韧性治理 | 离群驱逐生产接线 + 分类感知 | spec 149 原语自 R11 前为未接线孤类（生产零调用）——advisor 全路径喂入（主/金丝雀/降级候选成败）+ 备模型候选驱逐过滤 + outlier.enabled 进程级装配（opt-in）；分类感知：failureCategories 默认 NETWORK/SERVER/TIMEOUT（AUTH/CONTENT 驱赶端点无意义——熔断同口径）（spec 1610） | [spec 1610](docs/spec/1610-outlier-ejection-wiring.md) |
 
+| 记忆治理 | Embedding 质量自查探针 | EmbeddingSelfCheck——合成句对（相似×2+无关对照×2）穿测 EmbeddingProvider：相似对余弦序逐对判定（免绝对阈值）+minMargin+orderHolds 回归哨兵+维度显形；换模型/供应商检索劣化从倒查变一行自查——OpenAI cookbook / sentence-transformers 思想（spec 1423） | [spec 1423](docs/spec/1423-embedding-selfcheck.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

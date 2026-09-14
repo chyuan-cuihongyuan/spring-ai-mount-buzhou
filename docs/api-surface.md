@@ -2412,3 +2412,8 @@
 - `HookOrderAudit`（1422——Spring ordered-bean 审计思想：钩子清单同序
   碰撞组显形（组内名字典序=ChainComposition 兜底序——重命名即变序的
   脆性所在），纯函数只读不裁决；嵌套 `Report`/`OrderGroup` 不另立面）
+
+- `EmbeddingSelfCheck`（1423——OpenAI embeddings cookbook / sentence-
+  transformers 语义自检思想：合成句对穿测 EmbeddingProvider——相似对
+  余弦序判定（免绝对阈值）+minMargin+orderHolds 回归哨兵+维度显形（换
+  模型伴生信号），纯函数；嵌套 `ProbeReport` 不另立面）
