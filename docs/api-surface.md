@@ -2338,3 +2338,8 @@
   桥，供给方灌注/消费方并入 HITL 默认条目；EvalRunRegistry 同款静态注册表模式；
   `reset()` 测试隔离用）
 - `PairwiseSprtPolicy`（1510 域——评估域 pairwise SPRT 策略公共面）
+
+- `WilsonInterval`（N 会话 bootstrap CI 域——威尔逊置信区间公共面）
+- `JitterMode`（N 会话 jitter 域——重试抖动模式公共面）
+
+## 跨会话新增公共类型补登二（R70 审计轮代登记，@since 1.0.0）

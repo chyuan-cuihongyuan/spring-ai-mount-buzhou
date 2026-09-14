@@ -147,6 +147,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.RagasEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.SessionTrajectoryImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WilsonInterval
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BackendLanePermit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CanaryToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CancellationToken
@@ -683,6 +684,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ModelCallTimeou
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderErrorClassifier
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderRateLimitSignals
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ResilienceModule
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.JitterMode
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCallInFlight
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver
