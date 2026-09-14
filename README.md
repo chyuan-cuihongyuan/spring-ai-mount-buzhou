@@ -632,6 +632,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 技能治理 | skill_search 搜索判定读面 | 搜索命中率与零结果率显形，四桶守恒（spec 1057） | [spec 1057](docs/spec/1057-skillsearch-stats.md) |
 | MCP 治理 | 工具集轮询提供器读面 | 热更新轮询三桶守恒显形，失败率可对账（spec 1058） | [spec 1058](docs/spec/1058-toolsetpoll-stats.md) |
 | 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
+| 观测治理 | J 系阶段对账审计 R60 | J 会话 R51–R59 工件对账 + 七域读面布局盘点（spec 1060） | [spec 1060](docs/spec/1060-j-audit-r60.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -792,6 +793,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 安全治理 | MCP 危险工具默认动词模式（S1 硬偏差修复） | buzhou.mcp.dangerous-tool-patterns 缺省从空改为 spec 14 §F 承诺的七动词前缀 glob（delete/drop/write/update/remove/send/exec）——恶意 server 的写侧工具默认进登记面；显式空列表 = 关闭逃生门（design-incompleteness S1 闭环）（spec 1507） | [spec 1507](docs/spec/1507-mcp-default-dangerous-patterns.md) |
 | 安全治理 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core DangerousToolRegistry 进程级桥（模块解耦不破白名单）——tools 装配后灌注危险名单，guard afterName 保时序默认并入三参 HITL 条目（yml 显式优先去重）；opt-in 开 write_file 即得默认审批拦截（spec 1508） | [spec 1508](docs/spec/1508-dangerous-tool-bridge.md) |
 | 韧性观测 | canary.selected 事件会话归属补齐（F7）+ spec 07 续跑名回写（F10） | payload 补 sessionId（多会话监听面可定位，常量 Javadoc 自钉「sessionId + model」此前未兑现）；spec 07 的 AgentSession.resume() 推演名回写指向 SessionInterrupts.resumeWith（功能等价）——design-incompleteness F 系清扫轮（spec 1509） | [spec 1509](docs/spec/1509-canary-payload-f7-f10.md) |
+| 装配治理 | ConfigMaps indexed 属性数字键归一 | properties/命令行/env-var 源的 key[i].f=v 从 Binder mapOf 弱点绑出的 Map 形态归一为数值序 List——guard dangerous-tools 等一切 fromYml 列表键在这些源下此前静默失效（YAML 源正常）；混合键不误伤（spec 1510） | [spec 1510](docs/spec/1510-configmaps-indexed-coerce.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

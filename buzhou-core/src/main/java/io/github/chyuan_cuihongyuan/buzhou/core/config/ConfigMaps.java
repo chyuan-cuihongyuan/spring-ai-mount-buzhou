@@ -45,6 +45,18 @@ public final class ConfigMaps {
         if (v instanceof Map<?, ?> m) {
             Map<String, Object> out = new LinkedHashMap<>();
             m.forEach((k, val) -> out.put(String.valueOf(k), normalizeValue(val)));
+            // spec 1510 / T2271：indexed 属性数字键归一——properties/命令行/env-var 源的
+            // key[0].f=v 被 Binder 绑成 {key={0={f=v}}}（mapOf 弱点），一切 fromYml 以
+            // instanceof List 消费的列表键在这些源下静默失效；键集全为十进制数字即按
+            // 数值序转 List（字典序会 10<2 乱序）。真实数字键 map 在 YAML 语义不存在，
+            // 归一安全；混合键保持 Map 不误伤
+            if (!out.isEmpty() && out.keySet().stream().allMatch(ConfigMaps::isDecimalIndex)) {
+                return out.entrySet().stream()
+                        .sorted(java.util.Map.Entry.comparingByKey(
+                                java.util.Comparator.comparingLong(e -> Long.parseLong(e))))
+                        .map(java.util.Map.Entry::getValue)
+                        .toList();
+            }
             return out;
         }
         if (v instanceof List<?> l) {
@@ -54,6 +66,18 @@ public final class ConfigMaps {
             return coerceLeaf(s);
         }
         return v;
+    }
+
+    private static boolean isDecimalIndex(String key) {
+        if (key == null || key.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < key.length(); i++) {
+            if (!Character.isDigit(key.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static Object coerceLeaf(String s) {
