@@ -86,11 +86,14 @@ class LSessionLedgerAuditTest {
     }
 
     @Test
-    void specNumbersContiguousFrom1400() throws IOException {
+    void specNumbersStrictlyIncreasingFrom1400() throws IOException {
+        // spec 1439 有意缺位（编号让位入档 spec 1440 头注）——断言严格递增+起点 1400
         List<Integer> specs = lSpecNumbers();
         assertThat(specs).isNotEmpty();
-        for (int i = 0; i < specs.size(); i++) {
-            assertThat(specs.get(i)).as("spec 号段连续性（第 %d 个）", i).isEqualTo(1400 + i);
+        assertThat(specs.get(0)).isEqualTo(1400);
+        for (int i = 1; i < specs.size(); i++) {
+            assertThat(specs.get(i)).as("spec 号严格递增（第 %d 个）", i)
+                    .isGreaterThan(specs.get(i - 1));
         }
     }
 }
