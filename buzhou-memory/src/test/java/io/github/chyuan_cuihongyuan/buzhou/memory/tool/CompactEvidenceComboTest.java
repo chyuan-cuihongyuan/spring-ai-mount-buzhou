@@ -8,6 +8,9 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import io.github.chyuan_cuihongyuan.buzhou.memory.summary.DefaultSummaryGenerator;
 import io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.model.Generation;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.model.ToolContext;
 
