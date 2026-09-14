@@ -39,7 +39,7 @@ R16 事件序列缺口检测(Kafka offset gap ≈30K)→core【高危待勘 vs 9
 R17 评估无进展 deadline 检测(k8s progressDeadlineSeconds ≈115K)→core｜
 R18 技能内容寻址指纹(pnpm store CAS ≈32K)→skills【高危待勘 vs 813/832】｜
 R19 会话 id 熵审计(nanoid alphabet entropy ≈27K)→core｜
-R20 多租户 Jain 公平指数(Kafka quota fairness ≈30K)→core【高危待勘 vs 831】｜
+R10 ✅ 换题落地=多租户 Jain 公平指数（R20 题提前；原 R10 令牌桶水位半撞换出）｜
 R21 取消延迟分布读数(Temporal cancellation latency ≈16K)【高危待勘 vs 824 原因分布】→core｜
 R22 缓存驱逐计数读面(Caffeine eviction stats ≈16K)【高危待勘 prompt 缓存驱逐点】→core｜
 R23 令牌桶水位读面(Guava RateLimiter ≈51K)【高危待勘 resilience 限流器】→resilience｜

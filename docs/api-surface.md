@@ -2338,3 +2338,8 @@
   断路器变迁流按模型积段→逐状态 total/segments/max+OPEN 占比 openShare
   （crash-loop 量化画像），无序容忍+采样窗口径入档，纯函数零接线；嵌套
   `StateDuration`/`ModelDurations` 不另立面）
+
+- `FairnessIndex`（1409——Kafka client quota 公平性思想：多租户用量
+  Jain 指数 J=(Σx)²/(n·Σx²)+dominantShare 单点吃满检测+逐租户份额降序
+  +isFair(FAIR_FLOOR=0.9)+全零 -1 哨兵，纯函数；嵌套 `FairnessReport`/
+  `TenantShare` 不另立面）

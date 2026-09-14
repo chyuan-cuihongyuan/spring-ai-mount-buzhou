@@ -773,6 +773,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 模型韧性 | 断路器状态时长分析 | CircuitStateDurationAnalyzer——变迁流按模型积段积分：逐状态 total/segments/max+OPEN 占比 openShare（crash-loop 量化画像），无序容忍+采样窗口径入档——Resilience4j state duration 思想，只读零接线（spec 1408） | [spec 1408](docs/spec/1408-circuit-state-duration-analyzer.md) |
 
+| 预算治理 | 多租户配额公平指数 | FairnessIndex——Jain 指数 J=(Σx)²/(n·Σx²)∈(0,1]+dominantShare 单点吃满检测+逐租户份额降序行动面+isFair(0.9 电信惯例)+全零 -1 哨兵；noisy neighbor 从人肉聚合变一读显形——Kafka client quota 公平性思想（spec 1409） | [spec 1409](docs/spec/1409-fairness-index.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
