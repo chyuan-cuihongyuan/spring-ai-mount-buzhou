@@ -53,8 +53,10 @@ public class FileSandbox {
             throw new IllegalArgumentException(
                     "tenant id must match [a-z0-9][a-z0-9-]{0,31}: " + tenant);
         }
+        // realpath 归一与主构造一致（R99 组合轮实证：macOS /var→/private/var 符号链接下
+        // toAbsolutePath 不解析链接，写入后 realpath 前缀失配误判越界）
         Path base = root == null ? Path.of(".").toAbsolutePath().normalize()
-                : root.toAbsolutePath().normalize();
+                : realpathOrAbsolute(root);
         return new FileSandbox(base.resolve("tenants").resolve(tenant), List.of());
     }
 
