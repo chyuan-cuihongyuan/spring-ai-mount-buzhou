@@ -918,6 +918,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 会话治理 | 会话 spawn 统计读面 | SessionSpawnStats——spawn 漏斗 attempts/successes/collisions/steals 守恒式（attempts=successes+collisions）+activePeak spawn 时点活跃峰值水位（口径显式仅 spawn 路径采样）；同 id 冲突高发与抢占频次从静默变漏斗显形——HikariCP 建连统计思想（spec 1432） | [spec 1432](docs/spec/1432-session-spawn-stats.md) |
 
+| 治理 | 工具循环打断分布 | ToolLoopBreakerHook.brokenByToolSnapshot()——per-tool 累计打断次数（降序典序）+brokenTotal+maxRunObserved 打断时点最长 run 水位，reset 清分布不清会话 run 状态；「哪个工具在烧配额」定向治理信号显形——Temporal retry-loop detection 思想（spec 1433） | [spec 1433](docs/spec/1433-tool-loop-break-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
