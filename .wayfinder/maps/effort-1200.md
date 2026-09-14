@@ -26,6 +26,7 @@
 - [低覆盖类批次 1 选题与补测形态（PolicyGateHook × RecallSearchTool）](../tickets/T1806-lowcoverage-batch1-shape.md) — R2：低覆盖档（<50% 且 miss≥10）证据驱动选题——guard 策略门四合同面（三态裁决映射/FIDES taint 组装/policy.decided 事件/指标三桶，OPA「input→decision+reason」合同思想）+ memory 召回工具十断言面（四模输出/摘要归一截断/降级与失败文案/轮次窗，ES partial-results 降级显式提示思想）；core 复扫靶点归批次 2。
 - [PolicyGateHook 指标注释 tag 值失真](../tickets/T1808-policygate-metric-comment.md) — R2 补测显形：注释称 outcome=allowed|blocked|escalated，代码实际发射 allow|deny|escalate（Action 名小写，spec 13 无背书）——实际合同锁定 + 注释更正（零行为变化）；改 tag 值是部署侧可见行为变更，须独立 spec 决策。
 - [skills RedisSkillStore 零覆盖补测形态（契约接入 + R1 审计遗漏修正）](../tickets/T1809-redis-skill-store-contract-shape.md) — R3：R1「全部 16 模块」审计漏扫 skills（结论未逐模块罗列的流程漏洞，诚实入档）——RedisSkillStore（cov=0/26）接 SkillStore 契约基类（Pact consumer-driven contract 思想，三实现同组断言）；Testcontainers redis:7-alpine 门控沿 store-redis 同款（不选手写 fake：60+ 方法 stub 是 Mockito 手工复刻且测不到真实 JSON/网络路径）；skills pom 补 testcontainers-junit-jupiter（test，根 POM 版本管理）；无 Docker 验证口径 = 编译绿 + 收集 + skip（CI 覆盖行为面）。
+- [core 零覆盖尾巴清扫与判据收紧（AttachmentRenderer × CommandOutcome）](../tickets/T1811-core-zero-tail-sweep-shape.md) — R4：隔离 worktree 复扫（820 类）低覆盖档清空 → zero 判据收紧 miss≥5 → miss≥1（≥5 门槛藏住 CommandOutcome success() 这类小而行为敏感的谓词）；AttachmentRenderer default 截断合同（java.util 接口 default 测试思想）+ CommandOutcome 谓词矩阵（超时优先于退出码）；core 证据一律走隔离 worktree（主工作区复扫被并行会话构建竞争卡死，e84940f6 同源问题）。
 
 ## R1 台账（spec 1200 / impl 903）
 
