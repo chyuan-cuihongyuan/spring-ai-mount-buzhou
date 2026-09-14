@@ -58,6 +58,9 @@
 - [R13 形状：guard 孤类装配面](../tickets/T2375-r13-guard-orphans-shape.md) — spec 1611 孤类修复第二弹：ToolRoleGuardHook（141 角色权限）/InputFloodGuardHook（167 泛洪防护）自 Builder 声明即注册（此前 GuardModule 无装配路径），默认未声明零注册
 - [R13 验收](../tickets/T2376-r13-guard-orphans-verify.md) — 装配三断言（permissions 声明注册/泛洪配置注册/默认双双零注册）+ guard 334 用例零回归
 
+- [R14 形状：目录漂移看门狗接线](../tickets/T2377-r14-drift-shape.md) — spec 201 孤类修复第三弹：CatalogDriftHolder 进程级基线（RetryBudgetHolder 模式）+ HarnessAssembler 会话构造节拍拍指纹（首拍建基线，变化 WARN+计数；包装层不改指纹——只捕目录语义变化）
+- [R14 验收](../tickets/T2378-r14-drift-verify.md) — 三会话序列集成断言（建基线零事件/目录变化一事件含增删明细/稳定无事件）+ Holder 直喂面
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -84,3 +87,4 @@
 | R11 | #1610 | 离群驱逐生产接线 + 分类感知（spec 149 孤类救活） | T2371–T2372 | 1163 | 1610 | done |
 | R12 | #1611 | 孤类普查（15 项入档）+ 熔断遥测接线（spec 811/836 喂点落地） | T2373–T2374 | 1164 | 1611 | done |
 | R13 | #1612 | guard 孤类装配面（spec 141/167 两 hook 救活） | T2375–T2376 | 1165 | 1612 | done |
+| R14 | #1613 | 工具目录漂移看门狗接线（spec 201 孤类救活） | T2377–T2378 | 1166 | 1613 | done |

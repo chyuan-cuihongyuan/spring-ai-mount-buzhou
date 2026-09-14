@@ -815,6 +815,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 韧性治理 | 离群驱逐生产接线 + 分类感知 | spec 149 原语自 R11 前为未接线孤类（生产零调用）——advisor 全路径喂入（主/金丝雀/降级候选成败）+ 备模型候选驱逐过滤 + outlier.enabled 进程级装配（opt-in）；分类感知：failureCategories 默认 NETWORK/SERVER/TIMEOUT（AUTH/CONTENT 驱赶端点无意义——熔断同口径）（spec 1610） | [spec 1610](docs/spec/1610-outlier-ejection-wiring.md) |
 | 韧性治理 | 孤类普查 + 熔断旁路遥测接线 | 全仓普查「类存在、测试齐全、生产零调用」孤类 15 项（19 类）+ 疑似 6 项入档 spec（系统性流程风险显形）；本轮修复 CircuitCrashLoopDetector（spec 811）与 HalfOpenProbeStats（spec 836）：withTelemetry 注入 + 跳闸/半开恢复/探测成败喂点 + 装配恒挂（纯读数旁路）（spec 1611） | [spec 1611](docs/spec/1611-orphan-census-circuit-telemetry.md) |
 | 护栏治理 | guard 孤类装配面 | ToolRoleGuardHook（角色工具权限，K8s RBAC 式 fail-closed）与 InputFloodGuardHook（同输入泛洪防护）自 GuardModule.Builder 声明即注册——spec 141/167 两孤类救活（此前零装配路径）；未声明零注册——spec 1611 普查修复第二弹（spec 1612） | [spec 1612](docs/spec/1612-guard-orphan-assembly.md) |
+| 会话治理 | 工具目录漂移看门狗接线 | CatalogDriftHolder 进程级基线 + 会话构造节拍拍指纹——目录增删改即 WARN + buzhou.catalog.drifted 计数（MCP 差量刷新错配/装配漂移显形）；首拍建基线、包装层不入指纹——spec 201 孤类救活（spec 1613） | [spec 1613](docs/spec/1613-catalog-drift-wiring.md) |
 
 ## 快速开始
 

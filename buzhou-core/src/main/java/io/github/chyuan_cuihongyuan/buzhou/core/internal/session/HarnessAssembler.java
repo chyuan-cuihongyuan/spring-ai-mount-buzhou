@@ -190,7 +190,12 @@ public class HarnessAssembler {
         }
         DefaultSessionAssemblyContext assemblyCtx = new DefaultSessionAssemblyContext(
                 appId, agentName, sessionId, stores, registry, spanContextCarrier, toolManager, env::emit);
-        assemblyCtx.wrapToolCallbacks(t -> (ToolCallback) new HookedToolCallback(t, chain, env));
+        // spec 1511 / T2273：幂等工具瞬断重试自动装配——Holder 未开启（null）时原引用
+        // 透传零包装；重试在 Hooked 内层（beforeTool/afterTool hook 只见逻辑调用一次）
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder retryWiring =
+                io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder.Holder.current();
+        assemblyCtx.wrapToolCallbacks(t -> (ToolCallback) new HookedToolCallback(
+                retryWiring == null ? t : retryWiring.wrapIfIdempotent(t), chain, env));
         // 机制模块（buzhou-observability）经 customizer 注入 advisor + 工具包装 + observer
         if (assemblyCustomizers != null) {
             assemblyCustomizers.forEach(c -> c.customize(assemblyCtx));
@@ -205,6 +210,10 @@ public class HarnessAssembler {
         allToolCallbacks.addAll(assemblyCtx.extraTools());
         List<ToolCallback> wrapped = applyWrappers(allToolCallbacks, assemblyCtx.toolWrappers());
         ToolCallback[] allTools = wrapped.toArray(new ToolCallback[0]);
+        // spec 1613 / T2377：会话构造节拍拍目录指纹（spec 201 看门狗接线——进程级基线
+        // 跨会话；首拍建基线，后续变化 WARN + 计数。纯旁路，不影响构造）
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftHolder.snapshot(
+                wrapped.stream().map(ToolCallback::getToolDefinition).toList());
 
         BuzhouChatMemory memory = new BuzhouChatMemory(stores.messageStore());
         memory.setViewProcessor(viewProcessor);
