@@ -636,6 +636,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | J 系阶段对账审计 R60 | J 会话 R51–R59 工件对账 + 七域读面布局盘点（spec 1060） | [spec 1060](docs/spec/1060-j-audit-r60.md) |
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
 | 观测治理 | J 系阶段对账审计 R80 | J 会话 R71–R79 工件对账 + 九域读面布局盘点（spec 1080） | [spec 1080](docs/spec/1080-j-audit-r80.md) |
+| 观测治理 | J 系读面统一契约冒烟轮 | 15 读面非负/归零/稳定三性质元验证（spec 1083） | [spec 1083](docs/spec/1083-readout-contract-smoke.md) |
 | 观测治理 | ObservabilityAdvisor 流式路径分支补测 | K 会话 R13：流式回调链 TTFT/TPOT/流错终态测试基建（spec 1212） | [spec 1212](docs/spec/1212-advisor-stream.md) |
 | 观测治理 | J 系阶段对账审计 R70 | J 会话 R61–R69 工件对账 + 七域读面布局收口（spec 1070） | [spec 1070](docs/spec/1070-j-audit-r70.md) |
 | 工具计量 | http_request 受控头丢弃显形 | 黑名单头试探频次量化（spec 1071） | [spec 1071](docs/spec/1071-headerdrop-stats.md) |

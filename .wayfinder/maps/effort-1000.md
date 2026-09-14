@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [J 系读面统一契约冒烟轮的形状裁决](../tickets/T1621-readout-smoke-shape.md) — starter ReadoutContractSmokeTest 反射驱动 15 读面清单三性质冒烟（stats 组件非负/reset 幂等/重复稳定）；清单显式维护=新读面登记纪律落点（meta-readout）。
 - [双档 run_command 对账组合测试轮的形状裁决](../tickets/T1619-dualmode-shape.md) — 纯测试轮：DualModeRunContrastTest 钉住 timeout=0 双档语义分叉（直执行显式拒绝入桶 vs 沙箱补默认送达）+ 各自守恒保持；防语义分叉被误修齐或回归。
 - [读写对称守恒组合测试轮的形状裁决](../tickets/T1617-rwsymmetry-shape.md) — 纯测试轮（I 系 R52 先例）：ReadWriteSymmetryTest 钉住 bytesWritten==bytesRead 字节口径恒等（ASCII/中文/混合三内容）+ 双侧守恒保持；读面谱系可信度组合语义（spec 1540 先例）。
 - [R80 周期预检轮的形状裁决](../tickets/T1615-r80-audit-shape.md) — R71–R79 对账零缺陷（九域读面布局）+ 跨会话孤儿 spec 补登（三型欠账范式齐备：快照死链/README 死链/孤儿文件）；复跑 BUILD SUCCESS 验收。
@@ -182,7 +183,8 @@
 | 80 | 周期预检轮：R71–R79 对账全绿 + 孤儿 spec 补登（三型欠账范式齐） + 复跑 verify BUILD SUCCESS | 门反向检测就近补登 | T1615–T1616 | 832 | 1080 | ✅ |
 | 81 | 读写对称守恒组合测试轮（bytesWritten==bytesRead 纯测试） | 组合语义 spec 1540 先例 | T1617–T1618 | 833 | 1081 | ✅ |
 | 82 | 双档 run_command 对账组合测试轮（timeout 语义分叉钉住） | 纯测试轮 R81 先例 | T1619–T1620 | 834 | 1082 | ✅ |
-| 83 | （开工时按缺口核查选题） | — | T1621–T1622 | 835 | 1083 |  |
+| 83 | J 系读面统一契约冒烟轮（15 读面非负/归零/稳定元验证） | 性质收缩 meta-readout | T1621–T1622 | 835 | 1083 | ✅ |
+| 84 | （开工时按缺口核查选题） | — | T1623–T1624 | 836 | 1084 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
