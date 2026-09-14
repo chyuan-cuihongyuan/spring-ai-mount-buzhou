@@ -59,8 +59,10 @@ class TodoHttpComboTest {
         String httpOut = http.call("{\"method\":\"GET\",\"url\":\"http://127.0.0.1:"
                 + server.getAddress().getPort() + "/data\"}");
         assertThat(httpOut).startsWith("HTTP 200");
-        // todo 列表（最简无校验动作，确保计数路径）
-        String todoOut = todo.call("{\"action\":\"list\"}");
+        // todo 列表（需会话上下文——缺失会话早退在计数之前）
+        String todoOut = todo.call("{\"action\":\"list\"}",
+                new org.springframework.ai.chat.model.ToolContext(
+                        Map.of("buzhou.sessionId", "s1")));
         assertThat(todoOut).isNotNull();
 
         HttpRequestTool.HttpToolStats hs = HttpRequestTool.stats();
