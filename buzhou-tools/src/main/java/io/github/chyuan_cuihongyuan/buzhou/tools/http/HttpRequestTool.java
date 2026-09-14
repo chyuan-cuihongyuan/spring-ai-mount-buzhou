@@ -74,11 +74,14 @@ public class HttpRequestTool implements ToolCallback {
     /** spec 1603 / T2357：per-host 并发上限拒绝（limit_conn 桶）。 */
     private static final AtomicLong HOST_LIMIT_REJECTS = new AtomicLong();
     private static final AtomicLong FAILURES = new AtomicLong();
+    /** spec 1071：受控头丢弃旁路量（一次请求可丢多头，不占入口桶）。 */
+    private static final AtomicLong HEADER_DROPS = new AtomicLong();
 
     /** 请求量水位与结果分布快照（spec 1049；spec 1603 扩第七桶 hostLimitRejects）。 */
     public record HttpToolStats(long attempts, long successes, long methodRejects,
                                 long urlRejects, long ssrfRejects, long timeoutParamRejects,
-                                long oversizeRejects, long hostLimitRejects, long failures) {
+                                long oversizeRejects, long hostLimitRejects, long failures,
+                                long headerDrops) {
 
         /** 拒绝总数（七桶之和）。 */
         public long totalRejects() {
@@ -91,7 +94,8 @@ public class HttpRequestTool implements ToolCallback {
     public static HttpToolStats stats() {
         return new HttpToolStats(ATTEMPTS.get(), SUCCESSES.get(), METHOD_REJECTS.get(),
                 URL_REJECTS.get(), SSRF_REJECTS.get(), TIMEOUT_PARAM_REJECTS.get(),
-                OVERSIZE_REJECTS.get(), HOST_LIMIT_REJECTS.get(), FAILURES.get());
+                OVERSIZE_REJECTS.get(), HOST_LIMIT_REJECTS.get(), FAILURES.get(),
+                HEADER_DROPS.get());
     }
 
     /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
@@ -105,6 +109,7 @@ public class HttpRequestTool implements ToolCallback {
         OVERSIZE_REJECTS.set(0);
         HOST_LIMIT_REJECTS.set(0);
         FAILURES.set(0);
+        HEADER_DROPS.set(0);
     }
 
     public HttpRequestTool(SsrfGuard ssrfGuard, Duration defaultTimeout) {
@@ -214,7 +219,8 @@ public class HttpRequestTool implements ToolCallback {
             args.path("headers").properties().forEach(h -> {
                 String name = h.getKey().trim();
                 if (BLOCKED_HEADERS.contains(name.toLowerCase(java.util.Locale.ROOT))) {
-                    return; // 静默丢弃受控头
+                    HEADER_DROPS.incrementAndGet(); // spec 1071：受控头丢弃显形
+                    return;
                 }
                 String value = h.getValue().asText();
                 if (value.length() > MAX_HEADER_VALUE_CHARS) {
