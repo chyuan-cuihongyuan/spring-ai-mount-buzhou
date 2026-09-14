@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.dashboard;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
+import io.github.chyuan_cuihongyuan.buzhou.dashboard.internal.DashboardHttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
