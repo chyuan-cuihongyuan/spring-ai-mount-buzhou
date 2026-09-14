@@ -13,6 +13,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * http_request — HTTP 调用（危险，默认关、绑定级 opt-in；写方法默认挂 HITL 守卫，
@@ -42,6 +43,49 @@ public class HttpRequestTool implements ToolCallback {
     private final SsrfGuard ssrfGuard;
     private final Duration defaultTimeout;
     private final HttpClient client;
+
+    // —— spec 1049 / impl 801：请求量水位与结果分布（Envoy upstream 统计按结局分桶思想；
+    // 静态面理由同 R46–R48 域内先例）。守恒：attempts = successes + 六拒绝桶之和。
+    // 参数桶（method/url/timeout）指向模型行为；环境桶（ssrf/failures）指向环境与守卫。
+    private static final AtomicLong ATTEMPTS = new AtomicLong();
+    private static final AtomicLong SUCCESSES = new AtomicLong();
+    private static final AtomicLong METHOD_REJECTS = new AtomicLong();
+    private static final AtomicLong URL_REJECTS = new AtomicLong();
+    private static final AtomicLong SSRF_REJECTS = new AtomicLong();
+    private static final AtomicLong TIMEOUT_PARAM_REJECTS = new AtomicLong();
+    private static final AtomicLong OVERSIZE_REJECTS = new AtomicLong();
+    private static final AtomicLong FAILURES = new AtomicLong();
+
+    /** 请求量水位与结果分布快照（spec 1049）。 */
+    public record HttpToolStats(long attempts, long successes, long methodRejects,
+                                long urlRejects, long ssrfRejects, long timeoutParamRejects,
+                                long oversizeRejects, long failures) {
+
+        /** 拒绝总数（六桶之和）。 */
+        public long totalRejects() {
+            return methodRejects + urlRejects + ssrfRejects
+                    + timeoutParamRejects + oversizeRejects + failures;
+        }
+    }
+
+    /** 只读快照（守恒 attempts = successes + totalRejects()）。 */
+    public static HttpToolStats stats() {
+        return new HttpToolStats(ATTEMPTS.get(), SUCCESSES.get(), METHOD_REJECTS.get(),
+                URL_REJECTS.get(), SSRF_REJECTS.get(), TIMEOUT_PARAM_REJECTS.get(),
+                OVERSIZE_REJECTS.get(), FAILURES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        ATTEMPTS.set(0);
+        SUCCESSES.set(0);
+        METHOD_REJECTS.set(0);
+        URL_REJECTS.set(0);
+        SSRF_REJECTS.set(0);
+        TIMEOUT_PARAM_REJECTS.set(0);
+        OVERSIZE_REJECTS.set(0);
+        FAILURES.set(0);
+    }
 
     public HttpRequestTool(SsrfGuard ssrfGuard, Duration defaultTimeout) {
         this.ssrfGuard = ssrfGuard;
@@ -73,29 +117,35 @@ public class HttpRequestTool implements ToolCallback {
 
     @Override
     public String call(String toolInput) {
+        ATTEMPTS.incrementAndGet();
         try {
             JsonNode args = MAPPER.readTree(toolInput);
             String method = args.path("method").asText("").toUpperCase(Locale.ROOT);
             String url = args.path("url").asText("");
             if (!ALLOWED_METHODS.contains(method)) {
+                METHOD_REJECTS.incrementAndGet();
                 return "http_request 失败：不支持的 method：" + method;
             }
             URI uri;
             try {
                 uri = URI.create(url);
             } catch (IllegalArgumentException e) {
+                URL_REJECTS.incrementAndGet();
                 return "http_request 失败：非法 URL：" + url;
             }
             if (!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme())) {
+                URL_REJECTS.incrementAndGet();
                 return "http_request 失败：仅支持 http/https：" + url;
             }
             String reject = ssrfGuard.check(uri.getHost());
             if (reject != null) {
+                SSRF_REJECTS.incrementAndGet();
                 return "http_request 拒绝：" + reject;
             }
             long timeoutSeconds = args.path("timeoutSeconds").asLong(defaultTimeout.toSeconds());
             // impl-49：timeoutSeconds 上限校验（此前无上界，模型可自报任意时长）
             if (timeoutSeconds <= 0 || timeoutSeconds > MAX_TIMEOUT_SECONDS) {
+                TIMEOUT_PARAM_REJECTS.incrementAndGet();
                 return "http_request 失败：timeoutSeconds 超出允许范围（1~" + MAX_TIMEOUT_SECONDS + "）";
             }
             String body = args.hasNonNull("body") ? args.path("body").asText() : null;
@@ -119,6 +169,7 @@ public class HttpRequestTool implements ToolCallback {
                     HttpResponse.BodyHandlers.ofInputStream());
             long declared = raw.headers().firstValueAsLong("Content-Length").orElse(-1);
             if (declared > MAX_RESPONSE_BYTES) {
+                OVERSIZE_REJECTS.incrementAndGet();
                 return "http_request 失败：响应体 " + declared + " 字节超过读入上限 "
                         + MAX_RESPONSE_BYTES + " 字节";
             }
@@ -126,9 +177,11 @@ public class HttpRequestTool implements ToolCallback {
             boolean truncated = bytes.length > MAX_RESPONSE_BYTES;
             int len = (int) Math.min(bytes.length, MAX_RESPONSE_BYTES);
             String responseBody = new String(bytes, 0, len, java.nio.charset.StandardCharsets.UTF_8);
+            SUCCESSES.incrementAndGet();
             return "HTTP " + raw.statusCode() + "\n" + responseBody
                     + (truncated ? "\n[响应超过读入上限 8MB，已截断]" : "");
         } catch (Exception e) {
+            FAILURES.incrementAndGet();
             return "http_request 失败：" + e.getMessage();
         }
     }
