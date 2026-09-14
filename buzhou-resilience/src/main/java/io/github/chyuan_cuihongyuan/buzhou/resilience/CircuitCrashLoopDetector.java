@@ -6,6 +6,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 断路器 crash-loop 检测（spec 811 / T1123，k8s CrashLoopBackOff 思想）：
@@ -39,6 +40,32 @@ public final class CircuitCrashLoopDetector {
     private final Map<String, ModelState> models = new ConcurrentHashMap<>();
     private volatile boolean truncated;
 
+    // —— spec 1056 / impl 808：类级水位读面（kube-state-metrics crashloop 事件总账思想；
+    // 静态面理由同 R46–R55 先例）。口径诚实：null/空白模型不落入任何桶。
+    private static final AtomicLong OPENS_RECORDED = new AtomicLong();
+    private static final AtomicLong OPENS_TRUNCATED = new AtomicLong();
+    private static final AtomicLong LOOPS_DETECTED = new AtomicLong();
+    private static final AtomicLong RECOVERIES_RECORDED = new AtomicLong();
+
+    /** 崩循环探测器类级水位快照（spec 1056）。 */
+    public record CrashLoopWatchStats(long opensRecorded, long opensTruncated,
+                                      long loopsDetected, long recoveriesRecorded) {
+    }
+
+    /** 只读快照。 */
+    public static CrashLoopWatchStats stats() {
+        return new CrashLoopWatchStats(OPENS_RECORDED.get(), OPENS_TRUNCATED.get(),
+                LOOPS_DETECTED.get(), RECOVERIES_RECORDED.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        OPENS_RECORDED.set(0);
+        OPENS_TRUNCATED.set(0);
+        LOOPS_DETECTED.set(0);
+        RECOVERIES_RECORDED.set(0);
+    }
+
     public CircuitCrashLoopDetector(int minOpens, long windowMillis) {
         if (minOpens < 2) {
             throw new IllegalArgumentException("minOpens 必须 >= 2（当前 " + minOpens + "）");
@@ -59,10 +86,12 @@ public final class CircuitCrashLoopDetector {
         if (state == null) {
             if (models.size() >= MAX_MODELS) {
                 truncated = true;
+                OPENS_TRUNCATED.incrementAndGet();
                 return;
             }
             state = models.computeIfAbsent(model, k -> new ModelState());
         }
+        OPENS_RECORDED.incrementAndGet();
         synchronized (state) {
             state.openTimes.addLast(atEpochMs);
             while (!state.openTimes.isEmpty() && atEpochMs - state.openTimes.peekFirst() > windowMillis) {
@@ -71,6 +100,7 @@ public final class CircuitCrashLoopDetector {
             if (state.openTimes.size() >= minOpens && !state.looping) {
                 state.looping = true;
                 state.loopsDetected++;
+                LOOPS_DETECTED.incrementAndGet();
             }
         }
     }
@@ -81,6 +111,7 @@ public final class CircuitCrashLoopDetector {
         if (state == null) {
             return;
         }
+        RECOVERIES_RECORDED.incrementAndGet();
         synchronized (state) {
             state.openTimes.clear();
             state.looping = false;
