@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 死信重放审计事件测试（spec 721 / T993–T994 / impl 524）：重放指标 delta、
  * 累计计数、零重放零事件。审计面直接驱动（outbox 同 store 视图造死信——
  * 不经 HTTP 管线）。
+ *
+ * <p>T1819 加固：forwarder 构造即自启 dispatcher 虚拟线程（重试退避秒级存活）——
+ * 不 close 的实例会越类存活，向后续测试窗口安装的全局 BuzhouMetricsHolder 注入
+ * webhook 指标（全仓 verify 顺序扰动实证一次红）——@AfterEach 统一收口。
  */
 class WebhookDeadReplayAuditTest {
 
@@ -35,16 +41,20 @@ class WebhookDeadReplayAuditTest {
     }
 
     private final CapturingMetrics metrics = new CapturingMetrics();
+    private final List<WebhookEventForwarder> forwarders = new ArrayList<>();
 
     @AfterEach
     void tearDown() {
+        forwarders.forEach(WebhookEventForwarder::close);
         BuzhouMetricsHolder.reset();
     }
 
-    private static WebhookEventForwarder forwarderOn(SessionStateStore store) {
-        return new WebhookEventForwarder(new BuzhouWebhookProperties(
+    private WebhookEventForwarder forwarderOn(SessionStateStore store) {
+        WebhookEventForwarder forwarder = new WebhookEventForwarder(new BuzhouWebhookProperties(
                 "http://127.0.0.1:1/hook", "test-secret", Duration.ofMillis(200),
                 3, 64, null), store);
+        forwarders.add(forwarder);
+        return forwarder;
     }
 
     @Test

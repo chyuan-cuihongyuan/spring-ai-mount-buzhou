@@ -2,8 +2,8 @@
 id: T1819
 title: Webhook 测试泄漏后台重试线程污染全局指标捕获（ToolDurationTimerTest 顺序扰动红）——R6 对账显形
 type: task
-status: open
-assignee:
+status: closed
+assignee: zcode-k
 blocked-by:
 created: 2026-09-15
 ---

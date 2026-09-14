@@ -32,6 +32,7 @@
 - [SnapshotMessage 补测与收紧判据跨模块复核](../tickets/T1813-snapshot-message-and-tightened-sweep-shape.md) — R5：miss≥1 口径再浮出 SnapshotMessage（mis=2，compact 构造 null 防御）——null→空 Map / Map.copyOf 防御拷贝 / spillUri·evidenceId 透传；六小模块（tools/observability/observe-otel/observe-dashboard/spill/resilience）旧判据期报告隔离重扫清单化归 R6+；收敛信号：core 浮出量 R4=2 → R5=1，R6 起该口径并入周期性对账轮。
 - [K 会话周期对账轮 R6 形态](../tickets/T1816-k-audit-r6-shape.md) — R6：四步证据驱动批次收官后的独立核对轮（Google SRE Production Readiness Review 思想）——全仓 verify（隔离 worktree CI 等价门）+ 工件链五项对账；对账脚本可重放；R7 起对账/雾区（report-aggregate、BRANCH）两轮交替。
 - [R6 验证收口](../tickets/T1817-k-audit-r6-verify.md) — 工件链五项全 OK；全仓 verify 两跑「15/16 绿 + starter 显形红」：T1818 API 快照过期（PerHostConcurrencyGuard 未入册，已修+复验绿）/ T1819 Webhook 测试泄漏后台重试线程污染全局指标捕获（下轮治本）；多会话共享工作区风险（worktree 被删、detached HEAD、他线全量 add 卷入）入档——「固定提交点 + 隔离 worktree + 显式路径 add」对策确立。
+- [R7 形态裁决：T1819 治本 + 两雾区处置](../tickets/T1820-fog-adjudication-r7-shape.md) — T1819 治本 = forwarder 登记 + @AfterEach close（构造即自启 dispatcher「谁启动谁收尾」，受害者严格断言不动）；BRANCH 维度 = 13 模块实测 52.1%–81.6%（中位 ~71%）入对账读面台账、硬门暂缓（≥60% 即红容器门控的 store-redis/observe-otel）；report-aggregate = 不引入（新增模块=09 工程档 spec 级变更，价值已被直测纪律覆盖）——**K 线雾区清零**，R9 起对账轮+他线委托议题。
 
 ## R1 台账（spec 1200 / impl 903）
 

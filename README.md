@@ -697,6 +697,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | core 零覆盖尾巴清扫（K 会话 R4） | 判据收紧 miss≥5→miss≥1 后复扫：AttachmentRenderer default 截断合同四断言 + CommandOutcome success 谓词矩阵（超时优先于退出码）；core 证据改走隔离 worktree（spec 1203） | [spec 1203](docs/spec/1203-core-zero-tail-sweep.md) |
 | 工程门禁 | SnapshotMessage 补测与跨模块复核（K 会话 R5） | 收紧判据残留归口：compact 构造 null 防御 + Map.copyOf 拷贝语义合同；六小模块 miss≥1 复扫清单化（spec 1204） | [spec 1204](docs/spec/1204-snapshot-message-tightened-sweep.md) |
 | 工程门禁 | K 会话周期对账轮 R6 | 全仓 verify（隔离 worktree CI 等价门）+ K 线工件链五项对账（spec/README/票/impl/map）——SRE Production Readiness Review 思想，R7 起对账/雾区交替（spec 1205） | [spec 1205](docs/spec/1205-k-audit-r6.md) |
+| 工程门禁 | R7 雾区裁决：T1819 治本 + BRANCH/report-aggregate | Webhook 测试 forwarder 收口（谁启动谁收尾）；BRANCH 13 模块实测分布入台账（硬门暂缓有据）；report-aggregate 不引入（模块工程档不动）——ADR 式裁决（spec 1206） | [spec 1206](docs/spec/1206-fog-adjudication-r7.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
