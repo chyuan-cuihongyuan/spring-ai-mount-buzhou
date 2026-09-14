@@ -65,6 +65,10 @@ class PairwiseCancelTest {
         assertThat(result.items().get(1)).isNotNull();
         assertThat(result.items().subList(2, 5)).containsOnlyNulls();
         assertThat(result.summary().skipped()).isEqualTo(3);
+        // spec 1535 / T2321：进度读面——终态快照 done=5（含 3 skipped 占位）total=5
+        assertThat(runner.progress().total()).isEqualTo(5);
+        assertThat(runner.progress().done()).isEqualTo(5);
+        assertThat(runner.progress().hostCancelled()).isTrue();
         assertThat(result.summary().hostCancelled()).isTrue();
 
         // 残留清零：同一 runner 的下一次 compare 完整执行、hostCancelled=false

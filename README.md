@@ -840,6 +840,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 测试门禁 | 批预算装配链测试（spec 1526 补账） | 三用例——值声明透传/显式 0 仍装配但语义关（条件命中与语义开关解耦）/缺省零装配；M 系三个 Holder 装配测试全覆盖（spec 1532） | [spec 1532](docs/spec/1532-batch-budget-assembly-test.md) |
 | 运维文档 | M 系增量运维段（runbook 第 24 节） | 九行机制表——通知隔离日志定位/评估取消与波间止损指标/危险模式与 HITL 桥开关/瞬断重试与批预算配置族/serial-groups yml/ConfigMaps 归一（spec 1533） | [spec 1533](docs/spec/1533-runbook-m-series.md) |
 | 评估治理 | 评估 run 进度读面 | EvalRunner.progress()——runId/done/total/cancelled 不可变快照（串行每项后/波间/占位分支三处 volatile 更新），同步 run 的跨线程轮询面（UI/日志/探活，进度条思想）（spec 1534） | [spec 1534](docs/spec/1534-eval-progress.md) |
+| 评估治理 | A/B 对比进度读面（spec 1534 扩散） | CompareProgress(runId/done/total/hostCancelled)——过程快照（每项/波间）+ 聚合终态快照（skipped null 占位无对象，终态统一 done=total）（spec 1535） | [spec 1535](docs/spec/1535-ab-progress.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
