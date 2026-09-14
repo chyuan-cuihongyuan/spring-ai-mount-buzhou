@@ -81,10 +81,9 @@ class ReadoutContractSmokeTest {
 
     @Test
     void toolSlowLogSmoke() {
-        // R2 ToolSlowLog（实例 stats 形状）独立冒烟
-        var log = new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolSlowLog();
-        var stats = log.stats();
-        assertThat(stats).isNotNull();
+        // R2 ToolSlowLog（全静态形状）独立冒烟：entries() 可调且返回列表
+        var entries = io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolSlowLog.entries();
+        assertThat(entries).isNotNull();
     }
 }
 
