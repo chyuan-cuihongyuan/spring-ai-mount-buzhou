@@ -1190,6 +1190,29 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 1621 / T2393：会话隔离检疫（spec 143 孤类接线——连续失败阈值 + 指数
+     * 退避隔离，Erlang supervisor「let it crash」思想）：opt-in
+     * {@code buzhou.quarantine.enabled=true}（默认关——检疫 block 轮次行为面大）；
+     * 阈值与退避可配（failure-threshold / base-backoff / max-backoff，缺省 3/30s/10m）。
+     * 成功复位走 SessionQuarantine.recordTurnSuccess 公共 API（hook 面不谎装）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.quarantine", name = "enabled", havingValue = "true")
+    public io.github.chyuan_cuihongyuan.buzhou.core.session.SessionQuarantineHook buzhouSessionQuarantineHook(
+            org.springframework.core.env.Environment env) {
+        int threshold = env.getProperty("buzhou.quarantine.failure-threshold", Integer.class, 3);
+        java.time.Duration base = org.springframework.boot.convert.DurationStyle.detectAndParse(
+                env.getProperty("buzhou.quarantine.base-backoff", "30s"));
+        java.time.Duration max = org.springframework.boot.convert.DurationStyle.detectAndParse(
+                env.getProperty("buzhou.quarantine.max-backoff", "10m"));
+        return new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionQuarantineHook(
+                new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionQuarantine(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.session.SessionQuarantine.Config(
+                                threshold, base, max),
+                        java.time.Clock.systemUTC()));
+    }
+
+    /**
      * spec 1620 / T2391：会话特征采集 hook（spec 161 喂数 + spec 179/841 空闲监控
      * 节拍）——挂 hook 即累积特征与空闲水位（纯记账旁路）；显式 false 关闭。
      */

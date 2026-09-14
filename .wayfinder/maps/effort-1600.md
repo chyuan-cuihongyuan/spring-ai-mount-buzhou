@@ -82,6 +82,9 @@
 - [R21 形状：空闲监控全链接线](../tickets/T2391-r21-idle-shape.md) — spec 179/841 双孤类+喂数面 SessionFeaturesHook（spec 161，本身也未装配）三件一次接线：IdleMonitorHolder 进程级（store/monitor/histogram）+ SessionFeaturesHook afterTurn 每 32 轮节拍 sweep + 装配 bean 默认开（纯记账旁路）
 - [R21 验收](../tickets/T2392-r21-idle-verify.md) — 全链三断言（sweep 判空闲+翻转通知+直方入账/Holder 便捷面/hook 喂数）+ 既有 12 用例零回归
 
+- [R22 形状：会话检疫装配](../tickets/T2393-r22-quarantine-shape.md) — spec 143 双孤类（SessionQuarantine+Hook）接线：opt-in buzhou.quarantine.enabled（默认关——检疫 block 轮次行为面大），阈值/退避可配（3/30s/10m 缺省），成功复位留公共 API（hook 面不谎装——原设计诚实边界）
+- [R22 验收](../tickets/T2394-r22-quarantine-verify.md) — hook 行为两断言（三连败隔离 block + 冷却过放行 / 健康会话零状态）+ 既有 6 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -116,3 +119,4 @@
 | R19 | #1618 | Token 校准审计接线（spec 819 孤类救活） | T2387–T2388 | 1171 | 1618 | done |
 | R20 | #1619 | spill 写速率限速（RocksDB rate limiter 思想） | T2389–T2390 | 1172 | 1619 | done |
 | R21 | #1620 | 空闲监控全链接线（spec 161/179/841 三孤类救活） | T2391–T2392 | 1173 | 1620 | done |
+| R22 | #1621 | 会话隔离检疫装配（spec 143 双孤类救活） | T2393–T2394 | 1174 | 1621 | done |
