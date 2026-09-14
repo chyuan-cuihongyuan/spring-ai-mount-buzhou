@@ -11,6 +11,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnPriority
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnRejectionDistribution
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.BudgetRecommendation
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.BudgetTierClassifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostForecast

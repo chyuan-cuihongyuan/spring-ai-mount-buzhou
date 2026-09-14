@@ -2392,3 +2392,8 @@
   慢榜——严格大于阈值入榜+有界 FIFO 32（新→旧 entries）+totalSlowOps
   水位+动态阈值；RedisMessageStore 三操作 finally 埋点；嵌套 `Entry`
   不另立面）
+
+- `BudgetTierClassifier`（1419——k8s ResourceQuota + SRE headroom 思想：
+  已用/上限→行动档位离线分类器 GREEN/WARN(≥0.8)/HARD(≥1.0)+UNKNOWN
+  畸形哨兵+四桶计数+verdicts 饱和度降序+tightest(n)，纯函数；嵌套
+  `TierReport`/`BudgetTierVerdict` 不另立面）

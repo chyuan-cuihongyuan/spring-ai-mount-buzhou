@@ -802,6 +802,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 持久化 | Redis 慢操作榜 | RedisSlowOpLog——RedisMessageStore append/load/findById 客户端往返耗时严格大于阈值（默认 100ms 动态可调）入有界 FIFO 榜 32（新→旧现场）+totalSlowOps 累计水位（挤出也计）；服务端 slowlog 看不见的网络抖动/大 key 客户端延迟显形——Redis SLOWLOG 思想（spec 1418） | [spec 1418](docs/spec/1418-redis-slow-op-log.md) |
 
+| 预算治理 | 预算分档分类器 | BudgetTierClassifier——已用/上限→行动档位：GREEN/WARN(≥0.8 软限预警)/HARD(≥1.0 硬限已触)/UNKNOWN(limit≤0 畸形)四档闭集+四桶计数+饱和度降序+tightest(n)「先看谁快烧完」——k8s ResourceQuota + SRE headroom 思想（spec 1419） | [spec 1419](docs/spec/1419-budget-tier-classifier.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

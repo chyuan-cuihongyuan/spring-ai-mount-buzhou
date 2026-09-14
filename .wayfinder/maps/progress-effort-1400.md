@@ -62,7 +62,7 @@ R15 ✅ 换题落地=Span 树拓扑（R39 core 侧通用化；时延维正交）
 R40 Spill GC 候选标记统计(Go GC mark-sweep, golang ≈130K)【高危待勘 vs 843】→spill｜
 R13 ✅ 换题落地=工具入参字节直方（R41 通用化；1401 对称镜像）｜
 R42 技能加载失败原因分桶(LangChain loader taxonomy ≈105K)→skills【高危待勘】｜
-R43 预算软/硬两档水位(k8s ResourceQuota scope ≈115K)【高危待勘 vs 1029】→core｜
+R20 ✅ 换题落地=预算分档分类器（R43 题提前；与 1029/806/817 辨义）｜
 R44 导出分块清单读数(S3 multipart, boto3 ≈10K)【高危待勘 RollingJsonlWriter】→core｜
 R45 工具白名单漂移审计(Terraform drift ≈45K)【高危待勘 vs 1000/833】→guard｜
 R46 健康探针时延读数(k8s probe latency ≈115K)→mcp/core【高危待勘 health seam】｜
