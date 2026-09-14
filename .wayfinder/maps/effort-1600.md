@@ -49,6 +49,9 @@
 - [R10 形状：WebhookOutbox 锁迁移](../tickets/T2369-r10-outbox-lock-shape.md) — spec 1606 中危 #1 落地：append/appendRetry/orphanIndexCount/requeueDead 四方法 monitor→ReentrantLock wrapper（*Locked 方法体不动），虚拟线程 dispatcher 下锁内 store IO unmount 不 pin
 - [R10 验收](../tickets/T2370-r10-outbox-lock-verify.md) — webhook 包 105 用例零回归（互斥语义由既有 outbox 行为测试全量覆盖）
 
+- [R11 形状：离群驱逐生产接线+分类感知](../tickets/T2371-r11-outlier-wire-shape.md) — 重大发现：spec 149 建的 ModelOutlierEjection 是未接线孤类（recordError/filter 生产路径零调用=机制等于关闭）；本轮接线：advisor 全路径喂入（主/金丝雀/降级候选的成功与终态失败）+ 备模型候选过滤 + 进程级装配（outlier.enabled opt-in）；分类感知（failureCategories 默认 NETWORK/SERVER/TIMEOUT——AUTH/CONTENT 驱赶端点无意义，熔断 failure-categories 同口径）
+- [R11 验收](../tickets/T2372-r11-outlier-wire-verify.md) — 分类过滤四断言（默认集/自定义集/大小写/成功复位）+ 装配转换 + resilience 377 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -72,3 +75,4 @@
 | R8 | #1607 | RollingJsonlWriter 锁迁移（spec 1606 排队项：j.u.c 锁不 pin） | T2365–T2366 | 1160 | 1607 | done |
 | R9 | #1608 | DiskSpillStore 锁迁移（spec 1606 排队项） | T2367–T2368 | 1161 | 1608 | done |
 | R10 | #1609 | WebhookOutbox 锁迁移（spec 1606 中危 #1：dispatcher 虚拟线程放大） | T2369–T2370 | 1162 | 1609 | done |
+| R11 | #1610 | 离群驱逐生产接线 + 分类感知（spec 149 孤类救活） | T2371–T2372 | 1163 | 1610 | done |

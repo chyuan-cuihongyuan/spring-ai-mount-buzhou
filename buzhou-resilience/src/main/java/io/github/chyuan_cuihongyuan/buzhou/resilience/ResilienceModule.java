@@ -235,10 +235,17 @@ public final class ResilienceModule {
                         .ChunkingEmbeddingModel(semanticEmbeddingModel, sc.embeddingMaxBatch());
             }
         }
+        // spec 1610 / T2371：离群驱逐（opt-in——enabled 才装配喂入；默认 null 零行为）
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection outlier = null;
+        if (properties.outlier() != null && properties.outlier().effectiveEnabled()) {
+            outlier = new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection(
+                    properties.outlier().toEjectionConfig(), java.time.Clock.systemUTC());
+        }
+        final io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection outlierRef = outlier;
         RuntimeConfig assembly = RuntimeConfig.assemblyCustomizers(
                 List.of(new ResilienceAssemblyCustomizer(properties, classifier, modelName, stats, circuit,
                         fallbackChain, limiter, shadow, responseCacheStore, responseCacheCoalescer,
-                        semanticCacheStore, semanticEmbeddingModel)));
+                        semanticCacheStore, semanticEmbeddingModel, outlierRef)));
         // per-session 日配额（impl-59）：有任一维度才挂 Hook（无配额零开销）。
         if (SessionQuotaHook.anyDimension(properties.sessionQuota())) {
             return RuntimeConfig.merge(assembly,
@@ -310,6 +317,8 @@ public final class ResilienceModule {
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer responseCacheCoalescer;
         private final io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore;
         private final org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel;
+        /** spec 1610 / T2371：进程级离群驱逐（null = 不启用——连错计数跨会话收敛）。 */
+        private final io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection outlier;
 
         ResilienceAssemblyCustomizer(ResilienceProperties properties, ProviderErrorClassifier classifier,
                                      String modelName, ResilienceStats stats, ModelCircuitBreaker circuit,
@@ -318,7 +327,8 @@ public final class ResilienceModule {
                                      io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore responseCacheStore,
                                      io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer responseCacheCoalescer,
                                      io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore semanticCacheStore,
-                                     org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel) {
+                                     org.springframework.ai.embedding.EmbeddingModel semanticEmbeddingModel,
+                                     io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection outlier) {
             this.properties = properties;
             this.classifier = classifier;
             this.modelName = modelName;
@@ -331,6 +341,7 @@ public final class ResilienceModule {
             this.responseCacheCoalescer = responseCacheCoalescer;
             this.semanticCacheStore = semanticCacheStore;
             this.semanticEmbeddingModel = semanticEmbeddingModel;
+            this.outlier = outlier;
         }
 
         @Override
@@ -360,7 +371,9 @@ public final class ResilienceModule {
                     properties, classifier, ctx::emitEvent, deadlineExecutor, inFlight, stats, circuit, modelName,
                     fallback, shadow, limiter,
                     // spec 64 §A / T279：延迟追踪经链携带（链未建/未开启 = null 零计时）
-                    fallback == null ? null : fallback.latencyTracker());
+                    fallback == null ? null : fallback.latencyTracker())
+                    // spec 1610 / T2371：离群驱逐喂入/过滤接线（null = 零行为）
+                    .withOutlier(outlier);
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

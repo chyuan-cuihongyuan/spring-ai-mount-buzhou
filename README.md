@@ -806,6 +806,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 并发健康 | RollingJsonlWriter 锁迁移 | appendLine/close/bytesWritten 的 monitor → ReentrantLock（互斥语义零变；磁盘写+flush+轮转 gzip 在虚拟线程下 unmount 而非 pin）——spec 1606 审计排队项落地（spec 1607） | [spec 1607](docs/spec/1607-rolling-jsonl-reentrantlock.md) |
 | 并发健康 | DiskSpillStore 锁迁移 | store/usage 的 monitor → ReentrantLock（「一次调用一次 spill」互斥不变；MB 级写盘+walk 在虚拟线程下 unmount 而非 pin）——spec 1606 审计高危 #3 落地（spec 1608） | [spec 1608](docs/spec/1608-disk-spill-reentrantlock.md) |
 | 并发健康 | WebhookOutbox 锁迁移 | append/appendRetry/orphanIndexCount/requeueDead 的 monitor → ReentrantLock wrapper（锁内 store put/scan 在虚拟线程 dispatcher 下 unmount 而非 pin）——spec 1606 审计中危 #1 落地（spec 1609） | [spec 1609](docs/spec/1609-webhook-outbox-reentrantlock.md) |
+| 韧性治理 | 离群驱逐生产接线 + 分类感知 | spec 149 原语自 R11 前为未接线孤类（生产零调用）——advisor 全路径喂入（主/金丝雀/降级候选成败）+ 备模型候选驱逐过滤 + outlier.enabled 进程级装配（opt-in）；分类感知：failureCategories 默认 NETWORK/SERVER/TIMEOUT（AUTH/CONTENT 驱赶端点无意义——熔断同口径）（spec 1610） | [spec 1610](docs/spec/1610-outlier-ejection-wiring.md) |
 
 ## 快速开始
 

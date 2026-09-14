@@ -24,8 +24,13 @@ import java.util.TreeSet;
  */
 public final class ModelOutlierEjection {
 
-    /** 配置：连错阈值 / 驱逐窗口 / 恐慌阈值百分比（均正；percent ∈ [0,100]，0 = 关）。 */
-    public record Config(int consecutiveErrors, Duration ejectionWindow, int panicThresholdPercent) {
+    /**
+     * 配置：连错阈值 / 驱逐窗口 / 恐慌阈值百分比 / 驱动分类集（均正；percent ∈ [0,100]，
+     * 0 = 关；failureCategories 默认 NETWORK/SERVER/TIMEOUT——与熔断 failure-categories
+     * 同口径：AUTH（配置错误）/CONTENT（治理）/RATE_LIMIT（背压归限流器）驱赶端点无意义）。
+     */
+    public record Config(int consecutiveErrors, Duration ejectionWindow, int panicThresholdPercent,
+                         java.util.Set<String> failureCategories) {
         public Config {
             if (consecutiveErrors < 1 || ejectionWindow == null
                     || ejectionWindow.isZero() || ejectionWindow.isNegative()) {
@@ -36,11 +41,19 @@ public final class ModelOutlierEjection {
                 throw new IllegalArgumentException(
                         "panicThresholdPercent 必须在 [0,100]（当前 " + panicThresholdPercent + "）");
             }
+            failureCategories = failureCategories == null || failureCategories.isEmpty()
+                    ? java.util.Set.of("NETWORK", "SERVER", "TIMEOUT")
+                    : java.util.Set.copyOf(failureCategories);
+        }
+
+        /** 三参兼容构造（分类默认——既有调用零行为变化）。 */
+        public Config(int consecutiveErrors, Duration ejectionWindow, int panicThresholdPercent) {
+            this(consecutiveErrors, ejectionWindow, panicThresholdPercent, null);
         }
 
         /** 两参兼容构造（panic 关闭——既有调用零行为变化）。 */
         public Config(int consecutiveErrors, Duration ejectionWindow) {
-            this(consecutiveErrors, ejectionWindow, 0);
+            this(consecutiveErrors, ejectionWindow, 0, null);
         }
 
         public static Config defaults() {
@@ -49,7 +62,7 @@ public final class ModelOutlierEjection {
 
         /** panic=100 便捷预设（任何驱逐即恐慌——健康数占满才不触发）。 */
         public static Config withPanicAll(int consecutiveErrors, Duration ejectionWindow) {
-            return new Config(consecutiveErrors, ejectionWindow, PERCENT_MAX);
+            return new Config(consecutiveErrors, ejectionWindow, PERCENT_MAX, null);
         }
     }
 
@@ -81,8 +94,21 @@ public final class ModelOutlierEjection {
         this.clock = clock == null ? Clock.systemUTC() : clock;
     }
 
-    /** 记一次模型调用错误：连错达阈值即驱逐一个窗口。 */
+    /** 记一次模型调用错误（兼容面：分类未知按默认可驱逐集外的保守口径不计——见下）。 */
     public void recordError(String modelName) {
+        // 旧调用面（测试/工具）：无分类信息不计连错——分类感知后驱动集外错误静默丢弃
+        // 会掩盖信号，显式按 SERVER 计（旧语义等价：任何错误都计）
+        recordError(modelName, "SERVER");
+    }
+
+    /**
+     * spec 1610 / T2371：记一次带分类的模型调用错误——分类 ∈ failureCategories 才计
+     * 连错（熔断 failure-categories 同口径：配置错误/内容治理/背压类驱赶端点无意义）。
+     */
+    public void recordError(String modelName, String category) {
+        if (!config.failureCategories().contains(String.valueOf(category).toUpperCase(java.util.Locale.ROOT))) {
+            return;
+        }
         ModelState state = models.computeIfAbsent(modelName, k -> new ModelState());
         synchronized (state) {
             state.consecutiveErrors++;

@@ -49,9 +49,21 @@ public record ResilienceProperties(
         @Valid Shadow shadow,
         @Valid ResponseCache responseCache,
         @Valid SemanticCache semanticCache,
-        @Valid Hedge hedge) {
+        @Valid Hedge hedge,
+        @Valid Outlier outlier) {
 
-    /** 15 参兼容构造（spec 301 之前调用方；hedge = 未配置）。 */
+    /** 16 参兼容构造（spec 1610 之前调用方；outlier = 未配置）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache, Hedge hedge) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, responseCache, semanticCache, hedge, null);
+    }
+
+    /** 15 参兼容构造（spec 301 之前调用方；hedge/outlier = 未配置）。 */
     public ResilienceProperties(
             Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
             Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
@@ -59,7 +71,7 @@ public record ResilienceProperties(
             Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache) {
         this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
                 retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
-                shadow, responseCache, semanticCache, null);
+                shadow, responseCache, semanticCache, null, null);
     }
 
     /** 14 参兼容构造（spec 55 之前调用方；semantic-cache = 未配置）。 */
@@ -606,6 +618,35 @@ public record ResilienceProperties(
     private static BuzhouConfigurationException configError(String key, String value, String action) {
         return new BuzhouConfigurationException(
                 "buzhou.resilience." + key + "（" + value + "）非法", action);
+    }
+
+    /**
+     * 离群驱逐装配参数组（spec 1610 / T2371，Envoy outlier detection 接线面）。
+     * 前缀 {@code buzhou.resilience.outlier}。默认关（null = 不装配零行为）。
+     */
+    public record Outlier(
+            Boolean enabled,
+            Integer consecutiveErrors,
+            Duration ejectionWindow,
+            Integer panicThresholdPercent,
+            java.util.List<String> failureCategories) {
+
+        /** 生效开关（显式开启）。 */
+        public boolean effectiveEnabled() {
+            return Boolean.TRUE.equals(enabled);
+        }
+
+        /** 驱逐配置（装配面便捷转换）。 */
+        public io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection.Config
+                toEjectionConfig() {
+            Integer panic = panicThresholdPercent;
+            java.util.List<String> cats = failureCategories;
+            return new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection.Config(
+                    consecutiveErrors == null ? 5 : consecutiveErrors,
+                    ejectionWindow == null ? Duration.ofSeconds(30) : ejectionWindow,
+                    panic == null ? 0 : panic,
+                    cats == null ? null : java.util.Set.copyOf(cats));
+        }
     }
 
     /**

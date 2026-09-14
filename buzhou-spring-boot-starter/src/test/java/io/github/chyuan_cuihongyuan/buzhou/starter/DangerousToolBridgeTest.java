@@ -57,13 +57,22 @@ class DangerousToolBridgeTest {
                 });
     }
 
-    /** ② yml 显式条目优先：同名不重复登记（显式 requiredState 保留）。 */
+    /**
+     * ② yml 显式条目优先：同名不重复登记（显式 requiredState 保留）。
+     * 用 MapPropertySource 塞聚合 List 形态（YAML 文件源的等价结构）——properties
+     * 源的 indexed 写法经 ConfigMaps.sub 会绑成 Map 形态而非 List（既有坑，T2267
+     * 轮实证入档，候选池主题），此处测桥的去重语义本身。
+     */
     @Test
     void explicitYmlEntryShouldWinOverAutoDefault() {
-        runnerWith("buzhou.tools.write-file.enabled=true",
-                "buzhou.guard.dangerous-tools[0].name=write_file",
-                "buzhou.guard.dangerous-tools[0].required-state=custom_state",
-                "buzhou.guard.dangerous-tools[0].hint=自定义提示")
+        runnerWith("buzhou.tools.write-file.enabled=true")
+                .withInitializer(ctx -> ctx.getEnvironment().getPropertySources().addFirst(
+                        new org.springframework.core.env.MapPropertySource("test-dangerous-yml",
+                                java.util.Map.of("buzhou.guard.dangerous-tools",
+                                        java.util.List.of(java.util.Map.of(
+                                                "name", "write_file",
+                                                "required-state", "custom_state",
+                                                "hint", "自定义提示"))))))
                 .run(context -> {
                     GuardModule guard = context.getBean(GuardModule.class);
                     long writeFileEntries = guard.dangerousTools().stream()
