@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [R100 周期预检轮的形状裁决](../tickets/T1659-r100-audit-shape.md) — 百轮节点：R91–R99 对账零缺陷（组合测试系列十轮成型）+ observability 反压测试环境 flake 隔离重跑实证非缺陷（与 R50 CAS 活锁同位不同因）+ 复跑 BUILD SUCCESS 验收。
 - [租户沙箱×读写链路组合测试轮的形状裁决](../tickets/T1657-tenant-rw-shape.md) — 纯测试轮第十弹：TenantRwChainTest 钉住 forTenant 租户面写→读对称恒等与越界拒绝计数（R45×R46×R47 组合）。
 - [offload×cipher 加密联动组合测试轮的形状裁决](../tickets/T1653-offcipher-shape.md) — 纯测试轮第十二弹：OffloadCipherComboTest 钉住加密开启时 offload 必伴随 encrypt 调用（加密配置真实生效联动）+ 守恒保持。
 - [SkillAdmin×Search 可见性联动组合测试轮的形状裁决](../tickets/T1645-adminsearch-shape.md) — 纯测试轮第十弹：SkillAdminSearchComboTest 钉住发布/下架→搜索命中联动 + 双读面各自守恒保持。
@@ -212,7 +213,8 @@
 | 97 | offload×cipher 加密联动组合测试轮（encrypt 随 offload 联动） | 纯测试轮第十二弹 | T1653–T1654 | 849 | 1097 | ✅ |
 | 98 | 冒烟补全轮（TodoTool/ToolSlowLog 独立冒烟纳入） | R83 元验证补全 | T1655–T1656 | 850 | 1098 | ✅ |
 | 99 | 租户沙箱×读写链路组合测试轮（租户面读写对称+越界拒） | 纯测试轮第十弹 | T1657–T1658 | 851 | 1099 | ✅ |
-| 100 | （**R100 周期预检轮**：R91–R99 对账 + 全仓 verify） | — | T1659–T1660 | 852 | 1100 |  |
+| 100 | 周期预检轮·百轮节点：R91–R99 对账全绿 + 组合测试系列成型 + observability 反压环境 flake 处置 + 复跑 verify BUILD SUCCESS | 隔离重跑实证非缺陷 | T1659–T1660 | 852 | 1100 | ✅ |
+| 101 | （开工时按缺口核查选题） | — | T1661–T1662 | 853 | 1101 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）

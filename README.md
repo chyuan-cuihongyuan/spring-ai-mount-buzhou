@@ -636,6 +636,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
 | 观测治理 | J 系阶段对账审计 R60 | J 会话 R51–R59 工件对账 + 七域读面布局盘点（spec 1060） | [spec 1060](docs/spec/1060-j-audit-r60.md) |
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
+| 观测治理 | J 系阶段对账审计 R100 | 百轮节点：R91–R99 工件对账 + 组合测试系列成型盘点（spec 1100） | [spec 1100](docs/spec/1100-j-audit-r100.md) |
 | 观测治理 | J 系阶段对账审计 R80 | J 会话 R71–R79 工件对账 + 九域读面布局盘点（spec 1080） | [spec 1080](docs/spec/1080-j-audit-r80.md) |
 | 观测治理 | J 系阶段对账审计 R90 | J 会话 R81–R89 工件对账 + README 1085 吞噬修复（spec 1090） | [spec 1090](docs/spec/1090-j-audit-r90.md) |
 | 观测治理 | 冒烟补全轮 | TodoTool/ToolSlowLog 独立冒烟纳入（spec 1098） | [spec 1098](docs/spec/1098-smoke-ext2.md) |
