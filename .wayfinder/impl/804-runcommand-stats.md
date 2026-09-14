@@ -6,10 +6,10 @@
 
 **Status:** done
 
-- [ ] 九计数落点（call 四拒绝点 + execute 取消/超时点 + exits 送达点 + catch 兜底）
-- [ ] RunCommandStats 嵌套 record + totalRejects 派生 + stats() + resetForTest()
-- [ ] RunCommandStatsTest（正常/非零 exit/空命令/黑名单/坏 workdir/坏 timeout/超时/守恒/reset 八测）
-- [ ] spec 1052 + README 行（嵌套类型不动 API 快照）
+- [x] 九计数落点（call 四拒绝点 + execute 取消/超时点 + exits 送达点 + catch 兜底）
+- [x] RunCommandStats 嵌套 record + totalRejects 派生 + stats() + resetForTest()
+- [x] RunCommandStatsTest（正常/非零 exit/空命令/黑名单/坏 workdir/坏 timeout/超时/守恒/reset 八测）
+- [x] spec 1052 + README 行（嵌套类型不动 API 快照）
 
 ## Done
 
