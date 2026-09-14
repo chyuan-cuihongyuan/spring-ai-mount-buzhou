@@ -24,7 +24,7 @@ R1 ✅ 已落地=跨会话轮次并发水位观察者（会话内单飞使 per-m
 R2 ✅ 已落地=core/hook（Hook 单点挂法免改 HookedToolCallback）｜
 R3 ✅ 已落地=McpSchemaCompatGrader 纯函数（822 显式留白轴）｜
 R4 ✅ 换题落地=EWMA 自适应超时（原题与 spec 178 RetryBudget 全撞→顺延 EWMA 超时轴）｜
-R5 指标基数守卫(Prometheus cardinality limit ≈59K)→core【高危待勘 BuzhouMetrics】｜
+R5 ✅ 换题落地=会话 id 熵审计（原题与 spec 160 基数守卫全撞→顺延 R19 题）｜
 R6 评估确定性种子台账(FoundationDB deterministic simulation ≈15K)→core【高危待勘 EvalRunner】｜
 R7 EWMA 自适应超时(Envoy timeout budget / Finagle ≈26K)→resilience｜
 R8 工具调用 single-flight 合并(Go sync/singleflight, golang ≈130K)→tools【高危待勘】｜

@@ -763,6 +763,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 模型韧性 | EWMA 自适应超时推荐 | AdaptiveTimeout——record(observed) 喂样本 recommended() 出 clamp(⌈EWMA×3⌉,floor,ceiling) 推荐，α=0.3 CAS 无锁+预热哨兵 <3 样本不下结论；纯推导器不接线执行路径——Envoy timeout budget/Finagle 自适应超时思想（spec 1403） | [spec 1403](docs/spec/1403-adaptive-timeout.md) |
 
+| 会话治理 | 会话 id 熵审计 | SessionIdEntropyAudit——字母表下界估计（观测字符类保守求和）+bits=length×log2(alphabet) 下界+四档闭集（WEAK&lt;64 时间戳档/STRONG≥112 UUIDv4 档）+批量四桶，弱 id（可猜串/自增）从静默变显形——nanoid 熵计算器思想（spec 1404） | [spec 1404](docs/spec/1404-session-id-entropy-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

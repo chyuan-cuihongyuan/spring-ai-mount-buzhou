@@ -2323,3 +2323,8 @@
 - `AdaptiveTimeout`（1403——Envoy timeout budget/Finagle 自适应超时思想：
   EWMA(α=0.3)+clamp(⌈EWMA×multiplier⌉,floor,ceiling) 纯推导器，预热哨兵
   &lt;3 样本不下结论，CAS 无锁；嵌套 `Snapshot` 不另立面）
+
+- `SessionIdEntropyAudit`（1404——nanoid 熵计算器思想：会话 id 字母表
+  下界估计（观测字符类保守求和）+bits=length×log2(alphabet)+四档闭集
+  （WEAK&lt;64/STRONG≥112）+批量四桶 Summary，纯函数只读；嵌套
+  `Report`/`Summary` 不另立面）
