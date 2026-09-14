@@ -789,6 +789,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 评估治理 | 评估 run 协作式取消 | EvalRunner.requestCancel()——宿主发现数据集配错/方向不对时立即止损（此前只能跑完全程或等自动止损）；项边界生效（K8s Job 删除传播语义：在飞项做完、未启动项标 cancelled），串行/并行统一，run 开始清零防残留污染（spec 1505） | [spec 1505](docs/spec/1505-eval-run-cancel.md) |
 | 评估治理 | A/B 对比 run 宿主取消（spec 1505 扩散） | PairwiseEvalRunner.requestCancel()——A/B 双 runtime 成本翻倍时同样可主动叫停；未起项复用 skipped 桶（与 SPRT 达界停同位），summary.hostCancelled 布尔区分统计达界停与宿主叫停（9/7 参兼容构造器保留，序列化仅取消 run 落位）（spec 1506） | [spec 1506](docs/spec/1506-ab-run-cancel.md) |
 | 安全治理 | MCP 危险工具默认动词模式（S1 硬偏差修复） | buzhou.mcp.dangerous-tool-patterns 缺省从空改为 spec 14 §F 承诺的七动词前缀 glob（delete/drop/write/update/remove/send/exec）——恶意 server 的写侧工具默认进登记面；显式空列表 = 关闭逃生门（design-incompleteness S1 闭环）（spec 1507） | [spec 1507](docs/spec/1507-mcp-default-dangerous-patterns.md) |
+| 安全治理 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core DangerousToolRegistry 进程级桥（模块解耦不破白名单）——tools 装配后灌注危险名单，guard afterName 保时序默认并入三参 HITL 条目（yml 显式优先去重）；opt-in 开 write_file 即得默认审批拦截（spec 1508） | [spec 1508](docs/spec/1508-dangerous-tool-bridge.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

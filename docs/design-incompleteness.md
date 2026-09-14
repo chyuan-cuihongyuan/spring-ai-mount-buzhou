@@ -40,7 +40,7 @@
 - **影响**：MCP server 提供的 `delete_*` 类工具默认不经任何人工审批即可被执行脊柱调用。
 - **建议方向**：按 spec 14 落默认动词模式 + 在 guard 装配侧消费 `dangerousToolNames()` 自动登记 HITL；或裁定改 spec（明确「默认空、由业务显式配置」为定案）并删除 User Story 14 承诺。
 
-### S2【硬偏差】危险工具 opt-in 启用时不自动带入默认守卫
+### S2【硬偏差】危险工具 opt-in 启用时不自动带入默认守卫（✅ 已修复：spec 1508——core DangerousToolRegistry 桥 + tools 灌注 + guard afterName 编排默认并入，yml 显式优先，auto-dangerous-bridge=false 逃生）
 
 - **spec 承诺**：spec 06 开关矩阵 + spec 07「opt-in 启用时自动带入默认守卫条目」；spec 06:125 另定 http_request 写方法粒度（GET/HEAD 不强制守卫）。
 - **代码现实**：`ToolsModule.enabledDangerousToolNames()`（buzhou-tools `ToolsModule.java:94-100`）仅测试/示例消费；`BuzhouGuardAutoConfiguration.java:36` 明言「不自动耦合 tools」；http_request 写方法粒度无实现（整名入清单）。

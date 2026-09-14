@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [危险工具默认 HITL 自动带入桥的形状裁决](../tickets/T2267-dangerous-bridge-shape.md) — core 进程级 DangerousToolRegistry 桥（供给方 tools 灌注/消费方 guard 并入，双方只见 core 白名单不破）；guard autoconfig afterName 字符串引用保装配时序；三参默认形态并入 + yml 显式优先去重 + auto-dangerous-bridge=false 逃生；S2 硬偏差闭环。副产出发现：ConfigMaps.sub 对 properties 源 indexed 属性绑 Map 而非 List（guard dangerous-tools 在 .properties 源下静默失效的既有坑，候选池）。
 - [MCP 危险工具默认动词模式的形状裁决](../tickets/T2265-mcp-default-dangerous-shape.md) — BuzhouMcpProperties 缺省（null）→ 七动词前缀 glob 默认集（spec 14 §F 承诺，design-incompleteness S1 硬偏差）；显式空列表保留 = 关闭逃生门（yml [] 绑定非 null）；影响面收敛（dangerousToolNames 零执行面消费方）；S2（starter HITL 自动挂接）另轮。
 - [A/B 对比 run 宿主取消面的形状裁决](../tickets/T2263-ab-cancel-shape.md) — spec 1505 取消语义扩散到 PairwiseEvalRunner：requestCancel()（compare 开始清零）+ 未起项复用 skipped 桶 + PairwiseSummary.hostCancelled 布尔区分统计达界停（SPRT spec 1605）与宿主叫停，9/7 参兼容构造器保留。
 - [EvalRunner 评估 run 协作式取消面的形状裁决](../tickets/T2261-eval-cancel-shape.md) — 实例级 requestCancel()（volatile 标记 + run 开始清零）项边界生效：在飞项做完、未启动项标新状态 cancelled（与 pruned 失败率止损分立）、不进三桶、run 照常落盘可分析已完成部分；此前宿主只能跑完全程或等自动止损（剪枝/预算闸都是自动触发无主动通道）——K8s Job 删除传播语义。
@@ -46,6 +47,7 @@
 | 6 | EvalRunner 评估 run 协作式取消（requestCancel + STATUS_CANCELLED） | Kubernetes Job 删除传播语义 | T2261–T2262 | 1108 | 1505 | ✅ |
 | 7 | A/B 对比 run 宿主取消（hostCancelled 区分叫停原因） | spec 1505 扩散（NNN 扩散先例模式） | T2263–T2264 | 1109 | 1506 | ✅ |
 | 8 | MCP 危险工具默认动词模式（S1 硬偏差修复） | spec 14 §F 承诺落地（design-incompleteness 清单驱动选题） | T2265–T2266 | 1110 | 1507 | ✅ |
+| 9 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core 注册表桥 + afterName 装配编排（Spring Boot 官方解耦模式） | T2267–T2268 | 1111 | 1508 | ✅ |
 
 
 ## Out of scope
