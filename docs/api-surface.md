@@ -2323,3 +2323,10 @@
   观察者，started/okFinished/failed 三总量 + active/peakActive 水位 +
   守恒式；同轮实证修复 guard-block 轮观察者终结回调缺失；嵌套 `Snapshot`
   不另立面）
+
+## 跨会话新增公共类型补登（M 会话 1508/1510 产出，R60 审计轮代登记，@since 1.0.0）
+
+- `DangerousToolRegistry`（1508——进程级危险工具名注册表：模块解耦下的装配期
+  桥，供给方灌注/消费方并入 HITL 默认条目；EvalRunRegistry 同款静态注册表模式；
+  `reset()` 测试隔离用）
+- `PairwiseSprtPolicy`（1510 域——评估域 pairwise SPRT 策略公共面）
