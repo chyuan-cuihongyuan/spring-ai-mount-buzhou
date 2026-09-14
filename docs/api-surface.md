@@ -2387,3 +2387,8 @@
   思想：UnitOfWork opt-in 计量装饰器——begun/completed/failed/inFlight
   守恒+失败异常类 Top 榜（有界 8 并 OTHERS）+异常透传+deleteSession 透传；
   嵌套 `Snapshot` 不另立面）
+
+- `RedisSlowOpLog`（1418——Redis SLOWLOG 客户端侧思想：store-redis 操作
+  慢榜——严格大于阈值入榜+有界 FIFO 32（新→旧 entries）+totalSlowOps
+  水位+动态阈值；RedisMessageStore 三操作 finally 埋点；嵌套 `Entry`
+  不另立面）

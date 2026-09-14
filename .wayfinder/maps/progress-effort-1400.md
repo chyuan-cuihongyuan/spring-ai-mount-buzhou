@@ -75,7 +75,7 @@ R50 收口终验(全仓 verify+快照再生+台账核查+README/覆盖门+MAP �
 S1 快照恢复演练计数(restic restore drill ≈31K)→core｜
 S2 断路器状态变迁时刻簿(Resilience4j event stream ≈10K)→resilience【vs 814 mcp 侧，core/resilience 侧或开放】｜
 S3 提示模板解析一致性指纹(LangChain prompt hashing ≈105K)→core【vs JCS 1273】｜
-S4 Redis 慢命令榜(Redis SLOWLOG ≈68K)→store-redis【vs J T1453 tool 侧慢榜，存储侧轴或开放】｜
+R19 ✅ 换题落地=Redis 慢操作榜（S4 题；J ToolSlowLog 同型扩散）｜
 S5 会话导出字节水位(restic backup size stats ≈31K)→core｜
 S6 嵌入批延迟分位(sentence-transformers ≈17K)→resilience【vs 828】｜
 S7 MCP 重连退避抖动检测(gRPC channelz backoff ≈43K)→mcp【vs 840】｜

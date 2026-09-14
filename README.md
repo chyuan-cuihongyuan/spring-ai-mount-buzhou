@@ -800,6 +800,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 并发治理 | 舱壁在飞峰值水位 | AgentBulkhead.peakInFlight/peakSaturation——per-agent 历史最大并发水位+饱和度=峰值/上限（1.0=曾打满、无限舱 -1 哨兵），acquire 成功路径采样拒绝不虚高，256 折叠纪律；容量调大/错峰治理有水位可依——HikariCP 池饱和度思想（spec 1417） | [spec 1417](docs/spec/1417-bulkhead-peak-watermark.md) |
 
+| 持久化 | Redis 慢操作榜 | RedisSlowOpLog——RedisMessageStore append/load/findById 客户端往返耗时严格大于阈值（默认 100ms 动态可调）入有界 FIFO 榜 32（新→旧现场）+totalSlowOps 累计水位（挤出也计）；服务端 slowlog 看不见的网络抖动/大 key 客户端延迟显形——Redis SLOWLOG 思想（spec 1418） | [spec 1418](docs/spec/1418-redis-slow-op-log.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

@@ -40,17 +40,31 @@ public class RedisMessageStore implements MessageStore {
         if (messages == null || messages.isEmpty()) {
             return;
         }
-        var c = sync.commands();
-        String listKey = keys.messageList(sessionId);
-        for (BuzhouMessage m : messages) {
-            String json = RedisJson.write(m);
-            c.set(keys.messageById(m.id()), json);
-            c.rpush(listKey, json);
+        long t0 = System.nanoTime();
+        try {
+            var c = sync.commands();
+            String listKey = keys.messageList(sessionId);
+            for (BuzhouMessage m : messages) {
+                String json = RedisJson.write(m);
+                c.set(keys.messageById(m.id()), json);
+                c.rpush(listKey, json);
+            }
+        } finally {
+            RedisSlowOpLog.record("append", (System.nanoTime() - t0) / 1_000_000);
         }
     }
 
     @Override
     public List<BuzhouMessage> load(String sessionId) {
+        long t0 = System.nanoTime();
+        try {
+            return loadSlow(sessionId);
+        } finally {
+            RedisSlowOpLog.record("load", (System.nanoTime() - t0) / 1_000_000);
+        }
+    }
+
+    private List<BuzhouMessage> loadSlow(String sessionId) {
         List<String> raw = sync.commands().lrange(keys.messageList(sessionId), 0, -1);
         if (raw == null || raw.isEmpty()) {
             return List.of();
@@ -66,8 +80,13 @@ public class RedisMessageStore implements MessageStore {
 
     @Override
     public Optional<BuzhouMessage> findById(String messageId) {
-        String json = sync.commands().get(keys.messageById(messageId));
-        return parseEntry("n/a(messageId=" + messageId + ")", 0, json);
+        long t0 = System.nanoTime();
+        try {
+            String json = sync.commands().get(keys.messageById(messageId));
+            return parseEntry("n/a(messageId=" + messageId + ")", 0, json);
+        } finally {
+            RedisSlowOpLog.record("findById", (System.nanoTime() - t0) / 1_000_000);
+        }
     }
 
     /**
