@@ -49,9 +49,21 @@ public record ResilienceProperties(
         @Valid Shadow shadow,
         @Valid ResponseCache responseCache,
         @Valid SemanticCache semanticCache,
-        @Valid Hedge hedge) {
+        @Valid Hedge hedge,
+        @Valid Outlier outlier) {
 
-    /** 15 参兼容构造（spec 301 之前调用方；hedge = 未配置）。 */
+    /** 16 参兼容构造（spec 1610 之前调用方；outlier = 未配置）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache, Hedge hedge) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, responseCache, semanticCache, hedge, null);
+    }
+
+    /** 15 参兼容构造（spec 301 之前调用方；hedge/outlier = 未配置）。 */
     public ResilienceProperties(
             Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
             Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
@@ -59,7 +71,7 @@ public record ResilienceProperties(
             Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache) {
         this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
                 retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
-                shadow, responseCache, semanticCache, null);
+                shadow, responseCache, semanticCache, null, null);
     }
 
     /** 14 参兼容构造（spec 55 之前调用方；semantic-cache = 未配置）。 */
@@ -171,21 +183,30 @@ public record ResilienceProperties(
             List<String> failureCategories,
             Integer backoffCap,
             Integer halfOpenSuccessThreshold,
-            Duration timeWindow) {
+            Duration timeWindow,
+            Duration warmup) {
+
+        /** 既有 9 参构造（spec 620 形态；warmup 默认关——零行为变化）。 */
+        public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
+                Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
+                Integer backoffCap, Integer halfOpenSuccessThreshold, Duration timeWindow) {
+            this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
+                    backoffCap, halfOpenSuccessThreshold, timeWindow, null);
+        }
 
         /** 既有 8 参构造（timeWindow 默认关——count 窗零变化）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
                 Integer backoffCap, Integer halfOpenSuccessThreshold) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    backoffCap, halfOpenSuccessThreshold, null);
+                    backoffCap, halfOpenSuccessThreshold, null, null);
         }
 
         /** 既有 6 参便捷构造（backoffCap/halfOpen/timeWindow 默认，二进制/源码兼容既有调用点）。 */
         public Circuit(Boolean enabled, Integer windowSize, Integer minCalls,
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    null, null, null);
+                    null, null, null, null);
         }
 
         /** 7 参便捷构造（halfOpenSuccessThreshold/timeWindow 默认）。 */
@@ -193,7 +214,7 @@ public record ResilienceProperties(
                 Double failureRateThreshold, Duration openCooldown, List<String> failureCategories,
                 Integer backoffCap) {
             this(enabled, windowSize, minCalls, failureRateThreshold, openCooldown, failureCategories,
-                    backoffCap, null, null);
+                    backoffCap, null, null, null);
         }
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察修复——缺注解时 yml 键静默不生效）。 */
@@ -234,6 +255,11 @@ public record ResilienceProperties(
             timeWindow = timeWindow == null ? Duration.ZERO : timeWindow;
             if (timeWindow.isNegative()) {
                 throw configError("circuit.time-window", timeWindow.toString(), "设为非负时长（0 = 不启用）");
+            }
+            // spec 1602 / T2355：启动宽限（K8s startupProbe 思想——进程冷启动失败不计开闸；0 = 关）
+            warmup = warmup == null ? Duration.ZERO : warmup;
+            if (warmup.isNegative()) {
+                throw configError("circuit.warmup", warmup.toString(), "设为非负时长（0 = 不启用）");
             }
         }
 
@@ -412,11 +438,18 @@ public record ResilienceProperties(
             Integer maxEntries,
             Duration ttl,
             Long maxWeightChars,
-            Boolean coalescing) {
+            Boolean coalescing,
+            Duration staleWindow) {
 
         /** 3 参便捷构造（spec 641/745 之前调用方；权重预算与 coalescing 缺省关）。 */
         public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl) {
-            this(enabled, maxEntries, ttl, 0L, null);
+            this(enabled, maxEntries, ttl, 0L, null, null);
+        }
+
+        /** 5 参兼容构造（spec 1604 之前调用方；staleWindow 缺省关）。 */
+        public ResponseCache(Boolean enabled, Integer maxEntries, Duration ttl,
+                Long maxWeightChars, Boolean coalescing) {
+            this(enabled, maxEntries, ttl, maxWeightChars, coalescing, null);
         }
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（便捷构造不参与绑定）。 */
@@ -428,6 +461,11 @@ public record ResilienceProperties(
             if (maxWeightChars < 0) {
                 throw new IllegalArgumentException(
                         "response-cache.max-weight-chars（" + maxWeightChars + "）必须 >= 0（0=关）");
+            }
+            staleWindow = staleWindow == null ? Duration.ZERO : staleWindow;
+            if (staleWindow.isNegative()) {
+                throw new IllegalArgumentException(
+                        "response-cache.stale-window（" + staleWindow + "）必须为非负时长（0=关）");
             }
         }
 
@@ -457,6 +495,8 @@ public record ResilienceProperties(
      *                           Caffeine weigher 思想）
      * @param embeddingMaxBatch  嵌入批量上限（spec 723；默认 0=关——>0 时 EmbeddingModel 包
      *                           ChunkingEmbeddingModel 切块，批量写入超供应商 cap 不再 400）
+     * @param evictionSampleSize LFU 采样驱逐窗口大小（spec 1600；默认 0=关——>0 时驱逐在
+     *                           LRU 序前 N 个候选中淘汰命中数最低者，Redis allkeys-lfu 思想）
      */
     public record SemanticCache(
             Boolean enabled,
@@ -464,7 +504,8 @@ public record ResilienceProperties(
             Integer maxEntries,
             Duration ttl,
             Integer maxWeightChars,
-            Integer embeddingMaxBatch) {
+            Integer embeddingMaxBatch,
+            Integer evictionSampleSize) {
 
         @org.springframework.boot.context.properties.bind.ConstructorBinding
         public SemanticCache {
@@ -473,6 +514,7 @@ public record ResilienceProperties(
             ttl = ttl == null ? Duration.ofHours(1) : ttl;
             maxWeightChars = maxWeightChars == null ? 0 : maxWeightChars;
             embeddingMaxBatch = embeddingMaxBatch == null ? 0 : embeddingMaxBatch;
+            evictionSampleSize = evictionSampleSize == null ? 0 : evictionSampleSize;
             if (!(similarityThreshold > 0.0 && similarityThreshold <= 1.0)) {
                 throw new IllegalArgumentException(
                         "semantic-cache.similarity-threshold（" + similarityThreshold + "）必须在 (0,1]");
@@ -493,17 +535,27 @@ public record ResilienceProperties(
                 throw new IllegalArgumentException(
                         "semantic-cache.embedding-max-batch（" + embeddingMaxBatch + "）必须 >= 0（0=关）");
             }
+            if (evictionSampleSize < 0) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.eviction-sample-size（" + evictionSampleSize + "）必须 >= 0（0=关）");
+            }
         }
 
-        /** 4 参兼容构造（spec 701 之前调用方；maxWeightChars/embeddingMaxBatch = 关）。 */
+        /** 4 参兼容构造（spec 701 之前调用方；maxWeightChars/embeddingMaxBatch/evictionSampleSize = 关）。 */
         public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries, Duration ttl) {
-            this(enabled, similarityThreshold, maxEntries, ttl, 0, 0);
+            this(enabled, similarityThreshold, maxEntries, ttl, 0, 0, 0);
         }
 
-        /** 5 参兼容构造（spec 701 形态；embeddingMaxBatch = 关）。 */
+        /** 5 参兼容构造（spec 701 形态；embeddingMaxBatch/evictionSampleSize = 关）。 */
         public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries,
                 Duration ttl, Integer maxWeightChars) {
-            this(enabled, similarityThreshold, maxEntries, ttl, maxWeightChars, 0);
+            this(enabled, similarityThreshold, maxEntries, ttl, maxWeightChars, 0, 0);
+        }
+
+        /** 6 参兼容构造（spec 1600 之前调用方；evictionSampleSize = 关）。 */
+        public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries,
+                Duration ttl, Integer maxWeightChars, Integer embeddingMaxBatch) {
+            this(enabled, similarityThreshold, maxEntries, ttl, maxWeightChars, embeddingMaxBatch, 0);
         }
 
         /** 生效开关（显式开启）。 */
@@ -566,6 +618,35 @@ public record ResilienceProperties(
     private static BuzhouConfigurationException configError(String key, String value, String action) {
         return new BuzhouConfigurationException(
                 "buzhou.resilience." + key + "（" + value + "）非法", action);
+    }
+
+    /**
+     * 离群驱逐装配参数组（spec 1610 / T2371，Envoy outlier detection 接线面）。
+     * 前缀 {@code buzhou.resilience.outlier}。默认关（null = 不装配零行为）。
+     */
+    public record Outlier(
+            Boolean enabled,
+            Integer consecutiveErrors,
+            Duration ejectionWindow,
+            Integer panicThresholdPercent,
+            java.util.List<String> failureCategories) {
+
+        /** 生效开关（显式开启）。 */
+        public boolean effectiveEnabled() {
+            return Boolean.TRUE.equals(enabled);
+        }
+
+        /** 驱逐配置（装配面便捷转换）。 */
+        public io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection.Config
+                toEjectionConfig() {
+            Integer panic = panicThresholdPercent;
+            java.util.List<String> cats = failureCategories;
+            return new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection.Config(
+                    consecutiveErrors == null ? 5 : consecutiveErrors,
+                    ejectionWindow == null ? Duration.ofSeconds(30) : ejectionWindow,
+                    panic == null ? 0 : panic,
+                    cats == null ? null : java.util.Set.copyOf(cats));
+        }
     }
 
     /**

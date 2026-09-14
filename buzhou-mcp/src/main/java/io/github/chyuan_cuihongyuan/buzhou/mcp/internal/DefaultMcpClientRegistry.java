@@ -70,14 +70,18 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         private final java.util.concurrent.Semaphore concurrencyPermits;
         /** spec 722 / T1044：并发上限读数原值（null = 未设）。 */
         private final Integer concurrencyLimit;
+        /** spec 1601 / T2353：建连时刻（寿命策略开着时非空；到寿判定基准）。 */
+        private final Instant createdAt;
 
-        Entry(String name, ToolSetSpec spec, McpConnection connection, Integer concurrencyLimit) {
+        Entry(String name, ToolSetSpec spec, McpConnection connection, Integer concurrencyLimit,
+              Instant createdAt) {
             this.name = name;
             this.spec = spec;
             this.connection = connection;
             this.concurrencyPermits = concurrencyLimit != null && concurrencyLimit > 0
                     ? new java.util.concurrent.Semaphore(concurrencyLimit) : null;
             this.concurrencyLimit = concurrencyLimit;
+            this.createdAt = createdAt;
         }
 
         /** spec 722：并发占用视图（未设上限 limit/available=-1）。 */
@@ -149,6 +153,14 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
     private final java.util.concurrent.atomic.AtomicLong probeSuccesses =
             new java.util.concurrent.atomic.AtomicLong();
     private final java.util.concurrent.atomic.AtomicLong probeFailures =
+            new java.util.concurrent.atomic.AtomicLong();
+    /** spec 1601：连接寿命策略（null = 关——默认零行为变化）。 */
+    private final LifetimePolicy lifetime;
+    /** spec 1601：到寿退役重建累计（观测面）。 */
+    private final java.util.concurrent.atomic.AtomicLong retiredCount =
+            new java.util.concurrent.atomic.AtomicLong();
+    /** spec 1601：到寿但在飞推迟累计（观测面——非零持续增长 = 常年忙连接，退役总赶不上）。 */
+    private final java.util.concurrent.atomic.AtomicLong deferredRetires =
             new java.util.concurrent.atomic.AtomicLong();
 
     /** 重试策略（指数退避：base × 2^n 封顶 60s）。 */
@@ -223,6 +235,20 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                                             serverBreaker,
                                     ConnectRetryPolicy connectRetry,
                                     Duration keepaliveInterval) {
+        this(factory, gracePeriod, forceCloseTimeout, recorder, policyProvider,
+                dangerousToolPatterns, serverBreaker, connectRetry, keepaliveInterval, null);
+    }
+
+    /** spec 1601 / T2353：+lifetime（null = 关——默认零行为变化）。 */
+    public DefaultMcpClientRegistry(McpConnectionFactory factory, Duration gracePeriod,
+                                    Duration forceCloseTimeout, SpanRecorder recorder,
+                                    PolicyConfigProvider policyProvider,
+                                    java.util.List<String> dangerousToolPatterns,
+                                    io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker
+                                            serverBreaker,
+                                    ConnectRetryPolicy connectRetry,
+                                    Duration keepaliveInterval,
+                                    LifetimePolicy lifetime) {
         this.connectRetry = connectRetry;
         this.serverBreaker = serverBreaker;
         this.factory = factory;
@@ -241,6 +267,33 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             long intervalMillis = keepaliveInterval.toMillis();
             scheduler.scheduleWithFixedDelay(this::safeProbe, intervalMillis, intervalMillis,
                     TimeUnit.MILLISECONDS);
+        }
+        this.lifetime = lifetime;
+        if (lifetime != null) {
+            // spec 1601：每寿命周期扫一轮到寿连接（间隔 = maxLifetime，语义直白）
+            long checkMillis = lifetime.maxLifetime().toMillis();
+            scheduler.scheduleWithFixedDelay(this::safeRetire, checkMillis, checkMillis,
+                    TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /**
+     * spec 1601 / T2353：连接寿命策略（HikariCP maxLifetime 思想——到寿退役重建，
+     * 防长连接状态腐化/漂移累积；在飞推迟到下轮 = 归还时退役语义）。扫描间隔 =
+     * maxLifetime（每寿命周期扫一轮，语义直白无第二参数）。
+     */
+    public record LifetimePolicy(Duration maxLifetime, java.time.Clock clock) {
+        public LifetimePolicy {
+            if (maxLifetime == null || maxLifetime.isZero() || maxLifetime.isNegative()
+                    || clock == null) {
+                throw new IllegalArgumentException(
+                        "LifetimePolicy 非法（maxLifetime 须为正、clock 非空）");
+            }
+        }
+
+        /** 系统时钟便捷构造。 */
+        public static LifetimePolicy of(Duration maxLifetime) {
+            return new LifetimePolicy(maxLifetime, java.time.Clock.systemUTC());
         }
     }
 
@@ -431,6 +484,54 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
         return probeFailures.get();
     }
 
+    /**
+     * spec 1601 / T2353：到寿退役扫描（一轮）——{@code createdAt + maxLifetime} 到期且
+     * inFlight=0 的 ACTIVE 条目走 {@link #rebuildEntry} 排水重建（探活失败同口径）；
+     * 在飞连接推迟到下轮（HikariCP 归还时退役语义——绝不硬切）。policy 关闭时 no-op。
+     */
+    public void retireExpiredOnce() {
+        if (lifetime == null) {
+            return;
+        }
+        java.time.Instant now = lifetime.clock().instant();
+        for (Entry e : entries.values()) {
+            if (e.status != Status.ACTIVE || e.createdAt == null
+                    || now.isBefore(e.createdAt.plus(lifetime.maxLifetime()))) {
+                continue;
+            }
+            if (e.inFlight.get() > 0) {
+                deferredRetires.incrementAndGet();
+                continue;
+            }
+            retiredCount.incrementAndGet();
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.mcp.lifetime.retired", "server", e.name());
+            LOGGER.log(System.Logger.Level.INFO,
+                    "MCP 连接到寿退役重建「{0}」（maxLifetime={1}）",
+                    e.name(), lifetime.maxLifetime());
+            rebuildEntry(e);
+        }
+    }
+
+    /** 调度线程保护——单条目退役异常不炸整轮。 */
+    private void safeRetire() {
+        try {
+            retireExpiredOnce();
+        } catch (RuntimeException ignored) {
+            // 退役失败下轮再试——重建失败已在 addEntry 路径计数
+        }
+    }
+
+    /** spec 1601：到寿退役累计（观测面）。 */
+    public long retiredCount() {
+        return retiredCount.get();
+    }
+
+    /** spec 1601：到寿在飞推迟累计（观测面）。 */
+    public long deferredRetireCount() {
+        return deferredRetires.get();
+    }
+
     /** 单次建连尝试（原 addEntry 主体——失败计数/事件语义不变）。 */
     private boolean addEntryOnce(ToolSetSpec spec, SpanContext spanCtx) {
         McpConnection connection;
@@ -445,7 +546,8 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
                     .counter("buzhou.mcp.connect.failures", "server", spec.name());
             return false;
         }
-        Entry entry = new Entry(spec.name(), spec, connection, perConnectionConcurrencyLimit);
+        Entry entry = new Entry(spec.name(), spec, connection, perConnectionConcurrencyLimit,
+                lifetime == null ? null : lifetime.clock().instant());
         entry.spanContext = spanCtx;
         entry.toolNamesBaseline = Set.copyOf(connection.listToolNames());
         entry.toolHintsBaseline = Map.copyOf(connection.toolHints());

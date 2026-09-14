@@ -56,7 +56,6 @@ public final class ToolsModule {
         this.enabled = builder.enabled;
         FileSandbox sandbox = new FileSandbox(builder.sandboxRoot, builder.allowedPaths);
         List<ToolCallback> t = new ArrayList<>();
-        List<String> dangerous = new ArrayList<>();
         if (builder.readFileEnabled) {
             t.add(new ReadFileTool(sandbox));
         }
@@ -68,7 +67,6 @@ public final class ToolsModule {
         }
         if (builder.writeFileEnabled) {
             t.add(new WriteFileTool(sandbox));
-            dangerous.add("write_file");
         }
         if (builder.runCommandEnabled) {
             if (builder.commandBackend != null) {
@@ -91,15 +89,26 @@ public final class ToolsModule {
                                 ? io.github.chyuan_cuihongyuan.buzhou.tools.command.RunCommandTool.DEFAULT_MAX_OUTPUT_BYTES
                                 : builder.runCommandMaxOutputBytes));
             }
-            dangerous.add("run_command");
         }
         if (builder.httpRequestEnabled) {
             t.add(new HttpRequestTool(
                     new SsrfGuard(builder.ssrfBlockPrivateRanges, builder.ssrfAllowlist),
-                    builder.httpRequestTimeout));
-            dangerous.add("http_request");
+                    builder.httpRequestTimeout,
+                    builder.httpMaxPerHost > 0
+                            ? new io.github.chyuan_cuihongyuan.buzhou.tools.http.PerHostConcurrencyGuard(
+                                    builder.httpMaxPerHost)
+                            : null));
         }
         this.tools = List.copyOf(t);
+        // spec 1504 / T2259：危险名单注解驱动——扫描已装配工具的 @BuzhouTool.destructive
+        // （保装配序；行为等价替代既往三处手工登记，新工具标注即自动入 HITL 清单）
+        List<String> dangerous = new ArrayList<>();
+        for (ToolCallback tool : this.tools) {
+            BuzhouTool meta = tool.getClass().getAnnotation(BuzhouTool.class);
+            if (meta != null && meta.destructive()) {
+                dangerous.add(meta.name());
+            }
+        }
         this.enabledDangerousToolNames = List.copyOf(dangerous);
         this.todoAttachmentRenderer = this.todoStore == null ? null
                 : new TodoAttachmentRenderer(this.todoStore);
@@ -183,6 +192,8 @@ public final class ToolsModule {
         /** spec 17 / impl-60：backend 档位声明（builtin|sandbox；sandbox 无实现时 fail-fast）。 */
         private String commandBackendMode = "builtin";
         private Duration httpRequestTimeout = Duration.ofSeconds(30);
+        /** spec 1603 / T2357：per-host 并发上限（0 = 关——默认零行为）。 */
+        private int httpMaxPerHost;
         private boolean ssrfBlockPrivateRanges = true;
         private List<String> ssrfAllowlist = List.of();
 
@@ -255,6 +266,12 @@ public final class ToolsModule {
             return this;
         }
 
+        /** spec 1603 / T2358：per-host 并发上限（yml {@code http-max-per-host}；0 = 关）。 */
+        public Builder httpMaxPerHost(int maxPerHost) {
+            this.httpMaxPerHost = maxPerHost;
+            return this;
+        }
+
         public Builder httpRequestTimeout(Duration timeout) {
             this.httpRequestTimeout = timeout;
             return this;
@@ -323,6 +340,10 @@ public final class ToolsModule {
             Map<String, Object> hr = sub(ymlConfig, "http-request");
             if (hr.get("timeout-seconds") instanceof Number n) {
                 this.httpRequestTimeout = Duration.ofSeconds(n.longValue());
+            }
+            // spec 1603 / T2358：max-per-host（声明即启用 per-host 并发闸——缺省 0=关）
+            if (hr.get("max-per-host") instanceof Number maxPerHost) {
+                this.httpMaxPerHost = maxPerHost.intValue();
             }
             Map<String, Object> ssrf = sub(hr, "ssrf");
             this.ssrfBlockPrivateRanges = boolOf(ssrf.get("block-private-ranges"),

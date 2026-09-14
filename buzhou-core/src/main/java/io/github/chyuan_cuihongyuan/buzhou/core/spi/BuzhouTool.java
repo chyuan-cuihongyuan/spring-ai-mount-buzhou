@@ -27,4 +27,12 @@ public @interface BuzhouTool {
 
     /** 串行组名；空 = 不串行（参与并行 fan-out）。 */
     String serialGroup() default "";
+
+    /**
+     * 是否破坏性（写侧副作用：写文件 / 执行命令 / 外呼变更类请求）——工具自描述
+     * 风险维度（MCP tool annotations destructiveHint 思想）；ToolsModule 据此
+     * 自动生成危险工具名单（装配侧注册进 GuardModule 的 HITL 清单），标注即
+     * 入册、免改装配源码。默认 false（只读 / 幂等工具不标）。
+     */
+    boolean destructive() default false;
 }

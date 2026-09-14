@@ -43,6 +43,27 @@ class HookTimingAggregatorTest {
         assertThat(chainB.stats().get("shared-hook").count()).isEqualTo(1);
     }
 
+    /** spec 1502 / T2255–T2256：实例 reset() 清零 stats 与 windowedMax，幂等，Holder 开关不动。 */
+    @Test
+    void instanceResetShouldZeroStatsAndWindowedMaxIdempotently() {
+        HookTimingAggregator.Holder.reset();
+        HookTimingAggregator.Holder.enable();
+        HookTimingAggregator aggregator = HookTimingAggregator.Holder.current();
+        HookChain chain = HookChain.of(List.of(new NoopHook("reset-hook")));
+        chain.beforeTurn(new DefaultTurnContext(env, "in"));
+        assertThat(aggregator.stats()).containsKey("reset-hook");
+        assertThat(aggregator.windowedMax()).containsKey("reset-hook");
+
+        aggregator.reset();
+        aggregator.reset(); // 幂等：连调无异常
+
+        assertThat(aggregator.stats()).isEmpty();
+        assertThat(aggregator.windowedMax()).isEmpty();
+        // Holder 开关不动：仍处于开启态，后续累计照常
+        chain.beforeTurn(new DefaultTurnContext(env, "in"));
+        assertThat(aggregator.stats().get("reset-hook").count()).isEqualTo(1);
+    }
+
     @Test
     void disabledAggregatorKeepsChainsIsolated() {
         // 显式归零基线：同 JVM 早先的装配测试（buzhouHookTimingHealth bean）

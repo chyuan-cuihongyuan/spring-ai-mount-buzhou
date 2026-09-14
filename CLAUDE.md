@@ -112,6 +112,7 @@ mvn -pl buzhou-core test -Dtest=HookChainTest#method    # 单个测试方法
 
 ## 工作流程约定
 
+- **每次提交的标准工作流（wayfinder 四步，用户常设授权）**：每轮提交（每轮工作产出一个 commit）必须走完——① `/wayfinder` 生成 map：新 effort 先占号段（efforts / specs / 票 T / impl / 分支名，`git fetch` 确认 `origin/main` 空闲），map 落 `.wayfinder/maps/effort-<N>.md` 并挂入总索引 `MAP.md`，决策票落 `.wayfinder/tickets/`，动工前 claim（`assignee` 写自己）；② `/to-spec` 生成 spec：落 `docs/spec/<NNNN>-<slug>.md`（编号续接现有号段）并同步 `docs/spec/README.md` 引用（Spec 覆盖门）；③ `/to-tickets` 生成 tickets：spec 拆 tracer-bullet 纵切片，一票一文件落 `.wayfinder/tickets/`（行式 frontmatter，`blocked-by` 声明阻塞边），实现切片登记 `.wayfinder/impl/`；④ `/implement` 实现：TDD（spec 既定 seam）→ 常跑单测 → 全量 `mvn verify` → `/code-review` 复查 → commit。纯合并 / 用户当场豁免的轮次除外
 - **Spec 先行**：机制设计以 `docs/spec/` 为准，改机制先改 Spec；忠实度原则——蓝本（携程 Spring-Ai-Trip 文章、腾讯 DECO hooks 文章）明确描述的机制严格遵循，留白处自主推演并以 `> 【推演】` 标注
 - **Issue tracker 是本地 markdown**（[docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)）：持久票在 `.wayfinder/tickets/`（T1–T248，一票一文件，`Status:` 行记录 open/closed），maps 与 impl 切片同目录取放；`.scratch/` 仅临时草稿（已 gitignore，勿放持久票）
 - 提交信息遵循 Conventional Commits（`feat:`/`fix:`/`docs:`/…），一个 PR 只做一件事

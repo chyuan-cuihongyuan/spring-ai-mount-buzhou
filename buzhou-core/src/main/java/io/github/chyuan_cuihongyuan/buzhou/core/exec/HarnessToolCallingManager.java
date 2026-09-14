@@ -28,6 +28,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 执行脊柱——替换 Spring AI 默认 ToolCallingManager：虚拟线程并行 fan-out、
+ * 按序回注、超时与取消传播、串行组约束。
+ */
 public class HarnessToolCallingManager implements ToolCallingManager {
 
     private static final System.Logger LOGGER =

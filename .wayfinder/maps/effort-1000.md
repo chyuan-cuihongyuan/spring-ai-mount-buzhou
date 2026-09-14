@@ -19,6 +19,16 @@
 
 ## Decisions so far
 
+- [compact_now 手动压缩判定读面的形态裁决](../tickets/T1573-compactnow-stats-shape.md) — CompactNowTool 静态五计数（calls/successes/skippeds/failures/unboundRejects）+ 嵌套 CompactNowStats + stats()/resetForTest()；守恒 calls = 四结局桶；与 R53 evict_handle 同谱系（模型主动维护行为采用率，Anthropic /compact）。
+- [MCP 工具集轮询提供器读面的形态裁决](../tickets/T1571-toolsetpoll-stats-shape.md) — DbToolSetProvider 静态四计数（polls/changesDetected/unchangedPolls/pollFailures）+ 嵌套 ToolSetPollStats + stats()/resetForTest()；守恒 polls = 三桶和每轮恰落一桶；热更新失效三因（轮询失败/未检出/未轮到）可对账（etcd watch statistics）。
+- [skill_search 搜索判定读面的形态裁决](../tickets/T1569-skillsearch-stats-shape.md) — SkillSearchTool 静态五计数（calls/hits/misses/parseRejects/blankQueryRejects）+ 嵌套 SkillSearchStats + stats()/resetForTest()；守恒 calls = 四桶和；与 spec 116 micrometer 遥测互补（后端面 vs 进程内直读），parse/blank 两路径原遥测缺口一并补齐（Algolia zero-result-rate）。
+- [崩循环探测器类级水位读面的形态裁决](../tickets/T1567-crashloop-stats-shape.md) — CircuitCrashLoopDetector 静态四计数（opensRecorded/opensTruncated/loopsDetected/recoveriesRecorded）+ 嵌套 CrashLoopWatchStats + stats()/resetForTest()；MAX_MODELS 截断从布尔升格为量化对账信号，null/空白不入桶口径诚实（kube-state-metrics）。
+- [情景记忆读写双守恒读面的形态裁决](../tickets/T1565-episodic-stats-shape.md) — EpisodeLedger 静态九计数双守恒（写侧 recordCalls=recorded+recordDropped+recordFailures / 读侧 recallCalls=recallHits+recallEmpties+recallDropped）+ 嵌套 EpisodicMemoryStats + stats()/resetForTest()；fewShotBlock 经 recallExamples 同点计数；J 系首个 memory 域轮（mem0 episodic 命中率）。
+- [str_replace 编辑判定读面的形态裁决](../tickets/T1563-strreplace-stats-shape.md) — StrReplaceTool 静态七计数（attempts/successes + param/missingFile/notFound/ambiguous/failures 五拒绝桶）+ 嵌套 StrReplaceStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = successes + totalRejects；notFound/ambiguous 分布即提示词引导有效性信号（Anthropic text editor）。
+- [evict_handle 逐出判定读面的形态裁决](../tickets/T1561-evict-stats-shape.md) — EvictHandleTool 静态四计数（attempts/evictions/badPathRejects/parseRejects）+ 嵌套 EvictStats + stats()/resetForTest()；守恒 attempts = evictions + 两拒绝桶；J 系首个 spill 域轮（Anthropic tool_result 清除采用率）。
+- [run_command 执行结果分布读面的形态裁决](../tickets/T1559-runcommand-stats-shape.md) — RunCommandTool 静态九计数（attempts/exits 含非零送达/canceled/timeouts + blank/blacklist/workdir/timeoutParam/failures 五拒绝桶）+ 嵌套 RunCommandStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = 四结局桶 + totalRejects（Kubernetes Job status）。
+- [命令黑名单拦截判定读面的形态裁决](../tickets/T1557-blacklist-stats-shape.md) — CommandBlacklist 静态三计数（checks/matched/allowed，空白短路归 allowed 诚实口径）+ 嵌套 CommandBlacklistStats + stats()/resetForTest()；守恒 checks = matched + allowed；matches() 返回值逐位不变（Fail2ban 规则命中计数）。
+- [R50 周期预检轮的形状裁决](../tickets/T1555-r50-audit-shape.md) — R46–R49 工件对账全绿（幂等脚本纪律生效零吞噬复发）+ 两轮 verify 同位挂死推翻 flake 误判 → max 追踪 CAS 活锁三处同源实锤（重读留循环外，对照 RollingMaxCounter 原版）统一修复（jstack 定位 + 竞争度依赖复现实证法）。
 - [http_request 请求量水位与结果分布读面的形态裁决](../tickets/T1553-httptool-stats-shape.md) — HttpRequestTool 静态八计数（attempts/successes + method/url/ssrf/timeoutParam/oversize/failures 六拒绝桶）+ 嵌套 HttpToolStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = successes + totalRejects；参数桶指向模型行为、环境桶指向环境守卫（Envoy upstream 统计分桶）。
 - [SSRF 守卫判定分布读面的形态裁决](../tickets/T1551-ssrf-stats-shape.md) — SsrfGuard 静态六计数（checks/allowlisted/dnsAllowed + emptyHost/dns/blocked 三拒绝桶）+ 嵌套 SsrfGuardStats（totalAllowed/totalRejects 派生）+ stats()/resetForTest()；守恒 checks = 放行 + 拒绝（每入口恰落一桶）；check() 返回语义逐位不变（Fail2ban 判定链显形 + OPA decision log）。
 - [read_file 读量水位与拒绝分桶读面的形态裁决](../tickets/T1549-readfile-stats-shape.md) — ReadFileTool 静态六计数（attempts/reads/bytesRead/notFileRejects/oversizeRejects/failures）+ 嵌套 ReadFileStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = reads + totalRejects；与 R46 写侧轴间同口径可比（Datadog DogStatsD read/write 对称计量）。
@@ -116,7 +126,17 @@
 | 47 | read_file 读量水位与拒绝分桶读面（attempts/reads/bytesRead + 三拒绝桶守恒） | Datadog DogStatsD read/write 对称计量 | T1549–T1550 | 799 | 1047 | ✅ |
 | 48 | SSRF 守卫判定分布读面（checks/两放行桶 + 三拒绝桶守恒） | Fail2ban 判定链显形 + OPA decision log | T1551–T1552 | 800 | 1048 | ✅ |
 | 49 | http_request 请求量水位与结果分布读面（successes + 六拒绝桶守恒） | Envoy upstream statistics | T1553–T1554 | 801 | 1049 | ✅ |
-| 50 | （开工时按缺口核查选题；**R50 周期预检轮**——全仓 verify + 双门） | — | T1555–T1556 | 802 | 1050 |  |
+| 50 | 周期预检轮：R46–R49 对账 + max 追踪 CAS 活锁三处实锤修复 + 全仓 verify | jstack 定位 + 竞争度依赖复现实证 | T1555–T1556 | 802 | 1050 | ✅ |
+| 51 | 命令黑名单拦截判定读面（matched/allowed 二桶守恒） | Fail2ban 规则命中计数 | T1557–T1558 | 803 | 1051 | ✅ |
+| 52 | run_command 执行结果分布读面（exits/canceled/timeouts + 五拒绝桶守恒） | Kubernetes Job status | T1559–T1560 | 804 | 1052 | ✅ |
+| 53 | evict_handle 逐出判定读面（evictions + 两拒绝桶守恒） | Anthropic tool_result 清除采用率 | T1561–T1562 | 805 | 1053 | ✅ |
+| 54 | str_replace 编辑判定读面（successes + notFound/ambiguous 等五拒绝桶守恒） | Anthropic text editor str_replace | T1563–T1564 | 806 | 1054 | ✅ |
+| 55 | 情景记忆读写双守恒读面（record 三桶 + recall 三桶双恒等式） | mem0 episodic memory 命中率 | T1565–T1566 | 807 | 1055 | ✅ |
+| 56 | 崩循环探测器类级水位读面（OPEN 量/封顶截断量/循环检出/恢复四计数） | kube-state-metrics crashloop 总账 | T1567–T1568 | 808 | 1056 | ✅ |
+| 57 | skill_search 搜索判定读面（hits/misses + 两拒绝桶守恒） | Algolia zero-result-rate | T1569–T1570 | 809 | 1057 | ✅ |
+| 58 | MCP 工具集轮询提供器读面（polls 三桶守恒） | etcd watch statistics | T1571–T1572 | 810 | 1058 | ✅ |
+| 59 | compact_now 手动压缩判定读面（successes/skippeds/failures/unbound 四桶守恒） | Anthropic /compact 采用率 | T1573–T1574 | 811 | 1059 | ✅ |
+| 60 | （开工时按缺口核查选题；**R60 周期预检轮**） | — | T1575–T1576 | 812 | 1060 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）

@@ -15,6 +15,10 @@ import java.util.function.DoubleSupplier;
  * （结构化错误标记语义同 131：执行失败与校验失败均计败）；回滚判定在
  * 每次调用后顺带评估（事实驱动无定时）。装饰器族无 yml（169 先例——
  * 宿主 wrap）。
+ *
+ * <p>spec 1606 / T2363：monitor 只护路由决策与计数（内存级），工具执行在锁外——
+ * 锁内远程调用会钉住虚拟线程载体（Netty「不阻塞事件循环」铁律同源），且把并行
+ * 工具调用无谓串行化。
  */
 public final class CanaryToolCallback implements ToolCallback {
 
@@ -99,30 +103,40 @@ public final class CanaryToolCallback implements ToolCallback {
         return route(toolInput, toolContext);
     }
 
-    private synchronized String route(String toolInput, ToolContext toolContext) {
-        boolean toCanary = !rolledBack && weightPercent > 0
-                && random.getAsDouble() * 100 < weightPercent;
-        String result;
+    private String route(String toolInput, ToolContext toolContext) {
+        // spec 1606 / T2363：三段式——路由决策（锁内，内存级）→ 工具执行（锁外，
+        // 任意工具 HTTP/MCP 远程为常态：执行时长不得钉住虚拟线程载体，也不串行化
+        // 并行工具调用）→ 计数与回滚评估（锁内）。计数原子性与回滚最终一致不变；
+        // 唯一弱化是回滚判定可能晚一次调用触发（并发交错下）——事实驱动的评估语义不受影响。
+        final boolean toCanary;
+        synchronized (this) {
+            toCanary = !rolledBack && weightPercent > 0
+                    && random.getAsDouble() * 100 < weightPercent;
+        }
         if (toCanary) {
-            result = toolContext == null
+            String result = toolContext == null
                     ? canary.call(toolInput) : canary.call(toolInput, toolContext);
-            canaryCalls++;
-            if (ToolFeedbackType.isErrorFeedback(result)) {
-                canaryErrors++;
+            synchronized (this) {
+                canaryCalls++;
+                if (ToolFeedbackType.isErrorFeedback(result)) {
+                    canaryErrors++;
+                }
+                evaluateRollback();
             }
-        } else {
-            result = toolContext == null
-                    ? stable.call(toolInput) : stable.call(toolInput, toolContext);
+            return result;
+        }
+        String result = toolContext == null
+                ? stable.call(toolInput) : stable.call(toolInput, toolContext);
+        synchronized (this) {
             stableCalls++;
             if (ToolFeedbackType.isErrorFeedback(result)) {
                 stableErrors++;
             }
         }
-        evaluateRollback();
         return result;
     }
 
-    /** 劣化判定：canary 样本足且错误率差 ≥ 容差（百分点）→ 一次粘性回滚。 */
+    /** 劣化判定：canary 样本足且错误率差 ≥ 容差（百分点）→ 一次粘性回滚（调用方持锁）。 */
     private void evaluateRollback() {
         if (rolledBack || canaryCalls < minSamples) {
             return;

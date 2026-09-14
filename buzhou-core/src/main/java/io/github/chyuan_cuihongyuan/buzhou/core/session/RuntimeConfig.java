@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 运行时级配置（hooks / 幂等工具 / 自动工具 / 串行组 / 会话与装配定制者 /
+ * 轮次策略 / 清理贡献者 / fork 监听者多槽 record；兼容构造器逐代保留）。
+ */
 public record RuntimeConfig(
         List<BuzhouHook> hooks,
         Set<String> disabledHookNames,

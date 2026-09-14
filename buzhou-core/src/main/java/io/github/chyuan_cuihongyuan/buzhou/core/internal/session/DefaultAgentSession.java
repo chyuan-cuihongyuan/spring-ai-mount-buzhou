@@ -237,7 +237,7 @@ public class DefaultAgentSession implements AgentSession {
         this.eventDispatchConfig = eventDispatchConfig;
         this.sessionCleaner = sessionCleaner;
         this.hookEnv.bindEventPublisher(this::dispatchEvent);
-        observers.forEach(SessionObserver::onOpen);
+        notifyObservers(SessionObserver::onOpen);
     }
 
     public SpanContextCarrier spanContextCarrier() {
@@ -385,14 +385,14 @@ public class DefaultAgentSession implements AgentSession {
 
     private String doChatTurn(int turnSeq, String input, java.util.List<MediaRef> media) {
         long turnStartNanos = System.nanoTime(); // impl-41 / spec 13 §T66：turn.duration
-        observers.forEach(o -> o.onTurnStart(turnSeq, input));
+        notifyObservers(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
         HookResult before = hookChain.beforeTurn(turnCtx);
         if (before instanceof HookResult.Block block) {
             // spec 1400 / T2101：guard-block 轮观察者收口——onTurnStart 已派发而终结回调
             // 缺失会泄漏 TURN span（观察者视角轮次无终态）；block 亦产出最终回复
             // （reason 文本原样返回），按完结语义补派 onTurnEnd + 计时（outcome=ok）
-            observers.forEach(o -> o.onTurnEnd(turnSeq, block.reason()));
+            notifyObservers(o -> o.onTurnEnd(turnSeq, block.reason()));
             recordTurnDuration(turnStartNanos, "ok");
             return block.reason();
         }
@@ -415,14 +415,14 @@ public class DefaultAgentSession implements AgentSession {
             // spec 427 / T745：非流式错误回调对称化——观察者契约 onTurnError 在此
             // 兑现（与流式 failTurnOnce 同型；span 带 error 立即收口、423 错误采样
             // 非流式也采得到）
-            observers.forEach(o -> o.onTurnError(turnSeq, e));
+            notifyObservers(o -> o.onTurnError(turnSeq, e));
             recordTurnDuration(turnStartNanos, "failed");
             throw e;
         }
         String outbound = applyReplyFiltersToComplete(response);
         turnCtx.markResponded(outbound);
         hookChain.afterTurn(turnCtx);
-        observers.forEach(o -> o.onTurnEnd(turnSeq, outbound));
+        notifyObservers(o -> o.onTurnEnd(turnSeq, outbound));
         recordTurnDuration(turnStartNanos, "ok");
         return turnCtx.response();
     }
@@ -555,7 +555,7 @@ public class DefaultAgentSession implements AgentSession {
             // spec 104 §A / T383：模型失败签名聚类（超时族可观测——spec 83 fog 收口）
             io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures.global()
                     .record("model", timeout);
-            observers.forEach(o -> o.onTurnError(turnSeq, timeout));
+            notifyObservers(o -> o.onTurnError(turnSeq, timeout));
             throw timeout;
         } catch (ExecutionException e) {
             // 还原底层异常类型：模型侧异常照常按原类型暴露（既有错误路径不变）
@@ -604,7 +604,7 @@ public class DefaultAgentSession implements AgentSession {
         // impl-30：在途计数在订阅终结（doFinally）时递减——与 onTurnStart 的预先通知时点对齐
         acquireTurnSlot();
         int turnSeq = hookEnv.nextTurn();
-        observers.forEach(o -> o.onTurnStart(turnSeq, input));
+        notifyObservers(o -> o.onTurnStart(turnSeq, input));
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
         HookResult before = hookChain.beforeTurn(turnCtx);
         if (before instanceof HookResult.Block block) {
@@ -612,7 +612,7 @@ public class DefaultAgentSession implements AgentSession {
             recordStreamCancelled("guard");
             // spec 1400 / T2101：观察者收口——onTurnStart 已派发，终结回调缺失致 TURN span
             // 泄漏；流式 guard 拒绝以 error 终结订阅（与订阅者所见对称），按 onTurnError 补派
-            observers.forEach(o -> o.onTurnError(turnSeq,
+            notifyObservers(o -> o.onTurnError(turnSeq,
                     new IllegalStateException(block.reason())));
             return Flux.error(new IllegalStateException(block.reason()));
         }
@@ -698,7 +698,7 @@ public class DefaultAgentSession implements AgentSession {
             verifyLeaseAtCommit();
             turnCtx.markResponded(replyAccumulator.toString());
             hookChain.afterTurn(turnCtx);
-            observers.forEach(o -> o.onTurnEnd(turnSeq, turnCtx.response()));
+            notifyObservers(o -> o.onTurnEnd(turnSeq, turnCtx.response()));
         } catch (LeaseLostException e) {
             abortTurnAsLeaseLost(turnSeq, e);
             throw e;
@@ -713,7 +713,7 @@ public class DefaultAgentSession implements AgentSession {
         if (!finalized.compareAndSet(false, true)) {
             return;
         }
-        observers.forEach(o -> o.onTurnError(turnSeq, error));
+        notifyObservers(o -> o.onTurnError(turnSeq, error));
     }
 
     /** 取消在途轮次：中断全部在途工具调用；会话不谢幕，可继续 chat。 */
@@ -843,12 +843,30 @@ public class DefaultAgentSession implements AgentSession {
         io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause effectiveCause = cause == null
                 ? io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause.USER : cause;
         toolManager.requestCancel(effective);
-        observers.forEach(SessionObserver::onCancel);
+        notifyObservers(SessionObserver::onCancel);
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.session.cancelled", "cause", effectiveCause.name());
         dispatchEvent(io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent.of(
                 "session.cancelled",
                 java.util.Map.of("cancelMode", effective.name(), "cause", effectiveCause.name())));
+    }
+
+    /**
+     * spec 1500 / T2251：观察者通知隔离派发——单个 {@link SessionObserver} 回调抛
+     * RuntimeException 记 ERROR 日志后继续其余观察者，不向上传播破坏轮次/会话主流程
+     * （Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent
+     * 隔离先例在 observer 其余回调面的补全——onOpen 在构造器尾部，未隔离时观测组件
+     * 缺陷可炸掉整个会话构造并残留半初始化资源）。
+     */
+    private void notifyObservers(java.util.function.Consumer<SessionObserver> notification) {
+        for (SessionObserver observer : observers) {
+            try {
+                notification.accept(observer);
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.ERROR,
+                        "会话观察者回调异常已隔离（不跳过其余观察者）：sessionId=" + sessionId, e);
+            }
+        }
     }
 
     /**
@@ -1059,6 +1077,6 @@ public class DefaultAgentSession implements AgentSession {
         dispatchEvent(SessionEvent.of("session.lease.lost", java.util.Map.of(
                 "sessionId", sessionId,
                 "turnSeq", turnSeq)));
-        observers.forEach(o -> o.onTurnError(turnSeq, e));
+        notifyObservers(o -> o.onTurnError(turnSeq, e));
     }
 }

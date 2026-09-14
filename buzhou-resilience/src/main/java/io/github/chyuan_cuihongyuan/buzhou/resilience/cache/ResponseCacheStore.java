@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
@@ -26,12 +27,17 @@ public final class ResponseCacheStore {
     private final Duration ttl;
     /** spec 737 / T1074：权重预算字符数（0=关——701 同款 Caffeine weigher 思想）。 */
     private final long maxWeightChars;
+    /** spec 1604 / T2359：过期宽限窗（0=关——过期即弃现状；>0 时过期条目宽限窗内
+     * 保留供 {@link #getStale} 救场读，Varnish grace / RFC 5861 stale-if-error 思想）。 */
+    private final Duration staleWindow;
     private final Clock clock;
     private final AtomicLong hits = new AtomicLong();
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
     /** spec 737：因权重预算未存留的总次数（独立于 evictedCount 口径）。 */
     private final AtomicLong weightEvictions = new AtomicLong();
+    /** spec 1604：宽限救场读累计（观测面——模型故障期被旧缓存救回的请求数）。 */
+    private final AtomicLong staleReads = new AtomicLong();
     private long totalWeightChars;
 
     // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
@@ -60,15 +66,26 @@ public final class ResponseCacheStore {
 
     /** spec 737 / T1074：带权重预算构造（≤0 = 关——默认零行为）。 */
     public ResponseCacheStore(int maxEntries, Duration ttl, long maxWeightChars, Clock clock) {
+        this(maxEntries, ttl, maxWeightChars, Duration.ZERO, clock);
+    }
+
+    /** spec 1604 / T2359：+staleWindow（null/零 = 关——过期即弃现状零行为）。 */
+    public ResponseCacheStore(int maxEntries, Duration ttl, long maxWeightChars,
+            Duration staleWindow, Clock clock) {
         if (maxEntries < 1) {
             throw new IllegalArgumentException("response-cache.max-entries 必须 >= 1（当前 " + maxEntries + "）");
         }
         if (ttl == null || ttl.isZero() || ttl.isNegative()) {
             throw new IllegalArgumentException("response-cache.ttl 必须为正时长（当前 " + ttl + "）");
         }
+        Duration window = staleWindow == null ? Duration.ZERO : staleWindow;
+        if (window.isNegative()) {
+            throw new IllegalArgumentException("response-cache.stale-window 必须为非负时长（当前 " + window + "）");
+        }
         this.maxEntries = maxEntries;
         this.ttl = ttl;
         this.maxWeightChars = Math.max(0, maxWeightChars);
+        this.staleWindow = window;
         this.clock = clock;
     }
 
@@ -81,17 +98,44 @@ public final class ResponseCacheStore {
                 return Optional.empty();
             }
             if (clock.instant().isAfter(entry.expireAt())) {
-                cache.remove(key);
-                evictions.incrementAndGet();
-                misses.incrementAndGet();
-                if (maxWeightChars > 0) {
-                    totalWeightChars -= entry.weightChars();
+                // spec 1604：宽限窗内过期条目保留（救场机会），超窗照弃
+                if (clock.instant().isAfter(entry.expireAt().plus(staleWindow))) {
+                    cache.remove(key);
+                    evictions.incrementAndGet();
+                    if (maxWeightChars > 0) {
+                        totalWeightChars -= entry.weightChars();
+                    }
                 }
+                misses.incrementAndGet();
                 return Optional.empty();
             }
             hits.incrementAndGet();
             return Optional.of(entry.response());
         }
+    }
+
+    /**
+     * spec 1604 / T2359：宽限救场读——条目存在、已过期且仍在宽限窗内 → 返回旧响应
+     * （staleReads 计数；条目保留）。未过期条目不由此路径返回（正常命中走 {@link #get}）。
+     */
+    public Optional<ChatResponse> getStale(String key) {
+        synchronized (cache) {
+            CacheEntry entry = cache.get(key);
+            if (entry == null) {
+                return Optional.empty();
+            }
+            Instant now = clock.instant();
+            if (!now.isAfter(entry.expireAt()) || now.isAfter(entry.expireAt().plus(staleWindow))) {
+                return Optional.empty();
+            }
+            staleReads.incrementAndGet();
+            return Optional.of(entry.response());
+        }
+    }
+
+    /** spec 1604：宽限救场读累计（观测面）。 */
+    public long staleReadCount() {
+        return staleReads.get();
     }
 
     /**

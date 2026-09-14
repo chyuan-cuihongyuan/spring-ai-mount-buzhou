@@ -3,6 +3,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.spi;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 会话状态 SPI——键值状态读写（反馈 / 快照 / 运行态类数据）。
+ */
 public interface SessionStateStore {
 
     void put(String sessionId, StateEntry entry);

@@ -1,5 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.hook;
-
+/**
+ * hook 裁决结果 sealed 接口——CONTINUE 放行 / Block 阻断（reason 即最终回复）/
+ * Replace 替换载荷（类型不匹配静默跳过并计数，spec 1013）。
+ */
 public sealed interface HookResult
         permits HookResult.Continue, HookResult.Block, HookResult.Replace {
 

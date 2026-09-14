@@ -1,5 +1,9 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.hook;
-
+/**
+ * Hook 切面 SPI——before/afterTurn、before/afterModel、onModelError、
+ * before/afterTool 裁裁面（Block/Replace/CONTINUE）+ onEvent 通知面；
+ * order 定派发序、name 供禁用配置对位。
+ */
 public interface BuzhouHook {
 
     default String name() {

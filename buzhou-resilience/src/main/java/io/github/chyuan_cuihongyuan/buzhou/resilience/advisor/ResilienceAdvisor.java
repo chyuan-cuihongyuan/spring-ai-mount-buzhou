@@ -82,6 +82,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
     private final String modelName;
     /** 备模型降级链（impl-57）：null = 未配置。 */
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback;
+    /** spec 1610 / T2371：离群驱逐（null = 不启用——默认零行为；opt-in 装配）。 */
+    private volatile io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection outlier;
     /** shadow 探测（spec 49 §A / T176）：null = 未启用。 */
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
     /** 候选级限流闸（spec 49 §B / T177）：null = 未配置（候选调用不限流，既有行为）。 */
@@ -175,6 +177,37 @@ public class ResilienceAdvisor implements BaseAdvisor {
         this.latencyTracker = latencyTracker;
     }
 
+    /** spec 1610 / T2371：注入离群驱逐（链式；null = 不启用）。 */
+    public ResilienceAdvisor withOutlier(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection outlier) {
+        this.outlier = outlier;
+        return this;
+    }
+
+    /** spec 1610：喂入失败（分类感知——驱动集外不计）。 */
+    private void outlierError(String name, String category) {
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection e = outlier;
+        if (e != null) {
+            e.recordError(name, category);
+        }
+    }
+
+    /** spec 1610：喂入成功（复位连错）。 */
+    private void outlierOk(String name) {
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection e = outlier;
+        if (e != null) {
+            e.recordSuccess(name);
+        }
+    }
+
+    /** spec 1610：备模型候选视图（驱逐过滤后；未启用 = 原序）。 */
+    private java.util.List<io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel>
+            effectiveFallbackModels() {
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel> all =
+                fallback.models();
+        return outlier == null ? all : outlier.filter(all);
+    }
+
     /** spec 64 §A / T279：模型级调用计时（备模型/金丝雀目标；纯模型延迟不含 advisor 链）。 */
     private ChatClientResponse timedModelCall(String name,
             org.springframework.ai.chat.model.ChatModel model, ChatClientRequest request) {
@@ -225,6 +258,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
             ChatClientResponse response = doAdviseCall(request, callChain);
             if (circuit != null) {
                 circuit.recordSuccess(modelName, emitter);
+                outlierOk(modelName);
             }
             // spec 49 §A / T176：主模型成功后提交 shadow 对照（提交即返回，用户路径零增延迟；
             // 金丝雀/流式路径不探测——诚实边界见 spec）
@@ -237,12 +271,14 @@ public class ResilienceAdvisor implements BaseAdvisor {
             if (circuit != null) {
                 circuit.recordTerminal(modelName, "TIMEOUT", emitter);
             }
+            outlierError(modelName, "TIMEOUT");
             return fallbackOrRethrow(request, "TIMEOUT", e);
         } catch (RuntimeException e) {
             String category = classifier.classify(e, null).category().name();
             if (circuit != null) {
                 circuit.recordTerminal(modelName, category, emitter);
             }
+            outlierError(modelName, category);
             return fallbackOrRethrow(request, category, e);
         }
     }
@@ -263,9 +299,17 @@ public class ResilienceAdvisor implements BaseAdvisor {
             canaryChoice = fallback.selectInitialTarget(modelName, sessionId);
             if (!canaryNotified) {
                 canaryNotified = true;
+                // spec 48 §B / design-incompleteness F7（spec 1509 修复）：payload 钉
+                // 「sessionId + model」——会话维度归属此前缺失，多会话共用监听面无法定位
+                java.util.Map<String, Object> canaryPayload = new java.util.LinkedHashMap<>();
+                canaryPayload.put("model", canaryChoice);
+                canaryPayload.put("primary", modelName);
+                if (sessionId != null) {
+                    canaryPayload.put("sessionId", sessionId);
+                }
                 emit(new SessionEvent(
                         io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_CANARY_SELECTED,
-                        Map.of("model", canaryChoice, "primary", modelName), Instant.now()));
+                        Map.copyOf(canaryPayload), Instant.now()));
             }
         }
         return canaryChoice;
@@ -301,6 +345,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                     () -> timedModelCall(targetName, target.model(), request));
             if (circuit != null) {
                 circuit.recordSuccess(targetName, emitter);
+                outlierOk(targetName);
             }
             recordCandidateUsage(targetName, response);
             return response;
@@ -309,6 +354,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                     ? "TIMEOUT" : classifier.classify(e, null).category().name();
             if (circuit != null) {
                 circuit.recordTerminal(targetName, category, emitter);
+                outlierError(targetName, category);
             }
             return degradeFromCanary(request, callChain, targetName, category, e);
         }
@@ -363,7 +409,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
         List<Candidate> candidates = new java.util.ArrayList<>();
         candidates.add(new Candidate(modelName,
                 () -> modelTerminal(callChain).adviseCall(request, callChain)));
-        for (io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel fb : fallback.models()) {
+        for (io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel fb
+                : effectiveFallbackModels()) {
             if (fb.name().equals(targetName)) {
                 continue;
             }
@@ -387,6 +434,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 ChatClientResponse response = callWithDeadline(candidate.call());
                 if (circuit != null) {
                     circuit.recordSuccess(candidate.name(), emitter);
+                    outlierOk(candidate.name());
                 }
                 recordCandidateUsage(candidate.name(), response);
                 if (stats != null) {
@@ -406,6 +454,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                         ? "TIMEOUT" : classifier.classify(e, null).category().name();
                 if (circuit != null) {
                     circuit.recordTerminal(candidate.name(), cCategory, emitter);
+                    outlierError(candidate.name(), cCategory);
                 }
             }
         }
@@ -429,7 +478,8 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 || (!"CIRCUIT_OPEN".equals(category) && !fallback.triggers(category))) {
             throw primaryError;
         }
-        for (io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel fb : fallback.models()) {
+        for (io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel fb
+                : effectiveFallbackModels()) {
             if (!tryAcquireCandidateQuota(fb.name())) {
                 continue;
             }
@@ -446,6 +496,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                         () -> timedModelCall(fb.name(), fb.model(), request));
                 if (circuit != null) {
                     circuit.recordSuccess(fb.name(), emitter);
+                    outlierOk(fb.name());
                 }
                 recordCandidateUsage(fb.name(), response);
                 if (stats != null) {
@@ -465,6 +516,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                         ? "TIMEOUT" : classifier.classify(e, null).category().name();
                 if (circuit != null) {
                     circuit.recordTerminal(fb.name(), fbCategory, emitter);
+                    outlierError(fb.name(), fbCategory);
                 }
                 LOGGER.log(System.Logger.Level.WARNING,
                         "备模型失败，尝试下一级：fallback=" + fb.name() + "，category=" + fbCategory
@@ -706,6 +758,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 .doOnComplete(() -> {
                     if (recorded.compareAndSet(false, true)) {
                         circuit.recordSuccess(modelName, emitter);
+                outlierOk(modelName);
                     }
                 })
                 .doOnError(e -> {

@@ -35,13 +35,35 @@ public final class PairwiseEvalRunner {
         }
     }
 
-    /** A/B 汇总（winsA/winsB/ties/errors + 胜率）。 */
-    public record PairwiseSummary(int winsA, int winsB, int ties, int errors,
-                                  int total, double winRateA, double winRateB) {
+    /**
+     * A/B 汇总（winsA/winsB/ties/errors/skipped + 胜率 + SPRT 决策 + 宿主取消标记）。
+     * skipped = spec 1605 提前终止或 spec 1505 宿主取消后未执行的项；sprtDecision =
+     * null（未启用/未达界）或 PREFER_A/PREFER_B；hostCancelled = spec 1506 本次 run
+     * 被 {@link #requestCancel()} 叫停（区分统计达界停与宿主叫停）。
+     */
+    public record PairwiseSummary(int winsA, int winsB, int ties, int errors, int skipped,
+                                  int total, double winRateA, double winRateB, String sprtDecision,
+                                  boolean hostCancelled) {
+
+        /** 既有 9 参形态（hostCancelled=false——spec 1605 前调用方兼容）。 */
+        public PairwiseSummary(int winsA, int winsB, int ties, int errors, int skipped,
+                int total, double winRateA, double winRateB, String sprtDecision) {
+            this(winsA, winsB, ties, errors, skipped, total, winRateA, winRateB,
+                    sprtDecision, false);
+        }
+
+        /** 既有 7 参形态（skipped=0、sprtDecision=null、hostCancelled=false——兼容调用方）。 */
+        public PairwiseSummary(int winsA, int winsB, int ties, int errors,
+                int total, double winRateA, double winRateB) {
+            this(winsA, winsB, ties, errors, 0, total, winRateA, winRateB, null, false);
+        }
     }
 
     private final EvalDatasetStore datasetStore;
     private final PairwiseJudge judge;
+    /** spec 1506 / T2263：宿主请求取消当前 compare run（项边界生效，spec 1505 同语义）。 */
+    private final java.util.concurrent.atomic.AtomicBoolean hostCancel =
+            new java.util.concurrent.atomic.AtomicBoolean();
     /** spec 74 §A / T299：run 落盘（null = 不落盘，行为与 #31 一致）。 */
     private final SessionStateStore stateStore;
 
@@ -58,11 +80,27 @@ public final class PairwiseEvalRunner {
     }
 
     /**
+     * spec 1506 / T2263：请求取消当前进行中的 compare run（spec 1505 取消语义在
+     * A/B 域的扩散）——项边界生效（在飞项做完、未起项进 skipped 桶不再启动），
+     * 已完成项结果保留照常落盘；summary.hostCancelled=true 区分宿主叫停与 SPRT
+     * 统计达界停；compare 开始时标记清零（上轮残留不污染新 run）。
+     */
+    public void requestCancel() {
+        hostCancel.set(true);
+    }
+
+    /** 既有 4 参 compare（SPRT 未启用——零行为）。 */
+    public PairwiseEvalResult compare(String datasetName, AgentRuntime runtimeA,
+            AgentRuntime runtimeB, int parallelism) {
+        return compare(datasetName, runtimeA, runtimeB, parallelism, null);
+    }
+
+    /**
      * A/B 对比跑：逐项双 runtime 执行 + 成对裁决；parallelism clamp 1..32（虚拟线程）。
      * 结果按数据集项序聚合（确定性）。
      */
     public PairwiseEvalResult compare(String datasetName, AgentRuntime runtimeA,
-            AgentRuntime runtimeB, int parallelism) {
+            AgentRuntime runtimeB, int parallelism, PairwiseSprtPolicy sprt) {
         List<EvalItem> items = datasetStore.dataset(datasetName)
                 .map(meta -> datasetStore.items(datasetName))
                 .orElseThrow(() -> new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
@@ -70,13 +108,23 @@ public final class PairwiseEvalRunner {
                         "数据集未建：" + datasetName + "（修法：先 createDataset 再 compare）"));
         String runId = "ab" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
+        hostCancel.set(false); // spec 1506：run 开始清零——上轮残留取消不污染新 run
+        // spec 1605 / T2361：SPRT 序贯提前终止——达界后未起项跳过（skipped 桶）
+        java.util.concurrent.atomic.AtomicInteger liveWinsA = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger liveWinsB = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicBoolean earlyStop = new java.util.concurrent.atomic.AtomicBoolean();
+        String[] decisionHolder = {null};
         try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_AB, runId)) {
         Instant startedAt = Instant.now();
         int workers = Math.max(1, Math.min(32, parallelism));
         PairwiseItemResult[] byIndex = new PairwiseItemResult[items.size()];
         if (workers == 1 || items.size() <= 1) {
             for (int i = 0; i < items.size(); i++) {
-                byIndex[i] = compareItem(runId, items.get(i), runtimeA, runtimeB);
+                if (earlyStop.get() || hostCancel.get()) {
+                    continue; // skipped：verdict/error 双空（SPRT 达界或宿主取消）
+                }
+                byIndex[i] = scored(compareItem(runId, items.get(i), runtimeA, runtimeB),
+                        liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
             }
         } else {
             List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
@@ -84,7 +132,11 @@ public final class PairwiseEvalRunner {
                 final int index = i;
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
-                    byIndex[index] = compareItem(runId, item, runtimeA, runtimeB);
+                    if (earlyStop.get() || hostCancel.get()) {
+                        return null; // skipped：byIndex 保持 null（SPRT 达界或宿主取消）
+                    }
+                    byIndex[index] = scored(compareItem(runId, item, runtimeA, runtimeB),
+                            liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
                     return null;
                 });
             }
@@ -96,13 +148,17 @@ public final class PairwiseEvalRunner {
                 throw new IllegalStateException("A/B 评估并行执行被中断", e);
             }
         }
-        List<PairwiseItemResult> results = List.of(byIndex);
+        // Arrays.asList 容 null（SPRT skipped 项位）；List.of 拒 null
+        List<PairwiseItemResult> results = java.util.Arrays.asList(byIndex);
         int winsA = 0;
         int winsB = 0;
         int ties = 0;
         int errors = 0;
+        int skipped = 0;
         for (PairwiseItemResult r : results) {
-            if (r.error() != null) {
+            if (r == null) {
+                skipped++; // spec 1605：SPRT 达界后未起项
+            } else if (r.error() != null) {
                 errors++;
             } else if (r.verdict().winner() == PairwiseJudge.Winner.WINNER_A) {
                 winsA++;
@@ -117,10 +173,16 @@ public final class PairwiseEvalRunner {
         // A/B 结论的适用版本可验）
         PairwiseEvalResult result = new PairwiseEvalResult(runId, datasetName, startedAt,
                 Instant.now(), results,
-                new PairwiseSummary(winsA, winsB, ties, errors, results.size(),
+                new PairwiseSummary(winsA, winsB, ties, errors, skipped, results.size(),
                         decided == 0 ? 0.0 : (double) winsA / decided,
-                        decided == 0 ? 0.0 : (double) winsB / decided),
+                        decided == 0 ? 0.0 : (double) winsB / decided, decisionHolder[0],
+                        hostCancel.get()),
                 datasetStore.fingerprint(datasetName).orElse(null));
+        if (hostCancel.get()) {
+            // spec 1506 / T2263：取消信号（skipped 项已计，hostCancelled 区分叫停原因）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.eval.ab.cancelled");
+        }
         if (stateStore != null) {
             stateStore.put(EvalDatasetStore.SESSION_ID, new StateEntry(
                     AB_RUN_PREFIX + runId, EvalRunner.encode(toMap(result)),
@@ -133,6 +195,29 @@ public final class PairwiseEvalRunner {
         emitRunCompleted(result, runtimeA);
         return result;
         }
+    }
+
+    /** spec 1605 / T2361：裁决落位后序贯判定——达界即置停（后续项 skipped）。 */
+    private static PairwiseItemResult scored(PairwiseItemResult result,
+            java.util.concurrent.atomic.AtomicInteger liveWinsA,
+            java.util.concurrent.atomic.AtomicInteger liveWinsB,
+            java.util.concurrent.atomic.AtomicBoolean earlyStop,
+            String[] decisionHolder, PairwiseSprtPolicy sprt) {
+        if (sprt == null || result == null || result.error() != null
+                || result.verdict() == null) {
+            return result;
+        }
+        if (result.verdict().winner() == PairwiseJudge.Winner.WINNER_A) {
+            liveWinsA.incrementAndGet();
+        } else if (result.verdict().winner() == PairwiseJudge.Winner.WINNER_B) {
+            liveWinsB.incrementAndGet();
+        }
+        PairwiseSprtPolicy.Decision decision = sprt.decide(liveWinsA.get(), liveWinsB.get());
+        if (decision != PairwiseSprtPolicy.Decision.CONTINUE) {
+            decisionHolder[0] = decision.name();
+            earlyStop.set(true);
+        }
+        return result;
     }
 
     /**
@@ -155,6 +240,10 @@ public final class PairwiseEvalRunner {
         payload.put("errors", result.summary().errors());
         payload.put("winRateA", result.summary().winRateA());
         payload.put("winRateB", result.summary().winRateB());
+        payload.put("skipped", result.summary().skipped());
+        if (result.summary().sprtDecision() != null) {
+            payload.put("sprtDecision", result.summary().sprtDecision());
+        }
         payload.put("durationMs", java.time.Duration
                 .between(result.startedAt(), result.finishedAt()).toMillis());
         try (var done = runtimeA.spawn("buzhou-eval", "eval", "ab-" + result.runId() + "-done")) {
@@ -247,8 +336,10 @@ public final class PairwiseEvalRunner {
                 Instant.parse(String.valueOf(map.get("finishedAt"))),
                 items,
                 new PairwiseSummary(num(s, "winsA"), num(s, "winsB"), num(s, "ties"),
-                        num(s, "errors"), num(s, "total"),
-                        dnum(s, "winRateA"), dnum(s, "winRateB")),
+                        num(s, "errors"), num(s, "skipped"), num(s, "total"),
+                        dnum(s, "winRateA"), dnum(s, "winRateB"),
+                        (String) s.get("sprtDecision"),
+                        Boolean.parseBoolean(String.valueOf(s.get("hostCancelled")))),
                 (String) map.get("datasetFingerprint"));
     }
 
@@ -271,17 +362,25 @@ public final class PairwiseEvalRunner {
         summary.put("winsB", s.winsB());
         summary.put("ties", s.ties());
         summary.put("errors", s.errors());
+        summary.put("skipped", s.skipped());
         summary.put("total", s.total());
+        if (s.sprtDecision() != null) {
+            summary.put("sprtDecision", s.sprtDecision());
+        }
         summary.put("winRateA", s.winRateA());
         summary.put("winRateB", s.winRateB());
+        if (s.hostCancelled()) {
+            summary.put("hostCancelled", true); // spec 1506：仅取消 run 落盘（缺省省位）
+        }
         map.put("summary", summary);
         List<Map<String, Object>> items = new ArrayList<>();
         for (PairwiseItemResult item : r.items()) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("itemId", item.itemId());
-            row.put("winner", item.error() != null ? null
+            row.put("winner", item.error() != null || item.verdict() == null ? null
                     : item.verdict().winner().name());
-            row.put("reason", item.error() != null ? null : item.verdict().reason());
+            row.put("reason", item.error() != null || item.verdict() == null
+                    ? null : item.verdict().reason());
             row.put("error", item.error());
             items.add(row);
         }

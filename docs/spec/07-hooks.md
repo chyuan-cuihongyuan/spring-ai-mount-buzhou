@@ -324,7 +324,7 @@ public interface SessionEventContext extends HookContext {
 1. DangerousToolGuardHook（beforeTool, order 300）以通配匹配危险工具清单；命中后查 SessionStateStore 授权标记 `auth.{toolName}.{fingerprint}`；
 2. 无授权 → BLOCK，同时经 `emitEvent` 透出确认请求事件；工具结果以「等待人工确认：{hint}」文本回注模型，本轮自然收尾（LLM 通常回复「请您确认后我继续」）；
 3. 确认请求事件经**会话事件监听器**透出（`AgentSession.addEventListener`，见 `08-session-config-persistence.md`）；SSE/WS 由业务桥接，库不绑 Web 框架；事件同进可观测层；
-4. 用户选择 → 业务侧（REST）把授权写回 SessionStateStore → 业务重发同一输入，或调 `AgentSession.resume()` 由框架重放最后一轮；
+4. 用户选择 → 业务侧（REST）把授权写回 SessionStateStore → 业务重发同一输入，或经 `SessionInterrupts.resumeWith`（spec 12 中断-续跑面）由框架重放最后一轮（design-incompleteness F10 回写：原推文名 `AgentSession.resume()`，实现定名为 resumeWith，功能等价）；
 5. 重放中守卫再查 state → 命中指纹 → 一次性授权即刻消费失效 → CONTINUE 放行执行；
 6. 授权与撤销均记 Event；state 持久化（06），**续跑请求打到任意实例均可正确放行**。
 
@@ -377,7 +377,7 @@ public interface SessionEventContext extends HookContext {
 
 > 【推演】DECO 的 `requiredState` 是简单 state key；「工具名 + 参数指纹哈希」的授权粒度、一次性默认/长效可配的时效语义、授权即消费模型，蓝本未公开，属自主推演。
 
-> 【推演】DECO 的续跑是业务侧重发请求；框架级 `resume()`（以持久化历史重放最后一轮）为本库推演的便利 API，语义与业务重发等价。
+> 【推演】DECO 的续跑是业务侧重发请求；框架级续跑（以持久化历史重放最后一轮）为本库推演的便利 API，语义与业务重发等价。定案（F10 回写）：以 `SessionInterrupts.resumeWith`（spec 12）落地——功能等价、名不同。
 
 > 【推演】DECO 的 `INTERACTION_BOX` 富交互框（含 `COMMIT_PREVIEW` 变更预览）降级为通用确认模型（yes/no + 多选项 + 单文本输入 + hint 嵌 diff），富控件体系不建——此为依 ticket 25 决议的推演简化。
 

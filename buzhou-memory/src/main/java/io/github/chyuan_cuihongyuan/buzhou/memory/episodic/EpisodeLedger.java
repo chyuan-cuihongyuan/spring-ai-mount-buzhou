@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 情景记忆台账（wayfinder2 impl-26 / T42 / docs/spec/12 §memory-14，LangGraph/LangChain
@@ -29,6 +30,45 @@ public final class EpisodeLedger {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String KEY_PREFIX = "episode.";
 
+    // —— spec 1055 / impl 807：读写双守恒读面（mem0 episodic memory 命中率思想；
+    // 静态面理由同 R46–R54 先例）。
+    // 写侧守恒：recordCalls = recorded + recordDropped + recordFailures。
+    // 读侧守恒：recallCalls = recallHits + recallEmpties + recallDropped
+    // （fewShotBlock 经 recallExamples 走同点计数，无重复桶）。
+    private static final AtomicLong RECORD_CALLS = new AtomicLong();
+    private static final AtomicLong RECORDED = new AtomicLong();
+    private static final AtomicLong RECORD_DROPPED = new AtomicLong();
+    private static final AtomicLong RECORD_FAILURES = new AtomicLong();
+    private static final AtomicLong RECALL_CALLS = new AtomicLong();
+    private static final AtomicLong RECALL_HITS = new AtomicLong();
+    private static final AtomicLong RECALL_EMPTIES = new AtomicLong();
+    private static final AtomicLong RECALL_DROPPED = new AtomicLong();
+
+    /** 情景记忆读写分布快照（spec 1055）。 */
+    public record EpisodicMemoryStats(long recordCalls, long recorded, long recordDropped,
+                                      long recordFailures, long recallCalls, long recallHits,
+                                      long recallEmpties, long recallDropped) {
+    }
+
+    /** 只读快照（双守恒见类注）。 */
+    public static EpisodicMemoryStats stats() {
+        return new EpisodicMemoryStats(RECORD_CALLS.get(), RECORDED.get(),
+                RECORD_DROPPED.get(), RECORD_FAILURES.get(), RECALL_CALLS.get(),
+                RECALL_HITS.get(), RECALL_EMPTIES.get(), RECALL_DROPPED.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        RECORD_CALLS.set(0);
+        RECORDED.set(0);
+        RECORD_DROPPED.set(0);
+        RECORD_FAILURES.set(0);
+        RECALL_CALLS.set(0);
+        RECALL_HITS.set(0);
+        RECALL_EMPTIES.set(0);
+        RECALL_DROPPED.set(0);
+    }
+
     private final SessionStateStore stateStore;
     private final EmbeddingProvider provider;
 
@@ -44,7 +84,9 @@ public final class EpisodeLedger {
      */
     public synchronized void record(String sessionId, String goal, String toolTraceDigest,
                                      String outcome) {
+        RECORD_CALLS.incrementAndGet();
         if (provider == null || goal == null || goal.isBlank()) {
+            RECORD_DROPPED.incrementAndGet();
             return;
         }
         try {
@@ -55,8 +97,10 @@ public final class EpisodeLedger {
                     "outcome", outcome == null ? "success" : outcome));
             stateStore.put(sessionId, new StateEntry(KEY_PREFIX + sequence, payload,
                     "EpisodeLedger", 0, null, Instant.now()));
+            RECORDED.incrementAndGet();
         } catch (Exception ignored) {
             // 情景记忆是增益非主链路：持久化失败不外溢
+            RECORD_FAILURES.incrementAndGet();
         }
     }
 
@@ -77,7 +121,9 @@ public final class EpisodeLedger {
 
     /** 按新任务 goal 召回 top-k 过往成功示例（余弦）。 */
     public List<Example> recallExamples(String sessionId, String goal, int k) {
+        RECALL_CALLS.incrementAndGet();
         if (provider == null || goal == null || goal.isBlank()) {
+            RECALL_DROPPED.incrementAndGet();
             return List.of();
         }
         float[] goalVector = provider.embed(goal);
@@ -98,11 +144,17 @@ public final class EpisodeLedger {
                 // 单条损坏不拖垮召回
             }
         });
-        return examples.stream()
+        List<Example> hits = examples.stream()
                 .filter(example -> example.score() >= 0.10) // 语义地板：噪声级重叠不算命中
                 .sorted(Comparator.comparingDouble(Example::score).reversed())
                 .limit(Math.max(1, k))
                 .toList();
+        if (hits.isEmpty()) {
+            RECALL_EMPTIES.incrementAndGet();
+        } else {
+            RECALL_HITS.incrementAndGet();
+        }
+        return hits;
     }
 
     /** few-shot 注入块（按预算截断；无命中 = empty）。 */

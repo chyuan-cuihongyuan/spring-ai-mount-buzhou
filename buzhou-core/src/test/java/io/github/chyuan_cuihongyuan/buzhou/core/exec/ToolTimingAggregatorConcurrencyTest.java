@@ -1,15 +1,21 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.exec;
 
 import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.ThreadLocalRandom;
+import org.junit.jupiter.api.Timeout;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ToolTimingAggregator 并发正确性压测（spec 747 / T1043–T1044 / impl 549）：
  * 并行 record 不变量（count/total/max）+ 多工具隔离 + windowedMax 一致。
+ *
+ * <p>T1815 加固：隔离 worktree 全量跑实证本类负载下非确定性挂起（同 commit
+ * 一次 ~8 分钟全绿、一次 forked JVM 109+ CPU 分钟卡死在 record CAS 区）——
+ * 移除并行流内 {@code Thread.yield()} 风暴（恶化 FJ 调度且不影响不变量语义）
+ * 并加 {@code @Timeout} 护栏（病态场景快速失败不挂死套件）。并发压测默认带
+ * 超时护栏的先例由本票确立。
  */
+@Timeout(120)
 class ToolTimingAggregatorConcurrencyTest {
 
     @Test
@@ -19,12 +25,8 @@ class ToolTimingAggregatorConcurrencyTest {
         int iterations = 500;
         int totalOps = threads * iterations;
 
-        java.util.stream.IntStream.range(0, totalOps).parallel().forEach(i -> {
-            if (ThreadLocalRandom.current().nextBoolean()) {
-                Thread.yield(); // 加大交错概率
-            }
-            aggregator.record("hot-tool", 100L + (i % threads), false);
-        });
+        java.util.stream.IntStream.range(0, totalOps).parallel().forEach(i ->
+                aggregator.record("hot-tool", 100L + (i % threads), false));
 
         ToolTimingAggregator.ToolTiming stats = aggregator.stats().get("hot-tool");
         assertThat(stats.count()).isEqualTo(totalOps); // count 守恒

@@ -2,6 +2,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.session;
 
 import java.util.List;
 
+/**
+ * spawn 选项——steal（抢占既有租约）/ listeners（随会话附加的事件监听者）。
+ */
 public record SpawnOptions(boolean steal, List<SessionEventListener> listeners) {
 
     public SpawnOptions {

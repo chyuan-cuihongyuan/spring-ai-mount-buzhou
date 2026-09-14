@@ -62,7 +62,9 @@ public final class McpModule implements AutoCloseable {
                         : new io.github.chyuan_cuihongyuan.buzhou.mcp.breaker.McpServerBreaker(
                                 builder.serverBreakerConfig),
                 builder.connectRetryPolicy,
-                builder.keepaliveInterval);
+                builder.keepaliveInterval,
+                builder.maxLifetime == null ? null
+                        : DefaultMcpClientRegistry.LifetimePolicy.of(builder.maxLifetime));
         // spec 628 / T906（F 会话）：每连接并发上限（声明即启用——Entry 创建时装配信号量）
         if (builder.perConnectionConcurrencyLimit != null) {
             reg.setPerConnectionConcurrencyLimit(builder.perConnectionConcurrencyLimit);
@@ -160,10 +162,18 @@ public final class McpModule implements AutoCloseable {
         private DefaultMcpClientRegistry.ConnectRetryPolicy connectRetryPolicy;
         /** spec 703 / T957：keepalive 探活间隔（null = 关——默认）。 */
         private Duration keepaliveInterval;
+        /** spec 1601 / T2353：连接最大寿命（null = 关——默认；声明即到寿退役重建）。 */
+        private Duration maxLifetime;
 
         /** spec 724 / T999：keepalive 探活间隔（yml {@code keepalive-interval}；null = 关）。 */
         public Builder keepalive(Duration interval) {
             this.keepaliveInterval = interval;
+            return this;
+        }
+
+        /** spec 1601 / T2354：连接最大寿命（yml {@code max-lifetime}；null = 关）。 */
+        public Builder maxLifetime(Duration maxLifetime) {
+            this.maxLifetime = maxLifetime;
             return this;
         }
 
@@ -298,6 +308,12 @@ public final class McpModule implements AutoCloseable {
             if (keepalive != null) {
                 this.keepaliveInterval = Durations.fromMap(
                         Map.of("keepalive-interval", keepalive), "keepalive-interval");
+            }
+            // spec 1601 / T2354：max-lifetime（声明即启用到寿退役——缺省关）
+            Object maxLifetime = ymlConfig.get("max-lifetime");
+            if (maxLifetime != null) {
+                this.maxLifetime = Durations.fromMap(
+                        Map.of("max-lifetime", maxLifetime), "max-lifetime");
             }
                         // spec 504 / T760：server-breaker.{enabled,window-size,failure-rate-percent,cooldown,half-open-trials}
             if (ymlConfig.get("server-breaker") instanceof Map<?, ?> sbMap

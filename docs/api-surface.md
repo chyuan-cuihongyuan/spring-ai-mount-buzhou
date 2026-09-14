@@ -406,6 +406,7 @@
 - `public class BuzhouToolsAutoConfiguration`
 - `public class CommandBlacklist`
 - `public class HttpRequestTool`
+- `public final class PerHostConcurrencyGuard`（spec 1603——host→CAS 计数 per-host 并发上限，超限快速失败转文本；opt-in `buzhou.tools.http-request.max-per-host`）
 - `public class ReadFileTool`
 - `public class RunCommandTool`
 - `public class SandboxRunCommandTool`

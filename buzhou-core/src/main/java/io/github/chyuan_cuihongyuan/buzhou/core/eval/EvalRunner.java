@@ -68,6 +68,12 @@ public final class EvalRunner {
     /** spec 734 / T1068：最近一次 run 与其前一次的数据集指纹是否不同（首跑 false——读数面）。 */
     private volatile boolean lastFingerprintChanged;
 
+    /**
+     * spec 1505 / T2261：宿主请求取消当前 run（协作式——项边界生效：在飞项做完、
+     * 未启动项标 {@code cancelled} 不再启动；run 开始时清零，上轮残留不污染新 run）。
+     */
+    private volatile boolean cancelRequested;
+
     /** impl-654 / spec 901：失败率中途剪枝策略（null = 关——默认零行为变化；仅串行路径生效）。 */
     private volatile EvalPrunePolicy prunePolicy;
 
@@ -285,6 +291,16 @@ public final class EvalRunner {
         this.prunePolicy = prunePolicy;
     }
 
+    /**
+     * spec 1505 / T2261：请求取消当前进行中的 run（协作式，Kubernetes Job 删除传播
+     * 语义——在飞项做完、未启动项标 {@code cancelled} 不再启动）。串行与并行两路径
+     * 统一生效；已完成项结果保留、run 照常落盘（可分析已完成部分）。幂等；run 开始
+     * 时标记清零（上轮残留不污染新 run）。未调用时行为零变化。
+     */
+    public void requestCancel() {
+        cancelRequested = true;
+    }
+
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
     public EvalRunResult run(String datasetName, Evaluator evaluator) {
         return run(datasetName, evaluator, 1); // spec 68：默认串行零变化
@@ -322,6 +338,7 @@ public final class EvalRunner {
         }
         String runId = "r" + System.currentTimeMillis() + "-"
                 + String.format("%04x", ThreadLocalRandom.current().nextInt(0x10000));
+        cancelRequested = false; // spec 1505：run 开始清零——上轮残留取消不污染新 run
         try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_EVAL, runId)) {
         Instant startedAt = Instant.now();
         int workers = Math.max(1, Math.min(32, parallelism)); // clamp 1..32
@@ -334,6 +351,13 @@ public final class EvalRunner {
                     ? prunePolicy : EvalPrunePolicyHolder.current(); // spec 958：Holder 兜底
             EvalRunItemResult prunedSignal = null;
             for (EvalItem item : items) {
+                if (cancelRequested) {
+                    // spec 1505 / T2261：宿主请求取消——本项未启动（在飞项已做完，
+                    // 未启动项不再启动，与剪枝的失败率止损语义分立）
+                    results.add(new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_CANCELLED,
+                            "[CANCELLED] 宿主请求取消——本项未执行", "", 0));
+                    continue;
+                }
                 if (prunedSignal != null) {
                     // spec 901：剪枝已触发——剩余项不执行（算力止损），诚实标 pruned
                     results.add(new EvalRunItemResult(item.id(), EvalRunItemResult.STATUS_PRUNED,
@@ -367,6 +391,14 @@ public final class EvalRunner {
                 final int index = i;
                 final EvalItem item = items.get(i);
                 tasks.add(() -> {
+                    if (cancelRequested) {
+                        // spec 1505 / T2261：宿主请求取消——本项未启动（项边界生效，
+                        // 与串行路径同语义；invokeAll 全量派发故检查在 task 首行）
+                        byIndex[index] = new EvalRunItemResult(item.id(),
+                                EvalRunItemResult.STATUS_CANCELLED,
+                                "[CANCELLED] 宿主请求取消——本项未执行", "", 0);
+                        return null;
+                    }
                     byIndex[index] = budgetedItem(spent, item,
                             () -> memoizedItem(runId, datasetName, item, evaluator));
                     return null;
@@ -386,6 +418,11 @@ public final class EvalRunner {
         int passed = (int) results.stream().filter(r -> EvalRunItemResult.STATUS_PASS.equals(r.status())).count();
         int failed = (int) results.stream().filter(r -> EvalRunItemResult.STATUS_FAIL.equals(r.status())).count();
         int errored = (int) results.stream().filter(r -> EvalRunItemResult.STATUS_ERROR.equals(r.status())).count();
+        // spec 1505 / T2261：取消信号（run 含 cancelled 项即计一次——cancelled 不进三桶）
+        if (results.stream().anyMatch(r -> EvalRunItemResult.STATUS_CANCELLED.equals(r.status()))) {
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.eval.run.cancelled");
+        }
         // spec 82 §A / T319：run 执行时刻的数据集指纹入档（diff 据此显形就地改项型漂移）
         EvalRunResult result = new EvalRunResult(runId, datasetName, startedAt, finishedAt,
                 results.size(), passed, failed, errored, results,

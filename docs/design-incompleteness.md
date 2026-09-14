@@ -33,14 +33,14 @@
 
 ## 二、安全相关缺口（最高优先）
 
-### S1【硬偏差】MCP 危险工具默认模式为空，HITL 挂接链断裂
+### S1【硬偏差】MCP 危险工具默认模式为空，HITL 挂接链断裂（✅ 已修复：spec 1507——缺省七动词默认集 + 显式空逃生门；HITL 自动挂接 S2 部分仍待 starter 编排）
 
 - **spec 承诺**：spec 14 §F——「`dangerousToolNamePatterns` 客户端侧模式（**默认 delete/drop/write/update/remove/send/exec 类动词**），注册表聚合 `dangerousToolNames()` 供装配侧挂 guard HITL」（User Story 14：恶意 server 不能绕过审批）。
 - **代码现实**：默认值为空列表（`McpModule.java:127`、`BuzhouMcpProperties.java:25`、`DefaultMcpClientRegistry.java:131` 注释自认「空 = 不登记」）；`dangerousToolNames()` 在 mcp 模块外**零消费方**（guard/starter 无引用，仅 health 端点读其 size）。
 - **影响**：MCP server 提供的 `delete_*` 类工具默认不经任何人工审批即可被执行脊柱调用。
 - **建议方向**：按 spec 14 落默认动词模式 + 在 guard 装配侧消费 `dangerousToolNames()` 自动登记 HITL；或裁定改 spec（明确「默认空、由业务显式配置」为定案）并删除 User Story 14 承诺。
 
-### S2【硬偏差】危险工具 opt-in 启用时不自动带入默认守卫
+### S2【硬偏差】危险工具 opt-in 启用时不自动带入默认守卫（✅ 已修复：spec 1508——core DangerousToolRegistry 桥 + tools 灌注 + guard afterName 编排默认并入，yml 显式优先，auto-dangerous-bridge=false 逃生）
 
 - **spec 承诺**：spec 06 开关矩阵 + spec 07「opt-in 启用时自动带入默认守卫条目」；spec 06:125 另定 http_request 写方法粒度（GET/HEAD 不强制守卫）。
 - **代码现实**：`ToolsModule.enabledDangerousToolNames()`（buzhou-tools `ToolsModule.java:94-100`）仅测试/示例消费；`BuzhouGuardAutoConfiguration.java:36` 明言「不自动耦合 tools」；http_request 写方法粒度无实现（整名入清单）。
@@ -57,10 +57,10 @@
 | F4 | spec 05 配置键整体漂移：`buzhou.parallel.*` 全仓零命中；并发上限 8 硬编码无 yml 通道 | spec 05:138-146 | `buzhou.core.tool-timeout`（BuzhouCoreProperties.java:114）；`HarnessAssembler.java:40` 硬编码 | **需裁定**：按实现重写 spec 05 键表，或补 yml 通道 |
 | F5 | 精确缓存指标未落：`buzhou.cache.response.hit/miss/evicted`（MeterRegistry 可空，无 registry 时纯计数器可读 API） | spec 53 §E | 全仓零命中；`ResponseCacheStore.java:91-101` 仅内部 AtomicLong，`ResilienceModule.configure`:163-168 无 meter 注册 | 补 meter 注册 + 可读 API |
 | F6 | DbPolicyConfigProvider 退避随机源不可注入（spec 要求 0.0/0.5/1.0 三点边界测试） | spec 50 §B Testing Decisions | `DbPolicyConfigProvider.backoffMillis` 直用 ThreadLocalRandom（:112）；且 spec 写 LongSupplier、实现为 DoubleSupplier | 补注入点 + 边界测试；回写 spec 类型 |
-| F7 | canary.selected 事件 payload 缺 sessionId | spec 48 §B（钉「sessionId + model」） | `ResilienceAdvisor.java:234-236` payload 仅 {model, primary} | 补字段（事件面新增字段，兼容） |
+| F7 | canary.selected 事件 payload 缺 sessionId（✅ 已修复：spec 1509——payload 补 sessionId（null 省略）+ 测试钉住） | spec 48 §B（钉「sessionId + model」） | `ResilienceAdvisor.java:234-236` payload 仅 {model, primary} | 补字段（事件面新增字段，兼容） |
 | F8 | 会话索引业务标签自动装配路径无入口 | spec 30 US3 | `SessionIndexObserver.wiring()` 恒传 `Map.of()`（:44-46），仅公开构造可传 | 补装配入参或 spec 标注「编程面 only」 |
 | F9 | `docs/config-reference` 全键表缺失 | spec 21:9（map 形态键「由 docs/config-reference 全键表补全」） | 文件不存在 | 生成该文档或修订 spec 21 承诺 |
-| F10 | `AgentSession.resume()` 缺失（spec 07 推演#10 的续跑重放 API） | spec 07:327 | 仅 `SessionInterrupts.resumeWith`（spec 12 面），07 档未回写 | spec 07 回写指向 resumeWith（功能等价、名不同） |
+| F10 | `AgentSession.resume()` 缺失（✅ 已回写：spec 07 指向 SessionInterrupts.resumeWith，功能等价、名不同——spec 1509）（spec 07 推演#10 的续跑重放 API） | spec 07:327 | 仅 `SessionInterrupts.resumeWith`（spec 12 面），07 档未回写 | spec 07 回写指向 resumeWith（功能等价、名不同） |
 | F11 | manager 聚合前 Spill 终检（「双路径幂等」）未见实现 | spec 05:47 | 仅 ToolResultLimiter（spec 31）；offload 全靠 Hook 层 | 判断项：主流程可覆盖则 spec 回写 |
 
 ## 四、代码已做但 spec/文档未入档（需回写或裁定）

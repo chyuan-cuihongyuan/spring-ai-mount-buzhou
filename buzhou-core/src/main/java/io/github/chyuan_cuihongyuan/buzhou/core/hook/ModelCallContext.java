@@ -3,6 +3,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.hook;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 
+/**
+ * 模型调用切面上下文——beforeModel/afterModel/onModelError 回调所见。
+ */
 public interface ModelCallContext extends HookContext {
 
     ChatClientRequest request();

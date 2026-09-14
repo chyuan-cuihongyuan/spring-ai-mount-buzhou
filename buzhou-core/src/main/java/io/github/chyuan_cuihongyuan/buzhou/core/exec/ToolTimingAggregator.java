@@ -29,6 +29,16 @@ public final class ToolTimingAggregator {
         timings.computeIfAbsent(toolName, k -> new Timing()).record(nanos, failed);
     }
 
+    /**
+     * spec 1502 / T2255：清零全部聚合行（Prometheus counter reset 语义，与
+     * {@code HookTimingAggregator.reset()} 同构）——测试隔离重建断言基线 /
+     * 长生命周期进程重建观测基线双用途；幂等，作用于本实例（不碰 {@link Holder}
+     * 开关）。并发 record 同跑时清零后重新累计，无中间不一致窗口。
+     */
+    public void reset() {
+        timings.clear();
+    }
+
     /** 聚合快照（工具名 → count/total/max/failed；不可变，保持首见序——读面稳定）。 */
     public Map<String, ToolTiming> stats() {
         Map<String, ToolTiming> out = new LinkedHashMap<>();
@@ -73,10 +83,11 @@ public final class ToolTimingAggregator {
             if (isFailed) {
                 failed.increment();
             }
-            long observed = maxNanos;
             long currentMax;
             do {
-                currentMax = observed;
+                // 每轮重读 maxNanos（RollingMaxCounter.record 同款）——重读若留在循环外，
+                // CAS 失败后期望值永不过期刷新，maxNanos 被并发推进即活锁（R50 审计轮实证）
+                currentMax = maxNanos;
                 if (nanos <= currentMax) {
                     break;
                 }

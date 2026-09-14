@@ -36,6 +36,35 @@ public class SkillSearchTool implements ToolCallback {
     /** spec 73 §A / T297：语义排序器（null = 纯子串检索，行为与历史一致）。 */
     private final SkillRanker ranker;
 
+    // —— spec 1057 / impl 809：搜索判定读面（Algolia zero-result-rate 思想；静态面理由
+    // 同 R46–R56 先例）。与 spec 116 micrometer 遥测互补：那是可选装配的后端面，这是进程内直读。
+    // 守恒：calls = hits + misses + parseRejects + blankQueryRejects（每入口恰落一桶）。
+    private static final java.util.concurrent.atomic.AtomicLong CALLS = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong HITS = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong MISSES = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PARSE_REJECTS = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BLANK_QUERY_REJECTS = new java.util.concurrent.atomic.AtomicLong();
+
+    /** 搜索判定分布快照（spec 1057）。 */
+    public record SkillSearchStats(long calls, long hits, long misses,
+                                   long parseRejects, long blankQueryRejects) {
+    }
+
+    /** 只读快照（守恒 calls = hits + misses + parseRejects + blankQueryRejects）。 */
+    public static SkillSearchStats stats() {
+        return new SkillSearchStats(CALLS.get(), HITS.get(), MISSES.get(),
+                PARSE_REJECTS.get(), BLANK_QUERY_REJECTS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        CALLS.set(0);
+        HITS.set(0);
+        MISSES.set(0);
+        PARSE_REJECTS.set(0);
+        BLANK_QUERY_REJECTS.set(0);
+    }
+
     public SkillSearchTool(SkillRegistry registry, SessionBindingIndex bindingIndex) {
         this(registry, bindingIndex, null);
     }
@@ -69,14 +98,17 @@ public class SkillSearchTool implements ToolCallback {
 
     @Override
     public String call(String toolInput, ToolContext toolContext) {
+        CALLS.incrementAndGet();
         String query;
         try {
             JsonNode args = MAPPER.readTree(toolInput == null || toolInput.isBlank() ? "{}" : toolInput);
             query = args.path("query").asText("");
         } catch (Exception e) {
+            PARSE_REJECTS.incrementAndGet();
             return "skill_search 参数解析失败：" + e.getMessage();
         }
         if (query.isBlank()) {
+            BLANK_QUERY_REJECTS.incrementAndGet();
             return "skill_search 缺少 query 参数";
         }
         String sessionId = HarnessToolCallingManager.sessionIdOf(toolContext);
@@ -115,10 +147,12 @@ public class SkillSearchTool implements ToolCallback {
                 }
                 if (shown > 0) {
                     suggest.append("可换更精确的关键词，或直接 load_skill(name) 加载上述技能。");
+                    MISSES.incrementAndGet();
                     searchTelemetry("miss-semantic");
                     return suggest.toString();
                 }
             }
+            MISSES.incrementAndGet();
             searchTelemetry("miss");
             return "无匹配技能（query=" + query + "）。可换更短的关键词，或请运维确认技能绑定关系。";
         }
@@ -140,6 +174,7 @@ public class SkillSearchTool implements ToolCallback {
             }
         }
         sb.append("用 load_skill(name) 加载正文。");
+        HITS.incrementAndGet();
         searchTelemetry("hit");
         return sb.toString();
     }

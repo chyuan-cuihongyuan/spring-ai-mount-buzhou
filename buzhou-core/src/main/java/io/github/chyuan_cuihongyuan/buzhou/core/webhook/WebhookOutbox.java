@@ -120,9 +120,22 @@ final class WebhookOutbox {
 
     /** spec 533 / T817：载荷上限（0 = 不限——默认零变化；Kafka max message size 思想）。 */
     private volatile int maxPayloadChars;
+    /** spec 1609 / T2369：outbox 互斥锁（ReentrantLock——锁内 store put/scan 在虚拟线程
+     * dispatcher 下 unmount 而非 pin；互斥语义同 monitor，spec 1606 审计中危 #1 落地）。 */
+    private final java.util.concurrent.locks.ReentrantLock lock =
+            new java.util.concurrent.locks.ReentrantLock();
 
     /** 入队（容量满/超载荷上限返回 false，由调用方计 dropped；attempts=0、立即可投递）。 */
-    synchronized boolean append(String eventId, String type, String body) {
+    boolean append(String eventId, String type, String body) {
+        lock.lock();
+        try {
+            return appendLocked(eventId, type, body);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private boolean appendLocked(String eventId, String type, String body) {
         if (pendingCount() >= capacity) {
             return false;
         }
@@ -215,7 +228,16 @@ final class WebhookOutbox {
     }
 
     /** impl-694 / spec 948 配套：退避记录落盘（包级——测试与恢复工具用）。 */
-    synchronized void appendRetry(OutboxRecord record) {
+    void appendRetry(OutboxRecord record) {
+        lock.lock();
+        try {
+            appendRetryLocked(record);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void appendRetryLocked(OutboxRecord record) {
         store.put(SESSION_ID, entry(record));
         store.put(SESSION_ID, indexEntry(dueKey(record), record.eventId()));
     }
@@ -225,7 +247,16 @@ final class WebhookOutbox {
      * 的条目数（删除时序缺陷信号；正常路径 markDead/update 双删应无孤儿）。
      * 纯读面；扫描序无保证（计数语义）。
      */
-    synchronized int orphanIndexCount() {
+    int orphanIndexCount() {
+        lock.lock();
+        try {
+            return orphanIndexCountLocked();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private int orphanIndexCountLocked() {
         int orphans = 0;
         for (Map.Entry<String, StateEntry> e
                 : store.scanByPrefix(SESSION_ID, DUE_PREFIX).entrySet()) {
@@ -288,7 +319,16 @@ final class WebhookOutbox {
     }
 
     /** spec 37 §B / T133 / impl-106：死信迁回 outbox（attempts=0、立即可投递）；容量满则停。 */
-    synchronized int requeueDead(int limit) {
+    int requeueDead(int limit) {
+        lock.lock();
+        try {
+            return requeueDeadLocked(limit);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private int requeueDeadLocked(int limit) {
         int requeued = 0;
         for (Map.Entry<String, StateEntry> e : store.scanByPrefix(SESSION_ID, DEAD_PREFIX).entrySet()) {
             if (requeued >= limit || pendingCount() >= capacity) {

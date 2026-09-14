@@ -2,6 +2,9 @@ package io.github.chyuan_cuihongyuan.buzhou.core.spi;
 
 import java.util.function.Supplier;
 
+/**
+ * 事务工作单元 SPI——跨多 store 的原子事务边界（store 实现方按能力适配）。
+ */
 public interface UnitOfWork {
 
     <T> T executeInTransaction(Supplier<T> work);

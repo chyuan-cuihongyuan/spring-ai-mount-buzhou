@@ -1,5 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.session;
-
+/**
+ * 会话运行时门面——{@link #spawn} 开会话（同会话单活跃实例 + 租约语义），
+ * fork/forkFromTurn 时间旅行分叉，exportSession/importSession 会话导入导出。
+ */
 public interface AgentRuntime {
 
     AgentSession spawn(String appId, String agentName);

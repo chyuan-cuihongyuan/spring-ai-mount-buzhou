@@ -58,6 +58,27 @@ class ToolTimingAggregatorTest {
         assertThat(t.maxNanos()).isEqualTo(200L);
     }
 
+    /** spec 1502 / T2255–T2256：实例 reset() 清零 stats 与 windowedMax，幂等，Holder 开关不动。 */
+    @Test
+    void instanceResetShouldZeroStatsAndWindowedMaxIdempotently() {
+        ToolTimingAggregator.Holder.reset();
+        ToolTimingAggregator.Holder.enable();
+        ToolTimingAggregator aggregator = ToolTimingAggregator.Holder.current();
+        aggregator.record("reset-tool", 1_000L, false);
+        assertThat(aggregator.stats()).containsKey("reset-tool");
+        assertThat(aggregator.windowedMax()).containsKey("reset-tool");
+
+        aggregator.reset();
+        aggregator.reset(); // 幂等：连调无异常
+
+        assertThat(aggregator.stats()).isEmpty();
+        assertThat(aggregator.windowedMax()).isEmpty();
+        // Holder 开关不动：仍处于开启态，后续累计照常
+        aggregator.record("reset-tool", 500L, true);
+        assertThat(aggregator.stats().get("reset-tool").count()).isEqualTo(1);
+        assertThat(aggregator.stats().get("reset-tool").failed()).isEqualTo(1);
+    }
+
     @Test
     void disabledHolderSkipsMirror() {
         // 显式归零基线：同 JVM 早先的装配测试 enable 过静态 Holder——生产单进程

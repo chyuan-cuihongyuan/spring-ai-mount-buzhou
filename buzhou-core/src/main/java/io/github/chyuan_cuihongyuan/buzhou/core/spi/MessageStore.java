@@ -5,6 +5,9 @@ import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 消息持久化 SPI——会话消息历史的读写与截面前缀扫描。
+ */
 public interface MessageStore {
 
     void append(String sessionId, List<BuzhouMessage> messages);
