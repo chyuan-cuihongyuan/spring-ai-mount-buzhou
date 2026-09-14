@@ -97,22 +97,20 @@
 | 32 | 审计收集器采集与持久化失败计数读面 | Splunk HEC ingestion stats | T1513–T1514 | 784 | 1031 | ✅ |
 | 33 | 打转检测触发聚合读面（fires/blocks/maxRunSeen） | LLM 打转检测 | T1517–T1518 | 785 | 1032 | ✅ |
 | 34 | token 估算调用量与总量读面（静态三计数） | 预算面可观测性 | T1519–T1520 | 786 | 1033 | ✅ |
-| 45 | fs 沙箱判定计数读面（resolutions/violations 守恒） | chroot escape detection | T1545–T1546 | 795 | 1045 | ✅ |
-| 46 | （开工时按缺口核查选题，候选见下） | — | T1547–T1548 | 796 | 1046 |  |
 | 35 | 词法排序生效计数读面（runs/reordered——排序器空转显形） | 混合排序生效水位 | T1521–T1522 | 787 | 1034 | ✅ |
 | 36 | MCP properties 装配解析统计读面（servers/bindings/bindingsSkipped） | 清单解析统计 | T1523–T1524 | 788 | 1036 | ✅ |
 | 37 | 工具权限判定分布读面（allowed/两拒分桶守恒） | K8s RBAC audit | T1527–T1528 | 789 | 1037 | ✅ |
 | 38 | 摘要桥操作与代数回退读面（generation 单调回退探测） | 单调水位思想 | T1529–T1530 | 790 | 1038 | ✅ |
 | 39 | 提示词注册表解析分布读面（attempts/hits/misses 守恒） | 判定显形谱系 | T1531–T1532 | 791 | 1039 | ✅ |
 | 40 | todo 动作分布读面（白名单五桶有界） | 操作分布显形 | T1533–T1534 | 792 | 1040 | ✅ |
+| 41 | time-travel fork 操作计数读面（forksCreated/messagesCopied） | LangGraph fork | T1535–T1536 | 793 | 1041 | ✅ |
+| 42 | 签名验钥分布读面（verifyAttempts/verifyKeyMisses/rotations） | cert-manager/keyring ops | T1537–T1538 | 794 | 1042 | ✅ |
 | 43 | 围栏裁决分布读面（五态判定分桶守恒） | Kafka epoch/consumer-lag | T1539–T1540 | 795 | 1043 | ✅ |
-| 44 | （开工时按缺口核查选题，候选见下） | — | T1541–T1542 | 796 | 1044 |  |
-| 36 | MCP properties 装配解析统计读面（servers/bindings/bindingsSkipped） | 清单解析统计 | T1523–T1524 | 788 | 1036 | ✅ |
-| 37 | 工具权限判定分布读面（allowed/两拒分桶守恒） | K8s RBAC audit | T1527–T1528 | 789 | 1037 | ✅ |
-| 38 | （开工时按缺口核查选题，候选见下） | — | T1529–T1530 | 790 | 1038 |  |
+| 44 | J 系阶段对账审计轮（R44 五类对账+修复） | G/H 收口预检先例 | T1541–T1542 | 796 | 1044 | ✅ |
+| 45 | fs 沙箱判定计数读面（resolutions/violations 守恒） | chroot escape detection | T1545–T1546 | 795 | 1045 | ✅ |
+| 46 | （开工时按缺口核查选题，候选见下） | — | T1547–T1548 | 796 | 1046 |  |
 
-（5–150 号段开工时逐轮选题：从候选池选取 + 缺口核查通过后填入本表；候选池仅预筛一轮，池尽时续筛。开工核查即 ruled-out：span 状态分布（spec 543 已收）、加密版本分布（v1 一统无分布价值）、fork 谱系深度（spec 711 已带深度/环读面）、SecretLeases 计数（issued/expired/revoked 已存在）、排空耗时（动同步闭锁路径风险收益比差）。）
-
+（编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
 
 - Hook 链解析顺序快照（Kong plugin priority）／慢调用 Top-K 榜读面（Redis SLOWLOG，基于 spec 108 timer 之上的有界环）／会话面包屑环形读面（Sentry breadcrumbs）／虚拟线程在飞水位读面（Go runtime NumGoroutine）→ exec/hook/session
