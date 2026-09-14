@@ -598,6 +598,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 748-execution-policy-readout（补登） | I/J 会话产出引用补全 | [spec 748](docs/spec/748-execution-policy-readout.md) |
 | 观测治理 | 749-final-verification（补登） | I/J 会话产出引用补全 | [spec 749](docs/spec/749-final-verification.md) |
 | 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
+| 模型韧性 | outbox due 索引孤儿审计 | WebhookOutbox.orphanIndexCount（indexEntry 存在但主记录缺失的条目数）——配对完整性思想，删除时序缺陷信号（spec 957） | [spec 957](docs/spec/957-orphan-index-audit.md) |
+| 评估闭环 | gate 历史按数据集过滤读面 | EvalGate.historyOf（datasetName 精确匹配新→旧投影，null/blank fail-fast）——spec 914 历史面查询视图（spec 956） | [spec 956](docs/spec/956-history-filter.md) |
 | 评估闭环 | 快照数据集隔离性深验 | 三断言（源变靶不变/删源靶活/nextId 续起不碰撞）——spec 187 隔离语义收口薄加固轮（spec 949） | [spec 949](docs/spec/949-snapshot-isolation.md) |
 | 评估闭环 | 数据集输入长度画像 | EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars）——评估成本画像，超长项预算失控点（spec 942） | [spec 942](docs/spec/942-input-profile.md) |
 | 会话治理 | 摘要存储水位读面 | InMemorySummaryStore.watermark（activeSessions/maxSessions）——水位系列第三站（spec 950） | [spec 950](docs/spec/950-summary-watermark.md) |
@@ -619,12 +621,17 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具计量 | write_file 写入量水位与拒绝分桶 | 写入吞吐与拒绝原因分布显形，五桶守恒（spec 1046） | [spec 1046](docs/spec/1046-writefile-stats.md) |
 | 工具计量 | read_file 读量水位与拒绝分桶 | 读吞吐与拒绝原因分布显形，四桶守恒，与写侧轴间可比（spec 1047） | [spec 1047](docs/spec/1047-readfile-stats.md) |
 | 工具计量 | SSRF 守卫判定分布读面 | 出网校验放行/拒绝按原因分桶显形，五桶守恒（spec 1048） | [spec 1048](docs/spec/1048-ssrf-guard-stats.md) |
+| 工具计量 | http_request 请求量水位与结果分布 | 请求送达率与六拒绝桶分布显形，参数/环境分轴（spec 1049） | [spec 1049](docs/spec/1049-httptool-stats.md) |
+| 观测治理 | J 系阶段对账审计 R50 | J 会话 R46–R49 工件对账 + spec 1048 跨会话冲突合成留痕（spec 1050） | [spec 1050](docs/spec/1050-j-audit-r50.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
+| 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
 | 会话治理 | 摘要版本链缺口审计 | SummaryVersionAudit.gaps（version 升序扫描定位缺失号，重复/非正 fail-fast）——Kafka log gap 对账思想（spec 952） | [spec 952](docs/spec/952-summary-version-audit.md) |
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | 评估闭环 | k 次防抖门 | EvalGate.enforceStable（k 次全过才过 + 早停 + 历史容量校验）——flaky 误报防护从严门（spec 943） | [spec 943](docs/spec/943-stable-gate.md) |
+| 评估闭环 | 评估剪枝进程级兜底装配 | EvalPrunePolicyHolder（进程级兜底）+ autoconfig buzhou.eval.prune.* 装配 bean——RetryBudgetHolder 先例，901 装配收口（spec 958） | [spec 958](docs/spec/958-prune-holder.md) |
 | 观测治理 | 工具调用结局分布读面 | ToolCallOutcomeStats.stats（四桶+other 收容桶，守恒不破枚举扩展）——spec 50 日志根因分诊聚合面（spec 944） | [spec 944](docs/spec/944-outcome-stats.md) |
+| 持久化 | LeaderElector 契约校验套件 | 五项选主语义检查静态 verify（空位新纪元/重入幂等/跟随态/resign 重取/inspect 一致性）+ 内存接入——契约系列第六站，与 R40 读数面分轴（spec 954） | [spec 954](docs/spec/954-leader-contract.md) |
 | 模型韧性 | outbox 重试次数分布读面 | WebhookOutbox.retryDistribution（attempts 分桶 TreeMap 升序 + appendRetry 包级退避落盘）——重试积压结构可见（spec 948） | [spec 948](docs/spec/948-retry-distribution.md) |
 | 模型韧性 | ElasticBudgetPool 并发守恒压测 | 8 线程×500 借还 Σheld+surplus==capacity 守恒 + base 保底不吃 borrow——池级单锁语义并发正确性实证（spec 947） | [spec 947](docs/spec/947-budget-pool-stress.md) |
 | 持久化 | SessionIndexStore 契约校验套件 | 五项语义检查静态 verify（往返/覆盖幂等/delete 幂等/DELETED 排除/purge 计数 limit 尊重 ACTIVE 保护）+ 内存接入——契约系列第五站（spec 945） | [spec 945](docs/spec/945-index-contract.md) |
@@ -675,6 +682,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 会话面包屑环形读面 | EventBreadcrumb 时间线尾部环（deliverEvent 双模式共同漏斗，只记 type 不记 payload）+ breadcrumbs() 新→旧快照——Sentry breadcrumbs 借鉴（spec 1006） | [spec 1006](docs/spec/1006-session-breadcrumbs.md) |
 | 模型韧性 | 凭证租约生命周期计数读面 | SecretLeaseStats 五计数快照（补 renew 轴：续租成功/被拒——拒绝率高=TTL 过短信号）——Vault lease lifecycle 借鉴（spec 1007） | [spec 1007](docs/spec/1007-lease-lifecycle-stats.md) |
 | 工程门禁 | 全模块测试补全覆盖（K 会话 R1） | JaCoCo 缺口驱动零覆盖清零：6 模块 20 靶点直测（core 16 含 SessionStateStore default 体死路径复活 + guard/spill/resilience/mcp 各 1），豁免入档不硬凑；测试显形三缺陷单列修复（spec 1200） | [spec 1200](docs/spec/1200-test-coverage-completion.md) |
+| 工程门禁 | 低覆盖类批次 1（K 会话 R2） | 低覆盖档（<50% 且 miss≥10）清点：guard PolicyGateHook 三态裁决/taint 映射/事件/指标四合同面 + memory RecallSearchTool 四模输出/降级/截断十断言面（spec 1201） | [spec 1201](docs/spec/1201-low-coverage-batch1.md) |
+| 工程门禁 | skills RedisSkillStore 契约接入（K 会话 R3） | SkillStore 契约范式补链：Redis 实现接同一契约基类（真实 redis:7-alpine 容器，无 Docker 跳过）+ 重启存活加验；修正 R1 审计漏扫 skills（spec 1202） | [spec 1202](docs/spec/1202-redis-skill-store-contract.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 

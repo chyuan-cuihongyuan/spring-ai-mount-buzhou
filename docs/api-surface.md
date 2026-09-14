@@ -2298,8 +2298,19 @@
 - `SessionIndexStoreContract`（I 会话 945 产出——SessionIndexStore SPI 契约
   校验套件五项语义静态收集范式；契约系列第五站）
 
+- `LeaderElectorContract`（I 会话 954 产出——LeaderElector SPI 契约校验套件
+  五项选主语义静态收集范式；契约系列第六站）
 - `SummaryVersionAudit`（I 会话 952 产出——摘要版本链缺口审计纯函数：
   version 升序扫描定位缺失号，重复/非正 fail-fast）
+
+- `EvalPrunePolicyHolder`（I 会话 958 产出——EvalPrunePolicy 进程级兜底
+  Holder：current/set/clear，RetryBudgetHolder 同款；yml 装配缝）
+
+- `SummaryVersionAudit`（I 会话 952 产出——摘要版本链缺口审计纯函数：
+  version 升序扫描定位缺失号，重复/非正 fail-fast）
+
+- `EvalPrunePolicyHolder`（I 会话 958 产出——EvalPrunePolicy 进程级兜底
+  Holder：current/set/clear，RetryBudgetHolder 同款；yml 装配缝）
 
 - `ObservabilityStoreContract`（I 会话 936 产出——ObservabilityStore SPI 契约
   校验套件八项语义静态收集范式：span/event 保序、快照写读一致、未知会话空读、

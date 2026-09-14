@@ -69,6 +69,13 @@
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- K 会话 R3 / spec 1202 / T1809：RedisSkillStore 契约测试（真实 Redis 集成；
+         CI 环境 Docker 可用时跑，本机无 Docker 自动跳过，与 store-redis 同口径） -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!--
       注意：不得在此加 buzhou-memory 等其他 feature 模块依赖（含 test scope）——
       09 模块工程档「feature 模块之间禁止直接依赖」是依赖白名单；跨机制集成测试落 examples 聚合侧。

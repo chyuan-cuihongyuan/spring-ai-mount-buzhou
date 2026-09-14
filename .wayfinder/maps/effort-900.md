@@ -55,6 +55,11 @@
 - [SessionIndexStore 契约校验套件](../tickets/T1321-index-contract-shape.md) — 五项语义检查（往返一致/覆盖幂等/delete 幂等/DELETED 排除/purge 计数+limit+ACTIVE 保护）+ 内存接入——契约系列第五站（spec 945）。
 - [webhook 死信环形上限](../tickets/T1317-deadletter-cap-shape.md) — MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧，保留最新排障价值）——有界纪律（ErrorSignatures/TagCardinalityGuard 同先例），渐进收敛无尖峰。
 - [数据集输入长度画像](../tickets/T1327-input-profile-shape.md) — EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars，R-7 同口径内联）——评估成本画像，超长项与预算失控点探测（票号改号：T1317/T1318 与 spec 937 冲突）。
+- [outbox due 索引孤儿审计](../tickets/T1333-orphan-audit-shape.md 之外独立) — WebhookOutbox.orphanIndexCount（indexEntry 存在但主记录缺失的条目数，删除时序缺陷信号）——配对完整性思想（spec 949 续）。
+- [pass@k×防抖门组合补验](../tickets/T1331-passk-gate-combo-shape.md) — 双口径并存语义固化（单次频率门 fail 与 pass@k 概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径（80/902/908）组合收口。
+- [LeaderElector 契约校验套件](../tickets/T1321-leader-contract-shape.md) — 五项语义检查（空位获取新纪元/重入幂等同 epoch/跟随态/resign 重取/inspect 一致性「不再持有」放宽口径）+ 内存接入——契约系列第六站（spec 954，与对方 R40 读数面分轴）。
+- [gate 历史按数据集过滤读面](../tickets/T1321-history-filter-shape.md) — EvalGate.historyOf（datasetName 精确匹配新→旧投影，null/blank fail-fast）——spec 914 历史面查询视图（spec 956）。
+- [评估剪枝进程级兜底装配](../tickets/T1321-prune-holder-shape.md) — EvalPrunePolicyHolder（进程级 AtomicReference 兜底）+ autoconfig buzhou.eval.prune.* 装配（ConditionalOnProperty+DisposableBean 清理）——RetryBudgetHolder 先例（spec 958；901 装配收口）。
 - [k 次防抖门](../tickets/T1329-stable-gate-shape.md) — EvalGate.enforceStable（k 次全过才过 + 早停 + k≤HISTORY_CAPACITY 校验）——flaky 误报防护的从严门，复用既有管线全继承。
 - [工具调用结局分布读面](../tickets/T1329-outcome-stats-shape.md) — ToolCallOutcomeStats.stats 四桶+other 收容桶（守恒不破枚举扩展）——spec 50 日志的根因分诊聚合面（TIMEOUT 高=超时配置，CANCELLED 高=取消风暴）。
 - [write_file noclobber 防误覆盖](../tickets/T1337-noclobber-shape.md) — WriteFileTool opt-in noclobber（写盘前 Files.exists 守门零副作用，失败路径不留 tmp/不建目录）——csh set -C / cp -n 防误覆盖语义（模型误覆盖不可恢复显形化）。
@@ -114,6 +119,13 @@
 | 47 | ElasticBudgetPool 并发守恒压测 | G r47 压测模式 | T1321–T1322 号段复用注记 | 696 | 947 | ✅ |
 | 48 | 快照数据集隔离性深验 | G 深验模式 | T1333–T1334 | 697 | 949 | ✅ |
 | 49 | 摘要存储水位读面（水位系列第三站） | 水位系列同构 | T1335–T1336 号段修正 | 698 | 950 | ✅ |
+| 52 | pass@k×防抖门组合补验 | 评估域三口径组合 | T1331–T1332 | 694 续 | 953 | ✅ |
+| 53 | LeaderElector 契约校验套件 | spec 922 契约系列 | T1321–T1322 号段复用注记（leader-contract） | 699 续 | 954 | ✅ |
+| 54 | API 快照再生轮（LeaderElectorContract/SummaryVersionAudit 入档） | G 748 先例 | T1321–T1322 号段续注记 | 699 续 | 955 | ✅ |
+| 55 | gate 历史按数据集过滤读面 | spec 914 查询视图 | T1321–T1322 号段复用注记（history-filter） | 694 续 | 956 | ✅ |
+| 56 | outbox due 索引孤儿审计 | 配对完整性思想 | T1321–T1322 号段复用注记 | 694 续 | 957 | ✅ |
+| 57 | 评估剪枝进程级兜底装配（901 装配收口） | RetryBudgetHolder 先例 | T1321–T1322 号段复用注记（prune-holder） | 701 | 958 | ✅ |
+| 58 | API 快照再生轮（EvalPrunePolicyHolder 入档） | G 748 先例 | T1321–T1322 号段复用注记 | 702 | 959 | ✅ |
 | 50 | write_file noclobber 防误覆盖 | csh set -C / cp -n | T1337–T1338 | 698 已被 49 轮占用→改 691 续段实际=698b | 951 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |

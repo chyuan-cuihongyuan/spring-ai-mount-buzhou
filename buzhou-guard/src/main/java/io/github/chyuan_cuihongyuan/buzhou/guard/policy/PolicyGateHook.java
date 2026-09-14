@@ -44,7 +44,7 @@ public class PolicyGateHook implements BuzhouHook {
                         ? "UNTRUSTED" : "TRUSTED"),
                 false);
         PolicyDecision decision = engine.decide(input);
-        // impl-41 / spec 13 §T66：策略裁决指标（outcome=allowed|blocked|escalated）
+        // impl-41 / spec 13 §T66：策略裁决指标（outcome=allow|deny|escalate，Action 名小写；T1808 更正）
         io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
                 .counter("buzhou.guard.checks", "outcome",
                         decision.action().name().toLowerCase());

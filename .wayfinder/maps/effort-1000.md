@@ -19,6 +19,8 @@
 
 ## Decisions so far
 
+- [http_request 请求量水位与结果分布读面的形态裁决](../tickets/T1553-httptool-stats-shape.md) — HttpRequestTool 静态八计数（attempts/successes + method/url/ssrf/timeoutParam/oversize/failures 六拒绝桶）+ 嵌套 HttpToolStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = successes + totalRejects；参数桶指向模型行为、环境桶指向环境守卫（Envoy upstream 统计分桶）。
+- [SSRF 守卫判定分布读面的形态裁决](../tickets/T1551-ssrf-stats-shape.md) — SsrfGuard 静态六计数（checks/allowlisted/dnsAllowed + emptyHost/dns/blocked 三拒绝桶）+ 嵌套 SsrfGuardStats（totalAllowed/totalRejects 派生）+ stats()/resetForTest()；守恒 checks = 放行 + 拒绝（每入口恰落一桶）；check() 返回语义逐位不变（Fail2ban 判定链显形 + OPA decision log）。
 - [read_file 读量水位与拒绝分桶读面的形态裁决](../tickets/T1549-readfile-stats-shape.md) — ReadFileTool 静态六计数（attempts/reads/bytesRead/notFileRejects/oversizeRejects/failures）+ 嵌套 ReadFileStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = reads + totalRejects；与 R46 写侧轴间同口径可比（Datadog DogStatsD read/write 对称计量）。
 - [write_file 写入量水位与拒绝分桶读面的形态裁决](../tickets/T1547-writefile-stats-shape.md) — WriteFileTool 静态七计数（attempts/writes/bytesWritten/paramRejects/oversizeRejects/noclobberRejects/failures）+ 嵌套 WriteFileStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = writes + totalRejects（每入口恰落一桶）；call() 返回语义逐位不变（Sentry discarded events + Dropwizard Meter）。
 - [工具策略匹配决策读面的形态裁决](../tickets/T1451-policy-match-decision-shape.md) — ToolPolicyMatchDecision（EXACT/GLOB/NONE + matchedKey）+ ToolPolicyMatchStats 快照（Σ守恒 == match 调用数，recent 有界环 32）；match 返回值逐位不变，stats()/resetStats() 读面（OPA decision log）。
@@ -112,7 +114,9 @@
 | 45 | fs 沙箱判定计数读面（resolutions/violations 守恒） | chroot escape detection | T1545–T1546 | 797 | 1045 | ✅ |
 | 46 | write_file 写入量水位与拒绝分桶读面（attempts/writes/bytesWritten + 四拒绝桶守恒） | Sentry discarded events + Dropwizard Meter | T1547–T1548 | 798 | 1046 | ✅ |
 | 47 | read_file 读量水位与拒绝分桶读面（attempts/reads/bytesRead + 三拒绝桶守恒） | Datadog DogStatsD read/write 对称计量 | T1549–T1550 | 799 | 1047 | ✅ |
-| 48 | （开工时按缺口核查选题） | — | T1551–T1552 | 800 | 1048 |  |
+| 48 | SSRF 守卫判定分布读面（checks/两放行桶 + 三拒绝桶守恒） | Fail2ban 判定链显形 + OPA decision log | T1551–T1552 | 800 | 1048 | ✅ |
+| 49 | http_request 请求量水位与结果分布读面（successes + 六拒绝桶守恒） | Envoy upstream statistics | T1553–T1554 | 801 | 1049 | ✅ |
+| 50 | （开工时按缺口核查选题；**R50 周期预检轮**——全仓 verify + 双门） | — | T1555–T1556 | 802 | 1050 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）

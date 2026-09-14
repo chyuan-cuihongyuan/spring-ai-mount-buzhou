@@ -330,7 +330,8 @@ public final class EvalRunner {
         List<EvalRunItemResult> results;
         if (workers == 1 || items.size() <= 1) {
             results = new ArrayList<>();
-            EvalPrunePolicy prune = prunePolicy; // spec 901：快照读（volatile 单读免竞态漂移）
+            EvalPrunePolicy prune = prunePolicy != null
+                    ? prunePolicy : EvalPrunePolicyHolder.current(); // spec 958：Holder 兜底
             EvalRunItemResult prunedSignal = null;
             for (EvalItem item : items) {
                 if (prunedSignal != null) {

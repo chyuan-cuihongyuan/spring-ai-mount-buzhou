@@ -123,6 +123,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalItem
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPassAtK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPrunePolicy
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPrunePolicyHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalQueryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunDurationStats
@@ -413,6 +414,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LaneStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElectorContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseInfo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor
