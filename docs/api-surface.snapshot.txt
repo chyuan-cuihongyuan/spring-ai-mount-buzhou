@@ -16,6 +16,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionLedge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostForecast
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ElasticBudgetPool
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.FairnessIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelBudgetGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedgerJsonl
@@ -251,6 +252,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.Spotlighting
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.SpotlightingStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.StreamTextFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolCallContext
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.ToolResultSizeHistogram
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnLatencyPercentiles
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.TurnTimingHook
@@ -339,6 +341,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.AgentRuntime
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCauseDistribution
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelLatencyTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EncryptedSessionExport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBreadcrumb
@@ -377,6 +380,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeatureStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionIdEntropyAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionImportException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionInterrupts
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionMigrator
@@ -524,6 +528,7 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiEventRedactor
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiHitStats
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiHitStatsJsonl
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiInputRedactionHook
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiProbeSelfCheck
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiStreamRedactionHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiType
@@ -564,6 +569,7 @@ buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnection
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpConnectionFactory
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpDirectoryDiff
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpModule
+buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpSchemaCompatGrader
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.McpToolHints
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.PropertiesToolSetProvider
 buzhou-mcp|io.github.chyuan_cuihongyuan.buzhou.mcp.SpringAiMcpConnectionFactory
@@ -661,6 +667,7 @@ buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.OtelBridge
 buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.OtelBridgeConfig
 buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.config.BuzhouOtelAutoConfiguration
 buzhou-observe-otel|io.github.chyuan_cuihongyuan.buzhou.otel.config.OtelProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.AdaptiveTimeout
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.Classification
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.DefaultErrorClassifier
@@ -688,6 +695,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.Capa
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilities
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.ModelCapabilityRegistry
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.CircuitState
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.CircuitStateDurationAnalyzer
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.CircuitTransitionJournal
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitBreaker
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.circuit.ModelCircuitOpenException

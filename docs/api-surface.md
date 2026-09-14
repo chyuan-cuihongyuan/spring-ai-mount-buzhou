@@ -2347,3 +2347,8 @@
 - `ToolArgsValidator.validationStats()`（1410——Pydantic ValidationError 思想：
   校验读数静态面——validations/accepted 守恒+七错误桶（标记单源、桶非互斥
   如实入档）；嵌套 `ValidationStats` 不另立面）
+
+- `CancelLatencyTracker`（1411——Temporal cancellation latency 思想：onCancel
+  仅在途轮记未决键+轮终结消费入环（环 64+P50/P95 recent-rank）+无轮取消
+  不入账，单会话实例构造期绑定（TurnErrorSampler 同型装配）；嵌套
+  `CancelLatencyStats` 不另立面）

@@ -777,6 +777,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 工具计量 | 入参校验读数 | ToolArgsValidator.validationStats()——validations/accepted 守恒+七错误桶（缺必填/类型/enum/数值/长度/非 JSON/其他）标记单源分桶、桶非互斥如实入档；三调用点静态入口自动全覆盖——Pydantic ValidationError 思想（spec 1410） | [spec 1410](docs/spec/1410-toolargs-validation-stats.md) |
 
+| 会话治理 | 取消延迟追踪 | CancelLatencyTracker——onCancel 仅在途轮记未决键，轮终结消费入环（环 64+P50/P95 recent-rank），「取消信号→实际停止」时延显形，无轮取消不入账；单会话实例构造期绑定——Temporal cancellation latency 思想（spec 1411） | [spec 1411](docs/spec/1411-cancel-latency-tracker.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

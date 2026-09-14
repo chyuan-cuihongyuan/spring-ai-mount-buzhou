@@ -33,3 +33,4 @@
 - [断路器状态时长分析器的形状裁决](../tickets/T2117-circuit-duration-analyzer-shape.md) — **换题轮**（混淆矩阵与 JudgeCalibration 数学全同半撞）：CircuitStateDurationAnalyzer 纯函数——journal Transition 按模型积段→逐状态 total/segments/max+openShare crash-loop 画像，无序容忍+采样窗口径入档——Resilience4j state duration 思想。
 - [多租户配额公平指数的形状裁决](../tickets/T2119-fairness-index-shape.md) — **换题轮**（令牌桶水位与 available()+KeyHotspot 半撞）：FairnessIndex 纯函数——Jain 指数 J=(Σx)²/(n·Σx²)+dominantShare 单点吃满+shares 降序行动面+isFair(0.9)+全零 -1 哨兵——Kafka client quota 公平性思想。
 - [工具入参校验读数的形状裁决](../tickets/T2121-validation-stats-shape.md) — H R21 让位的下半轴：ToolArgsValidator 静态计数内置 validate()（三调用点自动全覆盖）——validations/accepted 守恒+七错误桶 MARK_* 标记单源+桶非互斥入档+无可校验结构不入账；Pydantic ValidationError 思想。
+- [取消延迟追踪读面的形状裁决](../tickets/T2123-cancel-latency-shape.md) — CancelLatencyTracker（单会话实例构造期绑定，TurnErrorSampler 同型）：onCancel 仅在途轮记未决键+轮终结消费入环（环 64+P50/P95 recent-rank+trackedTotal 累计）——「取消信号→实际停止」时延显形，与 H 824 原因分布正交——Temporal cancellation latency 思想。
