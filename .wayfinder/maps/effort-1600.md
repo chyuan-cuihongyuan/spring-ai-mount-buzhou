@@ -37,6 +37,9 @@
 - [R6 形状：SPRT 序贯提前终止](../tickets/T2361-r6-sprt-shape.md) — Wald 序贯概率比检验（GrowthBook/Statsig sequential testing 同源）：符号检验口径 + 方向分离（B 全胜不得算成 A 优——MLE 双侧符号修正），达界即停省剩余项执行成本
 - [R6 验收](../tickets/T2362-r6-sprt-verify.md) — 判定器边界（4 胜继续/5 胜达界/对称）+ runner 集成（40 项第 5 项停、skipped=35、决策入 summary）+ 未启用零变化
 
+- [R7 形状：虚拟线程 pinning 审计+金丝雀热路径修复](../tickets/T2363-r7-pinning-shape.md) — 全仓审计 17 组风险（高危 6 组/中危 11 组）；Top1=CanaryToolCallback.route 锁内完整工具执行：三段式修复（路由决策锁内→执行锁外→计数锁内），计数原子/回滚最终一致不变
+- [R7 验收](../tickets/T2364-r7-pinning-verify.md) — 双 latch 并行断言（锁内执行时代码必超时）+ 计数守恒 + 既有 7 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -56,3 +59,4 @@
 | R4 | #1603 | http_request per-host 并发上限（Nginx limit_conn 思想） | T2357–T2358 | 1156 | 1603 | done |
 | R5 | #1604 | 响应缓存 stale-if-error（Varnish grace / RFC 5861 思想） | T2359–T2360 | 1157 | 1604 | done |
 | R6 | #1605 | A/B 评估 SPRT 序贯提前终止（Wald SPRT / sequential testing 思想） | T2361–T2362 | 1158 | 1605 | done |
+| R7 | #1606 | 虚拟线程 pinning 审计 + 金丝雀热路径修复（Netty 不阻塞事件循环铁律） | T2363–T2364 | 1159 | 1606 | done |

@@ -800,6 +800,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具治理 | http_request per-host 并发上限 | 同 host 在飞请求超上限快速失败（拒绝不排队——保护目标服务与本进程连接资源不被单 host 打满）；hostLimitRejects 第七拒绝桶进守恒式——Nginx limit_conn 思想（spec 1603） | [spec 1603](docs/spec/1603-http-perhost-limit.md) |
 | 韧性缓存 | 响应缓存 stale-if-error | stale-window 内过期条目保留——模型调用失败（熔断/网络/供应商故障）时旧响应救场不抛（staleReads 可观测），无救场条目异常照抛；流式不救场（out-of-scope）——Varnish grace / RFC 5861 思想（spec 1604） | [spec 1604](docs/spec/1604-response-cache-stale-if-error.md) |
 | 评估闭环 | A/B 评估 SPRT 序贯提前终止 | 显著优势早现即停——符号检验 LLR 越界（α=0.05/β=0.10 可配）即停止剩余项（skipped 桶诚实分离，sprtDecision 入 summary/落盘/事件）；平局不进检验分母；未启用零变化——Wald SPRT / GrowthBook sequential testing 思想（spec 1605） | [spec 1605](docs/spec/1605-pairwise-sprt-early-stop.md) |
+| 并发健康 | 虚拟线程 pinning 审计 + 金丝雀热路径修复 | 全仓 synchronized-IO 审计（高危 6 组/中危 11 组入档 spec）+ Top1 修复：CanaryToolCallback 路由三段式——monitor 只护决策与计数、工具执行移锁外（锁内远程调用钉住载体线程且串行化并行工具调用）——Netty「不阻塞事件循环」铁律 / JDK21 虚拟线程 pinning（spec 1606） | [spec 1606](docs/spec/1606-vthread-pinning-audit.md) |
 
 ## 快速开始
 
