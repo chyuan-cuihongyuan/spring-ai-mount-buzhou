@@ -45,6 +45,8 @@ public class DiskSpillStore implements SpillStore {
      * unmount 而非 pin；互斥语义同 monitor，spec 1607 同款迁移）。 */
     private final java.util.concurrent.locks.ReentrantLock lock =
             new java.util.concurrent.locks.ReentrantLock();
+    /** spec 1619 / T2389：写速率限速器（null = 关——默认零行为）。 */
+    private final SpillWriteRateLimiter rateLimiter;
 
     public DiskSpillStore(Path rootDir) {
         this(rootDir, SpillQuota.unbounded());
@@ -56,9 +58,16 @@ public class DiskSpillStore implements SpillStore {
 
     /** spec 40 §A：带静态加密构造——仅 `.spill` 数据文件加密，meta 保持明文（sha256 明文锚点）。 */
     public DiskSpillStore(Path rootDir, SpillQuota quota, SpillCipher cipher) {
+        this(rootDir, quota, cipher, null);
+    }
+
+    /** spec 1619 / T2389：带写速率限速构造（null = 关——既有调用零行为）。 */
+    public DiskSpillStore(Path rootDir, SpillQuota quota, SpillCipher cipher,
+            SpillWriteRateLimiter rateLimiter) {
         this.rootDir = rootDir;
         this.quota = quota == null ? SpillQuota.unbounded() : quota;
         this.cipher = cipher;
+        this.rateLimiter = rateLimiter;
         this.refLedger = new EvidenceRefLedger(rootDir);
     }
 
@@ -74,6 +83,15 @@ public class DiskSpillStore implements SpillStore {
                     .LeakDetectorHolder.detector().track("spill:" + entry.uri()));
             enforceQuota(entry);
             try {
+                // spec 1619 / T2389：写盘前节流（软限速——超时放行 degraded 计数；
+                // 中断恢复位后放行写盘：溢写保护优先于节流）
+                if (rateLimiter != null) {
+                    try {
+                        rateLimiter.acquire(entry.content().length());
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
                 Files.createDirectories(dataPath.getParent());
                 writeAtomically(dataPath, cipher == null ? entry.content() : cipher.encrypt(entry.content()));
                 writeAtomically(metaPath(entry.uri()), metaJson(entry, false));
@@ -128,7 +146,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：清点会话溢写文件数（sessionDir=" + sessionDir + "）", e);
         }
     }
 
@@ -149,7 +167,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：统计溢写总字节（rootDir=" + rootDir + "）", e);
         }
     }
 
@@ -178,7 +196,7 @@ public class DiskSpillStore implements SpillStore {
             } catch (IOException e) {
                 throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                         io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                        "spill 磁盘 IO 失败", e);
+                        "spill 磁盘 IO 失败：读取配额用量（rootDir=" + rootDir + "）", e);
             }
         } finally {
             lock.unlock();
@@ -231,7 +249,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：清扫孤儿溢写（rootDir=" + rootDir + "）", e);
         }
         lastSweepRetained = retainedTotal; // spec 742：本轮保留数入档
         return deleted;
@@ -272,7 +290,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：完整性校验（uri=" + uri + "）", e);
         }
     }
 
@@ -324,7 +342,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：回读溢写内容（uri=" + uri + "）", e);
         }
     }
 
@@ -389,7 +407,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：写入溢写条目（sessionDir=" + sessionDir + "）", e);
         }
         return count;
     }
@@ -412,7 +430,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：遍历过期元数据（rootDir=" + rootDir + "）", e);
         }
         int count = 0;
         for (Path metaPath : metas) {
@@ -469,7 +487,7 @@ public class DiskSpillStore implements SpillStore {
         } catch (IOException e) {
             throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
                     io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+                    "spill 磁盘 IO 失败：登记会话证据引用（sessionId=" + sessionId + "）", e);
         }
         return acquired;
     }

@@ -76,6 +76,9 @@
 - [R19 形状：校准审计接线](../tickets/T2387-r19-calib-shape.md) — spec 819 孤类修复第六弹：TokenBudgetHook.afterModel 同点对账（CharHeuristic 估算 prompt vs usage.promptTokens）+ CalibrationAuditHolder 读出面——「预算按估算设、账单按真实来」的偏差从感觉变数字
 - [R19 验收](../tickets/T2388-r19-calib-verify.md) — Holder 读数两断言 + 既有预算/校准 12 用例零回归
 
+- [R20 形状：spill 写速率限速](../tickets/T2389-r20-ratelimit-shape.md) — RocksDB rate limiter 思想：令牌桶节流（bytes/s + burst 突发容忍 + maxWait 软限速超时放行 degraded 计数——限速器故障不放大成 spill 失败）；ReentrantLock+Condition（虚拟线程 unmount）；opt-in null=关
+- [R20 验收](../tickets/T2390-r20-ratelimit-verify.md) — 五断言（burst 吸收/超速节流/超时放行/关闭零开销/集成写不破）+ spill 180 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -108,3 +111,4 @@
 | R17 | #1616 | 工具失败负缓存（DNS negative caching 思想） | T2383–T2384 | 1169 | 1616 | done |
 | R18 | #1617 | 梯度式自适应并发闸（Netflix Gradient2 思想） | T2385–T2386 | 1170 | 1617 | done |
 | R19 | #1618 | Token 校准审计接线（spec 819 孤类救活） | T2387–T2388 | 1171 | 1618 | done |
+| R20 | #1619 | spill 写速率限速（RocksDB rate limiter 思想） | T2389–T2390 | 1172 | 1619 | done |

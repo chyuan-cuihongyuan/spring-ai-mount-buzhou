@@ -826,6 +826,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具治理 | 工具失败负缓存 | NegativeCachingToolCallback——同 key 失败短 TTL（默认 30s）记忆，窗内复读直接回错误文本不再真调（防模型重试风暴撞同一失败）；恢复窗口即 TTL、成功不缓存（与成功 memo 正交）、异常路径同缓存——DNS negative caching / NXDOMAIN 思想（spec 1616） | [spec 1616](docs/spec/1616-tool-negative-cache.md) |
 | 并发治理 | 梯度式自适应并发闸 | GradientAdaptiveLimiter——延迟梯度驱动动态上限（长窗慢 EMA 基线 / 短窗快 EMA 近期）：劣化乘性下调（过载前兆先于失败规避）、变快加性上调、容错带防抖、warmup 学习期；与失败驱动 AIMD（spec 145）正交——Netflix Gradient2 / Envoy adaptive_concurrency 思想（spec 1617） | [spec 1617](docs/spec/1617-gradient-adaptive-limiter.md) |
 | 预算治理 | Token 校准审计接线 | TokenBudgetHook.afterModel 同点对账——CharHeuristic 估算 prompt vs 模型回报 usage.promptTokens 成对入账（均值相对误差/偏高偏低占比/近窗 P95），CalibrationAuditHolder 读出——「预算按估算设、账单按真实来」的系统性偏差从感觉变数字——spec 819 孤类救活（spec 1618） | [spec 1618](docs/spec/1618-calibration-wiring.md) |
+| Spill 治理 | 写入字节率限速 | SpillWriteRateLimiter 令牌桶（bytes/s + burst 突发容忍）——溢出写盘高峰不再打满磁盘带宽（背压传导）；maxWait 软限速超时放行 + degraded 计数（限速器故障不放大成 spill 失败）——RocksDB rate limiter 思想（spec 1619） | [spec 1619](docs/spec/1619-spill-write-rate-limit.md) |
 
 ## 快速开始
 
