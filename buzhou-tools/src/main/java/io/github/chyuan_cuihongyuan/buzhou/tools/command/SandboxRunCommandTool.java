@@ -22,6 +22,47 @@ import java.time.Duration;
 @BuzhouTool(name = "run_command", destructive = true)
 public class SandboxRunCommandTool implements ToolCallback {
 
+    // —— spec 1074 / impl 826：执行分布读面（Kubernetes Job status 思想；静态面理由同
+    // R46–R73 先例）。守恒：calls = runs + 五拒绝桶之和。
+    private static final java.util.concurrent.atomic.AtomicLong CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong RUNS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BLANK_REJECTS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BLACKLIST_REJECTS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong WORKDIR_REJECTS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong TIMEOUT_PARAM_REJECTS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong FAILURES =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 沙箱档执行分布快照（spec 1074）。 */
+    public record SandboxRunStats(long calls, long runs, long blankRejects,
+                                  long blacklistRejects, long workdirRejects,
+                                  long timeoutParamRejects, long failures) {
+    }
+
+    /** 只读快照（守恒 calls = runs + 五拒绝桶之和）。 */
+    public static SandboxRunStats stats() {
+        return new SandboxRunStats(CALLS.get(), RUNS.get(), BLANK_REJECTS.get(),
+                BLACKLIST_REJECTS.get(), WORKDIR_REJECTS.get(),
+                TIMEOUT_PARAM_REJECTS.get(), FAILURES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        CALLS.set(0);
+        RUNS.set(0);
+        BLANK_REJECTS.set(0);
+        BLACKLIST_REJECTS.set(0);
+        WORKDIR_REJECTS.set(0);
+        TIMEOUT_PARAM_REJECTS.set(0);
+        FAILURES.set(0);
+    }
+
     /** workdir 单段白名单：字母/数字/_-. 与中文/空格；斜杠由切段处理，{@code ..} 显式拒绝。 */
     private static final java.util.regex.Pattern SAFE_WORKDIR_SEGMENT =
             java.util.regex.Pattern.compile("[\\w\\-. \\u4e00-\\u9fa5]+");
@@ -62,22 +103,28 @@ public class SandboxRunCommandTool implements ToolCallback {
         try {
             RunCommandArgs args = RunCommandArgs.parse(toolInput);
             if (args.command().isBlank()) {
+                BLANK_REJECTS.incrementAndGet();
                 return "run_command 失败：command 不能为空";
             }
             if (blacklist.matches(args.command())) {
+                BLACKLIST_REJECTS.incrementAndGet();
                 return "run_command 拒绝：命令命中安全黑名单";
             }
             Path workdir = resolveWorkdir(args.workdir());
             if (!java.nio.file.Files.isDirectory(workdir)) {
+                WORKDIR_REJECTS.incrementAndGet();
                 return "run_command 失败：工作目录不存在：" + workdir;
             }
             long timeoutSeconds = args.timeoutSeconds() > 0
                     ? args.timeoutSeconds() : defaultTimeout.toSeconds();
             if (timeoutSeconds <= 0 || timeoutSeconds > maxTimeout.toSeconds()) {
+                TIMEOUT_PARAM_REJECTS.incrementAndGet();
                 return "run_command 失败：timeoutSeconds 超出允许范围（1~" + maxTimeout.toSeconds() + "）";
             }
+            RUNS.incrementAndGet();
             return dispatch(workdir, timeoutSeconds, args.command());
         } catch (Exception e) {
+            FAILURES.incrementAndGet();
             return "run_command 失败：" + e.getMessage();
         }
     }
