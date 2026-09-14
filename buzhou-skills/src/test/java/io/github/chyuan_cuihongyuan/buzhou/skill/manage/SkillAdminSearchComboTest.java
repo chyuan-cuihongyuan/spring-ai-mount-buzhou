@@ -45,17 +45,17 @@ class SkillAdminSearchComboTest {
         SkillAdminApi admin = api(db);
         SkillSearchTool search = searchTool(db);
 
-        // 发布 DB skill（覆盖内置同名）
-        admin.create("code-review", "联动测试专用标记词 xyzzy", "正文", List.of(), "ops");
-        admin.publish("code-review");
+        // 发布 DB skill（覆盖内置同名，描述含专用标记）
+        admin.create("sql-tuning", "联动测试专用标记词 xyzzy", "正文", List.of(), "ops");
+        admin.publish("sql-tuning");
 
-        // 搜索命中标记词
+        // 发布后：DB 版可见 → 搜索命中（描述含标记词）
         search.call("{\"query\":\"xyzzy\"}");
         SkillSearchTool.SkillSearchStats ss = SkillSearchTool.stats();
         assertThat(ss.hits()).isEqualTo(1);
 
-        // 下架 → 再搜索消失
-        admin.disable("code-review");
+        // 下架 → DB 版不可见（同名内置无标记词）→ 搜索消失
+        admin.disable("sql-tuning");
         search.call("{\"query\":\"xyzzy\"}");
         assertThat(ss.misses()).isEqualTo(1);
 
