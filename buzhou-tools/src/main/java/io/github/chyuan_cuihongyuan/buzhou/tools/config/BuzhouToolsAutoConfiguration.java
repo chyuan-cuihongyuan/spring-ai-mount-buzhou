@@ -28,10 +28,16 @@ public class BuzhouToolsAutoConfiguration {
     @Bean
     public ToolsModule toolsModule(BuzhouStores stores, Environment env,
             ObjectProvider<io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend> commandBackend) {
-        return ToolsModule.fromYml(stores.sessionStateStore(), ConfigMaps.sub(env, "buzhou.tools"))
+        ToolsModule module = ToolsModule
+                .fromYml(stores.sessionStateStore(), ConfigMaps.sub(env, "buzhou.tools"))
                 .commandBackend(commandBackend.getIfAvailable()) // spec 17：有 backend bean 即沙箱委托
                 // 注：backend=sandbox 且无实现时由 ToolsModule 构造 fail-fast（带修法指引）
                 .build();
+        // spec 1508 / T2267：已启用危险工具名灌注进程级注册表（guard autoconfig 经
+        // afterName 保证后装配，构建 HITL 守卫时并入默认条目——design-incompleteness S2）
+        io.github.chyuan_cuihongyuan.buzhou.core.spi.DangerousToolRegistry
+                .register(java.util.Set.copyOf(module.enabledDangerousToolNames()));
+        return module;
     }
 
     @Bean

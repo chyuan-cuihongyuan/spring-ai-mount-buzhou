@@ -41,6 +41,10 @@ public class DiskSpillStore implements SpillStore {
 
     /** spec 40 §A / T151 / impl-122：落盘静态加密（null = 直通，零行为变化）。 */
     private final SpillCipher cipher;
+    /** spec 1608 / T2367：写路径互斥锁（ReentrantLock——MB 级写盘+walk 在虚拟线程下
+     * unmount 而非 pin；互斥语义同 monitor，spec 1607 同款迁移）。 */
+    private final java.util.concurrent.locks.ReentrantLock lock =
+            new java.util.concurrent.locks.ReentrantLock();
 
     public DiskSpillStore(Path rootDir) {
         this(rootDir, SpillQuota.unbounded());
@@ -59,27 +63,32 @@ public class DiskSpillStore implements SpillStore {
     }
 
     @Override
-    public synchronized SpillHandle store(SpillEntry entry, int previewChars) {
-        Path dataPath = dataPath(entry.uri());
-        if (Files.exists(dataPath)) {
-            throw new IllegalStateException("Spill already exists (one call one spill): " + entry.uri());
-        }
-        leakHandles.put(dataPath, io.github.chyuan_cuihongyuan.buzhou.core.leak
-                .LeakDetectorHolder.detector().track("spill:" + entry.uri()));
-        enforceQuota(entry);
+    public SpillHandle store(SpillEntry entry, int previewChars) {
+        lock.lock();
         try {
-            Files.createDirectories(dataPath.getParent());
-            writeAtomically(dataPath, cipher == null ? entry.content() : cipher.encrypt(entry.content()));
-            writeAtomically(metaPath(entry.uri()), metaJson(entry, false));
-            // impl-41 / spec 13 §T66：spill 指标（outcome=spilled；degraded/failed 在服务层）
-            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
-                    .counter("buzhou.spill.requests", "outcome", "spilled");
-            return new SpillHandle(entry.uri(), entry.sizeChars(),
-                    RangeReadEngine.previewOf(entry.content(), previewChars, 20));
-        } catch (IOException e) {
-            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
-                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "Spill store failed: " + entry.uri(), e);
+            Path dataPath = dataPath(entry.uri());
+            if (Files.exists(dataPath)) {
+                throw new IllegalStateException("Spill already exists (one call one spill): " + entry.uri());
+            }
+            leakHandles.put(dataPath, io.github.chyuan_cuihongyuan.buzhou.core.leak
+                    .LeakDetectorHolder.detector().track("spill:" + entry.uri()));
+            enforceQuota(entry);
+            try {
+                Files.createDirectories(dataPath.getParent());
+                writeAtomically(dataPath, cipher == null ? entry.content() : cipher.encrypt(entry.content()));
+                writeAtomically(metaPath(entry.uri()), metaJson(entry, false));
+                // impl-41 / spec 13 §T66：spill 指标（outcome=spilled；degraded/failed 在服务层）
+                io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                        .counter("buzhou.spill.requests", "outcome", "spilled");
+                return new SpillHandle(entry.uri(), entry.sizeChars(),
+                        RangeReadEngine.previewOf(entry.content(), previewChars, 20));
+            } catch (IOException e) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                        io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                        "Spill store failed: " + entry.uri(), e);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -149,25 +158,30 @@ public class DiskSpillStore implements SpillStore {
      * pg_database_size 思想；与配额守卫 {@code totalSpillBytes()} 同口径 walk，
      * 一次遍历同时计字节与条数）。
      */
-    public synchronized SpillUsage usage() {
-        if (!Files.isDirectory(rootDir)) {
-            return new SpillUsage(0, 0);
-        }
-        try (Stream<Path> walk = Files.walk(rootDir)) {
-            List<Path> dataFiles = walk.filter(p -> p.toString().endsWith(DATA_SUFFIX)).toList();
-            long total = 0;
-            for (Path p : dataFiles) {
-                try {
-                    total += Files.size(p);
-                } catch (IOException e) {
-                    // 读不到的残缺文件不计——配额守卫同口径
-                }
+    public SpillUsage usage() {
+        lock.lock();
+        try {
+            if (!Files.isDirectory(rootDir)) {
+                return new SpillUsage(0, 0);
             }
-            return new SpillUsage(total, dataFiles.size());
-        } catch (IOException e) {
-            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
-                    io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
-                    "spill 磁盘 IO 失败", e);
+            try (Stream<Path> walk = Files.walk(rootDir)) {
+                List<Path> dataFiles = walk.filter(p -> p.toString().endsWith(DATA_SUFFIX)).toList();
+                long total = 0;
+                for (Path p : dataFiles) {
+                    try {
+                        total += Files.size(p);
+                    } catch (IOException e) {
+                        // 读不到的残缺文件不计——配额守卫同口径
+                    }
+                }
+                return new SpillUsage(total, dataFiles.size());
+            } catch (IOException e) {
+                throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+                        io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.SPILL_IO_FAILED,
+                        "spill 磁盘 IO 失败", e);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 

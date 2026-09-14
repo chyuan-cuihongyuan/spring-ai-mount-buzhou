@@ -43,6 +43,9 @@
 - [R8 形状：RollingJsonlWriter 锁迁移](../tickets/T2365-r8-jsonl-lock-shape.md) — spec 1606 排队项落地：monitor→ReentrantLock（互斥语义零变，虚拟线程 unmount 不 pin——HarnessToolCallingManager 先例）；行完整性/计数守恒用并发测试钉住
 - [R8 验收](../tickets/T2366-r8-jsonl-lock-verify.md) — 8 虚拟线程 ×50 行并发追加零撕裂零丢失 + 既有 10 用例零回归
 
+- [R9 形状：DiskSpillStore 锁迁移](../tickets/T2367-r9-spill-lock-shape.md) — spec 1606 高危 #3 落地：store/usage 两方法 monitor→ReentrantLock，「一次调用一次 spill」互斥语义不变
+- [R9 验收](../tickets/T2368-r9-spill-lock-verify.md) — 同 uri 6 并发恰一成功五拒绝（IllegalStateException）+ 异 uri 8 并发全成功 + spill 模块 168 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -64,3 +67,4 @@
 | R6 | #1605 | A/B 评估 SPRT 序贯提前终止（Wald SPRT / sequential testing 思想） | T2361–T2362 | 1158 | 1605 | done |
 | R7 | #1606 | 虚拟线程 pinning 审计 + 金丝雀热路径修复（Netty 不阻塞事件循环铁律） | T2363–T2364 | 1159 | 1606 | done |
 | R8 | #1607 | RollingJsonlWriter 锁迁移（spec 1606 排队项：j.u.c 锁不 pin） | T2365–T2366 | 1160 | 1607 | done |
+| R9 | #1608 | DiskSpillStore 锁迁移（spec 1606 排队项） | T2367–T2368 | 1161 | 1608 | done |
