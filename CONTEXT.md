@@ -197,3 +197,11 @@
 - **机制与判别力分离（诚实边界）** — 框架保证阈值/分桶/终态边界正确；「X」vs「不是 X」
   的语义判别力归嵌入模型（红队否定对钉住：相近嵌入下框架按阈值诚实命中）——默认关闭
   + 阈值可调 + 适用面自律承担残余误命中风险。
+
+## 评估与执行治理（M 会话 / spec 1500-1535）
+
+- **通知面/裁决面分离** — observer（spec 1500）与 hook 事件通知（spec 1501）是通知面：单点崩溃 ERROR 隔离不炸通知链；hook 裁决面（beforeTurn 等 Block/Replace 语义）保持 fail-fast——治理点异常必须可见。
+- **评估取消/剪枝/进度三件套** — requestCancel()（协作式：项边界生效，cancelled 状态与 pruned 止损分立）；波间剪枝（并行 run 分波执行，失败率观察窗在波间检查——spec 1522）；progress() 跨线程轮询快照（done 含占位项终态）。
+- **批级回喂预算** — 单工具限幅之上的批维度护栏：总量超限贪心截大者（小结果完整、错误反馈豁免——纠错信号保护）。
+- **幂等瞬断重试** — 幂等门（@BuzhouTool.idempotent/白名单）+ 瞬断白名单（IO/超时/5xx 族，cause 链三层）双门；声明式装配（buzhou.core.tool-transient-retry）。
+- **危险工具双通道** — MCP 默认动词模式（spec 1507 客户端侧分类）+ 内置工具注解标记（spec 1504 destructive）→ DangerousToolRegistry 桥 → guard HITL 自动带入（spec 1508，yml 显式优先）。

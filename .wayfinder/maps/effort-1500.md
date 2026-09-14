@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [CONTEXT M 系术语段的形状裁决](../tickets/T2323-context-terms-shape.md) — 新节五条术语（一条一机制组跨 spec 聚合）。
 - [A/B 进度读面的形状裁决](../tickets/T2321-ab-progress-shape.md) — CompareProgress + 过程/终态快照（skipped null 占位无对象——终态统一 done=total）；spec 1534 扩散。
 - [评估进度读面的形状裁决](../tickets/T2319-eval-progress-shape.md) — progress() 不可变快照（三处 volatile 更新点，首版漏 cancelled 占位分支被测试当场抓住）；同步 run 的跨线程轮询面。
 - [M 系运维段的形状裁决](../tickets/T2317-runbook-shape.md) — runbook 第 24 节九行机制表（键/信号/要点）——N 系先例同款。
@@ -106,6 +107,7 @@
 | 37 | M 系增量运维段（runbook 第 24 节九行机制表） | N 系第 23 节同款先例 | T2317–T2318 | 1136 | 1533 | ✅ |
 | 38 | 评估 run 进度读面（progress：done/total/cancelled 跨线程轮询） | tqdm 进度条思想 | T2319–T2320 | 1137 | 1534 | ✅ |
 | 39 | A/B 对比进度读面（spec 1534 扩散：过程+终态快照） | spec 1534 扩散 | T2321–T2322 | 1138 | 1535 | ✅ |
+| 40 | CONTEXT.md M 系术语段（五条：通知/裁决分离等） | 领域术语台账同步 | T2323–T2324 | 1139 | 1536 | ✅ |
 
 
 ## Out of scope
