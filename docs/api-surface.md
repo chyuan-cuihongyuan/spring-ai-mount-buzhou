@@ -712,7 +712,7 @@
 **buzhou-spring-boot-starter（测试面防线，非运行时 API）**
 
 - `ConfigBindingsMatrixTest`（93 键绑定矩阵；新键必须登记）
-- `ApiSurfaceSnapshotTest` + `docs/api-surface.snapshot.txt`（466 类型黄金快照）
+- `ApiSurfaceSnapshotTest` + `docs/api-surface.snapshot.txt`（893 类型黄金快照）
 - **配置键破坏性改名（pre-1.0，原键本就静默无效——修复性改名）**：
   `buzhou.runaway.per-turn.max-wall-clock` → `per-turn.wall-clock`；
   `buzhou.runaway.session.*` → `runaway.per-session.*`；

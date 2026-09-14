@@ -70,6 +70,7 @@
 | 18 | spec 07 七切面回写 + 四处序位常量化（N 会话承接 CounterAtomicity 修复闭环确认） | design-incompleteness 四-5/五-6 部分 | T2283–T2284 | 1119 | 1516 | ✅ |
 | 19 | spill 默认值单一事实源（五-6 收口）+ 六-6/六-9 裁定入档 | design-incompleteness 五-6/六-6/六-9 | T2285–T2286 | 1120 | 1517 | ✅ |
 | 20 | 文档间残留矛盾三裁定（perf 口径/promptfoo star/test 边豁免）——design-incompleteness 可做项全档闭环 | design-incompleteness 七-2/七-3/四-8 | T2287–T2288 | 1121 | 1518 | ✅ |
+| 21 | 周期预检轮：全仓 verify 16 模块绿唯快照门红→隔离 worktree 再生快照补账（HEAD 已提交的 10 新类型：M 系 IdempotentToolRetryHolder + 并行会话 9 个 Holder/Hook；api-surface/CONTEXT 计数 466→893 陈旧口径刷新） | 周期 verify + 快照再生 | — | — | — | ✅ |
 
 
 ## Out of scope
