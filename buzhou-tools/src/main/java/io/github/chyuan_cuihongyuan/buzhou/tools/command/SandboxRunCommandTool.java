@@ -19,7 +19,7 @@ import java.time.Duration;
  * （环境白名单、进程树击杀、输出限额）归 backend 沙箱实现。沙箱运行时不可用不静默回退裸执行。
  * 入参契约见 {@link RunCommandArgs}。
  */
-@BuzhouTool(name = "run_command")
+@BuzhouTool(name = "run_command", destructive = true)
 public class SandboxRunCommandTool implements ToolCallback {
 
     /** workdir 单段白名单：字母/数字/_-. 与中文/空格；斜杠由切段处理，{@code ..} 显式拒绝。 */

@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * {@code body} 为写侧长内容参数（{@code bodyPath} 互补，Onload Hook 加载）。
  * 响应体超阈值走 Spill 管道，本工具不截断。
  */
-@BuzhouTool(name = "http_request")
+@BuzhouTool(name = "http_request", destructive = true)
 public class HttpRequestTool implements ToolCallback {
 
     /** 写方法集合（spec 06 推演 #6）——方法粒度 HITL 守卫（ticket 27）接线时消费；当前守卫按工具名整体生效。 */
@@ -43,6 +43,8 @@ public class HttpRequestTool implements ToolCallback {
     private final SsrfGuard ssrfGuard;
     private final Duration defaultTimeout;
     private final HttpClient client;
+    /** spec 1603 / T2357：per-host 并发闸（null = 关——默认零行为）。 */
+    private final PerHostConcurrencyGuard hostGuard;
 
     // —— spec 1049 / impl 801：请求量水位与结果分布（Envoy upstream 统计按结局分桶思想；
     // 静态面理由同 R46–R48 域内先例）。守恒：attempts = successes + 六拒绝桶之和。
@@ -54,17 +56,19 @@ public class HttpRequestTool implements ToolCallback {
     private static final AtomicLong SSRF_REJECTS = new AtomicLong();
     private static final AtomicLong TIMEOUT_PARAM_REJECTS = new AtomicLong();
     private static final AtomicLong OVERSIZE_REJECTS = new AtomicLong();
+    /** spec 1603 / T2357：per-host 并发上限拒绝（limit_conn 桶）。 */
+    private static final AtomicLong HOST_LIMIT_REJECTS = new AtomicLong();
     private static final AtomicLong FAILURES = new AtomicLong();
 
-    /** 请求量水位与结果分布快照（spec 1049）。 */
+    /** 请求量水位与结果分布快照（spec 1049；spec 1603 扩第七桶 hostLimitRejects）。 */
     public record HttpToolStats(long attempts, long successes, long methodRejects,
                                 long urlRejects, long ssrfRejects, long timeoutParamRejects,
-                                long oversizeRejects, long failures) {
+                                long oversizeRejects, long hostLimitRejects, long failures) {
 
-        /** 拒绝总数（六桶之和）。 */
+        /** 拒绝总数（七桶之和）。 */
         public long totalRejects() {
             return methodRejects + urlRejects + ssrfRejects
-                    + timeoutParamRejects + oversizeRejects + failures;
+                    + timeoutParamRejects + oversizeRejects + hostLimitRejects + failures;
         }
     }
 
@@ -72,7 +76,7 @@ public class HttpRequestTool implements ToolCallback {
     public static HttpToolStats stats() {
         return new HttpToolStats(ATTEMPTS.get(), SUCCESSES.get(), METHOD_REJECTS.get(),
                 URL_REJECTS.get(), SSRF_REJECTS.get(), TIMEOUT_PARAM_REJECTS.get(),
-                OVERSIZE_REJECTS.get(), FAILURES.get());
+                OVERSIZE_REJECTS.get(), HOST_LIMIT_REJECTS.get(), FAILURES.get());
     }
 
     /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
@@ -84,12 +88,20 @@ public class HttpRequestTool implements ToolCallback {
         SSRF_REJECTS.set(0);
         TIMEOUT_PARAM_REJECTS.set(0);
         OVERSIZE_REJECTS.set(0);
+        HOST_LIMIT_REJECTS.set(0);
         FAILURES.set(0);
     }
 
     public HttpRequestTool(SsrfGuard ssrfGuard, Duration defaultTimeout) {
+        this(ssrfGuard, defaultTimeout, null);
+    }
+
+    /** spec 1603 / T2357：+hostGuard（null = 关——既有构造调用零行为变化）。 */
+    public HttpRequestTool(SsrfGuard ssrfGuard, Duration defaultTimeout,
+            PerHostConcurrencyGuard hostGuard) {
         this.ssrfGuard = ssrfGuard;
         this.defaultTimeout = defaultTimeout;
+        this.hostGuard = hostGuard;
         this.client = HttpClient.newBuilder()
                 .connectTimeout(defaultTimeout)
                 .followRedirects(HttpClient.Redirect.NEVER)   // 重定向不自动跟随（SSRF 逐跳校验开放问题）
@@ -118,6 +130,9 @@ public class HttpRequestTool implements ToolCallback {
     @Override
     public String call(String toolInput) {
         ATTEMPTS.incrementAndGet();
+        // spec 1603 / T2357：host 闸占用状态（提升到 try 外——finally 释放用）
+        String host = null;
+        boolean entered = false;
         try {
             JsonNode args = MAPPER.readTree(toolInput);
             String method = args.path("method").asText("").toUpperCase(Locale.ROOT);
@@ -141,6 +156,14 @@ public class HttpRequestTool implements ToolCallback {
             if (reject != null) {
                 SSRF_REJECTS.incrementAndGet();
                 return "http_request 拒绝：" + reject;
+            }
+            // spec 1603 / T2357：per-host 并发上限（Nginx limit_conn 思想——超限快速失败不排队）
+            host = uri.getHost();
+            entered = hostGuard == null || hostGuard.tryEnter(host);
+            if (!entered) {
+                HOST_LIMIT_REJECTS.incrementAndGet();
+                return "http_request 拒绝：host " + host + " 并发已达上限 "
+                        + hostGuard.maxPerHost() + "（limit_conn 语义——请稍后重试）";
             }
             long timeoutSeconds = args.path("timeoutSeconds").asLong(defaultTimeout.toSeconds());
             // impl-49：timeoutSeconds 上限校验（此前无上界，模型可自报任意时长）
@@ -183,6 +206,10 @@ public class HttpRequestTool implements ToolCallback {
         } catch (Exception e) {
             FAILURES.incrementAndGet();
             return "http_request 失败：" + e.getMessage();
+        } finally {
+            if (hostGuard != null && entered) {
+                hostGuard.exit(host);
+            }
         }
     }
 }

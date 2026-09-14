@@ -790,6 +790,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 韧性缓存 | 语义缓存 LFU 采样驱逐 | 驱逐从纯 eldest 升级为采样窗口内最低命中数先出（平局取老保 LRU 底线），热 FAQ 条目不被一次性扫描写入冲刷；hotPreservedCount 观测采样实效率——Redis allkeys-lfu + maxmemory-samples 思想（spec 1600） | [spec 1600](docs/spec/1600-semantic-cache-lfu-sampling.md) |
 | MCP 治理 | 连接最大寿命 | 到寿 ACTIVE 连接退役重建（复用探活失败同款排水+原样重建口径），在飞调用推迟下轮（归还时退役语义）——防长连接状态腐化/漂移累积；HikariCP maxLifetime 思想（spec 1601） | [spec 1601](docs/spec/1601-mcp-connection-maxlifetime.md) |
 | 韧性治理 | 熔断启动宽限期 | 进程冷启动期（circuit.warmup）跳闸判定豁免——建连/TLS/预热抖动不计开闸，窗口照记、成功照常冲淡；宽限结束已积累样本立即恢复完整判定（真故障仍跳），warmupSuppressedCount 观测启动抖动量——K8s startupProbe 思想（spec 1602） | [spec 1602](docs/spec/1602-circuit-warmup.md) |
+| 工具治理 | http_request per-host 并发上限 | 同 host 在飞请求超上限快速失败（拒绝不排队——保护目标服务与本进程连接资源不被单 host 打满）；hostLimitRejects 第七拒绝桶进守恒式——Nginx limit_conn 思想（spec 1603） | [spec 1603](docs/spec/1603-http-perhost-limit.md) |
 
 ## 快速开始
 

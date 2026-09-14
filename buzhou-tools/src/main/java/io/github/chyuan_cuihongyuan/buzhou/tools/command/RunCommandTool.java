@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 因 run_command <b>默认关</b>（{@code buzhou.tools.run-command.enabled=false}，仅显式
  * opt-in 才注册并挂 HITL 守卫），此跨平台差异只影响显式开启者，不影响开箱即用的安全默认。
  */
-@BuzhouTool(name = "run_command")
+@BuzhouTool(name = "run_command", destructive = true)
 public class RunCommandTool implements ToolCallback {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

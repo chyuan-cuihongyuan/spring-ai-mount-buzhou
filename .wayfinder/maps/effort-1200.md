@@ -16,6 +16,7 @@
 - 测试纪律：JUnit 5 + AssertJ 静态导入；**无 Mockito**——手写 fake / 匿名类 / lambda stub（仓库惯例，testsupport 包为先例）；测试类与被测类同包（包私有可达）；类级中文 Javadoc 引用 spec/票号；样板 `PropertyInvariantsTest`（纯函数）/ `BuzhouGuardAutoConfigurationTest`（ApplicationContextRunner）/ `H2StoresContractTest`（内存库）/ `McpHealthHintsTest`（健康委托直接 new）。
 - 代码规范：无魔法数字（static final 常量）、record/sealed 优先；模块依赖边界不变；测试域新增依赖须有同仓先例（h2/testcontainers 已在 guard/store-jdbc 使用，本线只复用不新引）。
 - 排重纪律：每轮开工先 grep 近期提交与本 map 台账，避免与他线（I/J）新落地能力撞车。
+- **多会话共享工作区风险入档（R4/R5 实证）**：2026-09-15 凌晨起并行线扩至 M（1500 系 Javadoc 门）/ N（1600 系 resilience）——N 会话 R3 提交 cc084a62 以全量 add 卷入 K 线未提交的 T1815 票与测试加固（内容完好、归属信息被其提交信息覆盖，经 `git log -- <path>` 追认）；教训：本线提交一律显式路径 `git add <paths>`（已遵守），他线卷入不可控、以路径追认为准。core 全量验证一律走 `.scratch/k-wt` 隔离 worktree（主工作区编译被并行 WIP 卡死过一次：CoreApiJavadocCoverageTest 半成品）。
 
 ## Decisions so far
 

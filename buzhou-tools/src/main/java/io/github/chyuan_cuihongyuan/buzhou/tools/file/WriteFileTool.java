@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 加载全文覆盖（Onload 失败 BLOCK 阻断，写侧失败语义非对称，ticket 24）。
  * 本工具自身不读 {@code contentPath}——若调用时该参数仍在，说明 Onload Hook 未装配/未生效。
  */
-@BuzhouTool(name = "write_file", serialGroup = "file")
+@BuzhouTool(name = "write_file", serialGroup = "file", destructive = true)
 public class WriteFileTool implements ToolCallback {
 
     private static final Logger LOG = System.getLogger(WriteFileTool.class.getName());
