@@ -70,6 +70,9 @@
 - [R17 形状：工具失败负缓存](../tickets/T2383-r17-negcache-shape.md) — DNS negative caching / NXDOMAIN 短 TTL 思想：同 key（工具名+argsHash）失败短 TTL 记忆（默认 30s——恢复窗口即 TTL，短窗纪律），窗内复读直接回错误文本不再真调；成功不缓存（与 spec 183 成功 memo 正交）；异常路径同缓存；测试暴露语义缺陷（成功清除机制在 TTL 短路下永远不可达）后删简化为纯 DNS 语义
 - [R17 验收](../tickets/T2384-r17-negcache-verify.md) — 四断言（失败缓存窗内拦截真调一次/过期放行/异常同缓存/不同参数独立 key）
 
+- [R18 形状：梯度式自适应并发](../tickets/T2385-r18-gradient-shape.md) — Netflix Gradient2 / Envoy adaptive_concurrency 思想：延迟梯度驱动（baseline/recent 双 EMA）——劣化乘性下调（失败前规避）、变快加性上调、容错带防抖、warmup 学习期；与 spec 145 失败驱动 AIMD 正交
+- [R18 验收](../tickets/T2386-r18-gradient-verify.md) — 七断言（劣化下调零失败/变快加性/容差带不动/warmup 只学/上限联动/封顶/配置校验）
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -100,3 +103,4 @@
 | R15 | #1614 | 指标新鲜度追踪接线（spec 802 孤类救活） | T2379–T2380 | 1167 | 1614 | done |
 | R16 | #1615 | 泄漏疑似聚合接线（spec 839 孤类救活） | T2381–T2382 | 1168 | 1615 | done |
 | R17 | #1616 | 工具失败负缓存（DNS negative caching 思想） | T2383–T2384 | 1169 | 1616 | done |
+| R18 | #1617 | 梯度式自适应并发闸（Netflix Gradient2 思想） | T2385–T2386 | 1170 | 1617 | done |

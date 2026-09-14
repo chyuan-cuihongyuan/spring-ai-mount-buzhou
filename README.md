@@ -822,6 +822,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 观测治理 | 指标新鲜度追踪接线 | metrics 装配链恒包 MetricFreshnessTracker（有界 512 名纯旁路）+ MetricFreshnessHolder 静态 audit——「某机制为何不再有数」从猜变查（序列静默=写路径死亡/装配丢失信号）——spec 802 孤类救活（spec 1614） | [spec 1614](docs/spec/1614-metrics-freshness-wiring.md) |
 | 观测治理 | 泄漏疑似聚合接线 | LeakSuspectHolder.compositeWith 把聚合器复合进检测器 listener 链（宿主 listener 与聚合器双收）——泄漏「同一处反复漏 vs 多处散漏」从日志流水变排行（LeakSuspectHolder.report() 读出）——spec 839 孤类救活（spec 1615） | [spec 1615](docs/spec/1615-leak-suspect-wiring.md) |
 | 工具治理 | 工具失败负缓存 | NegativeCachingToolCallback——同 key 失败短 TTL（默认 30s）记忆，窗内复读直接回错误文本不再真调（防模型重试风暴撞同一失败）；恢复窗口即 TTL、成功不缓存（与成功 memo 正交）、异常路径同缓存——DNS negative caching / NXDOMAIN 思想（spec 1616） | [spec 1616](docs/spec/1616-tool-negative-cache.md) |
+| 并发治理 | 梯度式自适应并发闸 | GradientAdaptiveLimiter——延迟梯度驱动动态上限（长窗慢 EMA 基线 / 短窗快 EMA 近期）：劣化乘性下调（过载前兆先于失败规避）、变快加性上调、容错带防抖、warmup 学习期；与失败驱动 AIMD（spec 145）正交——Netflix Gradient2 / Envoy adaptive_concurrency 思想（spec 1617） | [spec 1617](docs/spec/1617-gradient-adaptive-limiter.md) |
 
 ## 快速开始
 
