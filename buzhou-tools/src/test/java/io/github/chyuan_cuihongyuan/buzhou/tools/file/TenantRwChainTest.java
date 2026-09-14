@@ -32,7 +32,7 @@ class TenantRwChainTest {
     }
 
     @Test
-    void tenantWriteReadSymmetry() {
+    void tenantWriteReadSymmetry() throws Exception {
         FileSandbox sandbox = tenantSandbox(tmp);
         WriteFileTool writer = new WriteFileTool(sandbox);
         ReadFileTool reader = new ReadFileTool(sandbox);
@@ -50,7 +50,7 @@ class TenantRwChainTest {
     }
 
     @Test
-    void tenantEscapeCountsFailure() {
+    void tenantEscapeCountsFailure() throws Exception {
         WriteFileTool writer = new WriteFileTool(tenantSandbox(tmp));
         String out = writer.call("{\"path\":\"../../outside.txt\",\"content\":\"x\"}");
         assertThat(out).contains("失败");
@@ -59,7 +59,7 @@ class TenantRwChainTest {
     }
 
     @Test
-    void resetIsolatesCounters() {
+    void resetIsolatesCounters() throws Exception {
         FileSandbox sandbox = tenantSandbox(tmp);
         new WriteFileTool(sandbox).call("{\"path\":\"x.txt\",\"content\":\"x\"}");
         new ReadFileTool(sandbox).call("{\"path\":\"x.txt\"}");
