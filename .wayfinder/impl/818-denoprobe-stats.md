@@ -6,10 +6,10 @@
 
 **Status:** done
 
-- [ ] 五计数落点（入口/缓存短路径/重探测/成败两桶）
-- [ ] DenoProbeStats 嵌套 record + stats() + resetForTest()
-- [ ] DenoProbeStatsTest（成功探测/TTL 命中/异常不可用/双守恒/reset 五测）
-- [ ] spec 1066 + README 行（嵌套类型不动 API 快照）
+- [x] 五计数落点（入口/缓存短路径/重探测/成败两桶）
+- [x] DenoProbeStats 嵌套 record + stats() + resetForTest()
+- [x] DenoProbeStatsTest（成功探测/TTL 命中/异常不可用/双守恒/reset 五测）
+- [x] spec 1066 + README 行（嵌套类型不动 API 快照）
 
 ## Done
 

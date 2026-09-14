@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [Deno 沙箱探测读面的形态裁决](../tickets/T1587-denoprobe-stats-shape.md) — DenoSandbox 静态五计数（availableCalls/probeCacheHits/probes/probeSuccesses/probeUnavailables）+ 嵌套 DenoProbeStats + stats()/resetForTest()；双守恒 availableCalls = 缓存命中 + 重探、probes = 成功 + 不可用；probeTtl 误配 0（每调用重探）量化可见（Envoy health check statistics）。
 - [完成轮检测器读面的形态裁决](../tickets/T1585-completedturn-stats-shape.md) — DefaultCompletedTurnDetector 静态三计数（detectCalls/spansDetected/toolCallTurnsSeen）+ 嵌套 CompletedTurnStats + stats()/resetForTest()；弱校验口径（检出率 = 分子/分母，同轮可重复计分母）；悬挂轮全量时检出 0 即压缩管线失能信号（OTel span 完成判定）。
 - [读侧 Spotlighting 包裹判定读面的形态裁决](../tickets/T1583-spotlight-stats-shape.md) — SpotlightHook 静态五计数（invocations/wrapped/alreadyWrappedSkips/noticeSkips/errorSkips）+ 嵌套 SpotlightStats + stats()/resetForTest()；守恒 invocations = wrapped + 三跳过桶；包裹覆盖率即注入面收敛度信号（OWASP LLM01 spotlighting 采用率）。
 - [双时序事实台账操作读面的形态裁决](../tickets/T1581-factledger-stats-shape.md) — BiTemporalFactLedger 静态四计数（supersededWrites/historyLookups/validAtLookups/corruptRecordLoads）+ 嵌套 FactLedgerStats + stats()/resetForTest()；写/读两类操作独立计数不设人为守恒（口径诚实）；损坏段装载蒸发显形（bitemporal query/mutation 对账）。
@@ -148,7 +149,8 @@
 | 63 | 双时序事实台账操作读面（写入/两类查询/损坏蒸发四计数） | bitemporal query/mutation 对账 | T1581–T1582 | 815 | 1063 | ✅ |
 | 64 | 读侧 Spotlighting 包裹判定读面（wrapped + 三跳过桶守恒） | OWASP LLM01 spotlighting 采用率 | T1583–T1584 | 816 | 1064 | ✅ |
 | 65 | 完成轮检测器读面（检出率分子/分母显形） | OTel span 完成判定空结果率 | T1585–T1586 | 817 | 1065 | ✅ |
-| 66 | （开工时按缺口核查选题） | — | T1587–T1588 | 818 | 1066 |  |
+| 66 | Deno 沙箱探测读面（缓存命中/重探/成败双守恒） | Envoy health check statistics | T1587–T1588 | 818 | 1066 | ✅ |
+| 67 | （开工时按缺口核查选题） | — | T1589–T1590 | 819 | 1067 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
