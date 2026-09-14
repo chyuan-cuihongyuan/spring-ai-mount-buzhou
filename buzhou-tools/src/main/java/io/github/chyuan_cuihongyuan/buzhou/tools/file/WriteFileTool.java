@@ -12,6 +12,7 @@ import java.lang.System.Logger.Level;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * write_file — 写入沙箱内文件（危险，默认关、绑定级 opt-in、默认挂 HITL 守卫）。
@@ -29,6 +30,46 @@ public class WriteFileTool implements ToolCallback {
     private final FileSandbox sandbox;
     /** impl-698 / spec 951：noclobber 防误覆盖（默认 false=覆盖语义逐位不变）。 */
     private volatile boolean noclobber;
+
+    // —— spec 1046 / impl 798：写入量水位与拒绝分桶（Sentry discarded events 分桶显形 +
+    // Dropwizard Meter 字节吞吐思想）。静态面：工具实例由装配层新建，宿主/测试读面绕开实例
+    // 引用（FileSandbox.stats 同族先例）。守恒：attempts = writes + 四拒绝桶之和。
+    private static final AtomicLong ATTEMPTS = new AtomicLong();
+    private static final AtomicLong WRITES = new AtomicLong();
+    private static final AtomicLong BYTES_WRITTEN = new AtomicLong();
+    private static final AtomicLong PARAM_REJECTS = new AtomicLong();
+    private static final AtomicLong OVERSIZE_REJECTS = new AtomicLong();
+    private static final AtomicLong NOCLOBBER_REJECTS = new AtomicLong();
+    private static final AtomicLong FAILURES = new AtomicLong();
+
+    /** 写入量水位与拒绝分桶快照（spec 1046）。 */
+    public record WriteFileStats(long attempts, long writes, long bytesWritten,
+                                 long paramRejects, long oversizeRejects,
+                                 long noclobberRejects, long failures) {
+
+        /** 拒绝总数（四桶之和）。 */
+        public long totalRejects() {
+            return paramRejects + oversizeRejects + noclobberRejects + failures;
+        }
+    }
+
+    /** 只读快照（守恒 attempts = writes + totalRejects()——每入口恰落一桶）。 */
+    public static WriteFileStats stats() {
+        return new WriteFileStats(ATTEMPTS.get(), WRITES.get(), BYTES_WRITTEN.get(),
+                PARAM_REJECTS.get(), OVERSIZE_REJECTS.get(),
+                NOCLOBBER_REJECTS.get(), FAILURES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        ATTEMPTS.set(0);
+        WRITES.set(0);
+        BYTES_WRITTEN.set(0);
+        PARAM_REJECTS.set(0);
+        OVERSIZE_REJECTS.set(0);
+        NOCLOBBER_REJECTS.set(0);
+        FAILURES.set(0);
+    }
 
     public WriteFileTool(FileSandbox sandbox) {
         this.sandbox = sandbox;
@@ -57,6 +98,7 @@ public class WriteFileTool implements ToolCallback {
 
     @Override
     public String call(String toolInput) {
+        ATTEMPTS.incrementAndGet();
         try {
             JsonNode args = MAPPER.readTree(toolInput);
             if (args.hasNonNull("contentPath")) {
@@ -66,16 +108,19 @@ public class WriteFileTool implements ToolCallback {
             String raw = args.path("path").asText("");
             String content = args.hasNonNull("content") ? args.path("content").asText() : null;
             if (content == null) {
+                PARAM_REJECTS.incrementAndGet();
                 return "write_file 失败：缺少 content 参数（或经 contentPath 由框架加载）";
             }
             // impl-49：写入上限（与读入上限同口径 8MB，防巨型 content 打爆磁盘/内存）
             if (content.length() > 8L * 1024 * 1024) {
+                OVERSIZE_REJECTS.incrementAndGet();
                 return "write_file 失败：content " + content.length() + " 字符超过写入上限 8MB；请分段写入";
             }
             Path target = sandbox.resolveForWrite(raw);
             // impl-698 / spec 951：noclobber 守门（写盘之前判定——失败路径零副作用，
             // 不建目录不留 tmp；csh set -C / cp -n 防误覆盖语义）
             if (noclobber && Files.exists(target)) {
+                NOCLOBBER_REJECTS.incrementAndGet();
                 return "write_file 拒绝：目标已存在（noclobber 模式）——如需覆盖请先删除该文件或关闭 noclobber";
             }
             if (target.getParent() != null) {
@@ -91,8 +136,11 @@ public class WriteFileTool implements ToolCallback {
             } catch (java.nio.file.AtomicMoveNotSupportedException atomicUnsupported) {
                 Files.move(tmp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             }
+            WRITES.incrementAndGet();
+            BYTES_WRITTEN.addAndGet(content.getBytes(StandardCharsets.UTF_8).length);
             return "已写入：" + target + "（" + content.length() + " 字符）";
         } catch (Exception e) {
+            FAILURES.incrementAndGet();
             return "write_file 失败：" + e.getMessage();
         }
     }

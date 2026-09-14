@@ -616,6 +616,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | webhook 投递 | 围栏裁决分布读面 | SequenceFence 嵌套 FenceVerdictStats（CONTINUE/GAP/DUPLICATE/RESET/STALE 五态分桶守恒）+ verdictStats()——Kafka epoch/consumer-lag 谱系续 spec 303（spec 1043） | [spec 1043](docs/spec/1043-fence-verdict-stats.md) |
 | 观测治理 | J 系审计 R44（补登） | J 会话 R44 产出引用补全（spec 1044） | [spec 1044](docs/spec/1044-j-audit-r44.md) |
 | 观测治理 | 沙箱判定统计读面（补登） | J 会话 R45 产出引用补全（spec 1045） | [spec 1045](docs/spec/1045-sandbox-verdict-stats.md) |
+| 工具计量 | write_file 写入量水位与拒绝分桶 | 写入吞吐与拒绝原因分布显形，五桶守恒（spec 1046） | [spec 1046](docs/spec/1046-writefile-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
