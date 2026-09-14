@@ -51,6 +51,52 @@ public class RunCommandTool implements ToolCallback {
     private final CommandBlacklist blacklist;
     private final Duration defaultTimeout;
     private final Duration maxTimeout;
+
+    // —— spec 1052 / impl 804：执行结果分布（Kubernetes Job status 按结局分桶思想；
+    // 静态面理由同 R46–R51 先例）。守恒：attempts = exits + canceled + timeouts
+    // + totalRejects()（exits 含非零 exit——进程送达即入桶）。
+    private static final AtomicLong ATTEMPTS = new AtomicLong();
+    private static final AtomicLong EXITS = new AtomicLong();
+    private static final AtomicLong CANCELED = new AtomicLong();
+    private static final AtomicLong TIMEOUTS = new AtomicLong();
+    private static final AtomicLong BLANK_REJECTS = new AtomicLong();
+    private static final AtomicLong BLACKLIST_REJECTS = new AtomicLong();
+    private static final AtomicLong WORKDIR_REJECTS = new AtomicLong();
+    private static final AtomicLong TIMEOUT_PARAM_REJECTS = new AtomicLong();
+    private static final AtomicLong FAILURES = new AtomicLong();
+
+    /** 执行结果分布快照（spec 1052）。 */
+    public record RunCommandStats(long attempts, long exits, long canceled, long timeouts,
+                                  long blankRejects, long blacklistRejects,
+                                  long workdirRejects, long timeoutParamRejects,
+                                  long failures) {
+
+        /** 拒绝总数（四参数桶 + failures）。 */
+        public long totalRejects() {
+            return blankRejects + blacklistRejects + workdirRejects
+                    + timeoutParamRejects + failures;
+        }
+    }
+
+    /** 只读快照（守恒 attempts = exits + canceled + timeouts + totalRejects()）。 */
+    public static RunCommandStats stats() {
+        return new RunCommandStats(ATTEMPTS.get(), EXITS.get(), CANCELED.get(), TIMEOUTS.get(),
+                BLANK_REJECTS.get(), BLACKLIST_REJECTS.get(), WORKDIR_REJECTS.get(),
+                TIMEOUT_PARAM_REJECTS.get(), FAILURES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        ATTEMPTS.set(0);
+        EXITS.set(0);
+        CANCELED.set(0);
+        TIMEOUTS.set(0);
+        BLANK_REJECTS.set(0);
+        BLACKLIST_REJECTS.set(0);
+        WORKDIR_REJECTS.set(0);
+        TIMEOUT_PARAM_REJECTS.set(0);
+        FAILURES.set(0);
+    }
     /** impl-49：BASE 之外显式追加透传的环境变量名（大小写敏感，ProcessBuilder 语义）。 */
     private final java.util.Set<String> extraEnvAllowlist;
     /** impl-60：沙箱委托（spec 17 合流）——非 null 时执行走 backend，null 走内置 ProcessBuilder。 */
@@ -117,26 +163,32 @@ public class RunCommandTool implements ToolCallback {
 
     @Override
     public String call(String toolInput) {
+        ATTEMPTS.incrementAndGet();
         try {
             JsonNode args = MAPPER.readTree(toolInput);
             String command = args.path("command").asText("");
             if (command.isBlank()) {
+                BLANK_REJECTS.incrementAndGet();
                 return "run_command 失败：command 不能为空";
             }
             if (blacklist.matches(command)) {
+                BLACKLIST_REJECTS.incrementAndGet();
                 return "run_command 拒绝：命令命中安全黑名单";
             }
             String workdirRaw = args.path("workdir").asText("");
             Path workdir = workdirRaw.isBlank() ? sandbox.root() : sandbox.resolve(workdirRaw);
             if (!java.nio.file.Files.isDirectory(workdir)) {
+                WORKDIR_REJECTS.incrementAndGet();
                 return "run_command 失败：工作目录不存在：" + workdir;
             }
             long timeoutSeconds = args.path("timeoutSeconds").asLong(defaultTimeout.toSeconds());
             if (timeoutSeconds <= 0 || timeoutSeconds > maxTimeout.toSeconds()) {
+                TIMEOUT_PARAM_REJECTS.incrementAndGet();
                 return "run_command 失败：timeoutSeconds 超出允许范围（1~" + maxTimeout.toSeconds() + "）";
             }
             return execute(command, workdir, timeoutSeconds);
         } catch (Exception e) {
+            FAILURES.incrementAndGet();
             return "run_command 失败：" + e.getMessage();
         }
     }
@@ -161,16 +213,19 @@ public class RunCommandTool implements ToolCallback {
             // impl-49：取消/中断与超时同一收口——杀整棵进程树后恢复中断标记并告知
             killProcessTree(process);
             Thread.currentThread().interrupt();
+            CANCELED.incrementAndGet();
             return "run_command 已取消（进程树已终止）\n" + drainOutputQuietly(outputFuture);
         }
         if (!finished) {
             // 超时：先 best-effort 杀整棵进程树（destroyForcibly 仅杀 sh，直接子进程需 descendants 兜底）
             killProcessTree(process);
+            TIMEOUTS.incrementAndGet();
             return "run_command 超时（" + timeoutSeconds + "s），进程已终止\n"
                     + drainOutput(outputFuture);
         }
         String output = drainOutput(outputFuture);
         int exit = process.exitValue();
+        EXITS.incrementAndGet();
         return (exit == 0 ? "" : "exit=" + exit + "\n") + output;
     }
 

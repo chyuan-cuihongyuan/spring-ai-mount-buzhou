@@ -100,7 +100,7 @@ class McpLifetimeRetireTest {
 
     @AfterEach
     void tearDown() {
-        registry.close();
+        registry.shutdown();
     }
 
     @Test
@@ -140,8 +140,9 @@ class McpLifetimeRetireTest {
             public List<ToolCallback> toolCallbacks() {
                 return List.of(new ToolCallback() {
                     @Override
-                    public String getName() {
-                        return "blocking_tool";
+                    public org.springframework.ai.tool.definition.ToolDefinition getToolDefinition() {
+                        return org.springframework.ai.tool.definition.ToolDefinition.builder()
+                                .name("blocking_tool").description("d").inputSchema("{}").build();
                     }
 
                     @Override
@@ -190,7 +191,7 @@ class McpLifetimeRetireTest {
             reg.retireExpiredOnce();
             assertThat(reg.retiredCount()).isEqualTo(1);
         } finally {
-            reg.close();
+            reg.shutdown();
         }
     }
 
@@ -205,7 +206,7 @@ class McpLifetimeRetireTest {
             assertThat(reg.retiredCount()).isZero();
             assertThat(factory.connectCount.get()).isEqualTo(1);
         } finally {
-            reg.close();
+            reg.shutdown();
         }
     }
 }
