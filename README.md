@@ -653,6 +653,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
 | 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
 | 内容防御 | Spotlight×Moderation 顺序协作组合测试 | 包裹先于检查的双读面计数一致性钉住（spec 1092） | [spec 1092](docs/spec/1092-spotmod-combo.md) |
+| 内容防御 | guard 三 hook 链顺序协作组合测试 | 脱敏→包裹→检查三读面计数一致钉住（spec 1094） | [spec 1094](docs/spec/1094-trihook-combo.md) |
 | 沙箱治理 | Deno 沙箱探测读面 | 探测缓存命中/重探/成败双守恒显形（spec 1066） | [spec 1066](docs/spec/1066-denoprobe-stats.md) |
 | 内容防御 | 内容安全词表双缝判定读面 | BLOCK/MASK 动作与跳过分桶直读显形，四桶守恒（spec 1067） | [spec 1067](docs/spec/1067-moderation-stats.md) |
 | 配额治理 | 工具配额消耗读面 | 消耗/拒绝/未管辖三桶守恒显形（spec 1068） | [spec 1068](docs/spec/1068-toolquota-stats.md) |
