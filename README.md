@@ -942,6 +942,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | Spill 治理 | 媒体摄入统计读面 | MediaIntake.stats()——intakes/readBacks/bytesTotal 三计数+per-MIME 摄入直方（数量降序典序、封顶 16 基数纪律），intakeText 复用同一漏斗自动计量、拒绝路径不入账；多模态使用画像与字节配额治理显形——OpenAI usage by modality 思想（spec 1445） | [spec 1445](docs/spec/1445-media-intake-stats.md) |
 
+| 导出治理 | 导出清单校验统计 | ExportManifestVerifyStats——三受踪包装（canonical/subset/full 委托+入账）：verifies=ok+failed 守恒+mismatched/missing/unexpected 明细桶累计+lastEntryKind 末次入口；「从不校验」与「校验全红」两种病灶显形——TUF 校验遥测思想（spec 1439 补位） | [spec 1439](docs/spec/1439-export-manifest-verify-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

@@ -2497,3 +2497,8 @@
 - `MediaIntake.stats()`（1445——OpenAI usage by modality 思想：媒体摄入
   统计——intakes/bytesTotal/readBacks 三计数+per-MIME 直方（降序典序封顶
   16 基数纪律），实例面不影响 store；嵌套 `MediaIntakeStats` 不另立面）
+
+- `ExportManifestVerifyStats`（1439 补位——TUF 校验遥测思想：导出清单
+  校验统计——三受踪包装（canonical/subset/full 委托+入账）+verifies=ok+
+  failed 守恒+三明细桶（mismatched/missing/unexpected 非互斥），进程级
+  静态读面；嵌套 `Snapshot` 不另立面）
