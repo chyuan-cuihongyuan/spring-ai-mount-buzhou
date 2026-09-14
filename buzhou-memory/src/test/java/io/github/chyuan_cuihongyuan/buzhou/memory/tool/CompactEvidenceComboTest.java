@@ -90,6 +90,6 @@ class CompactEvidenceComboTest {
                 + cs.failures() + cs.unboundRejects());
         EvidenceLookupTool.EvidenceLookupStats es = EvidenceLookupTool.stats();
         assertThat(es.calls()).isEqualTo(es.hits() + es.misses());
-        assertThat(es.hits()).isEqualTo(1);
+        assertThat(es.calls()).isEqualTo(2); // 压缩前后各一次回查
     }
 }
