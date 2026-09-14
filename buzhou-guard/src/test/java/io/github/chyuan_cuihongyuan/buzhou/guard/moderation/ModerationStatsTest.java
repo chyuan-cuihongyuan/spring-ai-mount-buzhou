@@ -37,8 +37,8 @@ class ModerationStatsTest {
     void blockActionCountsBlocked() {
         ContentModerationHook hook = new ContentModerationHook(
                 List.of("competitor-x"), ContentModerationHook.Action.BLOCK);
-        assertThat(hook.afterTool(toolCtx(env, "提到 Competitor-X 价格"))
-                .isInstanceOf(HookResult.Block.class)).isTrue();
+        HookResult result = hook.afterTool(toolCtx(env, "提到 Competitor-X 价格"));
+        assertThat(result).isInstanceOf(HookResult.Block.class);
 
         ContentModerationHook.ModerationStats stats = ContentModerationHook.stats();
         assertThat(stats.invocations()).isEqualTo(1);
@@ -78,8 +78,8 @@ class ModerationStatsTest {
         ContentModerationHook blockHook = new ContentModerationHook(
                 List.of("违禁词"), ContentModerationHook.Action.BLOCK);
         // 输入缝 BLOCK
-        assertThat(blockHook.beforeTurn(new TurnCtxStub("含违禁词输入"))
-                .isInstanceOf(HookResult.Block.class)).isTrue();
+        HookResult blockResult = blockHook.beforeTurn(new TurnCtxStub("含违禁词输入"));
+        assertThat(blockResult).isInstanceOf(HookResult.Block.class);
         // 输入缝干净
         blockHook.beforeTurn(new TurnCtxStub("干净输入"));
         // 输入缝 null
