@@ -105,7 +105,50 @@ public final class AgentBulkhead {
                             + "，limit=" + limitOf(agentName)
                             + "（修法：调大 buzhou.bulkhead.agents.<agent> 或错峰）");
         }
+        recordPeak(agentName, limitOf(agentName) - semaphore.availablePermits());
         return new Lease(semaphore);
+    }
+
+    /** per-agent 在飞峰值水位表（spec 1417 / T2135；256 封顶折 __overflow__ 同拒绝表）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicInteger>
+            peaks = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private void recordPeak(String agent, int currentInFlight) {
+        if (currentInFlight < 0) {
+            return;
+        }
+        java.util.concurrent.atomic.AtomicInteger counter = peaks.get(agent);
+        if (counter == null) {
+            if (peaks.size() >= MAX_TRACKED_AGENTS) {
+                counter = peaks.computeIfAbsent(OVERFLOW_MARKER,
+                        k -> new java.util.concurrent.atomic.AtomicInteger());
+            } else {
+                counter = peaks.computeIfAbsent(agent,
+                        k -> new java.util.concurrent.atomic.AtomicInteger());
+            }
+        }
+        counter.accumulateAndGet(currentInFlight, Math::max);
+    }
+
+    /**
+     * 该 agent 在飞峰值水位（历史最大并发 Turn 数；未配置上限的 NOOP 舱恒 0——
+     * acquire 走 NOOP 短路无采样；无记录 agent = 0）。
+     */
+    public int peakInFlight(String agentName) {
+        java.util.concurrent.atomic.AtomicInteger counter = peaks.get(agentName);
+        return counter == null ? 0 : counter.get();
+    }
+
+    /**
+     * 该 agent 峰值饱和度 = 峰值在飞 / 上限 ∈ [0,1]（HikariCP 池饱和度思想：
+     * 「最忙时离上限多近」——1.0 即曾打满）。未配置上限的 agent 无饱和语义，
+     * 返回 -1 哨兵。
+     */
+    public double peakSaturation(String agentName) {
+        if (limitOf(agentName) == Integer.MAX_VALUE) {
+            return -1d;
+        }
+        return (double) peakInFlight(agentName) / limitOf(agentName);
     }
 
     /** per-agent 拒绝计数表（spec 117 §A / T415；256 封顶折 __overflow__）。 */

@@ -44,7 +44,7 @@ R12 ✅ 已落地=取消延迟追踪（R21 题提前；与 824 正交）｜
 R22 缓存驱逐计数读面(Caffeine eviction stats ≈16K)【高危待勘 prompt 缓存驱逐点】→core｜
 R23 令牌桶水位读面(Guava RateLimiter ≈51K)【高危待勘 resilience 限流器】→resilience｜
 R24 检查点年龄水位(Flink checkpoint age ≈25K)【高危待勘】→core｜
-R25 舱壁队列水位读面(Resilience4j bulkhead ≈10K)【高危待勘】→resilience｜
+R18 ✅ 换题落地=舱壁在飞峰值水位（R25 题提前；R24/R31 前提不成立换出）｜
 R26 导出器丢弃计数读面(Jaeger exporter drop ≈21K)【高危待勘 observe-otel 队列】→observe-otel｜
 R6 ✅ 换题落地=Dashboard 查询页守卫（原 R27 题提前到 R6，实证 listSessions 零钳制缺陷）｜
 R28 日志字段预算读面(OTel logrecord limits, otel 规范/Java ≈2K 借规范思想)【高危待勘】→observability｜

@@ -39,3 +39,4 @@
 - [Span 树拓扑读面的形状裁决](../tickets/T2129-span-topology-shape.md) — **换题轮**（R44 与 RollingJsonlWriter spec 712 覆盖）：SpanTreeTopology 纯函数（core/observability）——Topology 深度/扇出/根/孤儿计数+kind 直方降序+环防护 visited 收敛——Jaeger DAG 结构形状思想（时延维正交）。
 - [事件总线积压水位读数的形状裁决](../tickets/T2131-backpressure-watermark-shape.md) — EventBackpressureStats 进程级静态面（公共类+internal 分发器埋点）：depthWatermark 深度历史峰值+blockedPushes BLOCK 限时等待计数（>0=容量打满）+Snapshot/reset——Kafka consumer lag 思想，EventBusStats 公共 record 不改形。
 - [事务计量装饰器的形状裁决](../tickets/T2133-uow-instrumented-shape.md) — InstrumentedUnitOfWork implements UnitOfWork（opt-in 装饰器覆盖全部 SPI 实现）：begun/completed/failed/inFlight 守恒+失败异常类 Top 榜（有界 8 并 OTHERS）+异常原样上抛+deleteSession 透传——pg_stat_database xact + Seata 事务度量思想。
+- [舱壁在飞峰值水位读面的形状裁决](../tickets/T2135-bulkhead-peak-shape.md) — **换题轮**（R24 checkpoint 无时戳/R31 无批量 API 均不硬来）：AgentBulkhead 增量 peakInFlight/peakSaturation（acquire 成功路径采样、拒绝不采样不虚高、256 折叠纪律、internal 扩展无新公共类型）——HikariCP 池饱和度思想。

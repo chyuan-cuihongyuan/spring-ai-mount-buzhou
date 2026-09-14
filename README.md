@@ -798,6 +798,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 持久化 | 事务计量装饰器 | InstrumentedUnitOfWork——UnitOfWork opt-in 包装：begun/completed/failed/inFlight 守恒+失败异常类 Top 榜（有界 8 并 OTHERS），异常原样上抛、deleteSession 透传，全部 SPI 实现可包——pg_stat_database xact + Seata 事务度量思想（spec 1416） | [spec 1416](docs/spec/1416-instrumented-unit-of-work.md) |
 
+| 并发治理 | 舱壁在飞峰值水位 | AgentBulkhead.peakInFlight/peakSaturation——per-agent 历史最大并发水位+饱和度=峰值/上限（1.0=曾打满、无限舱 -1 哨兵），acquire 成功路径采样拒绝不虚高，256 折叠纪律；容量调大/错峰治理有水位可依——HikariCP 池饱和度思想（spec 1417） | [spec 1417](docs/spec/1417-bulkhead-peak-watermark.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
