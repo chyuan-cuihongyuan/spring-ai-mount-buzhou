@@ -32,6 +32,36 @@ public class BiTemporalFactLedger {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String KEY_PREFIX = "bitemp.summary.";
 
+    // —— spec 1063 / impl 815：操作读面（bitemporal query/mutation 对账思想；静态面
+    // 理由同 R46–R62 先例）。写/历史读/时点读三类操作语义不同，独立计数不对齐守恒。
+    private static final java.util.concurrent.atomic.AtomicLong SUPERSEDED_WRITES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong HISTORY_LOOKUPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong VALID_AT_LOOKUPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong CORRUPT_RECORD_LOADS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 事实台账操作分布快照（spec 1063）。 */
+    public record FactLedgerStats(long supersededWrites, long historyLookups,
+                                  long validAtLookups, long corruptRecordLoads) {
+    }
+
+    /** 只读快照。 */
+    public static FactLedgerStats stats() {
+        return new FactLedgerStats(SUPERSEDED_WRITES.get(), HISTORY_LOOKUPS.get(),
+                VALID_AT_LOOKUPS.get(), CORRUPT_RECORD_LOADS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        SUPERSEDED_WRITES.set(0);
+        HISTORY_LOOKUPS.set(0);
+        VALID_AT_LOOKUPS.set(0);
+        CORRUPT_RECORD_LOADS.set(0);
+    }
+
     private final SessionStateStore stateStore;
 
     public BiTemporalFactLedger(SessionStateStore stateStore) {
@@ -44,6 +74,7 @@ public class BiTemporalFactLedger {
      */
     public ValidityRecord recordSuperseded(String sessionId, String section, String oldBody,
                                            long oldGeneration, long newGeneration) {
+        SUPERSEDED_WRITES.incrementAndGet();
         Instant now = Instant.now();
         List<ValidityRecord> records = load(sessionId, section);
         // 闭合未闭合的旧版本（同代幂等：同 oldGeneration 已闭合则跳过）
@@ -71,11 +102,13 @@ public class BiTemporalFactLedger {
 
     /** 段的完整演变轨迹（时序升序）。 */
     public List<ValidityRecord> historyOf(String sessionId, String section) {
+        HISTORY_LOOKUPS.incrementAndGet();
         return load(sessionId, section);
     }
 
     /** 时序回查：某时点生效的版本（无则 empty）。 */
     public Optional<ValidityRecord> validAt(String sessionId, String section, Instant at) {
+        VALID_AT_LOOKUPS.incrementAndGet();
         return load(sessionId, section).stream()
                 .filter(record -> record.effectiveAt(at))
                 .reduce((first, second) -> second); // 多版本命中取最新
@@ -100,6 +133,8 @@ public class BiTemporalFactLedger {
             }
             return records;
         } catch (Exception e) {
+            // 台账记录静默蒸发的量化显形：损坏即计数（spec 1063）
+            CORRUPT_RECORD_LOADS.incrementAndGet();
             return new ArrayList<>();
         }
     }
