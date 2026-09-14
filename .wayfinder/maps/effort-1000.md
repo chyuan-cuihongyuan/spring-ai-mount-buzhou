@@ -19,6 +19,8 @@
 
 ## Decisions so far
 
+- [memory 双台账组合测试轮的形状裁决](../tickets/T1631-dualledger-shape.md) — 纯测试轮第六弹：DualLedgerReadoutTest 钉住 fact/episodic 双台账读面互不串账与 reset 独立隔离。
+- [memory 域双工具组合测试轮的形状裁决](../tickets/T1629-memorytools-shape.md) — 纯测试轮第五弹：MemoryToolsReadoutTest 钉住 compact_now 与 EpisodeLedger 双读面交叉调用下各自守恒保持、互不串账、reset 独立隔离。
 - [双守卫（黑名单+SSRF）组合测试轮的形状裁决](../tickets/T1627-dualguard-shape.md) — 纯测试轮第四弹：DualGuardReadoutTest 钉住双守卫读面同会话独立性与一致性（互不串账、reset 独立隔离）。
 - [Skill 管理操作读面的形态裁决](../tickets/T1625-skilladmin-stats-shape.md) — SkillAdminApi 静态五计数（creates/updates/publishes/disables/deletes 独立口径同 R63）+ 嵌套 SkillAdminStats + stats()/resetForTest()；校验异常不入桶（GitHub repo admin API statistics）。
 - [fs 全链路四读面组合测试轮的形状裁决](../tickets/T1623-fs-chain-shape.md) — 纯测试轮第三弹：FsChainReadoutTest 钉住沙箱/写/读/黑名单四读面在真实工作流链路下的各自守恒保持与跨面字节对称恒等（R45/R46/R47/R51 组合）。
@@ -190,7 +192,8 @@
 | 84 | fs 全链路四读面组合测试轮（沙箱/写/读/黑名单链路守恒） | 纯测试轮第三弹 | T1623–T1624 | 836 | 1084 | ✅ |
 | 85 | Skill 管理操作读面（create/update/publish/disable/delete 五面） | GitHub repo admin API statistics | T1625–T1626 | 837 | 1085 | ✅ |
 | 86 | 双守卫（黑名单+SSRF）组合测试轮（互不串账钉住） | 纯测试轮第四弹 | T1627–T1628 | 838 | 1086 | ✅ |
-| 87 | （开工时按缺口核查选题） | — | T1629–T1630 | 839 | 1087 |  |
+| 87 | memory 域双工具组合测试轮（compact_now×episodic 互不串账钉住） | 纯测试轮第五弹 | T1629–T1630 | 839 | 1087 | ✅ || 88 | memory 双台账组合测试轮（fact/episodic 互不串账钉住） | 纯测试轮第六弹 | T1631–T1632 | 840 | 1088 | ✅ |
+| 89 | （开工时按缺口核查选题） | — | T1633–T1634 | 841 | 1089 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
