@@ -15,7 +15,7 @@ J 系 R61–R69 全量工件对账 + 隔离 worktree 全仓 verify + 双门复�
 
 ## 验收
 
-隔离 worktree（HEAD=R69 后干净基线）全仓 `mvn verify`：BUILD SUCCESS + 全模块 SUCCESS + 双文档门绿（SpecCoverageTest + ApiSurfaceSnapshot）。
+隔离 worktree 全仓 `mvn verify` 三轮实测：首轮/复跑 starter ApiSurfaceSnapshot 各红一次——跨会话快照欠账 4 类型（N 会话 WilsonInterval/JitterMode + M/N 会话 BatchResponseBudgetHolder/NegativeCachingHolder——各会话加公共类型不随轮再生的系统性欠账），均按门指引 regenerate + api-surface.md 补登就近处置；**第三轮（HEAD=5c00d85e）BUILD SUCCESS：17 模块 SUCCESS、总时长 3:06、双文档门绿**——验收通过。经验入册：审计轮的快照补账已常态化（R60 一次、R70 两次），根因是各会话「加类型不随轮再生」，建议后续由加类型会话随轮自带 regenerate（另行倡议）。
 
 ## Out of Scope
 

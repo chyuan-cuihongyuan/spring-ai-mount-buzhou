@@ -8,7 +8,7 @@
 
 - [x] 对账：README 行 1061–1069 / spec 1061–1069 / 票 T1577–T1594 / impl 813–821 / 台账 61–69 全绿
 - [x] 票 T1595–T1596 + spec 1070 + README 行
-- [ ] worktree 全仓 verify 绿（BUILD SUCCESS + 双门）
+- [x] worktree 全仓 verify 绿（第三轮 BUILD SUCCESS 17 模块 3:06 + 双门；前两轮红为跨会话快照欠账 4 类型已补账 825fdd0b/5c00d85e）
 
 ## Done
 
