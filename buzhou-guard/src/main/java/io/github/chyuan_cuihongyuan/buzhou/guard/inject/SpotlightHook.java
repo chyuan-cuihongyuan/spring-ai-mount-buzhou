@@ -23,6 +23,39 @@ public class SpotlightHook implements BuzhouHook {
 
     public static final int ORDER = 80;
 
+    // —— spec 1064 / impl 816：包裹判定读面（OWASP LLM01 spotlighting 采用率思想；
+    // 静态面理由同 R46–R63 先例）。守恒：invocations = wrapped + 三跳过桶之和。
+    private static final java.util.concurrent.atomic.AtomicLong INVOCATIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong WRAPPED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ALREADY_WRAPPED_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong NOTICE_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ERROR_SKIPS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** Spotlighting 包裹判定分布快照（spec 1064）。 */
+    public record SpotlightStats(long invocations, long wrapped, long alreadyWrappedSkips,
+                                 long noticeSkips, long errorSkips) {
+    }
+
+    /** 只读快照（守恒 invocations = wrapped + 三跳过桶之和）。 */
+    public static SpotlightStats stats() {
+        return new SpotlightStats(INVOCATIONS.get(), WRAPPED.get(),
+                ALREADY_WRAPPED_SKIPS.get(), NOTICE_SKIPS.get(), ERROR_SKIPS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        INVOCATIONS.set(0);
+        WRAPPED.set(0);
+        ALREADY_WRAPPED_SKIPS.set(0);
+        NOTICE_SKIPS.set(0);
+        ERROR_SKIPS.set(0);
+    }
+
     private final String tag;
     private final char markChar;
     private final int markEveryNChars;
@@ -49,17 +82,22 @@ public class SpotlightHook implements BuzhouHook {
 
     @Override
     public HookResult afterTool(ToolCallContext ctx) {
+        INVOCATIONS.incrementAndGet();
         if (ctx.error() != null || ctx.result() == null) {
+            ERROR_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         String content = String.valueOf(ctx.result());
         if (content.contains(Spotlighting.BEGIN_HEAD)) {
+            ALREADY_WRAPPED_SKIPS.incrementAndGet();
             return HookResult.CONTINUE; // 已包裹（幂等；readback 切片含标记段时不再二次包裹）
         }
         if (content.startsWith(CanaryGuardHook.INTERCEPT_NOTICE)) {
+            NOTICE_SKIPS.incrementAndGet();
             return HookResult.CONTINUE; // 拦截告示是可信框架文本（非外部数据），不包裹
         }
         ctx.replaceResult(Spotlighting.wrap(tag, markChar, markEveryNChars, content));
+        WRAPPED.incrementAndGet();
         return HookResult.CONTINUE;
     }
 

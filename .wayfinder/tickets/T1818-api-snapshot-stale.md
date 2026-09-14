@@ -18,7 +18,7 @@ R6 全仓 verify（隔离 worktree，固定提交点）在 buzhou-spring-boot-st
 
 处置（K 会话 R6 对账显形，独立票独立 commit）：
 
-1. **定性**：快照门设计即「快照跟随代码」——新增公共类型（added，非破坏）的处置 = regenerateSnapshot + api-surface.md 同步入档（测试 Javadoc 明文指引）。N 会话落地新类时漏走快照更新步——流程缺口非代码缺陷。
-2. **修复**：`docs/api-surface.snapshot.txt` 按字典序补 `buzhou-tools|...PerHostConcurrencyGuard` 一行（H < P < S，位于 HttpRequestTool 与 SsrfGuard 之间）；`docs/api-surface.md` buzhou-tools 段同步条目（`public final class`，spec 1603 标注）。
-3. **验证**：隔离 worktree 重跑 starter 测试类确认门绿（reactor classpath 口径，单模块跑按设计跳过）。
-4. **护栏注记**：本票后「新增公共类型 → regenerate + md 同步」两步仍靠自觉——自动化（快照 diff 提示进 CI 失败消息已有；预 regenerate 钩子不做，人工核对 diff 是有意设计的闸门）。
+1. **定性**：快照门设计即「快照跟随代码」——新增公共类型（added，非破坏）的处置 = regenerateSnapshot + api-surface.md 同步入档（测试 Javadoc 明文指引）。落地会话漏走快照更新步——流程缺口非代码缺陷。
+2. **修复**：`docs/api-surface.snapshot.txt` 按字典序补 PerHostConcurrencyGuard 一行（HttpRequestTool 与 SsrfGuard 之间）；`docs/api-surface.md` buzhou-tools 段同步条目（`public final class`，spec 1603 标注）。
+3. **并行收敛注记**：修复落工作区后，I 会话快照再生轮（64da66cf）以等价内容先行入库（快照行规范化同文、md 条目文本一致），K 线票追认归属；reactor 联编复验 starter 门绿（注：`-pl` 半反应器 classpath 会假红——该门依赖多模块 /classes 目录扫描，全反应器才是有效口径，设计边界入档）。
+4. **护栏注记**：「新增公共类型 → regenerate + md 同步」两步仍靠自觉；预 regenerate 钩子不做——人工核对 diff 是有意设计的闸门。

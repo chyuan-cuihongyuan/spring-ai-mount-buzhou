@@ -21,7 +21,7 @@ public final class MediaIntake {
     private final int previewChars;
 
     public MediaIntake(SpillStore store) {
-        this(store, 2048);
+        this(store, io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillProperties.DEFAULT_PREVIEW_CHARS);
     }
 
     public MediaIntake(SpillStore store, int previewChars) {

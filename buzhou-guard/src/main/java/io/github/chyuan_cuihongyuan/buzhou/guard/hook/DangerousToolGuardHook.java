@@ -38,6 +38,8 @@ public class DangerousToolGuardHook implements BuzhouHook {
 
     /** 确认请求事件类型（透出与回写共用）。 */
     public static final String EVENT_CONFIRMATION_REQUESTED = "buzhou.guard.confirmation.requested";
+    /** spec 1624 / T2399：豁免生效放行事件（mechanism=dangerous-tool）。 */
+    public static final String EVENT_EXEMPTION_APPLIED = "guard.exemption.applied";
     public static final String EVENT_CONFIRMATION_RESPONSE = "buzhou.guard.confirmation.response";
     public static final String EVENT_GUARD_BLOCKED = "guard.tool.blocked";
     public static final String EVENT_AUTH_CONSUMED = "guard.auth.consumed";
@@ -46,11 +48,20 @@ public class DangerousToolGuardHook implements BuzhouHook {
     private final DangerousToolConfig config;
     private final DangerousToolMatcher matcher;
     private final SessionStateStore stateStore;
+    /** spec 1624 / T2399：豁免登记（null = 不征询——默认零行为）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions;
 
     public DangerousToolGuardHook(DangerousToolConfig config, SessionStateStore stateStore) {
+        this(config, stateStore, null);
+    }
+
+    /** spec 1624 / T2399：+exemptions（null = 不征询——既有调用零行为）。 */
+    public DangerousToolGuardHook(DangerousToolConfig config, SessionStateStore stateStore,
+            io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions) {
         this.config = config;
         this.matcher = new DangerousToolMatcher(config.dangerousTools());
         this.stateStore = stateStore;
+        this.exemptions = exemptions;
     }
 
     @Override
@@ -79,6 +90,16 @@ public class DangerousToolGuardHook implements BuzhouHook {
         Optional<StateEntry> auth = stateStore.get(ctx.sessionId(), authKey);
         if (auth.isPresent()
                 && consumeIfOnce(ctx, fingerprint, authKey, auth.get().value())) {
+            return HookResult.CONTINUE;
+        }
+        // spec 1624 / T2399：豁免征询（GuardExemptionRegistry 首个消费者——
+        // mechanism=dangerous-tool、subject=工具名；未过期即放行 + 审计事件）
+        if (exemptions != null
+                && exemptions.exempt("dangerous-tool", ctx.toolName(), System.currentTimeMillis())) {
+            ctx.emitEvent(new SessionEvent(EVENT_EXEMPTION_APPLIED, Map.of(
+                    "toolName", ctx.toolName(),
+                    "toolCallId", ctx.toolCallId(),
+                    "mechanism", "dangerous-tool"), Instant.now()));
             return HookResult.CONTINUE;
         }
         return handleUnauthorized(ctx, entry, fingerprint);

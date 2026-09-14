@@ -38,7 +38,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class SemanticCacheAdvisor implements BaseAdvisor {
 
-    private final SemanticCacheStore store;
+     /** Advisor 链位（spec 1516 常量化）：精确缓存(+450) 之后——精确键（零成本）先于语义。 */
+    private static final int ADVISOR_ORDER_OFFSET = 460;
+
+   private final SemanticCacheStore store;
     private final EmbeddingModel embeddingModel;
     private final String modelName;
     private final AtomicLong bypasses = new AtomicLong();
@@ -56,7 +59,7 @@ public class SemanticCacheAdvisor implements BaseAdvisor {
 
     @Override
     public int getOrder() {
-        return ToolCallingAdvisor.DEFAULT_ORDER + 460;
+        return ToolCallingAdvisor.DEFAULT_ORDER + ADVISOR_ORDER_OFFSET;
     }
 
     public SemanticCacheStore store() {

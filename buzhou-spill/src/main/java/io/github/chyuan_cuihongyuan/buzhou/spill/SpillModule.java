@@ -37,7 +37,9 @@ public final class SpillModule {
     }
 
     public static SpillModule withDefaults(Path rootDir) {
-        return new SpillModule(rootDir, 2048, 20);
+        return new SpillModule(rootDir,
+                io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillProperties.DEFAULT_PREVIEW_CHARS,
+                io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillProperties.DEFAULT_LIST_PREVIEW_ITEMS);
     }
 
     /**

@@ -31,6 +31,12 @@
 - [ToolTimingAggregatorConcurrencyTest 负载下非确定性卡死](../tickets/T1815-tool-timing-concurrency-hang.md) — R4 验证显形：同 commit 一次 ~8 分钟全绿、一次 forked JVM 109+ CPU 分钟挂死（jstack 栈顶 record CAS 区，RollingMaxCounter 内联归因）——并行流内 yield 风暴恶化 FJ 调度 + 无超时护栏；最小修复 = 移除 yield + @Timeout(120) 护栏（测试侧语义不变，主代码活锁未证实）；并发压测默认带超时护栏先例确立。
 - [SnapshotMessage 补测与收紧判据跨模块复核](../tickets/T1813-snapshot-message-and-tightened-sweep-shape.md) — R5：miss≥1 口径再浮出 SnapshotMessage（mis=2，compact 构造 null 防御）——null→空 Map / Map.copyOf 防御拷贝 / spillUri·evidenceId 透传；六小模块（tools/observability/observe-otel/observe-dashboard/spill/resilience）旧判据期报告隔离重扫清单化归 R6+；收敛信号：core 浮出量 R4=2 → R5=1，R6 起该口径并入周期性对账轮。
 - [K 会话周期对账轮 R6 形态](../tickets/T1816-k-audit-r6-shape.md) — R6：四步证据驱动批次收官后的独立核对轮（Google SRE Production Readiness Review 思想）——全仓 verify（隔离 worktree CI 等价门）+ 工件链五项对账；对账脚本可重放；R7 起对账/雾区（report-aggregate、BRANCH）两轮交替。
+- [R6 验证收口](../tickets/T1817-k-audit-r6-verify.md) — 工件链五项全 OK；全仓 verify 两跑「15/16 绿 + starter 显形红」：T1818 API 快照过期（PerHostConcurrencyGuard 未入册，已修+复验绿）/ T1819 Webhook 测试泄漏后台重试线程污染全局指标捕获（下轮治本）；多会话共享工作区风险（worktree 被删、detached HEAD、他线全量 add 卷入）入档——「固定提交点 + 隔离 worktree + 显式路径 add」对策确立。
+- [R7 形态裁决：T1819 治本 + 两雾区处置](../tickets/T1820-fog-adjudication-r7-shape.md) — T1819 治本 = forwarder 登记 + @AfterEach close（构造即自启 dispatcher「谁启动谁收尾」，受害者严格断言不动）；BRANCH 维度 = 13 模块实测 52.1%–81.6%（中位 ~71%）入对账读面台账、硬门暂缓（≥60% 即红容器门控的 store-redis/observe-otel）；report-aggregate = 不引入（新增模块=09 工程档 spec 级变更，价值已被直测纪律覆盖）——**K 线雾区清零**，R9 起对账轮+他线委托议题。
+- [R8 形态裁决：分支缺口批次 1 选题（observe-otel）](../tickets/T1822-branch-uplift-otel-shape.md) — 逐类分支数据精定制导（mutation-testing 式断言思想）：store-redis 缺口大头为容器门控类（covered=0×3，本地不可 uplift，环境约束入档，fake 化被 T1809 否决）→ 靶点定为本地可测的 observe-otel 两类；OtelBridgeSink 按未覆盖分支行号逐一制导 + 防御性不可达分支（record compact 已归一）诚实记录。
+- [R8 验证收口 + T1824 主代码缺陷](../tickets/T1823-branch-uplift-otel-verify.md) — observe-otel 32 用例全绿；OtelBridgeSink 分支 61%→87%、OtelProperties →100%；**分支补测第一轮即显形真实主代码缺陷 T1824**（sessionTrace 驱逐 iterator.remove() 缺 next() → ISE 被故障隔离吞掉 → 超限后新会话 span 静默丢弃，驱逐护栏从未工作）——「缺口=未执行路径=未验证路径」实证。
+- [R9 分支缺口批次 2 选题（observability 两小类）](../tickets/T1825-branch-uplift-observability-shape.md) — 小类先清沉淀 fake 基建（RecordingRecorder/Handle，初始属性袋必须落 handle 对齐真实语义）；ObservabilitySessionState 46%→88%（会话 span 生命周期/usage 聚合/CANCELLED 终态/carrier null 防御）+ ObservableToolCallback 29%→86%（parent 三级解析 ToolContext 载体>字段载体>hooks 兜底/异常 error+close+rethrow）；observability 83 用例全绿；批次 3 = ObservabilityAdvisor（68 missed）/ MicrometerDualWriter（15）留 R10+。
+- [R10 选题：MicrometerDualWriter 单类补测](../tickets/T1827-micrometer-dual-writer-shape.md) — 「无测试文件 > 缺分支」优先级：双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%，observability 94 用例全绿；ObservabilityAdvisor 流式路径顺延 R11 深做。
 
 ## R1 台账（spec 1200 / impl 903）
 
@@ -82,7 +88,9 @@
 
 ## Not yet specified
 
-- R2+ 候选（按缺口证据逐轮显形，不预切）：低覆盖类清点（覆盖率<50% 且 miss>=10 的后续批次）；store-jdbc / store-redis 容器测试在无 Docker 环境的降级口径；JaCoCo report-aggregate 聚合报告可行性（跨模块执行归一，能否消除「跨模块执行不计本模块」的统计盲区）；分支覆盖（BRANCH）维度是否纳入证据口径。
+- ~~R2+ 候选（低覆盖类清点 / 容器降级口径 / report-aggregate / BRANCH）~~——R2–R7 已全部裁决收敛（见 Decisions so far）。
+- **R11（下一轮，精确议程已定义）**：ObservabilityAdvisor 流式路径分支补测（68 missed：accumulateStreamChunk 13、recordModelCallOutcome 22、markFirstTokenIfNeeded 4、recordTpotIfNeeded 4、recordStreamOutcome 8、resolveTurnParent 3、captureInjectionSnapshot 5 等）——需从零搭 Spring AI 流式 harness（StreamAdvisorChain stub 返回 Flux.just(ChatClientResponse)、ChatClientRequest.builder、ChatResponse/Generation/AssistantMessage/Usage/finishReason 构造、ThinkingChainExtractor 可注入）；本仓无既有流式测试可复用。批次 4 候选：BaseSpanRecorder（12）/ DefaultSpanHandle（9）/ ToolGraphAnalyzer（11）/ ThinkingChainExtractor（10）。
+- **R12+**：周期对账轮（沿 R6 口径，每 4–5 轮一次）；他线委托议题随时插入。
 
 ## Out of scope
 

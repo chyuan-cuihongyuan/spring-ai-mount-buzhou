@@ -71,6 +71,10 @@ public final class ModelCircuitBreaker {
     /** spec 1602：宽限期内跳闸判定被豁免的累计（观测面——启动抖动量的可见读数）。 */
     private final java.util.concurrent.atomic.AtomicLong warmupSuppressed =
             new java.util.concurrent.atomic.AtomicLong();
+    /** spec 1611 / T2373：crash-loop 旁路读数（null = 不喂——装配侧注入）。 */
+    private volatile io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector crashLoop;
+    /** spec 1611 / T2373：半开探测质量旁路读数（null = 不喂）。 */
+    private volatile io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.HalfOpenProbeStats probeStats;
 
     public ModelCircuitBreaker(ResilienceProperties.Circuit config, ResilienceStats stats) {
         this(config, stats, java.time.Clock.systemUTC());
@@ -179,6 +183,28 @@ public final class ModelCircuitBreaker {
     /** spec 1602：宽限期内跳闸判定被豁免的累计（观测面）。 */
     public long warmupSuppressedCount() {
         return warmupSuppressed.get();
+    }
+
+    /**
+     * spec 1611 / T2373：注入旁路遥测（链式；任一 null = 该面不喂）。纯读数旁路——
+     * 不改状态机行为；喂点=跳闸/恢复变迁 + 半开探测成败（spec 811/836 指定挂点）。
+     */
+    public ModelCircuitBreaker withTelemetry(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector crashLoop,
+            io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.HalfOpenProbeStats probeStats) {
+        this.crashLoop = crashLoop;
+        this.probeStats = probeStats;
+        return this;
+    }
+
+    /** spec 1611：crash-loop 读数（观测面；未注入 = null）。 */
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector crashLoopDetector() {
+        return crashLoop;
+    }
+
+    /** spec 1611：半开探测读数（观测面；未注入 = null）。 */
+    public io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.HalfOpenProbeStats halfOpenProbeStats() {
+        return probeStats;
     }
 
     public void recordSuccess(String modelName, Consumer<SessionEvent> emitter) {
@@ -297,8 +323,14 @@ public final class ModelCircuitBreaker {
             if (state == CircuitState.HALF_OPEN) {
                 probesInFlight = Math.max(0, probesInFlight - 1);
                 if (outcome == Outcome.FAILURE) {
+                    if (probeStats != null) {
+                        probeStats.record(modelName, false); // spec 1611 / T2373：探测失败读数
+                    }
                     transition(CircuitState.OPEN, emitter); // 任一探测失败即回 OPEN 重计退避
                     return;
+                }
+                if (probeStats != null) {
+                    probeStats.record(modelName, true); // spec 1611 / T2373：单次探测成功读数
                 }
                 halfOpenSuccesses++;
                 if (halfOpenSuccesses >= config.halfOpenSuccessThreshold()) {
@@ -370,6 +402,13 @@ public final class ModelCircuitBreaker {
             CircuitState from = state;
             state = to;
             resetWindow();
+            // spec 1611 / T2373：旁路遥测喂点（纯读数——811 crash-loop 指定挂点 702 同源）
+            if (to == CircuitState.OPEN && crashLoop != null) {
+                crashLoop.recordOpen(modelName, java.time.Instant.now(clock).toEpochMilli());
+            }
+            if (from == CircuitState.HALF_OPEN && to == CircuitState.CLOSED && crashLoop != null) {
+                crashLoop.recordRecovery(modelName, java.time.Instant.now(clock).toEpochMilli());
+            }
             if (to == CircuitState.OPEN) {
                 consecutiveTrips++;
                 long multiplier = config.backoffMultiplier(consecutiveTrips);

@@ -746,8 +746,13 @@ public class DefaultMcpClientRegistry implements McpClientRegistry {
             long waitMs = Math.max(1, deadlineMs - System.currentTimeMillis());
             try {
                 f.get(waitMs, TimeUnit.MILLISECONDS);
-            } catch (Exception ignored) {
-                // 强杀线程已兜底，shutdown 不抛
+            } catch (java.util.concurrent.TimeoutException | java.util.concurrent.ExecutionException ignored) {
+                // 超时/关闭失败：强杀线程已兜底，shutdown 不抛
+            } catch (InterruptedException ie) {
+                // spec 1513：中断信号不吞——恢复中断位并停止等待后续条目（调用方的
+                // 取消意图优先于排空；强杀兜底语义不受影响；变量名避让外层 Entry e）
+                Thread.currentThread().interrupt();
+                break;
             }
         }
         scheduler.shutdownNow();

@@ -22,9 +22,9 @@ Spring AI 解决了「如何把模型、工具、Advisor 链接到一起」的�
 - **危险操作无护栏**——删库、发版、改线上配置这类不可逆操作，缺乏框架级人工确认（HITL）。
 - **状态记不住又不可靠**——跨实例续接、悬空调用修复、长产物读写，每家都要自己造一遍。
 
-Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐面向生产场景所需的稳定性与可观测性——目前为实验性（alpha），详见[项目状态](#项目状态)。
+Buzhou 把这些「Agent 运行时」该有的能力收敛成十大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐面向生产场景所需的稳定性与可观测性——目前为实验性（alpha），详见[项目状态](#项目状态)。
 
-## 九大机制
+## 十大机制
 
 | # | 机制 | 一句话 | 模块 |
 |---|------|--------|------|
@@ -37,12 +37,13 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 7 | **原子工具** | 框架内置最小可复用工具集：文件读写、命令执行、HTTP 调用、任务清单等 | `buzhou-tools` |
 | 8 | **Hook 护栏体系** | 长产物读写护栏、HITL 危险操作人工审核、Hook→state→Attachment 联动闭环（补失忆范式） | `buzhou-guard` |
 | 9 | **持久化 SPI** | 五大存储 SPI（Message / Summary / SessionState / SessionLease / Observability）+ 内存/JDBC/Redis 实现，按需切换 | `buzhou-core` / `buzhou-store-jdbc` / `buzhou-store-redis` |
+| 10 | **模型韧性层** | 瞬断重试（幂等门+瞬断白名单）、回退链、金丝雀、统一超时、归一化错误分类、onModelError 兜底 | `buzhou-resilience` |
 
 > 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 机制详设 01–55）。
 
 ## 生产级纵深（effort #5 新增）
 
-九大机制之上的运营级能力（详设 spec 15–23）：
+十大机制之上的运营级能力（详设 spec 15–23）：
 
 | 能力 | 一句话 | 详设 |
 |------|--------|------|
@@ -623,6 +624,22 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具计量 | SSRF 守卫判定分布读面 | 出网校验放行/拒绝按原因分桶显形，五桶守恒（spec 1048） | [spec 1048](docs/spec/1048-ssrf-guard-stats.md) |
 | 工具计量 | http_request 请求量水位与结果分布 | 请求送达率与六拒绝桶分布显形，参数/环境分轴（spec 1049） | [spec 1049](docs/spec/1049-httptool-stats.md) |
 | 观测治理 | J 系阶段对账审计 R50 | J 会话 R46–R49 工件对账 + spec 1048 跨会话冲突合成留痕（spec 1050） | [spec 1050](docs/spec/1050-j-audit-r50.md) |
+| 工具计量 | 命令黑名单拦截判定读面 | 黑名单命中/放行比显形，二桶守恒（spec 1051） | [spec 1051](docs/spec/1051-blacklist-stats.md) |
+| 工具计量 | run_command 执行结果分布读面 | 执行结局九桶守恒，参数/运行时分轴（spec 1052） | [spec 1052](docs/spec/1052-runcommand-stats.md) |
+| 溢出治理 | evict_handle 逐出判定读面 | 模型主动逐出采用率与拒绝分桶显形，三桶守恒（spec 1053） | [spec 1053](docs/spec/1053-evict-stats.md) |
+| 溢出治理 | str_replace 编辑判定读面 | 编辑成功与 notFound/ambiguous 失败模式分桶显形，六桶守恒（spec 1054） | [spec 1054](docs/spec/1054-strreplace-stats.md) |
+| 记忆治理 | 情景记忆读写双守恒读面 | 情景库写入量与召回命中率显形，双守恒（spec 1055） | [spec 1055](docs/spec/1055-episodic-stats.md) |
+| 模型韧性 | 崩循环探测器类级水位读面 | OPEN 总量/封顶截断量/循环检出/恢复四计数显形（spec 1056） | [spec 1056](docs/spec/1056-crashloop-watch-stats.md) |
+| 技能治理 | skill_search 搜索判定读面 | 搜索命中率与零结果率显形，四桶守恒（spec 1057） | [spec 1057](docs/spec/1057-skillsearch-stats.md) |
+| MCP 治理 | 工具集轮询提供器读面 | 热更新轮询三桶守恒显形，失败率可对账（spec 1058） | [spec 1058](docs/spec/1058-toolsetpoll-stats.md) |
+| 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
+| 观测治理 | J 系阶段对账审计 R60 | J 会话 R51–R59 工件对账 + 七域读面布局盘点（spec 1060） | [spec 1060](docs/spec/1060-j-audit-r60.md) |
+| 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
+| 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
+| 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
+| 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
+| 沙箱治理 | Deno 沙箱探测读面 | 探测缓存命中/重探/成败双守恒显形（spec 1066） | [spec 1066](docs/spec/1066-denoprobe-stats.md) |
+| 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -684,6 +701,13 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | 全模块测试补全覆盖（K 会话 R1） | JaCoCo 缺口驱动零覆盖清零：6 模块 20 靶点直测（core 16 含 SessionStateStore default 体死路径复活 + guard/spill/resilience/mcp 各 1），豁免入档不硬凑；测试显形三缺陷单列修复（spec 1200） | [spec 1200](docs/spec/1200-test-coverage-completion.md) |
 | 工程门禁 | 低覆盖类批次 1（K 会话 R2） | 低覆盖档（<50% 且 miss≥10）清点：guard PolicyGateHook 三态裁决/taint 映射/事件/指标四合同面 + memory RecallSearchTool 四模输出/降级/截断十断言面（spec 1201） | [spec 1201](docs/spec/1201-low-coverage-batch1.md) |
 | 工程门禁 | skills RedisSkillStore 契约接入（K 会话 R3） | SkillStore 契约范式补链：Redis 实现接同一契约基类（真实 redis:7-alpine 容器，无 Docker 跳过）+ 重启存活加验；修正 R1 审计漏扫 skills（spec 1202） | [spec 1202](docs/spec/1202-redis-skill-store-contract.md) |
+| 工程门禁 | core 零覆盖尾巴清扫（K 会话 R4） | 判据收紧 miss≥5→miss≥1 后复扫：AttachmentRenderer default 截断合同四断言 + CommandOutcome success 谓词矩阵（超时优先于退出码）；core 证据改走隔离 worktree（spec 1203） | [spec 1203](docs/spec/1203-core-zero-tail-sweep.md) |
+| 工程门禁 | SnapshotMessage 补测与跨模块复核（K 会话 R5） | 收紧判据残留归口：compact 构造 null 防御 + Map.copyOf 拷贝语义合同；六小模块 miss≥1 复扫清单化（spec 1204） | [spec 1204](docs/spec/1204-snapshot-message-tightened-sweep.md) |
+| 工程门禁 | K 会话周期对账轮 R6 | 全仓 verify（隔离 worktree CI 等价门）+ K 线工件链五项对账（spec/README/票/impl/map）——SRE Production Readiness Review 思想，R7 起对账/雾区交替（spec 1205） | [spec 1205](docs/spec/1205-k-audit-r6.md) |
+| 工程门禁 | R7 雾区裁决：T1819 治本 + BRANCH/report-aggregate | Webhook 测试 forwarder 收口（谁启动谁收尾）；BRANCH 13 模块实测分布入台账（硬门暂缓有据）；report-aggregate 不引入（模块工程档不动）——ADR 式裁决（spec 1206） | [spec 1206](docs/spec/1206-fog-adjudication-r7.md) |
+| 工程门禁 | R8 分支缺口批次 1：observe-otel | 分支精确定向补测：OtelBridgeSink 61%→87%（重复开启/驱逐护栏/spanName 回退/sessionTrace 上界/类型适配器/故障隔离）+ OtelProperties 100%；显形 T1824 sessionTrace 驱逐 iterator.remove() 缺 next() 致超限后新会话 span 静默丢弃（spec 1207） | [spec 1207](docs/spec/1207-branch-uplift-otel.md) |
+| 工程门禁 | R9 分支缺口批次 2：observability 两小类 | ObservabilitySessionState 46%→88%（会话 span 生命周期/usage 聚合/CANCELLED 终态）+ ObservableToolCallback 29%→86%（parent 三级解析/异常 error+close+rethrow）；批次 3 = Advisor/DualWriter（spec 1208） | [spec 1208](docs/spec/1208-branch-uplift-observability.md) |
+| 工程门禁 | R10：MicrometerDualWriter 补测 | 双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%（spec 1209） | [spec 1209](docs/spec/1209-micrometer-dual-writer.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
@@ -832,6 +856,22 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 安全治理 | MCP 危险工具默认动词模式（S1 硬偏差修复） | buzhou.mcp.dangerous-tool-patterns 缺省从空改为 spec 14 §F 承诺的七动词前缀 glob（delete/drop/write/update/remove/send/exec）——恶意 server 的写侧工具默认进登记面；显式空列表 = 关闭逃生门（design-incompleteness S1 闭环）（spec 1507） | [spec 1507](docs/spec/1507-mcp-default-dangerous-patterns.md) |
 | 安全治理 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core DangerousToolRegistry 进程级桥（模块解耦不破白名单）——tools 装配后灌注危险名单，guard afterName 保时序默认并入三参 HITL 条目（yml 显式优先去重）；opt-in 开 write_file 即得默认审批拦截（spec 1508） | [spec 1508](docs/spec/1508-dangerous-tool-bridge.md) |
 | 韧性观测 | canary.selected 事件会话归属补齐（F7）+ spec 07 续跑名回写（F10） | payload 补 sessionId（多会话监听面可定位，常量 Javadoc 自钉「sessionId + model」此前未兑现）；spec 07 的 AgentSession.resume() 推演名回写指向 SessionInterrupts.resumeWith（功能等价）——design-incompleteness F 系清扫轮（spec 1509） | [spec 1509](docs/spec/1509-canary-payload-f7-f10.md) |
+| 装配治理 | ConfigMaps indexed 属性数字键归一 | properties/命令行/env-var 源的 key[i].f=v 从 Binder mapOf 弱点绑出的 Map 形态归一为数值序 List——guard dangerous-tools 等一切 fromYml 列表键在这些源下此前静默失效（YAML 源正常）；混合键不误伤（spec 1510） | [spec 1510](docs/spec/1510-configmaps-indexed-coerce.md) |
+| 韧性执行 | 幂等工具瞬断重试自动装配（F1 落地） | buzhou.core.tool-transient-retry.enabled=true——@BuzhouTool.idempotent 或白名单工具装配期自动包既有 RetryingToolCallback（spec 05 承诺的声明式收口）；RetryPolicy 新增 transientOnly 瞬断白名单档（IO/超时族+类名启发+cause 链，非瞬断零重试；默认 false 语义不变）（spec 1511） | [spec 1511](docs/spec/1511-tool-transient-retry.md) |
+| 文档门禁 | 配置全键表 config-reference（F9 闭环） | docs/config-reference.md 三段式全键表——57 record/198 组件键 + fromYml 子键（4 模块）+ Environment 直读键（34 个），spec 21 承诺落地（spec 1512） | [spec 1512](docs/spec/1512-config-reference.md) |
+| 工程卫生 | 中断恢复与异常上下文（五-4 部分/五-8） | mcp shutdown 排空等待不再吞 InterruptedException（收窄 catch + 恢复中断位提前停止——JCIP 纪律）；DiskSpillStore 9 处裸异常 message 补操作名+路径/uri/sessionId 上下文（spec 1513） | [spec 1513](docs/spec/1513-interrupt-context-hygiene.md) |
+| 工程卫生 | SHA-256 裸异常迁移 CONFIG_INVALID + 审计死代码 | 11 处 IllegalStateException("SHA-256 不可用")（全量重扫较评审清单多 5 处）统一迁移结构化 BuzhouException(CONFIG_INVALID/FATAL)（可分类可观测）；AuditChain.verifySignature 零调用死方法删除（逻辑已迁 AuditChainVerifier）（spec 1514） | [spec 1514](docs/spec/1514-sha256-config-invalid.md) |
+| 存储治理 | 降级存储契约对齐 + 机制计数口径（六-1/七-1） | redis 版 DegradingObservabilityStore 补 buzhou.store.write.failures{policy=degrade} 指标（jdbc 先例同款——同名策略两库观测一致）；README 九大机制升十大（模型韧性层入列，与 CLAUDE 口径统一）（spec 1515） | [spec 1515](docs/spec/1515-store-contract-align.md) |
+| 工程卫生 | spec 07 七切面回写 + 序位常量化（四-5/五-6 部分） | spec 07 三处「六切面」追认七切面（onModelError spec 15 落地后）；四处 advisor/hook 序位魔法值（+450/+460/100/200）抽常量+链位注释——ResilienceAdvisor.CHAIN_ORDER_OFFSET 先例同款，同值零行为变化（spec 1516） | [spec 1516](docs/spec/1516-spec07-order-consts.md) |
+| 工程卫生 | spill 默认值单一事实源（五-6 收口） | 2048/20/32000 散落四处收口 SpillProperties 三常量（threshold 引用 SpillOffloadHook 既有常量）——改默认值从散弹变单点；六-6 死参数（SPI 扩展位注记）/六-9 调度器工厂（delay queue 无无界风险）裁定入档（spec 1517） | [spec 1517](docs/spec/1517-spill-defaults-ssot.md) |
+| 文档门禁 | 文档间残留矛盾三裁定（七-2/七-3/四-8） | perf 口径澄清（10ms 目标/20ms 哨兵红线的目标-红线关系）；promptfoo star 统一 24K★@2026-09 时点注记；spec 09 追认 test 边豁免（ModuleBoundaryGuard 只扫 src/main 同口径）——design-incompleteness 可做项全部闭环（spec 1518） | [spec 1518](docs/spec/1518-doc-adjudications.md) |
+
+## 生产级纵深 XII（N 会话 1600 系增量）
+
+N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
 | 韧性缓存 | 语义缓存 LFU 采样驱逐 | 驱逐从纯 eldest 升级为采样窗口内最低命中数先出（平局取老保 LRU 底线），热 FAQ 条目不被一次性扫描写入冲刷；hotPreservedCount 观测采样实效率——Redis allkeys-lfu + maxmemory-samples 思想（spec 1600） | [spec 1600](docs/spec/1600-semantic-cache-lfu-sampling.md) |
 | MCP 治理 | 连接最大寿命 | 到寿 ACTIVE 连接退役重建（复用探活失败同款排水+原样重建口径），在飞调用推迟下轮（归还时退役语义）——防长连接状态腐化/漂移累积；HikariCP maxLifetime 思想（spec 1601） | [spec 1601](docs/spec/1601-mcp-connection-maxlifetime.md) |
 | 韧性治理 | 熔断启动宽限期 | 进程冷启动期（circuit.warmup）跳闸判定豁免——建连/TLS/预热抖动不计开闸，窗口照记、成功照常冲淡；宽限结束已积累样本立即恢复完整判定（真故障仍跳），warmupSuppressedCount 观测启动抖动量——K8s startupProbe 思想（spec 1602） | [spec 1602](docs/spec/1602-circuit-warmup.md) |
@@ -843,6 +883,20 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 并发健康 | DiskSpillStore 锁迁移 | store/usage 的 monitor → ReentrantLock（「一次调用一次 spill」互斥不变；MB 级写盘+walk 在虚拟线程下 unmount 而非 pin）——spec 1606 审计高危 #3 落地（spec 1608） | [spec 1608](docs/spec/1608-disk-spill-reentrantlock.md) |
 | 并发健康 | WebhookOutbox 锁迁移 | append/appendRetry/orphanIndexCount/requeueDead 的 monitor → ReentrantLock wrapper（锁内 store put/scan 在虚拟线程 dispatcher 下 unmount 而非 pin）——spec 1606 审计中危 #1 落地（spec 1609） | [spec 1609](docs/spec/1609-webhook-outbox-reentrantlock.md) |
 | 韧性治理 | 离群驱逐生产接线 + 分类感知 | spec 149 原语自 R11 前为未接线孤类（生产零调用）——advisor 全路径喂入（主/金丝雀/降级候选成败）+ 备模型候选驱逐过滤 + outlier.enabled 进程级装配（opt-in）；分类感知：failureCategories 默认 NETWORK/SERVER/TIMEOUT（AUTH/CONTENT 驱赶端点无意义——熔断同口径）（spec 1610） | [spec 1610](docs/spec/1610-outlier-ejection-wiring.md) |
+| 韧性治理 | 孤类普查 + 熔断旁路遥测接线 | 全仓普查「类存在、测试齐全、生产零调用」孤类 15 项（19 类）+ 疑似 6 项入档 spec（系统性流程风险显形）；本轮修复 CircuitCrashLoopDetector（spec 811）与 HalfOpenProbeStats（spec 836）：withTelemetry 注入 + 跳闸/半开恢复/探测成败喂点 + 装配恒挂（纯读数旁路）（spec 1611） | [spec 1611](docs/spec/1611-orphan-census-circuit-telemetry.md) |
+| 护栏治理 | guard 孤类装配面 | ToolRoleGuardHook（角色工具权限，K8s RBAC 式 fail-closed）与 InputFloodGuardHook（同输入泛洪防护）自 GuardModule.Builder 声明即注册——spec 141/167 两孤类救活（此前零装配路径）；未声明零注册——spec 1611 普查修复第二弹（spec 1612） | [spec 1612](docs/spec/1612-guard-orphan-assembly.md) |
+| 会话治理 | 工具目录漂移看门狗接线 | CatalogDriftHolder 进程级基线 + 会话构造节拍拍指纹——目录增删改即 WARN + buzhou.catalog.drifted 计数（MCP 差量刷新错配/装配漂移显形）；首拍建基线、包装层不入指纹——spec 201 孤类救活（spec 1613） | [spec 1613](docs/spec/1613-catalog-drift-wiring.md) |
+| 观测治理 | 指标新鲜度追踪接线 | metrics 装配链恒包 MetricFreshnessTracker（有界 512 名纯旁路）+ MetricFreshnessHolder 静态 audit——「某机制为何不再有数」从猜变查（序列静默=写路径死亡/装配丢失信号）——spec 802 孤类救活（spec 1614） | [spec 1614](docs/spec/1614-metrics-freshness-wiring.md) |
+| 观测治理 | 泄漏疑似聚合接线 | LeakSuspectHolder.compositeWith 把聚合器复合进检测器 listener 链（宿主 listener 与聚合器双收）——泄漏「同一处反复漏 vs 多处散漏」从日志流水变排行（LeakSuspectHolder.report() 读出）——spec 839 孤类救活（spec 1615） | [spec 1615](docs/spec/1615-leak-suspect-wiring.md) |
+| 工具治理 | 工具失败负缓存 | NegativeCachingToolCallback——同 key 失败短 TTL（默认 30s）记忆，窗内复读直接回错误文本不再真调（防模型重试风暴撞同一失败）；恢复窗口即 TTL、成功不缓存（与成功 memo 正交）、异常路径同缓存——DNS negative caching / NXDOMAIN 思想（spec 1616） | [spec 1616](docs/spec/1616-tool-negative-cache.md) |
+| 并发治理 | 梯度式自适应并发闸 | GradientAdaptiveLimiter——延迟梯度驱动动态上限（长窗慢 EMA 基线 / 短窗快 EMA 近期）：劣化乘性下调（过载前兆先于失败规避）、变快加性上调、容错带防抖、warmup 学习期；与失败驱动 AIMD（spec 145）正交——Netflix Gradient2 / Envoy adaptive_concurrency 思想（spec 1617） | [spec 1617](docs/spec/1617-gradient-adaptive-limiter.md) |
+| 预算治理 | Token 校准审计接线 | TokenBudgetHook.afterModel 同点对账——CharHeuristic 估算 prompt vs 模型回报 usage.promptTokens 成对入账（均值相对误差/偏高偏低占比/近窗 P95），CalibrationAuditHolder 读出——「预算按估算设、账单按真实来」的系统性偏差从感觉变数字——spec 819 孤类救活（spec 1618） | [spec 1618](docs/spec/1618-calibration-wiring.md) |
+| Spill 治理 | 写入字节率限速 | SpillWriteRateLimiter 令牌桶（bytes/s + burst 突发容忍）——溢出写盘高峰不再打满磁盘带宽（背压传导）；maxWait 软限速超时放行 + degraded 计数（限速器故障不放大成 spill 失败）——RocksDB rate limiter 思想（spec 1619） | [spec 1619](docs/spec/1619-spill-write-rate-limit.md) |
+| 会话治理 | 空闲监控全链接线 | IdleMonitorHolder 进程级（特征仓→监控器→直方）+ SessionFeaturesHook afterTurn 每 32 轮节拍 sweep——空闲超阈清单（翻转才通知）+ 时长分布入直方；纯观测旁路只判定不动作——spec 161/179/841 三孤类一次救活（spec 1620） | [spec 1620](docs/spec/1620-idle-monitor-wiring.md) |
+| 会话治理 | 会话隔离检疫装配 | 连续失败达阈值（可配 3 缺省）→ 隔离一个指数升级冷却（30s 起 10m 封顶），隔离期 beforeTurn block 可读理由（剩 Xs）；成功复位走公共 API（hook 面不谎装自动复位）——Erlang supervisor「let it crash + 退避」思想，opt-in 默认关——spec 143 双孤类救活（spec 1621） | [spec 1621](docs/spec/1621-quarantine-wiring.md) |
+| 韧性治理 | 影子读探针接线 | 主路成功后确定性采样（sha256(key)%100）对照首个备模型——agreed/diverged 双计数 + 分歧样本环（「备模型若被启用结果是否一致」的容量预案信心面）；旁路异常全吞、会话关闭竞态 REE 防护——Istio mirror 思想，spec 189 孤类救活（spec 1623） | [spec 1623](docs/spec/1623-shadow-probe-wiring.md) |
+| 护栏治理 | 危险工具 HITL 豁免征询 | GuardExemptionRegistry 首个消费者——危险工具授权检查后征询豁免（「这条告警我看过、豁免到 T1」ESLint suppressions 思想）：未过期即放行 + guard.exemption.applied 审计事件，过期/撤销/无豁免恢复确认流程；GuardModule.exemptions() 暴露 grant/revoke——spec 820 孤类救活（spec 1624） | [spec 1624](docs/spec/1624-dangerous-tool-exemption.md) |
+| 护栏治理 | 跨会话泄漏金丝雀接线 | SessionCanaryHook——每会话种植专属确定性令牌（sha256(sessionId|salt)），afterModel 扫描模型输出：他会话令牌出现即跨会话污染信号（guard.session.leak-detected 事件），自会话回显不算；opt-in leakCanary(salt)——thinkst canarytokens 思想，spec 528 孤类救活（spec 1625） | [spec 1625](docs/spec/1625-session-canary-wiring.md) |
 
 | 记忆治理 | Embedding 质量自查探针 | EmbeddingSelfCheck——合成句对（相似×2+无关对照×2）穿测 EmbeddingProvider：相似对余弦序逐对判定（免绝对阈值）+minMargin+orderHolds 回归哨兵+维度显形；换模型/供应商检索劣化从倒查变一行自查——OpenAI cookbook / sentence-transformers 思想（spec 1423） | [spec 1423](docs/spec/1423-embedding-selfcheck.md) |
 

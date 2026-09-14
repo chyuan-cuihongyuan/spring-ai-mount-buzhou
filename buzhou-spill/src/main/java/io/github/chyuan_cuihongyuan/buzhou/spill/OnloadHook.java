@@ -14,7 +14,10 @@ import java.util.Map;
 
 public class OnloadHook implements BuzhouHook {
 
-    private final FileSandbox sandbox;
+     /** Hook 序位（spec 1516 常量化）：溢写护栏(100)之后、记忆注入之前。 */
+    private static final int HOOK_ORDER = 200;
+
+   private final FileSandbox sandbox;
     private final Map<String, List<LongContentParamPair>> longContentParams;
     /** impl-761 / spec 1008：回读三计数（守恒：attempts == loaded + failed——命中率 = loaded/attempts）。 */
     private final java.util.concurrent.atomic.AtomicLong attempts =
@@ -31,7 +34,7 @@ public class OnloadHook implements BuzhouHook {
 
     @Override
     public int order() {
-        return 200;
+        return HOOK_ORDER;
     }
 
     @Override

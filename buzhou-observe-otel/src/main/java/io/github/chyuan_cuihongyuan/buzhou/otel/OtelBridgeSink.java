@@ -331,6 +331,7 @@ final class OtelBridgeSink implements PipelineSink {
         if (sessionTrace.size() >= maxSessionTraces && sessionTrace.size() > 0) {
             var iterator = sessionTrace.entrySet().iterator();
             if (iterator.hasNext()) {
+                iterator.next(); // T1824：remove() 前必须 next()，否则 IllegalStateException 被故障隔离吞掉=驱逐永不生效
                 iterator.remove();
             }
         }

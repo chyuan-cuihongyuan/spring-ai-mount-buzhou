@@ -23,6 +23,15 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [文档间残留矛盾三裁定的形状裁决](../tickets/T2287-doc-adjudication-shape.md) — perf 10ms/20ms = 目标-红线关系非矛盾；promptfoo star 统一时点注记；spec 09 追认 test 边豁免——design-incompleteness 清单经 M 系 20 轮全部闭环或裁定。
+- [spill 默认值单一事实源与六-6/六-9 裁定的形状裁决](../tickets/T2285-spill-defaults-shape.md) — 三常量落 SpillProperties（threshold 引用 SpillOffloadHook）三处引用收口；六-6 load 前两参 = SPI 扩展位注记保留；六-9 newSingleThreadScheduledExecutor = ScheduledThreadPoolExecutor(1) 等价（delay queue 无无界风险）不整改。
+- [spec 07 回写与序位常量化的形状裁决](../tickets/T2283-spec07-order-consts-shape.md) — spec 07 三处六→七切面；四处 order 魔法值常量化（同值零行为）；CounterAtomicitySpreadTest 经 N 会话承接修复（commit 30197389 引用 M 系 spec1513 记档——跨会话协作闭环确认）。
+- [降级存储契约对齐与机制计数口径的形状裁决](../tickets/T2281-store-contract-align-shape.md) — redis 版补 degrade 指标（jdbc impl-41 先例同款，六-1 契约漂移修复）；README 升十大机制（七-1 取「README 升」——韧性层已是生产纵深主力域）。
+- [SHA-256 裸异常迁移与死代码清扫的形状裁决](../tickets/T2279-sha256-exception-shape.md) — 全量重扫 11 处（清单后又长出 5 处同型）统一 BuzhouException(CONFIG_INVALID)（spec 50 §A 先例形态）；verifySignature 零调用删除（逻辑已迁 AuditChainVerifier）。
+- [中断与异常上下文卫生轮的形状裁决](../tickets/T2277-interrupt-context-hygiene-shape.md) — mcp shutdown 吞 InterruptedException 不恢复（五-4，R5 审计漏网：一把抓把中断包进去）收窄+恢复+break；DiskSpillStore 9 处裸 message 补上下文（五-8）；HEAD 既有 CounterAtomicitySpreadTest 失败（TokenBudgetHook NPE）记档留归属会话。
+- [配置全键表 config-reference 的形状裁决](../tickets/T2275-config-reference-shape.md) — 三段式生成（record 组件全表/fromYml 子键指针段/env 直读键）；camelCase≡kebab-case 说明；组件级中文注记声明为后续增量（诚实分档）。
+- [幂等工具瞬断重试自动装配通道的形状裁决](../tickets/T2273-transient-retry-shape.md) — 动工查重修正：RetryingToolCallback 已存在（spec 133/302），F1 残留=自动装配通道+瞬断白名单；IdempotentToolRetryHolder（幂等门：注解/白名单）+ RetryPolicy transientOnly 档（isTransient 白名单 cause 链三层，默认 false 既有语义不变）。
+- [ConfigMaps indexed 属性数字键归一的形状裁决](../tickets/T2271-indexed-coerce-shape.md) — properties/命令行/env-var 源的 key[i].f=v 被 Binder mapOf 绑成 Map 形态（{key={0={f=v}}}），fromYml 列表键静默失效；normalizeValue 数字键全集按数值序转 List（防字典序 10<2），混合键保持 Map，嵌套递归。
 - [design-incompleteness 小缺口清扫的形状裁决](../tickets/T2269-f7-f10-sweep-shape.md) — F7：canary.selected payload 补 sessionId（常量 Javadoc 自钉未兑现，null 省略条件包含）；F10：spec 07 resume 推演名回写指向 resumeWith；F 系查重入档：F1 瞬断重试/F9 config-reference 留候选池，F2 部分修 F5 已修。
 - [危险工具默认 HITL 自动带入桥的形状裁决](../tickets/T2267-dangerous-bridge-shape.md) — core 进程级 DangerousToolRegistry 桥（供给方 tools 灌注/消费方 guard 并入，双方只见 core 白名单不破）；guard autoconfig afterName 字符串引用保装配时序；三参默认形态并入 + yml 显式优先去重 + auto-dangerous-bridge=false 逃生；S2 硬偏差闭环。副产出发现：ConfigMaps.sub 对 properties 源 indexed 属性绑 Map 而非 List（guard dangerous-tools 在 .properties 源下静默失效的既有坑，候选池）。
 - [MCP 危险工具默认动词模式的形状裁决](../tickets/T2265-mcp-default-dangerous-shape.md) — BuzhouMcpProperties 缺省（null）→ 七动词前缀 glob 默认集（spec 14 §F 承诺，design-incompleteness S1 硬偏差）；显式空列表保留 = 关闭逃生门（yml [] 绑定非 null）；影响面收敛（dangerousToolNames 零执行面消费方）；S2（starter HITL 自动挂接）另轮。
@@ -34,7 +43,8 @@
 
 ## Not yet specified
 
-- R2–R50 逐轮开工时按缺口核查选题。
+- R17+ 候选池（design-incompleteness 剩余 + 本线副产出）：六-1 DegradingObservabilityStore 双份分叉（redis 版缺 degrade 指标）；五-2 @Bean 裸读 Environment 约 13 处（M 系 R13 装配沿 EvalPrune 先例也用了 getProperty——后续统一整改时一并收口）；五-6 魔法值（advisor order 四处 + spill 默认值散落）；四-5 spec 07「六切面」回写七切面；四-7 spec 04 回写 mcp 属性增量；七-1 README/CLAUDE 机制计数口径（9+韧性=10）；MCP 动态危险名单桥（连接后才知道工具名，静态灌注不适配——雾区）；CounterAtomicitySpreadTest HEAD 既有失败（TokenBudgetHook NPE request()=null——R21 预检轮复查归属）。
+- 规避：N 会话活跃于 resilience（LFU 采样驱逐/SPRT/锁迁移），选题避开其 effort-1600 台账已落主题。
 
 ## 轮次台账
 
@@ -50,6 +60,16 @@
 | 8 | MCP 危险工具默认动词模式（S1 硬偏差修复） | spec 14 §F 承诺落地（design-incompleteness 清单驱动选题） | T2265–T2266 | 1110 | 1507 | ✅ |
 | 9 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core 注册表桥 + afterName 装配编排（Spring Boot 官方解耦模式） | T2267–T2268 | 1111 | 1508 | ✅ |
 | 10 | design-incompleteness 小缺口清扫（F7 canary payload + F10 spec 回写） | 评审清单驱动选题 | T2269–T2270 | 1112 | 1509 | ✅ |
+| 11 | 周期预检轮：全仓 clean verify——三轮后全绿（①自造构建竞争 NoClassDefFound 非缺陷；②LaneLimitingToolCallbackWaitTest 时序 flake 57μs 越界就近处置：容差 1ms→50ms 常量化；③17 模块 BUILD SUCCESS 含 JaCoCo/enforcer/Spec 双门） | 周期 verify + flake 就近处置 | — | — | — | ✅ |
+| 12 | ConfigMaps indexed 属性数字键归一（properties 源列表键静默失效修复） | Spring Binder mapOf 弱点的通用 coerce（R9 副产出发现） | T2271–T2272 | 1113 | 1510 | ✅ |
+| 13 | 幂等工具瞬断重试自动装配通道（F1 落地：查重发现既有装饰器，补声明式装配+瞬断档） | spec 05 承诺 × AWS SDK 幂等重试纪律 | T2273–T2274 | 1114 | 1511 | ✅ |
+| 14 | 配置全键表 config-reference（F9 闭环：57 record/198 组件键 + fromYml + env 三段式） | spec 21 承诺债 | T2275–T2276 | 1115 | 1512 | ✅ |
+| 15 | 中断与异常上下文卫生轮（mcp shutdown 中断恢复 + DiskSpillStore 9 处上下文） | design-incompleteness 五-4/五-8 | T2277–T2278 | 1116 | 1513 | ✅ |
+| 16 | SHA-256 裸异常迁移 CONFIG_INVALID（11 处，较清单多 5）+ 审计死代码删除 | design-incompleteness 四-4/六-2 部分 | T2279–T2280 | 1117 | 1514 | ✅ |
+| 17 | 降级存储契约对齐（redis 补 degrade 指标）+ 机制计数口径统一（九大→十大） | design-incompleteness 六-1/七-1 | T2281–T2282 | 1118 | 1515 | ✅ |
+| 18 | spec 07 七切面回写 + 四处序位常量化（N 会话承接 CounterAtomicity 修复闭环确认） | design-incompleteness 四-5/五-6 部分 | T2283–T2284 | 1119 | 1516 | ✅ |
+| 19 | spill 默认值单一事实源（五-6 收口）+ 六-6/六-9 裁定入档 | design-incompleteness 五-6/六-6/六-9 | T2285–T2286 | 1120 | 1517 | ✅ |
+| 20 | 文档间残留矛盾三裁定（perf 口径/promptfoo star/test 边豁免）——design-incompleteness 可做项全档闭环 | design-incompleteness 七-2/七-3/四-8 | T2287–T2288 | 1121 | 1518 | ✅ |
 
 
 ## Out of scope

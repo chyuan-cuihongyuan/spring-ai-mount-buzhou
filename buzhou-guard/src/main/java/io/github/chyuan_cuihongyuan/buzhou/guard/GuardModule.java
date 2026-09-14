@@ -42,6 +42,8 @@ import java.util.Set;
 public final class GuardModule {
 
     private final List<BuzhouHook> hooks;
+    /** spec 1624 / T2399：豁免登记（危险工具 HITL 征询面；宿主经 exemptions() grant/revoke）。 */
+    private final GuardExemptionRegistry exemptions;
     private final GuardAuthApi authApi;
     private final AttachmentRenderer attachmentRenderer;
     private final FactStore factStore;
@@ -60,8 +62,11 @@ public final class GuardModule {
                 : new io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore(
                         new DefaultFactStore(builder.stores.sessionStateStore()), builder.factDecay);
         List<BuzhouHook> h = new ArrayList<>();
+        this.exemptions = new GuardExemptionRegistry();
         if (builder.enabled) {
-            h.add(new DangerousToolGuardHook(config, builder.stores.sessionStateStore()));
+            // spec 1624 / T2399：危险工具 HITL 豁免征询接线（registry 首个消费者）
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHook(
+                    config, builder.stores.sessionStateStore(), exemptions));
         }
         if (builder.canaryGuard) {
             h.add(builder.canaryToken == null
@@ -116,6 +121,24 @@ public final class GuardModule {
         if (!builder.factDefinitions.isEmpty()) {
             h.add(new FactCollectorHook(builder.factDefinitions, factStore));
         }
+        // spec 1612 / T2375：角色工具权限（spec 141 孤类救活——声明 permissions 即装配；
+        // fail-closed 语义见 ToolPermissions，默认角色缺省 "default"）
+        if (builder.toolPermissions != null) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.ToolRoleGuardHook(
+                    builder.toolPermissions,
+                    builder.toolRoleDefaultRole == null ? "default" : builder.toolRoleDefaultRole));
+        }
+        // spec 1612 / T2375：同输入泛洪防护（spec 167 孤类救活——声明即装配）
+        if (builder.inputFloodGuard) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook(
+                    builder.inputFloodConfig, java.time.Clock.systemUTC()));
+        }
+        // spec 1625 / T2401：跨会话泄漏金丝雀（opt-in salt 声明即装配——spec 528 接线）
+        if (builder.leakCanarySalt != null && !builder.leakCanarySalt.isEmpty()) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.leak.SessionCanaryHook(
+                    new io.github.chyuan_cuihongyuan.buzhou.guard.leak.SessionCanaryRegistry(
+                            builder.leakCanarySalt)));
+        }
         // impl-40 / spec 13 §T64：策略门（热加载引擎由装配/业务侧注入；默认拒语义见 PolicyGateHook）
         if (builder.policyEngine != null) {
             h.add(new PolicyGateHook(builder.policyEngine));
@@ -163,6 +186,11 @@ public final class GuardModule {
     /** spec 727：已挂 hook 列表（包内观测面——装配测试断言缝）。 */
     java.util.List<BuzhouHook> hooksView() {
         return hooks;
+    }
+
+    /** spec 1624 / T2399：豁免登记面（grant「这条告警我看过、豁免到 T1」/ revoke / snapshot）。 */
+    public GuardExemptionRegistry exemptions() {
+        return exemptions;
     }
 
     /** 事实 Attachment 渲染器（供 memory 注入视图构建方注入事实块）；无采集器时返回 null。 */
@@ -222,6 +250,49 @@ public final class GuardModule {
         public Builder factDecay(
                 io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy policy) {
             this.factDecay = policy;
+            return this;
+        }
+
+        /** spec 1612 / T2375：角色工具权限规则（null = 不装配——默认零行为）。 */
+        private io.github.chyuan_cuihongyuan.buzhou.guard.policy.ToolPermissions toolPermissions;
+        private String toolRoleDefaultRole;
+        /** spec 1612 / T2375：同输入泛洪防护（false = 不装配）。 */
+        private boolean inputFloodGuard;
+        /** spec 1625 / T2401：跨会话泄漏金丝雀（null = 不装配；salt 非空即启用）。 */
+        private String leakCanarySalt;
+        private io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook.Config inputFloodConfig;
+
+        /** spec 1612 / T2375：启用角色工具权限守卫（permissions 声明即装配，fail-closed）。 */
+        public Builder toolRoleGuard(
+                io.github.chyuan_cuihongyuan.buzhou.guard.policy.ToolPermissions permissions) {
+            return toolRoleGuard(permissions, "default");
+        }
+
+        /** spec 1612 / T2375：带默认角色的权限守卫（未匹配角色的会话按 defaultRole 判定）。 */
+        public Builder toolRoleGuard(
+                io.github.chyuan_cuihongyuan.buzhou.guard.policy.ToolPermissions permissions,
+                String defaultRole) {
+            this.toolPermissions = permissions;
+            this.toolRoleDefaultRole = defaultRole;
+            return this;
+        }
+
+        /** spec 1612 / T2375：启用同输入泛洪防护（默认阈值 Config.defaults()=60s 内 5 次）。 */
+        public Builder inputFloodGuard() {
+            return inputFloodGuard(null);
+        }
+
+        /** spec 1612 / T2375：带阈值的泛洪防护（config null = 默认）。 */
+        public Builder inputFloodGuard(
+                io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook.Config config) {
+            this.inputFloodGuard = true;
+            this.inputFloodConfig = config;
+            return this;
+        }
+
+        /** spec 1625 / T2401：启用跨会话泄漏金丝雀（salt 非空即装配——种植+输出扫描）。 */
+        public Builder leakCanary(String salt) {
+            this.leakCanarySalt = salt;
             return this;
         }
 

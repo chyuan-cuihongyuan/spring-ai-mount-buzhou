@@ -34,6 +34,10 @@ import java.util.concurrent.Executors;
  */
 public final class ResilienceModule {
 
+    /** spec 1611 / T2373：crash-loop 判定短窗（10 分钟内 3 次跳闸 = 循环）。 */
+    private static final int CIRCUIT_CRASH_LOOP_MIN_OPENS = 3;
+    private static final long CIRCUIT_CRASH_LOOP_WINDOW_MILLIS = 10 * 60 * 1000L;
+
     private ResilienceModule() {
     }
 
@@ -133,6 +137,12 @@ public final class ResilienceModule {
         // （此前限流器在 customize() 内建，N 会话 = N 倍限额）。
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
                 ? new ModelCircuitBreaker(properties.circuit(), stats, java.time.Clock.systemUTC(), circuitBackend)
+                        // spec 1611 / T2373：旁路遥测恒挂（纯读数、有界内存——702 journal 同款；
+                        // spec 811/836 的喂点自此落地，crash-loop 短窗=10min/3 次跳闸）
+                        .withTelemetry(
+                                new io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector(
+                                        CIRCUIT_CRASH_LOOP_MIN_OPENS, CIRCUIT_CRASH_LOOP_WINDOW_MILLIS),
+                                new io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.HalfOpenProbeStats())
                 : null;
         // spec 638 / T926：时间窗生效读面（0=count 窗——声明是否生效一读便知）
         if (stats != null) {
@@ -304,6 +314,16 @@ public final class ResilienceModule {
         }
     }
 
+    /** spec 1623 / T2397：影子探针构建（fallback 组采样率 0/null = null 不启用）。 */
+    private static io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe shadowProbeFor(
+            ResilienceProperties properties) {
+        if (properties.fallback() == null || properties.fallback().shadowProbePercent() <= 0) {
+            return null;
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe(
+                properties.fallback().shadowProbePercent());
+    }
+
     static final class ResilienceAssemblyCustomizer implements SessionAssemblyCustomizer {
         private final ResilienceProperties properties;
         private final ProviderErrorClassifier classifier;
@@ -373,7 +393,10 @@ public final class ResilienceModule {
                     // spec 64 §A / T279：延迟追踪经链携带（链未建/未开启 = null 零计时）
                     fallback == null ? null : fallback.latencyTracker())
                     // spec 1610 / T2371：离群驱逐喂入/过滤接线（null = 零行为）
-                    .withOutlier(outlier);
+                    .withOutlier(outlier)
+                    // spec 1623 / T2397：影子读探针（fallback.shadow-probe-percent > 0 才建）
+                    .withShadowProbe(
+                            shadowProbeFor(properties), deadlineExecutor);
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

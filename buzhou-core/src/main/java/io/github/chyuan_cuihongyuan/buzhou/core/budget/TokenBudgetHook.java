@@ -120,6 +120,17 @@ public class TokenBudgetHook implements BuzhouHook {
         String model = resolveModelName(ctx);
         long costMicroUsd = microUsd(model, prompt, completion);
 
+        // spec 1618 / T2387：校准对账（spec 819 孤类接线——估算器 vs 真值同点入账；
+        // 纯记账有界 128 对，不影响预算语义；request/prompt 缺席（测试替身链路）跳过）
+        if (prompt > 0 && ctx.request() != null && ctx.request().prompt() != null
+                && ctx.request().prompt().getInstructions() != null) {
+            int estimatedPrompt = new io.github.chyuan_cuihongyuan.buzhou.core.token
+                    .CharHeuristicTokenEstimator()
+                    .estimateMessages(ctx.request().prompt().getInstructions());
+            io.github.chyuan_cuihongyuan.buzhou.core.spi.CalibrationAuditHolder.audit()
+                    .record(estimatedPrompt, (int) prompt);
+        }
+
         long sessionPrompt;
         long sessionCompletion;
         long sessionCost;

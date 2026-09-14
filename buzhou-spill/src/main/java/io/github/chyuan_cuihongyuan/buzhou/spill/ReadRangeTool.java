@@ -24,6 +24,38 @@ public class ReadRangeTool implements ToolCallback {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    // —— spec 1062 / impl 814：回读判定读面（S3 TransferManager 分页回读统计思想；
+    // 静态面理由同 R46–R61 先例）。守恒：calls = reads + truncatedReads + 三拒绝桶之和。
+    static final java.util.concurrent.atomic.AtomicLong CALLS = new java.util.concurrent.atomic.AtomicLong();
+    static final java.util.concurrent.atomic.AtomicLong READS = new java.util.concurrent.atomic.AtomicLong();
+    static final java.util.concurrent.atomic.AtomicLong TRUNCATED_READS = new java.util.concurrent.atomic.AtomicLong();
+    static final java.util.concurrent.atomic.AtomicLong SKILL_READS = new java.util.concurrent.atomic.AtomicLong();
+    static final java.util.concurrent.atomic.AtomicLong PARSE_REJECTS = new java.util.concurrent.atomic.AtomicLong();
+    static final java.util.concurrent.atomic.AtomicLong SKILL_REJECTS = new java.util.concurrent.atomic.AtomicLong();
+    static final java.util.concurrent.atomic.AtomicLong FAILURES = new java.util.concurrent.atomic.AtomicLong();
+
+    /** 回读判定分布快照（spec 1062）。 */
+    public record ReadRangeStats(long calls, long reads, long truncatedReads, long skillReads,
+                                 long parseRejects, long skillRejects, long failures) {
+    }
+
+    /** 只读快照（守恒 calls = 六结局桶之和）。 */
+    public static ReadRangeStats stats() {
+        return new ReadRangeStats(CALLS.get(), READS.get(), TRUNCATED_READS.get(),
+                SKILL_READS.get(), PARSE_REJECTS.get(), SKILL_REJECTS.get(), FAILURES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        CALLS.set(0);
+        READS.set(0);
+        TRUNCATED_READS.set(0);
+        SKILL_READS.set(0);
+        PARSE_REJECTS.set(0);
+        SKILL_REJECTS.set(0);
+        FAILURES.set(0);
+    }
+
     private final SpillService spillService;
     private final SkillResourceResolver skillResourceResolver;
     /** impl-16 / T44：句柄引用计数（成功回读刷新 TTL；null = 不启用）。 */
@@ -70,13 +102,20 @@ public class ReadRangeTool implements ToolCallback {
 
     @Override
     public String call(String toolInput, ToolContext toolContext) {
+        CALLS.incrementAndGet();
         try {
             JsonNode args = MAPPER.readTree(toolInput);
             String path = args.path("path").asText();
             String mode = args.path("mode").asText("bytes");
             if (path != null && path.startsWith(SKILL_SCHEME)) {
-                return readSkillResource(path, mode, args,
+                String out = readSkillResource(path, mode, args,
                         HarnessToolCallingManager.sessionIdOf(toolContext));
+                if (out.contains("仅支持 bytes 模式") || out.contains("未接线")) {
+                    SKILL_REJECTS.incrementAndGet();
+                } else {
+                    SKILL_READS.incrementAndGet();
+                }
+                return out;
             }
             RangeReadRequest request = switch (mode) {
                 case "json" -> RangeReadRequest.json(args.path("jsonPath").asText("$"));
@@ -96,10 +135,19 @@ public class ReadRangeTool implements ToolCallback {
             if (handleLifecycle != null) {
                 handleLifecycle.markRead(path);
             }
+            if (result.truncated()) {
+                TRUNCATED_READS.incrementAndGet();
+            } else {
+                READS.incrementAndGet();
+            }
             return result.truncated()
                     ? result.content() + "\n[已截断，可用 offset/cursor 续读]"
                     : result.content();
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            PARSE_REJECTS.incrementAndGet();
+            return "read_range 调用失败：" + e.getMessage();
         } catch (Exception e) {
+            FAILURES.incrementAndGet();
             return "read_range 调用失败：" + e.getMessage();
         }
     }

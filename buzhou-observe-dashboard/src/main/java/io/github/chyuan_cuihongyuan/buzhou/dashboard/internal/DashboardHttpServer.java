@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Dashboard 内嵌 HTTP 服务器（spec 03 推演 #12 首发形态：JDK 内置 httpserver，
@@ -50,6 +51,42 @@ public class DashboardHttpServer {
     private static final int MAX_BODY_BYTES = 1024 * 1024;
     /** impl-48：分页 size 上界（下界 1）。 */
     private static final int MAX_PAGE_SIZE = 200;
+
+    // —— spec 1061 / impl 813：HTTP 状态分布读面（nginx status zone 思想；类属 internal
+    // 包无公共 API 兼容负担）。守恒：requests = ok + 六结局桶之和（每请求恰落一桶）。
+    private static final AtomicLong REQUESTS = new AtomicLong();
+    private static final AtomicLong OK = new AtomicLong();
+    private static final AtomicLong AUTH_REJECTS = new AtomicLong();
+    private static final AtomicLong BAD_REQUESTS = new AtomicLong();
+    private static final AtomicLong NOT_FOUNDS = new AtomicLong();
+    private static final AtomicLong TOO_LARGES = new AtomicLong();
+    private static final AtomicLong UNIMPLEMENTED = new AtomicLong();
+    private static final AtomicLong SERVER_ERRORS = new AtomicLong();
+
+    /** Dashboard HTTP 状态分布快照（spec 1061）。 */
+    public record DashboardHttpStats(long requests, long ok, long authRejects,
+                                     long badRequests, long notFounds, long tooLarges,
+                                     long unimplemented, long serverErrors) {
+    }
+
+    /** 只读快照（守恒 requests = ok + 六结局桶之和）。 */
+    public static DashboardHttpStats stats() {
+        return new DashboardHttpStats(REQUESTS.get(), OK.get(), AUTH_REJECTS.get(),
+                BAD_REQUESTS.get(), NOT_FOUNDS.get(), TOO_LARGES.get(),
+                UNIMPLEMENTED.get(), SERVER_ERRORS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        REQUESTS.set(0);
+        OK.set(0);
+        AUTH_REJECTS.set(0);
+        BAD_REQUESTS.set(0);
+        NOT_FOUNDS.set(0);
+        TOO_LARGES.set(0);
+        UNIMPLEMENTED.set(0);
+        SERVER_ERRORS.set(0);
+    }
 
     private final DashboardQueryService queries;
     private final SkillAdminPort skillAdmin; // nullable
@@ -131,29 +168,38 @@ public class DashboardHttpServer {
     // ---- 路由 ----
 
     private void route(HttpExchange exchange) throws IOException {
+        REQUESTS.incrementAndGet();
         try {
             if (!authorized(exchange)) {
                 // impl-48：401 不带细节（不泄露「为何拒绝」给未认证客户端）
+                AUTH_REJECTS.incrementAndGet();
                 writeJson(exchange, 401, Map.of("error", "unauthorized"));
                 return;
             }
             dispatch(exchange);
+            OK.incrementAndGet();
         } catch (BodyTooLargeException e) {
+            TOO_LARGES.incrementAndGet();
             writeJson(exchange, 413, Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             LOGGER.log(System.Logger.Level.WARNING,
                     "dashboard 400：" + exchange.getRequestURI() + "：" + e.getMessage());
+            BAD_REQUESTS.incrementAndGet();
             writeJson(exchange, 400, Map.of("error", e.getMessage()));
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            BAD_REQUESTS.incrementAndGet();
             writeJson(exchange, 400, Map.of("error", "请求体不是合法 JSON"));
         } catch (IllegalStateException e) {
+            UNIMPLEMENTED.incrementAndGet();
             writeJson(exchange, 501, Map.of("error", e.getMessage()));
         } catch (NotFoundException e) {
+            NOT_FOUNDS.incrementAndGet();
             writeJson(exchange, 404, Map.of("error", e.getMessage()));
         } catch (Exception e) {
             // impl-48：500 不回显内部异常细节（信息泄露），完整栈进服务端日志
             LOGGER.log(System.Logger.Level.ERROR,
                     "dashboard 内部错误：" + exchange.getRequestMethod() + " " + exchange.getRequestURI(), e);
+            SERVER_ERRORS.incrementAndGet();
             writeJson(exchange, 500, Map.of("error", "internal_error"));
         } finally {
             exchange.close();

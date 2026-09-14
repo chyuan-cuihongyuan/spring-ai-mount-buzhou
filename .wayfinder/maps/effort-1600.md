@@ -52,6 +52,51 @@
 - [R11 形状：离群驱逐生产接线+分类感知](../tickets/T2371-r11-outlier-wire-shape.md) — 重大发现：spec 149 建的 ModelOutlierEjection 是未接线孤类（recordError/filter 生产路径零调用=机制等于关闭）；本轮接线：advisor 全路径喂入（主/金丝雀/降级候选的成功与终态失败）+ 备模型候选过滤 + 进程级装配（outlier.enabled opt-in）；分类感知（failureCategories 默认 NETWORK/SERVER/TIMEOUT——AUTH/CONTENT 驱赶端点无意义，熔断 failure-categories 同口径）
 - [R11 验收](../tickets/T2372-r11-outlier-wire-verify.md) — 分类过滤四断言（默认集/自定义集/大小写/成功复位）+ 装配转换 + resilience 377 用例零回归
 
+- [R12 形状：孤类普查+熔断遥测接线](../tickets/T2373-r12-census-shape.md) — R11 模式推广：全仓普查确认孤类 15 项（19 类）+疑似 6 项入档 spec 1611；本轮修复 resilience 域两项（CircuitCrashLoopDetector/ HalfOpenProbeStats——withTelemetry 注入 + 跳闸/恢复/半开探测喂点 + 装配恒挂）
+- [R12 验收](../tickets/T2374-r12-census-verify.md) — 遥测接线三断言（crash-loop 闩锁语义/半开探测成败计数/未注入零行为）+ resilience 380 用例零回归
+
+- [R13 形状：guard 孤类装配面](../tickets/T2375-r13-guard-orphans-shape.md) — spec 1611 孤类修复第二弹：ToolRoleGuardHook（141 角色权限）/InputFloodGuardHook（167 泛洪防护）自 Builder 声明即注册（此前 GuardModule 无装配路径），默认未声明零注册
+- [R13 验收](../tickets/T2376-r13-guard-orphans-verify.md) — 装配三断言（permissions 声明注册/泛洪配置注册/默认双双零注册）+ guard 334 用例零回归
+
+- [R14 形状：目录漂移看门狗接线](../tickets/T2377-r14-drift-shape.md) — spec 201 孤类修复第三弹：CatalogDriftHolder 进程级基线（RetryBudgetHolder 模式）+ HarnessAssembler 会话构造节拍拍指纹（首拍建基线，变化 WARN+计数；包装层不改指纹——只捕目录语义变化）
+- [R14 验收](../tickets/T2378-r14-drift-verify.md) — 三会话序列集成断言（建基线零事件/目录变化一事件含增删明细/稳定无事件）+ Holder 直喂面
+
+- [R15 形状：指标新鲜度接线](../tickets/T2379-r15-freshness-shape.md) — spec 802 孤类修复第四弹：metrics 装配链恒包 MetricFreshnessTracker（有界 512 名纯旁路）+ MetricFreshnessHolder 静态 audit 面
+- [R15 验收](../tickets/T2380-r15-freshness-verify.md) — 装饰写入 touch + audit 报陈旧（active/dead 分离年龄断言）+ 未装配 empty + 既有 6 用例零回归
+
+- [R16 形状：泄漏聚合接线](../tickets/T2381-r16-leakagg-shape.md) — spec 839 孤类修复第五弹：LeakSuspectHolder.compositeWith 把聚合器复合进检测器 listener 链（宿主 listener 与聚合器都收），装配处一行替换
+- [R16 验收](../tickets/T2382-r16-leakagg-verify.md) — 复合双收断言（host 3 次 + 聚合排行 count/maxAge）+ null 宿主仅聚合器 + 既有 4 用例零回归
+
+- [R17 形状：工具失败负缓存](../tickets/T2383-r17-negcache-shape.md) — DNS negative caching / NXDOMAIN 短 TTL 思想：同 key（工具名+argsHash）失败短 TTL 记忆（默认 30s——恢复窗口即 TTL，短窗纪律），窗内复读直接回错误文本不再真调；成功不缓存（与 spec 183 成功 memo 正交）；异常路径同缓存；测试暴露语义缺陷（成功清除机制在 TTL 短路下永远不可达）后删简化为纯 DNS 语义
+- [R17 验收](../tickets/T2384-r17-negcache-verify.md) — 四断言（失败缓存窗内拦截真调一次/过期放行/异常同缓存/不同参数独立 key）
+
+- [R18 形状：梯度式自适应并发](../tickets/T2385-r18-gradient-shape.md) — Netflix Gradient2 / Envoy adaptive_concurrency 思想：延迟梯度驱动（baseline/recent 双 EMA）——劣化乘性下调（失败前规避）、变快加性上调、容错带防抖、warmup 学习期；与 spec 145 失败驱动 AIMD 正交
+- [R18 验收](../tickets/T2386-r18-gradient-verify.md) — 七断言（劣化下调零失败/变快加性/容差带不动/warmup 只学/上限联动/封顶/配置校验）
+
+- [R19 形状：校准审计接线](../tickets/T2387-r19-calib-shape.md) — spec 819 孤类修复第六弹：TokenBudgetHook.afterModel 同点对账（CharHeuristic 估算 prompt vs usage.promptTokens）+ CalibrationAuditHolder 读出面——「预算按估算设、账单按真实来」的偏差从感觉变数字
+- [R19 验收](../tickets/T2388-r19-calib-verify.md) — Holder 读数两断言 + 既有预算/校准 12 用例零回归
+
+- [R20 形状：spill 写速率限速](../tickets/T2389-r20-ratelimit-shape.md) — RocksDB rate limiter 思想：令牌桶节流（bytes/s + burst 突发容忍 + maxWait 软限速超时放行 degraded 计数——限速器故障不放大成 spill 失败）；ReentrantLock+Condition（虚拟线程 unmount）；opt-in null=关
+- [R20 验收](../tickets/T2390-r20-ratelimit-verify.md) — 五断言（burst 吸收/超速节流/超时放行/关闭零开销/集成写不破）+ spill 180 用例
+
+- [R21 形状：空闲监控全链接线](../tickets/T2391-r21-idle-shape.md) — spec 179/841 双孤类+喂数面 SessionFeaturesHook（spec 161，本身也未装配）三件一次接线：IdleMonitorHolder 进程级（store/monitor/histogram）+ SessionFeaturesHook afterTurn 每 32 轮节拍 sweep + 装配 bean 默认开（纯记账旁路）
+- [R21 验收](../tickets/T2392-r21-idle-verify.md) — 全链三断言（sweep 判空闲+翻转通知+直方入账/Holder 便捷面/hook 喂数）+ 既有 12 用例零回归
+
+- [R22 形状：会话检疫装配](../tickets/T2393-r22-quarantine-shape.md) — spec 143 双孤类（SessionQuarantine+Hook）接线：opt-in buzhou.quarantine.enabled（默认关——检疫 block 轮次行为面大），阈值/退避可配（3/30s/10m 缺省），成功复位留公共 API（hook 面不谎装——原设计诚实边界）
+- [R22 验收](../tickets/T2394-r22-quarantine-verify.md) — hook 行为两断言（三连败隔离 block + 冷却过放行 / 健康会话零状态）+ 既有 6 用例零回归
+
+- [R23 形状：对账 NPE 修复](../tickets/T2395-r23-npe-shape.md) — R19 引入的 request()=null NPE（M 会话 R15 记档归属本会话）：对账前置三重 null 防御（request/prompt/instructions 缺席跳过——测试替身链路）
+- [R23 验收](../tickets/T2396-r23-npe-verify.md) — CounterAtomicitySpreadTest 恢复绿 + 校准/预算 7 用例零回归
+
+- [R24 形状：影子探针接线](../tickets/T2397-r24-shadow-shape.md) — spec 189 孤类接线：主路成功后确定性采样对照首个备模型（Istio mirror 思想——「备模型若被启用结果是否一致」容量预案信心面）；deadlineExecutor submit 即忘 + REE 关闭竞态防护；fallback.shadow-probe-percent（0=关默认）
+- [R24 验收](../tickets/T2398-r24-shadow-verify.md) — 四断言（一致/分歧双计数+分歧样本环、确定性采样、零率零执行、影子故障计 error 不抛）+ resilience 384 用例
+
+- [R25 形状：HITL 豁免征询](../tickets/T2399-r25-exempt-shape.md) — GuardExemptionRegistry（spec 820）首个消费者：危险工具 hook 在授权检查后征询（mechanism=dangerous-tool、subject=工具名）——未过期豁免放行+审计事件，过期/撤销/无豁免恢复确认流程；GuardModule.exemptions() 暴露 grant/revoke 面
+- [R25 验收](../tickets/T2400-r25-exempt-verify.md) — 四断言（有效豁免放行/无与过期仍 block/撤销恢复 block/模块暴露 registry）+ guard 343 用例
+
+- [R26 形状：泄漏金丝雀接线](../tickets/T2401-r26-canary-shape.md) — spec 528 孤类接线：SessionCanaryHook（beforeTurn 种植确定性令牌 + afterModel 输出扫描——他会话令牌即泄漏事件）；令牌注入面留宿主（honeytoken 需放进数据才可触发——诚实边界随原注）；LayeredPolicy（1003）裁决纯函数工具豁免不清亡
+- [R26 验收](../tickets/T2402-r26-canary-verify.md) — 两断言（他会话令牌→泄漏事件+自会话回显不算/种植确定性）+ registry 既有 4 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -76,3 +121,18 @@
 | R9 | #1608 | DiskSpillStore 锁迁移（spec 1606 排队项） | T2367–T2368 | 1161 | 1608 | done |
 | R10 | #1609 | WebhookOutbox 锁迁移（spec 1606 中危 #1：dispatcher 虚拟线程放大） | T2369–T2370 | 1162 | 1609 | done |
 | R11 | #1610 | 离群驱逐生产接线 + 分类感知（spec 149 孤类救活） | T2371–T2372 | 1163 | 1610 | done |
+| R12 | #1611 | 孤类普查（15 项入档）+ 熔断遥测接线（spec 811/836 喂点落地） | T2373–T2374 | 1164 | 1611 | done |
+| R13 | #1612 | guard 孤类装配面（spec 141/167 两 hook 救活） | T2375–T2376 | 1165 | 1612 | done |
+| R14 | #1613 | 工具目录漂移看门狗接线（spec 201 孤类救活） | T2377–T2378 | 1166 | 1613 | done |
+| R15 | #1614 | 指标新鲜度追踪接线（spec 802 孤类救活） | T2379–T2380 | 1167 | 1614 | done |
+| R16 | #1615 | 泄漏疑似聚合接线（spec 839 孤类救活） | T2381–T2382 | 1168 | 1615 | done |
+| R17 | #1616 | 工具失败负缓存（DNS negative caching 思想） | T2383–T2384 | 1169 | 1616 | done |
+| R18 | #1617 | 梯度式自适应并发闸（Netflix Gradient2 思想） | T2385–T2386 | 1170 | 1617 | done |
+| R19 | #1618 | Token 校准审计接线（spec 819 孤类救活） | T2387–T2388 | 1171 | 1618 | done |
+| R20 | #1619 | spill 写速率限速（RocksDB rate limiter 思想） | T2389–T2390 | 1172 | 1619 | done |
+| R21 | #1620 | 空闲监控全链接线（spec 161/179/841 三孤类救活） | T2391–T2392 | 1173 | 1620 | done |
+| R22 | #1621 | 会话隔离检疫装配（spec 143 双孤类救活） | T2393–T2394 | 1174 | 1621 | done |
+| R23 | #1622 | R19 对账 NPE 修复（跨会话记档承接） | T2395–T2396 | 1175 | 1622 | done |
+| R24 | #1623 | 影子读探针接线（spec 189 孤类救活，Istio mirror 思想） | T2397–T2398 | 1176 | 1623 | done |
+| R25 | #1624 | 危险工具 HITL 豁免征询（spec 820 孤类首个消费者） | T2399–T2400 | 1177 | 1624 | done |
+| R26 | #1625 | 跨会话泄漏金丝雀接线（spec 528 孤类救活） | T2401–T2402 | 1178 | 1625 | done |

@@ -84,6 +84,10 @@ public class ResilienceAdvisor implements BaseAdvisor {
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain fallback;
     /** spec 1610 / T2371：离群驱逐（null = 不启用——默认零行为；opt-in 装配）。 */
     private volatile io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection outlier;
+    /** spec 1623 / T2397：影子读探针（null = 不启用——采样率 0 关；spec 189 孤类接线）。 */
+    private volatile io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe shadowProbe;
+    /** spec 1623：影子执行器（null = 不探测；submit 即忘）。 */
+    private volatile java.util.concurrent.ExecutorService shadowExecutor;
     /** shadow 探测（spec 49 §A / T176）：null = 未启用。 */
     private final io.github.chyuan_cuihongyuan.buzhou.resilience.shadow.ShadowTrafficController shadow;
     /** 候选级限流闸（spec 49 §B / T177）：null = 未配置（候选调用不限流，既有行为）。 */
@@ -184,6 +188,51 @@ public class ResilienceAdvisor implements BaseAdvisor {
         return this;
     }
 
+    /** spec 1623 / T2397：注入影子探针（链式；null/executor null = 不启用）。 */
+    public ResilienceAdvisor withShadowProbe(
+            io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe probe,
+            java.util.concurrent.ExecutorService executor) {
+        this.shadowProbe = probe;
+        this.shadowExecutor = executor;
+        return this;
+    }
+
+    /**
+     * spec 1623 / T2397：主路成功后采样对照首个备模型（Istio mirror 思想——
+     * 「备模型若被启用结果是否一致」的容量预案信心面；确定性采样同 key 稳定；
+     * 旁路异常全吞不影响主路）。
+     */
+    private void shadowMirrorIfSampled(ChatClientRequest request, ChatClientResponse primary) {
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe probe = shadowProbe;
+        java.util.concurrent.ExecutorService executor = shadowExecutor;
+        if (probe == null || executor == null || fallback == null || fallback.isEmpty()) {
+            return;
+        }
+        String key = "mirror:" + modelName;
+        if (!probe.sampled(key)) {
+            return;
+        }
+        java.util.List<io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel> candidates =
+                effectiveFallbackModels();
+        if (candidates.isEmpty() || candidates.get(0).name().equals(modelName)) {
+            return;
+        }
+        io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.NamedFallbackModel mirror = candidates.get(0);
+        String primaryText = primary.chatResponse() != null && primary.chatResponse().getResult() != null
+                && primary.chatResponse().getResult().getOutput() != null
+                && primary.chatResponse().getResult().getOutput().getText() != null
+                ? primary.chatResponse().getResult().getOutput().getText() : "";
+        final ChatClientRequest req = request;
+        try {
+            probe.probe(key, primaryText,
+                    () -> timedModelCall(mirror.name(), mirror.model(), req)
+                            .chatResponse().getResult().getOutput().getText(),
+                    executor);
+        } catch (java.util.concurrent.RejectedExecutionException shutdownRace) {
+            // 会话关闭竞态——影子本就是即忘旁路
+        }
+    }
+
     /** spec 1610：喂入失败（分类感知——驱动集外不计）。 */
     private void outlierError(String name, String category) {
         io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ModelOutlierEjection e = outlier;
@@ -266,6 +315,7 @@ public class ResilienceAdvisor implements BaseAdvisor {
                 shadow.submit(request.prompt(), modelName,
                         (System.nanoTime() - startNs) / 1_000_000, emitter);
             }
+            shadowMirrorIfSampled(request, response); // spec 1623：备模型影子对照（采样旁路）
             return response;
         } catch (ModelCallTimeoutException e) {
             if (circuit != null) {

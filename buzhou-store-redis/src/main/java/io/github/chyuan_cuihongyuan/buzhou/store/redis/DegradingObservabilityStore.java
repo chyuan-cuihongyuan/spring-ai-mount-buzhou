@@ -109,6 +109,10 @@ public class DegradingObservabilityStore implements ObservabilityStore {
             return write.get();
         } catch (RuntimeException e) {
             long count = degradedWrites.incrementAndGet();
+            // spec 1515：存储写失败可见性（policy tag = 采取的策略）——与 jdbc 版对齐
+            // （design-incompleteness 六-1：同名降级策略两库行为不一致的契约漂移修复）
+            io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder.metrics()
+                    .counter("buzhou.store.write.failures", "policy", "degrade");
             LOG.warn("观测类写降级继续(sessionId={}, operation={}, degradedWrites={}, 原因={})",
                     sessionId, operation, count, e.toString(), e);
             return null;

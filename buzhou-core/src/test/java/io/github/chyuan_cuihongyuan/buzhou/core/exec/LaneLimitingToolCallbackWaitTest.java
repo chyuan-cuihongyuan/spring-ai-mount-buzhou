@@ -15,6 +15,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class LaneLimitingToolCallbackWaitTest {
 
+    /** 内部/外层计时差的容差（异常构造 + 调度延迟；500ms 场景的 10%）。 */
+    private static final long WAIT_TOLERANCE_NANOS = 50_000_000L;
+
     private static LaneLimitingToolCallback callback(ToolLaneRegistry registry,
             String name, int permits) {
         return LaneLimitingToolCallback.wrap(
@@ -63,7 +66,10 @@ class LaneLimitingToolCallbackWaitTest {
 
         LaneLimitingToolCallback.WaitStats stats = limited.waitStats();
         assertThat(stats.timeouts()).isEqualTo(1);
-        assertThat(stats.maxWaitNanos()).isGreaterThanOrEqualTo(blocked - 1_000_000); // 容差 1ms
+        // spec 1510 预检轮就近处置：内部计时（tryAcquire→超时）与外层 blocked 的差 =
+        // 异常构造/传播 + 调度延迟，高负载下可超 1ms（R11 全仓 verify 实证 flake
+        // 57μs 越界）——容差放宽 50ms（500ms 场景的 10%，断言语义不变）
+        assertThat(stats.maxWaitNanos()).isGreaterThanOrEqualTo(blocked - WAIT_TOLERANCE_NANOS);
         assertThat(stats.waited()).isEqualTo(1);
         registry.lane("db", 1).release();
     }

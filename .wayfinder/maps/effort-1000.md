@@ -19,6 +19,13 @@
 
 ## Decisions so far
 
+- [Deno 沙箱探测读面的形态裁决](../tickets/T1587-denoprobe-stats-shape.md) — DenoSandbox 静态五计数（availableCalls/probeCacheHits/probes/probeSuccesses/probeUnavailables）+ 嵌套 DenoProbeStats + stats()/resetForTest()；双守恒 availableCalls = 缓存命中 + 重探、probes = 成功 + 不可用；probeTtl 误配 0（每调用重探）量化可见（Envoy health check statistics）。
+- [完成轮检测器读面的形态裁决](../tickets/T1585-completedturn-stats-shape.md) — DefaultCompletedTurnDetector 静态三计数（detectCalls/spansDetected/toolCallTurnsSeen）+ 嵌套 CompletedTurnStats + stats()/resetForTest()；弱校验口径（检出率 = 分子/分母，同轮可重复计分母）；悬挂轮全量时检出 0 即压缩管线失能信号（OTel span 完成判定）。
+- [读侧 Spotlighting 包裹判定读面的形态裁决](../tickets/T1583-spotlight-stats-shape.md) — SpotlightHook 静态五计数（invocations/wrapped/alreadyWrappedSkips/noticeSkips/errorSkips）+ 嵌套 SpotlightStats + stats()/resetForTest()；守恒 invocations = wrapped + 三跳过桶；包裹覆盖率即注入面收敛度信号（OWASP LLM01 spotlighting 采用率）。
+- [双时序事实台账操作读面的形态裁决](../tickets/T1581-factledger-stats-shape.md) — BiTemporalFactLedger 静态四计数（supersededWrites/historyLookups/validAtLookups/corruptRecordLoads）+ 嵌套 FactLedgerStats + stats()/resetForTest()；写/读两类操作独立计数不设人为守恒（口径诚实）；损坏段装载蒸发显形（bitemporal query/mutation 对账）。
+- [read_range 回读判定读面的形态裁决](../tickets/T1579-readrange-stats-shape.md) — ReadRangeTool 静态七计数（calls/reads/truncatedReads/skillReads/parseRejects/skillRejects/failures）+ 嵌套 ReadRangeStats + stats()/resetForTest()；守恒 calls = 六结局桶；与 store 层 ReadAuditTrail 审计流水不同轴共存（S3 TransferManager 分页回读统计）。
+- [Dashboard HTTP 状态分布读面的形态裁决](../tickets/T1577-dashhttp-stats-shape.md) — DashboardHttpServer（internal 包无公共 API 负担）静态八计数（requests/ok/auth/bad/notFound/tooLarge/unimplemented/serverErrors）+ 嵌套 DashboardHttpStats + stats()/resetForTest()；守恒 requests = ok + 六结局桶；400 两源合桶；行为逐位不变（nginx status zone）。
+- [R60 周期预检轮的形状裁决](../tickets/T1575-r60-audit-shape.md) — R51–R59 对账零缺陷（七域读面布局盘点）+ API 快照跨会话欠账就近补账（门 regenerate 指引流程照走，`-am` 解析路径陷阱入档）；复跑 BUILD SUCCESS 验收。
 - [compact_now 手动压缩判定读面的形态裁决](../tickets/T1573-compactnow-stats-shape.md) — CompactNowTool 静态五计数（calls/successes/skippeds/failures/unboundRejects）+ 嵌套 CompactNowStats + stats()/resetForTest()；守恒 calls = 四结局桶；与 R53 evict_handle 同谱系（模型主动维护行为采用率，Anthropic /compact）。
 - [MCP 工具集轮询提供器读面的形态裁决](../tickets/T1571-toolsetpoll-stats-shape.md) — DbToolSetProvider 静态四计数（polls/changesDetected/unchangedPolls/pollFailures）+ 嵌套 ToolSetPollStats + stats()/resetForTest()；守恒 polls = 三桶和每轮恰落一桶；热更新失效三因（轮询失败/未检出/未轮到）可对账（etcd watch statistics）。
 - [skill_search 搜索判定读面的形态裁决](../tickets/T1569-skillsearch-stats-shape.md) — SkillSearchTool 静态五计数（calls/hits/misses/parseRejects/blankQueryRejects）+ 嵌套 SkillSearchStats + stats()/resetForTest()；守恒 calls = 四桶和；与 spec 116 micrometer 遥测互补（后端面 vs 进程内直读），parse/blank 两路径原遥测缺口一并补齐（Algolia zero-result-rate）。
@@ -136,7 +143,14 @@
 | 57 | skill_search 搜索判定读面（hits/misses + 两拒绝桶守恒） | Algolia zero-result-rate | T1569–T1570 | 809 | 1057 | ✅ |
 | 58 | MCP 工具集轮询提供器读面（polls 三桶守恒） | etcd watch statistics | T1571–T1572 | 810 | 1058 | ✅ |
 | 59 | compact_now 手动压缩判定读面（successes/skippeds/failures/unbound 四桶守恒） | Anthropic /compact 采用率 | T1573–T1574 | 811 | 1059 | ✅ |
-| 60 | （开工时按缺口核查选题；**R60 周期预检轮**） | — | T1575–T1576 | 812 | 1060 |  |
+| 60 | 周期预检轮：R51–R59 对账全绿 + API 快照跨会话欠账补账 + 复跑 verify BUILD SUCCESS | 门自带 regenerate 指引就近处置 | T1575–T1576 | 812 | 1060 | ✅ |
+| 61 | Dashboard HTTP 状态分布读面（ok + 六结局桶守恒） | nginx status zone | T1577–T1578 | 813 | 1061 | ✅ |
+| 62 | read_range 回读判定读面（reads/truncated/skill 三组七桶守恒） | S3 TransferManager 分页回读统计 | T1579–T1580 | 814 | 1062 | ✅ |
+| 63 | 双时序事实台账操作读面（写入/两类查询/损坏蒸发四计数） | bitemporal query/mutation 对账 | T1581–T1582 | 815 | 1063 | ✅ |
+| 64 | 读侧 Spotlighting 包裹判定读面（wrapped + 三跳过桶守恒） | OWASP LLM01 spotlighting 采用率 | T1583–T1584 | 816 | 1064 | ✅ |
+| 65 | 完成轮检测器读面（检出率分子/分母显形） | OTel span 完成判定空结果率 | T1585–T1586 | 817 | 1065 | ✅ |
+| 66 | Deno 沙箱探测读面（缓存命中/重探/成败双守恒） | Envoy health check statistics | T1587–T1588 | 818 | 1066 | ✅ |
+| 67 | （开工时按缺口核查选题） | — | T1589–T1590 | 819 | 1067 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）

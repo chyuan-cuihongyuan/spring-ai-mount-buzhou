@@ -186,7 +186,9 @@ public final class ExperimentBucketer {
                     | ((hash[2] & 0xFF) << 8) | (hash[3] & 0xFF);
             return Math.floorMod(value, TOTAL_BUCKETS);
         } catch (Exception e) {
-            throw new IllegalStateException("SHA-256 不可用", e);
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException(
+            io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode.CONFIG_INVALID,
+            "SHA-256 摘要不可用（JVM 环境缺陷——该必需算法被裁剪）", e);
         }
     }
 
