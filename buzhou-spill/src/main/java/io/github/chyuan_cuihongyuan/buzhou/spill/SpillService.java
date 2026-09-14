@@ -27,22 +27,60 @@ public class SpillService {
                 .text();
     }
 
+    // —— spec 1101 / impl 853：服务层分支读面（幂等重试复用率对账思想；静态面理由
+    // 同 R46–R100 先例）。守恒：tryOffloadCalls = 四结局桶之和。
+    private static final java.util.concurrent.atomic.AtomicLong TRYOFFLOAD_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong FRESH_STORES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong IDEMPOTENT_REUSES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DEGRADED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BELOW_THRESHOLD =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** SpillService 分支分布快照（spec 1101）。 */
+    public record SpillServiceStats(long tryOffloadCalls, long freshStores,
+                                    long idempotentReuses, long degraded, long belowThreshold) {
+    }
+
+    /** 只读快照（守恒 tryOffloadCalls = 四结局桶之和）。 */
+    public static SpillServiceStats stats() {
+        return new SpillServiceStats(TRYOFFLOAD_CALLS.get(), FRESH_STORES.get(),
+                IDEMPOTENT_REUSES.get(), DEGRADED.get(), BELOW_THRESHOLD.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        TRYOFFLOAD_CALLS.set(0);
+        FRESH_STORES.set(0);
+        IDEMPOTENT_REUSES.set(0);
+        DEGRADED.set(0);
+        BELOW_THRESHOLD.set(0);
+    }
+
     public OffloadOutcome tryOffload(String agentName, String sessionId, String toolCallId,
                                      String toolName, String toolResult, int thresholdChars) {
+        TRYOFFLOAD_CALLS.incrementAndGet();
         if (toolResult == null || toolResult.length() < thresholdChars) {
+            BELOW_THRESHOLD.incrementAndGet();
             return new OffloadOutcome(toolResult, false, false, null);
         }
         SpillUri uri = new SpillUri(sanitize(agentName), sanitize(sessionId), sanitize(toolCallId));
         try {
             store.store(SpillEntry.of(uri, toolResult), previewChars);
+            FRESH_STORES.incrementAndGet();
         } catch (RuntimeException e) {
             // 视图级溢出（HotTail）每个注入视图都会重试同一 callId：同内容已落盘 → 幂等复用占位符
             //（保留 DiskSpillStore「一次调用一次落盘」对<b>不同</b>内容的守卫语义）
             if (isAlreadyStored(uri, toolResult)) {
+                IDEMPOTENT_REUSES.incrementAndGet();
                 String preview = RangeReadEngine.previewOf(toolResult, previewChars, listPreviewItems);
                 return new OffloadOutcome(placeholder(uri, toolResult, preview,
                         preview.length() < toolResult.length()), true, false, uri);
             }
+            DEGRADED.incrementAndGet();
             LOG.log(Level.WARNING, "Spill offload failed, passthrough original: " + uri, e);
             return new OffloadOutcome(toolResult, false, true, uri);
         }
