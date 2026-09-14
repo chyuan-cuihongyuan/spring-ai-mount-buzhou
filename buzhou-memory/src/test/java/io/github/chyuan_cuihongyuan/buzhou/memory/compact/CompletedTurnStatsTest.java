@@ -26,7 +26,7 @@ class CompletedTurnStatsTest {
 
     private static BuzhouMessage assistantWithCall(int turn, String callId) {
         return new BuzhouMessage(UUID.randomUUID().toString(), "s1", turn, 1, Role.ASSISTANT,
-                null, List.of(new ToolCallRecord(callId, "write_file", "{}", null)),
+                null, List.of(new ToolCallRecord(callId, "write_file", "{}")),
                 null, null, null, Map.of(), Instant.now());
     }
 
