@@ -38,6 +38,12 @@ public final class SessionLeaseGuard {
     private final Duration renewThreshold;
     private final AtomicBoolean lost = new AtomicBoolean();
     private final AtomicInteger renewals = new AtomicInteger();
+    /** spec 1406 / T2113：续期失败计数（watchdog 健康面——终态前恰一次）。 */
+    private final AtomicInteger renewFailures = new AtomicInteger();
+    /** 续期时剩余租期最小水位（毫秒；调度饿死/存储抖动时收窄。-1 = 从未续期）。 */
+    private volatile long minRemainingAtRenewalMillis = Long.MAX_VALUE;
+    /** 末次成功续期时刻（epoch millis；0 = 从未续期）。 */
+    private volatile long lastRenewalAtEpochMillis = 0L;
     private volatile Instant expiresAt;
     private final io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector.LeakHandle leakHandle;
 
@@ -89,10 +95,10 @@ public final class SessionLeaseGuard {
             return false;
         }
         if (store.renew(sessionId, ownerId, fencingToken, ttl)) {
-            expiresAt = Instant.now().plus(ttl);
-            renewals.incrementAndGet();
+            recordRenewalSuccess();
             return true;
         }
+        renewFailures.incrementAndGet();
         lost.set(true);
         leakHandle.close();
         return false;
@@ -141,12 +147,47 @@ public final class SessionLeaseGuard {
         return renewals.get();
     }
 
+    /** 续期成功记账：剩余租期最小水位 + 末次续期时刻（spec 1406 读面）。 */
+    private void recordRenewalSuccess() {
+        long remainingMillis = Math.max(0,
+                java.time.Duration.between(Instant.now(), expiresAt).toMillis());
+        if (remainingMillis < minRemainingAtRenewalMillis) {
+            minRemainingAtRenewalMillis = remainingMillis;
+        }
+        lastRenewalAtEpochMillis = System.currentTimeMillis();
+        expiresAt = Instant.now().plus(ttl);
+        renewals.incrementAndGet();
+    }
+
+    /**
+     * 续期健康快照（spec 1406 / T2113）：renewals/failures 双计数 + 剩余租期
+     * 最小水位（调度饿死/存储抖动时收窄）+ 末次续期时刻 + 丢失终态 + TTL 口径。
+     */
+    public RenewalStats renewalStats() {
+        return new RenewalStats(renewals.get(), renewFailures.get(),
+                minRemainingAtRenewalMillis == Long.MAX_VALUE ? -1 : minRemainingAtRenewalMillis,
+                lastRenewalAtEpochMillis, lost.get(), ttl.toMillis());
+    }
+
+    /**
+     * @param renewals                    成功续期次数
+     * @param failures                    续期失败次数（终态前恰一次或零）
+     * @param minRemainingAtRenewalMillis 续期时剩余租期最小水位（毫秒；从未续期 = -1）
+     * @param lastRenewalAtEpochMillis    末次成功续期 epoch millis（从未续期 = 0）
+     * @param lost                        租约是否已丢失（终态）
+     * @param ttlMillis                   租约 TTL 口径（毫秒）——水位判读基准
+     */
+    public record RenewalStats(long renewals, long failures,
+                               long minRemainingAtRenewalMillis,
+                               long lastRenewalAtEpochMillis, boolean lost, long ttlMillis) {
+    }
+
     private void renewOrLose() {
         if (store.renew(sessionId, ownerId, fencingToken, ttl)) {
-            expiresAt = Instant.now().plus(ttl);
-            renewals.incrementAndGet();
+            recordRenewalSuccess();
             return;
         }
+        renewFailures.incrementAndGet();
         throw markLostAndThrow();
     }
 

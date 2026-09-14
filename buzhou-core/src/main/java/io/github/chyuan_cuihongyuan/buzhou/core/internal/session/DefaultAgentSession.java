@@ -15,6 +15,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier
 import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.LeaseLostException;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.StructuredOutputStats;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEventListener;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver;
 import org.springframework.ai.chat.client.ChatClient;
@@ -304,19 +305,24 @@ public class DefaultAgentSession implements AgentSession {
         try {
             org.springframework.ai.converter.BeanOutputConverter<T> converter =
                     new org.springframework.ai.converter.BeanOutputConverter<>(type);
+            StructuredOutputStats.recordAttempt();
             String first = doChat(input + "\n" + converter.getFormat(), media);
             String firstError = parseError(first, converter);
             if (firstError == null) {
+                StructuredOutputStats.recordFirstPassParsed();
                 return converter.convert(first);
             }
             dispatchEvent(SessionEvent.of("structured.reask"));
+            StructuredOutputStats.recordReask();
             String second = doChat(input + "\n" + converter.getFormat()
                     + "\n[系统反馈] 你上一次的输出无法解析（" + firstError
                     + "）。请只输出一个符合上述格式的 JSON，不要包含任何其他文本或代码块标记。", media);
             String secondError = parseError(second, converter);
             if (secondError == null) {
+                StructuredOutputStats.recordReaskParsed();
                 return converter.convert(second);
             }
+            StructuredOutputStats.recordFailure();
             throw new StructuredOutputException("结构化输出解析失败（REASK 一次后仍不合规）：首次="
                     + summarize(first) + "，重问=" + summarize(second)
                     + "；解析错误=" + secondError, null);
@@ -872,6 +878,7 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
+            long closeStartNanos = System.nanoTime(); // spec 1430 / T2161：关闭排空耗时埋点
             leakHandle.close();
             if (leaseGuard != null) {
                 leaseGuard.close();
@@ -894,6 +901,12 @@ public class DefaultAgentSession implements AgentSession {
             dispatchEvent(SessionEvent.of("session.closed"));
             listeners.clear();
             spanContextCarrier.clear();
+            if (!failures.isEmpty()) {
+                io.github.chyuan_cuihongyuan.buzhou.core.session.SessionCloseStats
+                        .recordCloseFailure();
+            }
+            io.github.chyuan_cuihongyuan.buzhou.core.session.SessionCloseStats
+                    .recordClose((System.nanoTime() - closeStartNanos) / 1_000_000);
             throwAggregated(failures);
         }
     }

@@ -17,6 +17,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class EvalRunRegistry {
 
+    private static final java.util.concurrent.atomic.AtomicLong REGISTRATION_SEQ =
+            new java.util.concurrent.atomic.AtomicLong();
+
     public static final String KIND_EVAL = "eval";
     public static final String KIND_AB = "ab";
 
@@ -52,7 +55,9 @@ public final class EvalRunRegistry {
         if (gaugeRegisteredKinds.add(kind)) {
             BuzhouMetricsHolder.metrics().gauge(GAUGE_NAME, ids::size, "kind", kind);
         }
-        return new Registration(ids, runId);
+        long registrationId = REGISTRATION_SEQ.incrementAndGet();
+        EvalRunAgeLedger.recordOpened(registrationId); // spec 1420 / T2141：年龄台账埋点
+        return new Registration(ids, runId, registrationId);
     }
 
     /** 该 kind 当前在飞 run 数。 */
@@ -73,11 +78,13 @@ public final class EvalRunRegistry {
 
         private final Set<String> ids;
         private final String runId;
+        private final long registrationId;
         private boolean closed;
 
-        private Registration(Set<String> ids, String runId) {
+        private Registration(Set<String> ids, String runId, long registrationId) {
             this.ids = ids;
             this.runId = runId;
+            this.registrationId = registrationId;
         }
 
         @Override
@@ -85,6 +92,7 @@ public final class EvalRunRegistry {
             if (!closed) {
                 closed = true;
                 ids.remove(runId);
+                EvalRunAgeLedger.recordClosed(registrationId); // spec 1420：年龄台账埋点
             }
         }
     }

@@ -75,11 +75,16 @@ final class BufferedEventDispatcher implements AutoCloseable {
         }
         enqueued.incrementAndGet();
         if (queue.offer(event)) {
+            noteDepth();
             return;
         }
         if (config.overflow() == EventDispatchConfig.OverflowPolicy.BLOCK) {
+            // spec 1415 / T2131：首推失败进入限时等待 = 背压发生（容量打满信号）
+            io.github.chyuan_cuihongyuan.buzhou.core.session.EventBackpressureStats
+                    .recordBlockedPush();
             try {
                 if (queue.offer(event, config.pushTimeout().toMillis(), TimeUnit.MILLISECONDS)) {
+                    noteDepth();
                     return;
                 }
                 countDrop(event, DROP_REASON_BLOCK_TIMEOUT);
@@ -97,6 +102,13 @@ final class BufferedEventDispatcher implements AutoCloseable {
         if (!queue.offer(event)) {
             countDrop(event, DROP_REASON_OLDEST_RACE);
         }
+        noteDepth();
+    }
+
+    /** spec 1415 / T2131：队列深度采样进进程级水位（只增记账，行为零变化）。 */
+    private void noteDepth() {
+        io.github.chyuan_cuihongyuan.buzhou.core.session.EventBackpressureStats
+                .recordDepth(queue.size());
     }
 
     private void countDrop(SessionEvent event, String reason) {

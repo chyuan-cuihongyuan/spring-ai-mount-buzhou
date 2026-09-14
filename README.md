@@ -815,12 +815,64 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 |------|------|--------|------|
 | 会话治理 | 跨会话轮次并发水位 | TurnConcurrencyTracker——同实例注册全会话聚合 started/okFinished/failed 三总量+active/peakActive 水位，守恒式 started=ok+failed+active；同轮实证修复 guard-block 轮观察者终结回调缺失（TURN span 泄漏）——HikariCP 池读面思想（spec 1400） | [spec 1400](docs/spec/1400-turn-concurrency-tracker.md) |
 
-## 生产级纵深 XI（M 会话 1500 系增量）
+| 工具计量 | 工具结果字节直方 | ToolResultSizeHistogram——afterTool 单点记账五幂次边界桶(256B/1K/4K/16K/64K)+溢出桶+totalBytes 精确累计，守恒 successes=Σbuckets、executed=successes+failed，失败不入字节分布——Prometheus histogram 思想，opt-in 只读 Hook（spec 1401） | [spec 1401](docs/spec/1401-tool-result-size-histogram.md) |
 
-M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
+| 工具计量 | 工具结果字节直方 | ToolResultSizeHistogram——afterTool 单点记账五幂次边界桶(256B/1K/4K/16K/64K)+溢出桶+totalBytes 精确累计，守恒 successes=Σbuckets、executed=successes+failed，失败不入字节分布——Prometheus histogram 思想，opt-in 只读 Hook（spec 1401） | [spec 1401](docs/spec/1401-tool-result-size-histogram.md) |
 
-| 分组 | 能力 | 一句话 | 详设 |
-|------|------|--------|------|
+| MCP 治理 | 入参 schema 破坏性分级 | McpSchemaCompatGrader——前后两版 inputSchema 客户端守恒视角机判：removed/type_changed/newly_required/enum_narrowed 四破坏轴+解析失败 fail-closed，reasons 典序——buf breaking 思想，822 目录 diff 显式留白轴的延伸（spec 1402） | [spec 1402](docs/spec/1402-mcp-schema-compat-grader.md) |
+
+| 模型韧性 | EWMA 自适应超时推荐 | AdaptiveTimeout——record(observed) 喂样本 recommended() 出 clamp(⌈EWMA×3⌉,floor,ceiling) 推荐，α=0.3 CAS 无锁+预热哨兵 <3 样本不下结论；纯推导器不接线执行路径——Envoy timeout budget/Finagle 自适应超时思想（spec 1403） | [spec 1403](docs/spec/1403-adaptive-timeout.md) |
+
+| 会话治理 | 会话 id 熵审计 | SessionIdEntropyAudit——字母表下界估计（观测字符类保守求和）+bits=length×log2(alphabet) 下界+四档闭集（WEAK&lt;64 时间戳档/STRONG≥112 UUIDv4 档）+批量四桶，弱 id（可猜串/自增）从静默变显形——nanoid 熵计算器思想（spec 1404） | [spec 1404](docs/spec/1404-session-id-entropy-audit.md) |
+
+| 观测治理 | 查询页守卫与游标可读化 | DashboardQueryService——实证修复 listSessions 零钳制缺陷（size=1000 万即无界读 store、size≤0 subList 异常）+两路径裸 NFE 游标解析：MAX_PAGE_SIZE=200 常量钳制+可读 IAE，翻页语义逐位不变——Grafana query limit 思想（spec 1405） | [spec 1405](docs/spec/1405-dashboard-query-page-guard.md) |
+
+| 会话治理 | 租约续期健康读面 | SessionLeaseGuard.renewalStats()——续期 failures/成功 renewals 双计数+续期时剩余租期最小水位（调度饿死/存储抖动收窄信号）+末次续期时刻+lost 终态，语义逐位不变——Redisson watchdog 健康审计思想（spec 1406） | [spec 1406](docs/spec/1406-lease-renewal-readout.md) |
+
+| 护栏 | PII 检测器合成探针自查 | PiiProbeSelfCheck——内建确定性合成池（正例 EMAIL/手机号/测试 PAN/IPV4+负例×4）穿测 PiiDetector：逐类召回+误报哨兵（恒 0），基线标定锚=全召回；身份证号不入池（撞真实号红线）——spaCy/Presidio 评测思想（spec 1407） | [spec 1407](docs/spec/1407-pii-probe-selfcheck.md) |
+
+| 模型韧性 | 断路器状态时长分析 | CircuitStateDurationAnalyzer——变迁流按模型积段积分：逐状态 total/segments/max+OPEN 占比 openShare（crash-loop 量化画像），无序容忍+采样窗口径入档——Resilience4j state duration 思想，只读零接线（spec 1408） | [spec 1408](docs/spec/1408-circuit-state-duration-analyzer.md) |
+
+| 预算治理 | 多租户配额公平指数 | FairnessIndex——Jain 指数 J=(Σx)²/(n·Σx²)∈(0,1]+dominantShare 单点吃满检测+逐租户份额降序行动面+isFair(0.9 电信惯例)+全零 -1 哨兵；noisy neighbor 从人肉聚合变一读显形——Kafka client quota 公平性思想（spec 1409） | [spec 1409](docs/spec/1409-fairness-index.md) |
+
+| 工具计量 | 入参校验读数 | ToolArgsValidator.validationStats()——validations/accepted 守恒+七错误桶（缺必填/类型/enum/数值/长度/非 JSON/其他）标记单源分桶、桶非互斥如实入档；三调用点静态入口自动全覆盖——Pydantic ValidationError 思想（spec 1410） | [spec 1410](docs/spec/1410-toolargs-validation-stats.md) |
+
+| 会话治理 | 取消延迟追踪 | CancelLatencyTracker——onCancel 仅在途轮记未决键，轮终结消费入环（环 64+P50/P95 recent-rank），「取消信号→实际停止」时延显形，无轮取消不入账；单会话实例构造期绑定——Temporal cancellation latency 思想（spec 1411） | [spec 1411](docs/spec/1411-cancel-latency-tracker.md) |
+
+| 工具计量 | 工具入参字节直方 | ToolInputSizeHistogram——beforeTool 单点记账：arguments 序列化 UTF-8 字节落同款五幂次边界桶+溢出桶，守恒 executed=Σbuckets，测量点=链前原始入参；与 1401 结果侧对称——Datadog DogStatsD 对称计量思想，opt-in 只读 Hook（spec 1412） | [spec 1412](docs/spec/1412-tool-input-size-histogram.md) |
+
+| 会话治理 | 结构化输出 REASK 读数 | StructuredOutputStats——chatForEntity 漏斗五计数（attempts/firstPassParsed/reasks/reaskParsed/failures）双守恒式闭合+firstPassRate 模型 JSON 首过合规率派生（全零 -1 哨兵）；REASK 语义逐位不变——Instructor max_retries 可观测面思想（spec 1413） | [spec 1413](docs/spec/1413-structured-output-stats.md) |
+
+| 观测治理 | Span 树拓扑读面 | SpanTreeTopology——Span 集合树结构形状分析：深度（根=1）/单节点最大扇出/根数/孤儿计数/kind 直方（数量降序）+父引用环防护（visited 收敛不炸栈）；与 Timings 族时延维正交——Jaeger DAG 思想（spec 1414） | [spec 1414](docs/spec/1414-span-tree-topology.md) |
+
+| 观测治理 | 事件积压水位读数 | EventBackpressureStats——queueDepth 历史峰值水位+BLOCK 策略限时等待推入累计（&gt;0=容量曾打满），进程级静态读面+分发器只增记账埋点，EventBusStats 公共 record 不改形——Kafka consumer lag 思想（spec 1415） | [spec 1415](docs/spec/1415-event-backpressure-stats.md) |
+
+| 持久化 | 事务计量装饰器 | InstrumentedUnitOfWork——UnitOfWork opt-in 包装：begun/completed/failed/inFlight 守恒+失败异常类 Top 榜（有界 8 并 OTHERS），异常原样上抛、deleteSession 透传，全部 SPI 实现可包——pg_stat_database xact + Seata 事务度量思想（spec 1416） | [spec 1416](docs/spec/1416-instrumented-unit-of-work.md) |
+
+| 并发治理 | 舱壁在飞峰值水位 | AgentBulkhead.peakInFlight/peakSaturation——per-agent 历史最大并发水位+饱和度=峰值/上限（1.0=曾打满、无限舱 -1 哨兵），acquire 成功路径采样拒绝不虚高，256 折叠纪律；容量调大/错峰治理有水位可依——HikariCP 池饱和度思想（spec 1417） | [spec 1417](docs/spec/1417-bulkhead-peak-watermark.md) |
+
+| 持久化 | Redis 慢操作榜 | RedisSlowOpLog——RedisMessageStore append/load/findById 客户端往返耗时严格大于阈值（默认 100ms 动态可调）入有界 FIFO 榜 32（新→旧现场）+totalSlowOps 累计水位（挤出也计）；服务端 slowlog 看不见的网络抖动/大 key 客户端延迟显形——Redis SLOWLOG 思想（spec 1418） | [spec 1418](docs/spec/1418-redis-slow-op-log.md) |
+
+| 预算治理 | 预算分档分类器 | BudgetTierClassifier——已用/上限→行动档位：GREEN/WARN(≥0.8 软限预警)/HARD(≥1.0 硬限已触)/UNKNOWN(limit≤0 畸形)四档闭集+四桶计数+饱和度降序+tightest(n)「先看谁快烧完」——k8s ResourceQuota + SRE headroom 思想（spec 1419） | [spec 1419](docs/spec/1419-budget-tier-classifier.md) |
+
+| 评估治理 | 评估运行年龄台账 | EvalRunAgeLedger——Registry begin/close 双点埋点：active 在途数+oldestActiveAgeMillis 最老活跃年龄（卡死异味哨兵 -1）+maxCompletedDurationMillis 历史最长完成水位+closed 累计；挂死的评估 run 从「感觉慢」变年龄显形——tqdm + k8s 运行时长异味思想（spec 1420） | [spec 1420](docs/spec/1420-eval-run-age-ledger.md) |
+
+| 实验治理 | 实验分桶均衡审计 | ExperimentBalanceAudit——两段式声明桶集合+喂观测计数：逐桶份额/与均匀份额最大偏移（≤5pp A/A 惯例含端点）+balanced 判定，零分配桶计入（权重键名笔误先于显著性显形）、无样本 -1 哨兵不冒充——A/A test 思想（spec 1421） | [spec 1421](docs/spec/1421-experiment-balance-audit.md) |
+
+| 观测治理 | Hook 顺序碰撞审计 | HookOrderAudit——钩子清单同序碰撞组显形：组内名字典序（=ChainComposition 兜底序，重命名即变序的装配脆性）、组间 order 升序、唯一 order 不占报告；修复=显式错开 order——Spring ordered-bean 审计思想（spec 1422） | [spec 1422](docs/spec/1422-hook-order-audit.md) |
+
+| 工具计量 | 命令黑名单拦截判定读面 | 黑名单命中/放行比显形，二桶守恒（spec 1051） | [spec 1051](docs/spec/1051-blacklist-stats.md) |
+| 工具计量 | run_command 执行结果分布读面 | 执行结局九桶守恒，参数/运行时分轴（spec 1052） | [spec 1052](docs/spec/1052-runcommand-stats.md) |
+| 溢出治理 | evict_handle 逐出判定读面 | 模型主动逐出采用率与拒绝分桶显形，三桶守恒（spec 1053） | [spec 1053](docs/spec/1053-evict-stats.md) |
+| 溢出治理 | str_replace 编辑判定读面 | 编辑成功与 notFound/ambiguous 失败模式分桶显形，六桶守恒（spec 1054） | [spec 1054](docs/spec/1054-strreplace-stats.md) |
+| 记忆治理 | 情景记忆读写双守恒读面 | 情景库写入量与召回命中率显形，双守恒（spec 1055） | [spec 1055](docs/spec/1055-episodic-stats.md) |
+| 模型韧性 | 崩循环探测器类级水位读面 | OPEN 总量/封顶截断量/循环检出/恢复四计数显形（spec 1056） | [spec 1056](docs/spec/1056-crashloop-watch-stats.md) |
+| 技能治理 | skill_search 搜索判定读面 | 搜索命中率与零结果率显形，四桶守恒（spec 1057） | [spec 1057](docs/spec/1057-skillsearch-stats.md) |
+| MCP 治理 | 工具集轮询提供器读面 | 热更新轮询三桶守恒显形，失败率可对账（spec 1058） | [spec 1058](docs/spec/1058-toolsetpoll-stats.md) |
+| 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
+| 工程门禁 | core 零覆盖尾巴清扫（K 会话 R4） | 判据收紧 miss≥5→miss≥1 后复扫：AttachmentRenderer default 截断合同四断言 + CommandOutcome success 谓词矩阵（超时优先于退出码）；core 证据改走隔离 worktree（spec 1203） | [spec 1203](docs/spec/1203-core-zero-tail-sweep.md) |
+| 工程门禁 | SnapshotMessage 补测与跨模块复核（K 会话 R5） | 收紧判据残留归口：compact 构造 null 防御 + Map.copyOf 拷贝语义合同；六小模块 miss≥1 复扫清单化（spec 1204） | [spec 1204](docs/spec/1204-snapshot-message-tightened-sweep.md) |
+| 工程门禁 | K 会话周期对账轮 R6 | 全仓 verify（隔离 worktree CI 等价门）+ K 线工件链五项对账（spec/README/票/impl/map）——SRE Production Readiness Review 思想，R7 起对账/雾区交替（spec 1205） | [spec 1205](docs/spec/1205-k-audit-r6.md) |
 | 会话治理 | SessionObserver 通知面异常隔离 | DefaultAgentSession 12 处观察者裸 forEach 通知点统一改走 notifyObservers 隔离派发——单观察者异常记 ERROR 后继续其余观察者、不向上传播（onOpen 未隔离时观测组件缺陷可炸掉会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想（spec 1500） | [spec 1500](docs/spec/1500-observer-notify-isolation.md) |
 | 会话治理 | HookChain 事件通知面逐 hook 隔离 | fireEvent（通知面，无裁决语义）链内逐 hook try/catch——单 hook onEvent 异常不再吞掉其余 hook 的事件消费，计时 try/finally 仍入账；run() 裁决面 fail-fast 治理语义不动——通知面/裁决面分离（spec 1501） | [spec 1501](docs/spec/1501-hook-event-notify-isolation.md) |
 | 观测治理 | 计时聚合器双子实例清零面 | HookTimingAggregator / ToolTimingAggregator 各补公开 reset()——Holder.reset() 只关聚合不清实例账，stats()/windowedMax() 此前只增不减（测试基线污染、长生命周期进程无法重建观测基线）——Prometheus counter reset 语义（spec 1502） | [spec 1502](docs/spec/1502-aggregator-reset.md) |
@@ -917,6 +969,62 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 韧性治理 | 退避抖动模式可配 | jitter-mode（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机——防重试风暴同步最优/DECORRELATED=[base,min(cap,prev×3)] 与前次去相关）——AWS「Exponential Backoff and Jitter」思想，默认 EQUAL 零行为（spec 1631） | [spec 1631](docs/spec/1631-jitter-mode.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |
+
+| 记忆治理 | Embedding 质量自查探针 | EmbeddingSelfCheck——合成句对（相似×2+无关对照×2）穿测 EmbeddingProvider：相似对余弦序逐对判定（免绝对阈值）+minMargin+orderHolds 回归哨兵+维度显形；换模型/供应商检索劣化从倒查变一行自查——OpenAI cookbook / sentence-transformers 思想（spec 1423） | [spec 1423](docs/spec/1423-embedding-selfcheck.md) |
+
+| 并发治理 | 轮次限速拒绝榜 | TurnRateLimitHook.blockedSnapshot()——per-key 累计被拦次数（次数降序同次数字典序），256 封顶折 __overflow__，reset 清榜不清桶；「哪个租户在反复触发限速」从 Block 文案逐条捞变一表显形——Cloudflare WAF top-rules 思想（spec 1424） | [spec 1424](docs/spec/1424-turn-ratelimit-blocked-snapshot.md) |
+
+| 会话治理 | 会话历史形态审计 | ConversationShapeAudit——roleHistogram 角色直方（降序典序）+连续同角色非 TOOL 相邻对（history 写坏信号）+空内容计数（带 toolCalls 为正常形态）+maxTurnGap 跳变（回放/乱序嫌疑）；上下文污染前的形态信号——MLflow 数据画像思想（spec 1425） | [spec 1425](docs/spec/1425-conversation-shape-audit.md) |
+
+| 会话治理 | 用户输入重复审计 | UserInputDuplicationAudit——USER 输入归一化（trim/小写/空白折叠/截断 64）后审计：连续复读对+最长复读游程+distinctInputs 多样性+topRepeated 榜（≥2 才入容量 8 降序典序）；复读=最强挫败信号——Rasa 对话分析思想（spec 1426） | [spec 1426](docs/spec/1426-user-input-duplication-audit.md) |
+
+| 治理 | 保留清扫新鲜度追踪 | RetentionSweepFreshness——addSweepListener 零侵入挂载：sweepCount+lastSweepAt+staleMillis（now−末次，调用方时钟）+maxGapMillis 相邻间隔水位（调度抖动/停摆显形）+failureCount 未完全成功分桶；清扫停摆=保留承诺静默失效的先行显形——Airflow scheduler heartbeat 思想（spec 1427） | [spec 1427](docs/spec/1427-retention-sweep-freshness.md) |
+
+| 工具治理 | 工具目录重名审计 | ToolCatalogDuplicateAudit——工具名清单重名组审计（≥2 同名组、名字典序、去重对比）：HarnessToolCallingManager HashMap 按名索引重名静默覆盖（后到者胜），本地与 MCP server 工具同名遮蔽不可解释——Spring bean 重名/Maven Enforcer 思想，只读不裁决（spec 1428） | [spec 1428](docs/spec/1428-tool-catalog-duplicate-audit.md) |
+
+| 恢复治理 | 运行状态分布与滞后审计 | RunStatusDistribution——恢复快照状态直方（全枚举预置计 0）+turnLag 崩溃暴露窗口（currentTurn−lastCompletedTurn：崩溃将丢的未持久化轮数）+worst offenders 榜（滞后降序容量 3）；RUNNING 淤积与暴露窗口一读显形——Temporal workflow stats 思想（spec 1429） | [spec 1429](docs/spec/1429-run-status-distribution.md) |
+
+| 会话治理 | 会话关闭耗时读数 | SessionCloseStats——closed/closeFailures 双计数+last/maxCloseDurationMillis 耗时水位（单调），close() 清理优先异常聚合语义逐位不变只增记账；排空慢（observer 慢/逆序关闭卡住）从停机窗口超限倒推变水位显形——k8s graceful shutdown 思想（spec 1430） | [spec 1430](docs/spec/1430-session-close-stats.md) |
+
+| 观测治理 | 指标命名校验器 | MetricNameAudit——validate(name)→NameVerdict 违规闭集（EMPTY/WHITESPACE/PREFIX/SEGMENT_EMPTY/CASE/CHARS）首违不短路一次看全，段规则与 starter MetricNamingGuardTest 门同源；机制作者命名自查即时反馈——Prometheus metric naming 规范思想（spec 1431） | [spec 1431](docs/spec/1431-metric-name-audit.md) |
+
+| 会话治理 | 会话 spawn 统计读面 | SessionSpawnStats——spawn 漏斗 attempts/successes/collisions/steals 守恒式（attempts=successes+collisions）+activePeak spawn 时点活跃峰值水位（口径显式仅 spawn 路径采样）；同 id 冲突高发与抢占频次从静默变漏斗显形——HikariCP 建连统计思想（spec 1432） | [spec 1432](docs/spec/1432-session-spawn-stats.md) |
+
+| 治理 | 工具循环打断分布 | ToolLoopBreakerHook.brokenByToolSnapshot()——per-tool 累计打断次数（降序典序）+brokenTotal+maxRunObserved 打断时点最长 run 水位，reset 清分布不清会话 run 状态；「哪个工具在烧配额」定向治理信号显形——Temporal retry-loop detection 思想（spec 1433） | [spec 1433](docs/spec/1433-tool-loop-break-stats.md) |
+
+| 并发治理 | 延迟作业调度漂移 | DelayedJobQueue.driftStats()——实际起跑 vs 计划 fireAt 的漂移读数（executed/last/max 水位），过期补跑漂移显形正值=补偿逻辑错过窗口量化，既有替换/取消语义不变——Sidekiq queue latency 思想（spec 1434） | [spec 1434](docs/spec/1434-delayed-job-drift.md) |
+
+| 工具治理 | 工具 schema 健康审计 | ToolSchemaHealthAudit——analyze(List<ToolCallback>) 四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与校验器跳过条件严格同口径+bypassRatio 裸奔率派生（-1 哨兵）+findings 封顶 16；「多少工具在裸奔无参数校验」从 permissive 盲区变审计显形——ajv/OpenAPI 思想（spec 1435） | [spec 1435](docs/spec/1435-tool-schema-health-audit.md) |
+
+| 观测治理 | 事件时序单调性审计 | EventOrderAudit——同会话事件 occurredAt 时序单调性审计：逆序相邻对数+最大倒退量（时钟回拨/乱序写入显形）+首逆序位定位（-1 哨兵），等时刻不算逆序、null 时戳跳过——事件溯源不变量思想（spec 1436） | [spec 1436](docs/spec/1436-event-order-audit.md) |
+
+| 评估治理 | 评估数据集质量审计 | DatasetQualityAudit——analyze(List<EvalItem>) 退化条目分桶：空 input/emptyExpecteds/短 input（&lt;8 字符信息量不足）+输入长度 P50/P95 秩插值+degenerateRatio 退化比派生（-1 空集哨兵）；「数据集还能信吗」从逐条翻看变一行审计——Cleanlab 数据质量思想（spec 1437） | [spec 1437](docs/spec/1437-dataset-quality-audit.md) |
+
+| 会话治理 | 悬空轮检测器 | DanglingTurnDetector——按 turnSeq 分组检测悬空轮：有 USER 无 ASSISTANT 即悬空（取消/中断残留，TOOL 链不豁免、仅 TOOL/SYSTEM 轮不算）+danglingSamples 升序封顶 8+hasDangling 哨兵；续聊质量风险显形——Temporal activity 检测思想（spec 1438） | [spec 1439](docs/spec/1438-dangling-turn-detector.md) |
+
+| 工程门禁 | L 会话阶段对账 R40 | LSessionLedgerAuditTest——工件链四面互证对账测试（范围自扩展）：票对公式/impl 切片窗/README 行/spec 号连续性；同批实证修复票号 +2 漂移与 impl 置换——J/K 对账轮先例（spec 1440） | [spec 1440](docs/spec/1440-l-audit-r40.md) |
+
+| Spill 治理 | Spill 冷热分层访问审计 | SpillTieringAudit——读事件按 uri 聚合对照存量全集：never（从未回读冷数据）/single（一次性消费）/multi（≥2 热点）三桶+hotRatio/coldRatio 占比派生（空库 -1 哨兵）；TTL/清理策略与预热依据显形——MinIO tiering 思想（spec 1441） | [spec 1441](docs/spec/1441-spill-tiering-audit.md) |
+
+| 评估治理 | 门阈值敏感性扫描 | GateThresholdSensitivity——analyze(scores, threshold, δ) 扫 δ 带 [threshold−δ, threshold+δ)：带内分数计数+tightenFlips 上调翻 FAIL/loosenFlips 下调翻 PASS 分向+sensitivityRatio 敏感率派生；门立在分数稀疏带还是密集带一读显形——scikit-learn validation_curve 思想（spec 1442） | [spec 1442](docs/spec/1442-gate-threshold-sensitivity.md) |
+
+| 持久化 | Saga 运行静态读数 | CompensatingBatch.sagaStats()——补偿型事务运行漏斗：runs/successes/compensationRuns/compensationFailures 四计数守恒式（conserved 派生）+stepsExecuted+lastFailedStep 断点步名；补偿高发从静默变漏斗显形——Seata 事务度量思想（spec 1443） | [spec 1443](docs/spec/1443-saga-run-stats.md) |
+
+| 评估治理 | 评估通过率趋势审计 | EvalPassRateTrend——跨 run 通过率序列的 Theil–Sen 稳健斜率审计：成对斜率中位数（离群 run 不扭曲方向）+死区 ε=0.005/run+INSUFFICIENT 哨兵；「这版在变好还是变坏」从人眼比对变方向判定——Theil–Sen 稳健回归思想（spec 1444） | [spec 1444](docs/spec/1444-eval-pass-rate-trend.md) |
+
+| Spill 治理 | 媒体摄入统计读面 | MediaIntake.stats()——intakes/readBacks/bytesTotal 三计数+per-MIME 摄入直方（数量降序典序、封顶 16 基数纪律），intakeText 复用同一漏斗自动计量、拒绝路径不入账；多模态使用画像与字节配额治理显形——OpenAI usage by modality 思想（spec 1445） | [spec 1445](docs/spec/1445-media-intake-stats.md) |
+
+| 导出治理 | 导出清单校验统计 | ExportManifestVerifyStats——三受踪包装（canonical/subset/full 委托+入账）：verifies=ok+failed 守恒+mismatched/missing/unexpected 明细桶累计+lastEntryKind 末次入口；「从不校验」与「校验全红」两种病灶显形——TUF 校验遥测思想（spec 1439 补位） | [spec 1439](docs/spec/1439-export-manifest-verify-stats.md) |
+
+| Spill 治理 | 语义切片索引覆盖读面 | SemanticChunkIndex.coverageStats()——已索引 uri 数/切片总数/单 uri 最大切片数与最厚制品定位（切片失衡信号），空索引零哨兵、provider 不可用短路覆盖恒空——Elasticsearch index stats 思想（spec 1447） | [spec 1447](docs/spec/1447-semantic-chunk-coverage.md) |
+
+| 观测治理 | 事件去重聚合读面 | EventDeduplicator.deduplicationStats()——passed/deduped 双计数（守恒 seen=passed+deduped）+去重率派生（0 总量 -1 哨兵）+ringSize/capacity 环占用；重复事件注入压力从静默 counter 变比率显形，reset 只清计数不清环——SendGrid/Mailgun webhook replay 思想（spec 1448） | [spec 1448](docs/spec/1448-event-dedup-stats.md) |
+
+| 评估治理 | 轮次采样漏斗读面 | TurnSamplerHook.samplerStats()——采样漏斗六计数：turnsSeen/emptySkipped/shortSkipped/rateSkipped/written/writeFailures（桶口径互斥、写失败 fail-soft 分桶）；「为何没进数据集」按原因归因——Envoy access log sampling 思想（spec 1446） | [spec 1446](docs/spec/1446-turn-sampler-funnel.md) |
+
+| 收口 | L 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门/覆盖门/对账门全绿+台账 50/50 归档——effort 1400–1449 连续（1439 补位轮兑现） | [spec 1449](docs/spec/1449-l-closing.md) |
+
+| 技能治理 | SkillAdmin 管理操作分布 | SkillAdminApi 五操作计数（create/update/publish/disable/delete 静态面）——管理面治理审计基座，操作分布显形（spec 1085，J 会话 M 段产出） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 
 ## 快速开始
 

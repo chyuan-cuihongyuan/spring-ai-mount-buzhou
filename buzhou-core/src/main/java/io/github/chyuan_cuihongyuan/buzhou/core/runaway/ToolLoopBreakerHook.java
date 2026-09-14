@@ -69,6 +69,7 @@ public final class ToolLoopBreakerHook implements BuzhouHook {
                 return HookResult.CONTINUE;
             }
             BuzhouMetricsHolder.metrics().counter(BROKEN_COUNTER);
+            recordBroken(ctx.toolName(), state.run); // spec 1433 / T2167：打断分布埋点
             return HookResult.block(MARKER + "\n工具：" + ctx.toolName()
                     + "\n原因：同一工具同一参数已连续调用 " + state.run
                     + " 次——参数未变结果不会变，每次调用都在烧配额。"
@@ -102,5 +103,60 @@ public final class ToolLoopBreakerHook implements BuzhouHook {
             sessions.clear(); // 诚实降级：超上限整体重置（run 重新累计）
         }
         return sessions.computeIfAbsent(sessionId, k -> new SessionState());
+    }
+
+    /** per-tool 打断计数表（spec 1433 / T2167；256 封顶折 __overflow__ 同拒绝表纪律）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong>
+            brokenByTool = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_TRACKED_TOOLS = 256;
+    private static final String TOOL_OVERFLOW_MARKER = "__overflow__";
+    private final java.util.concurrent.atomic.AtomicLong brokenTotal =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicInteger maxRunObserved =
+            new java.util.concurrent.atomic.AtomicInteger();
+
+    private void recordBroken(String toolName, int runAtBreak) {
+        brokenTotal.incrementAndGet();
+        maxRunObserved.accumulateAndGet(runAtBreak, Math::max);
+        java.util.concurrent.atomic.AtomicLong counter = brokenByTool.get(toolName);
+        if (counter != null) {
+            counter.incrementAndGet();
+            return;
+        }
+        if (brokenByTool.size() >= MAX_TRACKED_TOOLS) {
+            brokenByTool.computeIfAbsent(TOOL_OVERFLOW_MARKER,
+                    k -> new java.util.concurrent.atomic.AtomicLong()).incrementAndGet();
+            return;
+        }
+        brokenByTool.computeIfAbsent(toolName,
+                k -> new java.util.concurrent.atomic.AtomicLong()).incrementAndGet();
+    }
+
+    /** 打断榜：工具 → 累计打断次数（次数降序、同次数字典序——输出稳定）。 */
+    public Map<String, Long> brokenByToolSnapshot() {
+        return brokenByTool.entrySet().stream()
+                .sorted((a, b) -> {
+                    int byCount = Long.compare(b.getValue().get(), a.getValue().get());
+                    return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
+                })
+                .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey,
+                        e -> e.getValue().get(), (x, y) -> x,
+                        java.util.LinkedHashMap::new));
+    }
+
+    /** 累计打断总次数 + 历史最长 run 水位（打断时点的 run 长度）。 */
+    public long brokenTotal() {
+        return brokenTotal.get();
+    }
+
+    public int maxRunObserved() {
+        return maxRunObserved.get();
+    }
+
+    /** 测试归零口：打断分布清空（会话状态不动）。 */
+    public void resetBrokenForTest() {
+        brokenByTool.clear();
+        brokenTotal.set(0);
+        maxRunObserved.set(0);
     }
 }

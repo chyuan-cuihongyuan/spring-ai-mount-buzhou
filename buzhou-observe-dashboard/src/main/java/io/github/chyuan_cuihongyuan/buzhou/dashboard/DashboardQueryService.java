@@ -77,13 +77,14 @@ public class DashboardQueryService {
     // ---- 查询 ----
 
     public SessionPage listSessions(String cursor, int size) {
-        int offset = cursor == null || cursor.isBlank() ? 0 : Integer.parseInt(cursor);
+        int offset = parseCursor(cursor);
+        int pageSize = normalizePageSize(size);
         // 多取一条探测是否还有下一页，避免末页恰好 size 条时发出指向空页的 nextCursor
-        List<SessionSummary> probed = store.listSessionSummaries(cursor, size + 1);
-        boolean hasMore = probed.size() > size;
-        List<SessionSummary> items = hasMore ? probed.subList(0, size) : probed;
+        List<SessionSummary> probed = store.listSessionSummaries(cursor, pageSize + 1);
+        boolean hasMore = probed.size() > pageSize;
+        List<SessionSummary> items = hasMore ? probed.subList(0, pageSize) : probed;
         return new SessionPage(List.copyOf(items),
-                hasMore ? String.valueOf(offset + size) : null);
+                hasMore ? String.valueOf(offset + pageSize) : null);
     }
 
     /**
@@ -93,8 +94,8 @@ public class DashboardQueryService {
      */
     public IndexedSessionPage listSessionsFiltered(String appId, String agentName, String status,
             String tagKey, String tagValue, String cursor, int size) {
-        int offset = cursor == null || cursor.isBlank() ? 0 : Integer.parseInt(cursor);
-        int pageSize = Math.max(1, Math.min(size, 200));
+        int offset = parseCursor(cursor);
+        int pageSize = normalizePageSize(size);
         if (indexStore != null) {
             List<io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionInfo> probed =
                     indexStore.list(new io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionIndexQuery(
@@ -195,6 +196,26 @@ public class DashboardQueryService {
     public record TimeBucket(Instant start, int turns, int modelCalls, int toolCalls,
             int errors, long promptTokens, long completionTokens,
             Integer turnP50Ms, Integer turnP95Ms, Integer turnP99Ms) {
+    }
+
+    /** 单页上限钳制（spec 1405 / T2111——Grafana query limit 思想：查询侧守卫存储；与 listSessionsFiltered 既有 200 对齐）。 */
+    public static final int MAX_PAGE_SIZE = 200;
+
+    /** 页大小规范化：&lt;1 归 1、&gt;{@link #MAX_PAGE_SIZE} 钳制（防无界读全量 store）。 */
+    private static int normalizePageSize(int size) {
+        return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
+    }
+
+    /** 游标解析：空白归 0；格式非法抛可读 IllegalArgumentException（原裸 NFE 修复）。 */
+    private static int parseCursor(String cursor) {
+        if (cursor == null || cursor.isBlank()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(cursor.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("游标格式非法（须为十进制偏移整数）：" + cursor, e);
+        }
     }
 
     /** 桶数上界（payload 纪律）。 */

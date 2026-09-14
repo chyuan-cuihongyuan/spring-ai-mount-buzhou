@@ -2332,6 +2332,123 @@
   守恒式；同轮实证修复 guard-block 轮观察者终结回调缺失；嵌套 `Snapshot`
   不另立面）
 
+- `ToolResultSizeHistogram`（1401——Prometheus histogram 思想：工具结果
+  UTF-8 字节五幂次边界桶+溢出桶，executed/failed/totalBytes 三总量守恒；
+  opt-in afterTool 只读挂法；嵌套 `Snapshot` 不另立面）
+
+- `McpSchemaCompatGrader`（1402——buf breaking 思想：入参 schema 前后两版
+  客户端守恒视角分级（removed/type_changed/newly_required/enum_narrowed
+  四破坏轴+fail-closed），纯函数零 IO；嵌套 `SchemaCompatVerdict` 不另立面）
+
+- `AdaptiveTimeout`（1403——Envoy timeout budget/Finagle 自适应超时思想：
+  EWMA(α=0.3)+clamp(⌈EWMA×multiplier⌉,floor,ceiling) 纯推导器，预热哨兵
+  &lt;3 样本不下结论，CAS 无锁；嵌套 `Snapshot` 不另立面）
+
+- `SessionIdEntropyAudit`（1404——nanoid 熵计算器思想：会话 id 字母表
+  下界估计（观测字符类保守求和）+bits=length×log2(alphabet)+四档闭集
+  （WEAK&lt;64/STRONG≥112）+批量四桶 Summary，纯函数只读；嵌套
+  `Report`/`Summary` 不另立面）
+
+- `PiiProbeSelfCheck`（1407——spaCy/Presidio 评测思想：内建确定性合成
+  池穿测 PiiDetector——逐类召回 TypeRecall+误报哨兵 falsePositives（恒 0
+  回归哨兵），基线=内建池全召回；身份证号不入池（红线）；嵌套
+  `ProbeReport` 不另立面）
+
+- `CircuitStateDurationAnalyzer`（1408——Resilience4j state duration 思想：
+  断路器变迁流按模型积段→逐状态 total/segments/max+OPEN 占比 openShare
+  （crash-loop 量化画像），无序容忍+采样窗口径入档，纯函数零接线；嵌套
+  `StateDuration`/`ModelDurations` 不另立面）
+
+- `FairnessIndex`（1409——Kafka client quota 公平性思想：多租户用量
+  Jain 指数 J=(Σx)²/(n·Σx²)+dominantShare 单点吃满检测+逐租户份额降序
+  +isFair(FAIR_FLOOR=0.9)+全零 -1 哨兵，纯函数；嵌套 `FairnessReport`/
+  `TenantShare` 不另立面）
+
+- `ToolArgsValidator.validationStats()`（1410——Pydantic ValidationError 思想：
+  校验读数静态面——validations/accepted 守恒+七错误桶（标记单源、桶非互斥
+  如实入档）；嵌套 `ValidationStats` 不另立面）
+
+- `CancelLatencyTracker`（1411——Temporal cancellation latency 思想：onCancel
+  仅在途轮记未决键+轮终结消费入环（环 64+P50/P95 recent-rank）+无轮取消
+  不入账，单会话实例构造期绑定（TurnErrorSampler 同型装配）；嵌套
+  `CancelLatencyStats` 不另立面）
+
+- `ToolInputSizeHistogram`（1412——spec 1401 结果侧的对称镜像（Datadog
+  DogStatsD read/write 对称 tag 思想）：入参 Jackson 序列化 UTF-8 字节
+  同款五幂次边界桶+溢出，beforeTool 只读 opt-in；嵌套 `Snapshot` 不另立面）
+
+- `StructuredOutputStats`（1413——Instructor max_retries 可观测面思想：
+  chatForEntity 结构化输出漏斗五计数（attempts/firstPassParsed/reasks/
+  reaskParsed/failures）双守恒式+firstPassRate 派生，进程级静态读面；
+  嵌套 `Snapshot` 不另立面）
+
+- `SpanTreeTopology`（1414——Jaeger DAG 结构形状思想：Span 集合树拓扑
+  分析——深度（根=1）/扇出/根数/孤儿计数（明细归 SpanParentIntegrityAudit）/
+  kind 直方（数量降序平名典序）+父引用环防护，纯函数零 IO；嵌套
+  `Topology` 不另立面）
+
+- `EventBackpressureStats`（1415——Kafka consumer lag 思想：事件总线积压
+  水位读数——queueDepth 历史峰值 depthWatermark+BLOCK 策略限时等待推入
+  blockedPushes，进程级静态读面（BufferedEventDispatcher 只增记账埋点）；
+  嵌套 `Snapshot` 不另立面）
+
+- `InstrumentedUnitOfWork`（1416——pg_stat_database xact + Seata 事务度量
+  思想：UnitOfWork opt-in 计量装饰器——begun/completed/failed/inFlight
+  守恒+失败异常类 Top 榜（有界 8 并 OTHERS）+异常透传+deleteSession 透传；
+  嵌套 `Snapshot` 不另立面）
+
+- `RedisSlowOpLog`（1418——Redis SLOWLOG 客户端侧思想：store-redis 操作
+  慢榜——严格大于阈值入榜+有界 FIFO 32（新→旧 entries）+totalSlowOps
+  水位+动态阈值；RedisMessageStore 三操作 finally 埋点；嵌套 `Entry`
+  不另立面）
+
+- `BudgetTierClassifier`（1419——k8s ResourceQuota + SRE headroom 思想：
+  已用/上限→行动档位离线分类器 GREEN/WARN(≥0.8)/HARD(≥1.0)+UNKNOWN
+  畸形哨兵+四桶计数+verdicts 饱和度降序+tightest(n)，纯函数；嵌套
+  `TierReport`/`BudgetTierVerdict` 不另立面）
+
+- `EvalRunAgeLedger`（1420——tqdm + k8s 运行时长异味思想：评估运行年龄
+  台账——Registry begin/close 双点埋点，Snapshot：active/oldestActiveAge
+  （卡死哨兵 -1）/maxCompletedDuration 水位/closed，进程级静态读面；
+  嵌套 `Snapshot` 不另立面）
+
+- `ExperimentBalanceAudit`（1421——A/A test 思想：实验哈希分桶分配
+  均衡性离线审计——两段式声明桶集合+喂计数（零桶计入），最大份额偏移
+  ≤5pp 容差含端点（双比较 1e-9 卫生），无样本 -1 哨兵不冒充均衡；嵌套
+  `BalanceReport`/`BucketShare` 不另立面）
+
+- `HookOrderAudit`（1422——Spring ordered-bean 审计思想：钩子清单同序
+  碰撞组显形（组内名字典序=ChainComposition 兜底序——重命名即变序的
+  脆性所在），纯函数只读不裁决；嵌套 `Report`/`OrderGroup` 不另立面）
+
+- `EmbeddingSelfCheck`（1423——OpenAI embeddings cookbook / sentence-
+  transformers 语义自检思想：合成句对穿测 EmbeddingProvider——相似对
+  余弦序判定（免绝对阈值）+minMargin+orderHolds 回归哨兵+维度显形（换
+  模型伴生信号），纯函数；嵌套 `ProbeReport` 不另立面）
+
+- `ConversationShapeAudit`（1425——MLflow 数据画像思想：会话历史结构
+  形态审计——roleHistogram（数量降序）+连续同角色非 TOOL 异常对+空内容
+  计数（带 toolCalls 为正常形态）+maxTurnGap 乱序嫌疑，纯函数；嵌套
+  `ShapeReport` 不另立面）
+
+- `UserInputDuplicationAudit`（1426——Rasa 对话分析思想：USER 输入重复
+  形态审计——归一化（trim/小写/空白折叠/截断 64）+连续复读对+最长游程
+  +distinctInputs+topRepeated（≥2 入榜容量 8），纯函数；嵌套
+  `DuplicationReport` 不另立面）
+
+- `RetentionSweepFreshness`（1427——Airflow scheduler heartbeat 思想：保留
+  清扫新鲜度追踪（addSweepListener 零侵入挂载）——sweepCount/lastSweepAt/
+  staleMillis（调用方时钟）/maxGapMillis 间隔水位/failureCount；嵌套
+  `Snapshot` 不另立面）
+
+- `ToolCatalogDuplicateAudit`（1428——Spring bean 重名 / Maven Enforcer
+  思想：工具名字清单重名组审计（≥2 同名组、名字典序）——HashMap 静默
+  遮蔽显形，纯函数只读不裁决；嵌套 `Report`/`DuplicateGroup` 不另立面）
+
+- `RunStatusDistribution`（1429——Temporal workflow stats 思想：恢复巡检
+  快照的状态分布审计——statusHistogram 全枚举预置+turnLag 崩溃暴露窗口
+  （currentTurn−lastCompletedTurn）+worst offenders 榜（降序典序容量 3），
+  纯函数；嵌套 `Report`/`TurnLag` 不另立面）
 ## 跨会话新增公共类型补登（M 会话 1508/1510 产出，R60 审计轮代登记，@since 1.0.0）
 
 - `DangerousToolRegistry`（1508——进程级危险工具名注册表：模块解耦下的装配期
@@ -2339,6 +2456,64 @@
   `reset()` 测试隔离用）
 - `PairwiseSprtPolicy`（1510 域——评估域 pairwise SPRT 策略公共面）
 
+- `SessionCloseStats`（1430——k8s graceful shutdown terminationGracePeriod
+  思想：会话关闭耗时读数——closed/closeFailures/last+maxCloseDuration
+  水位，进程级静态读面（close 埋点只增记账，清理优先异常聚合语义逐位
+  不变）；嵌套 `Snapshot` 不另立面）
+
+- `MetricNameAudit`（1431——Prometheus metric naming 规范思想：指标名
+  校验器（buzhou. 前缀族+小写段规则与 starter 门同源）——violations 违规
+  闭集首违不短路一次看全，纯函数；嵌套 `NameVerdict` 不另立面）
+
+- `SessionSpawnStats`（1432——HikariCP 建连统计思想：spawn 漏斗读数
+  attempts/successes/collisions/steals 守恒式+activePeak 活跃峰值水位
+  （spawn 时点采样口径显式），进程级静态读面；嵌套 `Snapshot` 不另立面）
+
+- `ToolSchemaHealthAudit`（1435——ajv/OpenAPI schema 校验思想：工具 schema
+  健康四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与 ToolArgsValidator
+  跳过条件严格同口径+bypassRatio 裸奔率派生+findings 封顶 16，纯函数；
+  嵌套 `Report`/`SchemaFinding` 不另立面）
+
+- `EventOrderAudit`（1436——事件溯源不变量思想：同会话事件 occurredAt
+  时序单调性审计——逆序对数+最大倒退量+首逆序定位（-1 哨兵），等时刻
+  不算逆序、null 时戳跳过，纯函数；嵌套 `Report` 不另立面）
+
+- `DatasetQualityAudit`（1437——Cleanlab 数据质量思想：评估数据集退化
+  条目审计——空 input/expected 分桶+短 input（&lt;8 字符阈值）+长度 P50/P95
+  秩插值+degenerateRatio 派生（空集 -1 哨兵），纯函数；嵌套
+  `QualityReport` 不另立面）
+
+- `DanglingTurnDetector`（1439——Temporal activity 检测思想：按 turnSeq
+  分组检测悬空轮——有 USER 无 ASSISTANT 即悬空（TOOL 链不豁免、仅
+  TOOL/SYSTEM 轮不算），样本封顶 8 升序+hasDangling 哨兵，纯函数；嵌套
+  `Report` 不另立面）
+
+- `SpillTieringAudit`（1441——MinIO tiering/S3 lifecycle 思想：spill 读侧
+  访问频率分层审计——读事件按 uri 聚合对照存量全集：never/single/multi
+  三桶+hotRatio/coldRatio 派生（空库 -1 哨兵），纯函数；嵌套
+  `TieringReport` 不另立面）
+
+- `GateThresholdSensitivity`（1442——scikit-learn validation_curve 思想：
+  评估门阈值敏感性扫描——δ 带 [threshold−δ, threshold+δ) 内分数计数
+  +tighten/loosen 翻转分向+sensitivityRatio 派生（越低越稳健），纯函数；
+  嵌套 `SensitivityReport` 不另立面）
+
+- `EvalPassRateTrend`（1444——Theil–Sen 稳健回归思想：跨 run 通过率趋势
+  审计——成对斜率中位数（离群抗噪）+方向闭集（IMPROVING/STABLE/DEGRADING
+  死区 ε=0.005+INSUFFICIENT 哨兵），纯函数；嵌套 `TrendReport` 不另立面）
+
+- `MediaIntake.stats()`（1445——OpenAI usage by modality 思想：媒体摄入
+  统计——intakes/bytesTotal/readBacks 三计数+per-MIME 直方（降序典序封顶
+  16 基数纪律），实例面不影响 store；嵌套 `MediaIntakeStats` 不另立面）
+
+- `ExportManifestVerifyStats`（1439 补位——TUF 校验遥测思想：导出清单
+  校验统计——三受踪包装（canonical/subset/full 委托+入账）+verifies=ok+
+  failed 守恒+三明细桶（mismatched/missing/unexpected 非互斥），进程级
+  静态读面；嵌套 `Snapshot` 不另立面）
+
+- `SemanticChunkIndex.coverageStats()`（1447——Elasticsearch index stats
+  思想：语义切片索引覆盖读面——indexedUries/totalChunks/maxChunksPerUri
+  切片失衡定位，实例面只读；嵌套 `CoverageStats` 不另立面）
 - `WilsonInterval`（N 会话 bootstrap CI 域——威尔逊置信区间公共面）
 - `JitterMode`（N 会话 jitter 域——重试抖动模式公共面）
 
