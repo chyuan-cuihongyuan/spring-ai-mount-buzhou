@@ -710,6 +710,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R9 分支缺口批次 2：observability 两小类 | ObservabilitySessionState 46%→88%（会话 span 生命周期/usage 聚合/CANCELLED 终态）+ ObservableToolCallback 29%→86%（parent 三级解析/异常 error+close+rethrow）；批次 3 = Advisor/DualWriter（spec 1208） | [spec 1208](docs/spec/1208-branch-uplift-observability.md) |
 | 工程门禁 | R10：MicrometerDualWriter 补测 | 双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%（spec 1209） | [spec 1209](docs/spec/1209-micrometer-dual-writer.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
+| 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
