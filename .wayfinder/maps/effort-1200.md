@@ -88,7 +88,9 @@
 
 ## Not yet specified
 
-- R2+ 候选（按缺口证据逐轮显形，不预切）：低覆盖类清点（覆盖率<50% 且 miss>=10 的后续批次）；store-jdbc / store-redis 容器测试在无 Docker 环境的降级口径；JaCoCo report-aggregate 聚合报告可行性（跨模块执行归一，能否消除「跨模块执行不计本模块」的统计盲区）；分支覆盖（BRANCH）维度是否纳入证据口径。
+- ~~R2+ 候选（低覆盖类清点 / 容器降级口径 / report-aggregate / BRANCH）~~——R2–R7 已全部裁决收敛（见 Decisions so far）。
+- **R11（下一轮，精确议程已定义）**：ObservabilityAdvisor 流式路径分支补测（68 missed：accumulateStreamChunk 13、recordModelCallOutcome 22、markFirstTokenIfNeeded 4、recordTpotIfNeeded 4、recordStreamOutcome 8、resolveTurnParent 3、captureInjectionSnapshot 5 等）——需从零搭 Spring AI 流式 harness（StreamAdvisorChain stub 返回 Flux.just(ChatClientResponse)、ChatClientRequest.builder、ChatResponse/Generation/AssistantMessage/Usage/finishReason 构造、ThinkingChainExtractor 可注入）；本仓无既有流式测试可复用。批次 4 候选：BaseSpanRecorder（12）/ DefaultSpanHandle（9）/ ToolGraphAnalyzer（11）/ ThinkingChainExtractor（10）。
+- **R12+**：周期对账轮（沿 R6 口径，每 4–5 轮一次）；他线委托议题随时插入。
 
 ## Out of scope
 
