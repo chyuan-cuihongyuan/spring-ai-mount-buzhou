@@ -64,7 +64,7 @@ class TodoHttpComboTest {
         assertThat(todoOut).isNotNull();
 
         HttpRequestTool.HttpToolStats hs = HttpRequestTool.stats();
-        assertThat(hs.calls()).isEqualTo(1);
+        assertThat(hs.attempts()).isEqualTo(1);
         assertThat(hs.successes()).isEqualTo(1);
 
         // TodoTool 读面独立（HTTP 调用不影响 todo 计数）
@@ -80,9 +80,9 @@ class TodoHttpComboTest {
         todo.call("{\"action\":\"list\"}");
 
         HttpRequestTool.resetForTest();
-        assertThat(HttpRequestTool.stats().calls()).isZero();
+        assertThat(HttpRequestTool.stats().attempts()).isZero();
 
         // todo 无统一 reset（R40 形状）——实例语义，此处仅验证 http 侧隔离
-        assertThat(HttpRequestTool.stats().calls()).isZero();
+        assertThat(HttpRequestTool.stats().attempts()).isZero();
     }
 }
