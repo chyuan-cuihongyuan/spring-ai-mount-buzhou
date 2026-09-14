@@ -833,6 +833,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 工具执行 | 批预算错误反馈豁免（spec 1526 补强） | 超限批内的结构化错误反馈（模型自纠关键输入且通常很短）豁免截断——截它省不了预算却毁纠错；大结果承担截断（spec 1527） | [spec 1527](docs/spec/1527-batch-budget-error-exempt.md) |
 | 存储执行 | 内存消息存储 load 已序快路径 | O(n) isSorted 检查免 O(n log n) 排序（load 是每轮模型调用的热路径，正常追加天然有序——长会话退化点消除）；乱序（time-travel 恢复序）回退全排序语义零变化（spec 1528） | [spec 1528](docs/spec/1528-load-sorted-fastpath.md) |
 | 文档门禁 | memory/spill 公开类型类级 Javadoc 补齐（五-1 扩散） | 40 个零类级 Javadoc 公开类型（memory 21+spill 19）全部补齐角色一句话——R4 core 门的地模块扩散（spec 1529） | [spec 1529](docs/spec/1529-memory-spill-javadoc.md) |
+| 文档门禁 | 类级 Javadoc 全仓收口（五-1 终轮） | 8 个补齐（AutoConfig×3+JdbcStore 五 SPI 实现——契约消费方可见面）；core 六包外 30 个裁定不补（internal 实现域，门辖界=语义 API 承诺面）（spec 1530） | [spec 1530](docs/spec/1530-javadoc-final-sweep.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

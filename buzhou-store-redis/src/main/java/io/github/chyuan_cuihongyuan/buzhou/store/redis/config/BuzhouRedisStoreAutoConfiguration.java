@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnProperty(prefix = "buzhou.store", name = "type", havingValue = "redis")
 @EnableConfigurationProperties({RedisStoreProperties.class, WriteFailurePolicyProperties.class,
         LeaderElectionProperties.class})
+/** spec 1529 扩散：redis store 模块自装配——五 SPI 的 Redis 实现 bean 装配（buzhou.store.redis.* + write-failure-policy 配置驱动）。 */
 public class BuzhouRedisStoreAutoConfiguration {
 
     @Bean(destroyMethod = "shutdown")

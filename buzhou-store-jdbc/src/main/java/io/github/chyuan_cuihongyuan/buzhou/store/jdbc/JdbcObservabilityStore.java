@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+/** spec 1529 扩散：观测 JDBC 实现——span/事件记录的关系表持久化（含降级包装语义）。 */
 
 public class JdbcObservabilityStore implements ObservabilityStore {
 

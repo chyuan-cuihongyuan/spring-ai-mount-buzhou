@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [Javadoc 全仓收口的形状裁决](../tickets/T2311-javadoc-final-sweep.md) — 8 个补齐（AutoConfig×3+Jdbc SPI×5）；core 六包外 30 个裁定不补（internal 域，门辖界维持）——五-1 终轮闭环。
 - [memory/spill Javadoc 补齐的形状裁决](../tickets/T2309-memory-spill-javadoc-shape.md) — 40 缺全补（角色一句话+spec 引注）；模块级门扩散留候选池；367 用例零回归。
 - [load 已序快路径的形状裁决](../tickets/T2307-load-fastpath-shape.md) — O(n) isSorted 检查免热路径全量排序（正常追加天然有序）；乱序回退全排序；快照语义保持。
 - [批预算错误反馈豁免的形状裁决](../tickets/T2305-error-feedback-exempt-shape.md) — isErrorFeedback 候选跳过（纠错信号保护；全部错误反馈极端批按序截保预算语义）；R29 即时补强。
@@ -94,6 +95,7 @@
 | 31 | 周期预检轮：主区撞并行 mvn 竞争（匿名类 NoClassDefFound）→隔离 worktree 全仓 verify 16 模块绿唯快照门欠账→再生（M 系 BatchResponseBudgetHolder + 并行 NegativeCachingHolder 两类型补账） | 周期 verify + 快照再生 | — | — | — | ✅ |
 | 32 | InMemoryMessageStore.load 已序免排序快路径（热路径退化点消除） | 有序性检查快路径模式（TimSort 先验同款思想） | T2307–T2308 | 1131 | 1528 | ✅ |
 | 33 | memory/spill 40 个公开类型类级 Javadoc 补齐（五-1 扩散） | R4 core 门的地模块扩散 | T2309–T2310 | 1132 | 1529 | ✅ |
+| 34 | 类级 Javadoc 全仓收口（8 补齐 + 六包外辖界裁定，五-1 终轮） | spec 1503/1529 收口 | T2311–T2312 | 1133 | 1530 | ✅ |
 
 
 ## Out of scope

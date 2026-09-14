@@ -34,6 +34,7 @@ import java.util.Map;
         io.github.chyuan_cuihongyuan.buzhou.resilience.capability.BuzhouModelCapabilityProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties.class,
         io.github.chyuan_cuihongyuan.buzhou.resilience.idempotency.BuzhouIdempotencyProperties.class})
+/** spec 1529 扩散：resilience 模块自装配——回退链/金丝雀/并发舱/幂等重试/结构化输出/路由窗口的 bean 装配（buzhou.resilience.* 配置驱动）。 */
 public class BuzhouResilienceAutoConfiguration {
 
     @Bean

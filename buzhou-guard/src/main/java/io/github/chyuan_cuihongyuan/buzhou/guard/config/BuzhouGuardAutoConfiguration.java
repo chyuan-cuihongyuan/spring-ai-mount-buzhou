@@ -48,6 +48,7 @@ import java.util.List;
 @ConditionalOnProperty(prefix = "buzhou.guard", name = "enabled", matchIfMissing = true)
 @org.springframework.boot.context.properties.EnableConfigurationProperties(
         BuzhouPiiVaultProperties.class)
+/** spec 1529 扩散：guard 模块自装配——HITL 危险守卫/审计链/PII/沙箱桥/策略引擎的 bean 装配（buzhou.guard.* 配置驱动 + S2 危险工具自动带入桥 spec 1508）。 */
 public class BuzhouGuardAutoConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuzhouGuardAutoConfiguration.class);
