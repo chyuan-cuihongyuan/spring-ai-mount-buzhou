@@ -646,6 +646,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 配额治理 | 工具配额消耗读面 | 消耗/拒绝/未管辖三桶守恒显形（spec 1068） | [spec 1068](docs/spec/1068-toolquota-stats.md) |
 | 授权治理 | 危险工具守卫判定读面 | HITL 五结局桶守恒显形，升级量可对账（spec 1069） | [spec 1069](docs/spec/1069-dangerous-tool-stats.md) |
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
+| 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -888,6 +889,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 文档治理 | N 系运维手册段 | ops-runbook 第 23 节四族（缓存限流/熔断降级/护栏豁免/工具观测）——spec 1600-1641 全部可运维机制的配置键、观测读数与失控信号集中入档（spec 1642） | [spec 1642](docs/spec/1642-n-runbook.md) |
 | 护栏治理 | 流式 PII 类型级豁免 | replyStreamFilter 创建时生效集剔除（type:TYPE——每轮窗口过滤器生效视图）；StreamTextFilter SPI 无会话上下文故会话级豁免不适用流式面（诚实边界）——820 豁免族四消费者闭环（spec 1643） | [spec 1643](docs/spec/1643-pii-stream-exemption.md) |
 | 工程质量 | 新公开类型 @since 补全 | N 系 15 个 API 快照入档类型的 Javadoc 补 @since——api-surface 面的文档一致性（spec 1644） | [spec 1644](docs/spec/1644-since-annotations.md) |
+| 工程门禁 | API 快照增量再生 | R27 后新增类型（GradientLimiterHolder 等）worktree 再生入档；同文件并行冲突化解（GuardModule.dangerousTools 双方同时加——M 系保留）（spec 1645） | [spec 1645](docs/spec/1645-snapshot-incremental.md) |
 | 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 韧性治理 | 退避抖动模式可配 | jitter-mode（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机——防重试风暴同步最优/DECORRELATED=[base,min(cap,prev×3)] 与前次去相关）——AWS「Exponential Backoff and Jitter」思想，默认 EQUAL 零行为（spec 1631） | [spec 1631](docs/spec/1631-jitter-mode.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |

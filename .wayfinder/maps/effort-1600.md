@@ -154,6 +154,9 @@
 - [R45 形状：@since 补全](../tickets/T2439-r45-since-shape.md) — N 系 15 个新公开类型 Javadoc 补 @since 1.0.0（api 子包语义版本承诺规范——api-surface 入档类型的文档一致性）
 - [R45 验收](../tickets/T2440-r45-since-verify.md) — 15/15 覆盖 + 五模块编译绿（spill 测试挂为并行会话 .m2 旧 jar 域）
 
+- [R46 形状：快照增量再生](../tickets/T2441-r46-snapshot-shape.md) — R27 后新增 GradientLimiterHolder 等类型快照再生（worktree -am）；同文件并行冲突化解（GuardModule.dangerousTools() 双方同时加——M 系版本保留我方撤）
+- [R46 验收](../tickets/T2442-r46-snapshot-verify.md) — ApiSurfaceSnapshotTest 门绿（worktree 实证）+ guard 376 用例（冲突化解后）
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -212,3 +215,4 @@
 | R43 | #1642 | N 系运维手册段（ops-runbook 第 23 节） | T2435–T2436 | 1195 | 1642 | done |
 | R44 | #1643 | 流式 PII 类型级豁免（820 第四消费者，豁免族闭环） | T2437–T2438 | 1196 | 1643 | done |
 | R45 | #1644 | 新公开类型 @since 补全（Javadoc 规范） | T2439–T2440 | 1197 | 1644 | done |
+| R46 | #1645 | API 快照增量再生 + 同文件并行冲突化解 | T2441–T2442 | 1198 | 1645 | done |
