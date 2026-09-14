@@ -127,6 +127,7 @@
 | 57 | 评估剪枝进程级兜底装配（901 装配收口） | RetryBudgetHolder 先例 | T1321–T1322 号段复用注记（prune-holder） | 701 | 958 | ✅ |
 | 58 | API 快照再生轮（EvalPrunePolicyHolder 入档） | G 748 先例 | T1321–T1322 号段复用注记 | 702 | 959 | ✅ |
 | 59 | 958 装配链路 ApplicationContextRunner 测试（薄装配测试轮） | 装配测试模式 | T1321–T1322 号段复用注记 | 702 续 | 958 补 | ✅ |
+| 60 | 中点后周期 verify（隔离 worktree）——15 模块 SUCCESS + examples CancelModeEndToEndTest 1 失败（断言显示同文却失败，疑并行会话 cancel 域改动引入的 pre-existing 问题，非 I 会话产物——I 无 examples 改动；已记录待归属会话排查） | 周期 verify | — | — | — | ✅ 结论入档 |
 | 50 | write_file noclobber 防误覆盖 | csh set -C / cp -n | T1337–T1338 | 698 已被 49 轮占用→改 691 续段实际=698b | 951 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
