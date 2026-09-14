@@ -409,6 +409,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.InMemoryStoreConfig
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.InjectionSnapshot
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LaneStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaderElectorContract
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseAcquireResult
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.LeaseInfo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.MemoryViewProcessor
