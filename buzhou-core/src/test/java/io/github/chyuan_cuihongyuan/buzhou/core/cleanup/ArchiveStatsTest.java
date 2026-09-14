@@ -3,6 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.cleanup;
 import io.github.chyuan_cuihongyuan.buzhou.core.Buzhou;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
+import io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.BuzhouStores;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class ArchiveStatsTest {
         stores.messageStore().append(sid, List.of(new BuzhouMessage(
                 UUID.randomUUID().toString(), sid, 1, 0, Role.USER, "内容",
                 List.of(), null, null, null, Map.of(), Instant.now())));
-        SessionArchiver archiver = new SessionArchiver(stores, null);
+        SessionArchiver archiver = new SessionArchiver(stores, new SessionCleaner(stores));
 
         assertThat(archiver.archive(sid)).isTrue();
 
@@ -45,7 +46,7 @@ class ArchiveStatsTest {
     @Test
     void emptySessionCountsSkipped() {
         BuzhouStores stores = Buzhou.inMemoryStores();
-        SessionArchiver archiver = new SessionArchiver(stores, null);
+        SessionArchiver archiver = new SessionArchiver(stores, new SessionCleaner(stores));
 
         assertThat(archiver.archive("empty-sess")).isFalse();
 
@@ -57,7 +58,7 @@ class ArchiveStatsTest {
     @Test
     void resetForTestZeroesCounters() {
         BuzhouStores stores = Buzhou.inMemoryStores();
-        SessionArchiver archiver = new SessionArchiver(stores, null);
+        SessionArchiver archiver = new SessionArchiver(stores, new SessionCleaner(stores));
         archiver.archive("empty-sess");
         assertThat(SessionArchiver.stats().archiveCalls()).isEqualTo(1);
 
