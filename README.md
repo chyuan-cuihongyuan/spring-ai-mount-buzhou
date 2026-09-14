@@ -856,6 +856,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 工具治理 | 工具目录重名审计 | ToolCatalogDuplicateAudit——工具名清单重名组审计（≥2 同名组、名字典序、去重对比）：HarnessToolCallingManager HashMap 按名索引重名静默覆盖（后到者胜），本地与 MCP server 工具同名遮蔽不可解释——Spring bean 重名/Maven Enforcer 思想，只读不裁决（spec 1428） | [spec 1428](docs/spec/1428-tool-catalog-duplicate-audit.md) |
 
+| 恢复治理 | 运行状态分布与滞后审计 | RunStatusDistribution——恢复快照状态直方（全枚举预置计 0）+turnLag 崩溃暴露窗口（currentTurn−lastCompletedTurn：崩溃将丢的未持久化轮数）+worst offenders 榜（滞后降序容量 3）；RUNNING 淤积与暴露窗口一读显形——Temporal workflow stats 思想（spec 1429） | [spec 1429](docs/spec/1429-run-status-distribution.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

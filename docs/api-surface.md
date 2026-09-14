@@ -2436,3 +2436,8 @@
 - `ToolCatalogDuplicateAudit`（1428——Spring bean 重名 / Maven Enforcer
   思想：工具名字清单重名组审计（≥2 同名组、名字典序）——HashMap 静默
   遮蔽显形，纯函数只读不裁决；嵌套 `Report`/`DuplicateGroup` 不另立面）
+
+- `RunStatusDistribution`（1429——Temporal workflow stats 思想：恢复巡检
+  快照的状态分布审计——statusHistogram 全枚举预置+turnLag 崩溃暴露窗口
+  （currentTurn−lastCompletedTurn）+worst offenders 榜（降序典序容量 3），
+  纯函数；嵌套 `Report`/`TurnLag` 不另立面）

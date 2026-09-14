@@ -328,6 +328,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunStateSnapshot
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunStateTrackerHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunStatus
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunStatusDistribution
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLogEntry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome
