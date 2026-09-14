@@ -22,6 +22,7 @@
 （每轮 shape 票 Resolution 的 gist 逐轮补登于此）
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
+- [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
 
 ## Not yet specified
 
@@ -32,6 +33,7 @@
 | 轮 | 主题 | 借鉴源 | 票 | impl | spec | ✅ |
 |---|------|--------|----|------|------|---|
 | 1 | 开张轮：SessionObserver 通知面异常隔离（12 处裸 forEach → notifyObservers 隔离派发） | Guava EventBus SubscriberExceptionHandler | T2251–T2252 | 1103 | 1500 | ✅ |
+| 2 | HookChain 事件通知面逐 hook 隔离（通知面/裁决面分离） | spec 1500 思想在 hook 域的同源应用 | T2253–T2254 | 1104 | 1501 | ✅ |
 
 
 ## Out of scope
