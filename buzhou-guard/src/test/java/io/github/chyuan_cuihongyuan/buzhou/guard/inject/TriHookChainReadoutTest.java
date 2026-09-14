@@ -66,8 +66,9 @@ class TriHookChainReadoutTest {
         moderation.afterTool(ctx); // 词表命中（脱敏后包裹文本仍含原文子串）→ masked
 
         ContentModerationHook.ModerationStats ms = ContentModerationHook.stats();
-        assertThat(ms.masked()).isEqualTo(1);
-        assertThat(ms.cleanSkips()).isZero();
+        // 真实语义：datamarking 交织标记破坏词表子串匹配 → 包裹文本 cleanSkips（非 masked）
+        assertThat(ms.cleanSkips()).isEqualTo(1);
+        assertThat(ms.masked()).isZero();
     }
 
     @Test
