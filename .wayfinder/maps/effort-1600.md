@@ -55,6 +55,9 @@
 - [R12 形状：孤类普查+熔断遥测接线](../tickets/T2373-r12-census-shape.md) — R11 模式推广：全仓普查确认孤类 15 项（19 类）+疑似 6 项入档 spec 1611；本轮修复 resilience 域两项（CircuitCrashLoopDetector/ HalfOpenProbeStats——withTelemetry 注入 + 跳闸/恢复/半开探测喂点 + 装配恒挂）
 - [R12 验收](../tickets/T2374-r12-census-verify.md) — 遥测接线三断言（crash-loop 闩锁语义/半开探测成败计数/未注入零行为）+ resilience 380 用例零回归
 
+- [R13 形状：guard 孤类装配面](../tickets/T2375-r13-guard-orphans-shape.md) — spec 1611 孤类修复第二弹：ToolRoleGuardHook（141 角色权限）/InputFloodGuardHook（167 泛洪防护）自 Builder 声明即注册（此前 GuardModule 无装配路径），默认未声明零注册
+- [R13 验收](../tickets/T2376-r13-guard-orphans-verify.md) — 装配三断言（permissions 声明注册/泛洪配置注册/默认双双零注册）+ guard 334 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -80,3 +83,4 @@
 | R10 | #1609 | WebhookOutbox 锁迁移（spec 1606 中危 #1：dispatcher 虚拟线程放大） | T2369–T2370 | 1162 | 1609 | done |
 | R11 | #1610 | 离群驱逐生产接线 + 分类感知（spec 149 孤类救活） | T2371–T2372 | 1163 | 1610 | done |
 | R12 | #1611 | 孤类普查（15 项入档）+ 熔断遥测接线（spec 811/836 喂点落地） | T2373–T2374 | 1164 | 1611 | done |
+| R13 | #1612 | guard 孤类装配面（spec 141/167 两 hook 救活） | T2375–T2376 | 1165 | 1612 | done |
