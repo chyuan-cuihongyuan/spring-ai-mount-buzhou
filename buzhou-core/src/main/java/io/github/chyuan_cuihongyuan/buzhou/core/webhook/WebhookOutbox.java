@@ -221,6 +221,27 @@ final class WebhookOutbox {
     }
 
     /**
+     * impl-695 / spec 949 续：due 索引孤儿审计——indexEntry 存在但主记录缺失
+     * 的条目数（删除时序缺陷信号；正常路径 markDead/update 双删应无孤儿）。
+     * 纯读面；扫描序无保证（计数语义）。
+     */
+    synchronized int orphanIndexCount() {
+        int orphans = 0;
+        for (Map.Entry<String, StateEntry> e
+                : store.scanByPrefix(SESSION_ID, DUE_PREFIX).entrySet()) {
+            String indexKey = e.getKey();
+            if (!indexKey.startsWith(DUE_PREFIX)) {
+                continue;
+            }
+            String eventId = e.getValue().value();
+            if (store.get(SESSION_ID, OUTBOX_PREFIX + eventId).isEmpty()) {
+                orphans++;
+            }
+        }
+        return orphans;
+    }
+
+    /**
      * impl-694 / spec 948：outbox 重试次数分布（attempts → 条数，TreeMap 升序）——
      * 「重试积压集中在首轮还是深轮」一读即知（attempts=0 首投、≥1 退避重试中）。
      * 纯读面零行为变化。

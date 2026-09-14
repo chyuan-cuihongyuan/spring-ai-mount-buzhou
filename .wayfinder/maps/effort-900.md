@@ -55,6 +55,7 @@
 - [SessionIndexStore 契约校验套件](../tickets/T1321-index-contract-shape.md) — 五项语义检查（往返一致/覆盖幂等/delete 幂等/DELETED 排除/purge 计数+limit+ACTIVE 保护）+ 内存接入——契约系列第五站（spec 945）。
 - [webhook 死信环形上限](../tickets/T1317-deadletter-cap-shape.md) — MAX_DEAD_LETTERS=256 + evictOldestDeadIfFull（createdAt 升序丢最旧，保留最新排障价值）——有界纪律（ErrorSignatures/TagCardinalityGuard 同先例），渐进收敛无尖峰。
 - [数据集输入长度画像](../tickets/T1327-input-profile-shape.md) — EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars，R-7 同口径内联）——评估成本画像，超长项与预算失控点探测（票号改号：T1317/T1318 与 spec 937 冲突）。
+- [outbox due 索引孤儿审计](../tickets/T1333-orphan-audit-shape.md 之外独立) — WebhookOutbox.orphanIndexCount（indexEntry 存在但主记录缺失的条目数，删除时序缺陷信号）——配对完整性思想（spec 949 续）。
 - [pass@k×防抖门组合补验](../tickets/T1331-passk-gate-combo-shape.md) — 双口径并存语义固化（单次频率门 fail 与 pass@k 概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径（80/902/908）组合收口。
 - [LeaderElector 契约校验套件](../tickets/T1321-leader-contract-shape.md) — 五项语义检查（空位获取新纪元/重入幂等同 epoch/跟随态/resign 重取/inspect 一致性「不再持有」放宽口径）+ 内存接入——契约系列第六站（spec 954，与对方 R40 读数面分轴）。
 - [gate 历史按数据集过滤读面](../tickets/T1321-history-filter-shape.md) — EvalGate.historyOf（datasetName 精确匹配新→旧投影，null/blank fail-fast）——spec 914 历史面查询视图（spec 956）。
@@ -121,6 +122,7 @@
 | 53 | LeaderElector 契约校验套件 | spec 922 契约系列 | T1321–T1322 号段复用注记（leader-contract） | 699 续 | 954 | ✅ |
 | 54 | API 快照再生轮（LeaderElectorContract/SummaryVersionAudit 入档） | G 748 先例 | T1321–T1322 号段续注记 | 699 续 | 955 | ✅ |
 | 55 | gate 历史按数据集过滤读面 | spec 914 查询视图 | T1321–T1322 号段复用注记（history-filter） | 694 续 | 956 | ✅ |
+| 56 | outbox due 索引孤儿审计 | 配对完整性思想 | T1321–T1322 号段复用注记 | 694 续 | 957 | ✅ |
 | 50 | write_file noclobber 防误覆盖 | csh set -C / cp -n | T1337–T1338 | 698 已被 49 轮占用→改 691 续段实际=698b | 951 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |

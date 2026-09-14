@@ -598,6 +598,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 748-execution-policy-readout（补登） | I/J 会话产出引用补全 | [spec 748](docs/spec/748-execution-policy-readout.md) |
 | 观测治理 | 749-final-verification（补登） | I/J 会话产出引用补全 | [spec 749](docs/spec/749-final-verification.md) |
 | 评估闭环 | gate 阈值漂移读面 | EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形，914 历史面聚合视图（spec 938） | [spec 938](docs/spec/938-threshold-drift.md) |
+| 模型韧性 | outbox due 索引孤儿审计 | WebhookOutbox.orphanIndexCount（indexEntry 存在但主记录缺失的条目数）——配对完整性思想，删除时序缺陷信号（spec 957） | [spec 957](docs/spec/957-orphan-index-audit.md) |
 | 评估闭环 | gate 历史按数据集过滤读面 | EvalGate.historyOf（datasetName 精确匹配新→旧投影，null/blank fail-fast）——spec 914 历史面查询视图（spec 956） | [spec 956](docs/spec/956-history-filter.md) |
 | 评估闭环 | 快照数据集隔离性深验 | 三断言（源变靶不变/删源靶活/nextId 续起不碰撞）——spec 187 隔离语义收口薄加固轮（spec 949） | [spec 949](docs/spec/949-snapshot-isolation.md) |
 | 评估闭环 | 数据集输入长度画像 | EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars）——评估成本画像，超长项预算失控点（spec 942） | [spec 942](docs/spec/942-input-profile.md) |
