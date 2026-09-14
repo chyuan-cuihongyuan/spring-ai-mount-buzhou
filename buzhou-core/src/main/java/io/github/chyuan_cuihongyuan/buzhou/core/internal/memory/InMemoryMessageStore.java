@@ -64,10 +64,29 @@ public class InMemoryMessageStore implements MessageStore {
     @Override
     public List<BuzhouMessage> load(String sessionId) {
         List<BuzhouMessage> messages = bySession.getOrDefault(sessionId, new CopyOnWriteArrayList<>());
+        // spec 1528 / T2307：已序免排序快路径——正常轮次推进下追加天然有序（turnSeq/
+        // seqInTurn 单调），O(n) 检查免 O(n log n) 排序（热路径：每轮模型调用都 load 历史，
+        // 长会话退化点）；乱序（time-travel fork/恢复）回退全排序
+        if (isSorted(messages)) {
+            return List.copyOf(messages);
+        }
         return messages.stream()
                 .sorted(Comparator.comparingInt(BuzhouMessage::turnSeq)
                         .thenComparingInt(BuzhouMessage::seqInTurn))
                 .toList();
+    }
+
+    private static boolean isSorted(List<BuzhouMessage> messages) {
+        for (int i = 1; i < messages.size(); i++) {
+            BuzhouMessage prev = messages.get(i - 1);
+            BuzhouMessage curr = messages.get(i);
+            if (prev.turnSeq() > curr.turnSeq()
+                    || (prev.turnSeq() == curr.turnSeq()
+                            && prev.seqInTurn() >= curr.seqInTurn())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

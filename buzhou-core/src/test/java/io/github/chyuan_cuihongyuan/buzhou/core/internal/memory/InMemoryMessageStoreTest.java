@@ -45,4 +45,18 @@ class InMemoryMessageStoreTest {
                 .get().extracting(BuzhouMessage::content).isEqualTo("content-m1");
         assertThat(store.findById("nope")).isEmpty();
     }
+
+    /** spec 1528 / T2307：乱序插入（time-travel 恢复序）load 仍正确排序——快路径回退全排序。 */
+    @org.junit.jupiter.api.Test
+    void loadShouldSortOutOfOrderInsertions() {
+        io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemoryMessageStore store =
+                new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemoryMessageStore();
+        store.append("s1", java.util.List.of(
+                msg("m3", "s1", 2, 0), msg("m2", "s1", 1, 1),
+                msg("m1", "s1", 1, 0), msg("m4", "s1", 3, 0)));
+        java.util.List<BuzhouMessage> loaded = store.load("s1");
+        org.assertj.core.api.Assertions.assertThat(loaded)
+                .extracting(m -> m.turnSeq() + ":" + m.seqInTurn())
+                .containsExactly("1:0", "1:1", "2:0", "3:0");
+    }
 }
