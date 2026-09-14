@@ -136,6 +136,9 @@
 - [R39 形状：金丝雀 yml 装配](../tickets/T2427-r39-canaryyml-shape.md) — buzhou.guard.leak-canary.salt 声明即启用（salt 防离线推演建议环境变量注入）；编程面 spec 1625 已验，此处补 autoconfig 传导与装配产物复验
 - [R39 验收](../tickets/T2428-r39-canaryyml-verify.md) — 两断言（salt 装配链种植检出+自回显不算/无 salt 零 hook）+ guard 370 用例
 
+- [R40 形状：梯度限流器观测接线](../tickets/T2429-r40-gradient-shape.md) — spec 1617 装配面：executeToolCalls 批耗时经 GradientLimiterHolder 喂入（观测先行不接 tryAcquire 闸——批时延是全局工具路径负载天然信号，闸接入待数据积累独立裁决）
+- [R40 验收](../tickets/T2430-r40-gradient-verify.md) — 两断言（Holder 喂入 View 读数/install 替换重置）+ 梯度域 9 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -188,3 +191,4 @@
 | R37 | #1636 | 校准系数建议（偏差读数可操作化） | T2423–T2424 | 1189 | 1636 | done |
 | R38 | #1637 | 慢调用维度 yml 装配（circuit 组扩参） | T2425–T2426 | 1190 | 1637 | done |
 | R39 | #1638 | 泄漏金丝雀 yml 装配（spec 1625 配置面补全） | T2427–T2428 | 1191 | 1638 | done |
+| R40 | #1639 | 梯度限流器观测接线（spec 1617 装配面） | T2429–T2430 | 1192 | 1639 | done |

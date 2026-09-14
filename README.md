@@ -874,6 +874,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 预算治理 | 校准系数建议 | calibrationFactorSuggestion——持续偏差给出把估算拉回真值的乘法系数（高估→<1 调低，一阶换算 1/(1+e)）；样本不足/零偏差 empty（不基于噪声给建议）——spec 1618 读数的可操作化（spec 1636） | [spec 1636](docs/spec/1636-calibration-factor.md) |
 | 韧性治理 | 慢调用维度 yml 装配 | circuit.slow-call-duration 声明即启用（rate 阈缺省 0.5 与失败率阈同档、可配 (0,1]）——spec 1628 链式注入补全配置面，语义归位 Circuit 组（spec 1637） | [spec 1637](docs/spec/1637-slow-call-yml.md) |
 | 护栏治理 | 泄漏金丝雀 yml 装配 | buzhou.guard.leak-canary.salt 声明即启用（salt 是防离线推演的秘密——建议环境变量注入）——spec 1625 编程面补全配置面（spec 1638） | [spec 1638](docs/spec/1638-leak-canary-yml.md) |
+| 并发治理 | 梯度限流器观测接线 | executeToolCalls 批耗时经 GradientLimiterHolder 喂入梯度限流器（观测先行——View 读数显形全局工具路径延迟梯度；tryAcquire 闸接入待数据积累独立裁决）——spec 1617 装配面（spec 1639） | [spec 1639](docs/spec/1639-gradient-wiring.md) |
 | 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 韧性治理 | 退避抖动模式可配 | jitter-mode（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机——防重试风暴同步最优/DECORRELATED=[base,min(cap,prev×3)] 与前次去相关）——AWS「Exponential Backoff and Jitter」思想，默认 EQUAL 零行为（spec 1631） | [spec 1631](docs/spec/1631-jitter-mode.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |

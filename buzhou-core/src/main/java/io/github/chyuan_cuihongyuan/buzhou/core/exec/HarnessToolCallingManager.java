@@ -370,6 +370,20 @@ public class HarnessToolCallingManager implements ToolCallingManager {
         if (toolCalls.isEmpty()) {
             return delegate.executeToolCalls(prompt, chatResponse);
         }
+        // spec 1639 / T2429：工具批耗时喂梯度限流器（观测先行——不接 tryAcquire 闸；
+        // 批时延是全局工具路径负载的天然信号，数据积累后闸接入独立裁决）
+        long batchStartNs = System.nanoTime();
+        try {
+            return executeToolCallsTracked(prompt, chatResponse, toolCalls);
+        } finally {
+            GradientLimiterHolder.limiter().record(
+                    (System.nanoTime() - batchStartNs) / 1_000_000);
+        }
+    }
+
+    private ToolExecutionResult executeToolCallsTracked(Prompt prompt, ChatResponse chatResponse,
+            List<AssistantMessage.ToolCall> toolCalls) {
+        AssistantMessage assistantMessage = chatResponse.getResult().getOutput();
 
         ToolCallingChatOptions options = prompt.getOptions() instanceof ToolCallingChatOptions t
                 ? t : ToolCallingChatOptions.builder().build();
