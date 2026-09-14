@@ -46,7 +46,7 @@ R23 令牌桶水位读面(Guava RateLimiter ≈51K)【高危待勘 resilience �
 R24 检查点年龄水位(Flink checkpoint age ≈25K)【高危待勘】→core｜
 R25 舱壁队列水位读面(Resilience4j bulkhead ≈10K)【高危待勘】→resilience｜
 R26 导出器丢弃计数读面(Jaeger exporter drop ≈21K)【高危待勘 observe-otel 队列】→observe-otel｜
-R27 查询结果上限守卫(Grafana query limit ≈68K)【高危待勘 observe-dashboard】→observe-dashboard｜
+R6 ✅ 换题落地=Dashboard 查询页守卫（原 R27 题提前到 R6，实证 listSessions 零钳制缺陷）｜
 R28 日志字段预算读面(OTel logrecord limits, otel 规范/Java ≈2K 借规范思想)【高危待勘】→observability｜
 R29 PII 合成探针自查(spaCy NER recall probe ≈31K)→guard【高危待勘 PiiDetector 面】｜
 R30 重连计数读面(Redisson reconnect ≈36K)【高危待勘 store-redis 连接 seam】→store-redis｜

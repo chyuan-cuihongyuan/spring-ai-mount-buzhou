@@ -765,6 +765,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 会话治理 | 会话 id 熵审计 | SessionIdEntropyAudit——字母表下界估计（观测字符类保守求和）+bits=length×log2(alphabet) 下界+四档闭集（WEAK&lt;64 时间戳档/STRONG≥112 UUIDv4 档）+批量四桶，弱 id（可猜串/自增）从静默变显形——nanoid 熵计算器思想（spec 1404） | [spec 1404](docs/spec/1404-session-id-entropy-audit.md) |
 
+| 观测治理 | 查询页守卫与游标可读化 | DashboardQueryService——实证修复 listSessions 零钳制缺陷（size=1000 万即无界读 store、size≤0 subList 异常）+两路径裸 NFE 游标解析：MAX_PAGE_SIZE=200 常量钳制+可读 IAE，翻页语义逐位不变——Grafana query limit 思想（spec 1405） | [spec 1405](docs/spec/1405-dashboard-query-page-guard.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
