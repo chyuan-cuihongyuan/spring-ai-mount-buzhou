@@ -290,6 +290,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanKind
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanParentIntegrityAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanRecorder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanStatus
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanTreeTopology
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore

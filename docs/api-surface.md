@@ -2372,3 +2372,8 @@
   chatForEntity 结构化输出漏斗五计数（attempts/firstPassParsed/reasks/
   reaskParsed/failures）双守恒式+firstPassRate 派生，进程级静态读面；
   嵌套 `Snapshot` 不另立面）
+
+- `SpanTreeTopology`（1414——Jaeger DAG 结构形状思想：Span 集合树拓扑
+  分析——深度（根=1）/扇出/根数/孤儿计数（明细归 SpanParentIntegrityAudit）/
+  kind 直方（数量降序平名典序）+父引用环防护，纯函数零 IO；嵌套
+  `Topology` 不另立面）

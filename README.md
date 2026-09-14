@@ -792,6 +792,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 会话治理 | 结构化输出 REASK 读数 | StructuredOutputStats——chatForEntity 漏斗五计数（attempts/firstPassParsed/reasks/reaskParsed/failures）双守恒式闭合+firstPassRate 模型 JSON 首过合规率派生（全零 -1 哨兵）；REASK 语义逐位不变——Instructor max_retries 可观测面思想（spec 1413） | [spec 1413](docs/spec/1413-structured-output-stats.md) |
 
+| 观测治理 | Span 树拓扑读面 | SpanTreeTopology——Span 集合树结构形状分析：深度（根=1）/单节点最大扇出/根数/孤儿计数/kind 直方（数量降序）+父引用环防护（visited 收敛不炸栈）；与 Timings 族时延维正交——Jaeger DAG 思想（spec 1414） | [spec 1414](docs/spec/1414-span-tree-topology.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
