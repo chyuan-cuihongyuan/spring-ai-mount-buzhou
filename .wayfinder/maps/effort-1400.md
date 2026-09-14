@@ -63,3 +63,4 @@
 - [悬空轮检测器的形状裁决](../tickets/T2177-dangling-turn-shape.md) — DanglingTurnDetector 纯函数（core/message）：按 turnSeq 分组——轮内有 USER 无 ASSISTANT 即悬空（TOOL 链不豁免、仅 TOOL/SYSTEM 轮不算）+样本封顶 8 升序+hasDangling 哨兵——Temporal activity 检测思想，取消/中断残留的「问了没答」形态显形。
 - [L 会话阶段对账轮的形状裁决](../tickets/T2181-l-audit-shape.md) — **里程碑对账轮**：LSessionLedgerAuditTest 对账测试（范围自扩展+四面互证：票对公式/impl ±1 窗/README 行/spec 号连续性）——同批修复实证漂移：R31-R39 票号 +2 重编号、R39 effort/spec 错标 1439→1438、impl 1083/1084/1085 置换——J/K 对账轮先例 + SRE Production Readiness Review 思想。
 - [Spill 冷热分层访问审计的形状裁决](../tickets/T2183-spill-tiering-shape.md) — SpillTieringAudit 纯函数（spill）：读事件按 uri 聚合对照存量全集——never/single/multi 三桶+hotRatio/coldRatio 派生（空库 -1 哨兵）——MinIO tiering/S3 lifecycle 思想（与 843/815 三者辨义）。
+- [门阈值敏感性扫描的形状裁决](../tickets/T2185-gate-sensitivity-shape.md) — GateThresholdSensitivity 纯函数（core/eval）：analyze(scores, threshold, δ)→δ 带计数+tighten/loosen 翻转分向+sensitivityRatio 派生（左闭右开带、-1 哨兵、δ 负值 fail-fast）——scikit-learn validation_curve 思想。

@@ -2484,3 +2484,8 @@
   访问频率分层审计——读事件按 uri 聚合对照存量全集：never/single/multi
   三桶+hotRatio/coldRatio 派生（空库 -1 哨兵），纯函数；嵌套
   `TieringReport` 不另立面）
+
+- `GateThresholdSensitivity`（1442——scikit-learn validation_curve 思想：
+  评估门阈值敏感性扫描——δ 带 [threshold−δ, threshold+δ) 内分数计数
+  +tighten/loosen 翻转分向+sensitivityRatio 派生（越低越稳健），纯函数；
+  嵌套 `SensitivityReport` 不另立面）

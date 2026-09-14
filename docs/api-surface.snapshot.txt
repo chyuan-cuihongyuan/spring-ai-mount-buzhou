@@ -140,6 +140,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalScore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalScoreAnalytics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GateThresholdSensitivity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeAgreement
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeCalibration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.LlmJudgeEvaluator

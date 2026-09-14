@@ -934,6 +934,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | Spill 治理 | Spill 冷热分层访问审计 | SpillTieringAudit——读事件按 uri 聚合对照存量全集：never（从未回读冷数据）/single（一次性消费）/multi（≥2 热点）三桶+hotRatio/coldRatio 占比派生（空库 -1 哨兵）；TTL/清理策略与预热依据显形——MinIO tiering 思想（spec 1441） | [spec 1441](docs/spec/1441-spill-tiering-audit.md) |
 
+| 评估治理 | 门阈值敏感性扫描 | GateThresholdSensitivity——analyze(scores, threshold, δ) 扫 δ 带 [threshold−δ, threshold+δ)：带内分数计数+tightenFlips 上调翻 FAIL/loosenFlips 下调翻 PASS 分向+sensitivityRatio 敏感率派生；门立在分数稀疏带还是密集带一读显形——scikit-learn validation_curve 思想（spec 1442） | [spec 1442](docs/spec/1442-gate-threshold-sensitivity.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
