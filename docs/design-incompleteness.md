@@ -89,7 +89,7 @@
 
 ## 六、设计气味（判断项，摘重）
 
-1. **契约实现漂移（最重）**：`DegradingObservabilityStore` 在 jdbc/redis 各一份且已分叉——jdbc 版（:112-113）有 `buzhou.store.write.failures{policy=degrade}` 指标，redis 版缺失；同名降级策略两库行为不一致。
+1. **契约实现漂移（最重）**：`DegradingObservabilityStore` 在 jdbc/redis 各一份且已分叉（✅ 指标分叉已修复：spec 1515；两份并存的结构收敛为 major 版重构候选）——jdbc 版（:112-113）有 `buzhou.store.write.failures{policy=degrade}` 指标，redis 版缺失；同名降级策略两库行为不一致。
 2. **死代码与双轨规范化**：`AuditChain.java:160` `verifySignature` 无调用方（逻辑已迁 `AuditChainVerifier.SignatureOps:113`，方法体一字不差）；`Jcs.write/writeObject` 与 `writeNode`（52-147）双轨；`ArgumentFingerprint.canonicalJson:42` 与 Jcs 两套「规范化 JSON」——安全哈希材质口径有漂移风险。
 3. **望远镜构造器**：`DefaultAgentSession.java:117-205` 七个构造器（10→16 参同前缀叠加）——Data Clumps，宜打包参数 record/Builder（叠加构造器属二进制兼容政策遗产，major 版收拢）。
 4. **Divergent Change**：`DefaultAgentRuntime.java`（680 行）兼 spawn/fork/export-import/租约续约/优雅停机/全局监听器；导出导入（:222-310）与续约（:580-612）可拆协作者；另有三处同形状「遍历扩展点→try→catch→WARN 拼接」重复（:194-201/:236-245/:290-296）。
@@ -101,7 +101,7 @@
 
 ## 七、文档间残留矛盾（未同步，需裁定口径）
 
-1. **机制计数口径**：README「九大机制」+ 生产级纵深分节 vs CLAUDE.md「十大机制」（韧性层入列）——叙事 framing 差，建议统一为「9 + 韧性 = 10」或 README 升韧性为第十机制。
+1. **机制计数口径**（✅ 已统一：spec 1515——README 升十大机制）：README「九大机制」+ 生产级纵深分节 vs CLAUDE.md「十大机制」（韧性层入列）——叙事 framing 差，建议统一为「9 + 韧性 = 10」或 README 升韧性为第十机制。
 2. **perf 口径**：spec 51 §C「rateTurn 写入 ≤10ms 量级」 vs 哨兵硬顶 20ms（`PerfEffort10SentinelsTest.java:41`、docs/perf/baseline.md:56）。
 3. **promptfoo star 数**：oss-perimeter-hardening.md:15/71/85 称 ~5K★ vs redteam/README.md:3 与 oss-perfect-tier23.md 称 24,206★。
 4. **api-surface.md 主清单与 snapshot 数量口径差**：md 为散文清单（实测约 414 条），snapshot 466 条为黄金面——建议 md 头部注明「以 snapshot 为准」。

@@ -22,9 +22,9 @@ Spring AI 解决了「如何把模型、工具、Advisor 链接到一起」的�
 - **危险操作无护栏**——删库、发版、改线上配置这类不可逆操作，缺乏框架级人工确认（HITL）。
 - **状态记不住又不可靠**——跨实例续接、悬空调用修复、长产物读写，每家都要自己造一遍。
 
-Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐面向生产场景所需的稳定性与可观测性——目前为实验性（alpha），详见[项目状态](#项目状态)。
+Buzhou 把这些「Agent 运行时」该有的能力收敛成十大机制，作为一层 Harness 挂在 Spring AI 之上。你的 `ChatClient` / `ChatModel` 不变，Buzhou 只在外围补齐面向生产场景所需的稳定性与可观测性——目前为实验性（alpha），详见[项目状态](#项目状态)。
 
-## 九大机制
+## 十大机制
 
 | # | 机制 | 一句话 | 模块 |
 |---|------|--------|------|
@@ -37,12 +37,13 @@ Buzhou 把这些「Agent 运行时」该有的能力收敛成九大机制，作�
 | 7 | **原子工具** | 框架内置最小可复用工具集：文件读写、命令执行、HTTP 调用、任务清单等 | `buzhou-tools` |
 | 8 | **Hook 护栏体系** | 长产物读写护栏、HITL 危险操作人工审核、Hook→state→Attachment 联动闭环（补失忆范式） | `buzhou-guard` |
 | 9 | **持久化 SPI** | 五大存储 SPI（Message / Summary / SessionState / SessionLease / Observability）+ 内存/JDBC/Redis 实现，按需切换 | `buzhou-core` / `buzhou-store-jdbc` / `buzhou-store-redis` |
+| 10 | **模型韧性层** | 瞬断重试（幂等门+瞬断白名单）、回退链、金丝雀、统一超时、归一化错误分类、onModelError 兜底 | `buzhou-resilience` |
 
 > 领域术语以 [CONTEXT.md](CONTEXT.md) 为准；各机制的完整设计见 [docs/spec/](docs/spec/)（00-overview 总入口 + 机制详设 01–55）。
 
 ## 生产级纵深（effort #5 新增）
 
-九大机制之上的运营级能力（详设 spec 15–23）：
+十大机制之上的运营级能力（详设 spec 15–23）：
 
 | 能力 | 一句话 | 详设 |
 |------|--------|------|
@@ -804,6 +805,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 文档门禁 | 配置全键表 config-reference（F9 闭环） | docs/config-reference.md 三段式全键表——57 record/198 组件键 + fromYml 子键（4 模块）+ Environment 直读键（34 个），spec 21 承诺落地（spec 1512） | [spec 1512](docs/spec/1512-config-reference.md) |
 | 工程卫生 | 中断恢复与异常上下文（五-4 部分/五-8） | mcp shutdown 排空等待不再吞 InterruptedException（收窄 catch + 恢复中断位提前停止——JCIP 纪律）；DiskSpillStore 9 处裸异常 message 补操作名+路径/uri/sessionId 上下文（spec 1513） | [spec 1513](docs/spec/1513-interrupt-context-hygiene.md) |
 | 工程卫生 | SHA-256 裸异常迁移 CONFIG_INVALID + 审计死代码 | 11 处 IllegalStateException("SHA-256 不可用")（全量重扫较评审清单多 5 处）统一迁移结构化 BuzhouException(CONFIG_INVALID/FATAL)（可分类可观测）；AuditChain.verifySignature 零调用死方法删除（逻辑已迁 AuditChainVerifier）（spec 1514） | [spec 1514](docs/spec/1514-sha256-config-invalid.md) |
+| 存储治理 | 降级存储契约对齐 + 机制计数口径（六-1/七-1） | redis 版 DegradingObservabilityStore 补 buzhou.store.write.failures{policy=degrade} 指标（jdbc 先例同款——同名策略两库观测一致）；README 九大机制升十大（模型韧性层入列，与 CLAUDE 口径统一）（spec 1515） | [spec 1515](docs/spec/1515-store-contract-align.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

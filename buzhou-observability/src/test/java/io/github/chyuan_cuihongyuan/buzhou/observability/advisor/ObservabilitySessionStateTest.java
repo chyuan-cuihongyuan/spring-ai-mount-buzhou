@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.observability.advisor;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContext;
+import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanContextCarrier;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanHandle;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanKind;
 import io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanRecorder;
@@ -145,7 +146,7 @@ class ObservabilitySessionStateTest {
         state.onOpen();
         state.onTurnStart(1, "start");
         state.accumulateTurnUsage(10, 5);
-        state.nextIteration();
+        state.nextIteration("sess-1");
         state.onTurnEnd(1, "done");
         state.onTurnStart(2, "x".repeat(300)); // 长输入截断 + 计数器重置
         state.onTurnEnd(2, "done");
@@ -172,8 +173,8 @@ class ObservabilitySessionStateTest {
         state.onOpen();
         state.onTurnStart(1, null);
         state.accumulateTurnUsage(7, 3);
-        state.nextIteration();
-        state.nextIteration();
+        state.nextIteration("sess-1");
+        state.nextIteration("sess-1");
         state.onTurnEnd(1, "reply");
         state.onTurnEnd(1, "reply"); // 二次幂等
 
