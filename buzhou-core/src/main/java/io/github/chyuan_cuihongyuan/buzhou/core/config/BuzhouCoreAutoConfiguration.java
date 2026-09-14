@@ -1370,11 +1370,13 @@ public class BuzhouCoreAutoConfiguration {
             org.springframework.core.env.Environment env) {
         int maxAttempts = env.getProperty("buzhou.core.tool-transient-retry.max-attempts",
                 Integer.class, 3);
-        java.time.Duration initialBackoff = env.getProperty(
-                "buzhou.core.tool-transient-retry.initial-backoff", java.time.Duration.class,
+        // spec 1531：Duration 直读在部分属性源下无转换器（装配测试实证）——
+        // DurationStyle 支持 1s/250ms 简写与 ISO 双格式（Spring Boot 宽松时长语义）
+        java.time.Duration initialBackoff = parseDuration(
+                env.getProperty("buzhou.core.tool-transient-retry.initial-backoff"), 
                 java.time.Duration.ofSeconds(1));
-        java.time.Duration maxBackoff = env.getProperty(
-                "buzhou.core.tool-transient-retry.max-backoff", java.time.Duration.class,
+        java.time.Duration maxBackoff = parseDuration(
+                env.getProperty("buzhou.core.tool-transient-retry.max-backoff"),
                 java.time.Duration.ofSeconds(4));
         java.util.List<String> overrides = io.github.chyuan_cuihongyuan.buzhou.core.config.ConfigMaps
                 .sub(env, "buzhou.core.tool-transient-retry")
@@ -1386,6 +1388,21 @@ public class BuzhouCoreAutoConfiguration {
                                 maxAttempts, initialBackoff, maxBackoff, true),
                         java.util.Set.copyOf(overrides)));
         return io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder.Holder::reset;
+    }
+
+    /** spec 1531：宽松时长解析（1s/250ms 简写 + ISO；null/空回默认）。 */
+    private static java.time.Duration parseDuration(String raw, java.time.Duration fallback) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return org.springframework.boot.convert.DurationStyle.detect(raw)
+                    .parse(raw, java.time.temporal.ChronoUnit.MILLIS);
+        } catch (RuntimeException e) {
+            throw new io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouConfigurationException(
+                    "buzhou.core.tool-transient-retry 时长（" + raw + "）非法",
+                    "用 250ms/1s/10m 简写或 ISO-8601（PT0.25S）", e);
+        }
     }
 
     /**
