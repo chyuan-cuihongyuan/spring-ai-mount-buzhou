@@ -89,6 +89,7 @@
 | 28 | serial-groups yml 通道（F2 残留收口——yml 覆盖注解合并） | design-incompleteness F2 | T2301–T2302 | 1128 | 1525 | ✅ |
 | 29 | 批级工具结果回喂预算（贪心截大者，opt-in） | Anthropic 工具结果 token 预算思想 | T2303–T2304 | 1129 | 1526 | ✅ |
 | 30 | 批预算错误反馈豁免（spec 1526 即时补强） | 「错误即反馈」通道语义的预算域延伸 | T2305–T2306 | 1130 | 1527 | ✅ |
+| 31 | 周期预检轮：主区撞并行 mvn 竞争（匿名类 NoClassDefFound）→隔离 worktree 全仓 verify 16 模块绿唯快照门欠账→再生（M 系 BatchResponseBudgetHolder + 并行 NegativeCachingHolder 两类型补账） | 周期 verify + 快照再生 | — | — | — | ✅ |
 
 
 ## Out of scope
