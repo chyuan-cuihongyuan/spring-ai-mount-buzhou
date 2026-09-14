@@ -46,3 +46,4 @@
 - [实验分桶均衡审计的形状裁决](../tickets/T2143-experiment-balance-shape.md) — ExperimentBalanceAudit 纯函数（core/experiment）：两段式 forBuckets→withAssignments（零桶计入不能装不存在）+最大份额偏移≤5pp 含端点（1e-9 卫生余量）+无样本 -1 哨兵不冒充均衡——A/A test 思想。
 - [Hook 顺序碰撞审计的形状裁决](../tickets/T2145-hook-order-audit-shape.md) — HookOrderAudit 纯函数（core/hook）：analyze→同序碰撞组显形（组内名字典序=兜底序即脆性，重命名即变序；组间 order 升序；唯一 order 不占报告）——Spring ordered-bean 审计思想，只读不裁决。
 - [Embedding 质量自查探针的形状裁决](../tickets/T2147-embedding-selfcheck-shape.md) — EmbeddingSelfCheck 纯函数（core/spi）：内建合成句对（相似×2+无关对照×2）穿测 EmbeddingProvider——序判定（cos(sim)>cos(dis) 逐对+minMargin>0，免绝对阈值口径）+orderHolds 回归哨兵+dimension 显形——OpenAI cookbook/sentence-transformers 语义自检思想。
+- [轮次限速 per-key 拒绝榜的形状裁决](../tickets/T2149-turn-ratelimit-blocked-shape.md) — TurnRateLimitHook 增量 blockedByKeys（256 折叠纪律）+blockedSnapshot 次数降序典序+resetBlockedForTest 清榜不清桶——Cloudflare WAF top-rules 思想，限流治理按 key 的拒绝分布显形。

@@ -846,6 +846,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 记忆治理 | Embedding 质量自查探针 | EmbeddingSelfCheck——合成句对（相似×2+无关对照×2）穿测 EmbeddingProvider：相似对余弦序逐对判定（免绝对阈值）+minMargin+orderHolds 回归哨兵+维度显形；换模型/供应商检索劣化从倒查变一行自查——OpenAI cookbook / sentence-transformers 思想（spec 1423） | [spec 1423](docs/spec/1423-embedding-selfcheck.md) |
 
+| 并发治理 | 轮次限速拒绝榜 | TurnRateLimitHook.blockedSnapshot()——per-key 累计被拦次数（次数降序同次数字典序），256 封顶折 __overflow__，reset 清榜不清桶；「哪个租户在反复触发限速」从 Block 文案逐条捞变一表显形——Cloudflare WAF top-rules 思想（spec 1424） | [spec 1424](docs/spec/1424-turn-ratelimit-blocked-snapshot.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

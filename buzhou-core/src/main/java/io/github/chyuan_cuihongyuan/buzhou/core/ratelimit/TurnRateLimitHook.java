@@ -115,8 +115,47 @@ public final class TurnRateLimitHook implements BuzhouHook {
             return HookResult.CONTINUE;
         }
         BuzhouMetricsHolder.metrics().counter("buzhou.ratelimit.turn-blocked");
+        recordBlocked(key); // spec 1424 / T2149：per-key 拒绝计数（谁在被限速）
         return HookResult.block("轮次限速触发（key=" + key + "，桶容量 " + policy.burst()
                 + "，回填 " + policy.permitsPerMinute() + "/分钟）——请稍后重试");
+    }
+
+    /** per-key 拒绝计数表（spec 1424 / T2149；256 封顶折 __overflow__——AgentBulkhead 拒绝表同纪律）。 */
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong>
+            blockedByKeys = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_TRACKED_KEYS = 256;
+    private static final String OVERFLOW_MARKER = "__overflow__";
+
+    private void recordBlocked(String key) {
+        java.util.concurrent.atomic.AtomicLong counter = blockedByKeys.get(key);
+        if (counter != null) {
+            counter.incrementAndGet();
+            return;
+        }
+        if (blockedByKeys.size() >= MAX_TRACKED_KEYS) {
+            blockedByKeys.computeIfAbsent(OVERFLOW_MARKER,
+                    k -> new java.util.concurrent.atomic.AtomicLong()).incrementAndGet();
+            return;
+        }
+        blockedByKeys.computeIfAbsent(key, k -> new java.util.concurrent.atomic.AtomicLong())
+                .incrementAndGet();
+    }
+
+    /** 拒绝榜：key → 累计被拦次数（次数降序、同次数字典序——输出稳定）。 */
+    public Map<String, Long> blockedSnapshot() {
+        return blockedByKeys.entrySet().stream()
+                .sorted((a, b) -> {
+                    int byCount = Long.compare(b.getValue().get(), a.getValue().get());
+                    return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
+                })
+                .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey,
+                        e -> e.getValue().get(), (x, y) -> x,
+                        java.util.LinkedHashMap::new));
+    }
+
+    /** 测试归零口：拒绝表清空（桶状态不动）。 */
+    public void resetBlockedForTest() {
+        blockedByKeys.clear();
     }
 
     /** 各 key 当前可用令牌快照（观测面；key 字典序）。 */
