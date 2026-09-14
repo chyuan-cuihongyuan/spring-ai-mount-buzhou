@@ -56,7 +56,7 @@ class DualModeRunContrastTest {
         // 沙箱档：timeout=0 补默认值送达
         SandboxRunCommandTool sandbox = sandboxTool();
         String sandboxOut = sandbox.call("{\"command\":\"echo y\",\"timeoutSeconds\":0}");
-        assertThat(sandboxOut).contains("y");
+        assertThat(sandboxOut).contains("done"); // 桩 backend 固定回执（timeout=0 补默认送达）
         assertThat(SandboxRunCommandTool.stats().runs()).isEqualTo(1);
         assertThat(SandboxRunCommandTool.stats().timeoutParamRejects()).isZero();
     }
