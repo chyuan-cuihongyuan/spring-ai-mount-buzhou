@@ -139,6 +139,24 @@ public final class EvalGate {
         return last;
     }
 
+    /**
+     * impl-694 续 / spec 956：按数据集过滤的历史视图（多数据集共用 gate 实例时
+     * 的定向观测）——新→旧序保持；datasetName null/blank fail-fast。纯查询视图
+     * （914 环形史零变化）。
+     */
+    public synchronized List<GateDecision> historyOf(String datasetName) {
+        if (datasetName == null || datasetName.isBlank()) {
+            throw new IllegalArgumentException("datasetName 必须非空非空白");
+        }
+        List<GateDecision> filtered = new ArrayList<>();
+        for (GateDecision decision : history) {
+            if (datasetName.equals(decision.datasetName())) {
+                filtered.add(decision);
+            }
+        }
+        return List.copyOf(filtered);
+    }
+
     /** impl-667 / spec 914：判定入史（环形有界；synchronized 单点）。 */
     private synchronized void recordDecision(GateResult result) {
         if (history.size() >= HISTORY_CAPACITY) {
