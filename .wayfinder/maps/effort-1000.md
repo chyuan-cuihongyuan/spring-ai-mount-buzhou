@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [冒烟清单第三扩展轮的形状裁决](../tickets/T1663-smokeext3-shape.md) — 纯测试轮：ReadoutContractSmokeTest 清单纳入 SkillAdminApi/SpillService（15→17 成员）。
 - [SpillService 幂等复用读面的形态裁决](../tickets/T1661-spillsvc-idem-shape.md) — SpillService 静态五计数（tryOffloadCalls/freshStores/idempotentReuses/degraded/belowThreshold）+ 嵌套 SpillServiceStats + stats()/resetForTest()；守恒 tryOffloadCalls = 四结局桶；幂等复用率=视图重试效率信号（幂等重试复用率对账）。
 - [R100 周期预检轮的形状裁决](../tickets/T1659-r100-audit-shape.md) — 百轮节点：R91–R99 对账零缺陷（组合测试系列十轮成型）+ observability 反压测试环境 flake 隔离重跑实证非缺陷（与 R50 CAS 活锁同位不同因）+ 复跑 BUILD SUCCESS 验收。
 - [租户沙箱×读写链路组合测试轮的形状裁决](../tickets/T1657-tenant-rw-shape.md) — 纯测试轮第十弹：TenantRwChainTest 钉住 forTenant 租户面写→读对称恒等与越界拒绝计数（R45×R46×R47 组合）。
@@ -216,7 +217,8 @@
 | 99 | 租户沙箱×读写链路组合测试轮（租户面读写对称+越界拒） | 纯测试轮第十弹 | T1657–T1658 | 851 | 1099 | ✅ |
 | 100 | 周期预检轮·百轮节点：R91–R99 对账全绿 + 组合测试系列成型 + observability 反压环境 flake 处置 + 复跑 verify BUILD SUCCESS | 隔离重跑实证非缺陷 | T1659–T1660 | 852 | 1100 | ✅ |
 | 101 | SpillService 幂等复用读面（五分支守恒：新落盘/幂等复用/降级/阈值内） | 幂等重试复用率对账 | T1661–T1662 | 853 | 1101 | ✅ |
-| 102 | （开工时按缺口核查选题） | — | T1663–T1664 | 854 | 1102 |  |
+| 102 | 冒烟清单第三扩展轮（SkillAdmin/SpillService 纳入 17 读面冒烟） | 登记纪律持续闭环 | T1663–T1664 | 854 | 1102 | ✅ |
+| 103 | （开工时按缺口核查选题） | — | T1665–T1666 | 855 | 1103 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
