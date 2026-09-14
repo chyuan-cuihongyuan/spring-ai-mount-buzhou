@@ -110,11 +110,27 @@ public class HookChain {
         return run(ctx, "afterTool", (hook, c) -> hook.afterTool(c));
     }
 
+    /**
+     * spec 1501 / T2253：事件通知面逐 hook 隔离——单个 hook 的 onEvent 抛
+     * RuntimeException 记 ERROR 日志（hook 名 + 事件类型 + 栈）后继续其余 hook；
+     * 计时 try/finally 仍入账（失败调用的耗时也不丢）。与裁决面（{@link #run}，
+     * Block/Replace 语义）分离：裁决面保持 fail-fast 治理语义不动——治理点异常
+     * 必须可见，通知面异常不该吞掉其余 hook 的事件消费（spec 1500 的 EventBus
+     * SubscriberExceptionHandler 思想在 hook 事件通知域的同源应用）。
+     */
     public void fireEvent(SessionEventContext ctx) {
         for (BuzhouHook hook : hooks) {
             long start = System.nanoTime();
-            hook.onEvent(ctx);
-            record(hook, "onEvent", System.nanoTime() - start);
+            try {
+                hook.onEvent(ctx);
+            } catch (RuntimeException e) {
+                LOGGER.log(System.Logger.Level.ERROR,
+                        "事件 hook 异常已隔离（不跳过其余 hook 的 onEvent）：hook={0}, event={1}",
+                        hook.name(), ctx.event().type());
+                LOGGER.log(System.Logger.Level.ERROR, "事件 hook onEvent 异常栈：", e);
+            } finally {
+                record(hook, "onEvent", System.nanoTime() - start);
+            }
         }
     }
 

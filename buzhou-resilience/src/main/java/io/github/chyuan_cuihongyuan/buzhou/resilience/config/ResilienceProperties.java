@@ -457,6 +457,8 @@ public record ResilienceProperties(
      *                           Caffeine weigher 思想）
      * @param embeddingMaxBatch  嵌入批量上限（spec 723；默认 0=关——>0 时 EmbeddingModel 包
      *                           ChunkingEmbeddingModel 切块，批量写入超供应商 cap 不再 400）
+     * @param evictionSampleSize LFU 采样驱逐窗口大小（spec 1600；默认 0=关——>0 时驱逐在
+     *                           LRU 序前 N 个候选中淘汰命中数最低者，Redis allkeys-lfu 思想）
      */
     public record SemanticCache(
             Boolean enabled,
@@ -464,7 +466,8 @@ public record ResilienceProperties(
             Integer maxEntries,
             Duration ttl,
             Integer maxWeightChars,
-            Integer embeddingMaxBatch) {
+            Integer embeddingMaxBatch,
+            Integer evictionSampleSize) {
 
         @org.springframework.boot.context.properties.bind.ConstructorBinding
         public SemanticCache {
@@ -473,6 +476,7 @@ public record ResilienceProperties(
             ttl = ttl == null ? Duration.ofHours(1) : ttl;
             maxWeightChars = maxWeightChars == null ? 0 : maxWeightChars;
             embeddingMaxBatch = embeddingMaxBatch == null ? 0 : embeddingMaxBatch;
+            evictionSampleSize = evictionSampleSize == null ? 0 : evictionSampleSize;
             if (!(similarityThreshold > 0.0 && similarityThreshold <= 1.0)) {
                 throw new IllegalArgumentException(
                         "semantic-cache.similarity-threshold（" + similarityThreshold + "）必须在 (0,1]");
@@ -493,17 +497,27 @@ public record ResilienceProperties(
                 throw new IllegalArgumentException(
                         "semantic-cache.embedding-max-batch（" + embeddingMaxBatch + "）必须 >= 0（0=关）");
             }
+            if (evictionSampleSize < 0) {
+                throw new IllegalArgumentException(
+                        "semantic-cache.eviction-sample-size（" + evictionSampleSize + "）必须 >= 0（0=关）");
+            }
         }
 
-        /** 4 参兼容构造（spec 701 之前调用方；maxWeightChars/embeddingMaxBatch = 关）。 */
+        /** 4 参兼容构造（spec 701 之前调用方；maxWeightChars/embeddingMaxBatch/evictionSampleSize = 关）。 */
         public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries, Duration ttl) {
-            this(enabled, similarityThreshold, maxEntries, ttl, 0, 0);
+            this(enabled, similarityThreshold, maxEntries, ttl, 0, 0, 0);
         }
 
-        /** 5 参兼容构造（spec 701 形态；embeddingMaxBatch = 关）。 */
+        /** 5 参兼容构造（spec 701 形态；embeddingMaxBatch/evictionSampleSize = 关）。 */
         public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries,
                 Duration ttl, Integer maxWeightChars) {
-            this(enabled, similarityThreshold, maxEntries, ttl, maxWeightChars, 0);
+            this(enabled, similarityThreshold, maxEntries, ttl, maxWeightChars, 0, 0);
+        }
+
+        /** 6 参兼容构造（spec 1600 之前调用方；evictionSampleSize = 关）。 */
+        public SemanticCache(Boolean enabled, Double similarityThreshold, Integer maxEntries,
+                Duration ttl, Integer maxWeightChars, Integer embeddingMaxBatch) {
+            this(enabled, similarityThreshold, maxEntries, ttl, maxWeightChars, embeddingMaxBatch, 0);
         }
 
         /** 生效开关（显式开启）。 */

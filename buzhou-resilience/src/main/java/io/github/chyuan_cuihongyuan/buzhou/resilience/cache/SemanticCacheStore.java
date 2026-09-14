@@ -5,6 +5,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,23 +24,34 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>LRU + TTL 惰性过期（{@link ResponseCacheStore} 同风格：单锁 LinkedHashMap
  * accessOrder；TTL 命中路径惰性判定，无后台线程）；hit/miss/evicted 计数可观测。
  * cosine 零向量防护（范数 0 → 相似度 0 不 NaN）；维度不匹配条目防御性跳过。
+ *
+ * <p>spec 1600 / T2351：opt-in LFU 采样驱逐（Redis allkeys-lfu + maxmemory-samples 思想）——
+ * {@code evictionSampleSize} &gt; 0 时，驱逐不再盲取 eldest，而在 LRU 序前 N 个候选窗口内
+ * 淘汰<b>命中计数最低</b>者（平局取更老保 LRU 底线）；默认 0 = 纯 eldest LRU 零行为变化。
  */
 public final class SemanticCacheStore {
 
     private static final System.Logger LOGGER =
             System.getLogger(SemanticCacheStore.class.getName());
 
+    /** spec 1600：条目命中计数封顶（线性计数——TTL 天然兜底衰减，见 spec 推演注）。 */
+    static final long HIT_COUNT_CEILING = 1_000;
+
     private final int maxEntries;
     private final Duration ttl;
     private final double threshold;
     /** spec 701 / T1002：权重预算字符数（0=关——默认零行为；>0 时 put 后腾挪至预算内）。 */
     private final long maxWeightChars;
+    /** spec 1600 / T2351：LFU 采样窗口大小（≤0 = 关——纯 eldest LRU；1 语义同关）。 */
+    private final int evictionSampleSize;
     private final Clock clock;
     private final AtomicLong hits = new AtomicLong();
     private final AtomicLong misses = new AtomicLong();
     private final AtomicLong evictions = new AtomicLong();
     /** spec 701：因权重预算未存留的总次数（腾挪+超预算拒存同计——独立于 evictedCount 口径）。 */
     private final AtomicLong weightEvictions = new AtomicLong();
+    /** spec 1600：采样驱逐热条目保护生效次数（victim 非 eldest——窗口看见了频率差）。 */
+    private final AtomicLong hotPreserved = new AtomicLong();
     private volatile long totalWeightChars;
     /** spec 611 / T872：维度不匹配计数（嵌入模型变更信号——命中率静默塌方的可见面）。 */
     private final AtomicLong dimensionMismatches = new AtomicLong();
@@ -48,19 +60,10 @@ public final class SemanticCacheStore {
     // 命名避开 Entry：匿名 LinkedHashMap 子类会继承 java.util.Map.Entry 成员类型，
     // 按 JLS 遮蔽外层同名嵌套类型，removeEldestEntry 覆盖签名在严格 javac 下名称冲突
     private record CacheEntry(String bucket, float[] embedding, ChatResponse response, Instant expireAt,
-                              long weightChars) {
+                              long weightChars, AtomicLong hits) {
     }
 
-    private final LinkedHashMap<String, CacheEntry> entries = new LinkedHashMap<>(16, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
-            boolean evict = size() > maxEntries;
-            if (evict) {
-                evictions.incrementAndGet();
-            }
-            return evict;
-        }
-    };
+    private final LinkedHashMap<String, CacheEntry> entries = new LinkedHashMap<>(16, 0.75f, true);
 
     private long seq;
 
@@ -75,6 +78,12 @@ public final class SemanticCacheStore {
     /** spec 701：maxWeightChars ≤ 0 = 权重预算关（默认零行为）。 */
     public SemanticCacheStore(int maxEntries, Duration ttl, double threshold, long maxWeightChars,
                               Clock clock) {
+        this(maxEntries, ttl, threshold, maxWeightChars, 0, clock);
+    }
+
+    /** spec 1600 / T2351：evictionSampleSize ≤ 0 = LFU 采样关（默认零行为——纯 eldest LRU）。 */
+    public SemanticCacheStore(int maxEntries, Duration ttl, double threshold, long maxWeightChars,
+                              int evictionSampleSize, Clock clock) {
         if (maxEntries < 1) {
             throw new IllegalArgumentException("semantic-cache.max-entries 必须 >= 1（当前 " + maxEntries + "）");
         }
@@ -85,16 +94,21 @@ public final class SemanticCacheStore {
             throw new IllegalArgumentException(
                     "semantic-cache.similarity-threshold 必须在 (0,1]（当前 " + threshold + "）");
         }
+        if (evictionSampleSize < 0) {
+            throw new IllegalArgumentException(
+                    "semantic-cache.eviction-sample-size 必须 >= 0（0=关，当前 " + evictionSampleSize + "）");
+        }
         this.maxEntries = maxEntries;
         this.ttl = ttl;
         this.threshold = threshold;
         this.maxWeightChars = Math.max(0, maxWeightChars);
+        this.evictionSampleSize = evictionSampleSize;
         this.clock = clock;
     }
 
     /**
-     * 桶内最近邻查询：cosine 相似度 ≥ 阈值的最近条目命中（accessOrder 触达）；
-     * 无桶/无达标条目 = miss。过期条目惰性清除（同计 evicted）。
+     * 桶内最近邻查询：cosine 相似度 ≥ 阈值的最近条目命中（accessOrder 触达 + 命中计数
+     * +1 封顶——spec 1600）；无桶/无达标条目 = miss。过期条目惰性清除（同计 evicted）。
      */
     public synchronized Optional<ChatResponse> findNearest(String bucket, float[] queryEmbedding) {
         if (bucket == null || queryEmbedding == null || queryEmbedding.length == 0) {
@@ -133,6 +147,7 @@ public final class SemanticCacheStore {
             return Optional.empty();
         }
         entries.get(bestKey); // 触达 LRU accessOrder
+        best.hits().set(bumpHitCount(best.hits().get()));
         hits.incrementAndGet();
         return Optional.of(best.response());
     }
@@ -153,18 +168,67 @@ public final class SemanticCacheStore {
             totalWeightChars += weight;
         }
         entries.put(bucket + "#" + (seq++), new CacheEntry(bucket, embedding, response,
-                clock.instant().plus(ttl), weight));
+                clock.instant().plus(ttl), weight, new AtomicLong()));
+        evictOverCapacity();
     }
 
-    /** spec 701：腾挪至 weight 入预算后仍 ≤ 预算（eldest 先出；weightEvictions 独立口径）。 */
+    /** spec 1600：容量驱逐（evictions 口径不变——驱逐选择统一走采样语义）。 */
+    private void evictOverCapacity() {
+        while (entries.size() > maxEntries) {
+            evictOne(true);
+        }
+    }
+
+    /** spec 701：腾挪至 weight 入预算后仍 ≤ 预算（采样语义同容量路径；weightEvictions 独立口径）。 */
     private void evictToBudget(long incomingWeight) {
         while (totalWeightChars + incomingWeight > maxWeightChars && !entries.isEmpty()) {
-            java.util.Iterator<CacheEntry> it = entries.values().iterator();
-            CacheEntry eldest = it.next();
-            it.remove();
-            totalWeightChars -= eldest.weightChars();
+            evictOne(false);
+        }
+    }
+
+    /**
+     * spec 1600 / T2351：采样驱逐——LRU 序（迭代序）前 {@code max(1, evictionSampleSize)}
+     * 个候选中淘汰命中计数最低者（平局取更老，保持 LRU 底线）；victim 非 eldest 时
+     * hotPreserved +1（窗口看见了频率差——热条目被保护）。
+     */
+    private void evictOne(boolean capacityPath) {
+        Iterator<Map.Entry<String, CacheEntry>> it = entries.entrySet().iterator();
+        String eldestKey = null;
+        String victimKey = null;
+        CacheEntry victim = null;
+        int window = Math.max(1, evictionSampleSize);
+        int sampled = 0;
+        while (it.hasNext() && sampled < window) {
+            Map.Entry<String, CacheEntry> candidate = it.next();
+            if (sampled == 0) {
+                eldestKey = candidate.getKey();
+            }
+            if (victim == null || candidate.getValue().hits().get() < victim.hits().get()) {
+                victimKey = candidate.getKey();
+                victim = candidate.getValue();
+            }
+            sampled++;
+        }
+        if (victim == null) {
+            return;
+        }
+        if (!victimKey.equals(eldestKey)) {
+            hotPreserved.incrementAndGet();
+        }
+        entries.remove(victimKey);
+        if (maxWeightChars > 0) {
+            totalWeightChars -= victim.weightChars();
+        }
+        if (capacityPath) {
+            evictions.incrementAndGet();
+        } else {
             weightEvictions.incrementAndGet();
         }
+    }
+
+    /** spec 1600：命中计数递增（封顶 {@link #HIT_COUNT_CEILING}——纯函数便于直测）。 */
+    static long bumpHitCount(long current) {
+        return Math.min(current + 1, HIT_COUNT_CEILING);
     }
 
     /** 响应文本字符数估算（各 Generation getText() 求和，null 安全——口径稳定可解释）。 */
@@ -218,6 +282,11 @@ public final class SemanticCacheStore {
     /** spec 701：因权重预算未存留的总次数（腾挪+超预算拒存——独立于 evictedCount 口径）。 */
     public long weightEvictionCount() {
         return weightEvictions.get();
+    }
+
+    /** spec 1600：采样驱逐热条目保护生效次数（victim 非 eldest——与 evictions 之比即采样实效率）。 */
+    public long hotPreservedCount() {
+        return hotPreserved.get();
     }
 
     /** spec 611 / T872：维度不匹配累计（观测面——非零持续增长 = 嵌入模型已变更）。 */

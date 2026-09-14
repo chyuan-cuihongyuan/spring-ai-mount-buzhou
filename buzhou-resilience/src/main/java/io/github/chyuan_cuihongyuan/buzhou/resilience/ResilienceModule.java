@@ -227,7 +227,7 @@ public final class ResilienceModule {
                     properties.semanticCache();
             semanticCacheStore = new io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore(
                     sc.maxEntries(), sc.ttl(), sc.similarityThreshold(), sc.maxWeightChars(),
-                    java.time.Clock.systemUTC());
+                    sc.evictionSampleSize(), java.time.Clock.systemUTC());
             if (sc.embeddingMaxBatch() > 0) {
                 // spec 723 / T1046：批量嵌入切分（opt-in——批量写入超供应商 cap 不再 400）
                 semanticEmbeddingModel = new io.github.chyuan_cuihongyuan.buzhou.resilience.cache
