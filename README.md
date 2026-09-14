@@ -623,6 +623,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具计量 | SSRF 守卫判定分布读面 | 出网校验放行/拒绝按原因分桶显形，五桶守恒（spec 1048） | [spec 1048](docs/spec/1048-ssrf-guard-stats.md) |
 | 工具计量 | http_request 请求量水位与结果分布 | 请求送达率与六拒绝桶分布显形，参数/环境分轴（spec 1049） | [spec 1049](docs/spec/1049-httptool-stats.md) |
 | 观测治理 | J 系阶段对账审计 R50 | J 会话 R46–R49 工件对账 + spec 1048 跨会话冲突合成留痕（spec 1050） | [spec 1050](docs/spec/1050-j-audit-r50.md) |
+| 工具计量 | 命令黑名单拦截判定读面 | 黑名单命中/放行比显形，二桶守恒（spec 1051） | [spec 1051](docs/spec/1051-blacklist-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -764,6 +765,14 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 分组 | 能力 | 一句话 | 详设 |
 |------|------|--------|------|
 | 会话治理 | 跨会话轮次并发水位 | TurnConcurrencyTracker——同实例注册全会话聚合 started/okFinished/failed 三总量+active/peakActive 水位，守恒式 started=ok+failed+active；同轮实证修复 guard-block 轮观察者终结回调缺失（TURN span 泄漏）——HikariCP 池读面思想（spec 1400） | [spec 1400](docs/spec/1400-turn-concurrency-tracker.md) |
+
+## 生产级纵深 XI（M 会话 1500 系增量）
+
+M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 会话治理 | SessionObserver 通知面异常隔离 | DefaultAgentSession 12 处观察者裸 forEach 通知点统一改走 notifyObservers 隔离派发——单观察者异常记 ERROR 后继续其余观察者、不向上传播（onOpen 未隔离时观测组件缺陷可炸掉会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想（spec 1500） | [spec 1500](docs/spec/1500-observer-notify-isolation.md) |
 
 ## 快速开始
 

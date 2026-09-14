@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [命令黑名单拦截判定读面的形态裁决](../tickets/T1557-blacklist-stats-shape.md) — CommandBlacklist 静态三计数（checks/matched/allowed，空白短路归 allowed 诚实口径）+ 嵌套 CommandBlacklistStats + stats()/resetForTest()；守恒 checks = matched + allowed；matches() 返回值逐位不变（Fail2ban 规则命中计数）。
 - [R50 周期预检轮的形状裁决](../tickets/T1555-r50-audit-shape.md) — R46–R49 工件对账全绿（幂等脚本纪律生效零吞噬复发）+ 两轮 verify 同位挂死推翻 flake 误判 → max 追踪 CAS 活锁三处同源实锤（重读留循环外，对照 RollingMaxCounter 原版）统一修复（jstack 定位 + 竞争度依赖复现实证法）。
 - [http_request 请求量水位与结果分布读面的形态裁决](../tickets/T1553-httptool-stats-shape.md) — HttpRequestTool 静态八计数（attempts/successes + method/url/ssrf/timeoutParam/oversize/failures 六拒绝桶）+ 嵌套 HttpToolStats（totalRejects 派生）+ stats()/resetForTest()；守恒 attempts = successes + totalRejects；参数桶指向模型行为、环境桶指向环境守卫（Envoy upstream 统计分桶）。
 - [SSRF 守卫判定分布读面的形态裁决](../tickets/T1551-ssrf-stats-shape.md) — SsrfGuard 静态六计数（checks/allowlisted/dnsAllowed + emptyHost/dns/blocked 三拒绝桶）+ 嵌套 SsrfGuardStats（totalAllowed/totalRejects 派生）+ stats()/resetForTest()；守恒 checks = 放行 + 拒绝（每入口恰落一桶）；check() 返回语义逐位不变（Fail2ban 判定链显形 + OPA decision log）。
@@ -118,7 +119,8 @@
 | 48 | SSRF 守卫判定分布读面（checks/两放行桶 + 三拒绝桶守恒） | Fail2ban 判定链显形 + OPA decision log | T1551–T1552 | 800 | 1048 | ✅ |
 | 49 | http_request 请求量水位与结果分布读面（successes + 六拒绝桶守恒） | Envoy upstream statistics | T1553–T1554 | 801 | 1049 | ✅ |
 | 50 | 周期预检轮：R46–R49 对账 + max 追踪 CAS 活锁三处实锤修复 + 全仓 verify | jstack 定位 + 竞争度依赖复现实证 | T1555–T1556 | 802 | 1050 | ✅ |
-| 51 | （开工时按缺口核查选题） | — | T1557–T1558 | 803 | 1051 |  |
+| 51 | 命令黑名单拦截判定读面（matched/allowed 二桶守恒） | Fail2ban 规则命中计数 | T1557–T1558 | 803 | 1051 | ✅ |
+| 52 | （开工时按缺口核查选题） | — | T1559–T1560 | 804 | 1052 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
