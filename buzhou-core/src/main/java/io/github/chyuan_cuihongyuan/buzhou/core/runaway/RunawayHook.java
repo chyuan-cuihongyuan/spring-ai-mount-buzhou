@@ -101,7 +101,6 @@ public class RunawayHook implements BuzhouHook {
      * <p><b>诚实边界</b>（wall-clock）：轮次时长上界 = {@code wallClock + 单步时长}（一次模型调用延迟
      * + 一次工具超时），非中途精确打断；wall-clock 在步边界检测，与 10 韧性单步 {@code deadline} 正交共存。
      */
-    @Override
     // —— spec 1076 / impl 828：判定分布读面（上游闸门空结果率思想同族；静态面理由
     // 同 R46–R75 先例）。守恒：invocations = blocked + allowed + disabledSkips。
     private static final java.util.concurrent.atomic.AtomicLong INVOCATIONS =
@@ -131,6 +130,7 @@ public class RunawayHook implements BuzhouHook {
         DISABLED_SKIPS.set(0);
     }
 
+    @Override
     public HookResult beforeModel(ModelCallContext ctx) {
         INVOCATIONS.incrementAndGet();
         if (!props.enabled()) {
