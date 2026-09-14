@@ -383,6 +383,11 @@ public class DefaultAgentSession implements AgentSession {
         DefaultTurnContext turnCtx = new DefaultTurnContext(hookEnv, input);
         HookResult before = hookChain.beforeTurn(turnCtx);
         if (before instanceof HookResult.Block block) {
+            // spec 1400 / T2101：guard-block 轮观察者收口——onTurnStart 已派发而终结回调
+            // 缺失会泄漏 TURN span（观察者视角轮次无终态）；block 亦产出最终回复
+            // （reason 文本原样返回），按完结语义补派 onTurnEnd + 计时（outcome=ok）
+            observers.forEach(o -> o.onTurnEnd(turnSeq, block.reason()));
+            recordTurnDuration(turnStartNanos, "ok");
             return block.reason();
         }
         String response;
@@ -599,6 +604,10 @@ public class DefaultAgentSession implements AgentSession {
         if (before instanceof HookResult.Block block) {
             inFlightTurns.decrementAndGet(); // 未返回 Flux 前即终结，同步收口计数
             recordStreamCancelled("guard");
+            // spec 1400 / T2101：观察者收口——onTurnStart 已派发，终结回调缺失致 TURN span
+            // 泄漏；流式 guard 拒绝以 error 终结订阅（与订阅者所见对称），按 onTurnError 补派
+            observers.forEach(o -> o.onTurnError(turnSeq,
+                    new IllegalStateException(block.reason())));
             return Flux.error(new IllegalStateException(block.reason()));
         }
         StringBuilder replyAccumulator = new StringBuilder();

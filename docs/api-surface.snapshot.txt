@@ -386,6 +386,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionQuarantineHo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionResourceCustomizer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.StructuredOutputException
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.TurnConcurrencyTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.TurnDeadline
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.TurnLoopContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.TurnLoopPolicy
