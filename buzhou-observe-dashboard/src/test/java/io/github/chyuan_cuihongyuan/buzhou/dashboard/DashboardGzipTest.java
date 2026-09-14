@@ -36,7 +36,7 @@ class DashboardGzipTest {
         Instant t0 = Instant.parse("2026-08-08T10:00:00Z");
         // 大量 span——列表响应远超 gzip 阈值
         for (int i = 0; i < 80; i++) {
-            store.saveSpans(List.of(new SpanRecord("s" + i, null, "sess-http", -1,
+            store.saveSpans(List.of(new SpanRecord("s" + i, null, "sess-" + i, -1,
                     "SESSION", "session", t0.plusSeconds(i), t0.plusSeconds(i + 1), "OK",
                     Map.of("agent.name", "demo-agent-" + i, "idx", i))));
         }
@@ -52,7 +52,7 @@ class DashboardGzipTest {
 
     @Test
     void gzipAcceptedAndBodyDecompresses() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions/sess-http/replay"))
+        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions?size=100"))
                 .header("Accept-Encoding", "gzip").GET().build();
         HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
         assertThat(response.headers().firstValue("Content-Encoding")).contains("gzip");
@@ -60,16 +60,15 @@ class DashboardGzipTest {
                 new ByteArrayInputStream(response.body()))) {
             byte[] inflated = gz.readAllBytes();
             assertThat(inflated.length).isGreaterThan(response.body().length); // 压缩生效
-            assertThat(new String(inflated)).contains("turn").contains("demo-agent-");
+            assertThat(new String(inflated)).contains("sess-79");
         }
     }
 
     @Test
     void noAcceptEncodingStaysPlain() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions/sess-http/replay")).GET().build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions?size=100")).GET().build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("[DEBUG] plain body size=" + response.body().length());
         assertThat(response.headers().firstValue("Content-Encoding")).isEmpty();
-        assertThat(response.body()).contains("session");
+        assertThat(response.body()).contains("sess-79");
     }
 }
