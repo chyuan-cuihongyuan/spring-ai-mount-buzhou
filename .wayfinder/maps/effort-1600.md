@@ -142,6 +142,9 @@
 - [R41 形状：PII 豁免计数](../tickets/T2431-r41-piicount-shape.md) — PiiHitStats.recordExemption（工具级+类型级合并口径——与命中统计对照面：「豁免了多少 vs 命中了多少」），reset 同步归零；J 系危险工具 exemptedSkips 对齐补全
 - [R41 验收](../tickets/T2432-r41-piicount-verify.md) — 豁免路径计数断言 + guard 370 用例
 
+- [R42 形状：负缓存 yml 装配](../tickets/T2433-r42-negyml-shape.md) — buzhou.core.negative-cache.{enabled,ttl}（DisposableBean 关闭钩子停用——已包装会话缓存自然过期）——spec 1633 Holder 补配置面
+- [R42 验收](../tickets/T2434-r42-negyml-verify.md) — 三断言（启用+关闭停用/ttl 生效/缺省零 bean）
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -196,3 +199,4 @@
 | R39 | #1638 | 泄漏金丝雀 yml 装配（spec 1625 配置面补全） | T2427–T2428 | 1191 | 1638 | done |
 | R40 | #1639 | 梯度限流器观测接线（spec 1617 装配面） | T2429–T2430 | 1192 | 1639 | done |
 | R41 | #1640 | PII 豁免计数（与命中统计对照面） | T2431–T2432 | 1193 | 1640 | done |
+| R42 | #1641 | 负缓存 yml 装配（spec 1633 配置面补全） | T2433–T2434 | 1194 | 1641 | done |

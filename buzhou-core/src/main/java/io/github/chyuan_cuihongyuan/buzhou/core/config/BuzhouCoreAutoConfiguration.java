@@ -1190,6 +1190,25 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 1641 / T2433：工具失败负缓存自动装配（{@code buzhou.core.negative-cache.
+     * enabled=true} 声明即启用；ttl 可配默认 30s——DNS negative caching 短窗纪律）。
+     * 关闭钩子停用（已包装会话的缓存自然过期）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "buzhou.core.negative-cache", name = "enabled",
+            havingValue = "true")
+    public org.springframework.beans.factory.DisposableBean buzhouNegativeCacheAdapter(
+            org.springframework.core.env.Environment env) {
+        String ttlText = env.getProperty("buzhou.core.negative-cache.ttl", "30s");
+        java.time.Duration ttl = org.springframework.boot.convert.DurationStyle
+                .detectAndParse(ttlText.trim());
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder.setTtl(ttl);
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder.setEnabled(true);
+        return () -> io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder
+                .setEnabled(false);
+    }
+
+    /**
      * spec 1621 / T2393：会话隔离检疫（spec 143 孤类接线——连续失败阈值 + 指数
      * 退避隔离，Erlang supervisor「let it crash」思想）：opt-in
      * {@code buzhou.quarantine.enabled=true}（默认关——检疫 block 轮次行为面大）；
