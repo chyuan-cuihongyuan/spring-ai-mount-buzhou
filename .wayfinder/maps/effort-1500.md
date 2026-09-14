@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [批级回喂预算的形状裁决](../tickets/T2303-batch-budget-shape.md) — applyBatchBudget 降序贪心截大者（小结果完整）+ BatchResponseBudgetHolder（>0 声明即启用）+ HarnessAssembler 拾取；单工具限幅之上的批维度护栏。
 - [serial-groups yml 通道的形状裁决](../tickets/T2301-serial-groups-yml-shape.md) — fromYml serial-groups map 解析 + configure yml 优先覆盖注解；F2 全档闭环（超时键 ToolTimeoutOverrides 先行）。
 - [配置错误显形双小项的形状裁决](../tickets/T2299-dup-name-observer-shape.md) — hook 重名 WARN（order 平局派发序不稳定+对位歧义）；addObserver 同实例幂等去重（listener 域维持——lambda 多实例 identity 去重无意义）。
 - [A/B 并行波间早停的形状裁决](../tickets/T2297-ab-wave-earlystop-shape.md) — 分波化让 SPRT 早停/宿主取消波间真生效（此前全量派发近似无效）；波内 scored 原子语义不变；16 用例零回归。
@@ -85,6 +86,7 @@
 | 26 | A/B 并行波间早停（SPRT/取消波间真生效，spec 1522 扩散） | spec 1522 扩散 | T2297–T2298 | 1126 | 1523 | ✅ |
 | 27 | 配置错误显形双小项（hook 重名 WARN + observer 幂等注册） | Kong 插件重名诊断思想 | T2299–T2300 | 1127 | 1524 | ✅ |
 | 28 | serial-groups yml 通道（F2 残留收口——yml 覆盖注解合并） | design-incompleteness F2 | T2301–T2302 | 1128 | 1525 | ✅ |
+| 29 | 批级工具结果回喂预算（贪心截大者，opt-in） | Anthropic 工具结果 token 预算思想 | T2303–T2304 | 1129 | 1526 | ✅ |
 
 
 ## Out of scope

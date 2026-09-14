@@ -1304,6 +1304,21 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * spec 1526 / T2303：批级回喂预算装配（buzhou.core.tool-batch-response-budget > 0
+     * 声明即启用——单工具限幅之上的批内总量护栏）。关闭钩子清 Holder。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.core", name = "tool-batch-response-budget")
+    public org.springframework.beans.factory.DisposableBean buzhouBatchResponseBudgetAdapter(
+            org.springframework.core.env.Environment env) {
+        int budget = env.getProperty("buzhou.core.tool-batch-response-budget",
+                Integer.class, 0);
+        io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder.enable(budget);
+        return io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder::reset;
+    }
+
+    /**
      * impl-701 / spec 958：评估剪枝策略进程级兜底装配（buzhou.eval.prune.enabled=true
      * 声明即启用：min-items/fail-rate-threshold 绑定 EvalPrunePolicy 写入 Holder——
      * RetryBudgetHolder 先例；宿主手动构造的 EvalRunner 惰性拾取）。关闭钩子清理。

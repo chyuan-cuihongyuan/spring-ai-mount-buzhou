@@ -828,6 +828,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 评估治理 | A/B 并行波间早停（spec 1522 扩散） | PairwiseEvalRunner 并行路径分波化——SPRT 达界/宿主取消在波间真生效（此前全量派发 task 首行检查近似无效），波内 scored 原子语义不变（spec 1523） | [spec 1523](docs/spec/1523-ab-wave-earlystop.md) |
 | 会话治理 | 配置错误显形（hook 重名/observer 重复注册） | HookChain 构造期重复 hook 名 WARN（派发序不稳定/stats 对位歧义信号，Kong 重名诊断思想）；addObserver 同实例幂等去重（双份通知是装配错误，静默双计污染读面）（spec 1524） | [spec 1524](docs/spec/1524-dup-name-observer-dedupe.md) |
 | 工具治理 | serial-groups yml 通道（F2 残留收口） | buzhou.tools.serial-groups map（名→组）——yml 显式覆盖 @BuzhouTool 注解通道（同名优先），无注解工具亦可纯 yml 指定串行组；F2 全档闭环（超时键 ToolTimeoutOverrides 先行）（spec 1525） | [spec 1525](docs/spec/1525-serial-groups-yml.md) |
+| 工具执行 | 批级工具结果回喂预算 | buzhou.core.tool-batch-response-budget > 0 声明即启用——批总量超限按响应长度降序贪心截大者（小结果保留完整，比平均截断信息保留更多），单工具限幅之上的批维度护栏（spec 1526） | [spec 1526](docs/spec/1526-batch-response-budget.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

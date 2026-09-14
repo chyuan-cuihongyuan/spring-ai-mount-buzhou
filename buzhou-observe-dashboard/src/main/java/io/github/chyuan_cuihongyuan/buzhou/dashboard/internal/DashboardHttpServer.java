@@ -460,10 +460,29 @@ public class DashboardHttpServer {
         return params;
     }
 
+    /** spec 1634 / T2419：gzip 启用阈值（低于此不压缩——压缩头开销大于收益）。 */
+    static final int GZIP_MIN_BYTES = 512;
+
     private static void writeJson(HttpExchange exchange, int status, Object body)
             throws IOException {
         byte[] bytes = MAPPER.writeValueAsBytes(body);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        // spec 1634 / T2419：客户端 Accept-Encoding 含 gzip 且响应超阈值 → gzip
+        //（面板 JSON 数十 KB 起——带宽削减；阈值下不压缩防头开销倒挂）
+        String accept = exchange.getRequestHeaders().getFirst("Accept-Encoding");
+        if (accept != null && accept.contains("gzip") && bytes.length >= GZIP_MIN_BYTES) {
+            java.io.ByteArrayOutputStream compressed = new java.io.ByteArrayOutputStream();
+            try (java.util.zip.GZIPOutputStream gz = new java.util.zip.GZIPOutputStream(compressed)) {
+                gz.write(bytes);
+            }
+            byte[] gzBytes = compressed.toByteArray();
+            exchange.getResponseHeaders().set("Content-Encoding", "gzip");
+            exchange.sendResponseHeaders(status, gzBytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(gzBytes);
+            }
+            return;
+        }
         exchange.sendResponseHeaders(status, bytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(bytes);
