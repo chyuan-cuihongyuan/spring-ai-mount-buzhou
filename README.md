@@ -914,6 +914,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 会话治理 | 会话关闭耗时读数 | SessionCloseStats——closed/closeFailures 双计数+last/maxCloseDurationMillis 耗时水位（单调），close() 清理优先异常聚合语义逐位不变只增记账；排空慢（observer 慢/逆序关闭卡住）从停机窗口超限倒推变水位显形——k8s graceful shutdown 思想（spec 1430） | [spec 1430](docs/spec/1430-session-close-stats.md) |
 
+| 观测治理 | 指标命名校验器 | MetricNameAudit——validate(name)→NameVerdict 违规闭集（EMPTY/WHITESPACE/PREFIX/SEGMENT_EMPTY/CASE/CHARS）首违不短路一次看全，段规则与 starter MetricNamingGuardTest 门同源；机制作者命名自查即时反馈——Prometheus metric naming 规范思想（spec 1431） | [spec 1431](docs/spec/1431-metric-name-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

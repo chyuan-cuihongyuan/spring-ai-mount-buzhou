@@ -2452,3 +2452,7 @@
   思想：会话关闭耗时读数——closed/closeFailures/last+maxCloseDuration
   水位，进程级静态读面（close 埋点只增记账，清理优先异常聚合语义逐位
   不变）；嵌套 `Snapshot` 不另立面）
+
+- `MetricNameAudit`（1431——Prometheus metric naming 规范思想：指标名
+  校验器（buzhou. 前缀族+小写段规则与 starter 门同源）——violations 违规
+  闭集首违不短路一次看全，纯函数；嵌套 `NameVerdict` 不另立面）
