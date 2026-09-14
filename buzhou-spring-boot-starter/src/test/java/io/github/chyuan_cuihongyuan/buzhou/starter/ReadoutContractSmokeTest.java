@@ -58,9 +58,9 @@ class ReadoutContractSmokeTest {
 
             long[] first = longComponents(stats.invoke(null));
             long[] second = longComponents(stats.invoke(null));
-            assertThat(first)
+            assertThat(java.util.Arrays.stream(first).allMatch(v -> v >= 0L))
                     .as("%s 组件应全非负", readout.getSimpleName())
-                    .allSatisfy(v -> assertThat(v.longValue()).isGreaterThanOrEqualTo(0L));
+                    .isTrue();
             assertThat(second).as("%s 重复调用稳定", readout.getSimpleName())
                     .isEqualTo(first);
         }
