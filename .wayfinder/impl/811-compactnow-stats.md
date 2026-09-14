@@ -6,10 +6,10 @@
 
 **Status:** done
 
-- [ ] 五计数落点（入口/完成/跳过/失败/未绑定）
-- [ ] CompactNowStats 嵌套 record + stats() + resetForTest()
-- [ ] CompactNowStatsTest（成功/跳过/未绑定/守恒/reset 等测）
-- [ ] spec 1059 + README 行（嵌套类型不动 API 快照）
+- [x] 五计数落点（入口/完成/跳过/失败/未绑定）
+- [x] CompactNowStats 嵌套 record + stats() + resetForTest()
+- [x] CompactNowStatsTest（成功/跳过/未绑定/守恒/reset 等测）
+- [x] spec 1059 + README 行（嵌套类型不动 API 快照）
 
 ## Done
 

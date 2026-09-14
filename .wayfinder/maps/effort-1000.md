@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [compact_now 手动压缩判定读面的形态裁决](../tickets/T1573-compactnow-stats-shape.md) — CompactNowTool 静态五计数（calls/successes/skippeds/failures/unboundRejects）+ 嵌套 CompactNowStats + stats()/resetForTest()；守恒 calls = 四结局桶；与 R53 evict_handle 同谱系（模型主动维护行为采用率，Anthropic /compact）。
 - [MCP 工具集轮询提供器读面的形态裁决](../tickets/T1571-toolsetpoll-stats-shape.md) — DbToolSetProvider 静态四计数（polls/changesDetected/unchangedPolls/pollFailures）+ 嵌套 ToolSetPollStats + stats()/resetForTest()；守恒 polls = 三桶和每轮恰落一桶；热更新失效三因（轮询失败/未检出/未轮到）可对账（etcd watch statistics）。
 - [skill_search 搜索判定读面的形态裁决](../tickets/T1569-skillsearch-stats-shape.md) — SkillSearchTool 静态五计数（calls/hits/misses/parseRejects/blankQueryRejects）+ 嵌套 SkillSearchStats + stats()/resetForTest()；守恒 calls = 四桶和；与 spec 116 micrometer 遥测互补（后端面 vs 进程内直读），parse/blank 两路径原遥测缺口一并补齐（Algolia zero-result-rate）。
 - [崩循环探测器类级水位读面的形态裁决](../tickets/T1567-crashloop-stats-shape.md) — CircuitCrashLoopDetector 静态四计数（opensRecorded/opensTruncated/loopsDetected/recoveriesRecorded）+ 嵌套 CrashLoopWatchStats + stats()/resetForTest()；MAX_MODELS 截断从布尔升格为量化对账信号，null/空白不入桶口径诚实（kube-state-metrics）。
@@ -134,7 +135,8 @@
 | 56 | 崩循环探测器类级水位读面（OPEN 量/封顶截断量/循环检出/恢复四计数） | kube-state-metrics crashloop 总账 | T1567–T1568 | 808 | 1056 | ✅ |
 | 57 | skill_search 搜索判定读面（hits/misses + 两拒绝桶守恒） | Algolia zero-result-rate | T1569–T1570 | 809 | 1057 | ✅ |
 | 58 | MCP 工具集轮询提供器读面（polls 三桶守恒） | etcd watch statistics | T1571–T1572 | 810 | 1058 | ✅ |
-| 59 | （开工时按缺口核查选题） | — | T1573–T1574 | 811 | 1059 |  |
+| 59 | compact_now 手动压缩判定读面（successes/skippeds/failures/unbound 四桶守恒） | Anthropic /compact 采用率 | T1573–T1574 | 811 | 1059 | ✅ |
+| 60 | （开工时按缺口核查选题；**R60 周期预检轮**） | — | T1575–T1576 | 812 | 1060 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
