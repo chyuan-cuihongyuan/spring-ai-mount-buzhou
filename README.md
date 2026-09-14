@@ -651,6 +651,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
 | 工具计量 | 沙箱版 run_command 执行分布读面 | 沙箱档送达率与五拒绝桶守恒显形（spec 1074） | [spec 1074](docs/spec/1074-sandboxrun-stats.md) |
 | 生命周期治理 | 会话归档操作读面 | 归档成功/空跳/下限拒四桶显形（spec 1075） | [spec 1075](docs/spec/1075-archiver-stats.md) |
+| 生命周期治理 | 归档清理任务读面 | 清理轮次/累计产出/锁跳过三面显形（spec 1078） | [spec 1078](docs/spec/1078-purgejob-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |

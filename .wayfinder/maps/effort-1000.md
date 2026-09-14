@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [归档清理任务读面的形态裁决](../tickets/T1611-purgejob-stats-shape.md) — ArchivePurgeJob 静态三计数（purgeRounds/purgedTotal/skippedLocked）+ 嵌套 PurgeJobStats + stats()/resetForTest()；purgedTotal 跨轮累计无入口守恒（每轮产出可变）；锁跳过显形（Quartz/Chron job statistics）。
 - [Spill 溢出 hook 判定读面的形态裁决](../tickets/T1609-spilloffload-stats-shape.md) — SpillOffloadHook 静态六计数（invocations/durableSkips/errorSkips/cleanInline/offloaded/refrains）+ 嵌套 SpillOffloadStats + stats()/resetForTest()；守恒 invocations = 五结局桶；溢出触发率即管线容量规划信号（logrotate 轮转率）。
 - [Runaway 预算 hook 判定读面的形态裁决](../tickets/T1607-runaway-stats-shape.md) — RunawayHook 静态四计数（invocations/blocked 三硬顶合桶/allowed/disabledSkips）+ 嵌套 RunawayStats + stats()/resetForTest()；守恒 invocations = 三结局桶；预算过紧/过松量化信号（上游闸门空结果率同族）。
 - [会话归档操作读面的形态裁决](../tickets/T1605-archiver-stats-shape.md) — SessionArchiver 静态四计数（archiveCalls/archived/emptySkipped/pdbRejected）+ 嵌套 ArchiveStats + stats()/resetForTest()；异常外溢入口不入桶口径诚实（S3 lifecycle 归档统计）。
@@ -172,7 +173,8 @@
 | 75 | 会话归档操作读面（archived/emptySkipped/pdbRejected 四桶） | S3 lifecycle 归档统计 | T1605–T1606 | 827 | 1075 | ✅ |
 | 76 | Runaway 预算 hook 判定读面（blocked/allowed/disabled 三桶守恒） | 上游闸门空结果率同族 | T1607–T1608 | 828 | 1076 | ✅ |
 | 77 | Spill 溢出 hook 判定读面（offloaded/cleanInline 等五桶守恒） | logrotate 轮转率 | T1609–T1610 | 829 | 1077 | ✅ |
-| 78 | （开工时按缺口核查选题） | — | T1611–T1612 | 830 | 1078 |  |
+| 78 | 归档清理任务读面（purgeRounds/purgedTotal/skippedLocked 三面） | Quartz/Chron job statistics | T1611–T1612 | 830 | 1078 | ✅ |
+| 79 | （开工时按缺口核查选题） | — | T1613–T1614 | 831 | 1079 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
