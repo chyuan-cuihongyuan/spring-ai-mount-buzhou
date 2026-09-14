@@ -93,7 +93,7 @@
 2. **死代码与双轨规范化**：`AuditChain.java:160` `verifySignature` 无调用方（逻辑已迁 `AuditChainVerifier.SignatureOps:113`，方法体一字不差）；`Jcs.write/writeObject` 与 `writeNode`（52-147）双轨；`ArgumentFingerprint.canonicalJson:42` 与 Jcs 两套「规范化 JSON」——安全哈希材质口径有漂移风险。
 3. **望远镜构造器**：`DefaultAgentSession.java:117-205` 七个构造器（10→16 参同前缀叠加）——Data Clumps，宜打包参数 record/Builder（叠加构造器属二进制兼容政策遗产，major 版收拢）。
 4. **Divergent Change**：`DefaultAgentRuntime.java`（680 行）兼 spawn/fork/export-import/租约续约/优雅停机/全局监听器；导出导入（:222-310）与续约（:580-612）可拆协作者；另有三处同形状「遍历扩展点→try→catch→WARN 拼接」重复（:194-201/:236-245/:290-296）。
-5. **Duplicated Code**：`ResilienceAdvisor.degradeFromCanary`(:326-387) 与 `fallbackOrRethrow`(:394-451) 候选循环整段同构；`ResponseCacheAdvisor.java:73-111` 与 `SemanticCacheAdvisor.java:91-126` 流式聚合装配逐行雷同；`MemoryModule.java:230-450` yml 子树解析样板重复 10+ 次；`ObservabilityAdvisor.java:228-240/:300-313` usage 记账块重复。
+5. **Duplicated Code**：`ResilienceAdvisor.degradeFromCanary`(:326-387) 与 `fallbackOrRethrow`(:394-451) 候选循环整段同构；`ResponseCacheAdvisor.java:73-111` 与 `SemanticCacheAdvisor.java:91-126` 流式聚合装配逐行雷同；`MemoryModule.java:230-450` yml 子树解析样板重复（✅ 9/13 已统一：spec 1521——memoryLeaf/memorySub helper）；`ObservabilityAdvisor.java:228-240/:300-313` usage 记账块重复。
 6. **Speculative Generality**：`DefaultSkillRegistry.load(appId, agentName, name)` 前两参被完全忽略（调用方只能 `load(null, null, name)`，LoadSkillTool.java:75）；`E2BSandbox.java:34`/`FirecrackerSandbox.java:36` 恒抛 UOE 的公开预留类型。
 7. **Data Clumps**：`InjectionViewProcessor` 的 `(factsBlock, catalogBlock, currentTurn, sessionId, summaryTokenBudget)` 五元组穿行三方法。
 8. **结构偏离**：memory/spill/resilience 三模块无 `api`/`internal` 分包——与 spec 09 包结构约定冲突，或需 09 档对「单包公开类型」追认。

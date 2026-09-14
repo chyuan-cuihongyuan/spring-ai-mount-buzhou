@@ -39,6 +39,7 @@
 - [R10 选题：MicrometerDualWriter 单类补测](../tickets/T1827-micrometer-dual-writer-shape.md) — 「无测试文件 > 缺分支」优先级：双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%，observability 94 用例全绿；ObservabilityAdvisor 流式路径顺延 R11 深做。
 - [R11 分支批次 4 选题（边缘分支清扫）](../tickets/T1829-branch-uplift-batch4-shape.md) — ThinkingChainExtractor 76%→90%（extraKeys 过滤链/maxChars 钳制/omitted 字符串形态/非 String 忽略）+ DefaultSpanHandle 63%→88%（attributes 批量导入首次被调用/双 close 幂等/显式终态优先/error null 防御）；ObservabilityAdvisor 流式 harness 单列 R12（议程精确化）；ToolGraphAnalyzer 批次 5 候选。
 - [R11 验证收口](../tickets/T1830-branch-uplift-batch4-verify.md) — observability 105 用例全绿（新增 11）；主代码零变化。
+- [R12 周期对账轮形态](../tickets/T1831-k-audit-r12-shape.md) — 第二次全仓 verify（隔离 worktree 固定提交点）+ 工件链五项对账（spec 1200–1211/票 T1801–T1832/impl 903–914）；R8–R11 增量 22+11 用例回归确认；R13 = Advisor 流式 harness。
 
 ## R1 台账（spec 1200 / impl 903）
 

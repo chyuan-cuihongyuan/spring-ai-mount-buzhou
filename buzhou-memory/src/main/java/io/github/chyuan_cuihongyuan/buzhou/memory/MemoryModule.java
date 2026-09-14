@@ -25,6 +25,23 @@ import java.util.function.Function;
 public final class MemoryModule {
 
     /** spec 517 / T777：压缩规模分布观测（进程级有界样本窗——Holder 同型）。 */
+    /** spec 1521 / T2293：memory 子图叶子提取（13 处嵌套 instanceof 样板统一）——类型不符或路径缺席返回 null。 */
+    private static Object memoryLeaf(Map<String, Object> ymlConfig, String key) {
+        if (ymlConfig.get("memory") instanceof Map<?, ?> memory) {
+            return memory.get(key);
+        }
+        return null;
+    }
+
+    /** spec 1521：memory 子图嵌套 map 提取（memory.<key> 二级）——缺席返回空 map。 */
+    private static Map<?, ?> memorySub(Map<String, Object> ymlConfig, String key) {
+        if (ymlConfig.get("memory") instanceof Map<?, ?> memory
+                && memory.get(key) instanceof Map<?, ?> sub) {
+            return sub;
+        }
+        return Map.of();
+    }
+
     private static final CompactionRatioStats STATS = new CompactionRatioStats();
 
     /** 压缩规模分布读数（观测面）。 */
@@ -260,10 +277,7 @@ public final class MemoryModule {
      * 窗口过后半开试探、成功清零、失败重计重新关窗（详见 {@link SummaryCircuitBreaker}）。
      */
     private static SummaryCircuitBreaker summaryCircuitBreaker(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        Map<?, ?> breaker = memory instanceof Map<?, ?> memoryMap
-                && ((Map<?, ?>) memoryMap).get("summary-circuit-breaker") instanceof Map<?, ?> cb
-                ? cb : Map.of();
+        Map<?, ?> breaker = memorySub(ymlConfig, "summary-circuit-breaker"); // spec 1521
         int threshold = integer(breaker.get("failure-threshold"),
                 SummaryCircuitBreaker.DEFAULT_FAILURE_THRESHOLD);
         Duration window = failureWindow(breaker.get("failure-window"));
@@ -290,30 +304,13 @@ public final class MemoryModule {
 
     /** impl-11 开关：{@code memory.sleep-time.enabled}（默认开）。 */
     private static boolean sleepTimeEnabled(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object st = ((Map<?, ?>) memory).get("sleep-time");
-            if (st instanceof Map) {
-                Object value = ((Map<?, ?>) st).get("enabled");
-                return !(value instanceof Boolean b) || b;
-            }
-        }
-        return true;
+        return !(memorySub(ymlConfig, "sleep-time").get("enabled") instanceof Boolean b) || b; // spec 1521
     }
 
     /** impl-11 频率：{@code memory.sleep-time.every-turns}（默认 5）。 */
     private static int sleepTimeEveryTurns(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object st = ((Map<?, ?>) memory).get("sleep-time");
-            if (st instanceof Map) {
-                Object value = ((Map<?, ?>) st).get("every-turns");
-                if (value instanceof Number n && n.intValue() > 0) {
-                    return n.intValue();
-                }
-            }
-        }
-        return 5;
+        Object value = memorySub(ymlConfig, "sleep-time").get("every-turns"); // spec 1521
+        return value instanceof Number n && n.intValue() > 0 ? n.intValue() : 5;
     }
 
     /**
@@ -347,34 +344,20 @@ public final class MemoryModule {
 
     /** impl-38：{@code memory.embedding-cache-capacity}（默认 512；非正回落默认）。 */
     private static int embeddingCacheCapacity(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object value = ((Map<?, ?>) memory).get("embedding-cache-capacity");
-            if (value instanceof Number number && number.intValue() > 0) {
-                return number.intValue();
-            }
-        }
-        return io.github.chyuan_cuihongyuan.buzhou.core.spi.CachedEmbeddingProvider.DEFAULT_CAPACITY;
+        Object value = memoryLeaf(ymlConfig, "embedding-cache-capacity"); // spec 1521
+        return value instanceof Number number && number.intValue() > 0
+                ? number.intValue()
+                : io.github.chyuan_cuihongyuan.buzhou.core.spi.CachedEmbeddingProvider.DEFAULT_CAPACITY;
     }
 
     /** T25 开关：{@code memory.fact-reconciliation}（默认开）。 */
     private static boolean factReconciliation(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object value = ((Map<?, ?>) memory).get("fact-reconciliation");
-            return !(value instanceof Boolean b) || b;
-        }
-        return true;
+        return !(memoryLeaf(ymlConfig, "fact-reconciliation") instanceof Boolean b) || b; // spec 1521 样板统一
     }
 
     /** T27 开关：{@code memory.compact-now-tool}（默认开；需配置摘要模型）。 */
     private static boolean compactNowTool(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object value = ((Map<?, ?>) memory).get("compact-now-tool");
-            return !(value instanceof Boolean b) || b;
-        }
-        return true;
+        return !(memoryLeaf(ymlConfig, "compact-now-tool") instanceof Boolean b) || b; // spec 1521 样板统一
     }
 
     /**
@@ -400,27 +383,14 @@ public final class MemoryModule {
 
     /** impl-12 开关：{@code memory.revise-section-tool}（默认开；自愈记忆 + 防投毒）。 */
     private static boolean reviseSectionTool(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object value = ((Map<?, ?>) memory).get("revise-section-tool");
-            return !(value instanceof Boolean b) || b;
-        }
-        return true;
+        return !(memoryLeaf(ymlConfig, "revise-section-tool") instanceof Boolean b) || b; // spec 1521
     }
 
     /** impl-02 / T36：{@code memory.micro-compaction.evict-ratio}（默认 0.7；(0,1] 钳制）。 */
     private static double evictRatio(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object mc = ((Map<?, ?>) memory).get("micro-compaction");
-            if (mc instanceof Map) {
-                Object value = ((Map<?, ?>) mc).get("evict-ratio");
-                if (value instanceof Number n && n.doubleValue() > 0.0d && n.doubleValue() <= 1.0d) {
-                    return n.doubleValue();
-                }
-            }
-        }
-        return InjectionViewProcessor.DEFAULT_EVICT_RATIO;
+        Object value = memorySub(ymlConfig, "micro-compaction").get("evict-ratio"); // spec 1521
+        return value instanceof Number n && n.doubleValue() > 0.0d && n.doubleValue() <= 1.0d
+                ? n.doubleValue() : InjectionViewProcessor.DEFAULT_EVICT_RATIO;
     }
 
     private static String modelName(Map<String, Object> ymlConfig) {
@@ -447,23 +417,15 @@ public final class MemoryModule {
     }
 
     private static int keepRecentTurns(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object value = ((Map<String, Object>) memory).get("keep-recent-turns");
-            if (value instanceof Number n) {
-                return n.intValue();
-            }
+        if (memoryLeaf(ymlConfig, "keep-recent-turns") instanceof Number n) { // spec 1521
+            return n.intValue();
         }
         return 2;
     }
 
     private static String extraInstruction(Map<String, Object> ymlConfig) {
-        Object memory = ymlConfig.get("memory");
-        if (memory instanceof Map) {
-            Object value = ((Map<String, Object>) memory).get("summary-extra-instruction");
-            if (value instanceof String s) {
-                return s;
-            }
+        if (memoryLeaf(ymlConfig, "summary-extra-instruction") instanceof String s) { // spec 1521
+            return s;
         }
         return null;
     }

@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [MemoryModule yml 样板统一的形状裁决](../tickets/T2293-memory-yml-dedup-shape.md) — memoryLeaf/memorySub 两 helper 统一 9 处嵌套 instanceof 提取（3 处反射/泛型复杂体保留）；等值重构。
 - [构造器 this 逃逸修复与三裁定的形状裁决](../tickets/T2291-this-escape-shape.md) — AsyncObservabilityPipeline 惰性启动（首事件 CAS）；DbToolSetProvider 首跑延迟窗口理论性不整改；五-2 三键边界追认；六-2 指纹双轨不统一（值稳定性优先）。
 - [日志双门面追认与 spec 04 回写的形状裁决](../tickets/T2289-logger-spec04-shape.md) — 69 文件既成风格不迁移（占位符风格硬约束不变、同文件不混用）；spec 04 补 mcp 装配属性增量。
 - [文档间残留矛盾三裁定的形状裁决](../tickets/T2287-doc-adjudication-shape.md) — perf 10ms/20ms = 目标-红线关系非矛盾；promptfoo star 统一时点注记；spec 09 追认 test 边豁免——design-incompleteness 清单经 M 系 20 轮全部闭环或裁定。
@@ -75,6 +76,7 @@
 | 21 | 周期预检轮：全仓 verify 16 模块绿唯快照门红→隔离 worktree 再生快照补账（HEAD 已提交的 10 新类型：M 系 IdempotentToolRetryHolder + 并行会话 9 个 Holder/Hook；api-surface/CONTEXT 计数 466→893 陈旧口径刷新） | 周期 verify + 快照再生 | — | — | — | ✅ |
 | 22 | System.Logger 双门面追认（69 文件既成风格）+ spec 04 mcp 属性回写 | design-incompleteness 五-3/四-7 | T2289–T2290 | 1122 | 1519 | ✅ |
 | 23 | 观测管线构造器 this 逃逸修复（惰性启动）+ 五-2/六-2 指纹/DbToolSetProvider 三裁定 | design-incompleteness 六-7/五-2/六-2 | T2291–T2292 | 1123 | 1520 | ✅ |
+| 24 | MemoryModule yml 解析样板统一（9/13 → 两 helper） | design-incompleteness 六-5 部分 | T2293–T2294 | 1124 | 1521 | ✅ |
 
 
 ## Out of scope

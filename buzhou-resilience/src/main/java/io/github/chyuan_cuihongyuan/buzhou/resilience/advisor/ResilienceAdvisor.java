@@ -391,10 +391,12 @@ public class ResilienceAdvisor implements BaseAdvisor {
             }
         }
         try {
+            long slowStartNs = System.nanoTime(); // spec 1628：主调用时长（慢调用维度喂入）
             ChatClientResponse response = callWithDeadline(
                     () -> timedModelCall(targetName, target.model(), request));
             if (circuit != null) {
-                circuit.recordSuccess(targetName, emitter);
+                circuit.recordSuccess(targetName, emitter,
+                        java.time.Duration.ofNanos(System.nanoTime() - slowStartNs));
                 outlierOk(targetName);
             }
             recordCandidateUsage(targetName, response);
