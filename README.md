@@ -920,6 +920,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 治理 | 工具循环打断分布 | ToolLoopBreakerHook.brokenByToolSnapshot()——per-tool 累计打断次数（降序典序）+brokenTotal+maxRunObserved 打断时点最长 run 水位，reset 清分布不清会话 run 状态；「哪个工具在烧配额」定向治理信号显形——Temporal retry-loop detection 思想（spec 1433） | [spec 1433](docs/spec/1433-tool-loop-break-stats.md) |
 
+| 并发治理 | 延迟作业调度漂移 | DelayedJobQueue.driftStats()——实际起跑 vs 计划 fireAt 的漂移读数（executed/last/max 水位），过期补跑漂移显形正值=补偿逻辑错过窗口量化，既有替换/取消语义不变——Sidekiq queue latency 思想（spec 1434） | [spec 1434](docs/spec/1434-delayed-job-drift.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

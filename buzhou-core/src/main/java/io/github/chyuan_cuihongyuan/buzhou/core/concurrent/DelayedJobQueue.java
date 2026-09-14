@@ -76,12 +76,46 @@ public final class DelayedJobQueue implements AutoCloseable {
         }
         Instant now = clock.instant();
         long delayMs = Math.max(0, Duration.between(now, fireAt).toMillis());
-        ScheduledFuture<?> future = scheduler.schedule(() -> run(jobKey, task),
-                delayMs, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> future = scheduler.schedule(() -> run(jobKey, () -> {
+            // spec 1434 / T2171：调度漂移埋点——实际起跑 vs 计划 fireAt（Sidekiq
+            // queue latency 思想：漂移大 = 调度线程饥饿，作业「准时性」承诺失守）
+            long drift = Math.max(0, Duration.between(fireAt, clock.instant()).toMillis());
+            recordDrift(drift);
+            task.run();
+        }), delayMs, TimeUnit.MILLISECONDS);
         Scheduled previous = jobs.put(jobKey, new Scheduled(jobKey, future, fireAt));
         if (previous != null) {
             previous.future.cancel(false); // 替换——旧任务不双跑
         }
+    }
+
+    /** 调度漂移读数（spec 1434 / T2171）：executed/lastDriftMillis/maxDriftMillis。 */
+    public record DriftStats(long executed, long lastDriftMillis, long maxDriftMillis) {
+    }
+
+    private final java.util.concurrent.atomic.AtomicLong executedJobs =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong lastDrift =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong maxDrift =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    private void recordDrift(long driftMillis) {
+        lastDrift.set(driftMillis);
+        maxDrift.accumulateAndGet(driftMillis, Math::max);
+        executedJobs.incrementAndGet();
+    }
+
+    /** 只读快照：累计执行数 + 末次/最大调度漂移（毫秒）。 */
+    public DriftStats driftStats() {
+        return new DriftStats(executedJobs.get(), lastDrift.get(), maxDrift.get());
+    }
+
+    /** 测试归零口（调度器状态不动）。 */
+    public void resetDriftForTest() {
+        executedJobs.set(0);
+        lastDrift.set(0);
+        maxDrift.set(0);
     }
 
     /** 延迟执行一次（delay 非负）。 */
