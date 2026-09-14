@@ -1,6 +1,5 @@
 package io.github.chyuan_cuihongyuan.buzhou.dashboard;
 
-import io.github.chyuan_cuihongyuan.buzhou.core.spi.SpanRecord;
 import io.github.chyuan_cuihongyuan.buzhou.dashboard.internal.DashboardHttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +9,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,8 +28,6 @@ class DashboardHttpStatsTest {
     void setUp() {
         DashboardHttpServer.resetForTest();
         store = io.github.chyuan_cuihongyuan.buzhou.core.Buzhou.inMemoryStores().observabilityStore();
-        store.appendSpan(SpanRecord.builder().sessionId("s1").spanId("sp1")
-                .turnSeq(1).startedAt(Instant.now()).build());
         dashboard = DashboardModule.builder(store)
                 .port(0)
                 .build()
