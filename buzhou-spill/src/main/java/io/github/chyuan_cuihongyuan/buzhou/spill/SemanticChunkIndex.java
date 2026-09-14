@@ -70,6 +70,36 @@ public final class SemanticChunkIndex {
                 .toList();
     }
 
+    /**
+     * 索引覆盖读面（spec 1447 / T2187）：已索引 uri 数 / 切片总数 / 单 uri
+     * 最大切片数（最厚制品——切片数失衡=分块策略倾斜信号）。
+     */
+    public CoverageStats coverageStats() {
+        int uris = byUri.size();
+        int totalChunks = 0;
+        int maxChunksPerUri = 0;
+        String largestUri = null;
+        for (Map.Entry<String, List<Chunk>> e : byUri.entrySet()) {
+            int size = e.getValue().size();
+            totalChunks += size;
+            if (size > maxChunksPerUri) {
+                maxChunksPerUri = size;
+                largestUri = e.getKey();
+            }
+        }
+        return new CoverageStats(uris, totalChunks, maxChunksPerUri, largestUri);
+    }
+
+    /**
+     * @param indexedUries    已索引 uri 数
+     * @param totalChunks     切片总数
+     * @param maxChunksPerUri 单 uri 最大切片数（切片失衡信号）
+     * @param largestUri      切片最多的 uri（null = 空索引）
+     */
+    public record CoverageStats(int indexedUries, int totalChunks,
+                                int maxChunksPerUri, String largestUri) {
+    }
+
     private static String excerptOf(String text) {
         String squeezed = text.strip().replaceAll("\\s+", " ");
         return squeezed.length() <= 120 ? squeezed : squeezed.substring(0, 120) + "…";

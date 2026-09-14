@@ -68,3 +68,4 @@
 - [评估通过率趋势审计的形状裁决](../tickets/T2189-pass-rate-trend-shape.md) — EvalPassRateTrend 纯函数（core/eval）：Theil–Sen 成对斜率中位数（离群抗噪）+Direction 闭集（死区 ε=0.005/run+INSUFFICIENT 哨兵）——跨 run 改进/退化趋势稳健显形。
 - [媒体摄入统计读面的形状裁决](../tickets/T2191-media-intake-stats-shape.md) — MediaIntake 实例面增量：intakes/bytesTotal/readBacks 三计数+per-MIME 直方（数量降序典序、封顶 16 基数纪律）+stats/reset（不影响 store）——OpenAI usage by modality 思想，多模态使用画像与字节配额治理显形。
 - [导出清单校验统计读面的形状裁决](../tickets/T2185-manifest-verify-stats-shape.md) — **1439 补位轮**（H R39 补位先例）：ExportManifestVerifyStats 静态面（三受踪包装零侵入）——verifies=ok+failed 守恒+mismatched/missing/unexpected 明细桶+lastEntryKind——TUF 校验遥测思想。
+- [语义切片索引覆盖读面的形状裁决](../tickets/T2193-chunk-coverage-shape.md) — SemanticChunkIndex 增量 coverageStats()（indexedUries/totalChunks/maxChunksPerUri/largestUri 切片失衡定位）——Elasticsearch index stats 思想。

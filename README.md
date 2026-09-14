@@ -944,6 +944,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 导出治理 | 导出清单校验统计 | ExportManifestVerifyStats——三受踪包装（canonical/subset/full 委托+入账）：verifies=ok+failed 守恒+mismatched/missing/unexpected 明细桶累计+lastEntryKind 末次入口；「从不校验」与「校验全红」两种病灶显形——TUF 校验遥测思想（spec 1439 补位） | [spec 1439](docs/spec/1439-export-manifest-verify-stats.md) |
 
+| Spill 治理 | 语义切片索引覆盖读面 | SemanticChunkIndex.coverageStats()——已索引 uri 数/切片总数/单 uri 最大切片数与最厚制品定位（切片失衡信号），空索引零哨兵、provider 不可用短路覆盖恒空——Elasticsearch index stats 思想（spec 1447） | [spec 1447](docs/spec/1447-semantic-chunk-coverage.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

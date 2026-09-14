@@ -2502,3 +2502,7 @@
   校验统计——三受踪包装（canonical/subset/full 委托+入账）+verifies=ok+
   failed 守恒+三明细桶（mismatched/missing/unexpected 非互斥），进程级
   静态读面；嵌套 `Snapshot` 不另立面）
+
+- `SemanticChunkIndex.coverageStats()`（1447——Elasticsearch index stats
+  思想：语义切片索引覆盖读面——indexedUries/totalChunks/maxChunksPerUri
+  切片失衡定位，实例面只读；嵌套 `CoverageStats` 不另立面）
