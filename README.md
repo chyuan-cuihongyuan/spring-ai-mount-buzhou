@@ -794,6 +794,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 观测治理 | Span 树拓扑读面 | SpanTreeTopology——Span 集合树结构形状分析：深度（根=1）/单节点最大扇出/根数/孤儿计数/kind 直方（数量降序）+父引用环防护（visited 收敛不炸栈）；与 Timings 族时延维正交——Jaeger DAG 思想（spec 1414） | [spec 1414](docs/spec/1414-span-tree-topology.md) |
 
+| 观测治理 | 事件积压水位读数 | EventBackpressureStats——queueDepth 历史峰值水位+BLOCK 策略限时等待推入累计（&gt;0=容量曾打满），进程级静态读面+分发器只增记账埋点，EventBusStats 公共 record 不改形——Kafka consumer lag 思想（spec 1415） | [spec 1415](docs/spec/1415-event-backpressure-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

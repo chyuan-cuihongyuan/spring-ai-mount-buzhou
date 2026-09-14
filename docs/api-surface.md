@@ -2377,3 +2377,8 @@
   分析——深度（根=1）/扇出/根数/孤儿计数（明细归 SpanParentIntegrityAudit）/
   kind 直方（数量降序平名典序）+父引用环防护，纯函数零 IO；嵌套
   `Topology` 不另立面）
+
+- `EventBackpressureStats`（1415——Kafka consumer lag 思想：事件总线积压
+  水位读数——queueDepth 历史峰值 depthWatermark+BLOCK 策略限时等待推入
+  blockedPushes，进程级静态读面（BufferedEventDispatcher 只增记账埋点）；
+  嵌套 `Snapshot` 不另立面）

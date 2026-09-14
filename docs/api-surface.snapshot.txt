@@ -347,6 +347,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCauseDistribu
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelLatencyTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EncryptedSessionExport
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBackpressureStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBreadcrumb
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBusStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventDispatchConfig

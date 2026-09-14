@@ -67,7 +67,7 @@ R44 导出分块清单读数(S3 multipart, boto3 ≈10K)【高危待勘 RollingJ
 R45 工具白名单漂移审计(Terraform drift ≈45K)【高危待勘 vs 1000/833】→guard｜
 R46 健康探针时延读数(k8s probe latency ≈115K)→mcp/core【高危待勘 health seam】｜
 R47 评估黄金集回归门(pytest golden ≈13K)→core【高危待勘 vs I gate/stability】｜
-R48 事件积压水位读面(Kafka consumer lag ≈30K)【高危待勘 vs EventBusStats】→core｜
+R16 ✅ 已落地=事件积压水位（R48 题提前；EventBusStats 瞬时值的并行读面不改形）｜
 R49 摘要触发原因分布(V8 GC reason taxonomy ≈24K)【高危待勘 vs 1027】→memory｜
 R50 收口终验(全仓 verify+快照再生+台账核查+README/覆盖门+MAP 达成)。
 
