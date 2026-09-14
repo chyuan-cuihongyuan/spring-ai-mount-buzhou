@@ -73,6 +73,9 @@
 - [R18 形状：梯度式自适应并发](../tickets/T2385-r18-gradient-shape.md) — Netflix Gradient2 / Envoy adaptive_concurrency 思想：延迟梯度驱动（baseline/recent 双 EMA）——劣化乘性下调（失败前规避）、变快加性上调、容错带防抖、warmup 学习期；与 spec 145 失败驱动 AIMD 正交
 - [R18 验收](../tickets/T2386-r18-gradient-verify.md) — 七断言（劣化下调零失败/变快加性/容差带不动/warmup 只学/上限联动/封顶/配置校验）
 
+- [R19 形状：校准审计接线](../tickets/T2387-r19-calib-shape.md) — spec 819 孤类修复第六弹：TokenBudgetHook.afterModel 同点对账（CharHeuristic 估算 prompt vs usage.promptTokens）+ CalibrationAuditHolder 读出面——「预算按估算设、账单按真实来」的偏差从感觉变数字
+- [R19 验收](../tickets/T2388-r19-calib-verify.md) — Holder 读数两断言 + 既有预算/校准 12 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -104,3 +107,4 @@
 | R16 | #1615 | 泄漏疑似聚合接线（spec 839 孤类救活） | T2381–T2382 | 1168 | 1615 | done |
 | R17 | #1616 | 工具失败负缓存（DNS negative caching 思想） | T2383–T2384 | 1169 | 1616 | done |
 | R18 | #1617 | 梯度式自适应并发闸（Netflix Gradient2 思想） | T2385–T2386 | 1170 | 1617 | done |
+| R19 | #1618 | Token 校准审计接线（spec 819 孤类救活） | T2387–T2388 | 1171 | 1618 | done |

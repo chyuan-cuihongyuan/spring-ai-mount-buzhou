@@ -634,6 +634,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
 | 观测治理 | J 系阶段对账审计 R60 | J 会话 R51–R59 工件对账 + 七域读面布局盘点（spec 1060） | [spec 1060](docs/spec/1060-j-audit-r60.md) |
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
+| 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -823,6 +824,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 观测治理 | 泄漏疑似聚合接线 | LeakSuspectHolder.compositeWith 把聚合器复合进检测器 listener 链（宿主 listener 与聚合器双收）——泄漏「同一处反复漏 vs 多处散漏」从日志流水变排行（LeakSuspectHolder.report() 读出）——spec 839 孤类救活（spec 1615） | [spec 1615](docs/spec/1615-leak-suspect-wiring.md) |
 | 工具治理 | 工具失败负缓存 | NegativeCachingToolCallback——同 key 失败短 TTL（默认 30s）记忆，窗内复读直接回错误文本不再真调（防模型重试风暴撞同一失败）；恢复窗口即 TTL、成功不缓存（与成功 memo 正交）、异常路径同缓存——DNS negative caching / NXDOMAIN 思想（spec 1616） | [spec 1616](docs/spec/1616-tool-negative-cache.md) |
 | 并发治理 | 梯度式自适应并发闸 | GradientAdaptiveLimiter——延迟梯度驱动动态上限（长窗慢 EMA 基线 / 短窗快 EMA 近期）：劣化乘性下调（过载前兆先于失败规避）、变快加性上调、容错带防抖、warmup 学习期；与失败驱动 AIMD（spec 145）正交——Netflix Gradient2 / Envoy adaptive_concurrency 思想（spec 1617） | [spec 1617](docs/spec/1617-gradient-adaptive-limiter.md) |
+| 预算治理 | Token 校准审计接线 | TokenBudgetHook.afterModel 同点对账——CharHeuristic 估算 prompt vs 模型回报 usage.promptTokens 成对入账（均值相对误差/偏高偏低占比/近窗 P95），CalibrationAuditHolder 读出——「预算按估算设、账单按真实来」的系统性偏差从感觉变数字——spec 819 孤类救活（spec 1618） | [spec 1618](docs/spec/1618-calibration-wiring.md) |
 
 ## 快速开始
 
