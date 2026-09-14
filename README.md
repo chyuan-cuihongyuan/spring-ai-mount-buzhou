@@ -646,6 +646,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
+| 溢出治理 | offload→readBack 双轴闭环组合测试 | 溢出落盘与回读闭环计数一致性钉住（spec 1093） | [spec 1093](docs/spec/1093-offread-combo.md) |
 | 溢出治理 | Spill 溢出 hook 判定读面 | 溢出触发率与降级动作五桶守恒显形（spec 1077） | [spec 1077](docs/spec/1077-spilloffload-stats.md) |
 | 溢出治理 | Spill 加解密读面 | 加解密操作量与失败分布显形（spec 1079） | [spec 1079](docs/spec/1079-spillcipher-stats.md) |
 | 溢出治理 | spill 域 offload+evict 生命周期组合测试 | 溢出→逐出→回读链路双读面守恒钉住（spec 1089） | [spec 1089](docs/spec/1089-spillchain-readout.md) |
