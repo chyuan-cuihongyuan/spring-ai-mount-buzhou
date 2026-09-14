@@ -40,6 +40,9 @@
 - [R7 形状：虚拟线程 pinning 审计+金丝雀热路径修复](../tickets/T2363-r7-pinning-shape.md) — 全仓审计 17 组风险（高危 6 组/中危 11 组）；Top1=CanaryToolCallback.route 锁内完整工具执行：三段式修复（路由决策锁内→执行锁外→计数锁内），计数原子/回滚最终一致不变
 - [R7 验收](../tickets/T2364-r7-pinning-verify.md) — 双 latch 并行断言（锁内执行时代码必超时）+ 计数守恒 + 既有 7 用例零回归
 
+- [R8 形状：RollingJsonlWriter 锁迁移](../tickets/T2365-r8-jsonl-lock-shape.md) — spec 1606 排队项落地：monitor→ReentrantLock（互斥语义零变，虚拟线程 unmount 不 pin——HarnessToolCallingManager 先例）；行完整性/计数守恒用并发测试钉住
+- [R8 验收](../tickets/T2366-r8-jsonl-lock-verify.md) — 8 虚拟线程 ×50 行并发追加零撕裂零丢失 + 既有 10 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -60,3 +63,4 @@
 | R5 | #1604 | 响应缓存 stale-if-error（Varnish grace / RFC 5861 思想） | T2359–T2360 | 1157 | 1604 | done |
 | R6 | #1605 | A/B 评估 SPRT 序贯提前终止（Wald SPRT / sequential testing 思想） | T2361–T2362 | 1158 | 1605 | done |
 | R7 | #1606 | 虚拟线程 pinning 审计 + 金丝雀热路径修复（Netty 不阻塞事件循环铁律） | T2363–T2364 | 1159 | 1606 | done |
+| R8 | #1607 | RollingJsonlWriter 锁迁移（spec 1606 排队项：j.u.c 锁不 pin） | T2365–T2366 | 1160 | 1607 | done |
