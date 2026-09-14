@@ -6,10 +6,10 @@
 
 **Status:** done
 
-- [ ] 四计数落点（入口/成功 markEvicted/URI 前缀拒/catch 兜底）
-- [ ] EvictStats 嵌套 record + stats() + resetForTest()
-- [ ] EvictStatsTest（合法逐出/坏路径/坏 JSON/守恒/reset 五测）
-- [ ] spec 1053 + README 行（嵌套类型不动 API 快照）
+- [x] 四计数落点（入口/成功 markEvicted/URI 前缀拒/catch 兜底）
+- [x] EvictStats 嵌套 record + stats() + resetForTest()
+- [x] EvictStatsTest（合法逐出/坏路径/坏 JSON/守恒/reset 五测）
+- [x] spec 1053 + README 行（嵌套类型不动 API 快照）
 
 ## Done
 
