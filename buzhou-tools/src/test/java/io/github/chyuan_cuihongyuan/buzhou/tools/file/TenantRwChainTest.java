@@ -65,7 +65,7 @@ class TenantRwChainTest {
         WriteFileTool.resetForTest();
         ReadFileTool.resetForTest();
 
-        assertThat(WriteFileTool.stats().calls()).isZero();
+        assertThat(WriteFileTool.stats().attempts()).isZero();
         assertThat(ReadFileTool.stats().attempts()).isZero();
     }
 }
