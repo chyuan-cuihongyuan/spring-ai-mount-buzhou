@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 /**
- * 工具 schema 健康审计（spec 1435 / T2165 替位编号见台账：R36 = effort #1435 /
- * 票 T2173 + T2174 / impl 1088）——ajv / OpenAPI schema 校验思想：工具入参
+ * 工具 schema 健康审计（spec 1435 / T2163 替位编号见台账：R36 = effort #1435 /
+ * 票 T2171 + T2172 / impl 1088）——ajv / OpenAPI schema 校验思想：工具入参
  * schema 的健康度决定 {@code ToolArgsValidator} 是否实际生效——**schema 缺失
  * 或不可解析时校验器 permissive 放行**（spec 12 依赖卫生决策：宁可漏报校验、
  * 绝不误拦），但「多少工具在裸奔」无审计面。本审计把 schema 状态分桶显形：

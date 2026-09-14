@@ -1,10 +1,10 @@
 ---
-id: T2170
+id: T2168
 title: 打断分布计数与水位单调的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2169
+blocked-by: T2167
 created: 2026-09-14
 ---
 

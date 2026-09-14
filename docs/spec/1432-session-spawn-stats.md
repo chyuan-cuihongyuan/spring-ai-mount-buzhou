@@ -1,6 +1,6 @@
 # 1432 — 会话 spawn 统计读面
 
-> 来源：L 会话第 33 轮 = effort #1432（票 T2167 / T2168 / impl 1083）。借鉴：HikariCP 连接池建连统计（attempts/collisions 是池治理第一读数——冲突频次决定 id 规划与容量）。
+> 来源：L 会话第 33 轮 = effort #1432（票 T2165 / T2166 / impl 1083）。借鉴：HikariCP 连接池建连统计（attempts/collisions 是池治理第一读数——冲突频次决定 id 规划与容量）。
 
 ## Problem Statement
 

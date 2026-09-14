@@ -1,10 +1,10 @@
 ---
-id: T2178
+id: T2176
 title: 退化条目分桶与长度分位的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2177
+blocked-by: T2175
 created: 2026-09-14
 ---
 

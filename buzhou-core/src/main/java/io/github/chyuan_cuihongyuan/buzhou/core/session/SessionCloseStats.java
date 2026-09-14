@@ -3,7 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.session;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 会话关闭耗时读数（spec 1430 / T2163 / impl 1084）——k8s graceful shutdown
+ * 会话关闭耗时读数（spec 1430 / T2161 / impl 1084）——k8s graceful shutdown
  * terminationGracePeriod 思想：关闭耗时分布是排空健康的第一信号——close 卡在
  * executor 排空/observer onClose/资源注册表逆序关闭会让停机窗口超限。
  * 进程级静态读面（ToolArgsValidator.validationStats 同款先例）：

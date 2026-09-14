@@ -3,8 +3,8 @@ package io.github.chyuan_cuihongyuan.buzhou.core.eval;
 import java.util.List;
 
 /**
- * 评估数据集质量审计（spec 1437 / T2171 兄弟轮编号见台账：R38 = effort #1438 /
- * 票 T2177 + T2178 / impl 1090）——Cleanlab 数据质量（近重复 H 847 之外的
+ * 评估数据集质量审计（spec 1437 / T2169 兄弟轮编号见台账：R38 = effort #1438 /
+ * 票 T2175 + T2176 / impl 1090）——Cleanlab 数据质量（近重复 H 847 之外的
  * 另一轴：**退化条目**）思想：空 input、空 expected、超短 input（< 最小信息量）
  * 的条目让评估分数虚高或虚低——「这个数据集还能信吗」从逐条翻看变成一行审计。
  *

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * spec 1431 / T2166：指标命名校验器——与 MetricNamingGuardTest 门规则同源
+ * spec 1431 / T2164：指标命名校验器——与 MetricNamingGuardTest 门规则同源
  * 判定（合规样例/大写段/双点/尾空格/前缀缺失）、首违不短路一次看全、
  * 空名哨兵。
  */

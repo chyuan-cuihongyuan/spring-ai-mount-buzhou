@@ -419,7 +419,7 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
     }
 
     private AgentSession doSpawn(String appId, String agentName, String sessionId, SpawnOptions options) {
-        SessionSpawnStats.recordAttempt(); // spec 1433 / T2167：spawn 统计埋点（只增记账）
+        SessionSpawnStats.recordAttempt(); // spec 1433 / T2165：spawn 统计埋点（只增记账）
         LeaseAcquireResult lease = stores.sessionLeaseStore().tryAcquire(sessionId, ownerId, leaseTtl);
         if (!lease.acquired()) {
             if (!options.steal()) {

@@ -1,6 +1,6 @@
 # 1431 — 指标命名校验器
 
-> 来源：L 会话第 32 轮 = effort #1431（票 T2165 / T2166 / impl 1085）。借鉴：Prometheus metric naming 规范（命名规则机器化——命名漂移在写入时显形而非看板对不上）。
+> 来源：L 会话第 32 轮 = effort #1431（票 T2163 / T2164 / impl 1085）。借鉴：Prometheus metric naming 规范（命名规则机器化——命名漂移在写入时显形而非看板对不上）。
 
 ## Problem Statement
 

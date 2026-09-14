@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * spec 1432 / T2168：会话 spawn 统计——成功/冲突/抢占三路计数、守恒式
+ * spec 1432 / T2166：会话 spawn 统计——成功/冲突/抢占三路计数、守恒式
  * attempts=successes+collisions、活跃峰值水位、reset；静态面前后归零防串扰。
  */
 class SessionSpawnStatsTest {

@@ -1,10 +1,10 @@
 ---
-id: T2176
+id: T2174
 title: 逆序对计数与定位哨兵的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2175
+blocked-by: T2173
 created: 2026-09-14
 ---
 

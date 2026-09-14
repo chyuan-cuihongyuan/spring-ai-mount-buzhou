@@ -7,7 +7,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * spec 1437 / T2180：悬空轮检测——有 USER 无 ASSISTANT 即悬空、TOOL 链
+ * spec 1437 / T2178：悬空轮检测——有 USER 无 ASSISTANT 即悬空、TOOL 链
  * 不影响判定、仅 TOOL/SYSTEM 轮不算悬空、样本封顶升序、空输入哨兵。
  */
 class DanglingTurnDetectorTest {

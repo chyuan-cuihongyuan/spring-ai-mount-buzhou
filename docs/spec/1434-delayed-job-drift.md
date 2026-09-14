@@ -1,6 +1,6 @@
 # 1434 — 延迟作业调度漂移读数
 
-> 来源：L 会话第 35 轮 = effort #1434（票 T2171 / T2172 / impl 1087）。借鉴：Sidekiq queue latency（队列延迟是调度健康第一指标——任务「计划时刻 vs 实际起跑」的漂移量化调度线程饥饿）。
+> 来源：L 会话第 35 轮 = effort #1434（票 T2169 / T2170 / impl 1087）。借鉴：Sidekiq queue latency（队列延迟是调度健康第一指标——任务「计划时刻 vs 实际起跑」的漂移量化调度线程饥饿）。
 
 ## Problem Statement
 

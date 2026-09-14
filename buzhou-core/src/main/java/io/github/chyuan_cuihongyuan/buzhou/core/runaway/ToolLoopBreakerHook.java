@@ -69,7 +69,7 @@ public final class ToolLoopBreakerHook implements BuzhouHook {
                 return HookResult.CONTINUE;
             }
             BuzhouMetricsHolder.metrics().counter(BROKEN_COUNTER);
-            recordBroken(ctx.toolName(), state.run); // spec 1433 / T2169：打断分布埋点
+            recordBroken(ctx.toolName(), state.run); // spec 1433 / T2167：打断分布埋点
             return HookResult.block(MARKER + "\n工具：" + ctx.toolName()
                     + "\n原因：同一工具同一参数已连续调用 " + state.run
                     + " 次——参数未变结果不会变，每次调用都在烧配额。"
@@ -105,7 +105,7 @@ public final class ToolLoopBreakerHook implements BuzhouHook {
         return sessions.computeIfAbsent(sessionId, k -> new SessionState());
     }
 
-    /** per-tool 打断计数表（spec 1433 / T2169；256 封顶折 __overflow__ 同拒绝表纪律）。 */
+    /** per-tool 打断计数表（spec 1433 / T2167；256 封顶折 __overflow__ 同拒绝表纪律）。 */
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong>
             brokenByTool = new java.util.concurrent.ConcurrentHashMap<>();
     private static final int MAX_TRACKED_TOOLS = 256;

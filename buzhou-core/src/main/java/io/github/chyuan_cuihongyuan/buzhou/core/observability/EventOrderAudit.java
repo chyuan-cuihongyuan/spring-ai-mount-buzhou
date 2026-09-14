@@ -6,7 +6,7 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * 事件时序单调性审计（spec 1436 / T2175 / impl 1089）——事件溯源不变量
+ * 事件时序单调性审计（spec 1436 / T2173 / impl 1089）——事件溯源不变量
  * （EventStoreDB：同流内时间戳单调是消费者正确性的前提）思想：同会话事件
  * 的 occurredAt 应按存储序非递减——逆序对意味着时钟回拨/并发写入乱序/
  * 重放注入，消费方（回放/审计/漂移计算）的正确性会静默劣化。

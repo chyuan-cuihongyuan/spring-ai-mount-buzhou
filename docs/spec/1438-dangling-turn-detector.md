@@ -1,6 +1,6 @@
 # 1439 — 悬空轮检测器
 
-> 来源：L 会话第 39 轮 = effort #1439（票 T2179 / T2180 / impl 1091）。借鉴：Temporal activity 检测（中断后「activity 无结果」是恢复语义的边界形态）。
+> 来源：L 会话第 39 轮 = effort #1438（票 T2177 / T2178 / impl 1091）。借鉴：Temporal activity 检测（中断后「activity 无结果」是恢复语义的边界形态）。
 
 ## Problem Statement
 

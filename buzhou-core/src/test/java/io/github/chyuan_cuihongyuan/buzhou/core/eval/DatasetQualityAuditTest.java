@@ -8,7 +8,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * spec 1437 / T2178：评估数据集质量审计——空 input/expected 分桶、短输入
+ * spec 1437 / T2176：评估数据集质量审计——空 input/expected 分桶、短输入
  * 阈值、长度 P50/P95、退化比派生、空集哨兵；与近重复/期望格式轴辨义。
  */
 class DatasetQualityAuditTest {

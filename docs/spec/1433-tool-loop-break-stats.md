@@ -1,6 +1,6 @@
 # 1433 — 工具循环打断分布读面
 
-> 来源：L 会话第 34 轮 = effort #1433（票 T2169 / T2170 / impl 1086）。借鉴：Temporal workflow retry-loop detection（循环打断需要按目标分布——「哪个工具在烧配额」是 runaway 治理的行动面）。
+> 来源：L 会话第 34 轮 = effort #1433（票 T2167 / T2168 / impl 1086）。借鉴：Temporal workflow retry-loop detection（循环打断需要按目标分布——「哪个工具在烧配额」是 runaway 治理的行动面）。
 
 ## Problem Statement
 

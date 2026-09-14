@@ -1,10 +1,10 @@
 ---
-id: T2172
+id: T2170
 title: 调度漂移计数与迟到显形的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2171
+blocked-by: T2169
 created: 2026-09-14
 ---
 

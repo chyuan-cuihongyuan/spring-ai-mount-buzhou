@@ -1,10 +1,10 @@
 ---
-id: T2174
+id: T2172
 title: 四态分桶与裸奔率派生的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2173
+blocked-by: T2171
 created: 2026-09-14
 ---
 

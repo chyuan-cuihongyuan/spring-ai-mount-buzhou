@@ -10,7 +10,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * spec 1436 / T2176：事件时序单调性审计——单调序列零逆序、回拨逆序显形
+ * spec 1436 / T2174：事件时序单调性审计——单调序列零逆序、回拨逆序显形
  * （对数/最大倒退/首逆序位）、等时刻不算逆序、空输入哨兵。
  */
 class EventOrderAuditTest {

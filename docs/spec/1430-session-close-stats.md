@@ -1,6 +1,6 @@
 # 1430 — 会话关闭耗时读数
 
-> 来源：L 会话第 31 轮 = effort #1430（票 T2163 / T2164 / impl 1084）。借鉴：k8s graceful shutdown terminationGracePeriod（关闭耗时的分布是排空健康的第一信号——close 卡在 executor 排空/租约释放会让停机窗口超限）。
+> 来源：L 会话第 31 轮 = effort #1430（票 T2161 / T2162 / impl 1084）。借鉴：k8s graceful shutdown terminationGracePeriod（关闭耗时的分布是排空健康的第一信号——close 卡在 executor 排空/租约释放会让停机窗口超限）。
 
 ## Problem Statement
 

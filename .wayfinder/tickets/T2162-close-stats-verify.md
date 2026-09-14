@@ -1,10 +1,10 @@
 ---
-id: T2164
+id: T2162
 title: 关闭耗时水位与失败分桶的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2163
+blocked-by: T2161
 created: 2026-09-14
 ---
 

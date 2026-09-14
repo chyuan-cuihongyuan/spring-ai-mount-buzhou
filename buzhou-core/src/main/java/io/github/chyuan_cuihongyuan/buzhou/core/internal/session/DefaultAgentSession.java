@@ -878,7 +878,7 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
-            long closeStartNanos = System.nanoTime(); // spec 1430 / T2163：关闭排空耗时埋点
+            long closeStartNanos = System.nanoTime(); // spec 1430 / T2161：关闭排空耗时埋点
             leakHandle.close();
             if (leaseGuard != null) {
                 leaseGuard.close();

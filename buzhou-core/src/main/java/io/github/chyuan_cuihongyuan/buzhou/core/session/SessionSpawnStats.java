@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 会话 spawn 统计读面（spec 1432 / T2167 / impl 1083）——HikariCP 连接池
+ * 会话 spawn 统计读面（spec 1432 / T2165 / impl 1083）——HikariCP 连接池
  * 建连统计思想（attempts/collisions 是池治理第一读数）：spawn 冲突
  * （{@link SessionAlreadyActiveException}——同 id 已被租约持有）与 steal
  * 抢占（{@code SpawnOptions.steal()}）的频次无读面——「spawn 失败率多少、

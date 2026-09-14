@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * spec 1434 / T2172：延迟作业调度漂移读数——准时触发漂移≈0、人为推进时钟
+ * spec 1434 / T2170：延迟作业调度漂移读数——准时触发漂移≈0、人为推进时钟
  * 后漂移显形、executed 计数、reset；既有 submit/cancel 语义不变。
  */
 class DelayedJobQueueDriftTest {

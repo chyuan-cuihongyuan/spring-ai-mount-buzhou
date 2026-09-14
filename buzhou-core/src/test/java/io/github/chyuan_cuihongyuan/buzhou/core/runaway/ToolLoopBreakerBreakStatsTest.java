@@ -11,7 +11,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * spec 1433 / T2170：工具循环打断分布——per-tool 打断计数、总次数与最长
+ * spec 1433 / T2168：工具循环打断分布——per-tool 打断计数、总次数与最长
  * run 水位、换参重置新 run、放行路径零记账、reset 清榜不清会话状态。
  */
 class ToolLoopBreakerBreakStatsTest {

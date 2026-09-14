@@ -1,10 +1,10 @@
 ---
-id: T2166
+id: T2164
 title: 命名违规类别与首违不短路的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2165
+blocked-by: T2163
 created: 2026-09-14
 ---
 

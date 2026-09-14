@@ -1,10 +1,10 @@
 ---
-id: T2168
+id: T2166
 title: spawn 漏斗守恒与峰值水位的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2167
+blocked-by: T2165
 created: 2026-09-14
 ---
 

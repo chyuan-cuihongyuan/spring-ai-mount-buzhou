@@ -1,5 +1,5 @@
 ---
-id: T2169
+id: T2167
 title: 工具循环打断分布读面（ToolLoopBreakerHook 增量）的形状裁决
 type: task
 status: closed

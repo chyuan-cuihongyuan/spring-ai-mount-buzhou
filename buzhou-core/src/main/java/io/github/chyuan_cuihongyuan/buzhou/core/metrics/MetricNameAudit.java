@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * 指标命名校验器（spec 1431 / T2165 / impl 1085）——Prometheus metric
+ * 指标命名校验器（spec 1431 / T2163 / impl 1085）——Prometheus metric
  * naming 规范思想（命名规则机器化，命名漂移在写入时显形而非看板对不上）：
  * 与 MetricNamingGuardTest 的 starter 门规则同源（^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$，
  * buzhou 前缀族），把规则抽成公共纯函数供机制作者自查与运行期 debug。

@@ -1,5 +1,5 @@
 ---
-id: T2173
+id: T2171
 title: 工具 schema 健康审计（ToolSchemaHealthAudit）的形状裁决
 type: task
 status: closed

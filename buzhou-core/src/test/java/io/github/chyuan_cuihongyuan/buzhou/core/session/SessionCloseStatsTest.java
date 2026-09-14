@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * spec 1430 / T2164：会话关闭耗时读数——正常 close 计数/耗时/水位、
+ * spec 1430 / T2162：会话关闭耗时读数——正常 close 计数/耗时/水位、
  * 幂等 close 不重复计、observer 失败分桶且清理继续（既有语义）、reset。
  * 静态面测试前后归零防串扰。
  */

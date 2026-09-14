@@ -1,6 +1,6 @@
 # 1435 — 工具 schema 健康审计
 
-> 来源：L 会话第 36 轮 = effort #1435（票 T2173 / T2174 / impl 1088）。借鉴：ajv / OpenAPI schema 校验（schema 本身的健康度是校验生效的前提——schema 损坏的校验等于没有校验）。
+> 来源：L 会话第 36 轮 = effort #1435（票 T2171 / T2172 / impl 1088）。借鉴：ajv / OpenAPI schema 校验（schema 本身的健康度是校验生效的前提——schema 损坏的校验等于没有校验）。
 
 ## Problem Statement
 

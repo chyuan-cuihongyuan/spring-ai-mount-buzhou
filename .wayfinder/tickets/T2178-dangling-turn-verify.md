@@ -1,10 +1,10 @@
 ---
-id: T2180
+id: T2178
 title: 悬空轮判定口径与样本封顶的验证
 type: task
 status: closed
 assignee: zcode-l
-blocked-by: T2179
+blocked-by: T2177
 created: 2026-09-14
 ---
 

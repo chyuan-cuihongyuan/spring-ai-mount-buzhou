@@ -9,7 +9,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * spec 1435 / T2174：工具 schema 健康审计——四态分桶与校验器跳过条件
+ * spec 1435 / T2172：工具 schema 健康审计——四态分桶与校验器跳过条件
  * 严格同口径（非 object/三键全缺=裸奔）、findings 有界、bypassRatio 派生。
  */
 class ToolSchemaHealthAuditTest {

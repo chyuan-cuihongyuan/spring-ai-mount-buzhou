@@ -928,7 +928,9 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 评估治理 | 评估数据集质量审计 | DatasetQualityAudit——analyze(List<EvalItem>) 退化条目分桶：空 input/emptyExpecteds/短 input（&lt;8 字符信息量不足）+输入长度 P50/P95 秩插值+degenerateRatio 退化比派生（-1 空集哨兵）；「数据集还能信吗」从逐条翻看变一行审计——Cleanlab 数据质量思想（spec 1437） | [spec 1437](docs/spec/1437-dataset-quality-audit.md) |
 
-| 会话治理 | 悬空轮检测器 | DanglingTurnDetector——按 turnSeq 分组检测悬空轮：有 USER 无 ASSISTANT 即悬空（取消/中断残留，TOOL 链不豁免、仅 TOOL/SYSTEM 轮不算）+danglingSamples 升序封顶 8+hasDangling 哨兵；续聊质量风险显形——Temporal activity 检测思想（spec 1439） | [spec 1439](docs/spec/1439-dangling-turn-detector.md) |
+| 会话治理 | 悬空轮检测器 | DanglingTurnDetector——按 turnSeq 分组检测悬空轮：有 USER 无 ASSISTANT 即悬空（取消/中断残留，TOOL 链不豁免、仅 TOOL/SYSTEM 轮不算）+danglingSamples 升序封顶 8+hasDangling 哨兵；续聊质量风险显形——Temporal activity 检测思想（spec 1438） | [spec 1439](docs/spec/1438-dangling-turn-detector.md) |
+
+| 工程门禁 | L 会话阶段对账 R40 | LSessionLedgerAuditTest——工件链四面互证对账测试（范围自扩展）：票对公式/impl 切片窗/README 行/spec 号连续性；同批实证修复票号 +2 漂移与 impl 置换——J/K 对账轮先例（spec 1440） | [spec 1440](docs/spec/1440-l-audit-r40.md) |
 
 ## 快速开始
 
