@@ -640,6 +640,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
 | 沙箱治理 | Deno 沙箱探测读面 | 探测缓存命中/重探/成败双守恒显形（spec 1066） | [spec 1066](docs/spec/1066-denoprobe-stats.md) |
 | 内容防御 | 内容安全词表双缝判定读面 | BLOCK/MASK 动作与跳过分桶直读显形，四桶守恒（spec 1067） | [spec 1067](docs/spec/1067-moderation-stats.md) |
+| 配额治理 | 工具配额消耗读面 | 消耗/拒绝/未管辖三桶守恒显形（spec 1068） | [spec 1068](docs/spec/1068-toolquota-stats.md) |
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
@@ -858,6 +859,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 护栏治理 | PII 脱敏豁免双粒度 | 工具级（该工具输出经核验整体豁免）+ 类型级（type:CN_PHONE 等——该类型误报豁免、其余照脱）——「规则误报已核验」与「该数据源可信」两种生产痛点各得其所——820 豁免登记第二消费者（spec 1627） | [spec 1627](docs/spec/1627-pii-exemption.md) |
 | 韧性治理 | 熔断慢调用率维度 | withSlowCallPolicy(duration, rate)——未到超时但持续慢（duration ≥ 阈值的成功调用）也是可用性问题：慢样本环形窗与失败窗并行，慢率或失败率任一达界即开闸（零失败前提可跳）；链式注入零配置零行为，主路径时长自动喂入——resilience4j slow call rate 思想（spec 1628） | [spec 1628](docs/spec/1628-circuit-slow-call.md) |
 | 工具治理 | http_request 输入边界四护栏 | body 64K（超长走 bodyPath 通道带修法指引）/URL 8K/头数量 64/单头值 8K——模型自报超长输入不进执行层，拒绝入桶可观测不计失败——Envoy HTTP/2 SETTINGS_MAX_* 思想（spec 1629） | [spec 1629](docs/spec/1629-http-input-bounds.md) |
+| 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |
 
 ## 快速开始

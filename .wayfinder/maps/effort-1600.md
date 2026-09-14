@@ -109,6 +109,9 @@
 - [R30 形状：输入边界四护栏](../tickets/T2409-r30-bounds-shape.md) — Envoy HTTP/2 SETTINGS_MAX_* 思想：body 64K（超长走 bodyPath Onload 通道带指引）/URL 8K/头数量 64/单头值 8K——模型自报超长输入不进执行层；单头超限独立异常不计失败桶
 - [R30 验收](../tickets/T2410-r30-bounds-verify.md) — 五断言（四护栏各拒入桶+合规输入零影响）+ tools 118 用例
 
+- [R31 形状：Wilson 置信区间](../tickets/T2411-r31-wilson-shape.md) — 统计报告标准工具（小样本/极端比例不越界不出负值——正态近似的经典缺陷）：ab.run.completed 事件加 winRateA 95% CI（decided 口径分母），与 SPRT 决策面互补的报告面
+- [R31 验收](../tickets/T2412-r31-wilson-verify.md) — 四断言（含点估计/极端不越界/小样本宽于大样本/退化零区间）+ Pairwise 回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -152,3 +155,4 @@
 | R28 | #1627 | PII 脱敏豁免双粒度（820 第二消费者） | T2405–T2406 | 1180 | 1627 | done |
 | R29 | #1628 | 熔断慢调用率维度（resilience4j slow call rate 思想） | T2407–T2408 | 1181 | 1628 | done |
 | R30 | #1629 | http_request 输入边界四护栏（Envoy SETTINGS_MAX_* 思想） | T2409–T2410 | 1182 | 1629 | done |
+| R31 | #1630 | A/B 胜率 Wilson 置信区间 | T2411–T2412 | 1183 | 1630 | done |

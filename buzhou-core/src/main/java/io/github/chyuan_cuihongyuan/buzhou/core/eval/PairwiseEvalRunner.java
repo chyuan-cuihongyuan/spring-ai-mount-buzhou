@@ -127,25 +127,36 @@ public final class PairwiseEvalRunner {
                         liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
             }
         } else {
-            List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
-            for (int i = 0; i < items.size(); i++) {
-                final int index = i;
-                final EvalItem item = items.get(i);
-                tasks.add(() -> {
-                    if (earlyStop.get() || hostCancel.get()) {
-                        return null; // skipped：byIndex 保持 null（SPRT 达界或宿主取消）
-                    }
-                    byIndex[index] = scored(compareItem(runId, item, runtimeA, runtimeB),
-                            liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
-                    return null;
-                });
-            }
+            // spec 1523 / T2297：分波执行（spec 1522 扩散）——SPRT 早停/宿主取消
+            // 在波间真生效（此前全量 invokeAll 派发，task 首行检查只挡未调度项）
             try (java.util.concurrent.ExecutorService pool =
                     java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
-                pool.invokeAll(tasks);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException("A/B 评估并行执行被中断", e);
+                int waveSize = workers;
+                for (int waveStart = 0; waveStart < items.size(); waveStart += waveSize) {
+                    if (earlyStop.get() || hostCancel.get()) {
+                        break; // 剩余项 skipped（byIndex 保持 null）
+                    }
+                    int waveEnd = Math.min(waveStart + waveSize, items.size());
+                    List<java.util.concurrent.Callable<Void>> waveTasks = new ArrayList<>();
+                    for (int i = waveStart; i < waveEnd; i++) {
+                        final int index = i;
+                        final EvalItem item = items.get(i);
+                        waveTasks.add(() -> {
+                            if (earlyStop.get() || hostCancel.get()) {
+                                return null; // skipped：byIndex 保持 null（SPRT 达界或宿主取消）
+                            }
+                            byIndex[index] = scored(compareItem(runId, item, runtimeA, runtimeB),
+                                    liveWinsA, liveWinsB, earlyStop, decisionHolder, sprt);
+                            return null;
+                        });
+                    }
+                    try {
+                        pool.invokeAll(waveTasks);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("A/B 评估并行执行被中断", e);
+                    }
+                }
             }
         }
         // Arrays.asList 容 null（SPRT skipped 项位）；List.of 拒 null
@@ -240,6 +251,13 @@ public final class PairwiseEvalRunner {
         payload.put("errors", result.summary().errors());
         payload.put("winRateA", result.summary().winRateA());
         payload.put("winRateB", result.summary().winRateB());
+        // spec 1630 / T2411：胜率 95% Wilson 置信区间（不确定性显形——分母含 ties 的 decided 口径）
+        int decidedN = result.summary().winsA() + result.summary().winsB();
+        if (decidedN > 0) {
+            double[] ci = WilsonInterval.of(result.summary().winsA(), decidedN);
+            payload.put("winRateAciLow", Math.round(ci[0] * 10_000) / 10_000.0);
+            payload.put("winRateAciHigh", Math.round(ci[1] * 10_000) / 10_000.0);
+        }
         payload.put("skipped", result.summary().skipped());
         if (result.summary().sprtDecision() != null) {
             payload.put("sprtDecision", result.summary().sprtDecision());
