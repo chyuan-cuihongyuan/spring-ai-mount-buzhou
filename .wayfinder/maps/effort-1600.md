@@ -85,6 +85,9 @@
 - [R22 形状：会话检疫装配](../tickets/T2393-r22-quarantine-shape.md) — spec 143 双孤类（SessionQuarantine+Hook）接线：opt-in buzhou.quarantine.enabled（默认关——检疫 block 轮次行为面大），阈值/退避可配（3/30s/10m 缺省），成功复位留公共 API（hook 面不谎装——原设计诚实边界）
 - [R22 验收](../tickets/T2394-r22-quarantine-verify.md) — hook 行为两断言（三连败隔离 block + 冷却过放行 / 健康会话零状态）+ 既有 6 用例零回归
 
+- [R23 形状：对账 NPE 修复](../tickets/T2395-r23-npe-shape.md) — R19 引入的 request()=null NPE（M 会话 R15 记档归属本会话）：对账前置三重 null 防御（request/prompt/instructions 缺席跳过——测试替身链路）
+- [R23 验收](../tickets/T2396-r23-npe-verify.md) — CounterAtomicitySpreadTest 恢复绿 + 校准/预算 7 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -120,3 +123,4 @@
 | R20 | #1619 | spill 写速率限速（RocksDB rate limiter 思想） | T2389–T2390 | 1172 | 1619 | done |
 | R21 | #1620 | 空闲监控全链接线（spec 161/179/841 三孤类救活） | T2391–T2392 | 1173 | 1620 | done |
 | R22 | #1621 | 会话隔离检疫装配（spec 143 双孤类救活） | T2393–T2394 | 1174 | 1621 | done |
+| R23 | #1622 | R19 对账 NPE 修复（跨会话记档承接） | T2395–T2396 | 1175 | 1622 | done |
