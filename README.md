@@ -778,6 +778,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 会话治理 | SessionObserver 通知面异常隔离 | DefaultAgentSession 12 处观察者裸 forEach 通知点统一改走 notifyObservers 隔离派发——单观察者异常记 ERROR 后继续其余观察者、不向上传播（onOpen 未隔离时观测组件缺陷可炸掉会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想（spec 1500） | [spec 1500](docs/spec/1500-observer-notify-isolation.md) |
 | 会话治理 | HookChain 事件通知面逐 hook 隔离 | fireEvent（通知面，无裁决语义）链内逐 hook try/catch——单 hook onEvent 异常不再吞掉其余 hook 的事件消费，计时 try/finally 仍入账；run() 裁决面 fail-fast 治理语义不动——通知面/裁决面分离（spec 1501） | [spec 1501](docs/spec/1501-hook-event-notify-isolation.md) |
 | 观测治理 | 计时聚合器双子实例清零面 | HookTimingAggregator / ToolTimingAggregator 各补公开 reset()——Holder.reset() 只关聚合不清实例账，stats()/windowedMax() 此前只增不减（测试基线污染、长生命周期进程无法重建观测基线）——Prometheus counter reset 语义（spec 1502） | [spec 1502](docs/spec/1502-aggregator-reset.md) |
+| 文档门禁 | 核心 API 包类级 Javadoc 覆盖门 | 32 个内核公共类型（AgentSession/BuzhouHook/HookResult/HarnessToolCallingManager 等）补类级 Javadoc + CoreApiJavadocCoverageTest 纪律变测试——六包新公共类型无 Javadoc 即 CI 红，注解夹层感知（spec 1503） | [spec 1503](docs/spec/1503-core-api-javadoc-gate.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
