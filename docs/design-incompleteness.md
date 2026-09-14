@@ -84,7 +84,7 @@
 4. **一把抓 `catch (Exception/Throwable)`**：core eval（`EvalDatasetStore.java:142/150`、`EvalRunner.java:182/191`，Jackson 应收窄 JsonProcessingException）；`HookedToolCallback.java:86/94` 静默吞异常返回占位；mcp `DefaultMcpClientRegistry.java:362/387` catch Throwable、`:422` 连 `InterruptedException` 一起吞且不恢复中断标志；guard `OnnxPromptGuard.java:19` 公开 SPI `throws Exception` 签名层面迫使调用方一把抓；memory/spill/resilience 约 20 处同型。
 5. **`instanceof` 后强转**（明禁，应 pattern matching）：core policy `LayeredPolicy.java:52/58-59`、`ToolPolicyMatcher.java:48-52`；memory `MemoryModule.java:233-447` 约 18 处。
 6. **魔法值口径不一**：advisor order 字面量 `ResponseCacheAdvisor.java:44`(+450)、`SemanticCacheAdvisor.java:59`(+460)、`SpillOffloadHook.java:56`(100)、`OnloadHook.java:27`(200)——同模块 `ResilienceAdvisor.java:68` 已抽 `CHAIN_ORDER_OFFSET`；spill 默认值 2048/20/32000 散落四处硬编码（✅ 已收口：spec 1517——SpillProperties 三常量单一事实源）。
-7. **构造器执行业务逻辑/启线程**（明禁）：`AsyncObservabilityPipeline.java:59-60` 构造器内 `drainThread.start()` 且 `this::drainLoop` 提前逃逸；`DbToolSetProvider.java:41` 构造器内启动轮询调度。
+7. **构造器执行业务逻辑/启线程**（✅ AsyncObservabilityPipeline 已修：spec 1520 惰性启动；DbToolSetProvider 裁定不整改——首跑延迟 pollInterval 窗口理论性）：`AsyncObservabilityPipeline.java:59-60` 构造器内 `drainThread.start()` 且 `this::drainLoop` 提前逃逸；`DbToolSetProvider.java:41` 构造器内启动轮询调度。
 8. **异常 message 缺上下文**：`DiskSpillStore` 9 处（✅ 已修复：spec 1513——全部补操作名+路径/uri 上下文） `new BuzhouException(SPILL_IO_FAILED, "spill 磁盘 IO 失败", e)` 不带 uri/路径。
 
 ## 六、设计气味（判断项，摘重）

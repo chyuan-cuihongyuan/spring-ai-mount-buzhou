@@ -99,7 +99,7 @@ mvn -pl buzhou-core test -Dtest=HookChainTest#method    # 单个测试方法
 
 ### Spring / AutoConfiguration（项目专项）
 - 每机制模块一个 `Buzhou<Mech>AutoConfiguration`，`@AutoConfiguration` + `@ConditionalOnProperty("buzhou.<mech>.enabled")`；用户可覆盖 bean 加 `@ConditionalOnMissingBean`，装配顺序用 `@AutoConfiguration(before=/after=)`。
-- 配置属性用 `@ConfigurationProperties` record + compact constructor 兜默认值（见 `BuzhouCoreProperties`），**禁止**在 `@Bean` 里读裸 `Environment`。
+- 配置属性用 `@ConfigurationProperties` record + compact constructor 兜默认值（见 `BuzhouCoreProperties`），**禁止**在 `@Bean` 里读裸 `Environment`（spec 1520 追认边界：三键以内的简单 opt-in 装配允许 `Environment.getProperty` 直读——EvalPrunePolicyHolder 等 10 处既成先例；复杂配置面必须 `@ConfigurationProperties` record。）
 
 ### 注释
 - 主语言中文；`api` 子包与 SPI **必须**有 Javadoc（`@param`/`@return`/`@throws`），引用用 `{@link}`/`{@code}`（见 `BuzhouHook`）。

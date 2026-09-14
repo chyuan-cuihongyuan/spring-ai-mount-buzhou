@@ -40,7 +40,10 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
     private final ObservabilityStore store;
     private final ObservabilityConfig config;
     private final BlockingQueue<PendingItem> queue;
-    private final Thread drainThread;
+    /** spec 1520：惰性启动（BufferedEventDispatcher 懒创建先例）——构造器内 start 会
+     * 让 this 逃逸（非 final 类，子类字段未初始化时 drainLoop 可能读到默认值）。 */
+    private volatile Thread drainThread;
+    private final AtomicBoolean drainStarted = new AtomicBoolean();
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Thread shutdownHook;
 
@@ -57,7 +60,6 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
         this.config = config;
         this.queue = new ArrayBlockingQueue<>(Math.max(1, config.queueCapacity()));
         this.drainThread = Thread.ofVirtual().name("buzhou-obs-drain").unstarted(this::drainLoop);
-        this.drainThread.start();
         this.shutdownHook = new Thread(this::shutdownForJvmHook, "buzhou-obs-shutdown");
         try {
             Runtime.getRuntime().addShutdownHook(shutdownHook);
@@ -73,6 +75,7 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
             applyOne(item);
             return;
         }
+        ensureDrainStarted(); // spec 1520：首个事件到达才起 drain 线程（零事件零线程）
         long start = System.nanoTime();
         try {
             queue.put(item);
@@ -104,6 +107,13 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
         }
     }
 
+    /** spec 1520：CAS 惰性启动——恰好一线程起 drain（并发首事件安全）。 */
+    private void ensureDrainStarted() {
+        if (drainStarted.compareAndSet(false, true)) {
+            drainThread.start();
+        }
+    }
+
     @Override
     public void close() {
         if (!running.get()) {
@@ -117,11 +127,14 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
         // 再停线程——反序则 token 无人处理，close 必白等满 flushTimeout。
         flush();
         running.set(false);
-        drainThread.interrupt();
-        try {
-            drainThread.join(config.flushTimeout().toMillis());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        Thread drain = drainThread; // spec 1520：未起线程（零事件）时为 unstarted——只 interrupt 不 join
+        drain.interrupt();
+        if (drain.isAlive()) {
+            try {
+                drain.join(config.flushTimeout().toMillis());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         // token 之后、running=false 之前入队的残留条目兜底 drain
         drainBatch();

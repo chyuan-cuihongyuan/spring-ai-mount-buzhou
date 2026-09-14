@@ -817,6 +817,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 工程卫生 | spill 默认值单一事实源（五-6 收口） | 2048/20/32000 散落四处收口 SpillProperties 三常量（threshold 引用 SpillOffloadHook 既有常量）——改默认值从散弹变单点；六-6 死参数（SPI 扩展位注记）/六-9 调度器工厂（delay queue 无无界风险）裁定入档（spec 1517） | [spec 1517](docs/spec/1517-spill-defaults-ssot.md) |
 | 文档门禁 | 文档间残留矛盾三裁定（七-2/七-3/四-8） | perf 口径澄清（10ms 目标/20ms 哨兵红线的目标-红线关系）；promptfoo star 统一 24K★@2026-09 时点注记；spec 09 追认 test 边豁免（ModuleBoundaryGuard 只扫 src/main 同口径）——design-incompleteness 可做项全部闭环（spec 1518） | [spec 1518](docs/spec/1518-doc-adjudications.md) |
 | 文档门禁 | 日志双门面追认 + spec 04 属性回写（五-3/四-7） | SLF4J/System.Logger 双门面追认（69 文件既成风格不迁移，占位符风格硬约束不变）；spec 04 补 mcp 装配属性增量（dangerous-tool-patterns 缺省七动词/shutdown-budget/config-reference 指针）（spec 1519） | [spec 1519](docs/spec/1519-logger-spec04-adjudication.md) |
+| 并发治理 | 观测管线构造器 this 逃逸修复 + 三裁定（六-7/五-2/六-2） | AsyncObservabilityPipeline 构造器立即 start 改首事件 CAS 惰性启动（零事件零线程）；CLAUDE 追认三键内 getProperty 直读边界；指纹双轨不统一裁定（值稳定性优先）（spec 1520） | [spec 1520](docs/spec/1520-this-escape-adjudications.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
