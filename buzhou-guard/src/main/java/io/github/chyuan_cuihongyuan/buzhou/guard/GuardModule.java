@@ -116,6 +116,18 @@ public final class GuardModule {
         if (!builder.factDefinitions.isEmpty()) {
             h.add(new FactCollectorHook(builder.factDefinitions, factStore));
         }
+        // spec 1612 / T2375：角色工具权限（spec 141 孤类救活——声明 permissions 即装配；
+        // fail-closed 语义见 ToolPermissions，默认角色缺省 "default"）
+        if (builder.toolPermissions != null) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.ToolRoleGuardHook(
+                    builder.toolPermissions,
+                    builder.toolRoleDefaultRole == null ? "default" : builder.toolRoleDefaultRole));
+        }
+        // spec 1612 / T2375：同输入泛洪防护（spec 167 孤类救活——声明即装配）
+        if (builder.inputFloodGuard) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook(
+                    builder.inputFloodConfig, java.time.Clock.systemUTC()));
+        }
         // impl-40 / spec 13 §T64：策略门（热加载引擎由装配/业务侧注入；默认拒语义见 PolicyGateHook）
         if (builder.policyEngine != null) {
             h.add(new PolicyGateHook(builder.policyEngine));
@@ -222,6 +234,41 @@ public final class GuardModule {
         public Builder factDecay(
                 io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy policy) {
             this.factDecay = policy;
+            return this;
+        }
+
+        /** spec 1612 / T2375：角色工具权限规则（null = 不装配——默认零行为）。 */
+        private io.github.chyuan_cuihongyuan.buzhou.guard.policy.ToolPermissions toolPermissions;
+        private String toolRoleDefaultRole;
+        /** spec 1612 / T2375：同输入泛洪防护（false = 不装配）。 */
+        private boolean inputFloodGuard;
+        private io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook.Config inputFloodConfig;
+
+        /** spec 1612 / T2375：启用角色工具权限守卫（permissions 声明即装配，fail-closed）。 */
+        public Builder toolRoleGuard(
+                io.github.chyuan_cuihongyuan.buzhou.guard.policy.ToolPermissions permissions) {
+            return toolRoleGuard(permissions, "default");
+        }
+
+        /** spec 1612 / T2375：带默认角色的权限守卫（未匹配角色的会话按 defaultRole 判定）。 */
+        public Builder toolRoleGuard(
+                io.github.chyuan_cuihongyuan.buzhou.guard.policy.ToolPermissions permissions,
+                String defaultRole) {
+            this.toolPermissions = permissions;
+            this.toolRoleDefaultRole = defaultRole;
+            return this;
+        }
+
+        /** spec 1612 / T2375：启用同输入泛洪防护（默认阈值 Config.defaults()=60s 内 5 次）。 */
+        public Builder inputFloodGuard() {
+            return inputFloodGuard(null);
+        }
+
+        /** spec 1612 / T2375：带阈值的泛洪防护（config null = 默认）。 */
+        public Builder inputFloodGuard(
+                io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook.Config config) {
+            this.inputFloodGuard = true;
+            this.inputFloodConfig = config;
             return this;
         }
 

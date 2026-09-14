@@ -51,7 +51,7 @@
 | 8 | MCP 危险工具默认动词模式（S1 硬偏差修复） | spec 14 §F 承诺落地（design-incompleteness 清单驱动选题） | T2265–T2266 | 1110 | 1507 | ✅ |
 | 9 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core 注册表桥 + afterName 装配编排（Spring Boot 官方解耦模式） | T2267–T2268 | 1111 | 1508 | ✅ |
 | 10 | design-incompleteness 小缺口清扫（F7 canary payload + F10 spec 回写） | 评审清单驱动选题 | T2269–T2270 | 1112 | 1509 | ✅ |
-| 11 | 周期预检轮：全仓 clean verify（首轮撞自造构建竞争 NoClassDefFound 非缺陷，重跑见台账） | 周期 verify | — | — | — | 🔄 |
+| 11 | 周期预检轮：全仓 clean verify——三轮后全绿（①自造构建竞争 NoClassDefFound 非缺陷；②LaneLimitingToolCallbackWaitTest 时序 flake 57μs 越界就近处置：容差 1ms→50ms 常量化；③17 模块 BUILD SUCCESS 含 JaCoCo/enforcer/Spec 双门） | 周期 verify + flake 就近处置 | — | — | — | ✅ |
 | 12 | ConfigMaps indexed 属性数字键归一（properties 源列表键静默失效修复） | Spring Binder mapOf 弱点的通用 coerce（R9 副产出发现） | T2271–T2272 | 1113 | 1510 | ✅ |
 
 
