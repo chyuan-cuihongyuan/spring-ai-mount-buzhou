@@ -73,10 +73,11 @@ public final class ToolTimingAggregator {
             if (isFailed) {
                 failed.increment();
             }
-            long observed = maxNanos;
             long currentMax;
             do {
-                currentMax = observed;
+                // 每轮重读 maxNanos（RollingMaxCounter.record 同款）——重读若留在循环外，
+                // CAS 失败后期望值永不过期刷新，maxNanos 被并发推进即活锁（R50 审计轮实证）
+                currentMax = maxNanos;
                 if (nanos <= currentMax) {
                     break;
                 }
