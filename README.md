@@ -844,6 +844,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 评估治理 | A/B 对比进度读面（spec 1534 扩散） | CompareProgress(runId/done/total/hostCancelled)——过程快照（每项/波间）+ 聚合终态快照（skipped null 占位无对象，终态统一 done=total）（spec 1535） | [spec 1535](docs/spec/1535-ab-progress.md) |
 | 领域文档 | CONTEXT.md M 系术语段 | 新节「评估与执行治理」五条术语：通知面/裁决面分离、评估取消/剪枝/进度三件套、批级回喂预算、幂等瞬断重试双门、危险工具双通道（spec 1536） | [spec 1536](docs/spec/1536-context-m-terms.md) |
 | 测试治理 | 进程匹配谓词收窄（周期预检发现） | interruptKillsProcessTree 的裸 "sleep 30" 子串谓词匹配全机进程——多会话共享机器上并行 shell 轮询循环命中误红（R41 实证）；锚定 marker 唯一路径 + 垂死窗口轮询（spec 1537） | [spec 1537](docs/spec/1537-hardening-test-predicate.md) |
+| 文档门禁 | spec 05 判定项批量回写（F3/F4/F6） | 注入通道实现定案 per-session 组装（Builder Bean 通道不采用）；buzhou.parallel.* 键族按实现重写（真键四行+config-reference 指针）；退避随机源实现口径回写（spec 1538） | [spec 1538](docs/spec/1538-spec05-adjudications.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

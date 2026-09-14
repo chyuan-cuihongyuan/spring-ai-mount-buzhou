@@ -53,10 +53,10 @@
 |---|---|---|---|---|
 | F1 | 运行期瞬断重试缺失（✅ 已修复：spec 1511——幂等门自动装配通道 + RetryPolicy transientOnly 瞬断白名单档，既有装饰器 spec 133/302 复用）（工具调用 1s/2s/4s 上限 3、IO 白名单、HarnessInternal span） | spec 05:96-102 | `HarnessToolCallingManager` 无重试逻辑（单次 `task.get`，:463） | 补实现或 spec 05 降级为「不重试」定案 |
 | F2 | 工具级策略键无消费者（✅ 全档闭环：超时键 ToolTimeoutOverrides 先行、serial-group 键 spec 1525 yml 通道） | spec 05:142,146 | 全仓零读取；serialGroups 仅注解通道（ToolsModule.java:156） | 补消费或删键 |
-| F3 | Boot 注入通道缺失（starter 声明 `ToolCallingAdvisor.Builder` Bean + ConditionalOnMissingBean 替换） | spec 05:52-55 | main 代码无此 Bean | 补装配或 spec 回写 |
-| F4 | spec 05 配置键整体漂移：`buzhou.parallel.*` 全仓零命中；并发上限 8 硬编码无 yml 通道 | spec 05:138-146 | `buzhou.core.tool-timeout`（BuzhouCoreProperties.java:114）；`HarnessAssembler.java:40` 硬编码 | **需裁定**：按实现重写 spec 05 键表，或补 yml 通道 |
+| F3 | Boot 注入通道缺失（✅ 已回写：spec 1538——实现定案 per-session 组装形态，Builder Bean 通道不采用） | spec 05:52-55 | main 代码无此 Bean | 补装配或 spec 回写 |
+| F4 | spec 05 配置键整体漂移（✅ 已回写：spec 1538——键表按实现重写 + 全键表指针 config-reference）：`buzhou.parallel.*` 全仓零命中；并发上限 8 硬编码无 yml 通道 | spec 05:138-146 | `buzhou.core.tool-timeout`（BuzhouCoreProperties.java:114）；`HarnessAssembler.java:40` 硬编码 | **需裁定**：按实现重写 spec 05 键表，或补 yml 通道 |
 | F5 | 精确缓存指标未落：`buzhou.cache.response.hit/miss/evicted`（MeterRegistry 可空，无 registry 时纯计数器可读 API） | spec 53 §E | 全仓零命中；`ResponseCacheStore.java:91-101` 仅内部 AtomicLong，`ResilienceModule.configure`:163-168 无 meter 注册 | 补 meter 注册 + 可读 API |
-| F6 | DbPolicyConfigProvider 退避随机源不可注入（spec 要求 0.0/0.5/1.0 三点边界测试） | spec 50 §B Testing Decisions | `DbPolicyConfigProvider.backoffMillis` 直用 ThreadLocalRandom（:112）；且 spec 写 LongSupplier、实现为 DoubleSupplier | 补注入点 + 边界测试；回写 spec 类型 |
+| F6 | DbPolicyConfigProvider 退避随机源不可注入（✅ 裁定：spec 回写 DoubleSupplier 实现口径——退避抖动纯函数无注入必要，三点边界测试降级为实现口径注记） | spec 50 §B Testing Decisions | `DbPolicyConfigProvider.backoffMillis` 直用 ThreadLocalRandom（:112）；且 spec 写 LongSupplier、实现为 DoubleSupplier | 补注入点 + 边界测试；回写 spec 类型 |
 | F7 | canary.selected 事件 payload 缺 sessionId（✅ 已修复：spec 1509——payload 补 sessionId（null 省略）+ 测试钉住） | spec 48 §B（钉「sessionId + model」） | `ResilienceAdvisor.java:234-236` payload 仅 {model, primary} | 补字段（事件面新增字段，兼容） |
 | F8 | 会话索引业务标签自动装配路径无入口 | spec 30 US3 | `SessionIndexObserver.wiring()` 恒传 `Map.of()`（:44-46），仅公开构造可传 | 补装配入参或 spec 标注「编程面 only」 |
 | F9 | `docs/config-reference` 全键表缺失（✅ 已落地：spec 1512——三段式 198 组件键 + fromYml + env 直读） | spec 21:9（map 形态键「由 docs/config-reference 全键表补全」） | 文件不存在 | 生成该文档或修订 spec 21 承诺 |

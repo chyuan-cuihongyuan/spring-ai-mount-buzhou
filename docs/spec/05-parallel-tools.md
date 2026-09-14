@@ -47,11 +47,10 @@ public final class HarnessToolCallingManager implements ToolCallingManager {
 6. 聚合前统一过 Spill 检查：超阈值结果落盘换占位符（见 02-spill），替换在同一实现内完成、拼 `ToolResponseMessage` 前必做。
 7. 按原序索引拼装 `ToolResponseMessage`，构造 `ToolExecutionResult`（`conversationHistory` = 原 messages + assistantMessage + toolResponseMessage；`returnDirect` 取全部工具的 AND，沿用 Spring AI 语义）。
 
-### 注入通道
+### 注入通道（spec 1538 / design-incompleteness F3 回写——实现定案形态）
 
-- **Spring Boot（推荐）**：starter 声明 `ToolCallingAdvisor.Builder<?>` Bean 并装配 `HarnessToolCallingManager`；与官方自动配置一致，用户自定义 Builder Bean 经 `@ConditionalOnMissingBean` 语义整体替换。
-- **编程式**：`ToolCallingAdvisor.builder().toolCallingManager(harnessManager)`，再经 `ChatClient.builder(...)` 五参重载注入。
-- **低层组装**：`Buzhou.enhance(ChatClient.Builder)` / `HarnessAssembler` 走同一套装配逻辑。
+- **实现形态**：advisor 不走全局 Bean，而是 **per-session 组装**——`AgentRuntime.spawn` 经 `HarnessAssembler` 为每个会话构造 `BoundedToolCallingAdvisor`（绑定该会话的 toolManager/turnLoopPolicy/sessionId），随会话生命周期存续；机制模块（observability 等）经 `SessionAssemblyCustomizer` 注入业务 advisor。原设计的「starter 声明 ToolCallingAdvisor.Builder Bean + @ConditionalOnMissingBean」通道未采用——per-session 形态与租约/隔离舱等会话级机制天然对齐。
+- **编程式**：`Buzhou.runtime(...)` / `Buzhou.enhance(ChatClient.Builder)` 走同一套装配逻辑。
 - 与官方自动注册机制无缝兼容：链中已存在任何 `ToolAdvisor` 实现时不再追加默认 `ToolCallingAdvisor`，链上最多一个 `ToolAdvisor`。
 
 ### 声明式串行例外
@@ -135,15 +134,16 @@ HITL 守卫 `beforeTool` 返 BLOCK 时（见 07-hooks），该调用以「等待
 
 统一 `buzhou.*` 命名空间，四层覆盖：默认 < `application.yml` < 绑定级（appId, agentName）< 工具级（见 08-session-config-persistence）。
 
+**配置键（spec 1538 / F4 回写——按实现重写；原 `buzhou.parallel.*` 键族未实现，以下为实现真键，全键表见 docs/config-reference.md）**：
+
 | 配置 | 默认 | 说明 |
 |---|---|---|
-| `buzhou.parallel.enabled` | `true` | 并行执行总开关；关闭退化为顺序执行（对齐官方默认语义） |
-| `buzhou.parallel.max-concurrency-per-turn` | `8` | 每轮并发上限（信号量限界） |
-| `buzhou.parallel.tool-timeout-seconds` | `60` | 单工具超时；工具级可经 `buzhou.tool-policies.<name>.timeout-seconds` 覆盖 |
-| `buzhou.parallel.retry.max-attempts` | `0` | 运行期瞬断重试次数，上限 3 |
-| `buzhou.parallel.retry.initial-backoff` | `1s` | 首次退避间隔 |
-| `buzhou.parallel.retry.backoff-multiplier` | `2` | 退避倍率（1s → 2s → 4s） |
-| `buzhou.tool-policies.<name>.serial-group` | — | 声明式串行组（配置通道，覆盖注解默认） |
+| `buzhou.core.tool-timeout` | `60s` | 单工具超时（BuzhouCoreProperties）；工具级经 ToolTimeoutOverrides（Holder 装配）覆盖 |
+| `buzhou.core.tool-transient-retry.enabled` | `false` | 运行期瞬断重试（spec 1511：幂等门 + 瞬断白名单，max-attempts ≤3、initial/max-backoff 退避 1s/2s/4s 族） |
+| `buzhou.tools.serial-groups` | — | 声明式串行组（spec 1525：map 通道，覆盖 @BuzhouTool 注解默认） |
+| `buzhou.core.tool-batch-response-budget` | `0`（关） | 批级回喂预算（spec 1526） |
+
+每轮并发上限 8 为 `HarnessAssembler` 内部默认（编程式构造参数可覆盖，无 yml 键——0.x 口径入档）。
 
 示例：
 
