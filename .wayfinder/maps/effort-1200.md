@@ -25,6 +25,7 @@
 - [ToolDenialLog 排序被 Map.copyOf 破坏](../tickets/T1805-tooldeniallog-mapcopyof-order.md) — R1 全量 verify 显形主干既有红（JDK 升级后 MapN 哈希布局变化翻出）：Map.copyOf 不保序打散排序结果——改 Collections.unmodifiableMap；教训：有序快照禁用 Map.copyOf。
 - [低覆盖类批次 1 选题与补测形态（PolicyGateHook × RecallSearchTool）](../tickets/T1806-lowcoverage-batch1-shape.md) — R2：低覆盖档（<50% 且 miss≥10）证据驱动选题——guard 策略门四合同面（三态裁决映射/FIDES taint 组装/policy.decided 事件/指标三桶，OPA「input→decision+reason」合同思想）+ memory 召回工具十断言面（四模输出/摘要归一截断/降级与失败文案/轮次窗，ES partial-results 降级显式提示思想）；core 复扫靶点归批次 2。
 - [PolicyGateHook 指标注释 tag 值失真](../tickets/T1808-policygate-metric-comment.md) — R2 补测显形：注释称 outcome=allowed|blocked|escalated，代码实际发射 allow|deny|escalate（Action 名小写，spec 13 无背书）——实际合同锁定 + 注释更正（零行为变化）；改 tag 值是部署侧可见行为变更，须独立 spec 决策。
+- [skills RedisSkillStore 零覆盖补测形态（契约接入 + R1 审计遗漏修正）](../tickets/T1809-redis-skill-store-contract-shape.md) — R3：R1「全部 16 模块」审计漏扫 skills（结论未逐模块罗列的流程漏洞，诚实入档）——RedisSkillStore（cov=0/26）接 SkillStore 契约基类（Pact consumer-driven contract 思想，三实现同组断言）；Testcontainers redis:7-alpine 门控沿 store-redis 同款（不选手写 fake：60+ 方法 stub 是 Mockito 手工复刻且测不到真实 JSON/网络路径）；skills pom 补 testcontainers-junit-jupiter（test，根 POM 版本管理）；无 Docker 验证口径 = 编译绿 + 收集 + skip（CI 覆盖行为面）。
 
 ## R1 台账（spec 1200 / impl 903）
 
@@ -59,6 +60,14 @@
 | memory tool.RecallSearchTool | cov=26 / mis=30（无直测文件） | RecallSearchToolTest（12 用例：四模格式/归一截断/三类文案分支/降级与可用/倒序/轮次窗/limit） |
 
 补测显形：T1808 指标注释 tag 值失真（零行为变化修正，单列 commit）。core 低覆盖批次待本轮 core 复扫证据归 R3。
+
+## R3 台账（spec 1202 / impl 905 / T1809–T1810）
+
+| 靶点 | 证据（2026-09-15 报告） | 测试落点 |
+|---|---|---|
+| skills store.redis.RedisSkillStore | cov=0 / mis=26（无测试文件；R1 审计漏扫 skills） | RedisSkillStoreContractTest（契约四用例 + 重启存活，redis:7-alpine 容器门控） |
+
+验证：skills 134 测试 0 失败；契约 5 用例无 Docker 按设计 skip（收集完整 + 编译绿）；行为面声明限定 Docker 在场（CI）——store-redis/store-jdbc 既有口径。
 
 ## Not yet specified
 

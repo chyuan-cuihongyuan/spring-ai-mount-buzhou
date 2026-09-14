@@ -683,6 +683,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | 凭证租约生命周期计数读面 | SecretLeaseStats 五计数快照（补 renew 轴：续租成功/被拒——拒绝率高=TTL 过短信号）——Vault lease lifecycle 借鉴（spec 1007） | [spec 1007](docs/spec/1007-lease-lifecycle-stats.md) |
 | 工程门禁 | 全模块测试补全覆盖（K 会话 R1） | JaCoCo 缺口驱动零覆盖清零：6 模块 20 靶点直测（core 16 含 SessionStateStore default 体死路径复活 + guard/spill/resilience/mcp 各 1），豁免入档不硬凑；测试显形三缺陷单列修复（spec 1200） | [spec 1200](docs/spec/1200-test-coverage-completion.md) |
 | 工程门禁 | 低覆盖类批次 1（K 会话 R2） | 低覆盖档（<50% 且 miss≥10）清点：guard PolicyGateHook 三态裁决/taint 映射/事件/指标四合同面 + memory RecallSearchTool 四模输出/降级/截断十断言面（spec 1201） | [spec 1201](docs/spec/1201-low-coverage-batch1.md) |
+| 工程门禁 | skills RedisSkillStore 契约接入（K 会话 R3） | SkillStore 契约范式补链：Redis 实现接同一契约基类（真实 redis:7-alpine 容器，无 Docker 跳过）+ 重启存活加验；修正 R1 审计漏扫 skills（spec 1202） | [spec 1202](docs/spec/1202-redis-skill-store-contract.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
