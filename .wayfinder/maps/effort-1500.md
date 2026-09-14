@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [配置错误显形双小项的形状裁决](../tickets/T2299-dup-name-observer-shape.md) — hook 重名 WARN（order 平局派发序不稳定+对位歧义）；addObserver 同实例幂等去重（listener 域维持——lambda 多实例 identity 去重无意义）。
 - [A/B 并行波间早停的形状裁决](../tickets/T2297-ab-wave-earlystop-shape.md) — 分波化让 SPRT 早停/宿主取消波间真生效（此前全量派发近似无效）；波内 scored 原子语义不变；16 用例零回归。
 - [并行评估波间剪枝的形状裁决](../tickets/T2295-parallel-prune-shape.md) — 分波执行 + 波间观察窗检查（串行同款语义）：并行剪枝从「诚实不生效」变波间止损；未配策略单波全量零变化；旧行为用例 parallelPathHonestNoPrune 按行为变更纪律改写为 parallelPathPrunesBetweenWaves。
 - [MemoryModule yml 样板统一的形状裁决](../tickets/T2293-memory-yml-dedup-shape.md) — memoryLeaf/memorySub 两 helper 统一 9 处嵌套 instanceof 提取（3 处反射/泛型复杂体保留）；等值重构。
@@ -81,6 +82,7 @@
 | 24 | MemoryModule yml 解析样板统一（9/13 → 两 helper） | design-incompleteness 六-5 部分 | T2293–T2294 | 1124 | 1521 | ✅ |
 | 25 | 并行评估波间剪枝做实（spec 901「并行诚实不生效」边界收口） | Rayon 分波 cooperative batching 思想 | T2295–T2296 | 1125 | 1522 | ✅ |
 | 26 | A/B 并行波间早停（SPRT/取消波间真生效，spec 1522 扩散） | spec 1522 扩散 | T2297–T2298 | 1126 | 1523 | ✅ |
+| 27 | 配置错误显形双小项（hook 重名 WARN + observer 幂等注册） | Kong 插件重名诊断思想 | T2299–T2300 | 1127 | 1524 | ✅ |
 
 
 ## Out of scope

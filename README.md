@@ -824,6 +824,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 工程卫生 | MemoryModule yml 解析样板统一（六-5 部分） | 13 处嵌套 instanceof 提取样板 → memoryLeaf/memorySub 两 helper 统一 9 处（3 处反射/泛型复杂体保留）——等值重构（spec 1521） | [spec 1521](docs/spec/1521-memory-yml-dedup.md) |
 | 评估治理 | 并行评估波间剪枝（spec 901 边界收口） | 并行路径分波执行（cooperative batching）：每波 invokeAll 后按串行同款观察窗检查失败率，达阈值剩余项 pruned 不再起波——配置剪枝的并行大 run 从「诚实不剪」变「波间止损」；未配策略单波全量零变化（spec 1522） | [spec 1522](docs/spec/1522-eval-parallel-prune.md) |
 | 评估治理 | A/B 并行波间早停（spec 1522 扩散） | PairwiseEvalRunner 并行路径分波化——SPRT 达界/宿主取消在波间真生效（此前全量派发 task 首行检查近似无效），波内 scored 原子语义不变（spec 1523） | [spec 1523](docs/spec/1523-ab-wave-earlystop.md) |
+| 会话治理 | 配置错误显形（hook 重名/observer 重复注册） | HookChain 构造期重复 hook 名 WARN（派发序不稳定/stats 对位歧义信号，Kong 重名诊断思想）；addObserver 同实例幂等去重（双份通知是装配错误，静默双计污染读面）（spec 1524） | [spec 1524](docs/spec/1524-dup-name-observer-dedupe.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

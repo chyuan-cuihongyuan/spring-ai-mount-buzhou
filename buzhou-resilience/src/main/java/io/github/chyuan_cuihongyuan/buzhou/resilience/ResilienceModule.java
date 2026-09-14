@@ -396,7 +396,10 @@ public final class ResilienceModule {
                     .withOutlier(outlier)
                     // spec 1623 / T2397：影子读探针（fallback.shadow-probe-percent > 0 才建）
                     .withShadowProbe(
-                            shadowProbeFor(properties), deadlineExecutor);
+                            shadowProbeFor(properties), deadlineExecutor)
+                    // spec 1631 / T2413：抖动模式（yml jitter-mode；缺省 EQUAL 既有语义）
+                    .withJitterMode(io.github.chyuan_cuihongyuan.buzhou.resilience.advisor
+                            .JitterMode.parse(properties.jitterMode()));
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

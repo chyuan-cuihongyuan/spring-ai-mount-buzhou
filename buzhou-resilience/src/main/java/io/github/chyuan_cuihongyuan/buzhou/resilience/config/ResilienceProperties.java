@@ -50,9 +50,22 @@ public record ResilienceProperties(
         @Valid ResponseCache responseCache,
         @Valid SemanticCache semanticCache,
         @Valid Hedge hedge,
-        @Valid Outlier outlier) {
+        @Valid Outlier outlier,
+        String jitterMode) {
 
-    /** 16 参兼容构造（spec 1610 之前调用方；outlier = 未配置）。 */
+    /** 17 参兼容构造（spec 1631 之前调用方；jitterMode = EQUAL）。 */
+    public ResilienceProperties(
+            Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
+            Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
+            RateLimit rateLimit, Circuit circuit, Fallback fallback, SessionQuota sessionQuota,
+            Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache, Hedge hedge,
+            Outlier outlier) {
+        this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
+                retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
+                shadow, responseCache, semanticCache, hedge, outlier, null);
+    }
+
+    /** 16 参兼容构造（spec 1610 之前调用方；outlier/jitterMode 缺省）。 */
     public ResilienceProperties(
             Boolean enabled, Integer maxAttempts, Duration initialBackoff, Duration maxBackoff,
             Double multiplier, Double jitter, List<String> retryableCategories, Duration deadline,
@@ -60,7 +73,7 @@ public record ResilienceProperties(
             Shadow shadow, ResponseCache responseCache, SemanticCache semanticCache, Hedge hedge) {
         this(enabled, maxAttempts, initialBackoff, maxBackoff, multiplier, jitter,
                 retryableCategories, deadline, rateLimit, circuit, fallback, sessionQuota,
-                shadow, responseCache, semanticCache, hedge, null);
+                shadow, responseCache, semanticCache, hedge, null, null);
     }
 
     /** 15 参兼容构造（spec 301 之前调用方；hedge/outlier = 未配置）。 */
@@ -595,6 +608,14 @@ public record ResilienceProperties(
         }
         if (jitter != null && (jitter < 0 || jitter > 1)) {
             throw configError("jitter", String.valueOf(jitter), "设为 [0,1]");
+        }
+        // spec 1631 / T2413：抖动模式合法值 fail-fast（EQUAL/FULL/DECORRELATED）
+        if (jitterMode != null && !jitterMode.isBlank()) {
+            try {
+                io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.JitterMode.parse(jitterMode);
+            } catch (IllegalArgumentException e) {
+                throw configError("jitter-mode", jitterMode, "设为 EQUAL / FULL / DECORRELATED");
+            }
         }
         if (deadline != null && deadline.isNegative()) {
             throw configError("deadline", deadline.toString(), "设为正时长，或显式 0 关闭超时");
