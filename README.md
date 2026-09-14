@@ -638,6 +638,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
 | 观测治理 | J 系阶段对账审计 R80 | J 会话 R71–R79 工件对账 + 九域读面布局盘点（spec 1080） | [spec 1080](docs/spec/1080-j-audit-r80.md) |
 | 观测治理 | J 系阶段对账审计 R90 | J 会话 R81–R89 工件对账 + README 1085 吞噬修复（spec 1090） | [spec 1090](docs/spec/1090-j-audit-r90.md) |
+| 观测治理 | 冒烟补全轮 | TodoTool/ToolSlowLog 独立冒烟纳入（spec 1098） | [spec 1098](docs/spec/1098-smoke-ext2.md) |
 | 观测治理 | 冒烟清单扩展轮 | ArchivePurgeJob/SpillCipher 纳入 15 读面冒烟（spec 1091） | [spec 1091](docs/spec/1091-readout-ext.md) |
 | 观测治理 | J 系读面统一契约冒烟轮 | 15 读面非负/归零/稳定三性质元验证（spec 1083） | [spec 1083](docs/spec/1083-readout-contract-smoke.md) |
 | 观测治理 | ObservabilityAdvisor 流式路径分支补测 | K 会话 R13：流式回调链 TTFT/TPOT/流错终态测试基建（spec 1212） | [spec 1212](docs/spec/1212-advisor-stream.md) |

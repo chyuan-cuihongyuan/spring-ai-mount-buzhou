@@ -67,4 +67,24 @@ class ReadoutContractSmokeTest {
                     .isEqualTo(first);
         }
     }
+
+    @Test
+    void todoActionStatsSmoke() {
+        // R40 TodoTool（actionStats Map 形状）独立冒烟：动作计数非负
+        var tool = new io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoTool(
+                new io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoStore(
+                        new io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore()));
+        var stats = tool.actionStats();
+        assertThat(stats.byAction().values())
+                .allSatisfy(v -> assertThat(v).isGreaterThanOrEqualTo(0L));
+    }
+
+    @Test
+    void toolSlowLogSmoke() {
+        // R2 ToolSlowLog（实例 stats 形状）独立冒烟
+        var log = new io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolSlowLog();
+        var stats = log.stats();
+        assertThat(stats).isNotNull();
+    }
 }
+
