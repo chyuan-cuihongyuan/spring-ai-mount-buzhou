@@ -25,8 +25,10 @@ class TenantRwChainTest {
         ReadFileTool.resetForTest();
     }
 
-    private FileSandbox tenantSandbox(Path hostRoot) {
-        return FileSandbox.forTenant(hostRoot, "tenant-a");
+    private FileSandbox tenantSandbox(Path hostRoot) throws Exception {
+        FileSandbox sandbox = FileSandbox.forTenant(hostRoot, "tenant-a");
+        java.nio.file.Files.createDirectories(sandbox.root()); // 租户根目录预建（realpath 上溯判定需要真实存在）
+        return sandbox;
     }
 
     @Test
