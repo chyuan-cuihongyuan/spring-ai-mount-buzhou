@@ -51,7 +51,7 @@ class FsChainReadoutTest {
 
         // 四读面各自守恒保持
         WriteFileTool.WriteFileStats w = WriteFileTool.stats();
-        assertThat(w.calls()).isEqualTo(w.writes() + w.totalRejects());
+        assertThat(w.attempts()).isEqualTo(w.writes() + w.totalRejects());
         ReadFileTool.ReadFileStats r = ReadFileTool.stats();
         assertThat(r.attempts()).isEqualTo(r.reads() + r.totalRejects());
 
@@ -91,7 +91,7 @@ class FsChainReadoutTest {
         WriteFileTool.resetForTest();
         ReadFileTool.resetForTest();
 
-        assertThat(WriteFileTool.stats().calls()).isZero();
-        assertThat(ReadFileTool.stats().calls()).isZero();
+        assertThat(WriteFileTool.stats().attempts()).isZero();
+        assertThat(ReadFileTool.stats().attempts()).isZero();
     }
 }
