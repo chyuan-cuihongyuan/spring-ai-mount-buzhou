@@ -940,6 +940,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 评估治理 | 评估通过率趋势审计 | EvalPassRateTrend——跨 run 通过率序列的 Theil–Sen 稳健斜率审计：成对斜率中位数（离群 run 不扭曲方向）+死区 ε=0.005/run+INSUFFICIENT 哨兵；「这版在变好还是变坏」从人眼比对变方向判定——Theil–Sen 稳健回归思想（spec 1444） | [spec 1444](docs/spec/1444-eval-pass-rate-trend.md) |
 
+| Spill 治理 | 媒体摄入统计读面 | MediaIntake.stats()——intakes/readBacks/bytesTotal 三计数+per-MIME 摄入直方（数量降序典序、封顶 16 基数纪律），intakeText 复用同一漏斗自动计量、拒绝路径不入账；多模态使用画像与字节配额治理显形——OpenAI usage by modality 思想（spec 1445） | [spec 1445](docs/spec/1445-media-intake-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

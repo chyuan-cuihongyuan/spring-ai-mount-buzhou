@@ -66,3 +66,4 @@
 - [门阈值敏感性扫描的形状裁决](../tickets/T2185-gate-sensitivity-shape.md) — GateThresholdSensitivity 纯函数（core/eval）：analyze(scores, threshold, δ)→δ 带计数+tighten/loosen 翻转分向+sensitivityRatio 派生（左闭右开带、-1 哨兵、δ 负值 fail-fast）——scikit-learn validation_curve 思想。
 - [Saga 运行静态读数的形状裁决](../tickets/T2187-saga-stats-shape.md) — CompensatingBatch.sagaStats() 静态面（既有类增量）：runs/successes/compensationRuns/compensationFailures 漏斗+conserved 守恒+lastFailedStep 断点步名（currentStep 追踪）——Seata 事务度量思想。
 - [评估通过率趋势审计的形状裁决](../tickets/T2189-pass-rate-trend-shape.md) — EvalPassRateTrend 纯函数（core/eval）：Theil–Sen 成对斜率中位数（离群抗噪）+Direction 闭集（死区 ε=0.005/run+INSUFFICIENT 哨兵）——跨 run 改进/退化趋势稳健显形。
+- [媒体摄入统计读面的形状裁决](../tickets/T2191-media-intake-stats-shape.md) — MediaIntake 实例面增量：intakes/bytesTotal/readBacks 三计数+per-MIME 直方（数量降序典序、封顶 16 基数纪律）+stats/reset（不影响 store）——OpenAI usage by modality 思想，多模态使用画像与字节配额治理显形。

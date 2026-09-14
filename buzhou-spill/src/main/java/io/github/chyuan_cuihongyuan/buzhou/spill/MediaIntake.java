@@ -43,6 +43,7 @@ public final class MediaIntake {
         if (bytes == null || bytes.length == 0) {
             throw new IllegalArgumentException("intake 字节不可为空");
         }
+        recordIntake(mimeType, bytes.length); // spec 1445 / T2187：摄入统计埋点
         // 二进制保真：按 Latin-1 逐字节映射为 char（0-255 双向无损），读回同口径还原
         StringBuilder preserved = new StringBuilder(bytes.length);
         for (byte b : bytes) {
@@ -58,6 +59,7 @@ public final class MediaIntake {
 
     /** 回读还原原字节（Latin-1 双向无损）。 */
     public byte[] readBack(MediaRef ref) {
+        readBacks.incrementAndGet();
         String content = store.load(SpillUri.parse(ref.uri().toString()))
                 .orElseThrow(() -> new IllegalArgumentException("媒体证据已被清理（" + ref.uri() + "）"));
         byte[] bytes = new byte[content.length()];
@@ -73,6 +75,63 @@ public final class MediaIntake {
     }
 
     /** 文本媒体回读（UTF-8）。 */
+    // spec 1445 / T2183 兄弟轮：媒体摄入统计（实例面——intake 包装具体 store）
+    private final java.util.concurrent.atomic.AtomicLong intakes =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong readBacks =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong bytesTotal =
+            new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.Map<String, java.util.concurrent.atomic.AtomicLong> byMime =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_TRACKED_MIMES = 16;
+
+    private void recordIntake(String mimeType, int bytes) {
+        intakes.incrementAndGet();
+        bytesTotal.addAndGet(bytes);
+        String key = mimeType == null || mimeType.isBlank() ? "__untyped__" : mimeType;
+        java.util.concurrent.atomic.AtomicLong counter = byMime.get(key);
+        if (counter != null) {
+            counter.incrementAndGet();
+        } else if (byMime.size() < MAX_TRACKED_MIMES) {
+            byMime.computeIfAbsent(key, k -> new java.util.concurrent.atomic.AtomicLong())
+                    .incrementAndGet();
+        }
+    }
+
+    /** 只读快照：摄入数/字节累计/回读数/按 MIME 计数（数量降序，封顶 16）。 */
+    public MediaIntakeStats stats() {
+        java.util.Map<String, java.util.concurrent.atomic.AtomicLong> snapshot = new java.util.TreeMap<>(byMime);
+        var sorted = snapshot.entrySet().stream()
+                .sorted(java.util.Map.Entry.<String, java.util.concurrent.atomic.AtomicLong>comparingByValue(
+                                java.util.Comparator.comparingLong(java.util.concurrent.atomic.AtomicLong::get)
+                                        .reversed())
+                        .thenComparing(java.util.Map.Entry.comparingByKey()))
+                .toList();
+        java.util.Map<String, Long> out = new java.util.LinkedHashMap<>();
+        sorted.forEach(e -> out.put(e.getKey(), e.getValue().get()));
+        return new MediaIntakeStats(intakes.get(), bytesTotal.get(), readBacks.get(),
+                java.util.Collections.unmodifiableMap(out));
+    }
+
+    /** 测试归零口（不影响 store）。 */
+    public void resetStatsForTest() {
+        intakes.set(0);
+        readBacks.set(0);
+        bytesTotal.set(0);
+        byMime.clear();
+    }
+
+    /**
+     * @param intakes     累计摄入条目数
+     * @param bytesTotal  摄入字节累计
+     * @param readBacks   累计回读次数
+     * @param byMime      按 MIME 计数（数量降序、封顶 16——基数纪律）
+     */
+    public record MediaIntakeStats(long intakes, long bytesTotal, long readBacks,
+                                   java.util.Map<String, Long> byMime) {
+    }
+
     public String readBackText(MediaRef ref) {
         return new String(readBack(ref), StandardCharsets.UTF_8);
     }

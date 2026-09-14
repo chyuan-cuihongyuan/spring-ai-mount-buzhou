@@ -2493,3 +2493,7 @@
 - `EvalPassRateTrend`（1444——Theil–Sen 稳健回归思想：跨 run 通过率趋势
   审计——成对斜率中位数（离群抗噪）+方向闭集（IMPROVING/STABLE/DEGRADING
   死区 ε=0.005+INSUFFICIENT 哨兵），纯函数；嵌套 `TrendReport` 不另立面）
+
+- `MediaIntake.stats()`（1445——OpenAI usage by modality 思想：媒体摄入
+  统计——intakes/bytesTotal/readBacks 三计数+per-MIME 直方（降序典序封顶
+  16 基数纪律），实例面不影响 store；嵌套 `MediaIntakeStats` 不另立面）
