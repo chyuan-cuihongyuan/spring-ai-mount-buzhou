@@ -629,6 +629,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 溢出治理 | str_replace 编辑判定读面 | 编辑成功与 notFound/ambiguous 失败模式分桶显形，六桶守恒（spec 1054） | [spec 1054](docs/spec/1054-strreplace-stats.md) |
 | 记忆治理 | 情景记忆读写双守恒读面 | 情景库写入量与召回命中率显形，双守恒（spec 1055） | [spec 1055](docs/spec/1055-episodic-stats.md) |
 | 模型韧性 | 崩循环探测器类级水位读面 | OPEN 总量/封顶截断量/循环检出/恢复四计数显形（spec 1056） | [spec 1056](docs/spec/1056-crashloop-watch-stats.md) |
+| 技能治理 | skill_search 搜索判定读面 | 搜索命中率与零结果率显形，四桶守恒（spec 1057） | [spec 1057](docs/spec/1057-skillsearch-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | 评估闭环 | pass@k×防抖门组合补验 | 双口径并存语义固化（频率门 fail 与概率达标并存不矛盾）+ enforceStable×history 一致性——评估域三口径组合收口（spec 953） | [spec 953](docs/spec/953-passk-gate-combo.md) |
@@ -692,6 +693,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | skills RedisSkillStore 契约接入（K 会话 R3） | SkillStore 契约范式补链：Redis 实现接同一契约基类（真实 redis:7-alpine 容器，无 Docker 跳过）+ 重启存活加验；修正 R1 审计漏扫 skills（spec 1202） | [spec 1202](docs/spec/1202-redis-skill-store-contract.md) |
 | 工程门禁 | core 零覆盖尾巴清扫（K 会话 R4） | 判据收紧 miss≥5→miss≥1 后复扫：AttachmentRenderer default 截断合同四断言 + CommandOutcome success 谓词矩阵（超时优先于退出码）；core 证据改走隔离 worktree（spec 1203） | [spec 1203](docs/spec/1203-core-zero-tail-sweep.md) |
 | 工程门禁 | SnapshotMessage 补测与跨模块复核（K 会话 R5） | 收紧判据残留归口：compact 构造 null 防御 + Map.copyOf 拷贝语义合同；六小模块 miss≥1 复扫清单化（spec 1204） | [spec 1204](docs/spec/1204-snapshot-message-tightened-sweep.md) |
+| 工程门禁 | K 会话周期对账轮 R6 | 全仓 verify（隔离 worktree CI 等价门）+ K 线工件链五项对账（spec/README/票/impl/map）——SRE Production Readiness Review 思想，R7 起对账/雾区交替（spec 1205） | [spec 1205](docs/spec/1205-k-audit-r6.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
@@ -784,6 +786,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 文档门禁 | 核心 API 包类级 Javadoc 覆盖门 | 32 个内核公共类型（AgentSession/BuzhouHook/HookResult/HarnessToolCallingManager 等）补类级 Javadoc + CoreApiJavadocCoverageTest 纪律变测试——六包新公共类型无 Javadoc 即 CI 红，注解夹层感知（spec 1503） | [spec 1503](docs/spec/1503-core-api-javadoc-gate.md) |
 | 工具治理 | BuzhouTool destructive 风险注解 | @BuzhouTool 加 destructive()（MCP tool annotations destructiveHint 思想——工具自描述风险），write_file/run_command/http_request 标注；ToolsModule 危险名单从三处手工登记改为注解扫描驱动（行为等价），新工具标注即自动进 HITL 清单（spec 1504） | [spec 1504](docs/spec/1504-destructive-tool-annotation.md) |
 | 评估治理 | 评估 run 协作式取消 | EvalRunner.requestCancel()——宿主发现数据集配错/方向不对时立即止损（此前只能跑完全程或等自动止损）；项边界生效（K8s Job 删除传播语义：在飞项做完、未启动项标 cancelled），串行/并行统一，run 开始清零防残留污染（spec 1505） | [spec 1505](docs/spec/1505-eval-run-cancel.md) |
+| 评估治理 | A/B 对比 run 宿主取消（spec 1505 扩散） | PairwiseEvalRunner.requestCancel()——A/B 双 runtime 成本翻倍时同样可主动叫停；未起项复用 skipped 桶（与 SPRT 达界停同位），summary.hostCancelled 布尔区分统计达界停与宿主叫停（9/7 参兼容构造器保留，序列化仅取消 run 落位）（spec 1506） | [spec 1506](docs/spec/1506-ab-run-cancel.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
