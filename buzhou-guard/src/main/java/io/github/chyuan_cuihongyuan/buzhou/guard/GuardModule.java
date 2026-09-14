@@ -79,8 +79,9 @@ public final class GuardModule {
         // spec 86 §A / T329：PII 脱敏先于 spotlight（order 70 < 80——先脱敏原文再包裹）
         // spec 731 / T1013：piiPreserveFormat → 假名化模式（同长度同形态替身）
         if (builder.piiRedaction) {
+            // spec 1627 / T2405：PII 脱敏豁免征询（工具级/类型级双粒度）
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.pii.PiiRedactionHook(
-                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat));
+                    builder.piiTypes, builder.customPiiRules, builder.piiPreserveFormat, exemptions));
         }
         // spec 106 §A / T389：用户输入脱敏（beforeTurn replaceInput——与输出侧正交）
         if (builder.piiInputRedaction) {

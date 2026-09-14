@@ -100,6 +100,9 @@
 - [R27 形状：中期对账审计](../tickets/T2403-r27-audit-shape.md) — 26 轮跨 6 模块改动首跑隔离 worktree 全仓 verify：唯一红=API 快照非破坏新增 10 类 → worktree 再生修复+md 入档；工件对账补 spec1622 悬空引用；全部 16xx spec/README/票/impl 双向实存
 - [R27 验收](../tickets/T2404-r27-audit-verify.md) — ApiSurfaceSnapshotTest+SpecCoverageTest 双绿（worktree 实证）+ 对账清单入档
 
+- [R28 形状：PII 豁免双粒度](../tickets/T2405-r28-pii-shape.md) — 820 第二消费者：工具级（该工具输出整体豁免短路）+ 类型级（type:TYPE 从生效集剔除、其余类型照脱）——「规则误报已核验」与「该数据源可信」两种生产痛点各得其所
+- [R28 验收](../tickets/T2406-r28-pii-verify.md) — 三断言（工具级原样透传/类型级 EMAIL 脱敏 PHONE 保留/无豁免基线全脱）+ guard 359 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -140,3 +143,4 @@
 | R25 | #1624 | 危险工具 HITL 豁免征询（spec 820 孤类首个消费者） | T2399–T2400 | 1177 | 1624 | done |
 | R26 | #1625 | 跨会话泄漏金丝雀接线（spec 528 孤类救活） | T2401–T2402 | 1178 | 1625 | done |
 | R27 | #1626 | 中期对账审计（全仓 verify + API 快照再生 + 工件对账） | T2403–T2404 | 1179 | 1626 | done |
+| R28 | #1627 | PII 脱敏豁免双粒度（820 第二消费者） | T2405–T2406 | 1180 | 1627 | done |
