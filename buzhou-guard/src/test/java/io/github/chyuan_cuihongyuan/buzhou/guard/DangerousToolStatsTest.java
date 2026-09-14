@@ -32,8 +32,8 @@ class DangerousToolStatsTest {
         // 危险工具清单经 GuardModule 装配（yml 条目集），此处直取装配产物
         var module = io.github.chyuan_cuihongyuan.buzhou.core.Buzhou.inMemoryStores();
         var guardModule = GuardModule.fromYml(module, Map.of(
-                "dangerous-tools", Map.of("enabled", true, "entries", List.of(
-                        Map.of("toolName", "write_file", "hint", "写入需确认")))));
+                "dangerous-tools", List.of(
+                        Map.of("name", "write_file", "hint", "写入需确认"))));
         return guardModule.configure().hooks().stream()
                 .filter(DangerousToolGuardHook.class::isInstance)
                 .map(DangerousToolGuardHook.class::cast)

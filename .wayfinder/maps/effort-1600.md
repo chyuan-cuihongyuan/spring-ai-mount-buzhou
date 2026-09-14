@@ -115,6 +115,9 @@
 - [R32 形状：退避抖动模式](../tickets/T2413-r32-jitter-shape.md) — AWS「Exponential Backoff and Jitter」思想：JitterMode 可配（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机防同步最优/DECORRELATED=[base,min(cap,prev×3)] 去相关），withJitterMode 链式 + yml jitter-mode；默认 EQUAL 零行为
 - [R32 验收](../tickets/T2414-r32-jitter-verify.md) — 四断言（EQUAL 带内/FULL 全区间有落点/DECORRELATED prev×3 界/解析 fail-fast）+ resilience 393 用例
 
+- [R33 形状：输入侧 PII 豁免](../tickets/T2415-r33-piiin-shape.md) — 820 第三消费者：PiiInputRedactionHook 双粒度（会话级 subject=sessionId「内部已合规通道」+ 类型级 type:TYPE 生效集剔除）——mechanism 域分侧（pii-input-redaction）与输出侧独立豁免；含 J 会话 DangerousToolStatsTest 脱锚解卡（import/包路径/yml 形态三处）
+- [R33 验收](../tickets/T2416-r33-piiin-verify.md) — guard 368 用例全绿（含解卡后的 J 系 4 用例 + 输入侧豁免回归）
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -160,3 +163,4 @@
 | R30 | #1629 | http_request 输入边界四护栏（Envoy SETTINGS_MAX_* 思想） | T2409–T2410 | 1182 | 1629 | done |
 | R31 | #1630 | A/B 胜率 Wilson 置信区间 | T2411–T2412 | 1183 | 1630 | done |
 | R32 | #1631 | 退避抖动模式可配（AWS full/decorrelated jitter 思想） | T2413–T2414 | 1184 | 1631 | done |
+| R33 | #1632 | 输入侧 PII 豁免（820 第三消费者）+ J 系测试解卡 | T2415–T2416 | 1185 | 1632 | done |
