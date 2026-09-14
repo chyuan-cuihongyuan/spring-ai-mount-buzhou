@@ -5,6 +5,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.spi.SkillResourceResolver;
 
 import java.nio.file.Path;
 import java.util.List;
+/** spec 1529 / T2309：溢写机制模块装配器——超大工具返回自动落盘（预览+回读路径）的 fromYml 解析与会话装配。 */
 
 public final class SpillModule {
 

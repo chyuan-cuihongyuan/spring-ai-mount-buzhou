@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+/** spec 1529 / T2309：写时复制护栏 Hook——写侧工具结果的溢写拦截与预览替换。 */
 
 public class CopyOnWriteGuardHook implements BuzhouHook {
 

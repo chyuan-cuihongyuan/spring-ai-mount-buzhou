@@ -1,4 +1,5 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory.summary;
+/** spec 1529 / T2309：摘要段落 SPI——九段式中单段（标题+正文）的结构契约。 */
 
 public enum SummarySection {
     USER_INTENT(0, "用户核心诉求"),

@@ -4,6 +4,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStore;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
+/** spec 1529 / T2309：证据查询工具——evidence-id 查询被微压缩回收的原始工具返回（占位符的证据回链）。 */
 
 public class EvidenceLookupTool implements ToolCallback {
 

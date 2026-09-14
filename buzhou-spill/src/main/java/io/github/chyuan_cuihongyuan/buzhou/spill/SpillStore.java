@@ -3,6 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.spill;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+/** spec 1529 / T2309：溢写存储 SPI——落盘/回读/清扫/校验的持久化契约。 */
 
 public interface SpillStore {
 

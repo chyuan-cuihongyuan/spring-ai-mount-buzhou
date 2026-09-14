@@ -7,6 +7,7 @@ import org.springframework.ai.tool.ToolCallback;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+/** spec 1529 / T2309：分层预算计算默认实现——层级容量分配与压缩触发的判定。 */
 
 public class DefaultBudgetCalculator implements BudgetCalculator {
 

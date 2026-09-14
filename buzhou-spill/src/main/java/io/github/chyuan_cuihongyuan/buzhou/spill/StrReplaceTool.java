@@ -10,6 +10,7 @@ import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
+/** spec 1529 / T2309：溢写内容局部替换工具——str_replace 对落盘溢写做原位编辑（免整文件重写）。 */
 
 public class StrReplaceTool implements ToolCallback {
 

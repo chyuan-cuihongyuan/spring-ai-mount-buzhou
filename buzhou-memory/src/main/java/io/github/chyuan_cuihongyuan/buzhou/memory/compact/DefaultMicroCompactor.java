@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+/** spec 1529 / T2309：微压缩默认实现——纯内存回收旧工具返回并替换为带 evidence-id 的占位符（信息连续降级不丢弃）。 */
 
 public class DefaultMicroCompactor implements MicroCompactor {
 

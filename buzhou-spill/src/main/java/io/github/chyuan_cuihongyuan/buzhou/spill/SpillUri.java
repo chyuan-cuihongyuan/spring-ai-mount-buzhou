@@ -1,4 +1,5 @@
 package io.github.chyuan_cuihongyuan.buzhou.spill;
+/** spec 1529 / T2309：溢写定位符——会话/序号维度的溢写条目地址（跨重启稳定）。 */
 
 public record SpillUri(String agentName, String sessionId, String toolCallId) {
 

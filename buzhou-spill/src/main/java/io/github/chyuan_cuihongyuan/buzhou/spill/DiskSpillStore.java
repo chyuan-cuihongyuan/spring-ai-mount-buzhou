@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+/** spec 1529 / T2309：磁盘溢写存储——溢写条目的原子落盘（data+meta 双文件）、配额计量、孤儿清扫与加密。 */
 
 public class DiskSpillStore implements SpillStore {
 

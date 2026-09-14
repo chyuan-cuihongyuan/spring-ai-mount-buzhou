@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.function.Function;
+/** spec 1529 / T2309：溢写护栏 Hook——写侧长内容拦截落盘（上下文只留预览+contentPath 参数）。 */
 
 public class SpillOffloadHook implements BuzhouHook {
 

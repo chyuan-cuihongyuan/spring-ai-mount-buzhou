@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+/** spec 1529 / T2309：溢写护栏模块——写侧长内容拦截（Onload/Offload 双 Hook）与工具目录接线。 */
 
 public final class SpillGuardModule {
 

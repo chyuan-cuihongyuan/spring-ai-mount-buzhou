@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.memory.summary;
 
 import java.util.List;
+/** spec 1529 / T2309：摘要段落内容载体——九段式中单段的标题与正文对。 */
 
 public record SectionContent(String body, Form form, List<String> evidenceIds) {
 

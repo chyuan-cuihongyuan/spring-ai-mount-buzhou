@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+/** spec 1529 / T2309：摘要存储桥——SummaryStore SPI 与 memory 内部摘要面的适配器。 */
 
 public class SummaryStoreBridge {
 

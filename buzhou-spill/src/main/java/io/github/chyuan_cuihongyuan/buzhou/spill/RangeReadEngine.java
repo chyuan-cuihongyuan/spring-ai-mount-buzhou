@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.Base64;
 import java.util.Iterator;
+/** spec 1529 / T2309：区间回读引擎——字节区间/JSON path/分页三模式的落盘内容切片（预览生成共用）。 */
 
 public final class RangeReadEngine {
 

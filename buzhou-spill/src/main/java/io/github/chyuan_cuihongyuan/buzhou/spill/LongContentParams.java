@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+/** spec 1529 / T2309：长内容参数集——本会话全部长内容参数对的注册表。 */
 
 public final class LongContentParams {
 

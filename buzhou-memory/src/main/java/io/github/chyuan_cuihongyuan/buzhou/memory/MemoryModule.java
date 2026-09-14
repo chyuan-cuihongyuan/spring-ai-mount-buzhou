@@ -21,6 +21,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+/** spec 1529 / T2309：记忆机制模块装配器——渐进式记忆压缩（微压缩/九段摘要/分层注入）的 fromYml 配置解析与会话装配。 */
 
 public final class MemoryModule {
 
