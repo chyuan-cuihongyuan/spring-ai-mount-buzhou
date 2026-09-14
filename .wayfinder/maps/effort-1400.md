@@ -57,3 +57,4 @@
 - [会话 spawn 统计读面的形状裁决](../tickets/T2167-spawn-stats-shape.md) — SessionSpawnStats 进程级静态面（公共类）：attempts/successes/collisions/steals 漏斗+守恒 attempts=successes+collisions+activePeak spawn 时点采样口径显式——HikariCP 建连统计思想，id 规划错误从静默变漏斗显形。
 - [工具循环打断分布读面的形状裁决](../tickets/T2169-loop-break-stats-shape.md) — ToolLoopBreakerHook 增量 brokenByTool（256 折叠纪律）+brokenByToolSnapshot 降序典序+brokenTotal+maxRunObserved 水位+resetBrokenForTest 清分布不清 run 状态——Temporal retry-loop detection 思想，「哪个工具在烧配额」定向治理信号显形。
 - [延迟作业调度漂移读数的形状裁决](../tickets/T2171-job-drift-shape.md) — DelayedJobQueue 增量 task 包装漂移记录（执行起点 clock.instant()−fireAt 钳 0）+DriftStats(executed/last/max)+resetDriftForTest；过期补跑漂移显形正值=补偿错过窗口量化——Sidekiq queue latency 思想。
+- [工具 schema 健康审计的形状裁决](../tickets/T2173-schema-health-shape.md) — ToolSchemaHealthAudit 纯函数（core/exec）：四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与校验器跳过条件严格同口径（三键全缺=裸奔）+bypassRatio 派生+findings 封顶 16——ajv/OpenAPI schema 校验思想。

@@ -2460,3 +2460,8 @@
 - `SessionSpawnStats`（1432——HikariCP 建连统计思想：spawn 漏斗读数
   attempts/successes/collisions/steals 守恒式+activePeak 活跃峰值水位
   （spawn 时点采样口径显式），进程级静态读面；嵌套 `Snapshot` 不另立面）
+
+- `ToolSchemaHealthAudit`（1435——ajv/OpenAPI schema 校验思想：工具 schema
+  健康四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与 ToolArgsValidator
+  跳过条件严格同口径+bypassRatio 裸奔率派生+findings 封顶 16，纯函数；
+  嵌套 `Report`/`SchemaFinding` 不另立面）
