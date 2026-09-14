@@ -299,9 +299,17 @@ public class ResilienceAdvisor implements BaseAdvisor {
             canaryChoice = fallback.selectInitialTarget(modelName, sessionId);
             if (!canaryNotified) {
                 canaryNotified = true;
+                // spec 48 §B / design-incompleteness F7（spec 1509 修复）：payload 钉
+                // 「sessionId + model」——会话维度归属此前缺失，多会话共用监听面无法定位
+                java.util.Map<String, Object> canaryPayload = new java.util.LinkedHashMap<>();
+                canaryPayload.put("model", canaryChoice);
+                canaryPayload.put("primary", modelName);
+                if (sessionId != null) {
+                    canaryPayload.put("sessionId", sessionId);
+                }
                 emit(new SessionEvent(
                         io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.FallbackChain.EVENT_CANARY_SELECTED,
-                        Map.of("model", canaryChoice, "primary", modelName), Instant.now()));
+                        Map.copyOf(canaryPayload), Instant.now()));
             }
         }
         return canaryChoice;

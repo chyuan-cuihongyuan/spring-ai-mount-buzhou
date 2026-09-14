@@ -85,7 +85,7 @@ class CanaryRoutingEndToEndTest {
         session.close();
     }
 
-    /** canary.selected 事件每会话恰一次（多轮不重复）。 */
+    /** canary.selected 事件每会话恰一次（多轮不重复）；payload 带会话归属（F7 修复）。 */
     @Test
     void canarySelectedEventEmittedOncePerSession() {
         AgentSession session = spawnWeighted("primary", "secondary", Map.of("secondary", 9));
@@ -95,6 +95,12 @@ class CanaryRoutingEndToEndTest {
         session.chat("q3");
         assertThat(events.stream()
                 .filter(e -> FallbackChain.EVENT_CANARY_SELECTED.equals(e.type()))).hasSize(1);
+        // spec 48 §B / spec 1509（design-incompleteness F7）：payload 钉「sessionId + model」
+        assertThat(events.stream()
+                .filter(e -> FallbackChain.EVENT_CANARY_SELECTED.equals(e.type()))
+                .findFirst().orElseThrow().payload())
+                .containsEntry("sessionId", session.sessionId())
+                .containsKey("model");
         session.close();
     }
 

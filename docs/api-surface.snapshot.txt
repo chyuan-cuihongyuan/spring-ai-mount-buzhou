@@ -872,6 +872,7 @@ buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.config.BuzhouToolsAutoCon
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.file.ReadFileTool
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.file.WriteFileTool
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.http.HttpRequestTool
+buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.http.PerHostConcurrencyGuard
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.http.SsrfGuard
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoAttachmentRenderer
 buzhou-tools|io.github.chyuan_cuihongyuan.buzhou.tools.todo.TodoItem
