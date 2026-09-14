@@ -15,7 +15,7 @@ J 系 R71–R79 全量工件对账 + 隔离 worktree 全仓 verify + 双门复�
 
 ## 验收
 
-隔离 worktree（HEAD=R79 后干净基线）全仓 `mvn verify`：BUILD SUCCESS + 全模块 SUCCESS + 双文档门绿。
+隔离 worktree 全仓 `mvn verify` 两轮实测：首轮 SpecCoverageTest 反向门红——**跨会话孤儿欠账第三型**（K 会话 1212-advisor-stream spec 文件无 README 行），就近补登（a1e34d07）→ **复跑（HEAD=a1e34d07）BUILD SUCCESS：17 模块 SUCCESS、总时长 2:48、双文档门绿**——验收通过。三型欠账（快照死链/README 死链/孤儿文件）至此全部实证并各有就近处置范式。
 
 ## Out of Scope
 

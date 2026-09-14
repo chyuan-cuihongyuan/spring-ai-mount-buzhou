@@ -8,7 +8,7 @@
 
 - [x] 对账：README 行 1071–1079 / spec 1071–1079 / 票 T1577–T1614 / impl 813–831 / 台账 61–79 全绿
 - [x] 票 T1615–T1616 + spec 1080 + README 行
-- [ ] worktree 全仓 verify 绿（BUILD SUCCESS + 双门）
+- [x] worktree 全仓 verify 绿（复跑 BUILD SUCCESS 17 模块 2:48 + 双门；首轮红为 1212 孤儿欠账已补登 a1e34d07）
 
 ## Done
 
