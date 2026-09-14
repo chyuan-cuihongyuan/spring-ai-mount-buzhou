@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [BuzhouTool destructive 风险注解的形状裁决](../tickets/T2259-destructive-annotation-shape.md) — @BuzhouTool 加 destructive() default false（注解成员默认值源/二进制兼容）；四个写侧内置工具标注；ToolsModule 危险名单从三处手工 dangerous.add 改为注解扫描（行为等价，新工具标注即入册）；MCP tool annotations destructiveHint 思想。
 - [核心 API 包类级 Javadoc 覆盖门的形状裁决](../tickets/T2257-api-javadoc-gate-shape.md) — 六包 192 公共类型 32 缺类级 Javadoc（含 AgentSession/BuzhouHook 最核心 API，规范违例）；逐一补齐 + CoreApiJavadocCoverageTest 纪律变测试（注解夹层感知）；Spotless 静态门思想，spec 213 先例。
 - [计时聚合器双子实例清零面的形状裁决](../tickets/T2255-aggregator-reset-shape.md) — HookTimingAggregator/ToolTimingAggregator 各补公开 reset()（清空 timings、幂等、不碰 Holder 开关）：Holder.reset() 只置 null 关聚合，实例账只增不减——测试基线污染与运维基线重建双缺；Prometheus counter reset 语义 + 仓库规范「进程级静态读面须配 reset 注入点」符合性补全，先例 ToolInFlight.reset()。
 
@@ -38,6 +39,7 @@
 | 2 | HookChain 事件通知面逐 hook 隔离（通知面/裁决面分离） | spec 1500 思想在 hook 域的同源应用 | T2253–T2254 | 1104 | 1501 | ✅ |
 | 3 | 计时聚合器双子实例清零面（reset() 幂等 + Holder 不动） | Prometheus counter reset 语义 | T2255–T2256 | 1105 | 1502 | ✅ |
 | 4 | 核心 API 包类级 Javadoc 覆盖门（32 类型补齐 + 纪律变测试） | Spotless 静态门 + spec 213 纪律变测试先例 | T2257–T2258 | 1106 | 1503 | ✅ |
+| 5 | BuzhouTool destructive 风险注解（危险名单注解驱动化，行为等价） | MCP tool annotations destructiveHint | T2259–T2260 | 1107 | 1504 | ✅ |
 
 
 ## Out of scope

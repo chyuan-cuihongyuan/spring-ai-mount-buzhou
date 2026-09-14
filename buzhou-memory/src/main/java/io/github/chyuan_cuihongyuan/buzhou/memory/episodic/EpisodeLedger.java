@@ -121,7 +121,9 @@ public final class EpisodeLedger {
 
     /** 按新任务 goal 召回 top-k 过往成功示例（余弦）。 */
     public List<Example> recallExamples(String sessionId, String goal, int k) {
+        RECALL_CALLS.incrementAndGet();
         if (provider == null || goal == null || goal.isBlank()) {
+            RECALL_DROPPED.incrementAndGet();
             return List.of();
         }
         float[] goalVector = provider.embed(goal);
@@ -142,11 +144,17 @@ public final class EpisodeLedger {
                 // 单条损坏不拖垮召回
             }
         });
-        return examples.stream()
+        List<Example> hits = examples.stream()
                 .filter(example -> example.score() >= 0.10) // 语义地板：噪声级重叠不算命中
                 .sorted(Comparator.comparingDouble(Example::score).reversed())
                 .limit(Math.max(1, k))
                 .toList();
+        if (hits.isEmpty()) {
+            RECALL_EMPTIES.incrementAndGet();
+        } else {
+            RECALL_HITS.incrementAndGet();
+        }
+        return hits;
     }
 
     /** few-shot 注入块（按预算截断；无命中 = empty）。 */

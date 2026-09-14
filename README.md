@@ -781,6 +781,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 会话治理 | HookChain 事件通知面逐 hook 隔离 | fireEvent（通知面，无裁决语义）链内逐 hook try/catch——单 hook onEvent 异常不再吞掉其余 hook 的事件消费，计时 try/finally 仍入账；run() 裁决面 fail-fast 治理语义不动——通知面/裁决面分离（spec 1501） | [spec 1501](docs/spec/1501-hook-event-notify-isolation.md) |
 | 观测治理 | 计时聚合器双子实例清零面 | HookTimingAggregator / ToolTimingAggregator 各补公开 reset()——Holder.reset() 只关聚合不清实例账，stats()/windowedMax() 此前只增不减（测试基线污染、长生命周期进程无法重建观测基线）——Prometheus counter reset 语义（spec 1502） | [spec 1502](docs/spec/1502-aggregator-reset.md) |
 | 文档门禁 | 核心 API 包类级 Javadoc 覆盖门 | 32 个内核公共类型（AgentSession/BuzhouHook/HookResult/HarnessToolCallingManager 等）补类级 Javadoc + CoreApiJavadocCoverageTest 纪律变测试——六包新公共类型无 Javadoc 即 CI 红，注解夹层感知（spec 1503） | [spec 1503](docs/spec/1503-core-api-javadoc-gate.md) |
+| 工具治理 | BuzhouTool destructive 风险注解 | @BuzhouTool 加 destructive()（MCP tool annotations destructiveHint 思想——工具自描述风险），write_file/run_command/http_request 标注；ToolsModule 危险名单从三处手工登记改为注解扫描驱动（行为等价），新工具标注即自动进 HITL 清单（spec 1504） | [spec 1504](docs/spec/1504-destructive-tool-annotation.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
