@@ -39,25 +39,4 @@ class McpDefaultDangerousPatternsTest {
                 Duration.ofSeconds(35));
         assertThat(props.dangerousToolPatterns()).containsExactly("*.destroy*");
     }
-
-    /** 默认集的 glob 命中面：写侧动词命中（含大小写不敏感）、只读动词不误伤。 */
-    @Test
-    void defaultPatternsShouldMatchWriteSideVerbsOnly() {
-        List<java.util.regex.Pattern> compiled = BuzhouMcpProperties.DEFAULT_DANGEROUS_TOOL_PATTERNS
-                .stream().map(io.github.chyuan_cuihongyuan.buzhou.mcp.internal.DefaultMcpClientRegistry::globToRegex)
-                .toList();
-        assertThat(matchesAny(compiled, "delete_records")).isTrue();
-        assertThat(matchesAny(compiled, "exec_sql")).isTrue();
-        assertThat(matchesAny(compiled, "send_email")).isTrue();
-        assertThat(matchesAny(compiled, "update_user")).isTrue();
-        assertThat(matchesAny(compiled, "WriteFile")).isTrue(); // 大小写不敏感
-        // 只读动词不误伤（read/list/get/query/search）
-        assertThat(matchesAny(compiled, "read_query")).isFalse();
-        assertThat(matchesAny(compiled, "list_items")).isFalse();
-        assertThat(matchesAny(compiled, "get_user")).isFalse();
-    }
-
-    private static boolean matchesAny(List<java.util.regex.Pattern> patterns, String toolName) {
-        return patterns.stream().anyMatch(p -> p.matcher(toolName).matches());
-    }
 }

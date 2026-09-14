@@ -33,7 +33,7 @@
 
 ## 二、安全相关缺口（最高优先）
 
-### S1【硬偏差】MCP 危险工具默认模式为空，HITL 挂接链断裂
+### S1【硬偏差】MCP 危险工具默认模式为空，HITL 挂接链断裂（✅ 已修复：spec 1507——缺省七动词默认集 + 显式空逃生门；HITL 自动挂接 S2 部分仍待 starter 编排）
 
 - **spec 承诺**：spec 14 §F——「`dangerousToolNamePatterns` 客户端侧模式（**默认 delete/drop/write/update/remove/send/exec 类动词**），注册表聚合 `dangerousToolNames()` 供装配侧挂 guard HITL」（User Story 14：恶意 server 不能绕过审批）。
 - **代码现实**：默认值为空列表（`McpModule.java:127`、`BuzhouMcpProperties.java:25`、`DefaultMcpClientRegistry.java:131` 注释自认「空 = 不登记」）；`dangerousToolNames()` 在 mcp 模块外**零消费方**（guard/starter 无引用，仅 health 端点读其 size）。

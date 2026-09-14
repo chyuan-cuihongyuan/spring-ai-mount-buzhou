@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 追加式 JSONL 大小轮转 writer（spec 642 / T934–T935，Logback
@@ -23,8 +24,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * 放大主链故障），{@link #rotations()} / {@link #rotationFailures()} 计数可观测。
  * 大小内存记账（打开时以现存文件大小初始化），append 无额外系统调用。
  *
- * <p>线程安全：{@link #appendLine} 同步（行完整性优先——观测明细追加频率
- * 事件级，锁竞争非热点）。
+ * <p>线程安全：{@link #appendLine} 以 {@link java.util.concurrent.locks.ReentrantLock}
+ * 互斥（行完整性优先——观测明细追加频率事件级，锁竞争非热点）。spec 1607 / T2365：
+ * monitor 内磁盘写+每行 flush+轮转 gzip 会钉住虚拟线程载体（JDK21 pinning）——
+ * j.u.c 锁在虚拟线程下 unmount 而非 pin（互斥语义不变，HarnessToolCallingManager
+ * 同款迁移先例）。
  */
 public final class RollingJsonlWriter implements AutoCloseable {
 
@@ -40,6 +44,8 @@ public final class RollingJsonlWriter implements AutoCloseable {
     private final int compressFromGeneration;
     private BufferedWriter writer;
     private long bytesWritten;
+    /** spec 1607 / T2365：互斥锁（ReentrantLock——虚拟线程不 pin；语义同 monitor）。 */
+    private final ReentrantLock lock = new ReentrantLock();
     private final AtomicLong rotations = new AtomicLong();
     private final AtomicLong rotationFailures = new AtomicLong();
 
@@ -77,14 +83,19 @@ public final class RollingJsonlWriter implements AutoCloseable {
     }
 
     /** 追加一行（调用方保证行内换行已转义——JSONL 语义）；每行 flush（tail -f 可观察）。 */
-    public synchronized void appendLine(String line) throws IOException {
-        if (rollingEnabled() && bytesWritten + lineBytes(line) > maxBytes) {
-            rotate();
+    public void appendLine(String line) throws IOException {
+        lock.lock();
+        try {
+            if (rollingEnabled() && bytesWritten + lineBytes(line) > maxBytes) {
+                rotate();
+            }
+            writer.write(line);
+            writer.newLine();
+            writer.flush();
+            bytesWritten += lineBytes(line) + 1L; // +1 = newLine（\n）
+        } finally {
+            lock.unlock();
         }
-        writer.write(line);
-        writer.newLine();
-        writer.flush();
-        bytesWritten += lineBytes(line) + 1L; // +1 = newLine（\n）
     }
 
     /** 轮转是否启用（maxBytes 与 maxHistory 均为正）。 */
@@ -107,13 +118,23 @@ public final class RollingJsonlWriter implements AutoCloseable {
     }
 
     /** 当前代已写字节（轮转判定同源记账——观测/测试用）。 */
-    public synchronized long bytesWritten() {
-        return bytesWritten;
+    public long bytesWritten() {
+        lock.lock();
+        try {
+            return bytesWritten;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
-    public synchronized void close() throws IOException {
-        writer.close();
+    public void close() throws IOException {
+        lock.lock();
+        try {
+            writer.close();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
