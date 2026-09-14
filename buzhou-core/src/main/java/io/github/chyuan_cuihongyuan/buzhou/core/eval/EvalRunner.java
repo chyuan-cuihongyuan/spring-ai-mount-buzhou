@@ -347,10 +347,23 @@ public final class EvalRunner {
      * 事件与串行同口径（全部项完成后一次进行）。项内异常经既有三态收敛（不炸整跑）。
      */
     public EvalRunResult run(String datasetName, Evaluator evaluator, int parallelism) {
+        return run(datasetName, evaluator, parallelism, null);
+    }
+
+    /**
+     * spec 1635 / T2421：按 id 子集重跑（rerun-failed——上轮 fail/error 项的 itemId
+     * 传入即失败重跑；null = 全量既有语义）。CI 红了只重跑失败项省时 + flaky 区分
+     * （重跑过=flaky、仍败=真回归）。汇总/落盘/事件口径不变（total=子集数）。
+     */
+    public EvalRunResult run(String datasetName, Evaluator evaluator, int parallelism,
+            java.util.Set<String> onlyItemIds) {
         List<EvalItem> items = datasetStore.dataset(datasetName)
                 .map(meta -> datasetStore.items(datasetName))
                 .orElseThrow(() -> new BuzhouException(ErrorCode.EVAL_OPERATION_INVALID,
                         "数据集未建：" + datasetName + "（修法：先 createDataset 再 run）"));
+        if (onlyItemIds != null) {
+            items = items.stream().filter(i -> onlyItemIds.contains(i.id())).toList();
+        }
         if (expectations != null) {
             DatasetExpectations.Result gate = expectations.validate(items);
             if (!gate.passed()) {

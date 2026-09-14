@@ -124,6 +124,9 @@
 - [R35 形状：dashboard gzip](../tickets/T2419-r35-gzip-shape.md) — writeJson 客户端协商 gzip（Accept-Encoding 含 gzip 且响应 ≥512B 才压——阈值下压缩头倒挂）；Content-Encoding 头+体可解压回 JSON
 - [R35 验收](../tickets/T2420-r35-gzip-verify.md) — 两断言（协商压解回/无协商恒明文）+ dashboard 34 用例
 
+- [R36 形状：失败项重跑](../tickets/T2421-r36-rerun-shape.md) — run 加 onlyItemIds 子集重载（null=全量零变化）：上轮 fail/error 的 id 传入即 rerun-failed——CI 红了只重跑失败项省时 + flaky 区分（重跑过=flaky、仍败=真回归）；汇总/落盘口径不变（total=子集数）
+- [R36 验收](../tickets/T2422-r36-rerun-verify.md) — 两断言（失败子集新 runId total=1/null 全量 3）+ eval 包 245 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -172,3 +175,4 @@
 | R33 | #1632 | 输入侧 PII 豁免（820 第三消费者）+ J 系测试解卡 | T2415–T2416 | 1185 | 1632 | done |
 | R34 | #1633 | 负缓存装配面（spec 1616 装饰器 Holder 化） | T2417–T2418 | 1186 | 1633 | done |
 | R35 | #1634 | dashboard 响应 gzip（客户端协商） | T2419–T2420 | 1187 | 1634 | done |
+| R36 | #1635 | eval 失败项重跑（rerun-failed） | T2421–T2422 | 1188 | 1635 | done |
