@@ -34,6 +34,10 @@ import java.util.concurrent.Executors;
  */
 public final class ResilienceModule {
 
+    /** spec 1611 / T2373：crash-loop 判定短窗（10 分钟内 3 次跳闸 = 循环）。 */
+    private static final int CIRCUIT_CRASH_LOOP_MIN_OPENS = 3;
+    private static final long CIRCUIT_CRASH_LOOP_WINDOW_MILLIS = 10 * 60 * 1000L;
+
     private ResilienceModule() {
     }
 
@@ -133,6 +137,12 @@ public final class ResilienceModule {
         // （此前限流器在 customize() 内建，N 会话 = N 倍限额）。
         ModelCircuitBreaker circuit = properties.circuit().effectiveEnabled()
                 ? new ModelCircuitBreaker(properties.circuit(), stats, java.time.Clock.systemUTC(), circuitBackend)
+                        // spec 1611 / T2373：旁路遥测恒挂（纯读数、有界内存——702 journal 同款；
+                        // spec 811/836 的喂点自此落地，crash-loop 短窗=10min/3 次跳闸）
+                        .withTelemetry(
+                                new io.github.chyuan_cuihongyuan.buzhou.resilience.CircuitCrashLoopDetector(
+                                        CIRCUIT_CRASH_LOOP_MIN_OPENS, CIRCUIT_CRASH_LOOP_WINDOW_MILLIS),
+                                new io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.HalfOpenProbeStats())
                 : null;
         // spec 638 / T926：时间窗生效读面（0=count 窗——声明是否生效一读便知）
         if (stats != null) {
