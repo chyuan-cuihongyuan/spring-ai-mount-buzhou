@@ -804,6 +804,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 预算治理 | 预算分档分类器 | BudgetTierClassifier——已用/上限→行动档位：GREEN/WARN(≥0.8 软限预警)/HARD(≥1.0 硬限已触)/UNKNOWN(limit≤0 畸形)四档闭集+四桶计数+饱和度降序+tightest(n)「先看谁快烧完」——k8s ResourceQuota + SRE headroom 思想（spec 1419） | [spec 1419](docs/spec/1419-budget-tier-classifier.md) |
 
+| 评估治理 | 评估运行年龄台账 | EvalRunAgeLedger——Registry begin/close 双点埋点：active 在途数+oldestActiveAgeMillis 最老活跃年龄（卡死异味哨兵 -1）+maxCompletedDurationMillis 历史最长完成水位+closed 累计；挂死的评估 run 从「感觉慢」变年龄显形——tqdm + k8s 运行时长异味思想（spec 1420） | [spec 1420](docs/spec/1420-eval-run-age-ledger.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

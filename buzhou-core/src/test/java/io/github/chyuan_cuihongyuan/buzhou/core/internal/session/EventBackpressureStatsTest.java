@@ -44,18 +44,30 @@ class EventBackpressureStatsTest {
     }
 
     @Test
-    void dispatcherEnqueueRaisesDepthWatermarkOnDropOldest() {
-        BufferedEventDispatcher dispatcher = dispatcher(
-                EventDispatchConfig.OverflowPolicy.DROP_OLDEST, null);
-        for (int i = 0; i < 6; i++) {
-            dispatcher.enqueue(SessionEvent.of("tick." + i));
-        }
+    void dispatcherEnqueueRaisesDepthWatermarkOnDropOldest() throws Exception {
+        // 确定性构造：deliver 阻塞住排水线程 → 队列填充可精确控制（满载竞态修复：
+        // 原断言在排水线程并发清队后 noteDepth 采样到 0——采样与排水天然竞态）
+        java.util.concurrent.CountDownLatch entered = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        BufferedEventDispatcher dispatcher = new BufferedEventDispatcher("s-bp",
+                new EventDispatchConfig(EventDispatchConfig.Mode.BUFFERED, 2,
+                        EventDispatchConfig.OverflowPolicy.DROP_OLDEST, null),
+                event -> {
+                    entered.countDown();
+                    try {
+                        release.await();
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
+        dispatcher.enqueue(SessionEvent.of("head")); // 排水线程取走并在 deliver 内阻塞
+        assertThat(entered.await(5, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        dispatcher.enqueue(SessionEvent.of("fill.1")); // 队列 1
+        dispatcher.enqueue(SessionEvent.of("fill.2")); // 队列 2 → 水位恰 2
+        release.countDown();
         dispatcher.close();
-        var s = EventBackpressureStats.stats();
-        // 容量 2：水位 ≤ 容量（消费线程并发排水，观测点为入队路径峰值）
-        assertThat(s.depthWatermark()).isGreaterThanOrEqualTo(1);
-        assertThat(s.depthWatermark()).isLessThanOrEqualTo(2);
-        assertThat(s.blockedPushes()).isZero(); // DROP_OLDEST 无阻塞推入
+        assertThat(EventBackpressureStats.stats().depthWatermark()).isEqualTo(2);
+        assertThat(EventBackpressureStats.stats().blockedPushes()).isZero();
     }
 
     @Test

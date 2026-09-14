@@ -126,6 +126,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPassAtK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPrunePolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPrunePolicyHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalQueryService
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunAgeLedger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunDurationStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalRunItemResult
@@ -143,6 +144,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.LlmJudgeEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseEvalRunner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseJudge
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseSprtPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.RagasEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.SessionTrajectoryImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler
@@ -410,6 +412,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ClosedSession
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.CompositeAttachmentRenderer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextTruncationStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextWindowResolver
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.DangerousToolRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EmbeddingProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EstimatorCalibrationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.EventRecord

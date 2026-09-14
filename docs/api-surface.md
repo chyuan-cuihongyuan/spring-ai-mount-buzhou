@@ -2398,3 +2398,8 @@
   已用/上限→行动档位离线分类器 GREEN/WARN(≥0.8)/HARD(≥1.0)+UNKNOWN
   畸形哨兵+四桶计数+verdicts 饱和度降序+tightest(n)，纯函数；嵌套
   `TierReport`/`BudgetTierVerdict` 不另立面）
+
+- `EvalRunAgeLedger`（1420——tqdm + k8s 运行时长异味思想：评估运行年龄
+  台账——Registry begin/close 双点埋点，Snapshot：active/oldestActiveAge
+  （卡死哨兵 -1）/maxCompletedDuration 水位/closed，进程级静态读面；
+  嵌套 `Snapshot` 不另立面）

@@ -80,7 +80,7 @@ S5 会话导出字节水位(restic backup size stats ≈31K)→core｜
 S6 嵌入批延迟分位(sentence-transformers ≈17K)→resilience【vs 828】｜
 S7 MCP 重连退避抖动检测(gRPC channelz backoff ≈43K)→mcp【vs 840】｜
 S8 → 已由 R17 替代路径占用（事务计量装饰器）｜
-S9 评估运行进度条读面(tqdm ≈30K 思想：done/total/eta 纯读面)→core【vs I prune】｜
+R21 ✅ 换题落地=评估运行年龄台账（S9 题注册表年龄化；item 级进度无缝诚实出域）｜
 S10 会话归档分层命中率(S3 lifecycle, MinIO ≈52K)→spill【vs S35】。
 
 纪律备忘（沿 H 会话教训）：
