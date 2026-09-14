@@ -854,6 +854,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 治理 | 保留清扫新鲜度追踪 | RetentionSweepFreshness——addSweepListener 零侵入挂载：sweepCount+lastSweepAt+staleMillis（now−末次，调用方时钟）+maxGapMillis 相邻间隔水位（调度抖动/停摆显形）+failureCount 未完全成功分桶；清扫停摆=保留承诺静默失效的先行显形——Airflow scheduler heartbeat 思想（spec 1427） | [spec 1427](docs/spec/1427-retention-sweep-freshness.md) |
 
+| 工具治理 | 工具目录重名审计 | ToolCatalogDuplicateAudit——工具名清单重名组审计（≥2 同名组、名字典序、去重对比）：HarnessToolCallingManager HashMap 按名索引重名静默覆盖（后到者胜），本地与 MCP server 工具同名遮蔽不可解释——Spring bean 重名/Maven Enforcer 思想，只读不裁决（spec 1428） | [spec 1428](docs/spec/1428-tool-catalog-duplicate-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

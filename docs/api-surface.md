@@ -2432,3 +2432,7 @@
   清扫新鲜度追踪（addSweepListener 零侵入挂载）——sweepCount/lastSweepAt/
   staleMillis（调用方时钟）/maxGapMillis 间隔水位/failureCount；嵌套
   `Snapshot` 不另立面）
+
+- `ToolCatalogDuplicateAudit`（1428——Spring bean 重名 / Maven Enforcer
+  思想：工具名字清单重名组审计（≥2 同名组、名字典序）——HashMap 静默
+  遮蔽显形，纯函数只读不裁决；嵌套 `Report`/`DuplicateGroup` 不另立面）
