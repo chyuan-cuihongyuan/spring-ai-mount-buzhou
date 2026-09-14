@@ -29,7 +29,8 @@ class SandboxRunStatsTest {
     }
 
     private SandboxRunCommandTool tool(CommandBackend backend) {
-        return new SandboxRunCommandTool(new FileSandbox(tmp, List.of()), null,
+        return new SandboxRunCommandTool(new FileSandbox(tmp, List.of()),
+                io.github.chyuan_cuihongyuan.buzhou.tools.command.CommandBlacklist.defaults(),
                 backend, Duration.ofSeconds(60), Duration.ofMinutes(10));
     }
 
