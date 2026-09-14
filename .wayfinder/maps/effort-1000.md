@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [PII 检测引擎读面的形态裁决](../tickets/T1599-piidetector-stats-shape.md) — PiiDetector 静态四计数（scanCalls/scansWithHits/matchesFound dedupe 前原生口径/pseudonymizeCalls）+ 嵌套 PiiDetectorStats + stats()/resetForTest()；弱校验口径（引擎 vs 业务 PiiHitStats 双层对账）（Yara 规则引擎统计）。
 - [http_request 受控头丢弃显形的形态裁决](../tickets/T1597-headerdrop-stats-shape.md) — HttpToolStats 追加 headerDrops 第 10 计数（impl-49 黑名单头静默 return 处单点）；旁路修正量不占入口桶（一次请求可丢多头）；适配并行 spec 1603 hostLimitRejects 扩展（OWASP header injection 试探率）。
 - [R70 周期预检轮的形状裁决](../tickets/T1595-r70-audit-shape.md) — R61–R69 对账零缺陷（八域读面布局）+ API 快照跨会话欠账 4 类型两次补账（「加类型不随轮再生」系统性欠账，倡议随轮自带 regenerate）；复跑 BUILD SUCCESS 验收。
 - [危险工具守卫判定读面的形态裁决](../tickets/T1593-dangerous-tool-stats-shape.md) — DangerousToolGuardHook 静态六计数（invocations/disabledSkips/unmatchedSkips/authorizedSkips/exemptedSkips/escalations）+ 嵌套 DangerousToolStats + stats()/resetForTest()；守恒 invocations = 五结局桶；HITL 等待确认量量化显形（授权面对账）。
@@ -160,7 +161,8 @@
 | 69 | 危险工具守卫判定读面（五结局桶守恒含 escalations） | HITL 授权面对账 | T1593–T1594 | 821 | 1069 | ✅ |
 | 70 | 周期预检轮：R61–R69 对账全绿 + API 快照跨会话欠账 4 类型两次补账 + 复跑 verify BUILD SUCCESS | 门 regenerate 指引 + cwd 绝对路径纪律 | T1595–T1596 | 822 | 1070 | ✅ |
 | 71 | http_request 受控头丢弃显形（headerDrops 旁路量） | OWASP header injection 试探率 | T1597–T1598 | 823 | 1071 | ✅ |
-| 72 | （开工时按缺口核查选题） | — | T1599–T1600 | 824 | 1072 |  |
+| 72 | PII 检测引擎读面（引擎原生匹配与业务上报双层对账） | Yara 规则引擎统计 | T1599–T1600 | 824 | 1072 | ✅ |
+| 73 | （开工时按缺口核查选题） | — | T1601–T1602 | 825 | 1073 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
