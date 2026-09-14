@@ -7,6 +7,7 @@ import java.util.Optional;
  * TokenBudgetHook.afterModel 同点对账（CharHeuristic 估算 prompt vs 模型回报
  * usage.promptTokens）经此登记读出——「预算按估算设、账单按真实来」的系统性
  * 偏差从感觉变数字。
+ * @since 1.0.0
  */
 public final class CalibrationAuditHolder {
 

@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>计数实现：host → CAS 计数器。归零条目留在 map（零值 AtomicLong ≈ 数十字节；
  * host 集合受 SSRF 放行域与模型行为约束，量级可控——不做激进清理，避免释放竞争）。
  * {@code maxPerHost} ≤ 0 = 关（不建计数、恒放行——默认零行为变化）。
+ * @since 1.0.0
  */
 public final class PerHostConcurrencyGuard {
 

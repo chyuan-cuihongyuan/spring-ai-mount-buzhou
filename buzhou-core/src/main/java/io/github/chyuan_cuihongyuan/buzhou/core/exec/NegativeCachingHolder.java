@@ -7,6 +7,7 @@ import org.springframework.ai.tool.ToolCallback;
  * 工具失败负缓存 Holder（spec 1633 / T2417，spec 1616 装配面）：
  * enable 后 HarnessAssembler 对全部工具包 NegativeCachingToolCallback
  * （失败短 TTL 记忆防重试风暴）——进程级开关（默认关零包装零行为）。
+ * @since 1.0.0
  */
 public final class NegativeCachingHolder {
 

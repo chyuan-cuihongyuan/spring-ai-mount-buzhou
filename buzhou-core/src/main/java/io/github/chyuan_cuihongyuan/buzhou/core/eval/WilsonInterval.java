@@ -7,6 +7,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.eval;
  *
  * <p>与 SPRT（spec 1605 序贯判定）互补：那是「现在能不能停」的决策面，
  * 这是「点估计有多可信」的报告面。无连续性校正（Wald-Wilson 原式）。
+ * @since 1.0.0
  */
 public final class WilsonInterval {
 

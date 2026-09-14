@@ -151,6 +151,9 @@
 - [R44 形状：流式 PII 类型级豁免](../tickets/T2437-r44-pstream-shape.md) — 820 第四消费者：replyStreamFilter 创建时生效集剔除（type:TYPE）；StreamTextFilter SPI 无会话上下文——会话级豁免不适用流式面（诚实边界）；豁免族四消费者闭环
 - [R44 验收](../tickets/T2438-r44-pstream-verify.md) — 两断言（豁免类型原文保留其余照脱/无豁免双脱）+ guard 372 用例
 
+- [R45 形状：@since 补全](../tickets/T2439-r45-since-shape.md) — N 系 15 个新公开类型 Javadoc 补 @since 1.0.0（api 子包语义版本承诺规范——api-surface 入档类型的文档一致性）
+- [R45 验收](../tickets/T2440-r45-since-verify.md) — 15/15 覆盖 + 五模块编译绿（spill 测试挂为并行会话 .m2 旧 jar 域）
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -208,3 +211,4 @@
 | R42 | #1641 | 负缓存 yml 装配（spec 1633 配置面补全） | T2433–T2434 | 1194 | 1641 | done |
 | R43 | #1642 | N 系运维手册段（ops-runbook 第 23 节） | T2435–T2436 | 1195 | 1642 | done |
 | R44 | #1643 | 流式 PII 类型级豁免（820 第四消费者，豁免族闭环） | T2437–T2438 | 1196 | 1643 | done |
+| R45 | #1644 | 新公开类型 @since 补全（Javadoc 规范） | T2439–T2440 | 1197 | 1644 | done |

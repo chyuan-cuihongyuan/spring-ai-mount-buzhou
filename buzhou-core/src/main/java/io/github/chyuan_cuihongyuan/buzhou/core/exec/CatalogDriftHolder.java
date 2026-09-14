@@ -10,6 +10,7 @@ import java.util.List;
  *
  * <p>首拍只建基线（装配期变化是常态，不发事件）；包装层不改 ToolDefinition，
  * 指纹只捕捉目录语义变化（增删改）。纯旁路读数——不影响会话构造。
+ * @since 1.0.0
  */
 public final class CatalogDriftHolder {
 

@@ -5,6 +5,7 @@ package io.github.chyuan_cuihongyuan.buzhou.resilience.advisor;
  * and Jitter」思想）：EQUAL（默认=既有 ±j 对称抖动）/ FULL（full jitter——
  * 随机化整个区间 [0, cap]，防重试风暴同步最优）/ DECORRELATED（与前次去相关
  * [base, min(cap, prev×3)]——防连续相关退避）。
+ * @since 1.0.0
  */
 public enum JitterMode {
 

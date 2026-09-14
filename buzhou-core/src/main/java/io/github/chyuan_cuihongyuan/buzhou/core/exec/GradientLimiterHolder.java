@@ -6,6 +6,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptiveLimit
  * 梯度限流器进程级 Holder（spec 1639 / T2429，spec 1617 装配面）：
  * 工具批耗时经此喂入（观测先行——View 读数给运维看全局工具路径的延迟梯度，
  * tryAcquire 闸接入待数据积累后独立裁决）。默认 min=4/max=64/tolerance=0.2。
+ * @since 1.0.0
  */
 public final class GradientLimiterHolder {
 
