@@ -99,6 +99,41 @@ class BatchResponseBudgetTest {
         assertThat(big).isEqualTo("x".repeat(10_000)); // 完整透传
     }
 
+    /** spec 1527 / T2305：错误反馈豁免——超限批内错误反馈（结构化纠错信号）完整保留。 */
+    @Test
+    void errorFeedbackShouldBeExemptFromTruncation() {
+        HarnessToolCallingManager manager = manager();
+        manager.setBatchResponseBudget(50);
+        // 错误反馈长 120（超预算本身）+ 大结果 200：错误反馈豁免，大结果被截
+        ToolCallback failing = new ToolCallback() {
+            @Override
+            public ToolDefinition getToolDefinition() {
+                return ToolDefinition.builder().name("failing").description("t")
+                        .inputSchema("{}").build();
+            }
+
+            @Override
+            public String call(String toolInput) {
+                throw new IllegalStateException("boom"); // 错误即反馈通道合成
+            }
+        };
+
+        org.springframework.ai.model.tool.ToolExecutionResult result = execute(manager,
+                List.of(failing, fixedLenTool("big_tool", 200)),
+                new AssistantMessage.ToolCall("1", "function", "failing", "{}"),
+                new AssistantMessage.ToolCall("2", "function", "big_tool", "{}"));
+
+        List<org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse> responses =
+                ((org.springframework.ai.chat.messages.ToolResponseMessage)
+                        result.conversationHistory().getLast()).getResponses();
+        String feedback = responses.stream().filter(r -> "failing".equals(r.name()))
+                .findFirst().orElseThrow().responseData();
+        String big = responses.stream().filter(r -> "big_tool".equals(r.name()))
+                .findFirst().orElseThrow().responseData();
+        assertThat(feedback).doesNotContain("[批级预算截断"); // 错误反馈完整
+        assertThat(big).contains("[批级预算截断"); // 大结果承担截断
+    }
+
     /** 总量未超限：零截断（阈值边界不误伤）。 */
     @Test
     void withinBudgetShouldNotTruncate() {

@@ -205,6 +205,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
             if (len == 0) {
                 continue;
             }
+            // spec 1527 / T2305：错误反馈豁免——结构化纠错信号是模型自纠的关键输入
+            // （且通常很短），截断它省不了预算却毁纠错；全部候选为错误反馈时按序截
+            if (isErrorFeedback(r.responseData())) {
+                continue;
+            }
             int cut = (int) Math.min(len, overflow + 1); // +1 保证有前进
             int keep = Math.max(0, len - cut);
             out.set(idx, new ToolResponseMessage.ToolResponse(r.id(), r.name(),

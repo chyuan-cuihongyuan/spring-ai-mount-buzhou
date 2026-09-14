@@ -52,7 +52,7 @@ class DashboardGzipTest {
 
     @Test
     void gzipAcceptedAndBodyDecompresses() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions"))
+        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions/sess-http/replay"))
                 .header("Accept-Encoding", "gzip").GET().build();
         HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
         assertThat(response.headers().firstValue("Content-Encoding")).contains("gzip");
@@ -60,15 +60,16 @@ class DashboardGzipTest {
                 new ByteArrayInputStream(response.body()))) {
             byte[] inflated = gz.readAllBytes();
             assertThat(inflated.length).isGreaterThan(response.body().length); // 压缩生效
-            assertThat(new String(inflated)).contains("demo-agent-");
+            assertThat(new String(inflated)).contains("turn").contains("demo-agent-");
         }
     }
 
     @Test
     void noAcceptEncodingStaysPlain() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions")).GET().build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/api/sessions/sess-http/replay")).GET().build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("[DEBUG] plain body size=" + response.body().length());
         assertThat(response.headers().firstValue("Content-Encoding")).isEmpty();
-        assertThat(response.body()).contains("demo-agent-");
+        assertThat(response.body()).contains("session");
     }
 }

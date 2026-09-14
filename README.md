@@ -829,6 +829,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 会话治理 | 配置错误显形（hook 重名/observer 重复注册） | HookChain 构造期重复 hook 名 WARN（派发序不稳定/stats 对位歧义信号，Kong 重名诊断思想）；addObserver 同实例幂等去重（双份通知是装配错误，静默双计污染读面）（spec 1524） | [spec 1524](docs/spec/1524-dup-name-observer-dedupe.md) |
 | 工具治理 | serial-groups yml 通道（F2 残留收口） | buzhou.tools.serial-groups map（名→组）——yml 显式覆盖 @BuzhouTool 注解通道（同名优先），无注解工具亦可纯 yml 指定串行组；F2 全档闭环（超时键 ToolTimeoutOverrides 先行）（spec 1525） | [spec 1525](docs/spec/1525-serial-groups-yml.md) |
 | 工具执行 | 批级工具结果回喂预算 | buzhou.core.tool-batch-response-budget > 0 声明即启用——批总量超限按响应长度降序贪心截大者（小结果保留完整，比平均截断信息保留更多），单工具限幅之上的批维度护栏（spec 1526） | [spec 1526](docs/spec/1526-batch-response-budget.md) |
+| 工具执行 | 批预算错误反馈豁免（spec 1526 补强） | 超限批内的结构化错误反馈（模型自纠关键输入且通常很短）豁免截断——截它省不了预算却毁纠错；大结果承担截断（spec 1527） | [spec 1527](docs/spec/1527-batch-budget-error-exempt.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
