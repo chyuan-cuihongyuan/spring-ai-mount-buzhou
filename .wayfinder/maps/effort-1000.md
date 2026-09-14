@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [offload×cipher 加密联动组合测试轮的形状裁决](../tickets/T1653-offcipher-shape.md) — 纯测试轮第十二弹：OffloadCipherComboTest 钉住加密开启时 offload 必伴随 encrypt 调用（加密配置真实生效联动）+ 守恒保持。
 - [SkillAdmin×Search 可见性联动组合测试轮的形状裁决](../tickets/T1645-adminsearch-shape.md) — 纯测试轮第十弹：SkillAdminSearchComboTest 钉住发布/下架→搜索命中联动 + 双读面各自守恒保持。
 - [guard 三 hook 链顺序协作组合测试轮的形状裁决](../tickets/T1643-trihook-shape.md) — 纯测试轮第九弹：TriHookChainReadoutTest 钉住 SecretScan(40)→Spotlight(80)→Moderation(210) 三读面链中计数一致与各自守恒保持。
 - [offload→readBack 双轴闭环组合测试轮的形状裁决](../tickets/T1641-offread-shape.md) — 纯测试轮第八弹：OffloadReadBackComboTest 钉住溢出落盘→分段回读闭环计数一致性（offloaded/reads 闭环对应）+ 双读面各自守恒。
@@ -207,6 +208,8 @@
 | 94 | guard 三 hook 链顺序协作组合测试轮（脱敏→包裹→检查三读面一致） | 纯测试轮第九弹 | T1643–T1644 | 846 | 1094 | ✅ |
 | 95 | SkillAdmin×Search 可见性联动组合测试轮（发布/下架→搜索命中联动） | 纯测试轮第十弹 | T1645–T1646 | 847 | 1095 | ✅ |
 | 96 | （开工时按缺口核查选题） | — | T1647–T1648 | 848 | 1096 |  |
+| 97 | offload×cipher 加密联动组合测试轮（encrypt 随 offload 联动） | 纯测试轮第十二弹 | T1653–T1654 | 849 | 1097 | ✅ |
+| 98 | （开工时按缺口核查选题） | — | T1655–T1656 | 850 | 1098 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
