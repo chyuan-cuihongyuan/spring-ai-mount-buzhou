@@ -2403,3 +2403,8 @@
   台账——Registry begin/close 双点埋点，Snapshot：active/oldestActiveAge
   （卡死哨兵 -1）/maxCompletedDuration 水位/closed，进程级静态读面；
   嵌套 `Snapshot` 不另立面）
+
+- `ExperimentBalanceAudit`（1421——A/A test 思想：实验哈希分桶分配
+  均衡性离线审计——两段式声明桶集合+喂计数（零桶计入），最大份额偏移
+  ≤5pp 容差含端点（双比较 1e-9 卫生），无样本 -1 哨兵不冒充均衡；嵌套
+  `BalanceReport`/`BucketShare` 不另立面）

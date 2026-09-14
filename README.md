@@ -806,6 +806,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 评估治理 | 评估运行年龄台账 | EvalRunAgeLedger——Registry begin/close 双点埋点：active 在途数+oldestActiveAgeMillis 最老活跃年龄（卡死异味哨兵 -1）+maxCompletedDurationMillis 历史最长完成水位+closed 累计；挂死的评估 run 从「感觉慢」变年龄显形——tqdm + k8s 运行时长异味思想（spec 1420） | [spec 1420](docs/spec/1420-eval-run-age-ledger.md) |
 
+| 实验治理 | 实验分桶均衡审计 | ExperimentBalanceAudit——两段式声明桶集合+喂观测计数：逐桶份额/与均匀份额最大偏移（≤5pp A/A 惯例含端点）+balanced 判定，零分配桶计入（权重键名笔误先于显著性显形）、无样本 -1 哨兵不冒充——A/A test 思想（spec 1421） | [spec 1421](docs/spec/1421-experiment-balance-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

@@ -194,6 +194,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TransformingToolCallba
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TtlCachingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBalanceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportDedupeStats

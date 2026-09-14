@@ -81,7 +81,7 @@ S6 嵌入批延迟分位(sentence-transformers ≈17K)→resilience【vs 828】�
 S7 MCP 重连退避抖动检测(gRPC channelz backoff ≈43K)→mcp【vs 840】｜
 S8 → 已由 R17 替代路径占用（事务计量装饰器）｜
 R21 ✅ 换题落地=评估运行年龄台账（S9 题注册表年龄化；item 级进度无缝诚实出域）｜
-S10 会话归档分层命中率(S3 lifecycle, MinIO ≈52K)→spill【vs S35】。
+S10 →（R22 前池检索确认 spill 域 815/843 已密）
 
 纪律备忘（沿 H 会话教训）：
 - README 纵深行**逐轮即时登记**，严禁攒批（H 曾漏 43 行靠覆盖门兜底）。
