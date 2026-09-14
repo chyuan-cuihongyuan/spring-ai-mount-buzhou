@@ -66,7 +66,9 @@ class CompactEvidenceComboTest {
         String sid = "combo-sess";
         BuzhouMessage msg = new BuzhouMessage(UUID.randomUUID().toString(), sid, 1, 0,
                 Role.USER, "证据原文内容", List.of(), null, null, null, Map.of(), Instant.now());
-        stores.messageStore().append(sid, List.of(msg));
+        for (int turn = 1; turn <= 5; turn++) {
+            stores.messageStore().append(sid, List.of(user(sid, turn, "第" + turn + "轮内容")));
+        }
 
         CompactNowTool compact = new CompactNowTool(stores.messageStore(),
                 new SummaryStoreBridge(stores.summaryStore()),
@@ -79,7 +81,7 @@ class CompactEvidenceComboTest {
         // 压缩后回查同一 evidence：append-only 事实源不变
         EvidenceLookupTool lookup = new EvidenceLookupTool(stores.messageStore());
         String after = lookup.call("{\"evidenceId\":\"" + msg.id() + "\"}");
-        assertThat(after).isEqualTo("证据原文内容");
+        assertThat(after).isEqualTo("证据原文内容"); // append-only：折入不删原文
 
         // 双读面各自守恒
         CompactNowTool.CompactNowStats cs = CompactNowTool.stats();
