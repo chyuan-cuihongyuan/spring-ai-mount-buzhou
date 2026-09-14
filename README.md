@@ -668,6 +668,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 授权治理 | 危险工具守卫判定读面 | HITL 五结局桶守恒显形，升级量可对账（spec 1069） | [spec 1069](docs/spec/1069-dangerous-tool-stats.md) |
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
+| 记忆治理 | EpisodeLedger 双实例组合测试 | 跨实例计数累计与双守恒钉住（spec 1105） | [spec 1105](docs/spec/1105-dualinst-episodic.md) |
 | 记忆治理 | memory 域双工具组合测试 | compact_now 与情景记忆读面互不串账钉住（spec 1087） | [spec 1087](docs/spec/1087-memorytools-readout.md) |
 | 记忆治理 | compact×evidence 交叉组合测试 | 压缩前后回查计数一致钉住（spec 1096） | [spec 1096](docs/spec/1096-compact-evid-combo.md) |
 | 记忆治理 | memory 双台账组合测试 | fact/episodic 双台账读面互不串账钉住（spec 1088） | [spec 1088](docs/spec/1088-dualledger-readout.md) |
