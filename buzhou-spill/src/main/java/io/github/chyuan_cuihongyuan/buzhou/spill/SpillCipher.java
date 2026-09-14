@@ -52,6 +52,36 @@ public final class SpillCipher {
         return new SpillCipher(new SecretKeySpec(raw, "AES"));
     }
 
+    // —— spec 1079 / impl 831：加解密操作读面（KMS 操作审计思想；静态面理由同
+    // R46–R78 先例）。加解密独立双组计数；失败在异常外溢前落桶（异常语义不变）。
+    private static final java.util.concurrent.atomic.AtomicLong ENCRYPT_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ENCRYPT_FAILURES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DECRYPT_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong DECRYPT_FAILURES =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 加解密操作分布快照（spec 1079）。 */
+    public record SpillCipherStats(long encryptCalls, long encryptFailures,
+                                   long decryptCalls, long decryptFailures) {
+    }
+
+    /** 只读快照。 */
+    public static SpillCipherStats stats() {
+        return new SpillCipherStats(ENCRYPT_CALLS.get(), ENCRYPT_FAILURES.get(),
+                DECRYPT_CALLS.get(), DECRYPT_FAILURES.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        ENCRYPT_CALLS.set(0);
+        ENCRYPT_FAILURES.set(0);
+        DECRYPT_CALLS.set(0);
+        DECRYPT_FAILURES.set(0);
+    }
+
     /** 是否为加密 wire 格式（魔法前缀探测；读侧兼容旧明文的判据）。 */
     public static boolean isEncrypted(String content) {
         return content != null && content.startsWith(MAGIC + "\n");
@@ -59,6 +89,7 @@ public final class SpillCipher {
 
     /** 明文 → wire 格式密文。 */
     public String encrypt(String plaintext) {
+        ENCRYPT_CALLS.incrementAndGet();
         byte[] iv = new byte[IV_BYTES];
         RANDOM.nextBytes(iv);
         try {
@@ -70,6 +101,7 @@ public final class SpillCipher {
             System.arraycopy(ciphertext, 0, wire, iv.length, ciphertext.length);
             return MAGIC + "\n" + Base64.getEncoder().encodeToString(wire);
         } catch (Exception e) {
+            ENCRYPT_FAILURES.incrementAndGet();
             throw new IllegalStateException("spill 加密失败", e);
         }
     }
@@ -80,6 +112,7 @@ public final class SpillCipher {
      * @throws IllegalStateException GCM 验签失败（密钥不匹配或文件损坏）
      */
     public String decryptIfEncrypted(String content) {
+        DECRYPT_CALLS.incrementAndGet();
         if (!isEncrypted(content)) {
             return content;
         }
@@ -87,6 +120,7 @@ public final class SpillCipher {
         try {
             wire = Base64.getDecoder().decode(content.substring(MAGIC.length() + 1));
         } catch (IllegalArgumentException e) {
+            DECRYPT_FAILURES.incrementAndGet();
             throw new IllegalStateException("spill 加密文件损坏（Base64 解码失败）", e);
         }
         if (wire.length <= IV_BYTES) {
@@ -99,6 +133,7 @@ public final class SpillCipher {
             byte[] plaintext = cipher.doFinal(wire, IV_BYTES, wire.length - IV_BYTES);
             return new String(plaintext, StandardCharsets.UTF_8);
         } catch (Exception e) {
+            DECRYPT_FAILURES.incrementAndGet();
             throw new IllegalStateException(
                     "spill 解密失败（密钥不匹配或文件损坏）——检查 buzhou.spill.encryption-key 是否为"
                             + "写入该文件时使用的密钥", e);

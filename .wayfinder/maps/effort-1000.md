@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [Spill 加解密读面的形态裁决](../tickets/T1613-spillcipher-stats-shape.md) — SpillCipher 静态四计数（encryptCalls/encryptFailures/decryptCalls/decryptFailures）+ 嵌套 SpillCipherStats + stats()/resetForTest()；加解密独立双组，失败在异常外溢前落桶（KMS 操作审计）。
 - [归档清理任务读面的形态裁决](../tickets/T1611-purgejob-stats-shape.md) — ArchivePurgeJob 静态三计数（purgeRounds/purgedTotal/skippedLocked）+ 嵌套 PurgeJobStats + stats()/resetForTest()；purgedTotal 跨轮累计无入口守恒（每轮产出可变）；锁跳过显形（Quartz/Chron job statistics）。
 - [Spill 溢出 hook 判定读面的形态裁决](../tickets/T1609-spilloffload-stats-shape.md) — SpillOffloadHook 静态六计数（invocations/durableSkips/errorSkips/cleanInline/offloaded/refrains）+ 嵌套 SpillOffloadStats + stats()/resetForTest()；守恒 invocations = 五结局桶；溢出触发率即管线容量规划信号（logrotate 轮转率）。
 - [Runaway 预算 hook 判定读面的形态裁决](../tickets/T1607-runaway-stats-shape.md) — RunawayHook 静态四计数（invocations/blocked 三硬顶合桶/allowed/disabledSkips）+ 嵌套 RunawayStats + stats()/resetForTest()；守恒 invocations = 三结局桶；预算过紧/过松量化信号（上游闸门空结果率同族）。
@@ -174,7 +175,8 @@
 | 76 | Runaway 预算 hook 判定读面（blocked/allowed/disabled 三桶守恒） | 上游闸门空结果率同族 | T1607–T1608 | 828 | 1076 | ✅ |
 | 77 | Spill 溢出 hook 判定读面（offloaded/cleanInline 等五桶守恒） | logrotate 轮转率 | T1609–T1610 | 829 | 1077 | ✅ |
 | 78 | 归档清理任务读面（purgeRounds/purgedTotal/skippedLocked 三面） | Quartz/Chron job statistics | T1611–T1612 | 830 | 1078 | ✅ |
-| 79 | （开工时按缺口核查选题） | — | T1613–T1614 | 831 | 1079 |  |
+| 79 | Spill 加解密读面（加密/解密双组四计数） | KMS 操作审计 | T1613–T1614 | 831 | 1079 | ✅ |
+| 80 | （开工时按缺口核查选题；**R80 周期预检轮**） | — | T1615–T1616 | 832 | 1080 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
