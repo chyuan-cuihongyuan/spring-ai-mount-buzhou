@@ -40,6 +40,7 @@
 - [R11 分支批次 4 选题（边缘分支清扫）](../tickets/T1829-branch-uplift-batch4-shape.md) — ThinkingChainExtractor 76%→90%（extraKeys 过滤链/maxChars 钳制/omitted 字符串形态/非 String 忽略）+ DefaultSpanHandle 63%→88%（attributes 批量导入首次被调用/双 close 幂等/显式终态优先/error null 防御）；ObservabilityAdvisor 流式 harness 单列 R12（议程精确化）；ToolGraphAnalyzer 批次 5 候选。
 - [R11 验证收口](../tickets/T1830-branch-uplift-batch4-verify.md) — observability 105 用例全绿（新增 11）；主代码零变化。
 - [R12 周期对账轮形态](../tickets/T1831-k-audit-r12-shape.md) — 第二次全仓 verify（隔离 worktree 固定提交点）+ 工件链五项对账（spec 1200–1211/票 T1801–T1832/impl 903–914）；R8–R11 增量 22+11 用例回归确认；R13 = Advisor 流式 harness。
+- [R12 验证收口](../tickets/T1832-k-audit-r12-verify.md) — 全仓 verify BUILD SUCCESS（16 模块三门全过，容器按设计 skip）；工件链五项全 OK（spec 1200–1211/README/票 T1801–T1832/impl 903–914/map）；R8–R11 增量回归确认；R13 = Advisor 流式 harness。
 
 ## R1 台账（spec 1200 / impl 903）
 
