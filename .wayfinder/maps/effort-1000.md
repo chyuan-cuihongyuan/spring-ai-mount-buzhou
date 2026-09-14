@@ -19,6 +19,8 @@
 
 ## Decisions so far
 
+- [Runaway 预算 hook 判定读面的形态裁决](../tickets/T1607-runaway-stats-shape.md) — RunawayHook 静态四计数（invocations/blocked 三硬顶合桶/allowed/disabledSkips）+ 嵌套 RunawayStats + stats()/resetForTest()；守恒 invocations = 三结局桶；预算过紧/过松量化信号（上游闸门空结果率同族）。
+- [会话归档操作读面的形态裁决](../tickets/T1605-archiver-stats-shape.md) — SessionArchiver 静态四计数（archiveCalls/archived/emptySkipped/pdbRejected）+ 嵌套 ArchiveStats + stats()/resetForTest()；异常外溢入口不入桶口径诚实（S3 lifecycle 归档统计）。
 - [沙箱版 run_command 执行分布读面的形态裁决](../tickets/T1603-sandboxrun-stats-shape.md) — SandboxRunCommandTool 静态七计数（calls/runs + blank/blacklist/workdir/timeoutParam/failures 五拒绝桶）+ 嵌套 SandboxRunStats + stats()/resetForTest()；守恒 calls = runs + 五拒绝桶；R52 Out of Scope 误判（装饰同族）就地撤销——实为独立 call 分支实现。
 - [evidence_lookup 证据回查读面的形态裁决](../tickets/T1601-evidlookup-stats-shape.md) — EvidenceLookupTool 静态五计数（calls/misses/hits/completeReads/slicedReads）+ 嵌套 EvidenceLookupStats + stats()/resetForTest()；双守恒 calls = hits + misses、hits = complete + sliced；回查 miss 率即证据链引用失配信号（Redis cache hit-rate）。
 - [PII 检测引擎读面的形态裁决](../tickets/T1599-piidetector-stats-shape.md) — PiiDetector 静态四计数（scanCalls/scansWithHits/matchesFound dedupe 前原生口径/pseudonymizeCalls）+ 嵌套 PiiDetectorStats + stats()/resetForTest()；弱校验口径（引擎 vs 业务 PiiHitStats 双层对账）（Yara 规则引擎统计）。
@@ -166,7 +168,9 @@
 | 72 | PII 检测引擎读面（引擎原生匹配与业务上报双层对账） | Yara 规则引擎统计 | T1599–T1600 | 824 | 1072 | ✅ |
 | 73 | evidence_lookup 证据回查读面（命中率/切片率双守恒） | Redis cache hit-rate | T1601–T1602 | 825 | 1073 | ✅ |
 | 74 | 沙箱版 run_command 执行分布读面（runs + 五拒绝桶守恒） | 同 R52 Job status | T1603–T1604 | 826 | 1074 | ✅ |
-| 75 | （开工时按缺口核查选题） | — | T1605–T1606 | 827 | 1075 |  |
+| 75 | 会话归档操作读面（archived/emptySkipped/pdbRejected 四桶） | S3 lifecycle 归档统计 | T1605–T1606 | 827 | 1075 | ✅ |
+| 76 | Runaway 预算 hook 判定读面（blocked/allowed/disabled 三桶守恒） | 上游闸门空结果率同族 | T1607–T1608 | 828 | 1076 | ✅ |
+| 77 | （开工时按缺口核查选题） | — | T1609–T1610 | 829 | 1077 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
