@@ -17,7 +17,7 @@ J 系 R46–R49 全量工件对账 + 隔离 worktree 全仓 verify + 双门复�
 
 ## 验收
 
-隔离 worktree（HEAD=82e9c0be 干净基线）全仓 `mvn verify`：全模块 SUCCESS + 双文档门绿（SpecCoverageTest README↔spec 双向引用 + ApiSurfaceSnapshot 顶层类型快照——R46–R49 新增均为嵌套 record 顶层集合不变）。
+隔离 worktree 全仓 `mvn verify` 四轮实测：第一/二轮 core 挂死（发现 6 活锁）→ 修复后第三轮活锁已除但 SpecCoverageTest 红真实死链（README 1050 行已被并行会话先行带入 main 而 spec 文件尚在工作树）→ R50 工件提交后**第四轮（HEAD=ac19152f）BUILD SUCCESS：17 模块 SUCCESS、总时长 3:28、双文档门绿**——验收通过（对比修复前同位挂死 32 分钟，活锁修复成效以总时长侧证）。
 
 ## Out of Scope
 
