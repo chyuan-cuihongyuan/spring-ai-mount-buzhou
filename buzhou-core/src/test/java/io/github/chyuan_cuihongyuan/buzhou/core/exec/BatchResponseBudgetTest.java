@@ -99,6 +99,40 @@ class BatchResponseBudgetTest {
         assertThat(big).isEqualTo("x".repeat(10_000)); // 完整透传
     }
 
+    /** spec 1540 / T2331：FAILED_ONLY 组合——同伴失败占位文本（短）在批预算下保留。 */
+    @Test
+    void failedOnlyPlaceholderShouldSurviveBatchBudget() {
+        HarnessToolCallingManager manager = manager();
+        manager.setBatchResponseBudget(80);
+        manager.setBatchFeedbackPolicy(
+                HarnessToolCallingManager.BatchFeedbackPolicy.FAILED_ONLY);
+        ToolCallback failing = new ToolCallback() {
+            @Override
+            public ToolDefinition getToolDefinition() {
+                return ToolDefinition.builder().name("boom").description("t")
+                        .inputSchema("{}").build();
+            }
+
+            @Override
+            public String call(String toolInput) {
+                throw new IllegalStateException("boom");
+            }
+        };
+
+        org.springframework.ai.model.tool.ToolExecutionResult result = execute(manager,
+                List.of(failing, fixedLenTool("big_tool", 400)),
+                new AssistantMessage.ToolCall("1", "function", "boom", "{}"),
+                new AssistantMessage.ToolCall("2", "function", "big_tool", "{}"));
+
+        List<org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse> responses =
+                ((org.springframework.ai.chat.messages.ToolResponseMessage)
+                        result.conversationHistory().getLast()).getResponses();
+        String placeholder = responses.stream().filter(r -> "big_tool".equals(r.name()))
+                .findFirst().orElseThrow().responseData();
+        // FAILED_ONLY 占位文本（成功者以短提示替代）不在批预算截断中丢失
+        assertThat(placeholder).contains("本批有同伴失败").doesNotContain("[批级预算截断");
+    }
+
     /** spec 1527 / T2305：错误反馈豁免——超限批内错误反馈（结构化纠错信号）完整保留。 */
     @Test
     void errorFeedbackShouldBeExemptFromTruncation() {

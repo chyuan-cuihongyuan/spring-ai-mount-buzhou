@@ -847,6 +847,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 测试治理 | 进程匹配谓词收窄（周期预检发现） | interruptKillsProcessTree 的裸 "sleep 30" 子串谓词匹配全机进程——多会话共享机器上并行 shell 轮询循环命中误红（R41 实证）；锚定 marker 唯一路径 + 垂死窗口轮询（spec 1537） | [spec 1537](docs/spec/1537-hardening-test-predicate.md) |
 | 文档门禁 | spec 05 判定项批量回写（F3/F4/F6） | 注入通道实现定案 per-session 组装（Builder Bean 通道不采用）；buzhou.parallel.* 键族按实现重写（真键四行+config-reference 指针）；退避随机源实现口径回写（spec 1538） | [spec 1538](docs/spec/1538-spec05-adjudications.md) |
 | 文档门禁 | F8/F11 判定收尾（F 系全清） | 会话索引业务标签编程面 only 定案（wiring() 公开构造可传）；Spill 单路径 Hook 化定案（双 Hook 覆盖进出两向，manager 终检不采用）——F1-F11 全档闭环（spec 1539） | [spec 1539](docs/spec/1539-f8-f11-adjudications.md) |
+| 工具执行 | FAILED_ONLY 占位的批预算豁免（组合补强） | 组合测试实证：同伴失败占位文本（54 字符元信息）非错误反馈格式被批预算截到 0——模型丢失成功信号；前缀常量单源 + 豁免纳入（spec 1540） | [spec 1540](docs/spec/1540-failedonly-placeholder-exempt.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

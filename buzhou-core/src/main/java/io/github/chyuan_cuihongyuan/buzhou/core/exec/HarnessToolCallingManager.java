@@ -130,6 +130,9 @@ public class HarnessToolCallingManager implements ToolCallingManager {
     private volatile io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog toolCallLog;
     /** impl-10 / T35：并行批回喂策略（默认 ALL；FAILED_ONLY 见枚举语义）。 */
     private volatile BatchFeedbackPolicy batchFeedbackPolicy = BatchFeedbackPolicy.ALL;
+    /** spec 1540：FAILED_ONLY 占位文案前缀（responsesForModel 生成 / applyBatchBudget 豁免共用）。 */
+    static final String FAILED_ONLY_PLACEHOLDER_PREFIX = "[本批有同伴失败";
+
     /** spec 1526 / T2303：批级回喂预算总字符（0 = 关——默认零行为；超限贪心截大者）。 */
     private volatile int batchResponseBudgetChars;
     /** spec 122 / impl-271：superstep 原子批开关（默认关=per-tool 既有行为零变化）。 */
@@ -206,8 +209,11 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 continue;
             }
             // spec 1527 / T2305：错误反馈豁免——结构化纠错信号是模型自纠的关键输入
-            // （且通常很短），截断它省不了预算却毁纠错；全部候选为错误反馈时按序截
-            if (isErrorFeedback(r.responseData())) {
+            // （且通常很短），截断它省不了预算却毁纠错；全部候选为错误反馈时按序截。
+            // spec 1540 / T2331：FAILED_ONLY 占位同豁免——元信息非数据，截到 0 字符
+            // 会让模型完全丢失该工具已成功的信号（组合测试实证 54 字符被清空）
+            if (isErrorFeedback(r.responseData())
+                    || r.responseData().startsWith(FAILED_ONLY_PLACEHOLDER_PREFIX)) {
                 continue;
             }
             int cut = (int) Math.min(len, overflow + 1); // +1 保证有前进
@@ -634,7 +640,7 @@ public class HarnessToolCallingManager implements ToolCallingManager {
                 return r;
             }
             return new ToolResponseMessage.ToolResponse(r.id(), r.name(),
-                    "[本批有同伴失败：此工具已成功执行，结果已入事件日志（toolCallId="
+                    FAILED_ONLY_PLACEHOLDER_PREFIX + "：此工具已成功执行，结果已入事件日志（toolCallId="
                             + r.id() + "）可回查；本轮仅回喂失败信号]");
         }).toList();
     }
