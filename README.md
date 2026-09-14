@@ -790,6 +790,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 工具计量 | 工具入参字节直方 | ToolInputSizeHistogram——beforeTool 单点记账：arguments 序列化 UTF-8 字节落同款五幂次边界桶+溢出桶，守恒 executed=Σbuckets，测量点=链前原始入参；与 1401 结果侧对称——Datadog DogStatsD 对称计量思想，opt-in 只读 Hook（spec 1412） | [spec 1412](docs/spec/1412-tool-input-size-histogram.md) |
 
+| 会话治理 | 结构化输出 REASK 读数 | StructuredOutputStats——chatForEntity 漏斗五计数（attempts/firstPassParsed/reasks/reaskParsed/failures）双守恒式闭合+firstPassRate 模型 JSON 首过合规率派生（全零 -1 哨兵）；REASK 语义逐位不变——Instructor max_retries 可观测面思想（spec 1413） | [spec 1413](docs/spec/1413-structured-output-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

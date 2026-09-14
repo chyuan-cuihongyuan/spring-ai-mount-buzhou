@@ -2367,3 +2367,8 @@
 - `ToolInputSizeHistogram`（1412——spec 1401 结果侧的对称镜像（Datadog
   DogStatsD read/write 对称 tag 思想）：入参 Jackson 序列化 UTF-8 字节
   同款五幂次边界桶+溢出，beforeTool 只读 opt-in；嵌套 `Snapshot` 不另立面）
+
+- `StructuredOutputStats`（1413——Instructor max_retries 可观测面思想：
+  chatForEntity 结构化输出漏斗五计数（attempts/firstPassParsed/reasks/
+  reaskParsed/failures）双守恒式+firstPassRate 派生，进程级静态读面；
+  嵌套 `Snapshot` 不另立面）

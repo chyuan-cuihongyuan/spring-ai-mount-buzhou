@@ -51,7 +51,7 @@ R28 日志字段预算读面(OTel logrecord limits, otel 规范/Java ≈2K 借�
 R8 ✅ 换题落地=PII 合成探针自查（R29 题提前；原 R8 single-flight 与 ToolCallCoalescer 全撞）｜
 R30 重连计数读面(Redisson reconnect ≈36K)【高危待勘 store-redis 连接 seam】→store-redis｜
 R31 批量嵌入效率读数(sentence-transformers batch_size ≈17K)【高危待勘 vs 804】→resilience｜
-R32 JSON 输出解析修复读数(instructor retry ≈11K)→core【高危待勘结构化输出面】｜
+R14 ✅ 已落地=结构化输出 REASK 读数（R32 题提前；机制已在补读数）｜
 R33 离群驱逐读面(Envoy outlier detection ≈26K)【高危待勘 vs 811/814】→mcp/resilience｜
 R34 Retry-After 解析器(RFC 7231/Envoy ≈26K)→resilience【高危待勘既有重试策略】｜
 R35 冷热分层访问读数(MinIO tiering ≈52K)【高危待勘 vs 816】→spill｜
