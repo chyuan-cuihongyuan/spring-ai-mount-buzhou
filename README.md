@@ -926,6 +926,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 观测治理 | 事件时序单调性审计 | EventOrderAudit——同会话事件 occurredAt 时序单调性审计：逆序相邻对数+最大倒退量（时钟回拨/乱序写入显形）+首逆序位定位（-1 哨兵），等时刻不算逆序、null 时戳跳过——事件溯源不变量思想（spec 1436） | [spec 1436](docs/spec/1436-event-order-audit.md) |
 
+| 评估治理 | 评估数据集质量审计 | DatasetQualityAudit——analyze(List<EvalItem>) 退化条目分桶：空 input/emptyExpecteds/短 input（&lt;8 字符信息量不足）+输入长度 P50/P95 秩插值+degenerateRatio 退化比派生（-1 空集哨兵）；「数据集还能信吗」从逐条翻看变一行审计——Cleanlab 数据质量思想（spec 1437） | [spec 1437](docs/spec/1437-dataset-quality-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

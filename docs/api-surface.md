@@ -2469,3 +2469,8 @@
 - `EventOrderAudit`（1436——事件溯源不变量思想：同会话事件 occurredAt
   时序单调性审计——逆序对数+最大倒退量+首逆序定位（-1 哨兵），等时刻
   不算逆序、null 时戳跳过，纯函数；嵌套 `Report` 不另立面）
+
+- `DatasetQualityAudit`（1437——Cleanlab 数据质量思想：评估数据集退化
+  条目审计——空 input/expected 分桶+短 input（&lt;8 字符阈值）+长度 P50/P95
+  秩插值+degenerateRatio 派生（空集 -1 哨兵），纯函数；嵌套
+  `QualityReport` 不另立面）
