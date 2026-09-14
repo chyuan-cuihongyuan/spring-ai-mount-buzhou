@@ -65,8 +65,8 @@ class DashboardHttpStatsTest {
 
     @Test
     void badParamCountsBadRequest() throws Exception {
-        // 分页参数非数字等坏参数 → 400
-        int code = get("/api/sessions?page=abc");
+        // 分页 size 非数字（NumberFormatException⊂IllegalArgument）→ 400
+        int code = get("/api/sessions?size=abc");
         assertThat(code).isEqualTo(400);
 
         assertThat(DashboardHttpServer.stats().badRequests()).isEqualTo(1);
@@ -76,7 +76,7 @@ class DashboardHttpStatsTest {
     void conservationIdentityHoldsAcrossMixedRequests() throws Exception {
         get("/api/sessions");          // ok
         get("/api/no-such-endpoint");  // 404
-        get("/api/sessions?page=abc"); // 400
+        get("/api/sessions?size=abc"); // 400
 
         DashboardHttpServer.DashboardHttpStats stats = DashboardHttpServer.stats();
         assertThat(stats.requests()).isEqualTo(3);
