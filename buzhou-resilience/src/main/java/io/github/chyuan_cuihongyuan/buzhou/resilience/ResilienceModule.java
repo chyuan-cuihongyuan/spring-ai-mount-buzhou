@@ -314,6 +314,16 @@ public final class ResilienceModule {
         }
     }
 
+    /** spec 1623 / T2397：影子探针构建（fallback 组采样率 0/null = null 不启用）。 */
+    private static io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe shadowProbeFor(
+            ResilienceProperties properties) {
+        if (properties.fallback() == null || properties.fallback().shadowProbePercent() <= 0) {
+            return null;
+        }
+        return new io.github.chyuan_cuihongyuan.buzhou.resilience.fallback.ShadowProbe(
+                properties.fallback().shadowProbePercent());
+    }
+
     static final class ResilienceAssemblyCustomizer implements SessionAssemblyCustomizer {
         private final ResilienceProperties properties;
         private final ProviderErrorClassifier classifier;
@@ -383,7 +393,10 @@ public final class ResilienceModule {
                     // spec 64 §A / T279：延迟追踪经链携带（链未建/未开启 = null 零计时）
                     fallback == null ? null : fallback.latencyTracker())
                     // spec 1610 / T2371：离群驱逐喂入/过滤接线（null = 零行为）
-                    .withOutlier(outlier);
+                    .withOutlier(outlier)
+                    // spec 1623 / T2397：影子读探针（fallback.shadow-probe-percent > 0 才建）
+                    .withShadowProbe(
+                            shadowProbeFor(properties), deadlineExecutor);
             ctx.addAdvisor(advisor);
             // onCancel 中断在途模型调用（补 session.cancel() 漏网）；onClose 关执行器防泄漏。
             ctx.addObserver(new ResilienceSessionObserver(deadlineExecutor, inFlight));

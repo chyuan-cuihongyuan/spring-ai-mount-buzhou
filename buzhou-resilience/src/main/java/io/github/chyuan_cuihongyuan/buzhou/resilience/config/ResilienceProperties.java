@@ -292,7 +292,8 @@ public record ResilienceProperties(
             List<String> triggerCategories,
             Boolean canaryEnabled,
             Map<String, Integer> weights,
-            Boolean latencyAware) {
+            Boolean latencyAware,
+            Integer shadowProbePercent) {
 
         /** 多构造器场景：显式指定规范构造器为绑定构造器（T187 勘察修复——缺注解时 yml 键静默不生效）。 */
         @org.springframework.boot.context.properties.bind.ConstructorBinding
@@ -304,6 +305,17 @@ public record ResilienceProperties(
                 models = null; // 空列表视同未配置
             }
             weights = weights == null ? Map.of() : Map.copyOf(weights);
+            shadowProbePercent = shadowProbePercent == null ? 0 : shadowProbePercent;
+            if (shadowProbePercent < 0 || shadowProbePercent > 100) {
+                throw new IllegalArgumentException(
+                        "fallback.shadow-probe-percent（" + shadowProbePercent + "）必须在 [0,100]");
+            }
+        }
+
+        /** 5 参兼容构造（spec 1623 之前调用方；影子探测关）。 */
+        public Fallback(List<String> models, List<String> triggerCategories,
+                Boolean canaryEnabled, Map<String, Integer> weights, Boolean latencyAware) {
+            this(models, triggerCategories, canaryEnabled, weights, latencyAware, 0);
         }
 
         /** 既有 2 参构造兼容（金丝雀关、无权重、延迟感知关）。 */
