@@ -848,6 +848,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 文档门禁 | spec 05 判定项批量回写（F3/F4/F6） | 注入通道实现定案 per-session 组装（Builder Bean 通道不采用）；buzhou.parallel.* 键族按实现重写（真键四行+config-reference 指针）；退避随机源实现口径回写（spec 1538） | [spec 1538](docs/spec/1538-spec05-adjudications.md) |
 | 文档门禁 | F8/F11 判定收尾（F 系全清） | 会话索引业务标签编程面 only 定案（wiring() 公开构造可传）；Spill 单路径 Hook 化定案（双 Hook 覆盖进出两向，manager 终检不采用）——F1-F11 全档闭环（spec 1539） | [spec 1539](docs/spec/1539-f8-f11-adjudications.md) |
 | 工具执行 | FAILED_ONLY 占位的批预算豁免（组合补强） | 组合测试实证：同伴失败占位文本（54 字符元信息）非错误反馈格式被批预算截到 0——模型丢失成功信号；前缀常量单源 + 豁免纳入（spec 1540） | [spec 1540](docs/spec/1540-failedonly-placeholder-exempt.md) |
+| 会话治理 | M 系雾区池终态裁定 | MCP 动态危险桥裁定不做（观测面+静态拦截面已覆盖）；望远镜构造器/Runtime 拆分/双降级收敛=长期重构移交；其余已闭环不留（spec 1541） | [spec 1541](docs/spec/1541-fogpool-adjudication.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

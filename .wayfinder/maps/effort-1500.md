@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [雾区池终态裁定的形状裁决](../tickets/T2333-fogpool-adjudication.md) — MCP 动态桥裁定不做（观测+静态双面已覆盖）；长期重构项移交后续；其余已闭环不留。
 - [FAILED_ONLY 占位豁免的形状裁决](../tickets/T2331-failedonly-exempt-shape.md) — 组合测试实证占位（元信息非数据）被截 0 模型丢失成功信号；前缀常量单源 + 豁免纳入。
 - [F8/F11 判定收尾的形状裁决](../tickets/T2329-f8-f11-shape.md) — F8 编程面 only（标签语义业务自定无默认可兜）；F11 单路径 Hook 化（无双路径即无幂等问题）——F1-F11 全档闭环。
 - [spec 05 判定项批量回写的形状裁决](../tickets/T2327-spec05-adjudications-shape.md) — F3 per-session 定案（Builder Bean 不采用）/F4 键表实现重写/F6 纯函数口径——F 系判定项全清。
@@ -62,10 +63,11 @@
 - [核心 API 包类级 Javadoc 覆盖门的形状裁决](../tickets/T2257-api-javadoc-gate-shape.md) — 六包 192 公共类型 32 缺类级 Javadoc（含 AgentSession/BuzhouHook 最核心 API，规范违例）；逐一补齐 + CoreApiJavadocCoverageTest 纪律变测试（注解夹层感知）；Spotless 静态门思想，spec 213 先例。
 - [计时聚合器双子实例清零面的形状裁决](../tickets/T2255-aggregator-reset-shape.md) — HookTimingAggregator/ToolTimingAggregator 各补公开 reset()（清空 timings、幂等、不碰 Holder 开关）：Holder.reset() 只置 null 关聚合，实例账只增不减——测试基线污染与运维基线重建双缺；Prometheus counter reset 语义 + 仓库规范「进程级静态读面须配 reset 注入点」符合性补全，先例 ToolInFlight.reset()。
 
-## Not yet specified
+## Not yet specified（终态档——spec 1541 裁定）
 
-- R17+ 候选池（design-incompleteness 剩余 + 本线副产出）：六-1 DegradingObservabilityStore 双份分叉（redis 版缺 degrade 指标）；五-2 @Bean 裸读 Environment 约 13 处（M 系 R13 装配沿 EvalPrune 先例也用了 getProperty——后续统一整改时一并收口）；五-6 魔法值（advisor order 四处 + spill 默认值散落）；四-5 spec 07「六切面」回写七切面；四-7 spec 04 回写 mcp 属性增量；七-1 README/CLAUDE 机制计数口径（9+韧性=10）；MCP 动态危险名单桥（连接后才知道工具名，静态灌注不适配——雾区）；CounterAtomicitySpreadTest HEAD 既有失败（TokenBudgetHook NPE request()=null——R21 预检轮复查归属）。
-- 规避：N 会话活跃于 resilience（LFU 采样驱逐/SPRT/锁迁移），选题避开其 effort-1600 台账已落主题。
+- MCP 动态危险名单桥：**裁定不做**（McpToolHints 观测面 spec 600 + 静态拦截面 spec 1507/1508 已覆盖；连接生命周期与静态装配语义错配）。
+- 长期重构候选（移交后续会话号段/major 版）：DefaultAgentSession 七构造器望远镜收拢（二进制兼容政策遗产）；DefaultAgentRuntime 拆协作者（spawn/fork/export-import/续约分域）；DegradingObservabilityStore 双份结构收敛（指标分叉已修 spec 1515）。
+- 已闭环不留：五-2（spec 1520 三键边界追认）/CounterAtomicity（N 会话承接 30197389）/低覆盖（全模块饱和）/组合语义（spec 1540）。
 
 ## 轮次台账
 
@@ -115,6 +117,7 @@
 | 42 | spec 05 判定项批量回写（F3 advisor per-session 定案/F4 键表实现重写/F6 随机源口径） | design-incompleteness 判定项清扫 | T2327–T2328 | 1141 | 1538 | ✅ |
 | 43 | F8/F11 判定收尾（编程面 only/单路径 Hook 化——F 系全清） | design-incompleteness 判定项收尾 | T2329–T2330 | 1142 | 1539 | ✅ |
 | 44 | FAILED_ONLY 占位批预算豁免（组合测试实证截 0 缺陷修复） | spec 1526/1527 组合语义 | T2331–T2332 | 1143 | 1540 | ✅ |
+| 45 | 雾区池终态裁定（MCP 动态桥不做/长期重构移交/已闭环不留） | 收口前清理 | T2333–T2334 | 1144 | 1541 | ✅ |
 
 
 ## Out of scope
