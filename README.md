@@ -928,6 +928,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 评估治理 | 评估数据集质量审计 | DatasetQualityAudit——analyze(List<EvalItem>) 退化条目分桶：空 input/emptyExpecteds/短 input（&lt;8 字符信息量不足）+输入长度 P50/P95 秩插值+degenerateRatio 退化比派生（-1 空集哨兵）；「数据集还能信吗」从逐条翻看变一行审计——Cleanlab 数据质量思想（spec 1437） | [spec 1437](docs/spec/1437-dataset-quality-audit.md) |
 
+| 会话治理 | 悬空轮检测器 | DanglingTurnDetector——按 turnSeq 分组检测悬空轮：有 USER 无 ASSISTANT 即悬空（取消/中断残留，TOOL 链不豁免、仅 TOOL/SYSTEM 轮不算）+danglingSamples 升序封顶 8+hasDangling 哨兵；续聊质量风险显形——Temporal activity 检测思想（spec 1439） | [spec 1439](docs/spec/1439-dangling-turn-detector.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

@@ -2474,3 +2474,8 @@
   条目审计——空 input/expected 分桶+短 input（&lt;8 字符阈值）+长度 P50/P95
   秩插值+degenerateRatio 派生（空集 -1 哨兵），纯函数；嵌套
   `QualityReport` 不另立面）
+
+- `DanglingTurnDetector`（1439——Temporal activity 检测思想：按 turnSeq
+  分组检测悬空轮——有 USER 无 ASSISTANT 即悬空（TOOL 链不豁免、仅
+  TOOL/SYSTEM 轮不算），样本封顶 8 升序+hasDangling 哨兵，纯函数；嵌套
+  `Report` 不另立面）

@@ -279,6 +279,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ConversationShapeAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.DanglingTurnDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.PromptComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord

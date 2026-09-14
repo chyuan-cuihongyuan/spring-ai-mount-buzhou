@@ -60,3 +60,4 @@
 - [工具 schema 健康审计的形状裁决](../tickets/T2173-schema-health-shape.md) — ToolSchemaHealthAudit 纯函数（core/exec）：四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与校验器跳过条件严格同口径（三键全缺=裸奔）+bypassRatio 派生+findings 封顶 16——ajv/OpenAPI schema 校验思想。
 - [事件时序单调性审计的形状裁决](../tickets/T2175-event-order-audit-shape.md) — EventOrderAudit 纯函数（core/observability）：analyze 单会话事件→inversions 逆序对数+maxInversionMillis 倒退量+firstInversionIndex 定位（-1 哨兵）；等时刻不算逆序、null 时戳跳过——事件溯源不变量思想（与 TurnSequenceAudit turn 序号轴辨义）。
 - [评估数据集质量审计的形状裁决](../tickets/T2177-dataset-quality-shape.md) — DatasetQualityAudit 纯函数（core/eval）：退化条目分桶（空 input/expected+短 input<8 字符阈值）+inputLengthP50/P95 秩插值+degenerateRatio 派生（同条目双退化两桶同计可>1）——Cleanlab 数据质量思想（与 847 重复轴/期望格式轴三者辨义）。
+- [悬空轮检测器的形状裁决](../tickets/T2179-dangling-turn-shape.md) — DanglingTurnDetector 纯函数（core/message）：按 turnSeq 分组——轮内有 USER 无 ASSISTANT 即悬空（TOOL 链不豁免、仅 TOOL/SYSTEM 轮不算）+样本封顶 8 升序+hasDangling 哨兵——Temporal activity 检测思想，取消/中断残留的「问了没答」形态显形。
