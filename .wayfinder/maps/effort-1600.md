@@ -157,6 +157,9 @@
 - [R46 形状：快照增量再生](../tickets/T2441-r46-snapshot-shape.md) — R27 后新增 GradientLimiterHolder 等类型快照再生（worktree -am）；同文件并行冲突化解（GuardModule.dangerousTools() 双方同时加——M 系版本保留我方撤）
 - [R46 验收](../tickets/T2442-r46-snapshot-verify.md) — ApiSurfaceSnapshotTest 门绿（worktree 实证）+ guard 376 用例（冲突化解后）
 
+- [R47 形状：MAP 刷新与台账终核](../tickets/T2443-r47-maprefresh-shape.md) — MAP N 系行状态更新（收口中+成果摘要）；台账 46 行无缺号、票 57/impl 50 落盘核对
+- [R47 验收](../tickets/T2444-r47-maprefresh-verify.md) — 台账 gaps=[] + 票/impl 双向实存
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -216,3 +219,4 @@
 | R44 | #1643 | 流式 PII 类型级豁免（820 第四消费者，豁免族闭环） | T2437–T2438 | 1196 | 1643 | done |
 | R45 | #1644 | 新公开类型 @since 补全（Javadoc 规范） | T2439–T2440 | 1197 | 1644 | done |
 | R46 | #1645 | API 快照增量再生 + 同文件并行冲突化解 | T2441–T2442 | 1198 | 1645 | done |
+| R47 | #1646 | MAP 刷新与台账终核 | T2443–T2444 | 1199 | 1646 | done |
