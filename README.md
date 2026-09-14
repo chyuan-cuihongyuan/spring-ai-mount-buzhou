@@ -821,6 +821,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 会话治理 | 工具目录漂移看门狗接线 | CatalogDriftHolder 进程级基线 + 会话构造节拍拍指纹——目录增删改即 WARN + buzhou.catalog.drifted 计数（MCP 差量刷新错配/装配漂移显形）；首拍建基线、包装层不入指纹——spec 201 孤类救活（spec 1613） | [spec 1613](docs/spec/1613-catalog-drift-wiring.md) |
 | 观测治理 | 指标新鲜度追踪接线 | metrics 装配链恒包 MetricFreshnessTracker（有界 512 名纯旁路）+ MetricFreshnessHolder 静态 audit——「某机制为何不再有数」从猜变查（序列静默=写路径死亡/装配丢失信号）——spec 802 孤类救活（spec 1614） | [spec 1614](docs/spec/1614-metrics-freshness-wiring.md) |
 | 观测治理 | 泄漏疑似聚合接线 | LeakSuspectHolder.compositeWith 把聚合器复合进检测器 listener 链（宿主 listener 与聚合器双收）——泄漏「同一处反复漏 vs 多处散漏」从日志流水变排行（LeakSuspectHolder.report() 读出）——spec 839 孤类救活（spec 1615） | [spec 1615](docs/spec/1615-leak-suspect-wiring.md) |
+| 工具治理 | 工具失败负缓存 | NegativeCachingToolCallback——同 key 失败短 TTL（默认 30s）记忆，窗内复读直接回错误文本不再真调（防模型重试风暴撞同一失败）；恢复窗口即 TTL、成功不缓存（与成功 memo 正交）、异常路径同缓存——DNS negative caching / NXDOMAIN 思想（spec 1616） | [spec 1616](docs/spec/1616-tool-negative-cache.md) |
 
 ## 快速开始
 
