@@ -25,8 +25,9 @@ public final class MetricFreshnessHolder {
         return Optional.ofNullable(tracker);
     }
 
-    /** 新鲜度审计便捷面（未装配 = empty）。 */
-    public static Optional<MetricFreshnessTracker.FreshnessReport> audit(long staleAfterMillis) {
-        return tracker().map(t -> t.audit(staleAfterMillis));
+    /** 新鲜度审计便捷面（nowMillis = 审计时刻；未装配 = empty）。 */
+    public static Optional<MetricFreshnessTracker.FreshnessReport> audit(long nowMillis,
+            long staleAfterMillis) {
+        return tracker().map(t -> t.audit(nowMillis, staleAfterMillis));
     }
 }

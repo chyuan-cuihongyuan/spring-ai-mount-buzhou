@@ -61,6 +61,9 @@
 - [R14 形状：目录漂移看门狗接线](../tickets/T2377-r14-drift-shape.md) — spec 201 孤类修复第三弹：CatalogDriftHolder 进程级基线（RetryBudgetHolder 模式）+ HarnessAssembler 会话构造节拍拍指纹（首拍建基线，变化 WARN+计数；包装层不改指纹——只捕目录语义变化）
 - [R14 验收](../tickets/T2378-r14-drift-verify.md) — 三会话序列集成断言（建基线零事件/目录变化一事件含增删明细/稳定无事件）+ Holder 直喂面
 
+- [R15 形状：指标新鲜度接线](../tickets/T2379-r15-freshness-shape.md) — spec 802 孤类修复第四弹：metrics 装配链恒包 MetricFreshnessTracker（有界 512 名纯旁路）+ MetricFreshnessHolder 静态 audit 面
+- [R15 验收](../tickets/T2380-r15-freshness-verify.md) — 装饰写入 touch + audit 报陈旧（active/dead 分离年龄断言）+ 未装配 empty + 既有 6 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -88,3 +91,4 @@
 | R12 | #1611 | 孤类普查（15 项入档）+ 熔断遥测接线（spec 811/836 喂点落地） | T2373–T2374 | 1164 | 1611 | done |
 | R13 | #1612 | guard 孤类装配面（spec 141/167 两 hook 救活） | T2375–T2376 | 1165 | 1612 | done |
 | R14 | #1613 | 工具目录漂移看门狗接线（spec 201 孤类救活） | T2377–T2378 | 1166 | 1613 | done |
+| R15 | #1614 | 指标新鲜度追踪接线（spec 802 孤类救活） | T2379–T2380 | 1167 | 1614 | done |
