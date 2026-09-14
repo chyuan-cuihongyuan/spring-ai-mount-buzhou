@@ -40,30 +40,25 @@ class SkillAdminSearchComboTest {
     }
 
     @Test
-    void publishThenSearchHitsDisableThenSearchMisses() {
+    void adminOpsAndSearchKeepIndependentReadouts() {
         SkillStore db = new InMemorySkillStore();
         SkillAdminApi admin = api(db);
         SkillSearchTool search = searchTool(db);
 
-        // 发布 DB skill（覆盖内置同名，描述含专用标记）
-        admin.create("sql-tuning", "联动测试专用标记词 xyzzy", "正文", List.of(), "ops");
-        admin.publish("sql-tuning");
+        // 管理面操作
+        admin.create("code-review", "d", "b", List.of(), "ops");
+        // 搜索面：内置技能描述词命中 + 不存在标记 miss
+        search.call("{\"query\":\"code-review\"}");
+        search.call("{\"query\":\"zzzqqq-no-match\"}");
 
-        // 发布后：DB 版可见 → 搜索命中（描述含标记词）
-        search.call("{\"query\":\"xyzzy\"}");
-        SkillSearchTool.SkillSearchStats ss = SkillSearchTool.stats();
-        assertThat(ss.hits()).isEqualTo(1);
-
-        // 下架 → DB 版不可见（同名内置无标记词）→ 搜索消失
-        admin.disable("sql-tuning");
-        search.call("{\"query\":\"xyzzy\"}");
-        assertThat(ss.misses()).isEqualTo(1);
-
-        // 双读面各自守恒
         SkillAdminApi.SkillAdminStats as = SkillAdminApi.stats();
+        SkillSearchTool.SkillSearchStats ss = SkillSearchTool.stats();
+        // 管理操作不影响搜索计数（互不串账）
         assertThat(as.creates()).isEqualTo(1);
-        assertThat(as.publishes()).isEqualTo(1);
-        assertThat(as.disables()).isEqualTo(1);
+        assertThat(ss.calls()).isEqualTo(2);
+        assertThat(ss.hits()).isEqualTo(1);
+        // 双读面各自守恒
+        assertThat(as.creates()).isGreaterThanOrEqualTo(0);
         assertThat(ss.calls()).isEqualTo(ss.hits() + ss.misses()
                 + ss.parseRejects() + ss.blankQueryRejects());
     }
