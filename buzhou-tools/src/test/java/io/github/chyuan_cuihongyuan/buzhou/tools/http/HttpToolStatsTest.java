@@ -107,10 +107,16 @@ class HttpToolStatsTest {
     void oversizeResponseCountsItsBucket() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/big", exchange -> {
-            // Content-Length 预检路径：声明 8MB+1，响应体超读入上限
+            // Content-Length 预检路径：完整写出 8MB+1 字节（长度不符会触发连接层失败走 failures 桶）
             exchange.sendResponseHeaders(200, HttpRequestTool.MAX_RESPONSE_BYTES + 1);
             try (OutputStream os = exchange.getResponseBody()) {
-                os.write(new byte[1]);
+                byte[] chunk = new byte[64 * 1024];
+                long remaining = HttpRequestTool.MAX_RESPONSE_BYTES + 1;
+                while (remaining > 0) {
+                    int n = (int) Math.min(chunk.length, remaining);
+                    os.write(chunk, 0, n);
+                    remaining -= n;
+                }
             }
         });
         server.start();
