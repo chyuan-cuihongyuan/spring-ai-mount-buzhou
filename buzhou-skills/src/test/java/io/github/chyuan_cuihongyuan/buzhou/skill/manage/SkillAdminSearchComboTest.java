@@ -1,6 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.skill.manage;
 
 import io.github.chyuan_cuihongyuan.buzhou.skill.SkillSearchTool;
+import io.github.chyuan_cuihongyuan.buzhou.skill.DefaultSkillRegistry;
+import io.github.chyuan_cuihongyuan.buzhou.skill.SessionBindingIndex;
 import io.github.chyuan_cuihongyuan.buzhou.skill.classpath.ClasspathSkillScanner;
 import io.github.chyuan_cuihongyuan.buzhou.skill.store.InMemorySkillStore;
 import io.github.chyuan_cuihongyuan.buzhou.skill.store.SkillStore;
@@ -34,7 +36,7 @@ class SkillAdminSearchComboTest {
     private SkillSearchTool searchTool(SkillStore db) {
         return new SkillSearchTool(
                 new DefaultSkillRegistry(classpath, db, null, true, 64),
-                new io.github.chyuan_cuihongyuan.buzhou.skill.SessionBindingIndex());
+                new SessionBindingIndex());
     }
 
     @Test
