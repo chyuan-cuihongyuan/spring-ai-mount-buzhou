@@ -6,10 +6,10 @@
 
 **Status:** done
 
-- [ ] 五计数落点（入口/命中非空/零结果/catch/空 query）
-- [ ] SkillSearchStats 嵌套 record + stats() + resetForTest()
-- [ ] SkillSearchStatsTest（命中/零结果/坏 JSON/空 query/守恒/reset 六测）
-- [ ] spec 1057 + README 行（嵌套类型不动 API 快照）
+- [x] 五计数落点（入口/命中非空/零结果/catch/空 query）
+- [x] SkillSearchStats 嵌套 record + stats() + resetForTest()
+- [x] SkillSearchStatsTest（命中/零结果/坏 JSON/空 query/守恒/reset 六测）
+- [x] spec 1057 + README 行（嵌套类型不动 API 快照）
 
 ## Done
 
