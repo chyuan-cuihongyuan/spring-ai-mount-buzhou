@@ -48,7 +48,7 @@ R25 舱壁队列水位读面(Resilience4j bulkhead ≈10K)【高危待勘】→r
 R26 导出器丢弃计数读面(Jaeger exporter drop ≈21K)【高危待勘 observe-otel 队列】→observe-otel｜
 R6 ✅ 换题落地=Dashboard 查询页守卫（原 R27 题提前到 R6，实证 listSessions 零钳制缺陷）｜
 R28 日志字段预算读面(OTel logrecord limits, otel 规范/Java ≈2K 借规范思想)【高危待勘】→observability｜
-R29 PII 合成探针自查(spaCy NER recall probe ≈31K)→guard【高危待勘 PiiDetector 面】｜
+R8 ✅ 换题落地=PII 合成探针自查（R29 题提前；原 R8 single-flight 与 ToolCallCoalescer 全撞）｜
 R30 重连计数读面(Redisson reconnect ≈36K)【高危待勘 store-redis 连接 seam】→store-redis｜
 R31 批量嵌入效率读数(sentence-transformers batch_size ≈17K)【高危待勘 vs 804】→resilience｜
 R32 JSON 输出解析修复读数(instructor retry ≈11K)→core【高危待勘结构化输出面】｜

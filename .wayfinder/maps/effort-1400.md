@@ -29,3 +29,4 @@
 - [会话 id 熵审计的形状裁决](../tickets/T2109-session-id-entropy-shape.md) — **换题轮**（原题基数守卫与 spec 160 全撞）：SessionIdEntropyAudit 纯函数——字母表下界估计（观测字符类保守求和）+bits=length×log2(alphabet) nanoid 同款+四档闭集（WEAK<64/STRONG≥112≈UUIDv4）+批量四桶；只读不裁决。
 - [Dashboard 查询页守卫的形状裁决](../tickets/T2111-query-page-guard-shape.md) — **实证缺陷修复**：listSessions 零钳制（size=1000 万即无界读 store）与 filtered 路径 200 钳制不对称 + 两路径裸 NFE 游标解析——MAX_PAGE_SIZE=200 常量+normalizePageSize/parseCursor 共享辅助两路径同源，翻页语义逐位不变——Grafana query limit 思想。
 - [租约续期健康读面的形状裁决](../tickets/T2113-lease-renewal-readout-shape.md) — **换题轮**（序列缺口无序号不伪实现/TTFT 已有）：SessionLeaseGuard 增量 failures+minRemainingAtRenewal 水位+lastRenewalAt+renewalStats()（-1/0 哨兵），recordRenewalSuccess 提取公共记账，语义逐位不变——Redisson watchdog 健康审计思想。
+- [PII 检测器合成探针自查的形状裁决](../tickets/T2115-pii-probe-selfcheck-shape.md) — **换题轮**（single-flight 与 ToolCallCoalescer 全撞）：PiiProbeSelfCheck 纯函数——内建确定性合成池正例逐类召回+负例误报哨兵（恒 0），基线标定锚=内建池×内建检测器全召回；身份证号不入池（校验位合成号撞真实号红线）——spaCy/Presidio 评测思想。

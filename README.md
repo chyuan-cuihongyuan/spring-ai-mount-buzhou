@@ -769,6 +769,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 会话治理 | 租约续期健康读面 | SessionLeaseGuard.renewalStats()——续期 failures/成功 renewals 双计数+续期时剩余租期最小水位（调度饿死/存储抖动收窄信号）+末次续期时刻+lost 终态，语义逐位不变——Redisson watchdog 健康审计思想（spec 1406） | [spec 1406](docs/spec/1406-lease-renewal-readout.md) |
 
+| 护栏 | PII 检测器合成探针自查 | PiiProbeSelfCheck——内建确定性合成池（正例 EMAIL/手机号/测试 PAN/IPV4+负例×4）穿测 PiiDetector：逐类召回+误报哨兵（恒 0），基线标定锚=全召回；身份证号不入池（撞真实号红线）——spaCy/Presidio 评测思想（spec 1407） | [spec 1407](docs/spec/1407-pii-probe-selfcheck.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

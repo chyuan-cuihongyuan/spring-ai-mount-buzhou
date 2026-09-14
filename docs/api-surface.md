@@ -2328,3 +2328,8 @@
   下界估计（观测字符类保守求和）+bits=length×log2(alphabet)+四档闭集
   （WEAK&lt;64/STRONG≥112）+批量四桶 Summary，纯函数只读；嵌套
   `Report`/`Summary` 不另立面）
+
+- `PiiProbeSelfCheck`（1407——spaCy/Presidio 评测思想：内建确定性合成
+  池穿测 PiiDetector——逐类召回 TypeRecall+误报哨兵 falsePositives（恒 0
+  回归哨兵），基线=内建池全召回；身份证号不入池（红线）；嵌套
+  `ProbeReport` 不另立面）
