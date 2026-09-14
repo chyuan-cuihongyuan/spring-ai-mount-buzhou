@@ -71,7 +71,7 @@
 4. **裸 `IllegalStateException("SHA-256 不可用")`（✅ 已修复：spec 1514——全量 11 处迁移 CONFIG_INVALID）**——`ResponseCacheKeys.java:94`、`ResourcePolicySource.java:75`、`AuditChain.java:240`、`WebhookEventForwarder.java:227`（HMAC）；spec 50 §A 已封口应改 CONFIG_INVALID（同批 ArgumentFingerprint/ReadIntegrity 已合规迁移）。
 5. **BuzhouHook 已扩为七切面**（spec 15 落地；✅ spec 07 已回写：spec 1516）；「编译 6 链缓存」亦未字面实现（HookChain.java:69 单链全遍历）。
 6. **形状偏离（语义等价）**：spec 17 约定 RunCommandTool 构造重载注入 CommandBackend，实现为并列类 `SandboxRunCommandTool` 装配期二选一；spec 05 `SessionToolExecutor` 公共类不存在（per-session ExecutorService + 注册表等价达成，DefaultAgentRuntime.java:366-370）。
-7. **未回写 04 档的增量**：`BuzhouMcpProperties.dangerousToolPatterns` / `shutdownBudget(35s)`、skills `SkillSearchTool`（注释指向 spec 21/37 等后续档）。
+7. **未回写 04 档的增量**（✅ mcp 属性段已回写：spec 1519；skills 注释指针维持现状——指向后续档语义正确）。
 8. **guard test 依赖 buzhou-memory**（✅ 已追认：spec 1517——spec 09 增 test 边豁免注记）。
 
 ## 五、Standards 轴：成文规约硬违规（规约未自持）
@@ -80,7 +80,7 @@
 
 1. **api/SPI Javadoc 系统性缺失**（「api 子包与 SPI 必须有 Javadoc」）：core 46 个公开类型无类型级 Javadoc，含规约自称的范式文件本身——`BuzhouHook.java:3`、`HookChain.java:13`、`AgentSession.java:6`、`AgentRuntime.java:3`、`MessageStore.java:8`、`HarnessToolCallingManager.java:31`；memory/spill/resilience 另有 43 个零 Javadoc 公开类型（含 `SpillStore`、`RangeReadEngine`、`MicroCompactor`、`SummaryGenerator` 等 SPI 级）。
 2. **`@Bean` 读裸 Environment 约 13 处**（明禁）：`BuzhouCoreAutoConfiguration.java:146/212/242/255`、`BuzhouResilienceAutoConfiguration.java:44/66`、`BuzhouMemoryAutoConfiguration.java:53,80`、三个 Health 装配、`BuzhouObservabilityAutoConfiguration.java:48`、`BuzhouMcpHealthAutoConfiguration.java:25`、`BuzhouSkillsAutoConfiguration.java:46`、`BuzhouMcpAutoConfiguration.java:46`、`BuzhouRedisStoreAutoConfiguration.java:69-71`。
-3. **日志未统一 SLF4J + 拼接 + 丢栈**：全仓 16+ 文件用 `System.Logger`（含公开类 `RunawayHook`、`WebhookEventForwarder`）；拼接+丢栈实证 `FeedbackExporter.java:82`、`RetentionSweeper.java:227`、`DefaultAgentRuntime.java:199/243/294`、`FactsExporter.java:61`、`EvidenceRefLedger.java:122`、`JdbcSessionIndexStore.java:135`。**注**：spec 13 §11 要求 SLF4J 基线，仓内 System.Logger 已既成风格——需裁定「spec 追认」或「代码整改」二选一。
+3. **日志未统一 SLF4J + 拼接 + 丢栈**：全仓 16+ 文件用 `System.Logger`（含公开类 `RunawayHook`、`WebhookEventForwarder`）；拼接+丢栈实证 `FeedbackExporter.java:82`、`RetentionSweeper.java:227`、`DefaultAgentRuntime.java:199/243/294`、`FactsExporter.java:61`、`EvidenceRefLedger.java:122`、`JdbcSessionIndexStore.java:135`。**注**（✅ 已裁定：spec 1519——双门面追认，System.Logger 占位符风格同等合规，69 文件不迁移）。
 4. **一把抓 `catch (Exception/Throwable)`**：core eval（`EvalDatasetStore.java:142/150`、`EvalRunner.java:182/191`，Jackson 应收窄 JsonProcessingException）；`HookedToolCallback.java:86/94` 静默吞异常返回占位；mcp `DefaultMcpClientRegistry.java:362/387` catch Throwable、`:422` 连 `InterruptedException` 一起吞且不恢复中断标志；guard `OnnxPromptGuard.java:19` 公开 SPI `throws Exception` 签名层面迫使调用方一把抓；memory/spill/resilience 约 20 处同型。
 5. **`instanceof` 后强转**（明禁，应 pattern matching）：core policy `LayeredPolicy.java:52/58-59`、`ToolPolicyMatcher.java:48-52`；memory `MemoryModule.java:233-447` 约 18 处。
 6. **魔法值口径不一**：advisor order 字面量 `ResponseCacheAdvisor.java:44`(+450)、`SemanticCacheAdvisor.java:59`(+460)、`SpillOffloadHook.java:56`(100)、`OnloadHook.java:27`(200)——同模块 `ResilienceAdvisor.java:68` 已抽 `CHAIN_ORDER_OFFSET`；spill 默认值 2048/20/32000 散落四处硬编码（✅ 已收口：spec 1517——SpillProperties 三常量单一事实源）。

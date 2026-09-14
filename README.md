@@ -709,6 +709,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R8 分支缺口批次 1：observe-otel | 分支精确定向补测：OtelBridgeSink 61%→87%（重复开启/驱逐护栏/spanName 回退/sessionTrace 上界/类型适配器/故障隔离）+ OtelProperties 100%；显形 T1824 sessionTrace 驱逐 iterator.remove() 缺 next() 致超限后新会话 span 静默丢弃（spec 1207） | [spec 1207](docs/spec/1207-branch-uplift-otel.md) |
 | 工程门禁 | R9 分支缺口批次 2：observability 两小类 | ObservabilitySessionState 46%→88%（会话 span 生命周期/usage 聚合/CANCELLED 终态）+ ObservableToolCallback 29%→86%（parent 三级解析/异常 error+close+rethrow）；批次 3 = Advisor/DualWriter（spec 1208） | [spec 1208](docs/spec/1208-branch-uplift-observability.md) |
 | 工程门禁 | R10：MicrometerDualWriter 补测 | 双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%（spec 1209） | [spec 1209](docs/spec/1209-micrometer-dual-writer.md) |
+| 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
@@ -814,6 +815,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 工程卫生 | spec 07 七切面回写 + 序位常量化（四-5/五-6 部分） | spec 07 三处「六切面」追认七切面（onModelError spec 15 落地后）；四处 advisor/hook 序位魔法值（+450/+460/100/200）抽常量+链位注释——ResilienceAdvisor.CHAIN_ORDER_OFFSET 先例同款，同值零行为变化（spec 1516） | [spec 1516](docs/spec/1516-spec07-order-consts.md) |
 | 工程卫生 | spill 默认值单一事实源（五-6 收口） | 2048/20/32000 散落四处收口 SpillProperties 三常量（threshold 引用 SpillOffloadHook 既有常量）——改默认值从散弹变单点；六-6 死参数（SPI 扩展位注记）/六-9 调度器工厂（delay queue 无无界风险）裁定入档（spec 1517） | [spec 1517](docs/spec/1517-spill-defaults-ssot.md) |
 | 文档门禁 | 文档间残留矛盾三裁定（七-2/七-3/四-8） | perf 口径澄清（10ms 目标/20ms 哨兵红线的目标-红线关系）；promptfoo star 统一 24K★@2026-09 时点注记；spec 09 追认 test 边豁免（ModuleBoundaryGuard 只扫 src/main 同口径）——design-incompleteness 可做项全部闭环（spec 1518） | [spec 1518](docs/spec/1518-doc-adjudications.md) |
+| 文档门禁 | 日志双门面追认 + spec 04 属性回写（五-3/四-7） | SLF4J/System.Logger 双门面追认（69 文件既成风格不迁移，占位符风格硬约束不变）；spec 04 补 mcp 装配属性增量（dangerous-tool-patterns 缺省七动词/shutdown-budget/config-reference 指针）（spec 1519） | [spec 1519](docs/spec/1519-logger-spec04-adjudication.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 

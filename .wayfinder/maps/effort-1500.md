@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [日志双门面追认与 spec 04 回写的形状裁决](../tickets/T2289-logger-spec04-shape.md) — 69 文件既成风格不迁移（占位符风格硬约束不变、同文件不混用）；spec 04 补 mcp 装配属性增量。
 - [文档间残留矛盾三裁定的形状裁决](../tickets/T2287-doc-adjudication-shape.md) — perf 10ms/20ms = 目标-红线关系非矛盾；promptfoo star 统一时点注记；spec 09 追认 test 边豁免——design-incompleteness 清单经 M 系 20 轮全部闭环或裁定。
 - [spill 默认值单一事实源与六-6/六-9 裁定的形状裁决](../tickets/T2285-spill-defaults-shape.md) — 三常量落 SpillProperties（threshold 引用 SpillOffloadHook）三处引用收口；六-6 load 前两参 = SPI 扩展位注记保留；六-9 newSingleThreadScheduledExecutor = ScheduledThreadPoolExecutor(1) 等价（delay queue 无无界风险）不整改。
 - [spec 07 回写与序位常量化的形状裁决](../tickets/T2283-spec07-order-consts-shape.md) — spec 07 三处六→七切面；四处 order 魔法值常量化（同值零行为）；CounterAtomicitySpreadTest 经 N 会话承接修复（commit 30197389 引用 M 系 spec1513 记档——跨会话协作闭环确认）。
@@ -71,6 +72,7 @@
 | 19 | spill 默认值单一事实源（五-6 收口）+ 六-6/六-9 裁定入档 | design-incompleteness 五-6/六-6/六-9 | T2285–T2286 | 1120 | 1517 | ✅ |
 | 20 | 文档间残留矛盾三裁定（perf 口径/promptfoo star/test 边豁免）——design-incompleteness 可做项全档闭环 | design-incompleteness 七-2/七-3/四-8 | T2287–T2288 | 1121 | 1518 | ✅ |
 | 21 | 周期预检轮：全仓 verify 16 模块绿唯快照门红→隔离 worktree 再生快照补账（HEAD 已提交的 10 新类型：M 系 IdempotentToolRetryHolder + 并行会话 9 个 Holder/Hook；api-surface/CONTEXT 计数 466→893 陈旧口径刷新） | 周期 verify + 快照再生 | — | — | — | ✅ |
+| 22 | System.Logger 双门面追认（69 文件既成风格）+ spec 04 mcp 属性回写 | design-incompleteness 五-3/四-7 | T2289–T2290 | 1122 | 1519 | ✅ |
 
 
 ## Out of scope

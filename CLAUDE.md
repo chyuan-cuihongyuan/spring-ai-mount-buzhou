@@ -94,7 +94,7 @@ mvn -pl buzhou-core test -Dtest=HookChainTest#method    # 单个测试方法
 - 异常 message 必须带关键上下文（入参 / 状态），便于排障。
 
 ### 日志
-- 统一 SLF4J（Lombok `@Slf4j` 或 `LoggerFactory.getLogger`）；占位符 `{}`，**禁止**字符串拼日志。
+- 统一日志门面：SLF4J（Lombok `@Slf4j` / `LoggerFactory.getLogger`）或 JDK 原生 `System.Logger` 皆可（spec 1519 追认——仓内 69 文件既成风格，迁移零收益；同一文件内不混用两种门面）；占位符 `{}`（SLF4J）/ `{0}`（System.Logger）风格强制，**禁止**字符串拼日志。
 - 异常日志 `log.error("msg", e)` 传入异常对象，**禁止** `log.error(e.getMessage())` 丢栈。
 
 ### Spring / AutoConfiguration（项目专项）
