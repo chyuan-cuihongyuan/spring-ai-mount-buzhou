@@ -856,6 +856,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 护栏治理 | 跨会话泄漏金丝雀接线 | SessionCanaryHook——每会话种植专属确定性令牌（sha256(sessionId|salt)），afterModel 扫描模型输出：他会话令牌出现即跨会话污染信号（guard.session.leak-detected 事件），自会话回显不算；opt-in leakCanary(salt)——thinkst canarytokens 思想，spec 528 孤类救活（spec 1625） | [spec 1625](docs/spec/1625-session-canary-wiring.md) |
 | 护栏治理 | PII 脱敏豁免双粒度 | 工具级（该工具输出经核验整体豁免）+ 类型级（type:CN_PHONE 等——该类型误报豁免、其余照脱）——「规则误报已核验」与「该数据源可信」两种生产痛点各得其所——820 豁免登记第二消费者（spec 1627） | [spec 1627](docs/spec/1627-pii-exemption.md) |
 | 韧性治理 | 熔断慢调用率维度 | withSlowCallPolicy(duration, rate)——未到超时但持续慢（duration ≥ 阈值的成功调用）也是可用性问题：慢样本环形窗与失败窗并行，慢率或失败率任一达界即开闸（零失败前提可跳）；链式注入零配置零行为，主路径时长自动喂入——resilience4j slow call rate 思想（spec 1628） | [spec 1628](docs/spec/1628-circuit-slow-call.md) |
+| 工具治理 | http_request 输入边界四护栏 | body 64K（超长走 bodyPath 通道带修法指引）/URL 8K/头数量 64/单头值 8K——模型自报超长输入不进执行层，拒绝入桶可观测不计失败——Envoy HTTP/2 SETTINGS_MAX_* 思想（spec 1629） | [spec 1629](docs/spec/1629-http-input-bounds.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |
 
 ## 快速开始

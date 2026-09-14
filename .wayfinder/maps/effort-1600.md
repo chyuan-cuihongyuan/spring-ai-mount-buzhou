@@ -106,6 +106,9 @@
 - [R29 形状：熔断慢调用维度](../tickets/T2407-r29-slow-shape.md) — resilience4j slow call rate 思想：withSlowCallPolicy(duration,rate) 链式注入（不扩 Config——零配置零行为），慢样本环形窗与失败窗并行，慢率或失败率任一达界开闸；无时长入账不计慢（既有语义零变化）；advisor 主路径 nanoTime 喂入
 - [R29 验收](../tickets/T2408-r29-slow-verify.md) — 五断言（未注入零行为/慢率开闸零失败前提/快调用不触发/无时长面不计慢/参数校验）+ resilience 389 用例
 
+- [R30 形状：输入边界四护栏](../tickets/T2409-r30-bounds-shape.md) — Envoy HTTP/2 SETTINGS_MAX_* 思想：body 64K（超长走 bodyPath Onload 通道带指引）/URL 8K/头数量 64/单头值 8K——模型自报超长输入不进执行层；单头超限独立异常不计失败桶
+- [R30 验收](../tickets/T2410-r30-bounds-verify.md) — 五断言（四护栏各拒入桶+合规输入零影响）+ tools 118 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -148,3 +151,4 @@
 | R27 | #1626 | 中期对账审计（全仓 verify + API 快照再生 + 工件对账） | T2403–T2404 | 1179 | 1626 | done |
 | R28 | #1627 | PII 脱敏豁免双粒度（820 第二消费者） | T2405–T2406 | 1180 | 1627 | done |
 | R29 | #1628 | 熔断慢调用率维度（resilience4j slow call rate 思想） | T2407–T2408 | 1181 | 1628 | done |
+| R30 | #1629 | http_request 输入边界四护栏（Envoy SETTINGS_MAX_* 思想） | T2409–T2410 | 1182 | 1629 | done |
