@@ -748,6 +748,14 @@ I 会话（effort #900+）部分 spec 未及在 README 登记（H 会话收口�
 | 来源 | 吸收登记 | 详设 |
 |------|----------|------|
 
+## 生产级纵深 X（L 会话 1400 系增量）
+
+L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 会话治理 | 跨会话轮次并发水位 | TurnConcurrencyTracker——同实例注册全会话聚合 started/okFinished/failed 三总量+active/peakActive 水位，守恒式 started=ok+failed+active；同轮实证修复 guard-block 轮观察者终结回调缺失（TURN span 泄漏）——HikariCP 池读面思想（spec 1400） | [spec 1400](docs/spec/1400-turn-concurrency-tracker.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
