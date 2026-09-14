@@ -23,6 +23,8 @@
 - [guard 健康 indicator 未随条件装配](../tickets/T1803-guard-health-indicator-crash.md) — R1 测试显形：`buzhou.guard.enabled=false`（或仅关审计）+ actuator 在 classpath 时启动崩溃（auditChainHealthIndicator 无条件要求条件装配的 AuditChainHealth）——indicator 内部类补同条件 @ConditionalOnBean，最小一行修复。
 - [JdbcToolSetSpecStore CLOB 方言缺陷](../tickets/T1804-mcp-toolset-clob-dialect.md) — postgres:17 容器实证 `type "clob" does not exist`（真实 PG 部署 ensureSchema 必抛）——DDL CLOB→TEXT（PG/MySQL 原生、H2 同义）+ PostgreSqlToolSetSpecStoreTest（Testcontainers）锁方言回归。
 - [ToolDenialLog 排序被 Map.copyOf 破坏](../tickets/T1805-tooldeniallog-mapcopyof-order.md) — R1 全量 verify 显形主干既有红（JDK 升级后 MapN 哈希布局变化翻出）：Map.copyOf 不保序打散排序结果——改 Collections.unmodifiableMap；教训：有序快照禁用 Map.copyOf。
+- [低覆盖类批次 1 选题与补测形态（PolicyGateHook × RecallSearchTool）](../tickets/T1806-lowcoverage-batch1-shape.md) — R2：低覆盖档（<50% 且 miss≥10）证据驱动选题——guard 策略门四合同面（三态裁决映射/FIDES taint 组装/policy.decided 事件/指标三桶，OPA「input→decision+reason」合同思想）+ memory 召回工具十断言面（四模输出/摘要归一截断/降级与失败文案/轮次窗，ES partial-results 降级显式提示思想）；core 复扫靶点归批次 2。
+- [PolicyGateHook 指标注释 tag 值失真](../tickets/T1808-policygate-metric-comment.md) — R2 补测显形：注释称 outcome=allowed|blocked|escalated，代码实际发射 allow|deny|escalate（Action 名小写，spec 13 无背书）——实际合同锁定 + 注释更正（零行为变化）；改 tag 值是部署侧可见行为变更，须独立 spec 决策。
 
 ## R1 台账（spec 1200 / impl 903）
 
@@ -48,6 +50,15 @@
 | mcp | store.jdbc.JdbcToolSetSpecStore（30） | JdbcToolSetSpecStoreTest（H2 内存库：懒建表/整表替换/round-trip） |
 
 豁免入档（不追）：core.session.AgentSession 残余 11 行（内部匿名片段，主面已高覆盖）；core.config.BuzhouCoreAutoConfiguration SmartLifecycle 匿名类 9 行（装配期样板，装配语义由 starter SpecCoverage 域覆盖）。
+
+## R2 台账（spec 1201 / impl 904 / T1806–T1808）
+
+| 靶点 | 证据（2026-09-14/15 报告） | 测试落点 |
+|---|---|---|
+| guard policy.PolicyGateHook | cov=6 / mis=11（仅装配触达） | PolicyGateHookTest（9 用例：三态映射/Input 组装/taint 映射/事件字段/指标三桶/常量合同） |
+| memory tool.RecallSearchTool | cov=26 / mis=30（无直测文件） | RecallSearchToolTest（12 用例：四模格式/归一截断/三类文案分支/降级与可用/倒序/轮次窗/limit） |
+
+补测显形：T1808 指标注释 tag 值失真（零行为变化修正，单列 commit）。core 低覆盖批次待本轮 core 复扫证据归 R3。
 
 ## Not yet specified
 
