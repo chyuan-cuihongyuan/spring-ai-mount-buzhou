@@ -48,3 +48,4 @@
 - [Embedding 质量自查探针的形状裁决](../tickets/T2147-embedding-selfcheck-shape.md) — EmbeddingSelfCheck 纯函数（core/spi）：内建合成句对（相似×2+无关对照×2）穿测 EmbeddingProvider——序判定（cos(sim)>cos(dis) 逐对+minMargin>0，免绝对阈值口径）+orderHolds 回归哨兵+dimension 显形——OpenAI cookbook/sentence-transformers 语义自检思想。
 - [轮次限速 per-key 拒绝榜的形状裁决](../tickets/T2149-turn-ratelimit-blocked-shape.md) — TurnRateLimitHook 增量 blockedByKeys（256 折叠纪律）+blockedSnapshot 次数降序典序+resetBlockedForTest 清榜不清桶——Cloudflare WAF top-rules 思想，限流治理按 key 的拒绝分布显形。
 - [会话历史形态审计的形状裁决](../tickets/T2151-conversation-shape-shape.md) — ConversationShapeAudit 纯函数（core/message）：roleHistogram 降序典序+连续同角色非 TOOL 异常对数+空内容（带 toolCalls 空 content 为正常形态）+maxTurnGap 乱序写入嫌疑——MLflow 数据画像思想，上下文污染前的形态信号。
+- [用户输入重复审计的形状裁决](../tickets/T2153-input-duplication-shape.md) — UserInputDuplicationAudit 纯函数（core/message）：归一化（trim+小写+空白折叠+截断 64）+consecutiveDuplicatePairs+maxRepeatRun+topRepeated（≥2 入榜容量 8 降序典序）——Rasa 对话分析思想，复读=最强挫败信号。

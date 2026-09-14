@@ -850,6 +850,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 会话治理 | 会话历史形态审计 | ConversationShapeAudit——roleHistogram 角色直方（降序典序）+连续同角色非 TOOL 相邻对（history 写坏信号）+空内容计数（带 toolCalls 为正常形态）+maxTurnGap 跳变（回放/乱序嫌疑）；上下文污染前的形态信号——MLflow 数据画像思想（spec 1425） | [spec 1425](docs/spec/1425-conversation-shape-audit.md) |
 
+| 会话治理 | 用户输入重复审计 | UserInputDuplicationAudit——USER 输入归一化（trim/小写/空白折叠/截断 64）后审计：连续复读对+最长复读游程+distinctInputs 多样性+topRepeated 榜（≥2 才入容量 8 降序典序）；复读=最强挫败信号——Rasa 对话分析思想（spec 1426） | [spec 1426](docs/spec/1426-user-input-duplication-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

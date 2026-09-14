@@ -2422,3 +2422,8 @@
   形态审计——roleHistogram（数量降序）+连续同角色非 TOOL 异常对+空内容
   计数（带 toolCalls 为正常形态）+maxTurnGap 乱序嫌疑，纯函数；嵌套
   `ShapeReport` 不另立面）
+
+- `UserInputDuplicationAudit`（1426——Rasa 对话分析思想：USER 输入重复
+  形态审计——归一化（trim/小写/空白折叠/截断 64）+连续复读对+最长游程
+  +distinctInputs+topRepeated（≥2 入榜容量 8），纯函数；嵌套
+  `DuplicationReport` 不另立面）
