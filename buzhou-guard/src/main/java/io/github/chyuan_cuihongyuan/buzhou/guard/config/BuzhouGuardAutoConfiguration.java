@@ -44,7 +44,7 @@ import java.util.List;
  * 经 {@link GuardModule.Builder#factDefinition} 构建，FactAttachmentRenderer 经 AttachmentRenderer
  * SPI 由 memory 组合（同 todo 渲染器路径）。
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = "io.github.chyuan_cuihongyuan.buzhou.tools.config.BuzhouToolsAutoConfiguration")
 @ConditionalOnProperty(prefix = "buzhou.guard", name = "enabled", matchIfMissing = true)
 @org.springframework.boot.context.properties.EnableConfigurationProperties(
         BuzhouPiiVaultProperties.class)
@@ -90,6 +90,21 @@ public class BuzhouGuardAutoConfiguration {
         PolicyRefresher refresher = policyRefresher.getIfAvailable();
         GuardModule.Builder builder = GuardModule.builder(stores)
                 .fromYml(ConfigMaps.sub(env, "buzhou.guard"));
+        // spec 1508 / T2267：危险工具默认 HITL 自动带入桥（design-incompleteness S2
+        // 修复）——tools autoconfig（afterName 保证先装配）灌注的进程级注册表内名字
+        // 按三参默认形态并入；yml 显式条目优先不重复；显式 false 关闭逃生
+        boolean autoBridge = env.getProperty(
+                "buzhou.guard.auto-dangerous-bridge", Boolean.class, true);
+        if (autoBridge) {
+            java.util.Set<String> explicit = builder.configuredDangerousToolNames();
+            for (String name : io.github.chyuan_cuihongyuan.buzhou.core.spi.DangerousToolRegistry
+                    .registered()) {
+                if (!explicit.contains(name)) {
+                    builder.dangerousTool(name, "confirm_" + name,
+                            "工具 " + name + " 属危险写侧操作，需人工确认后放行");
+                }
+            }
+        }
         // spec 626 / T902：事实衰减 yml 装配（half-life-turns 声明即启用；floor 可选默认 0.25）
         Double halfLifeTurns = env.getProperty(
                 "buzhou.guard.fact-decay.half-life-turns", Double.class);

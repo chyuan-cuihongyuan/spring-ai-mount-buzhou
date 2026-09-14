@@ -45,8 +45,11 @@ public final class GuardModule {
     private final GuardAuthApi authApi;
     private final AttachmentRenderer attachmentRenderer;
     private final FactStore factStore;
+    /** spec 1508：最终危险工具清单（yml 显式 + 自动带入桥合并后）——只读自检面。 */
+    private final List<DangerousToolEntry> dangerousTools;
 
     private GuardModule(Builder builder) {
+        this.dangerousTools = List.copyOf(builder.dangerousTools);
         DangerousToolConfig config = new DangerousToolConfig(
                 builder.enabled, builder.authTtl, List.copyOf(builder.dangerousTools));
         this.authApi = new GuardAuthApi(builder.stores.sessionStateStore(), builder.authTtl,
@@ -129,6 +132,11 @@ public final class GuardModule {
     /** 从 yml map（前缀 buzhou.guard）解析配置。 */
     public static GuardModule fromYml(BuzhouStores stores, Map<String, Object> ymlConfig) {
         return builder(stores).fromYml(ymlConfig).build();
+    }
+
+    /** spec 1508 / T2267：最终危险工具清单（不可变；yml 显式 + 自动带入桥合并后）——装配自检面。 */
+    public List<DangerousToolEntry> dangerousTools() {
+        return dangerousTools;
     }
 
     public RuntimeConfig configure() {
@@ -355,6 +363,18 @@ public final class GuardModule {
         public Builder dangerousTool(DangerousToolEntry entry) {
             this.dangerousTools.add(entry);
             return this;
+        }
+
+        /**
+         * spec 1508 / T2267：已显式配置（yml / 编程）的危险工具名快照——供自动
+         * 带入桥去重（显式条目优先，自动默认不重复登记）。
+         */
+        public java.util.Set<String> configuredDangerousToolNames() {
+            java.util.Set<String> names = new java.util.HashSet<>();
+            for (DangerousToolEntry entry : dangerousTools) {
+                names.add(entry.name());
+            }
+            return java.util.Set.copyOf(names);
         }
 
         /** 注册事实采集器（FactCollector 三要素脚手架）。 */

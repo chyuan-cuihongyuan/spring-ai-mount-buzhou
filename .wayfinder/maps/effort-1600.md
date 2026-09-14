@@ -46,6 +46,9 @@
 - [R9 形状：DiskSpillStore 锁迁移](../tickets/T2367-r9-spill-lock-shape.md) — spec 1606 高危 #3 落地：store/usage 两方法 monitor→ReentrantLock，「一次调用一次 spill」互斥语义不变
 - [R9 验收](../tickets/T2368-r9-spill-lock-verify.md) — 同 uri 6 并发恰一成功五拒绝（IllegalStateException）+ 异 uri 8 并发全成功 + spill 模块 168 用例零回归
 
+- [R10 形状：WebhookOutbox 锁迁移](../tickets/T2369-r10-outbox-lock-shape.md) — spec 1606 中危 #1 落地：append/appendRetry/orphanIndexCount/requeueDead 四方法 monitor→ReentrantLock wrapper（*Locked 方法体不动），虚拟线程 dispatcher 下锁内 store IO unmount 不 pin
+- [R10 验收](../tickets/T2370-r10-outbox-lock-verify.md) — webhook 包 105 用例零回归（互斥语义由既有 outbox 行为测试全量覆盖）
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -68,3 +71,4 @@
 | R7 | #1606 | 虚拟线程 pinning 审计 + 金丝雀热路径修复（Netty 不阻塞事件循环铁律） | T2363–T2364 | 1159 | 1606 | done |
 | R8 | #1607 | RollingJsonlWriter 锁迁移（spec 1606 排队项：j.u.c 锁不 pin） | T2365–T2366 | 1160 | 1607 | done |
 | R9 | #1608 | DiskSpillStore 锁迁移（spec 1606 排队项） | T2367–T2368 | 1161 | 1608 | done |
+| R10 | #1609 | WebhookOutbox 锁迁移（spec 1606 中危 #1：dispatcher 虚拟线程放大） | T2369–T2370 | 1162 | 1609 | done |
