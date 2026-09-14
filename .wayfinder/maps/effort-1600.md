@@ -94,6 +94,9 @@
 - [R25 形状：HITL 豁免征询](../tickets/T2399-r25-exempt-shape.md) — GuardExemptionRegistry（spec 820）首个消费者：危险工具 hook 在授权检查后征询（mechanism=dangerous-tool、subject=工具名）——未过期豁免放行+审计事件，过期/撤销/无豁免恢复确认流程；GuardModule.exemptions() 暴露 grant/revoke 面
 - [R25 验收](../tickets/T2400-r25-exempt-verify.md) — 四断言（有效豁免放行/无与过期仍 block/撤销恢复 block/模块暴露 registry）+ guard 343 用例
 
+- [R26 形状：泄漏金丝雀接线](../tickets/T2401-r26-canary-shape.md) — spec 528 孤类接线：SessionCanaryHook（beforeTurn 种植确定性令牌 + afterModel 输出扫描——他会话令牌即泄漏事件）；令牌注入面留宿主（honeytoken 需放进数据才可触发——诚实边界随原注）；LayeredPolicy（1003）裁决纯函数工具豁免不清亡
+- [R26 验收](../tickets/T2402-r26-canary-verify.md) — 两断言（他会话令牌→泄漏事件+自会话回显不算/种植确定性）+ registry 既有 4 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -132,3 +135,4 @@
 | R23 | #1622 | R19 对账 NPE 修复（跨会话记档承接） | T2395–T2396 | 1175 | 1622 | done |
 | R24 | #1623 | 影子读探针接线（spec 189 孤类救活，Istio mirror 思想） | T2397–T2398 | 1176 | 1623 | done |
 | R25 | #1624 | 危险工具 HITL 豁免征询（spec 820 孤类首个消费者） | T2399–T2400 | 1177 | 1624 | done |
+| R26 | #1625 | 跨会话泄漏金丝雀接线（spec 528 孤类救活） | T2401–T2402 | 1178 | 1625 | done |

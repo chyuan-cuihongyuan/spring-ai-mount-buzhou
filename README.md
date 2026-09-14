@@ -638,6 +638,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
 | 注入防御 | 读侧 Spotlighting 包裹判定读面 | 包裹覆盖率与幂等跳过分桶显形，四桶守恒（spec 1064） | [spec 1064](docs/spec/1064-spotlight-stats.md) |
+| 沙箱治理 | Deno 沙箱探测读面 | 探测缓存命中/重探/成败双守恒显形（spec 1066） | [spec 1066](docs/spec/1066-denoprobe-stats.md) |
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
@@ -841,6 +842,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 会话治理 | 会话隔离检疫装配 | 连续失败达阈值（可配 3 缺省）→ 隔离一个指数升级冷却（30s 起 10m 封顶），隔离期 beforeTurn block 可读理由（剩 Xs）；成功复位走公共 API（hook 面不谎装自动复位）——Erlang supervisor「let it crash + 退避」思想，opt-in 默认关——spec 143 双孤类救活（spec 1621） | [spec 1621](docs/spec/1621-quarantine-wiring.md) |
 | 韧性治理 | 影子读探针接线 | 主路成功后确定性采样（sha256(key)%100）对照首个备模型——agreed/diverged 双计数 + 分歧样本环（「备模型若被启用结果是否一致」的容量预案信心面）；旁路异常全吞、会话关闭竞态 REE 防护——Istio mirror 思想，spec 189 孤类救活（spec 1623） | [spec 1623](docs/spec/1623-shadow-probe-wiring.md) |
 | 护栏治理 | 危险工具 HITL 豁免征询 | GuardExemptionRegistry 首个消费者——危险工具授权检查后征询豁免（「这条告警我看过、豁免到 T1」ESLint suppressions 思想）：未过期即放行 + guard.exemption.applied 审计事件，过期/撤销/无豁免恢复确认流程；GuardModule.exemptions() 暴露 grant/revoke——spec 820 孤类救活（spec 1624） | [spec 1624](docs/spec/1624-dangerous-tool-exemption.md) |
+| 护栏治理 | 跨会话泄漏金丝雀接线 | SessionCanaryHook——每会话种植专属确定性令牌（sha256(sessionId|salt)），afterModel 扫描模型输出：他会话令牌出现即跨会话污染信号（guard.session.leak-detected 事件），自会话回显不算；opt-in leakCanary(salt)——thinkst canarytokens 思想，spec 528 孤类救活（spec 1625） | [spec 1625](docs/spec/1625-session-canary-wiring.md) |
 
 ## 快速开始
 
