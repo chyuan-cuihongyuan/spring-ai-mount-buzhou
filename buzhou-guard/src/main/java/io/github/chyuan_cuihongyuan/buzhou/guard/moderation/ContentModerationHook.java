@@ -100,38 +100,51 @@ public class ContentModerationHook implements BuzhouHook {
 
     @Override
     public HookResult beforeTurn(TurnContext ctx) {
+        INVOCATIONS.incrementAndGet();
         String input = ctx == null ? null : ctx.input();
+        if (input == null || input.isEmpty()) {
+            NULL_SKIPS.incrementAndGet();
+            return HookResult.CONTINUE;
+        }
         List<String> hits = hitsIn(input);
         if (hits.isEmpty()) {
+            CLEAN_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         BuzhouMetricsHolder.metrics().counter("buzhou.guard.moderation.hits",
                 "seam", "input");
         if (action == Action.BLOCK) {
+            BLOCKED.incrementAndGet();
             return HookResult.block(INPUT_BLOCK_NOTICE);
         }
         String masked = mask(input);
         ctx.replaceInput(masked);
+        MASKED.incrementAndGet();
         return HookResult.CONTINUE;
     }
 
     @Override
     public HookResult afterTool(ToolCallContext ctx) {
+        INVOCATIONS.incrementAndGet();
         if (ctx == null || ctx.error() != null || ctx.result() == null) {
+            NULL_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         String content = String.valueOf(ctx.result());
         List<String> hits = hitsIn(content);
         if (hits.isEmpty()) {
+            CLEAN_SKIPS.incrementAndGet();
             return HookResult.CONTINUE;
         }
         BuzhouMetricsHolder.metrics().counter("buzhou.guard.moderation.hits",
                 "seam", "tool-output");
         if (action == Action.BLOCK) {
+            BLOCKED.incrementAndGet();
             ctx.replaceResult(TOOL_BLOCK_NOTICE);
             return HookResult.CONTINUE;
         }
         ctx.replaceResult(mask(content));
+        MASKED.incrementAndGet();
         return HookResult.CONTINUE;
     }
 
