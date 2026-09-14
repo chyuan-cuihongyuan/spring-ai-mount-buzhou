@@ -133,6 +133,12 @@ public final class GuardModule {
             h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook(
                     builder.inputFloodConfig, java.time.Clock.systemUTC()));
         }
+        // spec 1625 / T2401：跨会话泄漏金丝雀（opt-in salt 声明即装配——spec 528 接线）
+        if (builder.leakCanarySalt != null && !builder.leakCanarySalt.isEmpty()) {
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.leak.SessionCanaryHook(
+                    new io.github.chyuan_cuihongyuan.buzhou.guard.leak.SessionCanaryRegistry(
+                            builder.leakCanarySalt)));
+        }
         // impl-40 / spec 13 §T64：策略门（热加载引擎由装配/业务侧注入；默认拒语义见 PolicyGateHook）
         if (builder.policyEngine != null) {
             h.add(new PolicyGateHook(builder.policyEngine));
@@ -252,6 +258,8 @@ public final class GuardModule {
         private String toolRoleDefaultRole;
         /** spec 1612 / T2375：同输入泛洪防护（false = 不装配）。 */
         private boolean inputFloodGuard;
+        /** spec 1625 / T2401：跨会话泄漏金丝雀（null = 不装配；salt 非空即启用）。 */
+        private String leakCanarySalt;
         private io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook.Config inputFloodConfig;
 
         /** spec 1612 / T2375：启用角色工具权限守卫（permissions 声明即装配，fail-closed）。 */
@@ -279,6 +287,12 @@ public final class GuardModule {
                 io.github.chyuan_cuihongyuan.buzhou.guard.hook.InputFloodGuardHook.Config config) {
             this.inputFloodGuard = true;
             this.inputFloodConfig = config;
+            return this;
+        }
+
+        /** spec 1625 / T2401：启用跨会话泄漏金丝雀（salt 非空即装配——种植+输出扫描）。 */
+        public Builder leakCanary(String salt) {
+            this.leakCanarySalt = salt;
             return this;
         }
 

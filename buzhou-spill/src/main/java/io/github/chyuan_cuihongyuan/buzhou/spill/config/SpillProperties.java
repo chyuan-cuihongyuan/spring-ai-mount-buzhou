@@ -49,6 +49,12 @@ public record SpillProperties(
         String encryptionKey) {
 
 
+    /** spec 1517：溢写默认值单一事实源（此前 2048/20/32000 散落四处——改默认值需散弹多文件）。 */
+    public static final int DEFAULT_PREVIEW_CHARS = 2048;
+    public static final int DEFAULT_LIST_PREVIEW_ITEMS = 20;
+    public static final int DEFAULT_THRESHOLD_CHARS =
+            io.github.chyuan_cuihongyuan.buzhou.spill.SpillOffloadHook.DEFAULT_THRESHOLD_CHARS;
+
     public SpillProperties {
         String dir = System.getProperty("user.dir");
         // impl-42 / spec 13 §T68 默认值安全化：spill 数据落独立临时目录（迁移注记见 Javadoc）
@@ -57,9 +63,9 @@ public record SpillProperties(
         sandboxRoot = (sandboxRoot == null || sandboxRoot.isBlank()) ? dir : sandboxRoot;
         // impl-42 / spec 13 §T68：越界值启动即拒（fail-fast）——负值此前被静默归一（配置错而不觉）；
         // null → 规范默认（宽容只留给「未配置」）
-        previewChars = positiveOrDefault(previewChars, 2048, "preview-chars");
-        listPreviewItems = positiveOrDefault(listPreviewItems, 20, "list-preview-items");
-        thresholdChars = positiveOrDefault(thresholdChars, 32000, "threshold-chars");
+        previewChars = positiveOrDefault(previewChars, DEFAULT_PREVIEW_CHARS, "preview-chars");
+        listPreviewItems = positiveOrDefault(listPreviewItems, DEFAULT_LIST_PREVIEW_ITEMS, "list-preview-items");
+        thresholdChars = positiveOrDefault(thresholdChars, DEFAULT_THRESHOLD_CHARS, "threshold-chars");
         thresholdTokens = positiveOrDefault(thresholdTokens, null, "threshold-tokens");
         onloadEnabled = onloadEnabled == null ? true : onloadEnabled;
         copyOnWriteEnabled = copyOnWriteEnabled == null ? true : copyOnWriteEnabled;
