@@ -54,3 +54,4 @@
 - [运行状态分布与滞后审计的形状裁决](../tickets/T2159-run-status-distribution-shape.md) — RunStatusDistribution 纯函数（core/recovery）：statusHistogram 全枚举预置+runningLagMax/turnLag=崩溃暴露窗口（currentTurn−lastCompletedTurn）+worst offenders 滞后降序典序容量 3——Temporal workflow stats 思想。
 - [会话关闭耗时读数的形状裁决](../tickets/T2163-close-stats-shape.md) — SessionCloseStats 进程级静态面（公共类）：closed/closeFailures/last+maxCloseDurationMillis 水位+resetForTest；close() 埋点只增记账（清理优先/异常聚合/幂等语义逐位不变）——k8s graceful shutdown terminationGracePeriod 思想。
 - [指标命名校验器的形状裁决](../tickets/T2165-metric-name-audit-shape.md) — MetricNameAudit 纯函数（core/metrics）：validate→NameVerdict 违规闭集（EMPTY/WHITESPACE/PREFIX/SEGMENT_EMPTY/CASE/CHARS）首违不短路一次看全，段规则与 starter 门同源——Prometheus metric naming 规范思想。
+- [会话 spawn 统计读面的形状裁决](../tickets/T2167-spawn-stats-shape.md) — SessionSpawnStats 进程级静态面（公共类）：attempts/successes/collisions/steals 漏斗+守恒 attempts=successes+collisions+activePeak spawn 时点采样口径显式——HikariCP 建连统计思想，id 规划错误从静默变漏斗显形。

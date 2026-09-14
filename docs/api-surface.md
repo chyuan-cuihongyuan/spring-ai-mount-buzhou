@@ -2456,3 +2456,7 @@
 - `MetricNameAudit`（1431——Prometheus metric naming 规范思想：指标名
   校验器（buzhou. 前缀族+小写段规则与 starter 门同源）——violations 违规
   闭集首违不短路一次看全，纯函数；嵌套 `NameVerdict` 不另立面）
+
+- `SessionSpawnStats`（1432——HikariCP 建连统计思想：spawn 漏斗读数
+  attempts/successes/collisions/steals 守恒式+activePeak 活跃峰值水位
+  （spawn 时点采样口径显式），进程级静态读面；嵌套 `Snapshot` 不另立面）

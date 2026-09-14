@@ -411,6 +411,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionObserver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionQuarantine
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionQuarantineHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionResourceCustomizer
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionSpawnStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.StructuredOutputException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.StructuredOutputStats

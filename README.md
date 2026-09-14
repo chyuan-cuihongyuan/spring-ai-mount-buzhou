@@ -916,6 +916,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 观测治理 | 指标命名校验器 | MetricNameAudit——validate(name)→NameVerdict 违规闭集（EMPTY/WHITESPACE/PREFIX/SEGMENT_EMPTY/CASE/CHARS）首违不短路一次看全，段规则与 starter MetricNamingGuardTest 门同源；机制作者命名自查即时反馈——Prometheus metric naming 规范思想（spec 1431） | [spec 1431](docs/spec/1431-metric-name-audit.md) |
 
+| 会话治理 | 会话 spawn 统计读面 | SessionSpawnStats——spawn 漏斗 attempts/successes/collisions/steals 守恒式（attempts=successes+collisions）+activePeak spawn 时点活跃峰值水位（口径显式仅 spawn 路径采样）；同 id 冲突高发与抢占频次从静默变漏斗显形——HikariCP 建连统计思想（spec 1432） | [spec 1432](docs/spec/1432-session-spawn-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

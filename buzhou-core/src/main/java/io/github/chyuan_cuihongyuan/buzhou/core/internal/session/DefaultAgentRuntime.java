@@ -7,6 +7,7 @@ import io.github.chyuan_cuihongyuan.buzhou.core.session.AgentSession;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.RuntimeConfig;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException;
+import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionSpawnStats;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionEvent;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkKeys;
 import io.github.chyuan_cuihongyuan.buzhou.core.session.SpawnOptions;
@@ -418,11 +419,14 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
     }
 
     private AgentSession doSpawn(String appId, String agentName, String sessionId, SpawnOptions options) {
+        SessionSpawnStats.recordAttempt(); // spec 1433 / T2167：spawn 统计埋点（只增记账）
         LeaseAcquireResult lease = stores.sessionLeaseStore().tryAcquire(sessionId, ownerId, leaseTtl);
         if (!lease.acquired()) {
             if (!options.steal()) {
+                SessionSpawnStats.recordCollision();
                 throw new SessionAlreadyActiveException(sessionId);
             }
+            SessionSpawnStats.recordSteal();
             lease = stores.sessionLeaseStore().steal(sessionId, ownerId, leaseTtl);
         }
         SessionResourceRegistry registry = new SessionResourceRegistry();
@@ -472,6 +476,7 @@ public class DefaultAgentRuntime implements AgentRuntime, AutoCloseable {
             tracked.bind(defaultSession);
         }
         activeSessions.put(sessionId, tracked);
+        SessionSpawnStats.recordSuccess(activeSessions.size());
         options.listeners().forEach(session::addEventListener);
         globalListeners.forEach(session::addEventListener);
         // spec 522 / T795：会话生命周期事件补齐——session.opened（监听器挂载后派发，
