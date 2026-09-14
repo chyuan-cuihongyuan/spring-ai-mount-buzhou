@@ -103,6 +103,9 @@
 - [R28 形状：PII 豁免双粒度](../tickets/T2405-r28-pii-shape.md) — 820 第二消费者：工具级（该工具输出整体豁免短路）+ 类型级（type:TYPE 从生效集剔除、其余类型照脱）——「规则误报已核验」与「该数据源可信」两种生产痛点各得其所
 - [R28 验收](../tickets/T2406-r28-pii-verify.md) — 三断言（工具级原样透传/类型级 EMAIL 脱敏 PHONE 保留/无豁免基线全脱）+ guard 359 用例
 
+- [R29 形状：熔断慢调用维度](../tickets/T2407-r29-slow-shape.md) — resilience4j slow call rate 思想：withSlowCallPolicy(duration,rate) 链式注入（不扩 Config——零配置零行为），慢样本环形窗与失败窗并行，慢率或失败率任一达界开闸；无时长入账不计慢（既有语义零变化）；advisor 主路径 nanoTime 喂入
+- [R29 验收](../tickets/T2408-r29-slow-verify.md) — 五断言（未注入零行为/慢率开闸零失败前提/快调用不触发/无时长面不计慢/参数校验）+ resilience 389 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -144,3 +147,4 @@
 | R26 | #1625 | 跨会话泄漏金丝雀接线（spec 528 孤类救活） | T2401–T2402 | 1178 | 1625 | done |
 | R27 | #1626 | 中期对账审计（全仓 verify + API 快照再生 + 工件对账） | T2403–T2404 | 1179 | 1626 | done |
 | R28 | #1627 | PII 脱敏豁免双粒度（820 第二消费者） | T2405–T2406 | 1180 | 1627 | done |
+| R29 | #1628 | 熔断慢调用率维度（resilience4j slow call rate 思想） | T2407–T2408 | 1181 | 1628 | done |
