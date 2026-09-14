@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [危险工具守卫判定读面的形态裁决](../tickets/T1593-dangerous-tool-stats-shape.md) — DangerousToolGuardHook 静态六计数（invocations/disabledSkips/unmatchedSkips/authorizedSkips/exemptedSkips/escalations）+ 嵌套 DangerousToolStats + stats()/resetForTest()；守恒 invocations = 五结局桶；HITL 等待确认量量化显形（授权面对账）。
 - [工具配额消耗读面的形态裁决](../tickets/T1591-toolquota-stats-shape.md) — ToolQuotaHook 静态五计数（calls/allowed/quotaBlocks/unmanagedSkips + excludedTokens 旁路）+ 嵌套 ToolQuotaStats + stats()/resetForTest()；守恒 calls = 三结局桶；配额清单覆盖率对账（per-API quota 消耗对账）。
 - [内容安全词表双缝判定读面的形态裁决](../tickets/T1589-moderation-stats-shape.md) — ContentModerationHook 静态五计数（invocations/blocked/masked/cleanSkips/nullSkips）+ 嵌套 ModerationStats + stats()/resetForTest()；守恒 invocations = 四结局桶（双缝共用桶集）；与 micrometer 后端面互补（R57 先例）。
 - [Deno 沙箱探测读面的形态裁决](../tickets/T1587-denoprobe-stats-shape.md) — DenoSandbox 静态五计数（availableCalls/probeCacheHits/probes/probeSuccesses/probeUnavailables）+ 嵌套 DenoProbeStats + stats()/resetForTest()；双守恒 availableCalls = 缓存命中 + 重探、probes = 成功 + 不可用；probeTtl 误配 0（每调用重探）量化可见（Envoy health check statistics）。
@@ -154,7 +155,8 @@
 | 66 | Deno 沙箱探测读面（缓存命中/重探/成败双守恒） | Envoy health check statistics | T1587–T1588 | 818 | 1066 | ✅ |
 | 67 | 内容安全词表双缝判定读面（blocked/masked + 两跳过桶守恒） | OpenAI moderation 双缝对账 | T1589–T1590 | 819 | 1067 | ✅ |
 | 68 | 工具配额消耗读面（allowed/quotaBlocks/unmanaged 三桶守恒） | per-API quota 消耗对账 | T1591–T1592 | 820 | 1068 | ✅ |
-| 69 | （开工时按缺口核查选题） | — | T1593–T1594 | 821 | 1069 |  |
+| 69 | 危险工具守卫判定读面（五结局桶守恒含 escalations） | HITL 授权面对账 | T1593–T1594 | 821 | 1069 | ✅ |
+| 70 | （开工时按缺口核查选题；**R70 周期预检轮**） | — | T1595–T1596 | 822 | 1070 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
