@@ -835,6 +835,7 @@ M 会话（effort #1500+ 号段，借鉴 GitHub >10K star 项目）增量：
 | 文档门禁 | memory/spill 公开类型类级 Javadoc 补齐（五-1 扩散） | 40 个零类级 Javadoc 公开类型（memory 21+spill 19）全部补齐角色一句话——R4 core 门的地模块扩散（spec 1529） | [spec 1529](docs/spec/1529-memory-spill-javadoc.md) |
 | 文档门禁 | 类级 Javadoc 全仓收口（五-1 终轮） | 8 个补齐（AutoConfig×3+JdbcStore 五 SPI 实现——契约消费方可见面）；core 六包外 30 个裁定不补（internal 实现域，门辖界=语义 API 承诺面）（spec 1530） | [spec 1530](docs/spec/1530-javadoc-final-sweep.md) |
 | 测试门禁 | 瞬断重试装配链测试（spec 1511 补账） | enabled 声明即 Holder 生效四断言 + 缺省零装配；装配测试当场实证并修复 Duration 转换缺陷（DurationStyle 宽松解析 1s/250ms+ISO，非法 fail-fast）（spec 1531） | [spec 1531](docs/spec/1531-retry-assembly-test.md) |
+| 测试门禁 | 批预算装配链测试（spec 1526 补账） | 三用例——值声明透传/显式 0 仍装配但语义关（条件命中与语义开关解耦）/缺省零装配；M 系三个 Holder 装配测试全覆盖（spec 1532） | [spec 1532](docs/spec/1532-batch-budget-assembly-test.md) |
 
 ## 生产级纵深 XII（N 会话 1600 系增量）
 
