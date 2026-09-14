@@ -153,7 +153,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.RagasEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.SessionTrajectoryImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WilsonInterval
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BackendLanePermit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CanaryToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CancellationToken
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftHolder
@@ -163,11 +165,13 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunPlanJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.GradientLimiterHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LaneLimitingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LintSeverityGrader
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.MemoizedToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
@@ -715,6 +719,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ModelCallTimeou
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderErrorClassifier
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderRateLimitSignals
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ResilienceModule
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.JitterMode
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCallInFlight
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver
