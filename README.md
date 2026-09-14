@@ -810,6 +810,40 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 观测治理 | Hook 顺序碰撞审计 | HookOrderAudit——钩子清单同序碰撞组显形：组内名字典序（=ChainComposition 兜底序，重命名即变序的装配脆性）、组间 order 升序、唯一 order 不占报告；修复=显式错开 order——Spring ordered-bean 审计思想（spec 1422） | [spec 1422](docs/spec/1422-hook-order-audit.md) |
 
+| 工具计量 | 命令黑名单拦截判定读面 | 黑名单命中/放行比显形，二桶守恒（spec 1051） | [spec 1051](docs/spec/1051-blacklist-stats.md) |
+| 工具计量 | run_command 执行结果分布读面 | 执行结局九桶守恒，参数/运行时分轴（spec 1052） | [spec 1052](docs/spec/1052-runcommand-stats.md) |
+| 溢出治理 | evict_handle 逐出判定读面 | 模型主动逐出采用率与拒绝分桶显形，三桶守恒（spec 1053） | [spec 1053](docs/spec/1053-evict-stats.md) |
+| 溢出治理 | str_replace 编辑判定读面 | 编辑成功与 notFound/ambiguous 失败模式分桶显形，六桶守恒（spec 1054） | [spec 1054](docs/spec/1054-strreplace-stats.md) |
+| 记忆治理 | 情景记忆读写双守恒读面 | 情景库写入量与召回命中率显形，双守恒（spec 1055） | [spec 1055](docs/spec/1055-episodic-stats.md) |
+| 模型韧性 | 崩循环探测器类级水位读面 | OPEN 总量/封顶截断量/循环检出/恢复四计数显形（spec 1056） | [spec 1056](docs/spec/1056-crashloop-watch-stats.md) |
+| 技能治理 | skill_search 搜索判定读面 | 搜索命中率与零结果率显形，四桶守恒（spec 1057） | [spec 1057](docs/spec/1057-skillsearch-stats.md) |
+| MCP 治理 | 工具集轮询提供器读面 | 热更新轮询三桶守恒显形，失败率可对账（spec 1058） | [spec 1058](docs/spec/1058-toolsetpoll-stats.md) |
+| 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
+| 工程门禁 | core 零覆盖尾巴清扫（K 会话 R4） | 判据收紧 miss≥5→miss≥1 后复扫：AttachmentRenderer default 截断合同四断言 + CommandOutcome success 谓词矩阵（超时优先于退出码）；core 证据改走隔离 worktree（spec 1203） | [spec 1203](docs/spec/1203-core-zero-tail-sweep.md) |
+| 工程门禁 | SnapshotMessage 补测与跨模块复核（K 会话 R5） | 收紧判据残留归口：compact 构造 null 防御 + Map.copyOf 拷贝语义合同；六小模块 miss≥1 复扫清单化（spec 1204） | [spec 1204](docs/spec/1204-snapshot-message-tightened-sweep.md) |
+| 工程门禁 | K 会话周期对账轮 R6 | 全仓 verify（隔离 worktree CI 等价门）+ K 线工件链五项对账（spec/README/票/impl/map）——SRE Production Readiness Review 思想，R7 起对账/雾区交替（spec 1205） | [spec 1205](docs/spec/1205-k-audit-r6.md) |
+| 会话治理 | SessionObserver 通知面异常隔离 | DefaultAgentSession 12 处观察者裸 forEach 通知点统一改走 notifyObservers 隔离派发——单观察者异常记 ERROR 后继续其余观察者、不向上传播（onOpen 未隔离时观测组件缺陷可炸掉会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想（spec 1500） | [spec 1500](docs/spec/1500-observer-notify-isolation.md) |
+| 会话治理 | HookChain 事件通知面逐 hook 隔离 | fireEvent（通知面，无裁决语义）链内逐 hook try/catch——单 hook onEvent 异常不再吞掉其余 hook 的事件消费，计时 try/finally 仍入账；run() 裁决面 fail-fast 治理语义不动——通知面/裁决面分离（spec 1501） | [spec 1501](docs/spec/1501-hook-event-notify-isolation.md) |
+| 观测治理 | 计时聚合器双子实例清零面 | HookTimingAggregator / ToolTimingAggregator 各补公开 reset()——Holder.reset() 只关聚合不清实例账，stats()/windowedMax() 此前只增不减（测试基线污染、长生命周期进程无法重建观测基线）——Prometheus counter reset 语义（spec 1502） | [spec 1502](docs/spec/1502-aggregator-reset.md) |
+| 文档门禁 | 核心 API 包类级 Javadoc 覆盖门 | 32 个内核公共类型（AgentSession/BuzhouHook/HookResult/HarnessToolCallingManager 等）补类级 Javadoc + CoreApiJavadocCoverageTest 纪律变测试——六包新公共类型无 Javadoc 即 CI 红，注解夹层感知（spec 1503） | [spec 1503](docs/spec/1503-core-api-javadoc-gate.md) |
+| 工具治理 | BuzhouTool destructive 风险注解 | @BuzhouTool 加 destructive()（MCP tool annotations destructiveHint 思想——工具自描述风险），write_file/run_command/http_request 标注；ToolsModule 危险名单从三处手工登记改为注解扫描驱动（行为等价），新工具标注即自动进 HITL 清单（spec 1504） | [spec 1504](docs/spec/1504-destructive-tool-annotation.md) |
+| 评估治理 | 评估 run 协作式取消 | EvalRunner.requestCancel()——宿主发现数据集配错/方向不对时立即止损（此前只能跑完全程或等自动止损）；项边界生效（K8s Job 删除传播语义：在飞项做完、未启动项标 cancelled），串行/并行统一，run 开始清零防残留污染（spec 1505） | [spec 1505](docs/spec/1505-eval-run-cancel.md) |
+| 评估治理 | A/B 对比 run 宿主取消（spec 1505 扩散） | PairwiseEvalRunner.requestCancel()——A/B 双 runtime 成本翻倍时同样可主动叫停；未起项复用 skipped 桶（与 SPRT 达界停同位），summary.hostCancelled 布尔区分统计达界停与宿主叫停（9/7 参兼容构造器保留，序列化仅取消 run 落位）（spec 1506） | [spec 1506](docs/spec/1506-ab-run-cancel.md) |
+| 安全治理 | MCP 危险工具默认动词模式（S1 硬偏差修复） | buzhou.mcp.dangerous-tool-patterns 缺省从空改为 spec 14 §F 承诺的七动词前缀 glob（delete/drop/write/update/remove/send/exec）——恶意 server 的写侧工具默认进登记面；显式空列表 = 关闭逃生门（design-incompleteness S1 闭环）（spec 1507） | [spec 1507](docs/spec/1507-mcp-default-dangerous-patterns.md) |
+| 安全治理 | 危险工具默认 HITL 自动带入桥（S2 硬偏差修复） | core DangerousToolRegistry 进程级桥（模块解耦不破白名单）——tools 装配后灌注危险名单，guard afterName 保时序默认并入三参 HITL 条目（yml 显式优先去重）；opt-in 开 write_file 即得默认审批拦截（spec 1508） | [spec 1508](docs/spec/1508-dangerous-tool-bridge.md) |
+| 韧性观测 | canary.selected 事件会话归属补齐（F7）+ spec 07 续跑名回写（F10） | payload 补 sessionId（多会话监听面可定位，常量 Javadoc 自钉「sessionId + model」此前未兑现）；spec 07 的 AgentSession.resume() 推演名回写指向 SessionInterrupts.resumeWith（功能等价）——design-incompleteness F 系清扫轮（spec 1509） | [spec 1509](docs/spec/1509-canary-payload-f7-f10.md) |
+| 韧性缓存 | 语义缓存 LFU 采样驱逐 | 驱逐从纯 eldest 升级为采样窗口内最低命中数先出（平局取老保 LRU 底线），热 FAQ 条目不被一次性扫描写入冲刷；hotPreservedCount 观测采样实效率——Redis allkeys-lfu + maxmemory-samples 思想（spec 1600） | [spec 1600](docs/spec/1600-semantic-cache-lfu-sampling.md) |
+| MCP 治理 | 连接最大寿命 | 到寿 ACTIVE 连接退役重建（复用探活失败同款排水+原样重建口径），在飞调用推迟下轮（归还时退役语义）——防长连接状态腐化/漂移累积；HikariCP maxLifetime 思想（spec 1601） | [spec 1601](docs/spec/1601-mcp-connection-maxlifetime.md) |
+| 韧性治理 | 熔断启动宽限期 | 进程冷启动期（circuit.warmup）跳闸判定豁免——建连/TLS/预热抖动不计开闸，窗口照记、成功照常冲淡；宽限结束已积累样本立即恢复完整判定（真故障仍跳），warmupSuppressedCount 观测启动抖动量——K8s startupProbe 思想（spec 1602） | [spec 1602](docs/spec/1602-circuit-warmup.md) |
+| 工具治理 | http_request per-host 并发上限 | 同 host 在飞请求超上限快速失败（拒绝不排队——保护目标服务与本进程连接资源不被单 host 打满）；hostLimitRejects 第七拒绝桶进守恒式——Nginx limit_conn 思想（spec 1603） | [spec 1603](docs/spec/1603-http-perhost-limit.md) |
+| 韧性缓存 | 响应缓存 stale-if-error | stale-window 内过期条目保留——模型调用失败（熔断/网络/供应商故障）时旧响应救场不抛（staleReads 可观测），无救场条目异常照抛；流式不救场（out-of-scope）——Varnish grace / RFC 5861 思想（spec 1604） | [spec 1604](docs/spec/1604-response-cache-stale-if-error.md) |
+| 评估闭环 | A/B 评估 SPRT 序贯提前终止 | 显著优势早现即停——符号检验 LLR 越界（α=0.05/β=0.10 可配）即停止剩余项（skipped 桶诚实分离，sprtDecision 入 summary/落盘/事件）；平局不进检验分母；未启用零变化——Wald SPRT / GrowthBook sequential testing 思想（spec 1605） | [spec 1605](docs/spec/1605-pairwise-sprt-early-stop.md) |
+| 并发健康 | 虚拟线程 pinning 审计 + 金丝雀热路径修复 | 全仓 synchronized-IO 审计（高危 6 组/中危 11 组入档 spec）+ Top1 修复：CanaryToolCallback 路由三段式——monitor 只护决策与计数、工具执行移锁外（锁内远程调用钉住载体线程且串行化并行工具调用）——Netty「不阻塞事件循环」铁律 / JDK21 虚拟线程 pinning（spec 1606） | [spec 1606](docs/spec/1606-vthread-pinning-audit.md) |
+| 并发健康 | RollingJsonlWriter 锁迁移 | appendLine/close/bytesWritten 的 monitor → ReentrantLock（互斥语义零变；磁盘写+flush+轮转 gzip 在虚拟线程下 unmount 而非 pin）——spec 1606 审计排队项落地（spec 1607） | [spec 1607](docs/spec/1607-rolling-jsonl-reentrantlock.md) |
+| 并发健康 | DiskSpillStore 锁迁移 | store/usage 的 monitor → ReentrantLock（「一次调用一次 spill」互斥不变；MB 级写盘+walk 在虚拟线程下 unmount 而非 pin）——spec 1606 审计高危 #3 落地（spec 1608） | [spec 1608](docs/spec/1608-disk-spill-reentrantlock.md) |
+| 并发健康 | WebhookOutbox 锁迁移 | append/appendRetry/orphanIndexCount/requeueDead 的 monitor → ReentrantLock wrapper（锁内 store put/scan 在虚拟线程 dispatcher 下 unmount 而非 pin）——spec 1606 审计中危 #1 落地（spec 1609） | [spec 1609](docs/spec/1609-webhook-outbox-reentrantlock.md) |
+| 韧性治理 | 离群驱逐生产接线 + 分类感知 | spec 149 原语自 R11 前为未接线孤类（生产零调用）——advisor 全路径喂入（主/金丝雀/降级候选成败）+ 备模型候选驱逐过滤 + outlier.enabled 进程级装配（opt-in）；分类感知：failureCategories 默认 NETWORK/SERVER/TIMEOUT（AUTH/CONTENT 驱赶端点无意义——熔断同口径）（spec 1610） | [spec 1610](docs/spec/1610-outlier-ejection-wiring.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
