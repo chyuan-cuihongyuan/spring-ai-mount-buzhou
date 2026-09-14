@@ -29,7 +29,7 @@ R6 评估确定性种子台账(FoundationDB deterministic simulation ≈15K)→c
 R7 EWMA 自适应超时(Envoy timeout budget / Finagle ≈26K)→resilience｜
 R8 工具调用 single-flight 合并(Go sync/singleflight, golang ≈130K)→tools【高危待勘】｜
 R9 Spill 压缩债务水位(RocksDB pending compaction ≈30K)→spill【高危待勘 vs 815】｜
-R10 租约看门狗续租审计(Redisson watchdog ≈36K)→core【高危待勘 SessionLease】｜
+R7 ✅ 换题落地=租约续期健康读面（R10 题提前；原 R6 序列缺口无源换出）｜
 R11 首 token 延迟 TTFT 分位读数(vLLM metrics ≈40K)→core/observability【高危待勘流式】｜
 R12 护栏判定混淆矩阵读面(scikit-learn ≈21K)→guard【高危待勘 vs 判定分桶族】｜
 R13 嵌入维度漂移审计(FAISS dim check ≈33K)→resilience【高危待勘 vs 804】｜

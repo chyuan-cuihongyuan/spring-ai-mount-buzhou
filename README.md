@@ -767,6 +767,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 观测治理 | 查询页守卫与游标可读化 | DashboardQueryService——实证修复 listSessions 零钳制缺陷（size=1000 万即无界读 store、size≤0 subList 异常）+两路径裸 NFE 游标解析：MAX_PAGE_SIZE=200 常量钳制+可读 IAE，翻页语义逐位不变——Grafana query limit 思想（spec 1405） | [spec 1405](docs/spec/1405-dashboard-query-page-guard.md) |
 
+| 会话治理 | 租约续期健康读面 | SessionLeaseGuard.renewalStats()——续期 failures/成功 renewals 双计数+续期时剩余租期最小水位（调度饿死/存储抖动收窄信号）+末次续期时刻+lost 终态，语义逐位不变——Redisson watchdog 健康审计思想（spec 1406） | [spec 1406](docs/spec/1406-lease-renewal-readout.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
