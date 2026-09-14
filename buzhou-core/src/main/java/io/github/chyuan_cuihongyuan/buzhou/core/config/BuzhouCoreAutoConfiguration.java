@@ -1567,9 +1567,13 @@ public class BuzhouCoreAutoConfiguration {
             throw new IllegalStateException("buzhou.leak.lease-age-threshold 非法：\"" + thresholdText
                     + "\"（支持 5m/PT5M 两种格式，须为正时长）", e);
         }
+        // spec 1615 / T2381：泄漏疑似聚合复合进 listener 链（spec 839 孤类接线——
+        // 宿主 listener 与聚合器都收；聚合排行经 LeakSuspectHolder.report() 读出）
         io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector detector =
                 new io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector(
-                        level, threshold, listener.getIfAvailable());
+                        level, threshold,
+                        io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakSuspectHolder
+                                .compositeWith(listener.getIfAvailable()));
         io.github.chyuan_cuihongyuan.buzhou.core.leak.LeakDetectorHolder.install(detector);
         return detector;
     }

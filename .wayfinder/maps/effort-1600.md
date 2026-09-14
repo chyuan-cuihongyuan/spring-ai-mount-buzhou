@@ -64,6 +64,9 @@
 - [R15 形状：指标新鲜度接线](../tickets/T2379-r15-freshness-shape.md) — spec 802 孤类修复第四弹：metrics 装配链恒包 MetricFreshnessTracker（有界 512 名纯旁路）+ MetricFreshnessHolder 静态 audit 面
 - [R15 验收](../tickets/T2380-r15-freshness-verify.md) — 装饰写入 touch + audit 报陈旧（active/dead 分离年龄断言）+ 未装配 empty + 既有 6 用例零回归
 
+- [R16 形状：泄漏聚合接线](../tickets/T2381-r16-leakagg-shape.md) — spec 839 孤类修复第五弹：LeakSuspectHolder.compositeWith 把聚合器复合进检测器 listener 链（宿主 listener 与聚合器都收），装配处一行替换
+- [R16 验收](../tickets/T2382-r16-leakagg-verify.md) — 复合双收断言（host 3 次 + 聚合排行 count/maxAge）+ null 宿主仅聚合器 + 既有 4 用例零回归
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -92,3 +95,4 @@
 | R13 | #1612 | guard 孤类装配面（spec 141/167 两 hook 救活） | T2375–T2376 | 1165 | 1612 | done |
 | R14 | #1613 | 工具目录漂移看门狗接线（spec 201 孤类救活） | T2377–T2378 | 1166 | 1613 | done |
 | R15 | #1614 | 指标新鲜度追踪接线（spec 802 孤类救活） | T2379–T2380 | 1167 | 1614 | done |
+| R16 | #1615 | 泄漏疑似聚合接线（spec 839 孤类救活） | T2381–T2382 | 1168 | 1615 | done |
