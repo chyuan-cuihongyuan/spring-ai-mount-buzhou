@@ -23,6 +23,7 @@
 
 - [SessionObserver 通知面异常隔离收口的形状裁决](../tickets/T2251-observer-notify-isolation-shape.md) — DefaultAgentSession 12 处观察者裸 forEach 通知点（onOpen/onTurnStart×2/onTurnEnd×3/onTurnError×5/onCancel）统一改走 notifyObservers 隔离派发：单个观察者 RuntimeException 记 ERROR 日志后继续其余观察者、不向上传播（onOpen 在构造器尾部未隔离时观测组件缺陷可炸掉整个会话构造且半初始化泄漏）——Guava EventBus SubscriberExceptionHandler 思想；impl-30 的 onClose/deliverEvent 隔离先例在 observer 其余回调面的补全；onClose 既有失败收集聚合语义不动。
 - [HookChain 事件通知面逐 hook 异常隔离的形状裁决](../tickets/T2253-hook-event-isolation-shape.md) — 通知面/裁决面分离：fireEvent（返回 void、无 Block/Replace 裁决语义）链内逐 hook try/catch 隔离 + 计时 try/finally 入账；run() 裁决面保持 fail-fast 治理语义（治理点异常必须可见）；deliverEvent 链级隔离与链内隔离形成两级防护。
+- [spec 07 回写与序位常量化的形状裁决](../tickets/T2283-spec07-order-consts-shape.md) — spec 07 三处六→七切面；四处 order 魔法值常量化（同值零行为）；CounterAtomicitySpreadTest 经 N 会话承接修复（commit 30197389 引用 M 系 spec1513 记档——跨会话协作闭环确认）。
 - [降级存储契约对齐与机制计数口径的形状裁决](../tickets/T2281-store-contract-align-shape.md) — redis 版补 degrade 指标（jdbc impl-41 先例同款，六-1 契约漂移修复）；README 升十大机制（七-1 取「README 升」——韧性层已是生产纵深主力域）。
 - [SHA-256 裸异常迁移与死代码清扫的形状裁决](../tickets/T2279-sha256-exception-shape.md) — 全量重扫 11 处（清单后又长出 5 处同型）统一 BuzhouException(CONFIG_INVALID)（spec 50 §A 先例形态）；verifySignature 零调用删除（逻辑已迁 AuditChainVerifier）。
 - [中断与异常上下文卫生轮的形状裁决](../tickets/T2277-interrupt-context-hygiene-shape.md) — mcp shutdown 吞 InterruptedException 不恢复（五-4，R5 审计漏网：一把抓把中断包进去）收窄+恢复+break；DiskSpillStore 9 处裸 message 补上下文（五-8）；HEAD 既有 CounterAtomicitySpreadTest 失败（TokenBudgetHook NPE）记档留归属会话。
@@ -64,6 +65,7 @@
 | 15 | 中断与异常上下文卫生轮（mcp shutdown 中断恢复 + DiskSpillStore 9 处上下文） | design-incompleteness 五-4/五-8 | T2277–T2278 | 1116 | 1513 | ✅ |
 | 16 | SHA-256 裸异常迁移 CONFIG_INVALID（11 处，较清单多 5）+ 审计死代码删除 | design-incompleteness 四-4/六-2 部分 | T2279–T2280 | 1117 | 1514 | ✅ |
 | 17 | 降级存储契约对齐（redis 补 degrade 指标）+ 机制计数口径统一（九大→十大） | design-incompleteness 六-1/七-1 | T2281–T2282 | 1118 | 1515 | ✅ |
+| 18 | spec 07 七切面回写 + 四处序位常量化（N 会话承接 CounterAtomicity 修复闭环确认） | design-incompleteness 四-5/五-6 部分 | T2283–T2284 | 1119 | 1516 | ✅ |
 
 
 ## Out of scope

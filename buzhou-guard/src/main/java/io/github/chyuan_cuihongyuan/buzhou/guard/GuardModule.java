@@ -42,6 +42,8 @@ import java.util.Set;
 public final class GuardModule {
 
     private final List<BuzhouHook> hooks;
+    /** spec 1624 / T2399：豁免登记（危险工具 HITL 征询面；宿主经 exemptions() grant/revoke）。 */
+    private final GuardExemptionRegistry exemptions;
     private final GuardAuthApi authApi;
     private final AttachmentRenderer attachmentRenderer;
     private final FactStore factStore;
@@ -60,8 +62,11 @@ public final class GuardModule {
                 : new io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore(
                         new DefaultFactStore(builder.stores.sessionStateStore()), builder.factDecay);
         List<BuzhouHook> h = new ArrayList<>();
+        this.exemptions = new GuardExemptionRegistry();
         if (builder.enabled) {
-            h.add(new DangerousToolGuardHook(config, builder.stores.sessionStateStore()));
+            // spec 1624 / T2399：危险工具 HITL 豁免征询接线（registry 首个消费者）
+            h.add(new io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHook(
+                    config, builder.stores.sessionStateStore(), exemptions));
         }
         if (builder.canaryGuard) {
             h.add(builder.canaryToken == null
@@ -175,6 +180,11 @@ public final class GuardModule {
     /** spec 727：已挂 hook 列表（包内观测面——装配测试断言缝）。 */
     java.util.List<BuzhouHook> hooksView() {
         return hooks;
+    }
+
+    /** spec 1624 / T2399：豁免登记面（grant「这条告警我看过、豁免到 T1」/ revoke / snapshot）。 */
+    public GuardExemptionRegistry exemptions() {
+        return exemptions;
     }
 
     /** 事实 Attachment 渲染器（供 memory 注入视图构建方注入事实块）；无采集器时返回 null。 */

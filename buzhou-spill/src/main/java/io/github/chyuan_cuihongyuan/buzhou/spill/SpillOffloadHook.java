@@ -18,7 +18,10 @@ import java.util.function.Function;
 
 public class SpillOffloadHook implements BuzhouHook {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+     /** Hook 序位（spec 1516 常量化）：写侧护栏最先（100）——长产物在进上下文前即溢写。 */
+    private static final int HOOK_ORDER = 100;
+
+   private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final int DEFAULT_THRESHOLD_CHARS = 32000;
 
     /** 读侧 onFail=REFRAIN 时的保守降级文案（不给可能残缺的数据，让模型可重试）。 */
@@ -53,7 +56,7 @@ public class SpillOffloadHook implements BuzhouHook {
 
     @Override
     public int order() {
-        return 100;
+        return HOOK_ORDER;
     }
 
     @Override

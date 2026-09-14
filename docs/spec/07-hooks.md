@@ -6,7 +6,7 @@
 
 蓝本论证：prompt 是软约束，长文本截断（物理 token 约束）、未授权操作（模型不区分可逆性）、上下文失忆（模型追求最短路径）三类问题只能在框架层代码级确定性兜底。本篇把这套护栏体系落成 Spring AI 2.0 上的框架能力：
 
-1. **Hook 链框架与推理循环解耦**——六切面 + 一通知通道，业务实现接口注册为 Bean 即挂入，新增/删除 Hook 主流程零改动。
+1. **Hook 链框架与推理循环解耦**——七切面 + 一通知通道（design-incompleteness 四-5 回写：spec 15 落地 onModelError 后由六扩七），业务实现接口注册为 Bean 即挂入，新增/删除 Hook 主流程零改动。
 2. **全机制吃狗粮（Dogfooding）**——Spill offload、写侧 Onload、副本分离拦截、HITL 守卫、FactCollector、可观测采集全部实现为内置 Hook，机制与框架同构，业务可参照、禁用、替换。
 3. **失败语义按代价方向编码**——读侧 offload 失败降级透传（不阻断），写侧 onload 失败阻断调用（杜绝残缺产物外流），非对称语义内建于框架默认。
 4. **不可逆操作框架层物理走不通**——未获真实用户授权，危险工具在 beforeTool 切面被拦死；授权持久化，跨实例续跑可放行。
@@ -19,7 +19,7 @@
 | 术语 | 说明 |
 |---|---|
 | Hook 链（Hook Chain） | 框架在模型调用与工具调用前后暴露的 Callback 切面，护栏逻辑挂于其上。见 CONTEXT.md |
-| 切面（Aspect） | Hook 的一个挂接时机（beforeTool 等）；本库六切面 + 一通知通道 |
+| 切面（Aspect） | Hook 的一个挂接时机（beforeTool 等）；本库七切面 + 一通知通道（onModelError 见 spec 15） |
 | 短路（Short-circuit） | Hook 返回非 CONTINUE 结果，中断后续 Hook 与被挂接动作 |
 | 引用句柄（Reference Handle） | 长内容落盘后留在上下文中的指针文案（含路径与操作指引）。见 CONTEXT.md |
 | Offload（读侧卸载） | afterTool 将超长工具结果落盘、上下文留引用句柄；= Spill 的 Hook 化实现，不分两层 |
@@ -50,7 +50,7 @@ flowchart TD
     EV[[onEvent 通知通道<br/>会话事件监听器透出]] -. 贯穿全程 .- BM
 ```
 
-本库六切面 + 一通知通道，与 DECO 文章（Java ADK）七切面的映射对照：
+本库七切面 + 一通知通道（spec 15 增 onModelError 后对齐 DECO 七切面），映射对照：
 
 | DECO 切面 | 本库切面 | Spring AI 2.0 挂接点 | 典型用途 |
 |---|---|---|---|

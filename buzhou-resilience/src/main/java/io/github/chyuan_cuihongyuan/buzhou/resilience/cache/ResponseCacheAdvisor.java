@@ -26,7 +26,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ResponseCacheAdvisor implements BaseAdvisor {
 
-    private final ResponseCacheStore store;
+     /** Advisor 链位（spec 1516 常量化）：memory(+400) 之后、语义缓存(+460) 之前。 */
+    private static final int ADVISOR_ORDER_OFFSET = 450;
+
+   private final ResponseCacheStore store;
     private final String modelName;
     /** spec 641：可空——coalescing 关（缺省）时既有路径零变化。 */
     private final ResponseCacheCoalescer coalescer;
@@ -49,7 +52,7 @@ public class ResponseCacheAdvisor implements BaseAdvisor {
 
     @Override
     public int getOrder() {
-        return ToolCallingAdvisor.DEFAULT_ORDER + 450;
+        return ToolCallingAdvisor.DEFAULT_ORDER + ADVISOR_ORDER_OFFSET;
     }
 
     public ResponseCacheStore store() {
