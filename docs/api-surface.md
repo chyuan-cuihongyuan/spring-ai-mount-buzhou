@@ -2382,3 +2382,8 @@
   水位读数——queueDepth 历史峰值 depthWatermark+BLOCK 策略限时等待推入
   blockedPushes，进程级静态读面（BufferedEventDispatcher 只增记账埋点）；
   嵌套 `Snapshot` 不另立面）
+
+- `InstrumentedUnitOfWork`（1416——pg_stat_database xact + Seata 事务度量
+  思想：UnitOfWork opt-in 计量装饰器——begun/completed/failed/inFlight
+  守恒+失败异常类 Top 榜（有界 8 并 OTHERS）+异常透传+deleteSession 透传；
+  嵌套 `Snapshot` 不另立面）

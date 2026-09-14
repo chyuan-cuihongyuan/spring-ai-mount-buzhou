@@ -796,6 +796,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 观测治理 | 事件积压水位读数 | EventBackpressureStats——queueDepth 历史峰值水位+BLOCK 策略限时等待推入累计（&gt;0=容量曾打满），进程级静态读面+分发器只增记账埋点，EventBusStats 公共 record 不改形——Kafka consumer lag 思想（spec 1415） | [spec 1415](docs/spec/1415-event-backpressure-stats.md) |
 
+| 持久化 | 事务计量装饰器 | InstrumentedUnitOfWork——UnitOfWork opt-in 包装：begun/completed/failed/inFlight 守恒+失败异常类 Top 榜（有界 8 并 OTHERS），异常原样上抛、deleteSession 透传，全部 SPI 实现可包——pg_stat_database xact + Seata 事务度量思想（spec 1416） | [spec 1416](docs/spec/1416-instrumented-unit-of-work.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

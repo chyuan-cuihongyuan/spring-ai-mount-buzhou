@@ -79,7 +79,7 @@ S4 Redis 慢命令榜(Redis SLOWLOG ≈68K)→store-redis【vs J T1453 tool 侧�
 S5 会话导出字节水位(restic backup size stats ≈31K)→core｜
 S6 嵌入批延迟分位(sentence-transformers ≈17K)→resilience【vs 828】｜
 S7 MCP 重连退避抖动检测(gRPC channelz backoff ≈43K)→mcp【vs 840】｜
-S8 JDBC 连接借还配对审计(HikariCP leak detection ≈20K)→store-jdbc【vs 828，借还失配轴】｜
+S8 → 已由 R17 替代路径占用（事务计量装饰器）｜
 S9 评估运行进度条读面(tqdm ≈30K 思想：done/total/eta 纯读面)→core【vs I prune】｜
 S10 会话归档分层命中率(S3 lifecycle, MinIO ≈52K)→spill【vs S35】。
 
