@@ -435,6 +435,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.StateEntry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.StoreLatencyRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.StructuredSummary
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SummaryStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.SummaryVersionAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.TimedMessageStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.TokenEstimator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.ToolSetProvider
