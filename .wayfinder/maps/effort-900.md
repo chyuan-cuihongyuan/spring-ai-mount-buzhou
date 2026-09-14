@@ -57,9 +57,11 @@
 - [数据集输入长度画像](../tickets/T1327-input-profile-shape.md) — EvalDatasetStore.inputLengthProfile（count/totalChars/avgChars/maxChars/p95Chars，R-7 同口径内联）——评估成本画像，超长项与预算失控点探测（票号改号：T1317/T1318 与 spec 937 冲突）。
 - [k 次防抖门](../tickets/T1329-stable-gate-shape.md) — EvalGate.enforceStable（k 次全过才过 + 早停 + k≤HISTORY_CAPACITY 校验）——flaky 误报防护的从严门，复用既有管线全继承。
 - [工具调用结局分布读面](../tickets/T1329-outcome-stats-shape.md) — ToolCallOutcomeStats.stats 四桶+other 收容桶（守恒不破枚举扩展）——spec 50 日志的根因分诊聚合面（TIMEOUT 高=超时配置，CANCELLED 高=取消风暴）。
+- [write_file noclobber 防误覆盖](../tickets/T1337-noclobber-shape.md) — WriteFileTool opt-in noclobber（写盘前 Files.exists 守门零副作用，失败路径不留 tmp/不建目录）——csh set -C / cp -n 防误覆盖语义（模型误覆盖不可恢复显形化）。
 - [gate 阈值漂移读面](../tickets/T1319-threshold-drift-shape.md) — EvalGate.thresholdDrift（相邻判定 threshold 变化次数 + sampled 投影）——「CI 红了就调阈值」流程不健康信号显形（914 历史面聚合视图）。
 - [会话索引存量水位读面](../tickets/T1301-index-watermark-shape.md) — InMemorySessionIndexStore.watermark（indexedSessions + maxSessions=-1 显式无界）——spec 924 同构扩散，索引贴顶=新会话不可发现前兆。
 - [快照数据集隔离性深验](../tickets/T1333-snapshot-isolation-shape.md) — 三断言（源变靶不变/删源靶活/nextId 续起不碰撞）——薄加固轮（spec 187 隔离语义收口）。
+- [摘要存储水位读面](../tickets/T1329-summary-watermark-shape.md 之外独立) — InMemorySummaryStore.watermark（activeSessions/maxSessions）——水位系列第三站（spec 950）。
 - [outbox 重试次数分布读面](../tickets/T1321-index-contract-shape.md 之外独立票) — WebhookOutbox.retryDistribution（attempts 分桶 TreeMap 升序 + appendRetry 包级退避落盘 + entry 包级可见性）——重试积压结构可见（spec 948）。
 - [ElasticBudgetPool 并发守恒压测](../tickets/T1309-h2-lease-contract-shape.md 之外独立) — 8 线程×500 借还 Σheld+surplus==capacity 守恒 + base 保底不吃borrow + budget 域容量不灭不失（G r47 压测模式；spec 947 前插随轮补）。
 - [事实衰减预报读法](../tickets/T1299-decay-forecast-shape.md) — FactDecayPolicy.turnsUntilFloor（逆函数 ⌈h×log2(conf/floor)⌉ + floor=0 永不衰出 MAX_VALUE）——predict_linear 同思路（对象 fact 生命周期），衰减预警→主动 reinforce。
@@ -111,6 +113,8 @@
 | 46 | outbox 重试次数分布读面 | 重试积压结构可见 | T1319–T1320 号段复用注记 | 695 | 948 | ✅ |
 | 47 | ElasticBudgetPool 并发守恒压测 | G r47 压测模式 | T1321–T1322 号段复用注记 | 696 | 947 | ✅ |
 | 48 | 快照数据集隔离性深验 | G 深验模式 | T1333–T1334 | 697 | 949 | ✅ |
+| 49 | 摘要存储水位读面（水位系列第三站） | 水位系列同构 | T1335–T1336 号段修正 | 698 | 950 | ✅ |
+| 50 | write_file noclobber 防误覆盖 | csh set -C / cp -n | T1337–T1338 | 698 已被 49 轮占用→改 691 续段实际=698b | 951 | ✅ |
 | 33 | 剪枝 run 有效通过率口径 | 双口径显式并存 | T1323–T1324（原 T1305–T1306 双占用改号） | 685 | 933 | ✅ |
 | 28 | 软截止预警集成（spec 921 集成留位兑现） | spec 921 留位 | T1305–T1306 | 680 | 927 | ✅ |
 | 27 | （开工时按缺口核查选题，候选见下） | — | T1303–T1304 | 679 | 926 |  |

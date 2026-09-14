@@ -614,6 +614,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | time-travel fork 操作计数读面 | SessionForks 嵌套 ForkStats（forksCreated/messagesCopied）+ stats()——LangGraph fork 使用水位（spec 1041） | [spec 1041](docs/spec/1041-fork-operation-stats.md) |
 | 安全 | 签名验钥分布读面 | SigningKeyRing 嵌套 KeyRingStats（verifyAttempts/verifyKeyMisses/rotations + activeVersion/minVerifyVersion 上下文）+ stats()——cert-manager/keyring ops 思想（spec 1042） | [spec 1042](docs/spec/1042-keyring-stats.md) |
 | webhook 投递 | 围栏裁决分布读面 | SequenceFence 嵌套 FenceVerdictStats（CONTINUE/GAP/DUPLICATE/RESET/STALE 五态分桶守恒）+ verdictStats()——Kafka epoch/consumer-lag 谱系续 spec 303（spec 1043） | [spec 1043](docs/spec/1043-fence-verdict-stats.md) |
+| 观测治理 | J 系审计 R44（补登） | J 会话 R44 产出引用补全（spec 1044） | [spec 1044](docs/spec/1044-j-audit-r44.md) |
+| 观测治理 | 沙箱判定统计读面（补登） | J 会话 R45 产出引用补全（spec 1045） | [spec 1045](docs/spec/1045-sandbox-verdict-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
@@ -626,6 +628,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 持久化 | 租约契约接入 H2/JDBC | release DELETE 行致 fence 重置缺陷→软过期保 token 单调；九项契约全过（spec 929） | [spec 929](docs/spec/929-h2-lease-contract.md) |
 | 持久化 | 租约契约接入 Redis | ACQUIRE_SCRIPT 缺幂等重入→同 owner 续期分支补齐；九项契约全过（spec 930） | [spec 930](docs/spec/930-redis-lease-contract.md) |
 | 会话治理 | 剪枝边界深验 | minItems==total 不残缺/阈值极小首 fail 即剪/memo 共存不绕裁决——901 边界组合收口（spec 931） | [spec 931](docs/spec/931-prune-edge-deep.md) |
+| tools 文件域 | write_file noclobber 防误覆盖 | WriteFileTool opt-in noclobber（写盘前存在守门零副作用）——csh set -C / cp -n 防误覆盖语义（spec 951） | [spec 951](docs/spec/951-noclobber.md) |
 | 工程门禁 | 周期对账轮（spec 932 缺位补位） | 四账核对：spec/票/impl/快照；票号双占用三组改号、impl 680 补写、553-652 归属核清（spec 932） | [spec 932](docs/spec/932-periodic-audit.md) |
 | 评估闭环 | 剪枝 run 有效通过率口径 | EvalRunResult.prunedCount() + effectivePassRate()（分母排除 pruned）——双口径显式并存，总量防刷分（spec 933） | [spec 933](docs/spec/933-effective-passrate.md) |
 | 评估闭环 | GateResult 有效通过率透出 | GateResult 加 effectivePassRate 组件（11 参新构造 + 10 参兼容 NaN 委托）——剪枝 run 门结果双口径同屏（spec 934） | [spec 934](docs/spec/934-gate-effective-passrate.md) |
