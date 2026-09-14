@@ -2304,3 +2304,10 @@
 - `ObservabilityStoreContract`（I 会话 936 产出——ObservabilityStore SPI 契约
   校验套件八项语义静态收集范式：span/event 保序、快照写读一致、未知会话空读、
   跨会话隔离、deleteSession 幂等、eventsOfSpan 过滤；契约系列收口最后核心 SPI）
+
+## effort #1400–#1449 新增公共面（L 会话 / spec 1400–1449 / impl 1053–1102，@since 1.0.0）
+
+- `TurnConcurrencyTracker`（1400——HikariCP 池读面思想：跨会话轮次并发
+  观察者，started/okFinished/failed 三总量 + active/peakActive 水位 +
+  守恒式；同轮实证修复 guard-block 轮观察者终结回调缺失；嵌套 `Snapshot`
+  不另立面）
