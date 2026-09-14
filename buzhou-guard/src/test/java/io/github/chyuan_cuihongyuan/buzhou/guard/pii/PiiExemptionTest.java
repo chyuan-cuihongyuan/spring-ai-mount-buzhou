@@ -45,9 +45,11 @@ class PiiExemptionTest {
         exemptions.grant("pii-redaction", "trusted_scraper",
                 System.currentTimeMillis() + 60_000, "输出已人工核验");
         PiiRedactionHook hook = new PiiRedactionHook(null, null, false, exemptions);
+        PiiHitStats.global().reset();
         ToolCallContext ctx = toolCall("trusted_scraper", EMAIL_AND_PHONE);
         hook.afterTool(ctx);
         assertThat(ctx.result()).isEqualTo(EMAIL_AND_PHONE); // 原样透传
+        assertThat(PiiHitStats.global().exemptionsApplied()).isEqualTo(1); // spec 1640：豁免计数
     }
 
     @Test

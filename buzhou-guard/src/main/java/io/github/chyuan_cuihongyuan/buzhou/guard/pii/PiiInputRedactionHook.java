@@ -74,6 +74,7 @@ public class PiiInputRedactionHook implements BuzhouHook {
         if (exemptions != null && ctx.sessionId() != null
                 && exemptions.exempt("pii-input-redaction", ctx.sessionId(),
                         System.currentTimeMillis())) {
+            PiiHitStats.global().recordExemption(); // spec 1640：豁免跳过与命中对照
             return HookResult.CONTINUE;
         }
         String input = ctx.input();

@@ -81,6 +81,7 @@ public class PiiRedactionHook implements BuzhouHook {
         // spec 1627 / T2405：工具级豁免（「该工具输出经核验，整体豁免到 T1」）
         if (exemptions != null && ctx.toolName() != null
                 && exemptions.exempt("pii-redaction", ctx.toolName(), System.currentTimeMillis())) {
+            PiiHitStats.global().recordExemption(); // spec 1640：豁免跳过与命中对照
             return HookResult.CONTINUE;
         }
         String content = String.valueOf(ctx.result());

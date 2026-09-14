@@ -139,6 +139,9 @@
 - [R40 形状：梯度限流器观测接线](../tickets/T2429-r40-gradient-shape.md) — spec 1617 装配面：executeToolCalls 批耗时经 GradientLimiterHolder 喂入（观测先行不接 tryAcquire 闸——批时延是全局工具路径负载天然信号，闸接入待数据积累独立裁决）
 - [R40 验收](../tickets/T2430-r40-gradient-verify.md) — 两断言（Holder 喂入 View 读数/install 替换重置）+ 梯度域 9 用例
 
+- [R41 形状：PII 豁免计数](../tickets/T2431-r41-piicount-shape.md) — PiiHitStats.recordExemption（工具级+类型级合并口径——与命中统计对照面：「豁免了多少 vs 命中了多少」），reset 同步归零；J 系危险工具 exemptedSkips 对齐补全
+- [R41 验收](../tickets/T2432-r41-piicount-verify.md) — 豁免路径计数断言 + guard 370 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -192,3 +195,4 @@
 | R38 | #1637 | 慢调用维度 yml 装配（circuit 组扩参） | T2425–T2426 | 1190 | 1637 | done |
 | R39 | #1638 | 泄漏金丝雀 yml 装配（spec 1625 配置面补全） | T2427–T2428 | 1191 | 1638 | done |
 | R40 | #1639 | 梯度限流器观测接线（spec 1617 装配面） | T2429–T2430 | 1192 | 1639 | done |
+| R41 | #1640 | PII 豁免计数（与命中统计对照面） | T2431–T2432 | 1193 | 1640 | done |
