@@ -58,3 +58,4 @@
 - [工具循环打断分布读面的形状裁决](../tickets/T2169-loop-break-stats-shape.md) — ToolLoopBreakerHook 增量 brokenByTool（256 折叠纪律）+brokenByToolSnapshot 降序典序+brokenTotal+maxRunObserved 水位+resetBrokenForTest 清分布不清 run 状态——Temporal retry-loop detection 思想，「哪个工具在烧配额」定向治理信号显形。
 - [延迟作业调度漂移读数的形状裁决](../tickets/T2171-job-drift-shape.md) — DelayedJobQueue 增量 task 包装漂移记录（执行起点 clock.instant()−fireAt 钳 0）+DriftStats(executed/last/max)+resetDriftForTest；过期补跑漂移显形正值=补偿错过窗口量化——Sidekiq queue latency 思想。
 - [工具 schema 健康审计的形状裁决](../tickets/T2173-schema-health-shape.md) — ToolSchemaHealthAudit 纯函数（core/exec）：四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与校验器跳过条件严格同口径（三键全缺=裸奔）+bypassRatio 派生+findings 封顶 16——ajv/OpenAPI schema 校验思想。
+- [事件时序单调性审计的形状裁决](../tickets/T2175-event-order-audit-shape.md) — EventOrderAudit 纯函数（core/observability）：analyze 单会话事件→inversions 逆序对数+maxInversionMillis 倒退量+firstInversionIndex 定位（-1 哨兵）；等时刻不算逆序、null 时戳跳过——事件溯源不变量思想（与 TurnSequenceAudit turn 序号轴辨义）。

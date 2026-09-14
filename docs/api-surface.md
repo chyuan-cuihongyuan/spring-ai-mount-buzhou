@@ -2465,3 +2465,7 @@
   健康四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与 ToolArgsValidator
   跳过条件严格同口径+bypassRatio 裸奔率派生+findings 封顶 16，纯函数；
   嵌套 `Report`/`SchemaFinding` 不另立面）
+
+- `EventOrderAudit`（1436——事件溯源不变量思想：同会话事件 occurredAt
+  时序单调性审计——逆序对数+最大倒退量+首逆序定位（-1 哨兵），等时刻
+  不算逆序、null 时戳跳过，纯函数；嵌套 `Report` 不另立面）

@@ -294,6 +294,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventOrderAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPairingAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPayloadSizeAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventType

@@ -924,6 +924,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 工具治理 | 工具 schema 健康审计 | ToolSchemaHealthAudit——analyze(List<ToolCallback>) 四态分桶（VALID/MISSING/UNPARSEABLE/NOT_OBJECT）与校验器跳过条件严格同口径+bypassRatio 裸奔率派生（-1 哨兵）+findings 封顶 16；「多少工具在裸奔无参数校验」从 permissive 盲区变审计显形——ajv/OpenAPI 思想（spec 1435） | [spec 1435](docs/spec/1435-tool-schema-health-audit.md) |
 
+| 观测治理 | 事件时序单调性审计 | EventOrderAudit——同会话事件 occurredAt 时序单调性审计：逆序相邻对数+最大倒退量（时钟回拨/乱序写入显形）+首逆序位定位（-1 哨兵），等时刻不算逆序、null 时戳跳过——事件溯源不变量思想（spec 1436） | [spec 1436](docs/spec/1436-event-order-audit.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
