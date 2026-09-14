@@ -1023,6 +1023,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 收口 | L 会话 50 轮收口终验 | 全反应堆串行回归绿+快照门/覆盖门/对账门全绿+台账 50/50 归档——effort 1400–1449 连续（1439 补位轮兑现） | [spec 1449](docs/spec/1449-l-closing.md) |
 
+| 技能治理 | SkillAdmin 管理操作分布 | SkillAdminApi 五操作计数（create/update/publish/disable/delete 静态面）——管理面治理审计基座，操作分布显形（spec 1085，J 会话 M 段产出） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
