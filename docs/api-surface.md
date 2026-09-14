@@ -2319,3 +2319,7 @@
 - `McpSchemaCompatGrader`（1402——buf breaking 思想：入参 schema 前后两版
   客户端守恒视角分级（removed/type_changed/newly_required/enum_narrowed
   四破坏轴+fail-closed），纯函数零 IO；嵌套 `SchemaCompatVerdict` 不另立面）
+
+- `AdaptiveTimeout`（1403——Envoy timeout budget/Finagle 自适应超时思想：
+  EWMA(α=0.3)+clamp(⌈EWMA×multiplier⌉,floor,ceiling) 纯推导器，预热哨兵
+  &lt;3 样本不下结论，CAS 无锁；嵌套 `Snapshot` 不另立面）

@@ -761,6 +761,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | MCP 治理 | 入参 schema 破坏性分级 | McpSchemaCompatGrader——前后两版 inputSchema 客户端守恒视角机判：removed/type_changed/newly_required/enum_narrowed 四破坏轴+解析失败 fail-closed，reasons 典序——buf breaking 思想，822 目录 diff 显式留白轴的延伸（spec 1402） | [spec 1402](docs/spec/1402-mcp-schema-compat-grader.md) |
 
+| 模型韧性 | EWMA 自适应超时推荐 | AdaptiveTimeout——record(observed) 喂样本 recommended() 出 clamp(⌈EWMA×3⌉,floor,ceiling) 推荐，α=0.3 CAS 无锁+预热哨兵 <3 样本不下结论；纯推导器不接线执行路径——Envoy timeout budget/Finagle 自适应超时思想（spec 1403） | [spec 1403](docs/spec/1403-adaptive-timeout.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
