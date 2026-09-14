@@ -60,7 +60,6 @@ public class SpillOffloadHook implements BuzhouHook {
         return HOOK_ORDER;
     }
 
-    @Override
     // —— spec 1077 / impl 829：溢出判定读面（logrotate 轮转率思想；静态面理由同
     // R46–R76 先例）。守恒：invocations = durableSkips + errorSkips + cleanInline
     // + offloaded + refrains（每入口恰落一桶）。
@@ -98,6 +97,7 @@ public class SpillOffloadHook implements BuzhouHook {
         REFRAINS.set(0);
     }
 
+    @Override
     public HookResult afterTool(ToolCallContext ctx) {
         INVOCATIONS.incrementAndGet();
         if (ctx.error() != null || ctx.result() == null) {
