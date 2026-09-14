@@ -100,6 +100,7 @@ public class SandboxRunCommandTool implements ToolCallback {
 
     @Override
     public String call(String toolInput) {
+        CALLS.incrementAndGet();
         try {
             RunCommandArgs args = RunCommandArgs.parse(toolInput);
             if (args.command().isBlank()) {
