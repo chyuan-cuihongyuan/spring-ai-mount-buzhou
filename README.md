@@ -755,6 +755,10 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 |------|------|--------|------|
 | 会话治理 | 跨会话轮次并发水位 | TurnConcurrencyTracker——同实例注册全会话聚合 started/okFinished/failed 三总量+active/peakActive 水位，守恒式 started=ok+failed+active；同轮实证修复 guard-block 轮观察者终结回调缺失（TURN span 泄漏）——HikariCP 池读面思想（spec 1400） | [spec 1400](docs/spec/1400-turn-concurrency-tracker.md) |
 
+| 工具计量 | 工具结果字节直方 | ToolResultSizeHistogram——afterTool 单点记账五幂次边界桶(256B/1K/4K/16K/64K)+溢出桶+totalBytes 精确累计，守恒 successes=Σbuckets、executed=successes+failed，失败不入字节分布——Prometheus histogram 思想，opt-in 只读 Hook（spec 1401） | [spec 1401](docs/spec/1401-tool-result-size-histogram.md) |
+
+| 工具计量 | 工具结果字节直方 | ToolResultSizeHistogram——afterTool 单点记账五幂次边界桶(256B/1K/4K/16K/64K)+溢出桶+totalBytes 精确累计，守恒 successes=Σbuckets、executed=successes+failed，失败不入字节分布——Prometheus histogram 思想，opt-in 只读 Hook（spec 1401） | [spec 1401](docs/spec/1401-tool-result-size-histogram.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

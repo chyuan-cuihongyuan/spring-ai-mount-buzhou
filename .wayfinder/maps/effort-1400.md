@@ -23,3 +23,4 @@
 （每轮 shape 票 Resolution 的 gist 逐轮补登于此）
 
 - [跨会话轮次并发水位观察者的形状裁决](../tickets/T2101-turn-concurrency-shape.md) — TurnConcurrencyTracker implements SessionObserver（once-per-turn seam，Hook 的流式 afterModel 逐 chunk 会漏账故不用）；started/ok/failed 三总量 + active/peakActive 水位 + 守恒式 started=ok+failed+active；同轮实证修复 DefaultAgentSession 两处 guard-block 路径 onTurnStart 后无终结回调的 TURN span 泄漏（非流式补 onTurnEnd/流式补 onTurnError）——HikariCP 池读面思想。
+- [工具结果字节直方分桶的形状裁决](../tickets/T2103-result-size-histogram-shape.md) — ToolResultSizeHistogram implements BuzhouHook（opt-in afterTool 单点，零裁决零侵入）：五幂次边界桶（256/1K/4K/16K/64K）+溢出桶 + executed/failed/totalBytes，守恒式 successes=Σbuckets、executed=successes+failed；UTF-8 口径与 J R46–R47 对齐——Prometheus histogram 思想。

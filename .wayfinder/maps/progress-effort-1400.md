@@ -21,7 +21,7 @@ WebhookOutboxLag / SpawnGatePriorityTest / SleepTimeConsolidationTest。
 主题池（50 轮计划，**每轮勘察后可换——代码库 300+ effort 高度饱和，撞已有能力即换入备选池，换题注记入台账**；排重 grep 必须 -i 且按类名后缀查，每轮先 grep 后动工；回避 H 池 R1–R50+S1–S10、I 会话已落地 51+ 轮、J 会话已落地 47+ 轮、K 会话测试补全覆盖线）：
 
 R1 ✅ 已落地=跨会话轮次并发水位观察者（会话内单飞使 per-model-call 并发失义，改跨会话聚合+顺带实证修复 guard-block span 泄漏）｜
-R2 工具结果字节直方分桶(Prometheus histogram ≈59K)→tools｜
+R2 ✅ 已落地=core/hook（Hook 单点挂法免改 HookedToolCallback）｜
 R3 MCP 工具 schema 破坏性变更分级(buf breaking ≈10K)→mcp｜
 R4 重试预算 retry budget(Envoy retry budget ≈26K)→resilience｜
 R5 指标基数守卫(Prometheus cardinality limit ≈59K)→core【高危待勘 BuzhouMetrics】｜

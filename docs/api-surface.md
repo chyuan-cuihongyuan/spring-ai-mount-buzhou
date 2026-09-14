@@ -2311,3 +2311,7 @@
   观察者，started/okFinished/failed 三总量 + active/peakActive 水位 +
   守恒式；同轮实证修复 guard-block 轮观察者终结回调缺失；嵌套 `Snapshot`
   不另立面）
+
+- `ToolResultSizeHistogram`（1401——Prometheus histogram 思想：工具结果
+  UTF-8 字节五幂次边界桶+溢出桶，executed/failed/totalBytes 三总量守恒；
+  opt-in afterTool 只读挂法；嵌套 `Snapshot` 不另立面）
