@@ -25,6 +25,15 @@ public final class HookTimingAggregator {
         timings.computeIfAbsent(hookName, k -> new Timing()).record(nanos);
     }
 
+    /**
+     * spec 1502 / T2255：清零全部聚合行（Prometheus counter reset 语义）——测试隔离
+     * 重建断言基线 / 长生命周期进程重建观测基线双用途；幂等，作用于本实例（不碰
+     * {@link Holder} 开关）。并发 record 同跑时清零后重新累计，无中间不一致窗口。
+     */
+    public void reset() {
+        timings.clear();
+    }
+
     /** 聚合快照（hook 名 → count/total/max；不可变）。 */
     public Map<String, HookChain.HookTiming> stats() {
         Map<String, HookChain.HookTiming> out = new LinkedHashMap<>();

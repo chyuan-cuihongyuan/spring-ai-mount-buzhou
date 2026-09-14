@@ -22,6 +22,9 @@
 - [R1 形状：语义缓存 LFU 采样驱逐](../tickets/T2351-r1-lfu-shape.md) — 借鉴 Redis allkeys-lfu + maxmemory-samples：驱逐从「纯 eldest」升级为「采样窗口内最低命中数先出」，opt-in evictionSampleSize（默认 0=纯 LRU 零变化）
 - [R1 验收](../tickets/T2352-r1-lfu-verify.md) — 行为测试钉死四断言（默认零变化/热条目保护/计数封顶/负参拒绝）+ 属性组校验 + 装配传参
 
+- [R2 形状：MCP 连接最大寿命](../tickets/T2353-r2-lifetime-shape.md) — HikariCP maxLifetime 思想：连接到寿退役重建（复用 spec 703 rebuildEntry 排水口径），在飞连接推迟到下轮（归还时退役语义）
+- [R2 验收](../tickets/T2354-r2-lifetime-verify.md) — 伪连接+可控时钟四断言：未到寿不动/到寿重建/在飞推迟/关零行为
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -36,3 +39,4 @@
 | 轮 | effort | 主题 | 票 | impl | spec | 状态 |
 |---|---|---|---|---|---|---|
 | R1 | #1600 | 语义缓存 LFU 采样驱逐（Redis allkeys-lfu 思想） | T2351–T2352 | 1153 | 1600 | done |
+| R2 | #1601 | MCP 连接最大寿命（HikariCP maxLifetime 思想） | T2353–T2354 | 1154 | 1601 | done |
