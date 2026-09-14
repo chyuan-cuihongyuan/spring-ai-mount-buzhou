@@ -91,6 +91,9 @@
 - [R24 形状：影子探针接线](../tickets/T2397-r24-shadow-shape.md) — spec 189 孤类接线：主路成功后确定性采样对照首个备模型（Istio mirror 思想——「备模型若被启用结果是否一致」容量预案信心面）；deadlineExecutor submit 即忘 + REE 关闭竞态防护；fallback.shadow-probe-percent（0=关默认）
 - [R24 验收](../tickets/T2398-r24-shadow-verify.md) — 四断言（一致/分歧双计数+分歧样本环、确定性采样、零率零执行、影子故障计 error 不抛）+ resilience 384 用例
 
+- [R25 形状：HITL 豁免征询](../tickets/T2399-r25-exempt-shape.md) — GuardExemptionRegistry（spec 820）首个消费者：危险工具 hook 在授权检查后征询（mechanism=dangerous-tool、subject=工具名）——未过期豁免放行+审计事件，过期/撤销/无豁免恢复确认流程；GuardModule.exemptions() 暴露 grant/revoke 面
+- [R25 验收](../tickets/T2400-r25-exempt-verify.md) — 四断言（有效豁免放行/无与过期仍 block/撤销恢复 block/模块暴露 registry）+ guard 343 用例
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -128,3 +131,4 @@
 | R22 | #1621 | 会话隔离检疫装配（spec 143 双孤类救活） | T2393–T2394 | 1174 | 1621 | done |
 | R23 | #1622 | R19 对账 NPE 修复（跨会话记档承接） | T2395–T2396 | 1175 | 1622 | done |
 | R24 | #1623 | 影子读探针接线（spec 189 孤类救活，Istio mirror 思想） | T2397–T2398 | 1176 | 1623 | done |
+| R25 | #1624 | 危险工具 HITL 豁免征询（spec 820 孤类首个消费者） | T2399–T2400 | 1177 | 1624 | done |

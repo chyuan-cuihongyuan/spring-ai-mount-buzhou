@@ -839,6 +839,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 会话治理 | 空闲监控全链接线 | IdleMonitorHolder 进程级（特征仓→监控器→直方）+ SessionFeaturesHook afterTurn 每 32 轮节拍 sweep——空闲超阈清单（翻转才通知）+ 时长分布入直方；纯观测旁路只判定不动作——spec 161/179/841 三孤类一次救活（spec 1620） | [spec 1620](docs/spec/1620-idle-monitor-wiring.md) |
 | 会话治理 | 会话隔离检疫装配 | 连续失败达阈值（可配 3 缺省）→ 隔离一个指数升级冷却（30s 起 10m 封顶），隔离期 beforeTurn block 可读理由（剩 Xs）；成功复位走公共 API（hook 面不谎装自动复位）——Erlang supervisor「let it crash + 退避」思想，opt-in 默认关——spec 143 双孤类救活（spec 1621） | [spec 1621](docs/spec/1621-quarantine-wiring.md) |
 | 韧性治理 | 影子读探针接线 | 主路成功后确定性采样（sha256(key)%100）对照首个备模型——agreed/diverged 双计数 + 分歧样本环（「备模型若被启用结果是否一致」的容量预案信心面）；旁路异常全吞、会话关闭竞态 REE 防护——Istio mirror 思想，spec 189 孤类救活（spec 1623） | [spec 1623](docs/spec/1623-shadow-probe-wiring.md) |
+| 护栏治理 | 危险工具 HITL 豁免征询 | GuardExemptionRegistry 首个消费者——危险工具授权检查后征询豁免（「这条告警我看过、豁免到 T1」ESLint suppressions 思想）：未过期即放行 + guard.exemption.applied 审计事件，过期/撤销/无豁免恢复确认流程；GuardModule.exemptions() 暴露 grant/revoke——spec 820 孤类救活（spec 1624） | [spec 1624](docs/spec/1624-dangerous-tool-exemption.md) |
 
 ## 快速开始
 
