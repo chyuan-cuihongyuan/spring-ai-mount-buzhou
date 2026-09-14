@@ -52,7 +52,7 @@
 | # | 缺口 | spec 证据 | 代码证据 | 建议 |
 |---|---|---|---|---|
 | F1 | 运行期瞬断重试缺失（✅ 已修复：spec 1511——幂等门自动装配通道 + RetryPolicy transientOnly 瞬断白名单档，既有装饰器 spec 133/302 复用）（工具调用 1s/2s/4s 上限 3、IO 白名单、HarnessInternal span） | spec 05:96-102 | `HarnessToolCallingManager` 无重试逻辑（单次 `task.get`，:463） | 补实现或 spec 05 降级为「不重试」定案 |
-| F2 | 工具级策略键无消费者（`buzhou.tool-policies.<name>.timeout-seconds/serial-group`） | spec 05:142,146 | 全仓零读取；serialGroups 仅注解通道（ToolsModule.java:156） | 补消费或删键 |
+| F2 | 工具级策略键无消费者（✅ 全档闭环：超时键 ToolTimeoutOverrides 先行、serial-group 键 spec 1525 yml 通道） | spec 05:142,146 | 全仓零读取；serialGroups 仅注解通道（ToolsModule.java:156） | 补消费或删键 |
 | F3 | Boot 注入通道缺失（starter 声明 `ToolCallingAdvisor.Builder` Bean + ConditionalOnMissingBean 替换） | spec 05:52-55 | main 代码无此 Bean | 补装配或 spec 回写 |
 | F4 | spec 05 配置键整体漂移：`buzhou.parallel.*` 全仓零命中；并发上限 8 硬编码无 yml 通道 | spec 05:138-146 | `buzhou.core.tool-timeout`（BuzhouCoreProperties.java:114）；`HarnessAssembler.java:40` 硬编码 | **需裁定**：按实现重写 spec 05 键表，或补 yml 通道 |
 | F5 | 精确缓存指标未落：`buzhou.cache.response.hit/miss/evicted`（MeterRegistry 可空，无 registry 时纯计数器可读 API） | spec 53 §E | 全仓零命中；`ResponseCacheStore.java:91-101` 仅内部 AtomicLong，`ResilienceModule.configure`:163-168 无 meter 注册 | 补 meter 注册 + 可读 API |

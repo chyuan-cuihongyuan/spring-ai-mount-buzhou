@@ -23,6 +23,8 @@ public class PiiInputRedactionHook implements BuzhouHook {
     static final String PLACEHOLDER_PREFIX = "[PII:";
 
     private final PiiDetector detector;
+    /** spec 1632 / T2415：豁免登记（null = 不征询；会话级 subject=sessionId、类型级 type:TYPE）。 */
+    private final io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions;
     private final Set<PiiType> enabledTypes;
     private final CustomPiiRules customRules;
 
@@ -42,10 +44,18 @@ public class PiiInputRedactionHook implements BuzhouHook {
     /** spec 731 / T1013：+格式保持模式（true = redact 分派 pseudonymize）。 */
     public PiiInputRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules,
                                  boolean formatPreserving) {
+        this(enabledTypes, customRules, formatPreserving, null);
+    }
+
+    /** spec 1632 / T2415：+exemptions（null = 不征询——既有调用零行为；双粒度同输出侧）。 */
+    public PiiInputRedactionHook(Set<PiiType> enabledTypes, CustomPiiRules customRules,
+                                 boolean formatPreserving,
+                                 io.github.chyuan_cuihongyuan.buzhou.guard.GuardExemptionRegistry exemptions) {
         this.detector = new PiiDetector(formatPreserving);
         this.enabledTypes = EnumSet.copyOf(enabledTypes == null || enabledTypes.isEmpty()
                 ? EnumSet.allOf(PiiType.class) : enabledTypes);
         this.customRules = customRules == null ? new CustomPiiRules(List.of()) : customRules;
+        this.exemptions = exemptions;
     }
 
     @Override
@@ -60,11 +70,29 @@ public class PiiInputRedactionHook implements BuzhouHook {
 
     @Override
     public HookResult beforeTurn(TurnContext ctx) {
+        // spec 1632 / T2415：会话级豁免（「该会话输入可信」——内部已合规通道）
+        if (exemptions != null && ctx.sessionId() != null
+                && exemptions.exempt("pii-input-redaction", ctx.sessionId(),
+                        System.currentTimeMillis())) {
+            return HookResult.CONTINUE;
+        }
         String input = ctx.input();
         if (input == null || input.isEmpty() || input.contains(PLACEHOLDER_PREFIX)) {
             return HookResult.CONTINUE; // 幂等：占位符已是脱敏产物
         }
-        String redacted = detector.redact(input, enabledTypes);
+        // spec 1632：类型级豁免（subject=type:TYPE——与输出侧同款生效集剔除）
+        Set<PiiType> effectiveTypes = enabledTypes;
+        if (exemptions != null) {
+            long now = System.currentTimeMillis();
+            EnumSet<PiiType> kept = EnumSet.noneOf(PiiType.class);
+            for (PiiType type : enabledTypes) {
+                if (!exemptions.exempt("pii-input-redaction", "type:" + type.name(), now)) {
+                    kept.add(type);
+                }
+            }
+            effectiveTypes = kept;
+        }
+        String redacted = detector.redact(input, effectiveTypes);
         // spec 129 / T475：自定义规则叠加（内置结果之上继续脱领域格式——幂等由规则特异性保证）
         if (!customRules.isEmpty()) {
             redacted = customRules.redact(redacted);
