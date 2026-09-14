@@ -149,6 +149,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WilsonInterval
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BackendLanePermit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CanaryToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CancellationToken
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftHolder
@@ -163,6 +164,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHol
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LaneLimitingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LintSeverityGrader
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.MemoizedToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
