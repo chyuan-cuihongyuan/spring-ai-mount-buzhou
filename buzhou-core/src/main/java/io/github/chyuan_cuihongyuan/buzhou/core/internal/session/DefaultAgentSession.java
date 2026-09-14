@@ -878,6 +878,7 @@ public class DefaultAgentSession implements AgentSession {
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
+            long closeStartNanos = System.nanoTime(); // spec 1430 / T2163：关闭排空耗时埋点
             leakHandle.close();
             if (leaseGuard != null) {
                 leaseGuard.close();
@@ -900,6 +901,12 @@ public class DefaultAgentSession implements AgentSession {
             dispatchEvent(SessionEvent.of("session.closed"));
             listeners.clear();
             spanContextCarrier.clear();
+            if (!failures.isEmpty()) {
+                io.github.chyuan_cuihongyuan.buzhou.core.session.SessionCloseStats
+                        .recordCloseFailure();
+            }
+            io.github.chyuan_cuihongyuan.buzhou.core.session.SessionCloseStats
+                    .recordClose((System.nanoTime() - closeStartNanos) / 1_000_000);
             throwAggregated(failures);
         }
     }

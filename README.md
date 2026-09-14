@@ -912,6 +912,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 恢复治理 | 运行状态分布与滞后审计 | RunStatusDistribution——恢复快照状态直方（全枚举预置计 0）+turnLag 崩溃暴露窗口（currentTurn−lastCompletedTurn：崩溃将丢的未持久化轮数）+worst offenders 榜（滞后降序容量 3）；RUNNING 淤积与暴露窗口一读显形——Temporal workflow stats 思想（spec 1429） | [spec 1429](docs/spec/1429-run-status-distribution.md) |
 
+| 会话治理 | 会话关闭耗时读数 | SessionCloseStats——closed/closeFailures 双计数+last/maxCloseDurationMillis 耗时水位（单调），close() 清理优先异常聚合语义逐位不变只增记账；排空慢（observer 慢/逆序关闭卡住）从停机窗口超限倒推变水位显形——k8s graceful shutdown 思想（spec 1430） | [spec 1430](docs/spec/1430-session-close-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

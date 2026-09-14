@@ -77,7 +77,7 @@ S2 断路器状态变迁时刻簿(Resilience4j event stream ≈10K)→resilience
 S3 提示模板解析一致性指纹(LangChain prompt hashing ≈105K)→core【vs JCS 1273】｜
 R19 ✅ 换题落地=Redis 慢操作榜（S4 题；J ToolSlowLog 同型扩散）｜
 S5 会话导出字节水位(restic backup size stats ≈31K)→core｜
-S6 嵌入批延迟分位(sentence-transformers ≈17K)→resilience【vs 828】｜
+S6 → 死题换出（EmbeddingProvider 无批量 API，R24 换入质量自查轴）｜
 S7 MCP 重连退避抖动检测(gRPC channelz backoff ≈43K)→mcp【vs 840】｜
 S8 → 已由 R17 替代路径占用（事务计量装饰器）｜
 R21 ✅ 换题落地=评估运行年龄台账（S9 题注册表年龄化；item 级进度无缝诚实出域）｜

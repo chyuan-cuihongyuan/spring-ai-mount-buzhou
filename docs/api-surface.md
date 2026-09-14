@@ -2447,3 +2447,8 @@
   桥，供给方灌注/消费方并入 HITL 默认条目；EvalRunRegistry 同款静态注册表模式；
   `reset()` 测试隔离用）
 - `PairwiseSprtPolicy`（1510 域——评估域 pairwise SPRT 策略公共面）
+
+- `SessionCloseStats`（1430——k8s graceful shutdown terminationGracePeriod
+  思想：会话关闭耗时读数——closed/closeFailures/last+maxCloseDuration
+  水位，进程级静态读面（close 埋点只增记账，清理优先异常聚合语义逐位
+  不变）；嵌套 `Snapshot` 不另立面）
