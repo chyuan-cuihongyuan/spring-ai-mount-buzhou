@@ -1,6 +1,8 @@
 package io.github.chyuan_cuihongyuan.buzhou.guard;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.hook.HookResult;
+import io.github.chyuan_cuihongyuan.buzhou.guard.hook.DangerousToolGuardHook;
+import java.util.List;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.DefaultToolCallContext;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.hook.HookEnvironment;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
@@ -29,10 +31,10 @@ class DangerousToolStatsTest {
     private DangerousToolGuardHook hook() {
         // 危险工具清单经 GuardModule 装配（yml 条目集），此处直取装配产物
         var module = io.github.chyuan_cuihongyuan.buzhou.core.Buzhou.inMemoryStores();
-        var guard = io.github.chyuan_cuihongyuan.buzhou.GuardModule.fromYml(module, Map.of(
+        var guardModule = GuardModule.fromYml(module, Map.of(
                 "dangerous-tools", Map.of("enabled", true, "entries", List.of(
                         Map.of("toolName", "write_file", "hint", "写入需确认")))));
-        return guard.configure().hooks().stream()
+        return guardModule.configure().hooks().stream()
                 .filter(DangerousToolGuardHook.class::isInstance)
                 .map(DangerousToolGuardHook.class::cast)
                 .findFirst().orElseThrow();
