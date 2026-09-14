@@ -86,7 +86,7 @@ class DualModeRunContrastTest {
         sandbox.call("{\"command\":\"echo x\"}");
 
         RunCommandTool.resetForTest();
-        assertThat(RunCommandTool.stats().calls()).isZero();
+        assertThat(RunCommandTool.stats().attempts()).isZero();
         assertThat(SandboxRunCommandTool.stats().calls()).isEqualTo(1);
     }
 }
