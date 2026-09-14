@@ -19,6 +19,8 @@
 
 ## Decisions so far
 
+- [Spotlight×Moderation 顺序协作组合测试轮的形状裁决](../tickets/T1639-spotmod-shape.md) — 纯测试轮第七弹：SpotlightModerationComboTest 钉住同 ctx 连续两 hook（先包裹 ORDER 80 后检查 ORDER 210）双读面计数一致与各自守恒保持。
+- [冒烟清单扩展轮的形状裁决](../tickets/T1637-readout-ext-shape.md) — 纯测试轮：ReadoutContractSmokeTest 清单纳入 ArchivePurgeJob/SpillCipher（13→15 成员），清单随读面产出同步扩展纪律闭环。
 - [R90 周期预检轮的形状裁决](../tickets/T1635-r90-audit-shape.md) — R81–R89 对账 + 三型欠账中两型实证再现并即时修复（1085 吞噬 + 1090 自漏）；复跑 BUILD SUCCESS 验收。
 - [memory 双台账组合测试轮的形状裁决](../tickets/T1631-dualledger-shape.md) — 纯测试轮第六弹：DualLedgerReadoutTest 钉住 fact/episodic 双台账读面互不串账与 reset 独立隔离。
 - [memory 域双工具组合测试轮的形状裁决](../tickets/T1629-memorytools-shape.md) — 纯测试轮第五弹：MemoryToolsReadoutTest 钉住 compact_now 与 EpisodeLedger 双读面交叉调用下各自守恒保持、互不串账、reset 独立隔离。
@@ -197,7 +199,8 @@
 | 88 | memory 双台账组合测试轮（fact/episodic 互不串账钉住） | 纯测试轮第六弹 | T1631–T1632 | 840 | 1088 | ✅ |
 | 89 | spill 域 offload+evict 生命周期组合测试轮（溢出→逐出→回读链路） | 纯测试轮第七弹 | T1633–T1634 | 841 | 1089 | ✅ |
 | 90 | 周期预检轮：R81–R89 对账 + README 1085 吞噬与 1090 自漏双修复 + 复跑 verify BUILD SUCCESS | 覆盖门双向检测实证 | T1635–T1636 | 842 | 1090 | ✅ |
-| 91 | （开工时按缺口核查选题） | — | T1637–T1638 | 843 | 1091 |  |
+| 91 | 冒烟清单扩展轮（ArchivePurgeJob/SpillCipher 纳入 15 读面冒烟） | 清单同步扩展纪律 | T1637–T1638 | 843 | 1091 | ✅ || 92 | Spotlight×Moderation 顺序协作组合测试轮（双读面计数一致） | 纯测试轮第七弹 | T1639–T1640 | 844 | 1092 | ✅ |
+| 93 | （开工时按缺口核查选题） | — | T1641–T1642 | 845 | 1093 |  |
 
 （编号空洞：spec 1035 有意空洞；票号 T1515–T1516/T1525–T1526 漂移 cosmetic——均已在审计轮 spec 1044 入档。）
 ## 候选池（开工选题用；每轮缺口核查通过后转入台账；撞 H/I 池或已落地能力即弃）
