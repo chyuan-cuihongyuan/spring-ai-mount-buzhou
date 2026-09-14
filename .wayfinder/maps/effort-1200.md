@@ -31,6 +31,7 @@
 - [ToolTimingAggregatorConcurrencyTest 负载下非确定性卡死](../tickets/T1815-tool-timing-concurrency-hang.md) — R4 验证显形：同 commit 一次 ~8 分钟全绿、一次 forked JVM 109+ CPU 分钟挂死（jstack 栈顶 record CAS 区，RollingMaxCounter 内联归因）——并行流内 yield 风暴恶化 FJ 调度 + 无超时护栏；最小修复 = 移除 yield + @Timeout(120) 护栏（测试侧语义不变，主代码活锁未证实）；并发压测默认带超时护栏先例确立。
 - [SnapshotMessage 补测与收紧判据跨模块复核](../tickets/T1813-snapshot-message-and-tightened-sweep-shape.md) — R5：miss≥1 口径再浮出 SnapshotMessage（mis=2，compact 构造 null 防御）——null→空 Map / Map.copyOf 防御拷贝 / spillUri·evidenceId 透传；六小模块（tools/observability/observe-otel/observe-dashboard/spill/resilience）旧判据期报告隔离重扫清单化归 R6+；收敛信号：core 浮出量 R4=2 → R5=1，R6 起该口径并入周期性对账轮。
 - [K 会话周期对账轮 R6 形态](../tickets/T1816-k-audit-r6-shape.md) — R6：四步证据驱动批次收官后的独立核对轮（Google SRE Production Readiness Review 思想）——全仓 verify（隔离 worktree CI 等价门）+ 工件链五项对账；对账脚本可重放；R7 起对账/雾区（report-aggregate、BRANCH）两轮交替。
+- [R6 验证收口](../tickets/T1817-k-audit-r6-verify.md) — 工件链五项全 OK；全仓 verify 两跑「15/16 绿 + starter 显形红」：T1818 API 快照过期（PerHostConcurrencyGuard 未入册，已修+复验绿）/ T1819 Webhook 测试泄漏后台重试线程污染全局指标捕获（下轮治本）；多会话共享工作区风险（worktree 被删、detached HEAD、他线全量 add 卷入）入档——「固定提交点 + 隔离 worktree + 显式路径 add」对策确立。
 
 ## R1 台账（spec 1200 / impl 903）
 
