@@ -775,6 +775,8 @@ L 会话（effort #1400+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 预算治理 | 多租户配额公平指数 | FairnessIndex——Jain 指数 J=(Σx)²/(n·Σx²)∈(0,1]+dominantShare 单点吃满检测+逐租户份额降序行动面+isFair(0.9 电信惯例)+全零 -1 哨兵；noisy neighbor 从人肉聚合变一读显形——Kafka client quota 公平性思想（spec 1409） | [spec 1409](docs/spec/1409-fairness-index.md) |
 
+| 工具计量 | 入参校验读数 | ToolArgsValidator.validationStats()——validations/accepted 守恒+七错误桶（缺必填/类型/enum/数值/长度/非 JSON/其他）标记单源分桶、桶非互斥如实入档；三调用点静态入口自动全覆盖——Pydantic ValidationError 思想（spec 1410） | [spec 1410](docs/spec/1410-toolargs-validation-stats.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

@@ -34,7 +34,7 @@ R11 首 token 延迟 TTFT 分位读数(vLLM metrics ≈40K)→core/observability
 R12 护栏判定混淆矩阵读面(scikit-learn ≈21K)→guard【高危待勘 vs 判定分桶族】｜
 R13 嵌入维度漂移审计(FAISS dim check ≈33K)→resilience【高危待勘 vs 804】｜
 R14 检索结果重复率读数(LangChain MMR ≈105K 纯读面)→memory【高危待勘】｜
-R15 工具参数校验拒绝分桶(Pydantic ValidationError ≈25K)【高危待勘 ToolArgsValidator——H R21 半撞让位未做，本轴或仍开放】→core｜
+R11 ✅ 已落地=ToolArgsValidator 静态读数面（H R21 让位下半轴）｜
 R16 事件序列缺口检测(Kafka offset gap ≈30K)→core【高危待勘 vs 900 丢弃分类】｜
 R17 评估无进展 deadline 检测(k8s progressDeadlineSeconds ≈115K)→core｜
 R18 技能内容寻址指纹(pnpm store CAS ≈32K)→skills【高危待勘 vs 813/832】｜

@@ -32,3 +32,4 @@
 - [PII 检测器合成探针自查的形状裁决](../tickets/T2115-pii-probe-selfcheck-shape.md) — **换题轮**（single-flight 与 ToolCallCoalescer 全撞）：PiiProbeSelfCheck 纯函数——内建确定性合成池正例逐类召回+负例误报哨兵（恒 0），基线标定锚=内建池×内建检测器全召回；身份证号不入池（校验位合成号撞真实号红线）——spaCy/Presidio 评测思想。
 - [断路器状态时长分析器的形状裁决](../tickets/T2117-circuit-duration-analyzer-shape.md) — **换题轮**（混淆矩阵与 JudgeCalibration 数学全同半撞）：CircuitStateDurationAnalyzer 纯函数——journal Transition 按模型积段→逐状态 total/segments/max+openShare crash-loop 画像，无序容忍+采样窗口径入档——Resilience4j state duration 思想。
 - [多租户配额公平指数的形状裁决](../tickets/T2119-fairness-index-shape.md) — **换题轮**（令牌桶水位与 available()+KeyHotspot 半撞）：FairnessIndex 纯函数——Jain 指数 J=(Σx)²/(n·Σx²)+dominantShare 单点吃满+shares 降序行动面+isFair(0.9)+全零 -1 哨兵——Kafka client quota 公平性思想。
+- [工具入参校验读数的形状裁决](../tickets/T2121-validation-stats-shape.md) — H R21 让位的下半轴：ToolArgsValidator 静态计数内置 validate()（三调用点自动全覆盖）——validations/accepted 守恒+七错误桶 MARK_* 标记单源+桶非互斥入档+无可校验结构不入账；Pydantic ValidationError 思想。

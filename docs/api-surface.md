@@ -2343,3 +2343,7 @@
   Jain 指数 J=(Σx)²/(n·Σx²)+dominantShare 单点吃满检测+逐租户份额降序
   +isFair(FAIR_FLOOR=0.9)+全零 -1 哨兵，纯函数；嵌套 `FairnessReport`/
   `TenantShare` 不另立面）
+
+- `ToolArgsValidator.validationStats()`（1410——Pydantic ValidationError 思想：
+  校验读数静态面——validations/accepted 守恒+七错误桶（标记单源、桶非互斥
+  如实入档）；嵌套 `ValidationStats` 不另立面）

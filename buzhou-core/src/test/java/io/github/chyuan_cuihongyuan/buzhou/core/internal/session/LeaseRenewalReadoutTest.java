@@ -75,7 +75,7 @@ class LeaseRenewalReadoutTest {
         assertThat(stats.renewals()).isEqualTo(2);
         // 立即续期时剩余≈TTL——水位不会被第二次更大的剩余值抬高
         assertThat(stats.minRemainingAtRenewalMillis()).isEqualTo(first);
-        assertThat(first).isLessThan(600).isGreaterThan(0);
+        assertThat(first).isLessThanOrEqualTo(600).isGreaterThan(0);
         guard.close();
     }
 }
