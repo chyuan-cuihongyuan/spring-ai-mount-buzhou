@@ -938,6 +938,8 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 持久化 | Saga 运行静态读数 | CompensatingBatch.sagaStats()——补偿型事务运行漏斗：runs/successes/compensationRuns/compensationFailures 四计数守恒式（conserved 派生）+stepsExecuted+lastFailedStep 断点步名；补偿高发从静默变漏斗显形——Seata 事务度量思想（spec 1443） | [spec 1443](docs/spec/1443-saga-run-stats.md) |
 
+| 评估治理 | 评估通过率趋势审计 | EvalPassRateTrend——跨 run 通过率序列的 Theil–Sen 稳健斜率审计：成对斜率中位数（离群 run 不扭曲方向）+死区 ε=0.005/run+INSUFFICIENT 哨兵；「这版在变好还是变坏」从人眼比对变方向判定——Theil–Sen 稳健回归思想（spec 1444） | [spec 1444](docs/spec/1444-eval-pass-rate-trend.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：
