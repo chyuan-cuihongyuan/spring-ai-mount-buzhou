@@ -1269,6 +1269,25 @@ public class BuzhouCoreAutoConfiguration {
     }
 
     /**
+     * impl-701 / spec 958：评估剪枝策略进程级兜底装配（buzhou.eval.prune.enabled=true
+     * 声明即启用：min-items/fail-rate-threshold 绑定 EvalPrunePolicy 写入 Holder——
+     * RetryBudgetHolder 先例；宿主手动构造的 EvalRunner 惰性拾取）。关闭钩子清理。
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "buzhou.eval.prune", name = "enabled", havingValue = "true")
+    public org.springframework.beans.factory.DisposableBean buzhouEvalPrunePolicyAdapter(
+            org.springframework.core.env.Environment env) {
+        int minItems = env.getProperty("buzhou.eval.prune.min-items", Integer.class, 2);
+        double threshold = env.getProperty("buzhou.eval.prune.fail-rate-threshold",
+                Double.class, 0.5);
+        io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPrunePolicyHolder.set(
+                new io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPrunePolicy(
+                        minItems, threshold));
+        return io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalPrunePolicyHolder::clear;
+    }
+
+    /**
      * 工具结果限幅器全局默认（spec 31 / T110 / impl-85）：启动期据配置设定 Holder；
      * 会话装配时 toolManager 从 Holder 取初值（可经 toolManager() per-session 覆盖）。
      */

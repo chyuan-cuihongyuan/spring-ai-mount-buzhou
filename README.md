@@ -629,6 +629,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 摘要版本链缺口审计 | SummaryVersionAudit.gaps（version 升序扫描定位缺失号，重复/非正 fail-fast）——Kafka log gap 对账思想（spec 952） | [spec 952](docs/spec/952-summary-version-audit.md) |
 | memory | 事实衰减预报读面 | FactDecayPolicy.turnsUntilFloor（逆函数解析，floor=0 永不衰出）——predict_linear 同思路（spec 926） | [spec 926](docs/spec/926-decay-forecast.md) |
 | 评估闭环 | k 次防抖门 | EvalGate.enforceStable（k 次全过才过 + 早停 + 历史容量校验）——flaky 误报防护从严门（spec 943） | [spec 943](docs/spec/943-stable-gate.md) |
+| 评估闭环 | 评估剪枝进程级兜底装配 | EvalPrunePolicyHolder（进程级兜底）+ autoconfig buzhou.eval.prune.* 装配 bean——RetryBudgetHolder 先例，901 装配收口（spec 958） | [spec 958](docs/spec/958-prune-holder.md) |
 | 观测治理 | 工具调用结局分布读面 | ToolCallOutcomeStats.stats（四桶+other 收容桶，守恒不破枚举扩展）——spec 50 日志根因分诊聚合面（spec 944） | [spec 944](docs/spec/944-outcome-stats.md) |
 | 持久化 | LeaderElector 契约校验套件 | 五项选主语义检查静态 verify（空位新纪元/重入幂等/跟随态/resign 重取/inspect 一致性）+ 内存接入——契约系列第六站，与 R40 读数面分轴（spec 954） | [spec 954](docs/spec/954-leader-contract.md) |
 | 模型韧性 | outbox 重试次数分布读面 | WebhookOutbox.retryDistribution（attempts 分桶 TreeMap 升序 + appendRetry 包级退避落盘）——重试积压结构可见（spec 948） | [spec 948](docs/spec/948-retry-distribution.md) |
