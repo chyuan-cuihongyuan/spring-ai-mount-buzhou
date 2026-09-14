@@ -4,12 +4,12 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** in-progress
+**Status:** done
 
 - [x] core：AttachmentRendererTest（4 用例）+ CommandBackendTest（5 用例）
 - [x] spec 1203 + README 行
-- [ ] 隔离 worktree 复扫：core 零覆盖（miss≥1）清零无未入档残留 + 全量绿
+- [x] 隔离 worktree 复扫：core 零覆盖（miss≥1）残留恰 1 项 = R1 豁免台账的 SmartLifecycle 匿名类（mis=2）；复核浮出 SnapshotMessage → 归 R5；core 2653 用例全量绿
 
 ## Done
 
-（收口时填写）
+验证：两靶点清零；收紧判据下无未入档残留；并发压测 T1815 加固（护栏生效，同环境两跑非确定性挂死不再复现）。commit 见本轮 `test(core)` 提交 + T1815 `fix(core)` 提交（被 N 会话 cc084a62 卷入，路径追认入 map）。

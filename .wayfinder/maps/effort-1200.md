@@ -73,6 +73,12 @@
 
 验证：skills 134 测试 0 失败；契约 5 用例无 Docker 按设计 skip（收集完整 + 编译绿）；行为面声明限定 Docker 在场（CI）——store-redis/store-jdbc 既有口径。
 
+## R4/R5 台账收口（spec 1203/1204 / impl 906/907 / T1811–T1815）
+
+- **R4（core 零覆盖尾巴）**：AttachmentRenderer mis 6→0、CommandOutcome mis 4→0；判据收紧 miss≥5→miss≥1 后残留恰 1 项 = R1 豁免的 SmartLifecycle 匿名类——**core 收官**。复核浮出 SnapshotMessage → R5。验证显形 T1815 并发压测两跑非确定性挂死（一次 8 分钟全绿 / 一次 109+ CPU 分钟），最小修复 = 移除 yield 风暴 + @Timeout(120)（护栏生效：同环境复跑 2653 用例 7 分钟全绿）。
+- **R5（SnapshotMessage + 跨模块复核）**：SnapshotMessage mis 2→0；六小模块（tools 107 / observability 66 / observe-otel 16 / observe-dashboard 27 / spill 159 / resilience 363）双口径零浮出——优于预期，R6 无遗留清单。
+- **合计 3391 用例 0 失败**（隔离 worktree 证据）；K 线证据驱动批次（零覆盖 → 低覆盖 → 收紧判据尾巴 → 跨模块复核）四步全部收官，后续增量并入周期性对账轮。
+
 ## Not yet specified
 
 - R2+ 候选（按缺口证据逐轮显形，不预切）：低覆盖类清点（覆盖率<50% 且 miss>=10 的后续批次）；store-jdbc / store-redis 容器测试在无 Docker 环境的降级口径；JaCoCo report-aggregate 聚合报告可行性（跨模块执行归一，能否消除「跨模块执行不计本模块」的统计盲区）；分支覆盖（BRANCH）维度是否纳入证据口径。
