@@ -8,13 +8,11 @@
 
 ## 目标
 
-- `DbToolSetProvider` 增量（mcp，静态面）：四 `AtomicLong`。
-  - `polls`：checkQuietly 入口计数（总桶）；
-  - `changesDetected`：清单变更并 fire 变更监听；
-  - `unchangedPolls`：成功但无变更；
-  - `pollFailures`：轮询 RuntimeException 捕获处。
-- 嵌套 `record ToolSetPollStats(long polls, long changesDetected, long unchangedPolls, long pollFailures)` + `stats()` + `resetForTest()`。
-- 守恒恒等式：**polls = changesDetected + unchangedPolls + pollFailures**（每轮恰落一桶）。
+- `DbToolSetProvider` 增量（mcp，静态面）：五 `AtomicLong`（实施中形状微调：发现 listener 直调 `checkAndFire` 的第二入口——写后免等轮询优化路径，四计数口径会漏账）。
+  - 入口桶：`polls`（轮询 checkQuietly）/ `pushRefreshes`（写后 listener 直调）；
+  - 结局桶（checkAndFire 汇聚点）：`changesDetected`（清单变更并 fire）/ `unchangedRefreshes`（成功无变更）/ `refreshFailures`（loadAll 抛错，入桶后按原语义抛出——轮询路径吞、直调路径外溢，行为逐位不变）。
+- 嵌套 `record ToolSetPollStats(...)` + `stats()` + `resetForTest()`。
+- 守恒恒等式：**polls + pushRefreshes = changesDetected + unchangedRefreshes + refreshFailures**（每入口恰落一桶）。
 
 ## 兼容性
 
