@@ -1066,6 +1066,12 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评测计量 | 裁判位置偏差读面 | JudgePositionBias——成对裁决 (A,B)×换位 (B,A) 镜像自洽四桶（一致/首位双赢/次位双赢/混合平）+biasRatio（空哨兵 −1）——MT-Bench/FastChat 位置偏差检验（spec 1703） | [spec 1703](docs/spec/1703-judge-position-bias.md) |
 | 评测计量 | 评测集内容指纹 | EvalSetFingerprint——\n 规范形 SHA-256 指纹 sha256- 前缀+ORDERED/UNORDERED 双序口径——DVC/HuggingFace Datasets 数据集指纹思想，跨 run 分数对比先验同数据（spec 1704） | [spec 1704](docs/spec/1704-eval-set-fingerprint.md) |
 | 评测计量 | 门限边际直方 | EvalGateMargin——|rate−threshold| 逐 run 边际+min/max+withinBand 危险带计数（空哨兵 −1）——Google SRE 告警边际/SPRT 边际思想，「门过多悬」直接读数（spec 1705） | [spec 1705](docs/spec/1705-eval-gate-margin.md) |
+| 会话治理 | fork 树形态普查 | ForkShapeStats——child→Parent 全集形态六读数（total/roots/forks/maxDepth/maxOutdegree/leafCount），环路 IllegalArgumentException 诚实拒绝——git DAG 形态普查思想，深链/扇出热点显形，与 ForkLineageWalker 行走面互补（spec 1706） | [spec 1706](docs/spec/1706-fork-shape-stats.md) |
+| 会话治理 | 会话年龄分桶直方 | SessionAgeHistogram——存活年龄默认 1h/1d/7d 四桶互斥+eldestMillis 最老哨戒，AtomicLongArray 线程安全桶式（IdleDurationHistogram 房规镜像）——Prometheus histogram 思想，「活多久」与「闲多久」双轴（spec 1707） | [spec 1707](docs/spec/1707-session-age-histogram.md) |
+| 会话治理 | 租约续期抖动读面 | LeaseRenewalStats——续期间隔变异系数 cv（总体 std/mean 无量纲）+maxSkew 最大偏斜，n<2 哨兵 −1——etcd keepalive 节奏健康思想，GC 停顿/锁竞争先于租约丢失显形（spec 1708） | [spec 1708](docs/spec/1708-lease-renewal-stats.md) |
+| 会话治理 | 会话迁移结果普查 | MigrationOutcomeStats——MIGRATED/SKIPPED_CURRENT/SKIPPED_EMPTY/FAILED 四桶+attemptSuccessRatio（分母只含尝试，无尝试 −1）——Kafka 再均衡过程普查思想，与 MigrationReconciliation（825 数据对账）互补（spec 1709） | [spec 1709](docs/spec/1709-migration-outcome-stats.md) |
+| 会话治理 | 会话事件时间间隙检测 | EventGapDetector——相邻事件时间差>阈值（严格大于）间隙计数+largestGap 最大间隙，<2 事件哨兵 −1——Flink event-time gap 思想，TurnSequenceAudit 序维之外补时维（spec 1710） | [spec 1710](docs/spec/1710-event-gap-detector.md) |
+| 会话治理 | 轮间到达间隔读面 | TurnInterArrivalStats——轮间隔序列+中位（偶数取均值）+p95（最近秩）——交互节奏遥测思想，机器连打 vs 人工思考显形，为空闲/采样调参供据（spec 1711） | [spec 1711](docs/spec/1711-turn-inter-arrival-stats.md) |
 
 ## 快速开始
 

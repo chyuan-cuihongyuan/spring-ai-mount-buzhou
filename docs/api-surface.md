@@ -2533,3 +2533,9 @@
 - `EvalSetFingerprint`（eval 域——评测集内容指纹 sha256- 前缀，序敏感/序不敏感双口径；
   嵌套 `OrderSensitivity` 不另立面）
 - `EvalGateMargin`（eval 域——门限边际直方+危险带计数；嵌套 `MarginReport` 不另立面）
+- `ForkShapeStats`（session 域——fork 树形态普查六读数；嵌套 `ShapeReport` 不另立面）
+- `SessionAgeHistogram`（session 域——会话年龄分桶直方+eldest 哨戒）
+- `LeaseRenewalStats`（session 域——租约续期抖动 cv 读面；嵌套 `RenewalReport` 不另立面）
+- `MigrationOutcomeStats`（session 域——迁移过程结果四桶普查；嵌套 `MigrationCensus`/`Outcome` 不另立面）
+- `EventGapDetector`（session 域——事件时间间隙检测；嵌套 `GapReport` 不另立面）
+- `TurnInterArrivalStats`（session 域——轮间到达间隔中位/p95；嵌套 `InterArrivalReport` 不另立面）
