@@ -6,3 +6,4 @@
 | 轮 | effort | commit | 备注 |
 |----|--------|--------|------|
 | R1 | #1700 | ad9912f9 | EvalScoreMad MAD 离散度+1700 系对账门落位；core 测试 8/8 绿 |
+| R2 | #1701 | 11e64fad | EvalOrderRotator 轮换消序；eval 五测批跑绿 |
