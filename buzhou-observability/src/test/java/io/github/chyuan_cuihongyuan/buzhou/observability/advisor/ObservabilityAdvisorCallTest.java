@@ -301,6 +301,31 @@ class ObservabilityAdvisorCallTest {
     }
 
     @Test
+    void snapshotExtractsEvidenceAndSpillFromToolResponseMessage() {
+        // ToolResponseMessage 构造 protected → 静态子类桥接；正文含占位符模式
+        org.springframework.ai.chat.messages.ToolResponseMessage trm =
+                new org.springframework.ai.chat.messages.ToolResponseMessage(
+                        List.of(new org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse(
+                                "id1", "read_file", "压缩原文 [evidence:ev-9] 与 [spill:s-1/2]")),
+                        Map.of()) {
+                };
+        ChatClientRequest req = new ChatClientRequest(new Prompt(List.of(
+                new UserMessage("hi"), trm)), new HashMap<>());
+
+        advisor("gpt-4o", null, true, 32768)
+                .adviseCall(req, chainReturning(new ChatClientResponse(
+                        chatResponse(new AssistantMessage("答"), null, "stop"), new HashMap<>())));
+
+        // 快照入队且 SnapshotMessage 携带 evidenceId/spillUri（模式匹配提取）
+        boolean snapshotWithMarkers = recorder.items.stream()
+                .filter(i -> i instanceof io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PendingSnapshot)
+                .map(i -> ((io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PendingSnapshot) i).record())
+                .anyMatch(snap -> snap.messages().stream()
+                        .anyMatch(m -> "ev-9".equals(m.evidenceId()) && "s-1/2".equals(m.spillUri())));
+        assertThat(snapshotWithMarkers).isTrue();
+    }
+
+    @Test
     void callChainExceptionMarksErrorAndRethrows() {
         ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
         RuntimeException boom = new RuntimeException("model boom");

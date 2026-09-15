@@ -291,6 +291,35 @@ class ObservabilityAdvisorStreamTest {
     }
 
     @Test
+    void ttftFiresExactlyOnceAcrossMultipleContentChunks() {
+        advise(List.of(
+                thinkingChunk("thought-1"),
+                thinkingChunk("thought-2"),
+                textChunkWithFinish("answer", "stop", null)));
+
+        assertThat(eventTypes().stream().filter(t -> t.equals("STREAM_FIRST_TOKEN")).count()).isEqualTo(1);
+    }
+
+    @Test
+    void omittedOnlyChunkProducesNoThinkingEventAndNoContentSignal() {
+        advise(List.of(
+                new ChatResponse(List.of(new Generation(AssistantMessage.builder().content("")
+                        .properties(Map.of(ThinkingChainExtractor.ATTR_OMITTED, "true")).build()))),
+                textChunkWithFinish("answer", "stop", null))));
+
+        assertThat(eventTypes()).doesNotContain("THINKING", "STREAM_FIRST_TOKEN");
+        assertThat(lastSpan().attributes().get("thinking.available")).isNull();
+    }
+
+    @Test
+    void emptyFluxCompletesAndClosesSpanGracefully() {
+        advise(List.of());
+
+        assertThat(lastSpan().status()).isEqualTo(SpanStatus.OK);
+        assertThat(eventTypes()).doesNotContain("STREAM_FIRST_TOKEN");
+    }
+
+    @Test
     void resolveTurnParentFallsBackToSessionSpanThenNull() {
         // 有 session（setUp 已 onOpen）→ MODEL_CALL parent 非空
         advise(List.of(textChunkWithFinish("a", "stop", null)));
