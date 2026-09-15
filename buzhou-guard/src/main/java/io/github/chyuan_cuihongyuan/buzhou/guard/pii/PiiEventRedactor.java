@@ -104,12 +104,7 @@ public final class PiiEventRedactor implements SessionEventListener {
             if (!customRules.isEmpty()) {
                 redacted = customRules.redact(redacted);
             }
-            if (redacted != text) {
-                REDACTED.incrementAndGet();
-                return redacted;
-            }
-            CLEAN_PASSTHROUGH.incrementAndGet();
-            return text;
+            return redacted;
         } catch (RuntimeException e) {
             FAIL_OPEN.incrementAndGet();
             return text; // fail-open：脱敏失败不阻断出站
