@@ -28,14 +28,21 @@ public class DefaultBudgetCalculator implements BudgetCalculator {
             new java.util.concurrent.atomic.AtomicLong();
     private static final java.util.concurrent.atomic.AtomicLong NORMAL_BUDGETS =
             new java.util.concurrent.atomic.AtomicLong();
+    // —— spec 1134 / impl 872：needed 判定分布（压缩触发压力信号）。
+    private static final java.util.concurrent.atomic.AtomicLong NEEDED_TRUE =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong NEEDED_FALSE =
+            new java.util.concurrent.atomic.AtomicLong();
 
     /** 预算钳位分布快照（spec 1133）。 */
-    public record BudgetClampStats(long evaluations, long negativeClamps, long normalBudgets) {
+    public record BudgetClampStats(long evaluations, long negativeClamps, long normalBudgets,
+                                   long neededTrue, long neededFalse) {
     }
 
     /** 只读快照（守恒 evaluations = 两桶之和）。 */
     public static BudgetClampStats stats() {
-        return new BudgetClampStats(EVALUATIONS.get(), NEGATIVE_CLAMPS.get(), NORMAL_BUDGETS.get());
+        return new BudgetClampStats(EVALUATIONS.get(), NEGATIVE_CLAMPS.get(), NORMAL_BUDGETS.get(),
+                NEEDED_TRUE.get(), NEEDED_FALSE.get());
     }
 
     /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
@@ -43,6 +50,8 @@ public class DefaultBudgetCalculator implements BudgetCalculator {
         EVALUATIONS.set(0);
         NEGATIVE_CLAMPS.set(0);
         NORMAL_BUDGETS.set(0);
+        NEEDED_TRUE.set(0);
+        NEEDED_FALSE.set(0);
     }
 
     @Override
@@ -58,6 +67,11 @@ public class DefaultBudgetCalculator implements BudgetCalculator {
         int historyTokens = estimator.estimateMessages(input.historyAfterMicroCompaction());
         int total = fixedOverhead + summaryTokens + historyTokens;
         boolean needed = total > effective * input.threshold();
+        if (needed) {
+            NEEDED_TRUE.incrementAndGet();
+        } else {
+            NEEDED_FALSE.incrementAndGet();
+        }
         if (effective - fixedOverhead < 0) {
             NEGATIVE_CLAMPS.incrementAndGet();
         } else {
