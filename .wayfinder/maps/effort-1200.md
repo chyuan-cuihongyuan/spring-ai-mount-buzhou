@@ -109,5 +109,6 @@
 - 不追 100% 行覆盖指标——豁免类（装配期匿名样板）诚实入档而非硬凑。
 - 不触碰 I 会话（specs 90x / T125x-T145x / impl 65x-75x）与 J 会话（specs 100x-114x / T145x-T175x / impl 75x-90x）号段产物。
 - [R20 验证收口](../tickets/T1848-snapshot-budget-verify.md) — budgetBreakdown 四键角色分桶首次断言（impl-46 落地后零断言缺口的补齐）/custom_thinking 经 advisor 贯通 THINKING 事件/content=null 无 FINAL_REPLY 无 NPE；「从未被断言的产出字段即测试缺口」方法论再实证。
+- [R23 对账轮验证收口](../tickets/T1854-k-audit-r23-verify.md) — 全仓 verify BUILD SUCCESS（16 模块三门全过）；对账兜底首次实战：L/J 孤儿 spec 文件入库（README 行与代码已在、唯文件未提交）修复死链红；spec 编号 1211 双簿入档（K×J 登记冲突，文件级共存）；R19–R22 增量 25 用例回归绿。
 - [R21 验证收口](../tickets/T1850-memory-advisor-verify.md) — BuzhouMemoryAdvisor 77%→95%（fence 先于落库/抛错阻断零写入/恢复照常/Identity 去重/ASSISTANT 过滤/无 fence 行为不变）；HookAdvisor 留 R22；BuzhouChatMemory/InMemoryMessageStore 真件复用。
 - [R22 验证收口](../tickets/T1852-hook-advisor-verify.md) — HookAdvisor 70%→100%（beforeModel Block 短路 nextCall 不触达/afterModel replaceResponse 回填生效/onModelError 决策树三分支/adviseCall×adviseStream 同构对称）；链契约建模修正入档（HookChain.run 消费 Replace 后 continue，advisor 收到 CONTINUE——初版测试误建模为向上转发，非主代码缺陷）。

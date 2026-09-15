@@ -4,12 +4,12 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** in-progress
+**Status:** done
 
-- [ ] 全仓 verify exit 0
-- [x] 工件链对账清单
-- [ ] spec 1222 + README 行
+- [x] 全仓 verify BUILD SUCCESS（16 模块三门全过；首跑 starter 死链经孤儿 spec 入库修复后复跑全绿）
+- [x] 工件链对账清单：specs 1200–1222 + README 行 / 票 T1801–T1854 / impl 903–925 全 OK
+- [x] spec 1222 + README 行
 
 ## Done
 
-（收口时填写）
+R23 对账全 OK + 兜底修复实绩（孤儿 spec 入库）。commit 见本轮 `fix(docs)` 与 `chore(wayfinder)` 提交。
