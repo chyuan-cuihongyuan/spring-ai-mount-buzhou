@@ -1078,6 +1078,12 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具计量 | 工具开关使用台账 | KillSwitchUsageLedger——杀/放留痕（tool+reason+时刻）有界台账 128 满逐最旧+配对累计封禁时长+杀放计数——Unleash/LaunchDarkly 开关审计思想，事故追溯与开关卫生（忘放回）双保障（spec 1715） | [spec 1715](docs/spec/1715-kill-switch-ledger.md) |
 | 工具计量 | 工具超时余量直方 | ToolTimeoutUtilization——利用率 ratio=duration/limit 六桶（<25%…≥100% 超时档）+maxRatio 千分精度，limit≤0 忽略——Envoy 超时利用率思想，贴线桶堆积=限时该调、全在低位=限时虚设（spec 1716） | [spec 1716](docs/spec/1716-tool-timeout-utilization.md) |
 | 工具计量 | 虚拟键份额读面 | VirtualKeyShareStats——逐键使用份额降序表（LinkedHashMap 保序）+HHI 赫芬达尔集中度 Σ份额²（0..1，无样本 −1）——OpenRouter 多键路由遥测+经济学 HHI 思想，轮换失效/独吞显形（spec 1717） | [spec 1717](docs/spec/1717-virtual-key-share.md) |
+| 钩子治理 | 钩子取消面统计 | HookCancelStats——observed/cancelledSkipped/completed 三计数+取消占比（无样本 −1）——OTel exporter 取消路径遥测思想，钩子缺失归因「因取消没跑 vs 压根没注册」（spec 1718） | [spec 1718](docs/spec/1718-hook-cancel-stats.md) |
+| 钩子治理 | 钩子异常类型分布 | HookErrorDistribution——「钩子名:异常简单类名」指纹分组计数+基数 32 超限并 _overflow_ 桶+census 降序保序——Sentry 事件分组思想，坏钩子排名显形（spec 1719） | [spec 1719](docs/spec/1719-hook-error-distribution.md) |
+| 执行治理 | dry-run 决策分布 | DryRunDecisionStats——WOULD_RUN/WOULD_BLOCK/PLAN_ERROR 三态闭集+拦截占比（无样本 −1）——Terraform plan 决策分布思想，dry-run 价值量度「拦了多少」（spec 1720） | [spec 1720](docs/spec/1720-dryrun-decision-stats.md) |
+| 错误治理 | 错误首见签名台账 | ErrorNoveltyLedger——record 返回是否首见+有界 256 FIFO 逐出（逐出后再现再「首见」诚实入档）+noveltyRatio——Sentry new-issue 追踪思想，回归探测第一信号：新签名=新病（spec 1721） | [spec 1721](docs/spec/1721-error-novelty-ledger.md) |
+| 恢复治理 | 回放时钟偏斜读面 | ReplaySkewStats——回放偏斜累积+负偏斜（时钟倒挂）分离计数+中位/最大（无正样本 −1）——Kafka consumer lag/NTP 偏斜思想，回放健康度与回放机时钟可信度双显形（spec 1722） | [spec 1722](docs/spec/1722-replay-skew-stats.md) |
+| 恢复治理 | 悬挂修复动作结果普查 | RepairOutcomeStats——REPLAYED/MARKED_FAILED/SKIPPED_GONE 三动作闭集+重放占比（无样本 −1）——Kubernetes events 自愈动作审计思想，与 DanglingTurnDetector 恢复双面（spec 1723） | [spec 1723](docs/spec/1723-repair-outcome-stats.md) |
 
 ## 快速开始
 

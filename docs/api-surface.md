@@ -2545,3 +2545,9 @@
 - `KillSwitchUsageLedger`（exec 域——工具开关杀放留痕有界台账；嵌套 `FlipEntry` 不另立面）
 - `ToolTimeoutUtilization`（hook 域——工具超时利用率六桶直方）
 - `VirtualKeyShareStats`（budget 域——虚拟键份额降序+HHI 集中度；嵌套 `ShareCensus` 不另立面）
+- `HookCancelStats`（hook 域——钩子取消面三计数+取消占比；嵌套 `CancelSnapshot` 不另立面）
+- `HookErrorDistribution`（hook 域——钩子异常指纹分组+基数超限并桶）
+- `DryRunDecisionStats`（exec 域——dry-run 三态决策分布；嵌套 `PlanCensus`/`Decision` 不另立面）
+- `ErrorNoveltyLedger`（metrics 域——错误首见签名台账 FIFO 有界；嵌套 `NoveltyReport` 不另立面）
+- `ReplaySkewStats`（recovery 域——回放时钟偏斜+倒挂分离；嵌套 `SkewReport` 不另立面）
+- `RepairOutcomeStats`（recovery 域——悬挂修复三动作普查；嵌套 `RepairCensus`/`Action` 不另立面）
