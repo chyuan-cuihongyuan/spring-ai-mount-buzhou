@@ -25,11 +25,15 @@ spec 1600-1648 / 票 T2351-T2448 / impl 1153-1202），每轮单 commit 推送 G
 5. **质量与运维**：中期审计（API 快照再生+工件对账）/运维手册第 23 节/
    @since 补全/跨会话记档承接三例（NPE/DiskSpillStore 上下文/J 系测试脱锚）。
 
-### 验收口径
+### 验收口径（R50 回填）
 
-R48 终验：隔离 worktree（规避并行会话构建竞争——32 分钟挂死教训）全仓
-`mvn verify`（JaCoCo 70% 门/enforcer 收敛/SpecCoverage 双向/API 快照）；
-结果回填本 spec 验收节（R50 执行）。
+R48-R50 终验：隔离 worktree `/tmp/n-final-verify` @ HEAD 全仓 `mvn verify`——
+16 模块编译/测试/JaCoCo/enforcer 主链过；两处尾红均为**并行会话域**且已承接
+闭环：① SpecCoverageTest 缺 `1212-advisor-stream` 引用（K 系产物 README 未登记
+——补行后**复跑双门绿**：SpecCoverage 2/2 + ApiSurfaceSnapshot 快照匹配）；
+② observe-dashboard 覆盖门（M 系 DashboardHttpServer gzip 等新增分支待补测
+——非 N 线产物，属 M 系在途）。N 系 48 个工件（spec 1600-1648 / T2351-T2448 /
+impl 1153-1202）全档双向实存；日志 ERROR 堆栈为既有测试注入的预期噪声。
 
 ## Out of Scope
 

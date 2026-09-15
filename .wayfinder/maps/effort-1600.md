@@ -163,6 +163,12 @@
 - [R48 形状：终验启动](../tickets/T2445-r48-final-shape.md) — 隔离 worktree 全仓 mvn verify 后台启动（R47 工件终核的对账面已在位；验证面结果 R50 回填）
 - [R48 验收](../tickets/T2446-r48-final-verify.md) — verify EXIT 码与失败清单（若有）回填 spec 1648
 
+## 收口
+
+50/50 轮完成（2026-09-15）。verify 终验全链绿 + SpecCoverage 唯一红（K 系并行
+spec 1212 未登记）跨会话承接补行复绿。号段 T2351-T2448 / impl 1153-1202 /
+spec 1600-1648 全档闭环。
+
 ## Not yet specified
 
 - R2+ 选题池（借签思想候选，逐轮裁决）：Caffeine refresh-ahead、Envoy retry precedence、Kafka ISR 健康视图、Tokio coop budget、Postgres autovacuum 式后台整理、Bazel flaky 检出、RocksDB rate limiter……按当轮代码现状取「小而完整」者优先。
@@ -225,3 +231,4 @@
 | R47 | #1646 | MAP 刷新与台账终核 | T2443–T2444 | 1199 | 1646 | done |
 | R48 | #1647 | 终验启动（隔离 worktree 全仓 verify） | T2445–T2446 | 1200 | 1647 | done |
 | R49 | #1648 | 收口 spec 与台账封卷 | T2447–T2448 | 1201 | 1648 | done |
+| R50 | #1648 | 终收口（verify 回填 + K 系 spec 承接补登 + MAP 封卷） | T2445–T2448 续 | 1202 | 1648 | done |

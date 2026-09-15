@@ -653,6 +653,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
 | 溢出治理 | SpillService 幂等复用读面 | 服务层五分支守恒显形，复用率可对账（spec 1101） | [spec 1101](docs/spec/1101-spillsvc-idem-stats.md) |
 | 溢出治理 | offload→readBack 双轴闭环组合测试 | 溢出落盘与回读闭环计数一致性钉住（spec 1093） | [spec 1093](docs/spec/1093-offread-combo.md) |
+| 溢出治理 | readRange×Spotlight 组合测试轮 | 溢出占位标记段与包裹回读幂等钉住（spec 1112） | [spec 1112](docs/spec/1112-readspot-combo.md) |
 | 溢出治理 | cipher×readBack 组合测试轮 | 加密回读解密调用联动钉住（spec 1106） | [spec 1106](docs/spec/1106-cipherread-combo.md) |
 | 溢出治理 | Spill 溢出 hook 判定读面 | 溢出触发率与降级动作五桶守恒显形（spec 1077） | [spec 1077](docs/spec/1077-spilloffload-stats.md) |
 | 溢出治理 | Spill 加解密读面 | 加解密操作量与失败分布显形（spec 1079） | [spec 1079](docs/spec/1079-spillcipher-stats.md) |
@@ -671,6 +672,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
 | 记忆治理 | EpisodeLedger 双实例组合测试 | 跨实例计数累计与双守恒钉住（spec 1105） | [spec 1105](docs/spec/1105-dualinst-episodic.md) |
+| 预算治理 | 预算钳位读面 | 负预算钳 0 发生频次显形（spec 1133） | [spec 1133](docs/spec/1133-budgetclamp-stats.md) |
+| 记忆治理 | evidence×episodic 独立性组合测试 | 回查与情景记忆互不串账钉住（spec 1111） | [spec 1111](docs/spec/1111-evidepi-combo.md) |
 | 记忆治理 | memory 域双工具组合测试 | compact_now 与情景记忆读面互不串账钉住（spec 1087） | [spec 1087](docs/spec/1087-memorytools-readout.md) |
 | 记忆治理 | memory 三读面大组合测试 | compact/episodic/fact 三读面交叉互不串账收口（spec 1107） | [spec 1107](docs/spec/1107-memtriple-readout.md) |
 | 记忆治理 | compact×evidence 交叉组合测试 | 压缩前后回查计数一致钉住（spec 1096） | [spec 1096](docs/spec/1096-compact-evid-combo.md) |
@@ -755,6 +758,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R10：MicrometerDualWriter 补测 | 双写适配器指标口径合同 11 用例（NOOP 哨兵/MODEL_CALL·TOOL_CALL 双路径/unknown 回退/bounded 32·64·16 截断/TTFT·TPOT 三态不记）；分支 67%→93%（spec 1209） | [spec 1209](docs/spec/1209-micrometer-dual-writer.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
+| 工程门禁 | R14：ToolGraphAnalyzer 边缘分支 | cycles null fail-fast/零计数边不入邻接/同 count 边字典序 tie-break/kind=null 忽略/startedAt=null 计 0/负时长夹 0；分支 95%（spec 1213） | [spec 1213](docs/spec/1213-graph-analyzer-edge.md) |
+| 工程门禁 | R15：BaseSpanRecorder sink 分发补测 | enqueue 时刻旁路分发合同 5 用例（span/event 到达/逐 sink 异常隔离落库不受污染/PendingSnapshot 跳过/顺序保持）；分支 85%（spec 1214） | [spec 1214](docs/spec/1214-sink-dispatch.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 
@@ -988,6 +993,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程质量 | 新公开类型 @since 补全 | N 系 15 个 API 快照入档类型的 Javadoc 补 @since——api-surface 面的文档一致性（spec 1644） | [spec 1644](docs/spec/1644-since-annotations.md) |
 | 工程门禁 | API 快照增量再生 | R27 后新增类型（GradientLimiterHolder 等）worktree 再生入档；同文件并行冲突化解（GuardModule.dangerousTools 双方同时加——M 系保留）（spec 1645） | [spec 1645](docs/spec/1645-snapshot-incremental.md) |
 | 工程门禁 | N 会话收口 | 50 轮自迭代终验——五族成果总账（孤类普查救活×10/pinning 治理×4/高价值思想特性×14/豁免族四消费者/质量运维×5）+ 隔离 worktree 全仓 verify（spec 1648） | [spec 1648](docs/spec/1648-n-session-closing.md) |
+| 观测治理 | ObservabilityAdvisor 流式路径分支补测（K 系 R13） | 本仓首个 Spring AI 流式 advisor 测试基建（StreamAdvisorChain stub harness）——此前 86 covered 分支全来自非流式路径（spec 1212） | [spec 1212](docs/spec/1212-advisor-stream.md) |
 | 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 韧性治理 | 退避抖动模式可配 | jitter-mode（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机——防重试风暴同步最优/DECORRELATED=[base,min(cap,prev×3)] 与前次去相关）——AWS「Exponential Backoff and Jitter」思想，默认 EQUAL 零行为（spec 1631） | [spec 1631](docs/spec/1631-jitter-mode.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |
