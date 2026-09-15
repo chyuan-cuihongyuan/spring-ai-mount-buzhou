@@ -1119,6 +1119,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评测计量 | 完成度 ETA 投影 | EtaProjection——长任务剩余时长线性外推（rate=done/elapsed，ETA=remaining/rate，除不尽向上取整保守）+projectedTotalMillis 总时长投影，无速率基准（done=0/elapsed=0）-1 诚实哨兵——CI 进度条/带宽估计思想，「还要多久」不再人肉心算、多时点对比发现尾段漂移（spec 1834） | [spec 1834](docs/spec/1834-eta-projection.md) |
 | 工程治理 | O 系 R36 对账轮 | 快照补登前置第六例行（R31–R35 五类型：多级缓存/对冲延迟/环形缓冲/续读令牌/ETA 投影）+ 全仓 clean verify 一次过绿 + 六波节奏稳定入档（spec 1835） | [spec 1835](docs/spec/1835-o-r36-reconciliation.md) |
 | 溢出保护 | 库存周转读面 | TurnoverReadout——库存活性两读数：周转次数 turns（消费/库存，无库存 -1 哨兵、零消费 0=死库存）+耗尽视界 depletionHorizonMillis（库存/速率向上取整，零速率 -1）——供应链库存周转思想，周转贴地=TTL 激进、视界短=预热启动（spec 1836） | [spec 1836](docs/spec/1836-turnover-readout.md) |
+| 成本治理 | 失败域配额 | FailureDomainQuota——预算按失败域分桶+全局保留兜底：admit 三态 FROM_BUCKET/BORROW_RESERVE/DENY+census 域普查（atCap/borrowing/tightest 最紧域/保留利用率）——k8s failure-domain/供应链分域备货思想，单域失败风暴不连坐健康域、备货总量封顶（spec 1837） | [spec 1837](docs/spec/1837-failure-domain-quota.md) |
 
 ## 快速开始
 
