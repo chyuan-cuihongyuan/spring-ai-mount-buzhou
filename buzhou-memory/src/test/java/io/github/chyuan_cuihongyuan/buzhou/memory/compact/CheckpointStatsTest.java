@@ -2,6 +2,8 @@ package io.github.chyuan_cuihongyuan.buzhou.memory.compact;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
+
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
