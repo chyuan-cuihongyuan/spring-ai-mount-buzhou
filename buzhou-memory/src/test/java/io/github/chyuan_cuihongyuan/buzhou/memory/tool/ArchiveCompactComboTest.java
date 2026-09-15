@@ -11,6 +11,7 @@ import io.github.chyuan_cuihongyuan.buzhou.memory.summary.DefaultSummaryGenerato
 import io.github.chyuan_cuihongyuan.buzhou.memory.summary.SummaryStoreBridge;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.model.ToolContext;
