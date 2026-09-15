@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [SemanticChunkIndex 操作读面的形态裁决](../tickets/T1695-chunkidx-op-stats-shape.md) — SemanticChunkIndex 静态四计数（indexCalls/locateCalls/skippedInvalid/chunksIndexed）+ 嵌套 ChunkIndexOpStats + stats()/resetForTest()；coverageStats 内容维度外的操作维度（搜索引擎索引/查询双计数）。
 - [evict×readRange 逐出复活组合测试轮的形状裁决](../tickets/T1693-evictread-shape.md) — 纯测试轮第十八弹：EvictReadBackComboTest 钉住逐出→回读复活→再逐出链双读面计数一致与各自守恒保持。
 - [readRange×Spotlight 组合测试轮的形状裁决](../tickets/T1683-readspot-shape.md) — 纯测试轮第十七弹：ReadRangeSpotlightComboTest 钉住溢出占位含标记段与包裹回读幂等（Spotlighting core 单一事实源）。
 - [evidence×episodic 独立性组合测试轮的形状裁决](../tickets/T1681-evidepi-shape.md) — 纯测试轮第十六弹：EvidenceEpisodicComboTest 钉住回查与情景记忆交叉互不串账与 reset 独立隔离。
@@ -234,6 +235,8 @@
 | 112 | readRange×Spotlight 组合测试轮（溢出占位标记段+包裹回读幂等） | 纯测试轮第十七弹 | T1683–T1684 | 864 | 1112 | ✅ |
 | 113 | （开工时按缺口核查选题） | — | T1685–T1686 | 865 | 1113 |  |
 | 108 | tools 五读面全矩阵组合测试轮（写/读/黑名单/SSRF 全交叉收口） | 纯测试轮第十五弹 | T1675–T1676 | 860 | 1108 | ✅ |
+| 118 | SemanticChunkIndex 操作读面（index/locate/skipped/chunks 四计数） | 搜索引擎索引/查询双计数 | T1695–T1696 | 866 | 1115 | ✅ |
+| 119 | （开工时按缺口核查选题） | — | T1697–T1698 | 867 | 1119 |  |
 | 109 | （开工时按缺口核查选题） | — | T1677–T1678 | 861 | 1109 |  |
 | 103 | 双档读写四象限对照组合测试轮（读写对跨两档对称恒等） | 纯测试轮第十四弹 | T1665–T1666 | 855 | 1103 | ✅ || 104 | todo×http 跨工具工作流组合测试轮（双读面独立互不串账） | 纯测试轮第十五弹 | T1667–T1668 | 856 | 1104 | ✅ |
 | 105 | （开工时按缺口核查选题） | — | T1669–T1670 | 857 | 1105 |  |
