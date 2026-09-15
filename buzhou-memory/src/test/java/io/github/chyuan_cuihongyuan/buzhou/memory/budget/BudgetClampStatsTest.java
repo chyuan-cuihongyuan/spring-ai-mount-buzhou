@@ -37,7 +37,7 @@ class BudgetClampStatsTest {
         }
     }
 
-    static final class FixedWindowResolver implements io.github.chyuan_cuihongyuan.buzhou.memory.budget.ContextWindowResolver {
+    static final class FixedWindowResolver implements io.github.chyuan_cuihongyuan.buzhou.core.spi.ContextWindowResolver {
         private final int window;
 
         FixedWindowResolver(int window) {
