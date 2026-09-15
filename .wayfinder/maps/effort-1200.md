@@ -116,6 +116,7 @@
 - [R28 验证收口](../tickets/T1869-call-usage-null-verify.md) — adviseCall 路径 usage null 保留两侧补齐（completion-only prompt 跳过/双 null 两属性跳过）；NullableUsage 先例从流式对称到 call 路径，null 保留语义全路径钉死。
 - [R29 验证收口](../tickets/T1872-audit-config-verify.md) — GuardAuditConfig fromGuardMap 解析全分支 8 用例（17%→92%）：null/非 Map 回退/trim+lower/容量与 min-verify 容错/blank key-dir 忽略/非法 KeyFile 过滤/public-key 可选缺省；guard 406 用例全量绿；「解析函数=纯函数=分支覆盖性价比最高战场」实证。
 - [R31 验证收口](../tickets/T1876-shadow-mirror-verify.md) — 影子镜像旁路 e2e 4 用例（镜像发生/失败全吞/候选空守卫/零采样守卫）；语义实证：镜像候选由模块注入 NamedFallbackModel 列表驱动（props.fallback.models 空表规范化 null 不拦截）；resilience 全量绿。
+- [R32 验证收口](../tickets/T1878-canary-verify.md) — 金丝雀路径 e2e 3 用例（canary 路由成功/终态失败链序回退主模型/canary-selected 事件 payload 钉 model+sessionId）；金丝雀发布语义三件套首次成组断言；candidateLimiter 限流拒绝分支留后续。
 - [R30 验证收口](../tickets/T1874-jcs-verify.md) — Jcs（RFC 8785 自实现子集）零直接测试→97%（132/4）：标量规范形/键字典序/转义全覆盖（JSON 强制七字符+控制 \u00XX）/整数约束与包装消息/空容器与集合内 null；签名输入规范化 = 签名验证全线前置合同。
 - [R21 验证收口](../tickets/T1850-memory-advisor-verify.md) — BuzhouMemoryAdvisor 77%→95%（fence 先于落库/抛错阻断零写入/恢复照常/Identity 去重/ASSISTANT 过滤/无 fence 行为不变）；HookAdvisor 留 R22；BuzhouChatMemory/InMemoryMessageStore 真件复用。
 - [R22 验证收口](../tickets/T1852-hook-advisor-verify.md) — HookAdvisor 70%→100%（beforeModel Block 短路 nextCall 不触达/afterModel replaceResponse 回填生效/onModelError 决策树三分支/adviseCall×adviseStream 同构对称）；链契约建模修正入档（HookChain.run 消费 Replace 后 continue，advisor 收到 CONTINUE——初版测试误建模为向上转发，非主代码缺陷）。
