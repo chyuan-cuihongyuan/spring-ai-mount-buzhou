@@ -776,6 +776,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | K 会话周期对账轮 R18 | 全仓 verify（隔离 worktree 强制重置基座）+ 工件链五项对账（R13–R17 五轮 52 用例增量回归）；沿 R6/R12 口径（spec 1217） | [spec 1217](docs/spec/1217-k-audit-r18.md) |
 | 工程门禁 | R19：流式语义定向补测 | ToolResponseMessage 占位符快照提取（evidence/spill 首次直接断言）/TTFT CAS 幂等恰一次/omitted-only 流块/空 Flux 防御；spec 1218 | [spec 1218](docs/spec/1218-stream-detail.md) |
 | 工程门禁 | R24：流式 usage 组合与 null 防御 | completion-only 不记 prompt/全 null Usage 经 builder 归一 0/0 捕获（打点实证）/流中 null chatResponse 元素防御跳过；spec 1223 | [spec 1223](docs/spec/1223-stream-null-usages.md) |
+| 工程门禁 | R28：adviseCall 路径 usage null 保留两侧 | NullableUsage 对称补齐（R24 流式先例到 call 路径）：completion-only prompt 跳过/双 null 两属性均跳过；spec 1227 | [spec 1227](docs/spec/1227-call-usage-null-retain.md) |
 | 工程门禁 | R27：T1867 TRM getText 语义核验 | javap 反编译定论（textContent 恒空为设计现状）+ 生产捕获走 getResponses responseData 源码比对；错误合同断言删除；spec 1226 | [spec 1226](docs/spec/1226-trm-gettext-verification.md) |
 | 工程门禁 | R26：Advisor 细粒度残余清扫 | 流式 content=null chunk 防御（无 NPE/后续照常）+ TRM 占位符提取正反例（快照 evidence/spill 首次负例断言）；可达性分级豁免入档；spec 1225 | [spec 1225](docs/spec/1225-advisor-fine.md) |
 | 工程门禁 | K 会话周期对账轮 R23 | 全仓 verify（隔离 worktree 固定本地 HEAD）+ 工件链五项对账（R19–R22 四轮 25 用例增量回归）；沿 R6/R12/R18 口径（spec 1222） | [spec 1222](docs/spec/1222-k-audit-r23.md) |

@@ -425,6 +425,57 @@ class ObservabilityAdvisorCallTest {
                 m.evidenceId() == null && m.spillUri() == null)).isTrue();
     }
 
+    /** 保留 null 侧的 Usage（DefaultUsage 将 null 归一 0——无法驱动 attr 跳过分支）。 */
+    private record NullableUsage(Integer prompt, Integer completion) implements Usage {
+        @Override
+        public Integer getPromptTokens() {
+            return prompt;
+        }
+
+        @Override
+        public Integer getCompletionTokens() {
+            return completion;
+        }
+
+        @Override
+        public Integer getTotalTokens() {
+            return 0;
+        }
+
+        @Override
+        public Object getNativeUsage() {
+            return this;
+        }
+    }
+
+    @Test
+    void completionOnlyUsageSkipsPromptAttribute() {
+        ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
+        Usage usage = new NullableUsage(null, 3);
+
+        advisor.adviseCall(request(), chainReturning(new ChatClientResponse(chatResponse(msg("答复"), usage, "stop"), new HashMap<>())));
+
+        SpanRecord modelCall = lastSpan();
+        assertThat(modelCall.attributes().get("usage.prompt_tokens")).isNull();
+        assertThat(modelCall.attributes().get("usage.completion_tokens")).isEqualTo(3);
+    }
+
+    @Test
+    void allNullTokensSkipBothAttributes() {
+        ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
+        Usage usage = new NullableUsage(null, null);
+
+        advisor.adviseCall(request(), chainReturning(new ChatClientResponse(chatResponse(msg("答复"), usage, "stop"), new HashMap<>())));
+
+        SpanRecord modelCall = lastSpan();
+        assertThat(modelCall.attributes()).doesNotContainKey("usage.prompt_tokens");
+        assertThat(modelCall.attributes().get("usage.completion_tokens")).isNull();
+    }
+
+    private static AssistantMessage msg(String text) {
+        return new AssistantMessage(text);
+    }
+
     @Test
     void callChainExceptionMarksErrorAndRethrows() {
         ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);

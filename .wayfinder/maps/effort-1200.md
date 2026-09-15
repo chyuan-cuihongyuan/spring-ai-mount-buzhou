@@ -113,5 +113,6 @@
 - [R24 验证收口](../tickets/T1862-stream-nulls-verify.md) — 流式 usage null 组合 3 用例（completion-only/全 null 经 builder 归一 0/0 捕获/null chatResponse 元素防御跳过）；诊断插曲：DefaultUsage null→0 归一与 TotalTokens Integer 签名（javap 实证）。
 - [R25 对账轮验证收口](../tickets/T1864-k-audit-r25-verify.md) — 漂移防护提前对账：捕捉治理门漂移 5 项（O 系 R60–R71 未随轮 regenerate）并兜底修复（快照字典序合并 + md 条目）；starter 双门复验绿；工件链五项全 OK（跳号 T1855–T1860 入档）；治理债第 4 例（T1818 同源）。
 - [R26 验证收口](../tickets/T1866-advisor-fine-verify.md) — 细粒度可达面清扫：流式 content=null chunk 防御 + TRM 占位符正反例（快照提取首次负例断言）；可达性分级（上游契约不可达/计时依赖豁免入档）；T1867 观察票开放（TRM getText 聚合语义）。
+- [R28 验证收口](../tickets/T1869-call-usage-null-verify.md) — adviseCall 路径 usage null 保留两侧补齐（completion-only prompt 跳过/双 null 两属性跳过）；NullableUsage 先例从流式对称到 call 路径，null 保留语义全路径钉死。
 - [R21 验证收口](../tickets/T1850-memory-advisor-verify.md) — BuzhouMemoryAdvisor 77%→95%（fence 先于落库/抛错阻断零写入/恢复照常/Identity 去重/ASSISTANT 过滤/无 fence 行为不变）；HookAdvisor 留 R22；BuzhouChatMemory/InMemoryMessageStore 真件复用。
 - [R22 验证收口](../tickets/T1852-hook-advisor-verify.md) — HookAdvisor 70%→100%（beforeModel Block 短路 nextCall 不触达/afterModel replaceResponse 回填生效/onModelError 决策树三分支/adviseCall×adviseStream 同构对称）；链契约建模修正入档（HookChain.run 消费 Replace 后 continue，advisor 收到 CONTINUE——初版测试误建模为向上转发，非主代码缺陷）。
