@@ -767,6 +767,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 | 工程门禁 | R14：ToolGraphAnalyzer 边缘分支 | cycles null fail-fast/零计数边不入邻接/同 count 边字典序 tie-break/kind=null 忽略/startedAt=null 计 0/负时长夹 0；分支 95%（spec 1213） | [spec 1213](docs/spec/1213-graph-analyzer-edge.md) |
 | 工程门禁 | R15：BaseSpanRecorder sink 分发补测 | enqueue 时刻旁路分发合同 5 用例（span/event 到达/逐 sink 异常隔离落库不受污染/PendingSnapshot 跳过/顺序保持）；分支 85%（spec 1214） | [spec 1214](docs/spec/1214-sink-dispatch.md) |
+| 工程门禁 | R16：ObservabilityAdvisor 非流式路径补测 | adviseCall 全链 13 用例（recordModelCallOutcome 22 missed 集中区：usage 三态/thinking 三态 PROVIDER_NOT_RETURNED 启发式与显式 provider/抑制分支/异常 ERROR）；分支 69%→75%（spec 1215） | [spec 1215](docs/spec/1215-advisor-call.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 
