@@ -2624,3 +2624,12 @@
 - `WorkConservationAudit`（exec 域——保工作性浪费审计；嵌套 `Slot`/
   `Report` 不另立面）
 - `FrequencyDecay`（cache 域——频次衰减竞速）
+- `LogBucketHistogram`（metrics 域——对数桶界分位数；嵌套 `ApproxQuantile`
+  不另立面）
+- `WriteSkewDetector`（transaction 域——写偏斜风险对扫描；嵌套
+  `Transaction`/`SkewPair` 不另立面）
+- `RendezvousHashing`（cache 域——HRW 键归属指派）
+- `CredentialStrengthMeter`（guard/secret 域——凭据强度三档；嵌套 `Band`
+  不另立面）
+- `VisibilityTimeoutAccounting`（webhook 域——可见性超时三段账；嵌套
+  `DeliveryFact`/`Census` 不另立面）

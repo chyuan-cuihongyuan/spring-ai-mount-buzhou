@@ -34,6 +34,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
@@ -324,6 +325,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
@@ -532,11 +534,13 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowRes
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.HalfMessageAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.InstrumentedUnitOfWork
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.WriteSkewDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.DeadLetterRedeliveryStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.EventDeduplicator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.EventSchemaChecker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.SequenceFence
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.VisibilityTimeoutAccounting
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookDeadLetter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookDeadLetterJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.WebhookDeliveryLatency
@@ -634,6 +638,7 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.LimitedCommandSan
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.SandboxCommandBackend
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.SandboxLimits
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.sandbox.SandboxProcessLauncher
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.secret.CredentialStrengthMeter
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretHitStats
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretHitStatsJsonl
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.secret.SecretScanHook
