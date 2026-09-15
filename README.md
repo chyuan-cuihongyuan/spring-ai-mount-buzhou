@@ -1077,6 +1077,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评测计量 | 裁判位置偏差读面 | JudgePositionBias——成对裁决 (A,B)×换位 (B,A) 镜像自洽四桶（一致/首位双赢/次位双赢/混合平）+biasRatio（空哨兵 −1）——MT-Bench/FastChat 位置偏差检验（spec 1703） | [spec 1703](docs/spec/1703-judge-position-bias.md) |
 | 评测计量 | 评测集内容指纹 | EvalSetFingerprint——\n 规范形 SHA-256 指纹 sha256- 前缀+ORDERED/UNORDERED 双序口径——DVC/HuggingFace Datasets 数据集指纹思想，跨 run 分数对比先验同数据（spec 1704） | [spec 1704](docs/spec/1704-eval-set-fingerprint.md) |
 | 评测计量 | 门限边际直方 | EvalGateMargin——|rate−threshold| 逐 run 边际+min/max+withinBand 危险带计数（空哨兵 −1）——Google SRE 告警边际/SPRT 边际思想，「门过多悬」直接读数（spec 1705） | [spec 1705](docs/spec/1705-eval-gate-margin.md) |
+| 工程治理 | O 系对账门 | OSession1800LedgerAuditTest——150 轮工件链四面互证（spec 1800–1949 ↔ README 行 ↔ T 票对 ↔ impl，号段公式 R1 钉死：T2801+2(N−1800)/1401+(N−1800)）——LSession1700LedgerAuditTest 预防式对账同款，漂移落盘瞬间即红（spec 1800） | [spec 1800](docs/spec/1800-o-series-ledger-audit.md) |
 
 ## 快速开始
 
