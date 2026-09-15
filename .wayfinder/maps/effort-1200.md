@@ -111,5 +111,6 @@
 - [R20 验证收口](../tickets/T1848-snapshot-budget-verify.md) — budgetBreakdown 四键角色分桶首次断言（impl-46 落地后零断言缺口的补齐）/custom_thinking 经 advisor 贯通 THINKING 事件/content=null 无 FINAL_REPLY 无 NPE；「从未被断言的产出字段即测试缺口」方法论再实证。
 - [R23 对账轮验证收口](../tickets/T1854-k-audit-r23-verify.md) — 全仓 verify BUILD SUCCESS（16 模块三门全过）；对账兜底首次实战：L/J 孤儿 spec 文件入库（README 行与代码已在、唯文件未提交）修复死链红；spec 编号 1211 双簿入档（K×J 登记冲突，文件级共存）；R19–R22 增量 25 用例回归绿。
 - [R24 验证收口](../tickets/T1862-stream-nulls-verify.md) — 流式 usage null 组合 3 用例（completion-only/全 null 经 builder 归一 0/0 捕获/null chatResponse 元素防御跳过）；诊断插曲：DefaultUsage null→0 归一与 TotalTokens Integer 签名（javap 实证）。
+- [R25 对账轮验证收口](../tickets/T1864-k-audit-r25-verify.md) — 漂移防护提前对账：捕捉治理门漂移 5 项（O 系 R60–R71 未随轮 regenerate）并兜底修复（快照字典序合并 + md 条目）；starter 双门复验绿；工件链五项全 OK（跳号 T1855–T1860 入档）；治理债第 4 例（T1818 同源）。
 - [R21 验证收口](../tickets/T1850-memory-advisor-verify.md) — BuzhouMemoryAdvisor 77%→95%（fence 先于落库/抛错阻断零写入/恢复照常/Identity 去重/ASSISTANT 过滤/无 fence 行为不变）；HookAdvisor 留 R22；BuzhouChatMemory/InMemoryMessageStore 真件复用。
 - [R22 验证收口](../tickets/T1852-hook-advisor-verify.md) — HookAdvisor 70%→100%（beforeModel Block 短路 nextCall 不触达/afterModel replaceResponse 回填生效/onModelError 决策树三分支/adviseCall×adviseStream 同构对称）；链契约建模修正入档（HookChain.run 消费 Replace 后 continue，advisor 收到 CONTINUE——初版测试误建模为向上转发，非主代码缺陷）。
