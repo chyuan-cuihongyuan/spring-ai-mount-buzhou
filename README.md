@@ -1153,6 +1153,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 事件投递 | 可见性超时账 | VisibilityTimeoutAccounting——「至少一次」投递三段语义：取走即隐藏（防重复消费）+超时未确认重回队列（消费方死消息不丢，边界含上）+重投穷尽进死信（毒消息不死循环）+census 三段普查与最老在飞龄——AWS SQS visibility timeout 思想（spec 1864） | [spec 1864](docs/spec/1864-visibility-timeout-accounting.md) |
 | 工程治理 | O 系 R66 对账轮 | 快照补登前置第十一例行（R61–R65 五类型：对数分桶/写偏斜/Rendezvous 哈希/凭据强度/可见性超时）+ 全仓 clean verify + R63 号漂移被对账门当场拦截入档（设计生效第二次活证）+ 显式退出码流程修正首次全程应用（spec 1865） | [spec 1865](docs/spec/1865-o-r66-reconciliation.md) |
 | 模型韧性 | 缓存牺牲率 | CacheSacrificeRatio——插入驱逐比（牺牲率：全联理想 0、容量不足攀升）×命中率双条件颠簸分诊（牺牲高且命中低=白忙该扩容，任一哨兵无据不定罪）——体系结构缓存分析惯例（sacrifice ratio/thrashing）思想，满缓存换血与真颠簸不再同形（spec 1866） | [spec 1866](docs/spec/1866-cache-sacrifice-ratio.md) |
+| 工具执行 | 关键路径长度 | CriticalPathLength——并行 DAG 最长加权路径（Kahn 拓扑+EF DP：EF[v]=dur[v]+max(EF[pred])）=总时长下界+terminalTask 终点直读——项目管理 CPM 思想，缩非关键任务白花力气、关键任务延一秒总长延一秒（spec 1867） | [spec 1867](docs/spec/1867-critical-path-length.md) |
 
 ## 快速开始
 
