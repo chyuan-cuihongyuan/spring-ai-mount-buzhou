@@ -2609,3 +2609,10 @@
 - `ArgvBudgetGate`（tools 域——argv 体量双闸；嵌套 `Verdict` 不另立面）
 - `GroupCommitAccounting`（fs 域——组提交收益账；嵌套 `Account`
   不另立面）
+- `MisraGriesSketch`（observability 域——流式频项素描，计数下界）
+- `ReservoirSample`（observability 域——种子化水库均匀采样）
+- `TombstoneRatioReadout`（cleanup 域——软删除占比+读放大；嵌套 `Ratio`
+  不另立面）
+- `BucketTableSizing`（cache 域——桶表容量三件套；嵌套 `Verdict`
+  不另立面）
+- `TrimmedMean`（eval 域——截尾均值稳健中枢）
