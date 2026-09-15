@@ -269,6 +269,38 @@ class ObservabilityAdvisorCallTest {
     }
 
     @Test
+    void metadataNullResponseStillRecordsThinkingAndReply() {
+        // ChatResponse(List) 单参构造：metadata 为缺省（usage 跳过），thinking/reply 照常
+        ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
+        AssistantMessage msg = AssistantMessage.builder().content("答复")
+                .properties(Map.of("reasoningContent", "思考")).build();
+
+        advisor.adviseCall(request(), chainReturning(new ChatClientResponse(
+                new ChatResponse(List.of(new Generation(msg))), new HashMap<>())));
+
+        SpanRecord modelCall = lastSpan();
+        assertThat(modelCall.attributes().get("thinking.available")).isEqualTo("YES");
+        // metadata=null 被 ChatResponse 归一为 NULL 常量（usage 0/0/0）——usage-null 分支防御性不可达（R17 入档）
+        assertThat(modelCall.attributes().get("usage.prompt_tokens")).isEqualTo(0);
+        assertThat(eventTypes()).contains("THINKING", "FINAL_REPLY");
+    }
+
+    @Test
+    void assistantNullClosesModelCallGracefully() {
+        // 空 generations：result=null → assistant=null → 仅 usage/close 分支
+        ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
+
+        advisor.adviseCall(request(), chainReturning(new ChatClientResponse(
+                new ChatResponse(List.of(), ChatResponseMetadata.builder()
+                        .usage(new DefaultUsage(8, null, 8, new Object())).build()), new HashMap<>())));
+
+        SpanRecord modelCall = lastSpan();
+        assertThat(modelCall.status()).isEqualTo(SpanStatus.OK);
+        assertThat(modelCall.attributes().get("usage.prompt_tokens")).isEqualTo(8);
+        assertThat(modelCall.attributes().get("usage.completion_tokens")).isEqualTo(0);
+    }
+
+    @Test
     void callChainExceptionMarksErrorAndRethrows() {
         ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
         RuntimeException boom = new RuntimeException("model boom");

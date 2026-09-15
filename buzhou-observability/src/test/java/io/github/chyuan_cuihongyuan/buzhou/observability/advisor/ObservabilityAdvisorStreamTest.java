@@ -258,6 +258,39 @@ class ObservabilityAdvisorStreamTest {
     }
 
     @Test
+    void metadataNullAndResultNullChunksAreDefensive() {
+        // metadata=null（usage 不捕获）与 result=null（空 generations 早退）均不炸
+        advise(List.of(
+                new ChatResponse(List.of(), null),
+                textChunkWithFinish("answer", "stop", null)));
+
+        List<SpanRecord> spans = spanRecords();
+        SpanRecord modelCall = spans.get(spans.size() - 1);
+        assertThat(modelCall.status()).isEqualTo(SpanStatus.OK);
+        // metadata=null 被 ChatResponse 归一为 NULL 常量（usage 0/0/0）——usage-null 分支防御性不可达（R17 入档）
+        assertThat(modelCall.attributes().get("usage.prompt_tokens")).isEqualTo(0);
+        assertThat(modelCall.attributes().get("finish_reason")).isEqualTo("stop");
+    }
+
+    @Test
+    void blankFinishReasonIsNotRecorded() {
+        advise(List.of(textChunkWithFinish("answer", "  ", null)));
+
+        assertThat(lastSpan().attributes()).doesNotContainKey("finish_reason");
+    }
+
+    @Test
+    void blankThinkingChunkProducesNoThinkingEvent() {
+        advise(List.of(
+                thinkingChunk("   "),
+                textChunkWithFinish("answer", "stop", null)));
+
+        // 空串思维链被 stringOf 过滤：无 THINKING 事件（模型无思维链口径）
+        assertThat(eventTypes()).doesNotContain("THINKING");
+        assertThat(lastSpan().attributes().get("thinking.available")).isNull();
+    }
+
+    @Test
     void resolveTurnParentFallsBackToSessionSpanThenNull() {
         // 有 session（setUp 已 onOpen）→ MODEL_CALL parent 非空
         advise(List.of(textChunkWithFinish("a", "stop", null)));
