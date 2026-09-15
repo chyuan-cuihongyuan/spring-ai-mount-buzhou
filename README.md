@@ -1128,6 +1128,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R42 对账轮 | 快照补登前置第七例行（R37–R41 五类型：库存周转/失败域配额/轮换重叠窗/反熵分歧/向量时钟）+ 全仓 clean verify + 七波节奏稳定 + 共享检出特性入档（并行 push 携带本地提交）（spec 1841） | [spec 1841](docs/spec/1841-o-r42-reconciliation.md) |
 | 护栏治理 | 隔离区普查 | QuarantineCensus——「放/杀」两极间的暂存待审积压读数：pendingReview/reviewedCount 分账+oldestPendingAge 待审最老旧（-1 哨兵）+pendingRatio 拥堵度——邮件隔离区/恶意样本沙箱思想，疑似即杀误报无申诉、只放真阳逃逸（spec 1842） | [spec 1842](docs/spec/1842-quarantine-census.md) |
 | 技能体系 | 技能依赖图审计 | SkillDependencyAudit——依赖图三病分诊：环（显式栈 DFS 首环路径入档——该断哪条边直接读出）/缺失依赖（悬空引用——补装或降级）/孤儿（无边关联——目录噪音该清）——npm/pip 依赖解析思想，装得齐≠依赖健康（spec 1843） | [spec 1843](docs/spec/1843-skill-dependency-audit.md) |
+| MCP 体系 | 重连退避阶梯 | ReconnectBackoffLadder——断线重连三段式策略面：指数爬升（100×2→100/200/400/800）+封顶钳制（溢出安全触顶先判后乘）+verdict RETRY/GIVE_UP（边界含——僵尸重连不永生）——Resilience4j retry/libpq 重连惯例思想（spec 1844） | [spec 1844](docs/spec/1844-reconnect-backoff-ladder.md) |
 
 ## 快速开始
 
