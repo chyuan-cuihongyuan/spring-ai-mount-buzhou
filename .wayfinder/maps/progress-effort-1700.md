@@ -9,3 +9,4 @@
 | R2 | #1701 | 11e64fad | EvalOrderRotator 轮换消序；eval 五测批跑绿 |
 | R3 | #1702 | 7d62c19a | EvalCoverageMatrix 覆盖矩阵+熵 |
 | R4 | #1703 | e100d8bf | JudgePositionBias 位置偏差 |
+| R5 | #1704 | f98dc7a3 | EvalSetFingerprint 内容指纹 |
