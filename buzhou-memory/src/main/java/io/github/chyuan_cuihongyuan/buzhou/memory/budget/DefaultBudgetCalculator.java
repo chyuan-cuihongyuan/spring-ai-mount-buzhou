@@ -20,8 +20,34 @@ public class DefaultBudgetCalculator implements BudgetCalculator {
         this.estimator = estimator;
     }
 
+    // —— spec 1133 / impl 871：钳位读面（DSP clip 检测思想；静态面理由同 R46–R113
+    // 先例）。守恒：evaluations = negativeClamps + normalBudgets。
+    private static final java.util.concurrent.atomic.AtomicLong EVALUATIONS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong NEGATIVE_CLAMPS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong NORMAL_BUDGETS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 预算钳位分布快照（spec 1133）。 */
+    public record BudgetClampStats(long evaluations, long negativeClamps, long normalBudgets) {
+    }
+
+    /** 只读快照（守恒 evaluations = 两桶之和）。 */
+    public static BudgetClampStats stats() {
+        return new BudgetClampStats(EVALUATIONS.get(), NEGATIVE_CLAMPS.get(), NORMAL_BUDGETS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        EVALUATIONS.set(0);
+        NEGATIVE_CLAMPS.set(0);
+        NORMAL_BUDGETS.set(0);
+    }
+
     @Override
     public BudgetReport evaluate(BudgetInput input) {
+        EVALUATIONS.incrementAndGet();
         int window = windowResolver.resolveWindow(input.modelName());
         int effective = window - input.reserveOutputTokens() - input.safetyBufferTokens();
         int fixedOverhead = estimator.estimate(input.systemPrompt())
@@ -32,6 +58,11 @@ public class DefaultBudgetCalculator implements BudgetCalculator {
         int historyTokens = estimator.estimateMessages(input.historyAfterMicroCompaction());
         int total = fixedOverhead + summaryTokens + historyTokens;
         boolean needed = total > effective * input.threshold();
+        if (effective - fixedOverhead < 0) {
+            NEGATIVE_CLAMPS.incrementAndGet();
+        } else {
+            NORMAL_BUDGETS.incrementAndGet();
+        }
         return new BudgetReport(window, effective, fixedOverhead,
                 Math.max(effective - fixedOverhead, 0), summaryTokens, historyTokens, total,
                 input.threshold(), needed);
