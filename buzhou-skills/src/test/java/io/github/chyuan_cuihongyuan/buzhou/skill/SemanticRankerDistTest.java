@@ -48,7 +48,7 @@ class SemanticRankerDistTest {
 
     private List<SkillMetadata> candidates(String... names) {
         return java.util.Arrays.stream(names)
-                .map(n -> new SkillMetadata(n, "desc of " + n, null, null))
+                .map(n -> new SkillMetadata(n, "desc of " + n, List.of(), SkillSource.CLASSPATH))
                 .toList();
     }
 
