@@ -1055,6 +1055,11 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 分组 | 能力 | 一句话 | 详设 |
 |------|------|--------|------|
 | 评测计量 | 评测分数 MAD 鲁棒离散度 | EvalScoreMad——median/MAD（中位数绝对偏差）+修正 z 值（0.6745·|x−med|/MAD>3.5 Iglewicz–Hoaglin）离群 run 定位+Dispersion 三档（INSUFFICIENT n<3 哨兵/TIGHT MAD=0 收紧档偏离直接判离群/SPREAD）——Prometheus/Thanos 鲁棒统计思想，门→趋势（1444）→离散三维补齐（spec 1700） | [spec 1700](docs/spec/1700-eval-score-mad.md) |
+| 评测计量 | 评测项轮换消序 | EvalOrderRotator——runIndex 派生种子 Fisher–Yates 置换（java.util.Random LCG 跨 JVM 重现）+shuffled 多重集守恒+OrderPlan 审计复现——OpenAI Evals/HELM 种子化顺序思想，与 1700 MAD 配套分辨顺序效应 vs 能力波动（spec 1701） | [spec 1701](docs/spec/1701-eval-order-rotator.md) |
+| 评测计量 | 评测集覆盖矩阵 | EvalCoverageMatrix——标签×用例计数矩阵+missingFrom 零覆盖漏测清单+归一化香农熵（ln k 归一，1=均衡 0=偏科）——JaCoCo/Stryker 覆盖思想+scikit-learn 信息熵（spec 1702） | [spec 1702](docs/spec/1702-eval-coverage-matrix.md) |
+| 评测计量 | 裁判位置偏差读面 | JudgePositionBias——成对裁决 (A,B)×换位 (B,A) 镜像自洽四桶（一致/首位双赢/次位双赢/混合平）+biasRatio（空哨兵 −1）——MT-Bench/FastChat 位置偏差检验（spec 1703） | [spec 1703](docs/spec/1703-judge-position-bias.md) |
+| 评测计量 | 评测集内容指纹 | EvalSetFingerprint——\n 规范形 SHA-256 指纹 sha256- 前缀+ORDERED/UNORDERED 双序口径——DVC/HuggingFace Datasets 数据集指纹思想，跨 run 分数对比先验同数据（spec 1704） | [spec 1704](docs/spec/1704-eval-set-fingerprint.md) |
+| 评测计量 | 门限边际直方 | EvalGateMargin——|rate−threshold| 逐 run 边际+min/max+withinBand 危险带计数（空哨兵 −1）——Google SRE 告警边际/SPRT 边际思想，「门过多悬」直接读数（spec 1705） | [spec 1705](docs/spec/1705-eval-gate-margin.md) |
 
 ## 快速开始
 
