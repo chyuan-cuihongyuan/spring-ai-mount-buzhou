@@ -651,6 +651,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具计量 | http_request 受控头丢弃显形 | 黑名单头试探频次量化（spec 1071） | [spec 1071](docs/spec/1071-headerdrop-stats.md) |
 | 内容防御 | PII 检测引擎读面 | 引擎原生匹配数与业务上报数双层对账显形（spec 1072） | [spec 1072](docs/spec/1072-piidetector-stats.md) |
 | 内容防御 | PII 出站脱敏读面 | 出站事件脱敏三结局分布与 fail-open 显形（spec 1211） | [spec 1211](docs/spec/1211-pii-red-stats.md) |
+| 过程治理 | O 系 R72 周期对账 | R67–R71 五个新公共类型快照补登 + 三门全绿 + Wave 13 排程；对账口径延续十二波惯例（spec 1871） | [spec 1871](docs/spec/1871-o-r72-reconciliation.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
