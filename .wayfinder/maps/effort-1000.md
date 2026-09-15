@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [evidence×episodic 独立性组合测试轮的形状裁决](../tickets/T1681-evidepi-shape.md) — 纯测试轮第十六弹：EvidenceEpisodicComboTest 钉住回查与情景记忆交叉互不串账与 reset 独立隔离。
 - [R110 周期预检轮的形状裁决](../tickets/T1679-r110-audit-shape.md) — R101–R109 对账零缺陷（纯测试组合系列七轮深度盘点）+ 首验一次通过 BUILD SUCCESS（质量纪律复利显现）。
 - [tools 五读面全矩阵组合测试轮的形状裁决](../tickets/T1675-toolsmatrix-shape.md) — 纯测试轮第十五弹：ToolsMatrixReadoutTest 钉住写/读/黑名单/SSRF 全交叉互不串账与 reset 独立（tools 组合系列收口）。
 - [memory 三读面大组合测试轮的形状裁决](../tickets/T1673-memtriple-shape.md) — 纯测试轮第十三弹：MemoryTripleReadoutTest 钉住 compact/episodic/fact 三读面全交叉互不串账与 reset 独立（memory 组合系列收口）。
