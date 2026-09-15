@@ -71,7 +71,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R44 | #1843 | 技能依赖图审计（npm/pip 依赖解析思想） | T2887–T2888 | 1444 | ✅ |
 | R45 | #1844 | 重连退避阶梯（Resilience4j/libpq 思想） | T2889–T2890 | 1445 | ✅ |
 | R46 | #1845 | argv 预算门（execve ARG_MAX/MAX_ARG_STRLEN 思想） | T2891–T2892 | 1446 | ✅ |
-| R47 | #1846 | Wave 8 弹性位 E | T2893–T2894 | 1447 | ⬜ |
+| R47 | #1846 | 组提交账面（MySQL group commit/PG commit_delay 思想） | T2893–T2894 | 1447 | ✅ |
 | R48 | #1847 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2895–T2896 | 1448 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
