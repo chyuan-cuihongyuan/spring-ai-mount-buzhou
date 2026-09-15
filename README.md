@@ -775,6 +775,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R17：Advisor 残余分支清扫 | 流式+非流式 harness 复用追加 5 用例（metadata=null·result=null 防御/blank finishReason 不记/空串思维链无事件/usage 0 归一口径）；ObservabilityAdvisor 75%→77%（spec 1216） | [spec 1216](docs/spec/1216-residual-sweep.md) |
 | 工程门禁 | K 会话周期对账轮 R18 | 全仓 verify（隔离 worktree 强制重置基座）+ 工件链五项对账（R13–R17 五轮 52 用例增量回归）；沿 R6/R12 口径（spec 1217） | [spec 1217](docs/spec/1217-k-audit-r18.md) |
 | 工程门禁 | R19：流式语义定向补测 | ToolResponseMessage 占位符快照提取（evidence/spill 首次直接断言）/TTFT CAS 幂等恰一次/omitted-only 流块/空 Flux 防御；spec 1218 | [spec 1218](docs/spec/1218-stream-detail.md) |
+| 工程门禁 | K 会话周期对账轮 R23 | 全仓 verify（隔离 worktree 固定本地 HEAD）+ 工件链五项对账（R19–R22 四轮 25 用例增量回归）；沿 R6/R12/R18 口径（spec 1222） | [spec 1222](docs/spec/1222-k-audit-r23.md) |
 | 工程门禁 | R21：BuzhouMemoryAdvisor 分支直测 | 写路径 fence（先于落库/抛错阻断零写入/恢复照常）+ Identity 去重 + USER/ToolResponse 写入与 ASSISTANT 过滤 + 无 fence 行为不变；分支 77%→95%（spec 1220） | [spec 1220](docs/spec/1220-memory-advisor-branches.md) |
 | 工程门禁 | R22：HookAdvisor 切面分发直测 | beforeModel Block 短路/afterModel replaceResponse 回填/onModelError 决策树（Block 文本兜底/Replace 经链契约 ctx 回填/Continue 放行）+ 流式同构对称；分支 70%→100%（spec 1221） | [spec 1221](docs/spec/1221-hook-advisor-dispatch.md) |
 | 工程门禁 | R20：快照预算分解 + extraKeys 贯通 + 文本 null 防御 | budgetBreakdown 四键角色分桶首次断言（长度口径确定性）/custom_thinking 经 advisor 贯通 THINKING 事件/content=null 无 FINAL_REPLY 无 NPE；spec 1219 | [spec 1219](docs/spec/1219-snapshot-budget-extrakeys.md) |
