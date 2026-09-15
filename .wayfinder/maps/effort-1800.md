@@ -47,7 +47,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R20 | #1819 | 预算花费匀速曲线（广告 spend pacing 思想） | T2839–T2840 | 1420 | ✅ |
 | R21 | #1820 | 重启错峰计划（memberlist/consul+AWS jitter 思想） | T2841–T2842 | 1421 | ✅ |
 | R22 | #1821 | 优先级反转暴露读面（Mars Pathfinder 教训） | T2843–T2844 | 1422 | ✅ |
-| R23 | #1822 | Wave 4 弹性位 E | T2845–T2846 | 1423 | ⬜ |
+| R23 | #1822 | 混沌预算门（Chaos Monkey/Chaos Toolkit 思想） | T2845–T2846 | 1423 | ✅ |
 | R24 | #1823 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2847–T2848 | 1424 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）

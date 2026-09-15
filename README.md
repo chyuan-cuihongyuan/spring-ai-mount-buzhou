@@ -1102,6 +1102,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 成本治理 | 预算花费匀速曲线 | BudgetPacingCurve——匀速基线三态判（ON_PACE 带内/OVER_PACING 超前烧钱/UNDER_PACING 落后漏损）+deviation 偏离+runRate 运行率（期末烧几倍，-1 哨兵）——广告 spend pacing 思想，浮点噪声免疫边界（spec 1819） | [spec 1819](docs/spec/1819-budget-pacing-curve.md) |
 | 模型韧性 | 重启错峰计划 | RestartSpreadPlan——同批实例稳定哈希分槽错峰（同 id 永远同槽确定性可回放，delay∈[0,window)）+cohort 槽碰撞账/collisionRatio——memberlist/consul 协同重启+AWS jitter 思想，重启风暴（同刻重试打爆下游）确定性摊开（spec 1820） | [spec 1820](docs/spec/1820-restart-spread-plan.md) |
 | 并发治理 | 优先级反转暴露读面 | PriorityInversionExposure——持有关系反转账：holderRank>waiterRank 即反转（值小=关键）+worstRankGap 拖死强度+未知资源等待诚实账+inversionRatio——OS 优先级反转（Mars Pathfinder 教训）思想，关键路径被低优持有者拖死显形为可计数风险面（spec 1821） | [spec 1821](docs/spec/1821-priority-inversion-exposure.md) |
+| 工具执行 | 混沌预算门 | ChaosBudgetGate——实验节律闸三态（MAY_RUN/OUT_OF_BUDGET/FORBIDDEN_WINDOW，窗口优先于预算安全第一）+usage 使用账（钳零/烧尽比/超支照实）——Netflix Chaos Monkey/Chaos Toolkit 思想，与 ChaosMonkeyHook 执行器构成闸+执行对（spec 1822） | [spec 1822](docs/spec/1822-chaos-budget-gate.md) |
 
 ## 快速开始
 
