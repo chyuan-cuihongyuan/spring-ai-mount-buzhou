@@ -674,6 +674,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 授权治理 | 危险工具守卫判定读面 | HITL 五结局桶守恒显形，升级量可对账（spec 1069） | [spec 1069](docs/spec/1069-dangerous-tool-stats.md) |
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
+| 记忆治理 | compact_now×归档 生命周期组合测试 | 归档后手动压缩行为双读面守恒钉住（spec 1119） | [spec 1119](docs/spec/1119-archive-readrange-combo.md) |
 | 记忆治理 | EpisodeLedger 双实例组合测试 | 跨实例计数累计与双守恒钉住（spec 1105） | [spec 1105](docs/spec/1105-dualinst-episodic.md) |
 | 预算治理 | 预算钳位读面 | 负预算钳 0 发生频次显形（spec 1133） | [spec 1133](docs/spec/1133-budgetclamp-stats.md) |
 | 预算治理 | 预算 needed 判定分布并入 | 压缩触发压力信号 neededTrue/False 显形（spec 1134） | [spec 1134](docs/spec/1134-budget-needed-ext.md) |
