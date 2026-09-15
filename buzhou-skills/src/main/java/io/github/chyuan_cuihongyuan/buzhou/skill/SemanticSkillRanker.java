@@ -48,7 +48,7 @@ public final class SemanticSkillRanker implements SkillRanker {
             new java.util.concurrent.atomic.AtomicLong();
 
     /** 排序分布快照（spec 1136）。 */
-    public record RankerDistStats(long rankCalls, long skippedTrivial, long bypassed) {
+    public record RankerDistStats(long rankCalls, long skippedTrivial, long succeeded) {
     }
 
     /** 只读快照。 */
