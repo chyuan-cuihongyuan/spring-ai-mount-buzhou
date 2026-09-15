@@ -12,6 +12,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmission
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnPriority
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnRejectionDistribution
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.BudgetPacingCurve
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.BudgetRecommendation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.BudgetTierClassifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionJsonl
@@ -51,6 +52,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptive
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JobDeadLetterLog
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityInversionExposure
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SuperstepBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreaker
@@ -168,6 +170,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CanaryToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CancellationToken
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftWatcher
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosBudgetGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosMonkeyHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback
@@ -735,6 +738,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ModelCallTimeou
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderErrorClassifier
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ProviderRateLimitSignals
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ResilienceModule
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.RestartSpreadPlan
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.JitterMode
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCallInFlight
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor
@@ -859,6 +863,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.OnloadHook
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.RangeReadEngine
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.RangeReadRequest
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.RangeReadResult
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.ReadAheadAdvisor
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.ReadAuditTrail
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.ReadIntegrity
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.ReadRangeTool

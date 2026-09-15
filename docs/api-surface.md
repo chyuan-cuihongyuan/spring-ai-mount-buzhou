@@ -2563,3 +2563,13 @@
   `BackfillPlan` 不另立面）
 - `LoadShedLadder`（backpressure 域——负载脱落阶梯裁决；嵌套 `Level`/
   `ShedDecision` 不另立面）
+- `ReadAheadAdvisor`（spill 域——顺序读预读顾问：尾链检测三态+指数放大
+  封顶；嵌套 `ReadEvent`/`Pattern`/`Advisory` 不另立面）
+- `BudgetPacingCurve`（budget 域——花费匀速三态判+运行率；嵌套 `Pacing`/
+  `PacingReport` 不另立面）
+- `RestartSpreadPlan`（resilience 域——重启错峰稳定哈希槽+碰撞账；嵌套
+  `CohortReport` 不另立面）
+- `PriorityInversionExposure`（concurrent 域——持有关系反转暴露账；嵌套
+  `HeldResource`/`Waiter`/`Exposure` 不另立面）
+- `ChaosBudgetGate`（exec 域——混沌实验节律闸+使用账；嵌套 `Verdict`/
+  `Window`/`Usage` 不另立面）
