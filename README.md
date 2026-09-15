@@ -672,6 +672,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
 | 记忆治理 | EpisodeLedger 双实例组合测试 | 跨实例计数累计与双守恒钉住（spec 1105） | [spec 1105](docs/spec/1105-dualinst-episodic.md) |
+| 预算治理 | 预算钳位读面 | 负预算钳 0 发生频次显形（spec 1133） | [spec 1133](docs/spec/1133-budgetclamp-stats.md) |
 | 记忆治理 | evidence×episodic 独立性组合测试 | 回查与情景记忆互不串账钉住（spec 1111） | [spec 1111](docs/spec/1111-evidepi-combo.md) |
 | 记忆治理 | memory 域双工具组合测试 | compact_now 与情景记忆读面互不串账钉住（spec 1087） | [spec 1087](docs/spec/1087-memorytools-readout.md) |
 | 记忆治理 | memory 三读面大组合测试 | compact/episodic/fact 三读面交叉互不串账收口（spec 1107） | [spec 1107](docs/spec/1107-memtriple-readout.md) |
@@ -758,6 +759,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 | 工程门禁 | R14：ToolGraphAnalyzer 边缘分支 | cycles null fail-fast/零计数边不入邻接/同 count 边字典序 tie-break/kind=null 忽略/startedAt=null 计 0/负时长夹 0；分支 95%（spec 1213） | [spec 1213](docs/spec/1213-graph-analyzer-edge.md) |
+| 工程门禁 | R15：BaseSpanRecorder sink 分发补测 | enqueue 时刻旁路分发合同 5 用例（span/event 到达/逐 sink 异常隔离落库不受污染/PendingSnapshot 跳过/顺序保持）；分支 85%（spec 1214） | [spec 1214](docs/spec/1214-sink-dispatch.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 
