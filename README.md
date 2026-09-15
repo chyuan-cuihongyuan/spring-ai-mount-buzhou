@@ -1080,6 +1080,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系对账门 | OSession1800LedgerAuditTest——150 轮工件链四面互证（spec 1800–1949 ↔ README 行 ↔ T 票对 ↔ impl，号段公式 R1 钉死：T2801+2(N−1800)/1401+(N−1800)）——LSession1700LedgerAuditTest 预防式对账同款，漂移落盘瞬间即红（spec 1800） | [spec 1800](docs/spec/1800-o-series-ledger-audit.md) |
 | 溢出保护 | Spill 压力失速读面 | SpillPressureStall——PSI 双档失速账目 some（≥1 会话失速=吞吐损失）/full（活跃全失速=进度损失）+峰值窗失速面（空观测 -1 哨兵）——Linux 内核 Pressure Stall Information 思想，压力不看水位看谁在等（spec 1801） | [spec 1801](docs/spec/1801-spill-pressure-stall.md) |
 | 工具执行 | 轮墙钟预算传播裁决 | TurnDeadlineBudget——轮总预算沿顺序调用链传播递减，获准超时=min(预估,剩余)截断、耗尽即拒（零耗也不例外，deadline 先于派发检查）+committedNanos/admissionRatio——gRPC deadline propagation/Temporal schedule-to-close 思想，轮墙钟不被 N 次单超时拖成 N 倍（spec 1802） | [spec 1802](docs/spec/1802-turn-deadline-budget.md) |
+| 记忆压缩 | 层代晋升审计 | MemoryPromotionAudit——微压缩→摘要/归档层间流动率（promotionRate/directArchiveRate）+过早晋升周期计数（有产出零原地保留的轮）——JVM 分代 GC 晋升诊断思想，晋升率常高=年轻代没拦住短命内容、过早晋升堆积=缓冲失效（spec 1803） | [spec 1803](docs/spec/1803-memory-promotion-audit.md) |
 
 ## 快速开始
 
