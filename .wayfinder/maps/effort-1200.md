@@ -46,6 +46,7 @@
 - [R15 验证收口](../tickets/T1838-sink-dispatch-verify.md) — BaseSpanRecorder sink 分发骨架 85%（span/event enqueue 时刻到达/逐 sink 异常隔离落库不受污染/PendingSnapshot 跳过/顺序保持）；observability 123 用例全绿。
 - [R16 验证收口](../tickets/T1840-advisor-call-verify.md) — ObservabilityAdvisorCallTest 13 用例（adviseCall 全链/usage 三态含 DefaultUsage null 归一/thinking 三态 PROVIDER_NOT_RETURNED 启发式与显式 provider 覆盖/toolCalls·blank 抑制/chain 异常 ERROR+rethrow/snapshot 两跳过分支）；分支 69%→75%（累计口径）；eventTypes+eventPayloads 双 helper 断言基建沉淀。
 - [R17 验证收口](../tickets/T1842-residual-sweep-verify.md) — 流式+非流式 harness 复用追加 5 用例（metadata=null·result=null 防御/blank finishReason 不记/空串思维链无事件/usage 0 归一口径）；ObservabilityAdvisor 75%→77%（累计口径）；ChatResponse(List, null) 归一 NULL 常量致 metadata-null 分支防御性不可达——入档。
+- [R18 周期对账轮验证](../tickets/T1844-k-audit-r18-verify.md) — 三跑三固定点全仓 verify 均红于治理门且均已被责任会话就近修复（I R120 快照补账/J README 行/O 快照补齐）；**根因实锤：L/J 会话 docs/spec 文件写了未提交（untracked）→ clean checkout 必现死链**；K 线自产工件对账零缺陷；诚实不出「全仓绿」声明，快照门合流前持续震荡入档。
 
 ## R1 台账（spec 1200 / impl 903）
 
