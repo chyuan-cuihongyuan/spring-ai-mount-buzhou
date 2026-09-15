@@ -65,7 +65,7 @@
 | R46 | #1745 | 重试抖动实效读面（AWS jitter） | T2691–T2692 | 1345 | ✅ |
 | R47 | #1746 | 预算耗尽 ETA 投影（Prometheus predict_linear） | T2693–T2694 | 1346 | ✅ |
 | R48 | #1747 | 幂等键冲突读面（Stripe idempotency） | T2695–T2696 | 1347 | ✅ |
-| R49 | #1748 | 快照再生 + 对账终核 + MAP/README/台账四面终核 | T2697–T2698 | 1348 | ⬜ |
+| R49 | #1748 | 快照再生 + 对账终核 + MAP/README/台账四面终核 | T2697–T2698 | 1348 | ✅ |
 | R50 | #1749 | 收口终验（隔离 worktree 全仓 verify + 三门 + PR 合 main） | T2699–T2700 | 1349 | ⬜ |
 
 ## Out of scope

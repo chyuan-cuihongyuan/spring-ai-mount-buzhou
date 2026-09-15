@@ -1098,6 +1098,16 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 技能治理 | 技能排序一致性读面 | SkillRankAgreement——公共项 Kendall τ=(C−D)/(C+D)（值域 [−1,1]，公共项<2 哨兵 −1）——scikit-learn 排序一致性思想，词法 vs 语义双路「冗余还是真信号」一数定（spec 1735） | [spec 1735](docs/spec/1735-skill-rank-agreement.md) |
 | MCP 治理 | 重连退避实效读面 | McpReconnectStats——尝试/成功/放弃三计数+成功率+退避均值峰值（无尝试 −1）——gRPC channelz 连接健康遥测思想，退避涨而成功率不涨=真挂了（spec 1736） | [spec 1736](docs/spec/1736-mcp-reconnect-stats.md) |
 | MCP 治理 | 命名空间冲突普查 | McpNamespaceAudit——逐工具登记（缺名归 _anonymous_）+collidingTools 多服务端占用判定+serversOf 占用集合——npm scope 冲突思想，装配期告警优于运行期歧义（spec 1737） | [spec 1737](docs/spec/1737-mcp-namespace-audit.md) |
+| 安全治理 | PII 扫描耗时分位读面 | PiiScanLatency——record 负值忽略+median/p95（最近秩）/max 分位（无样本 −1）——Envoy per-filter 计时思想，「安全不能比漏洞更慢」，与 PiiHitStats 命中面互补（spec 1738） | [spec 1738](docs/spec/1738-pii-scan-latency.md) |
+| 安全治理 | 豁免 TTL 直方 | ExemptionTtlHistogram——默认 1m/10m/1h/24h 五桶+permanent 独立计数（负值忽略，0=永久不入桶）——cert-manager 证书生命周期普查思想，长期豁免堆积=权限漂移温床哨戒（spec 1739） | [spec 1739](docs/spec/1739-exemption-ttl-histogram.md) |
+| 安全治理 | PII 通道×类型命中矩阵 | PiiChannelMatrix——INPUT/STREAM/EXPORT 三通道×类型键（基数 32 超出并 _overflow_）二维计数+census 展平降序保序——WAF 命中地图思想，「哪条路在漏什么」一表定位脱敏盲区（spec 1740） | [spec 1740](docs/spec/1740-pii-channel-matrix.md) |
+| 安全治理 | 注入分类校准探针 | InjectionCalibrationProbe——record（预测,金标）四象限 TP/TN/FP/FN 归账+precision/recall/accuracy（分母 0 哨兵 −1）——HuggingFace evaluate 混淆矩阵思想，误杀与放走代价不对称须分开看（spec 1741） | [spec 1741](docs/spec/1741-injection-calibration-probe.md) |
+| 存储治理 | 范围读局部性分类读面 | RangeLocalityStats——record(offset,length) 连续性分类（顺序/随机，首读独立）+顺序占比（可判对<2 −1）——RocksDB 块缓存局部性思想，预取窗口与碎片化诊断依据（spec 1742） | [spec 1742](docs/spec/1742-range-locality-stats.md) |
+| 存储治理 | spill 句柄驻留年龄直方 | SpillHandleAgeHistogram——默认 1m/1h/1d 四桶+eldestMillis 哨戒——Redis OBJECT IDLETIME 思想，老句柄堆积=onload 回收跟不上 offload（spec 1743） | [spec 1743](docs/spec/1743-spill-handle-age.md) |
+| 韧性治理 | 对冲请求节省读面 | HedgeStats——对冲/主胜/对冲胜/节省时延四计数+对冲赢率（分母=决胜数，无决胜 −1）——Google「The Tail at Scale」/Envoy hedging 思想，赢率定阈值激进度（spec 1744） | [spec 1744](docs/spec/1744-hedge-stats.md) |
+| 韧性治理 | 重试抖动实效读面 | RetrySpreadStats——静态纯函数相对散布 (max−min)/mean（n<2 −1，mean=0 记 0）——AWS Builders' Library/Envoy jitter 思想，散布≈0=惊群风险机器证明（spec 1745） | [spec 1745](docs/spec/1745-retry-spread-stats.md) |
+| 韧性治理 | 预算耗尽 ETA 投影 | BudgetEtaProjection——静态纯函数平均烧速外推+verdict 三闭集（NO_DATA/STABLE/PROJECTED）——Prometheus predict_linear/Google SRE 预算烧尽预测思想，告警在烧穿之前响（spec 1746） | [spec 1746](docs/spec/1746-budget-eta-projection.md) |
+| 韧性治理 | 幂等键冲突读面 | IdempotencyCollisions——record(key,replayed)（null/空归 _blank_）+distinct 键集有界 256 FIFO+冲突占比（无样本 −1）——Stripe Idempotency-Key 遥测思想，冲突异常=键生成缺陷（spec 1747） | [spec 1747](docs/spec/1747-idempotency-collisions.md) |
 
 ## 快速开始
 
