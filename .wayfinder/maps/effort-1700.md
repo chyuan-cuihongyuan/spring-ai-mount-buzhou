@@ -55,16 +55,16 @@
 | R36 | #1735 | 技能排序一致性读面（sklearn Kendall τ） | T2671–T2672 | 1335 | ✅ |
 | R37 | #1736 | MCP 重连退避实效（gRPC channelz） | T2673–T2674 | 1336 | ✅ |
 | R38 | #1737 | MCP 命名空间冲突普查（npm scope） | T2675–T2676 | 1337 | ✅ |
-| R39 | #1738 | PII 扫描耗时分位（Envoy filter timing） | T2677–T2678 | 1338 | ⬜ |
-| R40 | #1739 | 豁免 TTL 直方（cert-manager 生命周期） | T2679–T2680 | 1339 | ⬜ |
-| R41 | #1740 | PII 通道×类型命中矩阵（WAF 命中图） | T2681–T2682 | 1340 | ⬜ |
-| R42 | #1741 | 注入分类校准探针（HF evaluate） | T2683–T2684 | 1341 | ⬜ |
-| R43 | #1742 | 范围读局部性分类（RocksDB locality） | T2685–T2686 | 1342 | ⬜ |
-| R44 | #1743 | spill 句柄驻留年龄直方（Redis IDLETIME） | T2687–T2688 | 1343 | ⬜ |
-| R45 | #1744 | 对冲请求节省读面（Envoy hedging/tail-at-scale） | T2689–T2690 | 1344 | ⬜ |
-| R46 | #1745 | 重试抖动实效读面（AWS jitter） | T2691–T2692 | 1345 | ⬜ |
-| R47 | #1746 | 预算耗尽 ETA 投影（Prometheus predict_linear） | T2693–T2694 | 1346 | ⬜ |
-| R48 | #1747 | 幂等键冲突读面（Stripe idempotency） | T2695–T2696 | 1347 | ⬜ |
+| R39 | #1738 | PII 扫描耗时分位（Envoy filter timing） | T2677–T2678 | 1338 | ✅ |
+| R40 | #1739 | 豁免 TTL 直方（cert-manager 生命周期） | T2679–T2680 | 1339 | ✅ |
+| R41 | #1740 | PII 通道×类型命中矩阵（WAF 命中图） | T2681–T2682 | 1340 | ✅ |
+| R42 | #1741 | 注入分类校准探针（HF evaluate） | T2683–T2684 | 1341 | ✅ |
+| R43 | #1742 | 范围读局部性分类（RocksDB locality） | T2685–T2686 | 1342 | ✅ |
+| R44 | #1743 | spill 句柄驻留年龄直方（Redis IDLETIME） | T2687–T2688 | 1343 | ✅ |
+| R45 | #1744 | 对冲请求节省读面（Envoy hedging/tail-at-scale） | T2689–T2690 | 1344 | ✅ |
+| R46 | #1745 | 重试抖动实效读面（AWS jitter） | T2691–T2692 | 1345 | ✅ |
+| R47 | #1746 | 预算耗尽 ETA 投影（Prometheus predict_linear） | T2693–T2694 | 1346 | ✅ |
+| R48 | #1747 | 幂等键冲突读面（Stripe idempotency） | T2695–T2696 | 1347 | ✅ |
 | R49 | #1748 | 快照再生 + 对账终核 + MAP/README/台账四面终核 | T2697–T2698 | 1348 | ⬜ |
 | R50 | #1749 | 收口终验（隔离 worktree 全仓 verify + 三门 + PR 合 main） | T2699–T2700 | 1349 | ⬜ |
 
