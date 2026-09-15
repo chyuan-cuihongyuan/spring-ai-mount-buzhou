@@ -1072,6 +1072,12 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 会话治理 | 会话迁移结果普查 | MigrationOutcomeStats——MIGRATED/SKIPPED_CURRENT/SKIPPED_EMPTY/FAILED 四桶+attemptSuccessRatio（分母只含尝试，无尝试 −1）——Kafka 再均衡过程普查思想，与 MigrationReconciliation（825 数据对账）互补（spec 1709） | [spec 1709](docs/spec/1709-migration-outcome-stats.md) |
 | 会话治理 | 会话事件时间间隙检测 | EventGapDetector——相邻事件时间差>阈值（严格大于）间隙计数+largestGap 最大间隙，<2 事件哨兵 −1——Flink event-time gap 思想，TurnSequenceAudit 序维之外补时维（spec 1710） | [spec 1710](docs/spec/1710-event-gap-detector.md) |
 | 会话治理 | 轮间到达间隔读面 | TurnInterArrivalStats——轮间隔序列+中位（偶数取均值）+p95（最近秩）——交互节奏遥测思想，机器连打 vs 人工思考显形，为空闲/采样调参供据（spec 1711） | [spec 1711](docs/spec/1711-turn-inter-arrival-stats.md) |
+| 工具计量 | 工具调用批规模直方 | ToolBatchHistogram——单轮批规模默认 {2,3,4,5}→5 桶（1/2/3/4/5+）+largestBatch 峰值——OpenAI 并行工具/vLLM batching 遥测思想，模型并行度画像与 lane 调参依据（spec 1712） | [spec 1712](docs/spec/1712-tool-batch-histogram.md) |
+| 工具计量 | 工具参数形态分布 | ToolArgShapeAudit——七态闭集（EMPTY/JSON_OBJECT/JSON_ARRAY/NUMERIC/BOOLEAN/LARGE_BLOB/PLAIN_TEXT）分类计数+census，blob 判定先于 JSON 解析（防御优先），阈值 4096 可调——jq 类型分诊/fail2ban 模式分类思想（spec 1713） | [spec 1713](docs/spec/1713-tool-arg-shape-audit.md) |
+| 工具计量 | 工具合并节省读面 | ToolCoalesceStats——合并组/参与调用/省去执行/节省时延四计数+savingRatio（无合并 −1）——Go singleflight/groupcache 合并回喂遥测思想，与 ToolCallCoalescer 配套显形「省了多少」（spec 1714） | [spec 1714](docs/spec/1714-tool-coalesce-stats.md) |
+| 工具计量 | 工具开关使用台账 | KillSwitchUsageLedger——杀/放留痕（tool+reason+时刻）有界台账 128 满逐最旧+配对累计封禁时长+杀放计数——Unleash/LaunchDarkly 开关审计思想，事故追溯与开关卫生（忘放回）双保障（spec 1715） | [spec 1715](docs/spec/1715-kill-switch-ledger.md) |
+| 工具计量 | 工具超时余量直方 | ToolTimeoutUtilization——利用率 ratio=duration/limit 六桶（<25%…≥100% 超时档）+maxRatio 千分精度，limit≤0 忽略——Envoy 超时利用率思想，贴线桶堆积=限时该调、全在低位=限时虚设（spec 1716） | [spec 1716](docs/spec/1716-tool-timeout-utilization.md) |
+| 工具计量 | 虚拟键份额读面 | VirtualKeyShareStats——逐键使用份额降序表（LinkedHashMap 保序）+HHI 赫芬达尔集中度 Σ份额²（0..1，无样本 −1）——OpenRouter 多键路由遥测+经济学 HHI 思想，轮换失效/独吞显形（spec 1717） | [spec 1717](docs/spec/1717-virtual-key-share.md) |
 
 ## 快速开始
 

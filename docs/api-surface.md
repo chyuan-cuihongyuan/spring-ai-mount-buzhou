@@ -2539,3 +2539,9 @@
 - `MigrationOutcomeStats`（session 域——迁移过程结果四桶普查；嵌套 `MigrationCensus`/`Outcome` 不另立面）
 - `EventGapDetector`（session 域——事件时间间隙检测；嵌套 `GapReport` 不另立面）
 - `TurnInterArrivalStats`（session 域——轮间到达间隔中位/p95；嵌套 `InterArrivalReport` 不另立面）
+- `ToolBatchHistogram`（hook 域——工具调用批规模直方+峰值）
+- `ToolArgShapeAudit`（hook 域——工具参数七态分类计数；嵌套 `Shape` 不另立面）
+- `ToolCoalesceStats`（exec 域——工具合并节省读面；嵌套 `CoalesceSavings` 不另立面）
+- `KillSwitchUsageLedger`（exec 域——工具开关杀放留痕有界台账；嵌套 `FlipEntry` 不另立面）
+- `ToolTimeoutUtilization`（hook 域——工具超时利用率六桶直方）
+- `VirtualKeyShareStats`（budget 域——虚拟键份额降序+HHI 集中度；嵌套 `ShareCensus` 不另立面）
