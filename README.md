@@ -657,6 +657,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 溢出治理 | SpillService 幂等复用读面 | 服务层五分支守恒显形，复用率可对账（spec 1101） | [spec 1101](docs/spec/1101-spillsvc-idem-stats.md) |
 | 溢出治理 | offload→readBack 双轴闭环组合测试 | 溢出落盘与回读闭环计数一致性钉住（spec 1093） | [spec 1093](docs/spec/1093-offread-combo.md) |
 | 溢出治理 | readRange×Spotlight 组合测试轮 | 溢出占位标记段与包裹回读幂等钉住（spec 1112） | [spec 1112](docs/spec/1112-readspot-combo.md) |
+| 溢出治理 | 加密溢出×逐出组合测试轮 | 加密路径双读面独立性钉住（spec 1213） | [spec 1213](docs/spec/1213-cipherevict-combo.md) |
 | 溢出治理 | cipher×readBack 组合测试轮 | 加密回读解密调用联动钉住（spec 1106） | [spec 1106](docs/spec/1106-cipherread-combo.md) |
 | 溢出治理 | RangeReadEngine 引擎读面 | 切片引擎三模式调用分布显形（spec 1113） | [spec 1113](docs/spec/1113-enginereads-stats.md) |
 | 溢出治理 | Spill 溢出 hook 判定读面 | 溢出触发率与降级动作五桶守恒显形（spec 1077） | [spec 1077](docs/spec/1077-spilloffload-stats.md) |
@@ -1090,6 +1091,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 溢出保护 | 驱逐信号阈值门 | EvictionThresholdGate——两级阈值三态裁决：signal≥hard 立即逐（不受宽限豁免）/signal≥soft 宽限满即逐、未满 GRACE_PENDING+census 多信号三态普查——K8s eviction manager 思想，软阈给宿主自救窗、硬阈保命，临界点不抖动驱逐（spec 1808） | [spec 1808](docs/spec/1808-eviction-threshold-gate.md) |
 | 工具执行 | 扇出 pacing 计划 | FanoutPacingPlan——并行扇出起发排程：头部 headStart 名额立即发（TCP IW 语义）、尾部按间隔匀速放行（pacing）+totalSpanMillis/pacedRatio——TCP 拥塞控制思想，小扇出零延迟、大扇出不惊群，两极连续可调（spec 1809） | [spec 1809](docs/spec/1809-fanout-pacing-plan.md) |
 | 背压治理 | Prefetch 信用窗口 | PrefetchCreditWindow——在飞上限口径背压闸：tryAcquire 满窗即拒（totalExhausted 流控压力读数）/release 确认归还信用/stats 快照+utilization——RabbitMQ basic.qos/AMQP credit-based flow control 思想，免速率估计、下游多快上游多快（spec 1810） | [spec 1810](docs/spec/1810-prefetch-credit-window.md) |
+| 工程治理 | O 系 R12 对账轮 | 快照补登前置（R7–R11 五类型一次入账，R6 两遍 verify 教训固化）+ 全仓 clean verify 三门绿 + GitHub 中断期积压补推确认（fe350325..b69b9864）（spec 1811） | [spec 1811](docs/spec/1811-o-r12-reconciliation.md) |
 
 ## 快速开始
 
