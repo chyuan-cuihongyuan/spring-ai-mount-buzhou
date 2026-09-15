@@ -2520,3 +2520,16 @@
 ## 跨会话新增公共类型补登二（R70 审计轮代登记，@since 1.0.0）
 - `BatchResponseBudgetHolder`（M 会话 1526 产出——批级工具结果回喂预算进程级开关）
 - `NegativeCachingHolder`（N 会话 1633 产出——负缓存进程级开关 Holder）
+
+## L 会话 1700 系新增公共类型（@since 1.0.0）
+- `EvalScoreMad`（eval 域——评测分数 MAD 鲁棒离散度读面：median/MAD/修正 z 值离群定位；
+  嵌套 `MadReport` 不另立面）
+- `EvalOrderRotator`（eval 域——评测项轮换消序：runIndex 派生种子 Fisher–Yates 置换，
+  跨 JVM 重现；嵌套 `OrderPlan` 不另立面）
+- `EvalCoverageMatrix`（eval 域——评测集标签覆盖矩阵：计数/漏测清单/归一化香农熵；
+  嵌套 `CoverageReport` 不另立面）
+- `JudgePositionBias`（eval 域——成对裁判位置偏差四桶+偏差比；嵌套 `BiasReport`/
+  `PairJudgement`/`Verdict` 不另立面）
+- `EvalSetFingerprint`（eval 域——评测集内容指纹 sha256- 前缀，序敏感/序不敏感双口径；
+  嵌套 `OrderSensitivity` 不另立面）
+- `EvalGateMargin`（eval 域——门限边际直方+危险带计数；嵌套 `MarginReport` 不另立面）
