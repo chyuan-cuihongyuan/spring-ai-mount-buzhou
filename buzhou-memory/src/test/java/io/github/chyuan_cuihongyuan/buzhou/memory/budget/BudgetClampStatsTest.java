@@ -44,7 +44,7 @@ class BudgetClampStatsTest {
     @Test
     void hugeOverheadCountsClamp() {
         // 巨型系统提示 + 巨型 reserve → effective-overhead 为负 → 钳 0
-        var report = calc.evaluate(input("S".repeat(4_000), 9_000, 1_000));
+        var report = calc.evaluate(input("S".repeat(4_000), 500_000, 100_000));
         assertThat(report.historyBudget()).isZero();
 
         DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
@@ -56,7 +56,7 @@ class BudgetClampStatsTest {
     @Test
     void conservationIdentityHolds() {
         calc.evaluate(input("正常", 200, 100));
-        calc.evaluate(input("N".repeat(6_000), 8_000, 500));
+        calc.evaluate(input("N".repeat(6_000), 500_000, 500));
 
         DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
         assertThat(stats.evaluations())
