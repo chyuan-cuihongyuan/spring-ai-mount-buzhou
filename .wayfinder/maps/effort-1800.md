@@ -85,7 +85,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R58 | #1857 | 保工作性审计（调度理论 work conservation 思想） | T2915–T2916 | 1458 | ✅ |
 | R59 | #1858 | 频次衰减竞速（Redis LFU counter decay 思想） | T2917–T2918 | 1459 | ✅ |
 | R60 | #1859 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2919–T2920 | 1460 | ✅ |
-| R61 | #1860 | Wave 11 弹性位 A（前沿 grep 复核后定题） | T2921–T2922 | 1461 | ⬜ |
+| R61 | #1860 | 对数分桶直方图（HdrHistogram/DDSketch 思想） | T2921–T2922 | 1461 | ✅ |
 | R62 | #1861 | Wave 11 弹性位 B | T2923–T2924 | 1462 | ⬜ |
 | R63 | #1862 | Wave 11 弹性位 C | T2925–T2926 | 1463 | ⬜ |
 | R64 | #1863 | Wave 11 弹性位 D | T2927–T2928 | 1464 | ⬜ |
