@@ -1091,6 +1091,13 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 记忆治理 | 压缩触发原因分布 | CompactionTriggerStats——IDLE/RATIO/MANUAL/CHECKPOINT 四因闭集+闲时占比（无样本 −1）——RocksDB/Cassandra compaction stats 思想，「闲时干活还是越线救火」显形，与 CompactionRatioStats 互补（spec 1728） | [spec 1728](docs/spec/1728-compaction-trigger-stats.md) |
 | 工具治理 | todo 返工周期读面 | TodoCycleStats——逐项重开计数有界 128 超出并 _overflow_+touchedItems/totalReopens/worstReopens——Jira reopened issues 思想，模型对同一项反复拉扎显形，与 TodoStalenessAudit 互补（spec 1729） | [spec 1729](docs/spec/1729-todo-cycle-stats.md) |
 | 工具治理 | 文件写型分类读面 | FileWriteKindStats——CREATE/OVERWRITE_UNCHANGED/OVERWRITE_CHANGED 三型闭集+实际变更占比（无样本 −1）——restic 备份变更分类思想，「全是不变覆盖」=模型空转写显形（spec 1730） | [spec 1730](docs/spec/1730-file-write-kind-stats.md) |
+| 观测治理 | 思考占比读面 | ThinkingRatioStats——record 钳制记账+cumulative/last 双占比（千分位记账防漂，无样本 −1）——OpenAI o1/DeepSeek-R1 推理预算遥测思想，思考占比直接驱动成本与延迟（spec 1731） | [spec 1731](docs/spec/1731-thinking-ratio-stats.md) |
+| 观测治理 | span 属性预算审计 | SpanAttributeBudget——逐 span 属性数/字节记账+可调阈值（默认 128 属性/8192 字节 OTel 对齐）+超限与极值——OTel span 属性限额思想，管道内存与后端基数守护（spec 1732） | [spec 1732](docs/spec/1732-span-attribute-budget.md) |
+| 观测治理 | 待决事件年龄直方 | PendingAgeHistogram——默认 1s/10s/1m/5m 五桶+oldestMillis 哨戒——Kafka consumer lag exporter 思想，「实时还是积压」显形，与 PendingSnapshot 瞬时清单互补（spec 1733） | [spec 1733](docs/spec/1733-pending-age-histogram.md) |
+| 技能治理 | 技能漏斗读面 | SkillFunnelStats——搜索/加载/应用三计数+两级转化率（分母 0 哨兵 −1）——PostHog/Amplitude 漏斗思想，掉哪个环节修哪个环节（spec 1734） | [spec 1734](docs/spec/1734-skill-funnel-stats.md) |
+| 技能治理 | 技能排序一致性读面 | SkillRankAgreement——公共项 Kendall τ=(C−D)/(C+D)（值域 [−1,1]，公共项<2 哨兵 −1）——scikit-learn 排序一致性思想，词法 vs 语义双路「冗余还是真信号」一数定（spec 1735） | [spec 1735](docs/spec/1735-skill-rank-agreement.md) |
+| MCP 治理 | 重连退避实效读面 | McpReconnectStats——尝试/成功/放弃三计数+成功率+退避均值峰值（无尝试 −1）——gRPC channelz 连接健康遥测思想，退避涨而成功率不涨=真挂了（spec 1736） | [spec 1736](docs/spec/1736-mcp-reconnect-stats.md) |
+| MCP 治理 | 命名空间冲突普查 | McpNamespaceAudit——逐工具登记（缺名归 _anonymous_）+collidingTools 多服务端占用判定+serversOf 占用集合——npm scope 冲突思想，装配期告警优于运行期歧义（spec 1737） | [spec 1737](docs/spec/1737-mcp-namespace-audit.md) |
 
 ## 快速开始
 

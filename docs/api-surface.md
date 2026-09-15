@@ -2558,3 +2558,10 @@
 - `CompactionTriggerStats`（memory/compact 域——压缩触发四因分布；嵌套 `TriggerCensus`/`Trigger` 不另立面）
 - `TodoCycleStats`（tools/todo 域——todo 返工周期三读数；嵌套 `CycleCensus` 不另立面）
 - `FileWriteKindStats`（tools/file 域——文件写型三分类+变更占比；嵌套 `WriteCensus`/`WriteKind` 不另立面）
+- `ThinkingRatioStats`（observability/thinking 域——思考占比双读面；嵌套 `ThinkingRatio` 不另立面）
+- `SpanAttributeBudget`（observability 域——span 属性预算审计；嵌套 `BudgetCensus` 不另立面）
+- `PendingAgeHistogram`（observability 域——待决事件年龄五桶直方+oldest 哨戒）
+- `SkillFunnelStats`（skill 域——搜索/加载/应用三级漏斗；嵌套 `FunnelCensus` 不另立面）
+- `SkillRankAgreement`（skill 域——词法×语义排序 Kendall τ 纯函数；嵌套 `Agreement` 不另立面）
+- `McpReconnectStats`（mcp 域——重连退避实效三计数；嵌套 `ReconnectCensus` 不另立面）
+- `McpNamespaceAudit`（mcp 域——工具名多服务端冲突普查；嵌套 `NamespaceCensus` 不另立面）
