@@ -211,6 +211,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolTimingHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolValidationFeedback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TransformingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TtlCachingToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnDeadlineBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBalanceAudit
@@ -635,6 +636,7 @@ buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.FactsExporter
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.InjectionViewProcessor
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.MemoryHierarchyCapacity
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.MemoryModule
+buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.MemoryPromotionAudit
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.SessionForks
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.SummaryDegradeReasons
 buzhou-memory|io.github.chyuan_cuihongyuan.buzhou.memory.SummaryProvenanceListener
@@ -732,6 +734,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.Resilie
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.budget.AgentCostLedgerHook
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ChunkingEmbeddingModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.NormalizingEmbeddingModel
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.PrefixBlockHitStats
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheCoalescer
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheKeys
@@ -860,6 +863,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillModule
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillOffloadHook
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillOnloadStats
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillPairAudit
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillPressureStall
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillQuota
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillService
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillStore

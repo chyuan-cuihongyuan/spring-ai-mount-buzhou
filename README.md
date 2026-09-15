@@ -1083,6 +1083,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具执行 | 轮墙钟预算传播裁决 | TurnDeadlineBudget——轮总预算沿顺序调用链传播递减，获准超时=min(预估,剩余)截断、耗尽即拒（零耗也不例外，deadline 先于派发检查）+committedNanos/admissionRatio——gRPC deadline propagation/Temporal schedule-to-close 思想，轮墙钟不被 N 次单超时拖成 N 倍（spec 1802） | [spec 1802](docs/spec/1802-turn-deadline-budget.md) |
 | 记忆压缩 | 层代晋升审计 | MemoryPromotionAudit——微压缩→摘要/归档层间流动率（promotionRate/directArchiveRate）+过早晋升周期计数（有产出零原地保留的轮）——JVM 分代 GC 晋升诊断思想，晋升率常高=年轻代没拦住短命内容、过早晋升堆积=缓冲失效（spec 1803） | [spec 1803](docs/spec/1803-memory-promotion-audit.md) |
 | 模型韧性 | 前缀块命中读面 | PrefixBlockHitStats——等长块切分的跨请求复用账（尾块不入账/请求内去重/radix 一次插入语义）+blockHitRatio——vLLM block-level prefix cache/SGLang radix 思想，整请求命中率与块命中率分开读，前缀投资有依据（spec 1804） | [spec 1804](docs/spec/1804-prefix-block-hit-stats.md) |
+| 工程治理 | O 系 R6 对账轮 | 全仓 clean verify 三门核账（覆盖/快照/对账）+ 快照补登四类型 + 并行吸收（J 系 skills 断链两连修复：11bc4d3a 改名滑手→005cc8f0/a8b7885d 并发对撞镜像断链→7fdb1611 和解）——kill 在途 verify 留部分编译态的教训入档（spec 1805） | [spec 1805](docs/spec/1805-o-r6-reconciliation.md) |
 
 ## 快速开始
 

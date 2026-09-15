@@ -2533,3 +2533,13 @@
 - `EvalSetFingerprint`（eval 域——评测集内容指纹 sha256- 前缀，序敏感/序不敏感双口径；
   嵌套 `OrderSensitivity` 不另立面）
 - `EvalGateMargin`（eval 域——门限边际直方+危险带计数；嵌套 `MarginReport` 不另立面）
+
+## O 会话 1800 系新增公共类型（@since 1.0.0）
+- `SpillPressureStall`（spill 域——PSI 双档失速账面：some（≥1 会话失速）/full
+  （活跃全失速）+峰值窗失速面；嵌套 `StallSample`/`PsiReport` 不另立面）
+- `TurnDeadlineBudget`（exec 域——轮墙钟预算传播裁决：剩余递减/min 截断/耗尽即拒；
+  嵌套 `CallAllocation`/`BudgetPlan` 不另立面）
+- `MemoryPromotionAudit`（memory 域——层代晋升审计：晋升率/越级归档率/过早晋升
+  周期；嵌套 `CycleFacts`/`PromotionReport` 不另立面）
+- `PrefixBlockHitStats`（resilience/cache 域——前缀块命中读面：等长块跨请求复用账
+  （尾块丢弃/请求内去重）；嵌套 `BlockReport` 不另立面）
