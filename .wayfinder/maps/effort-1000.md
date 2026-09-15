@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [tools 五读面全矩阵组合测试轮的形状裁决](../tickets/T1675-toolsmatrix-shape.md) — 纯测试轮第十五弹：ToolsMatrixReadoutTest 钉住写/读/黑名单/SSRF 全交叉互不串账与 reset 独立（tools 组合系列收口）。
 - [memory 三读面大组合测试轮的形状裁决](../tickets/T1673-memtriple-shape.md) — 纯测试轮第十三弹：MemoryTripleReadoutTest 钉住 compact/episodic/fact 三读面全交叉互不串账与 reset 独立（memory 组合系列收口）。
 - [cipher×readBack 组合测试轮的形状裁决](../tickets/T1671-cipherread-shape.md) — 纯测试轮第十二弹：CipherReadBackComboTest 钉住加密回读的解密调用联动 + ReadRangeStats 守恒。
 - [双档读写四象限对照组合测试轮的形状裁决](../tickets/T1665-dualrw-shape.md) — 纯测试轮第十四弹：DualModeRwSymmetryTest 钉住读写对跨两档组装对称恒等 + 双守恒保持。
@@ -224,6 +225,8 @@
 | 102 | 冒烟清单第三扩展轮（SkillAdmin/SpillService 纳入 17 读面冒烟） | 登记纪律持续闭环 | T1663–T1664 | 854 | 1102 | ✅ |
 | 106 | cipher×readBack 组合测试轮（解密调用随回读联动） | 纯测试轮第十二弹 | T1671–T1672 | 858 | 1106 | ✅ |
 | 107 | （开工时按缺口核查选题） | — | T1673–T1674 | 859 | 1107 |  |
+| 108 | tools 五读面全矩阵组合测试轮（写/读/黑名单/SSRF 全交叉收口） | 纯测试轮第十五弹 | T1675–T1676 | 860 | 1108 | ✅ |
+| 109 | （开工时按缺口核查选题） | — | T1677–T1678 | 861 | 1109 |  |
 | 103 | 双档读写四象限对照组合测试轮（读写对跨两档对称恒等） | 纯测试轮第十四弹 | T1665–T1666 | 855 | 1103 | ✅ || 104 | todo×http 跨工具工作流组合测试轮（双读面独立互不串账） | 纯测试轮第十五弹 | T1667–T1668 | 856 | 1104 | ✅ |
 | 105 | （开工时按缺口核查选题） | — | T1669–T1670 | 857 | 1105 |  |
 
