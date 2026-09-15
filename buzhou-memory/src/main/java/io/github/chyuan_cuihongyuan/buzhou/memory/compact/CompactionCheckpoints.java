@@ -54,7 +54,30 @@ public final class CompactionCheckpoints {
     }
 
     /** 压缩提交前保存检查点（水位 = 即将折叠到的 turn；窗口按末尾 N 条封顶）。 */
+    // —— spec 1135 / impl 873：操作读面（savepoint 使用率思想；静态面理由同
+    // R46–R114 先例）。写读独立不设统一守恒。
+    private static final java.util.concurrent.atomic.AtomicLong SAVES =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ROLLBACKS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 检查点操作分布快照（spec 1135）。 */
+    public record CheckpointStats(long saves, long rollbacks) {
+    }
+
+    /** 只读快照。 */
+    public static CheckpointStats stats() {
+        return new CheckpointStats(SAVES.get(), ROLLBACKS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        SAVES.set(0);
+        ROLLBACKS.set(0);
+    }
+
     public void save(String sessionId, int cutoffTurn, List<BuzhouMessage> window) {
+        SAVES.incrementAndGet();
         try {
             List<BuzhouMessage> capped = window.size() > WINDOW_CAP_MESSAGES
                     ? window.subList(window.size() - WINDOW_CAP_MESSAGES, window.size())
@@ -142,6 +165,7 @@ public final class CompactionCheckpoints {
         if (stateStore.get(sessionId, STATE_CHECKPOINT).isEmpty()) {
             return false;
         }
+        ROLLBACKS.incrementAndGet();
         stateStore.put(sessionId, new StateEntry(STATE_ROLLBACK, level.name(),
                 "CompactionCheckpoints", 0, null, Instant.now()));
         if (level.ordinal() >= RollbackLevel.PLUS_SUMMARY_INVALIDATION.ordinal()) {

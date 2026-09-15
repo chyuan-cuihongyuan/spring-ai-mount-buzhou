@@ -631,6 +631,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 情景记忆读写双守恒读面 | 情景库写入量与召回命中率显形，双守恒（spec 1055） | [spec 1055](docs/spec/1055-episodic-stats.md) |
 | 模型韧性 | 崩循环探测器类级水位读面 | OPEN 总量/封顶截断量/循环检出/恢复四计数显形（spec 1056） | [spec 1056](docs/spec/1056-crashloop-watch-stats.md) |
 | 技能治理 | skill_search 搜索判定读面 | 搜索命中率与零结果率显形，四桶守恒（spec 1057） | [spec 1057](docs/spec/1057-skillsearch-stats.md) |
+| 技能治理 | SemanticSkillRanker 排序分布深化 | 排序调用/跳过/降级三计数显形（spec 1136） | [spec 1136](docs/spec/1136-ranker-dist.md) |
 | 技能治理 | SkillAdmin×Search 可见性联动组合测试 | 发布/下架→搜索命中联动钉住（spec 1095） | [spec 1095](docs/spec/1095-adminsearch-combo.md) |
 | MCP 治理 | 工具集轮询提供器读面 | 热更新轮询三桶守恒显形，失败率可对账（spec 1058） | [spec 1058](docs/spec/1058-toolsetpoll-stats.md) |
 | 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
@@ -638,6 +639,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | Dashboard HTTP 状态分布读面 | 七状态码结局桶守恒显形（spec 1061） | [spec 1061](docs/spec/1061-dashhttp-stats.md) |
 | 观测治理 | J 系阶段对账审计 R100 | 百轮节点：R91–R99 工件对账 + 组合测试系列成型盘点（spec 1100） | [spec 1100](docs/spec/1100-j-audit-r100.md) |
 | 观测治理 | J 系阶段对账审计 R110 | J 会话 R101–R109 工件对账 + 首验一次通过（spec 1110） | [spec 1110](docs/spec/1110-j-audit-r110.md) |
+| 观测治理 | J 系阶段对账审计 R120 | J 会话 R111–R119 工件对账 + 组合测试系列深度盘点（spec 1120） | [spec 1120](docs/spec/1120-j-audit-r120.md) |
 | 观测治理 | J 系阶段对账审计 R80 | J 会话 R71–R79 工件对账 + 九域读面布局盘点（spec 1080） | [spec 1080](docs/spec/1080-j-audit-r80.md) |
 | 观测治理 | J 系阶段对账审计 R90 | J 会话 R81–R89 工件对账 + README 1085 吞噬修复（spec 1090） | [spec 1090](docs/spec/1090-j-audit-r90.md) |
 | 观测治理 | 冒烟补全轮 | TodoTool/ToolSlowLog 独立冒烟纳入（spec 1098） | [spec 1098](docs/spec/1098-smoke-ext2.md) |
@@ -655,8 +657,11 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 溢出治理 | offload→readBack 双轴闭环组合测试 | 溢出落盘与回读闭环计数一致性钉住（spec 1093） | [spec 1093](docs/spec/1093-offread-combo.md) |
 | 溢出治理 | readRange×Spotlight 组合测试轮 | 溢出占位标记段与包裹回读幂等钉住（spec 1112） | [spec 1112](docs/spec/1112-readspot-combo.md) |
 | 溢出治理 | cipher×readBack 组合测试轮 | 加密回读解密调用联动钉住（spec 1106） | [spec 1106](docs/spec/1106-cipherread-combo.md) |
+| 溢出治理 | RangeReadEngine 引擎读面 | 切片引擎三模式调用分布显形（spec 1113） | [spec 1113](docs/spec/1113-enginereads-stats.md) |
 | 溢出治理 | Spill 溢出 hook 判定读面 | 溢出触发率与降级动作五桶守恒显形（spec 1077） | [spec 1077](docs/spec/1077-spilloffload-stats.md) |
 | 溢出治理 | Spill 加解密读面 | 加解密操作量与失败分布显形（spec 1079） | [spec 1079](docs/spec/1079-spillcipher-stats.md) |
+| 溢出治理 | evict×readRange 逐出复活组合测试 | 逐出→回读→再逐出链双读面守恒钉住（spec 1114） | [spec 1114](docs/spec/1114-evictread-combo.md) |
+| 溢出治理 | SemanticChunkIndex 操作读面 | 索引/查询/无效跳过操作分布显形（spec 1115） | [spec 1115](docs/spec/1115-chunkidx-op-stats.md) |
 | 溢出治理 | offload×cipher 加密联动组合测试 | 加密配置真实生效联动钉住（spec 1097） | [spec 1097](docs/spec/1097-offcipher-combo.md) |
 | 溢出治理 | spill 域 offload+evict 生命周期组合测试 | 溢出→逐出→回读链路双读面守恒钉住（spec 1089） | [spec 1089](docs/spec/1089-spillchain-readout.md) |
 | 记忆治理 | 双时序事实台账操作读面 | 废止写入/两类查询/损坏蒸发四计数显形（spec 1063） | [spec 1063](docs/spec/1063-factledger-stats.md) |
@@ -671,11 +676,14 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 授权治理 | 危险工具守卫判定读面 | HITL 五结局桶守恒显形，升级量可对账（spec 1069） | [spec 1069](docs/spec/1069-dangerous-tool-stats.md) |
 | 记忆治理 | 完成轮检测器读面 | 检出率分母/分子显形，空检出即压缩失能信号（spec 1065） | [spec 1065](docs/spec/1065-completedturn-stats.md) |
 | 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
+| 记忆治理 | compact_now×归档 生命周期组合测试 | 归档后手动压缩行为双读面守恒钉住（spec 1119） | [spec 1119](docs/spec/1119-archivecompact-combo.md) |
 | 记忆治理 | EpisodeLedger 双实例组合测试 | 跨实例计数累计与双守恒钉住（spec 1105） | [spec 1105](docs/spec/1105-dualinst-episodic.md) |
 | 预算治理 | 预算钳位读面 | 负预算钳 0 发生频次显形（spec 1133） | [spec 1133](docs/spec/1133-budgetclamp-stats.md) |
+| 预算治理 | 预算 needed 判定分布并入 | 压缩触发压力信号 neededTrue/False 显形（spec 1134） | [spec 1134](docs/spec/1134-budget-needed-ext.md) |
 | 记忆治理 | evidence×episodic 独立性组合测试 | 回查与情景记忆互不串账钉住（spec 1111） | [spec 1111](docs/spec/1111-evidepi-combo.md) |
 | 记忆治理 | memory 域双工具组合测试 | compact_now 与情景记忆读面互不串账钉住（spec 1087） | [spec 1087](docs/spec/1087-memorytools-readout.md) |
 | 记忆治理 | memory 三读面大组合测试 | compact/episodic/fact 三读面交叉互不串账收口（spec 1107） | [spec 1107](docs/spec/1107-memtriple-readout.md) |
+| 压缩治理 | 压缩检查点操作读面 | 安全网保存/回滚触发分布显形（spec 1135） | [spec 1135](docs/spec/1135-checkpoint-stats.md) |
 | 记忆治理 | compact×evidence 交叉组合测试 | 压缩前后回查计数一致钉住（spec 1096） | [spec 1096](docs/spec/1096-compact-evid-combo.md) |
 | 记忆治理 | memory 双台账组合测试 | fact/episodic 双台账读面互不串账钉住（spec 1088） | [spec 1088](docs/spec/1088-dualledger-readout.md) |
 | 工具计量 | 沙箱版 run_command 执行分布读面 | 沙箱档送达率与五拒绝桶守恒显形（spec 1074） | [spec 1074](docs/spec/1074-sandboxrun-stats.md) |
@@ -687,6 +695,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具计量 | 双档 run_command 对账组合测试 | timeout 语义分叉钉住防修齐回归（spec 1082） | [spec 1082](docs/spec/1082-dualmode-contrast.md) |
 | 生命周期治理 | 会话归档操作读面 | 归档成功/空跳/下限拒四桶显形（spec 1075） | [spec 1075](docs/spec/1075-archiver-stats.md) |
 | 生命周期治理 | 归档×evidence 回查联动组合测试 | 归档后回查行为双读面守恒钉住（spec 1109） | [spec 1109](docs/spec/1109-archivevid-combo.md) |
+| 记忆治理 | compact_now×归档 生命周期组合测试 | 归档后 compact_now skipped 桶行为双读面守恒钉住（spec 1119） | [spec 1119](docs/spec/1119-archivecompact-combo.md) |
 | 生命周期治理 | 归档清理任务读面 | 清理轮次/累计产出/锁跳过三面显形（spec 1078） | [spec 1078](docs/spec/1078-purgejob-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
@@ -760,6 +769,9 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 | 工程门禁 | R14：ToolGraphAnalyzer 边缘分支 | cycles null fail-fast/零计数边不入邻接/同 count 边字典序 tie-break/kind=null 忽略/startedAt=null 计 0/负时长夹 0；分支 95%（spec 1213） | [spec 1213](docs/spec/1213-graph-analyzer-edge.md) |
 | 工程门禁 | R15：BaseSpanRecorder sink 分发补测 | enqueue 时刻旁路分发合同 5 用例（span/event 到达/逐 sink 异常隔离落库不受污染/PendingSnapshot 跳过/顺序保持）；分支 85%（spec 1214） | [spec 1214](docs/spec/1214-sink-dispatch.md) |
+| 工程门禁 | R16：ObservabilityAdvisor 非流式路径补测 | adviseCall 全链 13 用例（recordModelCallOutcome 22 missed 集中区：usage 三态/thinking 三态 PROVIDER_NOT_RETURNED 启发式与显式 provider/抑制分支/异常 ERROR）；分支 69%→75%（spec 1215） | [spec 1215](docs/spec/1215-advisor-call.md) |
+| 工程门禁 | R17：Advisor 残余分支清扫 | 流式+非流式 harness 复用追加 5 用例（metadata=null·result=null 防御/blank finishReason 不记/空串思维链无事件/usage 0 归一口径）；ObservabilityAdvisor 75%→77%（spec 1216） | [spec 1216](docs/spec/1216-residual-sweep.md) |
+| 工程门禁 | K 会话周期对账轮 R18 | 全仓 verify（隔离 worktree 强制重置基座）+ 工件链五项对账（R13–R17 五轮 52 用例增量回归）；沿 R6/R12 口径（spec 1217） | [spec 1217](docs/spec/1217-k-audit-r18.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 
@@ -1108,6 +1120,11 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 韧性治理 | 重试抖动实效读面 | RetrySpreadStats——静态纯函数相对散布 (max−min)/mean（n<2 −1，mean=0 记 0）——AWS Builders' Library/Envoy jitter 思想，散布≈0=惊群风险机器证明（spec 1745） | [spec 1745](docs/spec/1745-retry-spread-stats.md) |
 | 韧性治理 | 预算耗尽 ETA 投影 | BudgetEtaProjection——静态纯函数平均烧速外推+verdict 三闭集（NO_DATA/STABLE/PROJECTED）——Prometheus predict_linear/Google SRE 预算烧尽预测思想，告警在烧穿之前响（spec 1746） | [spec 1746](docs/spec/1746-budget-eta-projection.md) |
 | 韧性治理 | 幂等键冲突读面 | IdempotencyCollisions——record(key,replayed)（null/空归 _blank_）+distinct 键集有界 256 FIFO+冲突占比（无样本 −1）——Stripe Idempotency-Key 遥测思想，冲突异常=键生成缺陷（spec 1747） | [spec 1747](docs/spec/1747-idempotency-collisions.md) |
+| 工程治理 | O 系对账门 | OSession1800LedgerAuditTest——150 轮工件链四面互证（spec 1800–1949 ↔ README 行 ↔ T 票对 ↔ impl，号段公式 R1 钉死：T2801+2(N−1800)/1401+(N−1800)）——LSession1700LedgerAuditTest 预防式对账同款，漂移落盘瞬间即红（spec 1800） | [spec 1800](docs/spec/1800-o-series-ledger-audit.md) |
+| 溢出保护 | Spill 压力失速读面 | SpillPressureStall——PSI 双档失速账目 some（≥1 会话失速=吞吐损失）/full（活跃全失速=进度损失）+峰值窗失速面（空观测 -1 哨兵）——Linux 内核 Pressure Stall Information 思想，压力不看水位看谁在等（spec 1801） | [spec 1801](docs/spec/1801-spill-pressure-stall.md) |
+| 工具执行 | 轮墙钟预算传播裁决 | TurnDeadlineBudget——轮总预算沿顺序调用链传播递减，获准超时=min(预估,剩余)截断、耗尽即拒（零耗也不例外，deadline 先于派发检查）+committedNanos/admissionRatio——gRPC deadline propagation/Temporal schedule-to-close 思想，轮墙钟不被 N 次单超时拖成 N 倍（spec 1802） | [spec 1802](docs/spec/1802-turn-deadline-budget.md) |
+| 记忆压缩 | 层代晋升审计 | MemoryPromotionAudit——微压缩→摘要/归档层间流动率（promotionRate/directArchiveRate）+过早晋升周期计数（有产出零原地保留的轮）——JVM 分代 GC 晋升诊断思想，晋升率常高=年轻代没拦住短命内容、过早晋升堆积=缓冲失效（spec 1803） | [spec 1803](docs/spec/1803-memory-promotion-audit.md) |
+| 模型韧性 | 前缀块命中读面 | PrefixBlockHitStats——等长块切分的跨请求复用账（尾块不入账/请求内去重/radix 一次插入语义）+blockHitRatio——vLLM block-level prefix cache/SGLang radix 思想，整请求命中率与块命中率分开读，前缀投资有依据（spec 1804） | [spec 1804](docs/spec/1804-prefix-block-hit-stats.md) |
 
 ## 快速开始
 

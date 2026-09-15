@@ -1,0 +1,43 @@
+# Effort #1800 总图 — O 会话 1800 系 150 轮自迭代（能力自补充与自进化第五弹）
+
+> 会话：O（A–N 字母已占用：J=1000/K=1200/L=1400+1700/M=1500/N=1600）；本轮**直推 main 逐轮 push**（K 会话先例，用户常设授权 GitHub 自动提交）；启动 2026-09-16。
+> 号段（fetch+双查 origin/main@bcf1322e 后占用，号段声明先行）：**efforts #1800–#1999、specs 1800–1949（150 轮=spec 号，1950+ 缓冲）、票 T2801–T3100（每轮 shape+verify 一对，T3101+ 缓冲）、impl 1401–1550（impl 1401+(N−1800)）**。
+> 纪律：每轮四步（map→spec→tickets→implement）+ 双门（模块测试 + 全局三门：覆盖门/快照门/对账门）+ 一轮一 commit 一 push；**每 6 轮一対账轮**（R6k：全仓 mvn verify + 台账核账 + 合并 origin/main 吸收并行会话——J/K/L/M 均活跃）；README 纵深行逐轮即时登记。
+> 对账门：R1 即落 `OSession1800LedgerAuditTest`（starter，LSession1700LedgerAuditTest 同款公式族）：spec N → shape 票 T2801+2(N−1800) / verify=+1 / impl 1401+(N−1800)，spec 起点断言 1800 严格递增——预防式对账而非事后补救。
+
+## Destination
+
+150 轮连续 effort（#1800–#1949）全部四步闭环：从高价值开源项目借鉴思想，在十大机制上落 ~140 个小纵切（读面/护栏/调度/一致性语义族，避开 L-1700 读面族与 M-1542 在途工作）+ 25 个对账轮（R6k），全仓三门绿、README/api-surface/MAP/台账四面一致、逐轮 push GitHub。
+
+## 选题原则与借鉴定源（GitHub >10K★ 高价值项目思想）
+
+避开已 mined 带（RetryBudget/WebhookOutboxLag/OutlierEjection/HedgedChatModel/AdaptiveTimeout/SleepTimeConsolidator 等已存在；L-1700 排程的 fork 形态/年龄分桶/续租抖动/批规模/合并节省/开关台账族）。本轮候选静脉（每轮落轮前 grep 复核前沿）：
+Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动心跳/重试策略分型）、JVM 分代（记忆层代晋升审计）、TCP BBR/BBRv2（pacing/带宽估计）、SQLite WAL（checkpoint 触发阈值/脏页水位）、Raft（领导租约 fencing 已有→选举期只读降级）、Postgres buffer cache（命中率/驱逐脏写）、RocksDB level compaction（层级放大因子）、Nginx/OpenResty（限流 leaky/freq 区间合并）、Consul（健康检查 TTL 状态机）、Nomad/K8s（驱逐信号驱逐阈值、descheduler 反热点）、RabbitMQ（prefetch/QoS 流控）、RocketMQ（事务半消息）、Letta/MemGPT（记忆块编辑冲突/self-editing 追踪）、mem0（衰减三分量 recency/frequency/importance）、LangGraph（checkpoint channel diff）、vLLM/SGLang（前缀块命中/radix LRU）、LiteLLM（路由粘性/冷却矩阵/context-window 预检）、Cedar/OPA（决策缓存 TTL/部分求值）、OpenFeature（flag 求值错误语义）、GitHub Actions（超时分级/重试上限）、Jenkins（构建稳定性 Readout）、Blazemeter（斜坡加压）、Chaos Toolkit（稳态假设断言）、Pinpoint/SkyWalking（拓扑边采样）、Zipkin（依赖聚合延迟百分位）。
+
+## 已裁决（Decisions so far）
+
+- 号段占用 1800–1999/T2801+/impl 1401+（origin 双查后空闲；见上）。
+- 工作树 M 会话遗留（EvalRunner dry-run，引用未落盘的 spec 1542/T2335）**不动不提交**——其文书链未落，提交将制造台账断链；本会话提交一律定向 `git add` 自有文件（R67/R118 覆盖丢失教训的镜像处置）。
+- 直推 main 而非分支（K 会话先例 + 共享检出唯一可行解；并行会话同在此检出工作）。
+- 本地积压 2 提交（K R18 开工 + README 补登）已于开工前 push（f24dfefc..bcf1322e）。
+
+## 排程表（滚动追加——Wave 1 先行，后续波次前沿推进后毕业）
+
+| R | effort | 主题 | 票 | impl | 状态 |
+|---|--------|------|----|------|------|
+| R1 | #1800 | 1800 系对账门落位（OSession1800LedgerAuditTest 四面互证） | T2801–T2802 | 1401 | ✅ |
+| R2 | #1801 | Spill 压力失速读面（Linux PSI some/full 语义） | T2803–T2804 | 1402 | ✅ |
+| R3 | #1802 | 工具墙钟 deadline 传播预算（gRPC/Temporal deadline propagation） | T2805–T2806 | 1403 | ✅ |
+| R4 | #1803 | 记忆层代晋升审计（JVM 分代 GC promotion 思想） | T2807–T2808 | 1404 | ✅ |
+| R5 | #1804 | 语义缓存前缀块命中读面（vLLM block-level prefix cache） | T2809–T2810 | 1405 | ✅ |
+| R6 | #1805 | 对账轮（全仓 mvn verify + 台账核账 + 合并 origin/main） | T2811–T2812 | 1406 | ⬜ |
+
+## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
+
+- Wave 2+（R7 起）：PSI 之后的调度/一致性静脉（BBR pacing / WAL checkpoint 水位 / buffer cache 命中 / level compaction 放大 / 限流区间合并 / 健康检查 TTL 状态机 / 驱逐信号阈值 / prefetch 流控 …）——每轮落轮前 grep 复核是否已被并行会话占坑，占坑即换静脉下一候选。
+
+## Out of scope
+
+- L-1700 已排程主题（fork 形态/续租抖动/合并节省/开关台账等 R7–R50 清单）不重复实现。
+- M-1542 在途 dry-run 族（观察者通知隔离等 1500 系排程）不碰。
+- 修改持久化 SPI 公共签名或跨模块依赖边界（星形白名单硬约束）。

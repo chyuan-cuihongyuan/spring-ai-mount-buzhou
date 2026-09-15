@@ -44,6 +44,8 @@
 - [R13 验证收口](../tickets/T1834-advisor-stream-verify.md) — ObservabilityAdvisor 流式 harness 落地（本仓首个 Spring AI 流式 advisor 测试基建，7 用例全绿）：happy path 全断言/usage-only 无首信号/toolCalls 抑制 FINAL_REPLY/流错 ERROR/取消 CANCELLED/parent 三级回退；分支 56%→69%（累计口径）；Spring AI 流式 advisor 测试基建沉淀可复用。
 - [R14 验证收口](../tickets/T1836-graph-analyzer-edge-verify.md) — ToolGraphAnalyzer ~85%→95%（cycles null fail-fast/零计数边/tie-break/null kind/startedAt=null/负时长夹 0 六边缘分支）；observability 118 用例全绿；批次 4 收尾。
 - [R15 验证收口](../tickets/T1838-sink-dispatch-verify.md) — BaseSpanRecorder sink 分发骨架 85%（span/event enqueue 时刻到达/逐 sink 异常隔离落库不受污染/PendingSnapshot 跳过/顺序保持）；observability 123 用例全绿。
+- [R16 验证收口](../tickets/T1840-advisor-call-verify.md) — ObservabilityAdvisorCallTest 13 用例（adviseCall 全链/usage 三态含 DefaultUsage null 归一/thinking 三态 PROVIDER_NOT_RETURNED 启发式与显式 provider 覆盖/toolCalls·blank 抑制/chain 异常 ERROR+rethrow/snapshot 两跳过分支）；分支 69%→75%（累计口径）；eventTypes+eventPayloads 双 helper 断言基建沉淀。
+- [R17 验证收口](../tickets/T1842-residual-sweep-verify.md) — 流式+非流式 harness 复用追加 5 用例（metadata=null·result=null 防御/blank finishReason 不记/空串思维链无事件/usage 0 归一口径）；ObservabilityAdvisor 75%→77%（累计口径）；ChatResponse(List, null) 归一 NULL 常量致 metadata-null 分支防御性不可达——入档。
 
 ## R1 台账（spec 1200 / impl 903）
 
