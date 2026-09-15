@@ -1088,6 +1088,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 恢复韧性 | 检查点滞后读面 | CheckpointLagReadout——逐会话产出/检查点水位差账目：totalLag（全会话重放成本）/maxLag（最坏单会话，-1 哨兵）/sessionsBeyond 越限计数/caughtUpRatio 追平率——Kafka consumer-group lag/SQLite WAL checkpoint 思想，崩溃重放成本与检查点节奏健康度直接读数（spec 1806） | [spec 1806](docs/spec/1806-checkpoint-lag-readout.md) |
 | 流量治理 | 追限事件会话化 | ViolationEpisodeMerger——追限时点按容忍窗切段（Episode start/end/hits/span）：episodes 段数/longest 最长段/hitsPerEpisode 平均密度——Prometheus 告警分组/GA session gap 会话化思想，散点抖动（加余量）与持续超载（扩容降级）分开读（spec 1807） | [spec 1807](docs/spec/1807-violation-episode-merger.md) |
 | 溢出保护 | 驱逐信号阈值门 | EvictionThresholdGate——两级阈值三态裁决：signal≥hard 立即逐（不受宽限豁免）/signal≥soft 宽限满即逐、未满 GRACE_PENDING+census 多信号三态普查——K8s eviction manager 思想，软阈给宿主自救窗、硬阈保命，临界点不抖动驱逐（spec 1808） | [spec 1808](docs/spec/1808-eviction-threshold-gate.md) |
+| 工具执行 | 扇出 pacing 计划 | FanoutPacingPlan——并行扇出起发排程：头部 headStart 名额立即发（TCP IW 语义）、尾部按间隔匀速放行（pacing）+totalSpanMillis/pacedRatio——TCP 拥塞控制思想，小扇出零延迟、大扇出不惊群，两极连续可调（spec 1809） | [spec 1809](docs/spec/1809-fanout-pacing-plan.md) |
 
 ## 快速开始
 
