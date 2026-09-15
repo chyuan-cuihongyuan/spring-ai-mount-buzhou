@@ -1107,6 +1107,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | Stale-While-Revalidate 策略 | StaleWhileRevalidatePolicy——缓存年龄三态判（FRESH 直接服务/STALE 回旧值+异步后台刷新/EXPIRED 同步回源）+staleness 陈旧度读数（新鲜钳 0/窗内进度/过期 ≥1）——HTTP Cache-Control SWR/CDN 思想，p99 不吃回源延迟、尾延迟换轻微陈旧性显式交易（spec 1824） | [spec 1824](docs/spec/1824-stale-while-revalidate.md) |
 | 会话治理 | 会话休眠分级 | SessionHibernationPolicy——闲置三档（ACTIVE 全热/DROWSY 预降级半足迹轻税/HIBERNATED 降冷一成足迹重税，边界含上）+档位画像（唤醒税 0/50/2000ms 与足迹比常量）+census 足迹节省率——k8s scale-to-zero/duty-cycling 思想，「省多少 vs 醒多慢」可算（spec 1825） | [spec 1825](docs/spec/1825-session-hibernation-policy.md) |
 | 会话治理 | 会话布隆粗筛 | SessionBloomFilter——「从未见过」确定性快判（false 即一定没见过，零假阴性契约；true 可能见过小概率误报）+确定性哈希可回放+fillRatio 饱和度重建建议——Bloom filter 思想，位图级内存换新会话零索引快路径（spec 1826） | [spec 1826](docs/spec/1826-session-bloom-filter.md) |
+| 会话治理 | 优雅停机排空预测 | DrainForecast——排空 makespan 预测：max(最长单会话剩余, ceil(总剩余÷并行度))×单位耗时+bottleneckSession 瓶颈直读+parallelismBound 主导方（workBound 催单点/parallelismBound 加并行延窗）——k8s drain/Envoy shutdown drain 思想，停机超时=预测×安全余量不拍常数（spec 1827） | [spec 1827](docs/spec/1827-drain-forecast.md) |
 
 ## 快速开始
 
