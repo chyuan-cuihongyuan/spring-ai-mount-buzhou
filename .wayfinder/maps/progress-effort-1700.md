@@ -10,3 +10,7 @@
 | R3 | #1702 | 7d62c19a | EvalCoverageMatrix 覆盖矩阵+熵 |
 | R4 | #1703 | e100d8bf | JudgePositionBias 位置偏差 |
 | R5 | #1704 | f98dc7a3 | EvalSetFingerprint 内容指纹 |
+| R6 | #1705 | af9ab1d3 | EvalGateMargin 门限边际 |
+| R7 | #1706 | 5182ef7c | ForkShapeStats fork 形态；session 六测批跑绿 |
+| R8 | #1707 | df0c5ca9 | SessionAgeHistogram 年龄直方 |
+| R9 | #1708 | 49d47623 | LeaseRenewalStats 续租抖动 |
