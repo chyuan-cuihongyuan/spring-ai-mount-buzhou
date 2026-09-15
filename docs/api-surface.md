@@ -2581,3 +2581,13 @@
 - `DrainForecast`（session 域——停机排空 makespan 预测；嵌套
   `SessionWork`/`Forecast` 不另立面）
 - `SmoothWeightedSequence`（exec 域——NGINX 平滑加权派发序生成）
+- `MultiLevelCacheStats`（resilience/cache 域——多级缓存逐层命中读面；嵌套
+  `CacheReport` 不另立面）
+- `HedgeDelayPolicy`（resilience 域——对冲阈值分位推导+裁决；嵌套
+  `HedgeDecision` 不另立面）
+- `OverwritingRingBuffer`（concurrent 域——覆写环形窗基建；嵌套 `Snapshot`
+  不另立面）
+- `ResumeTokenCodec`（session 域——续读令牌编解码+三态裁决；嵌套
+  `ResumeToken`/`Verdict` 不另立面）
+- `EtaProjection`（eval 域——完成度 ETA 线性外推；嵌套 `Projection`
+  不另立面）
