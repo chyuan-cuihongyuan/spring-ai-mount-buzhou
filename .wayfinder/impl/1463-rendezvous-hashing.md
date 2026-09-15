@@ -1,4 +1,4 @@
-# impl 1464 — RendezvousHashing 键归属指派（R63 = effort #1862 / spec 1862 / T2925-T2926）
+# impl 1463 — RendezvousHashing 键归属指派（R63 = effort #1862 / spec 1862 / T2925-T2926）
 
 **What**：`RendezvousHashing`（core/cache 静态纯函数）——assign（确定性
 混合评分取最高，并列字典序）+ assignAll（确定性可回放）；空键/空节点/
