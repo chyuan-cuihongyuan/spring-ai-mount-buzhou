@@ -1098,6 +1098,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 恢复韧性 | 缺口回填计划器 | GapBackfillPlanner——期望区间×在位集合的缺口闭区间清单（含首尾、升序合并）+largestGapSpan 瓶颈段长+missingRatio/complete——Kafka offset 补填/Prometheus backfill 思想，重放不重不漏先知道缺哪段、区间化可分批可并行（spec 1815） | [spec 1815](docs/spec/1815-gap-backfill-planner.md) |
 | 背压治理 | 负载脱落阶梯 | LoadShedLadder——过载分级甩负载：每级一脱落阈值（低阈值=低优先级先掉），负载因子越阈即该级拒新（含边界）+shedRatio/escalating——Envoy overload manager 思想，一刀切全拒变按优先级逐级甩（spec 1816） | [spec 1816](docs/spec/1816-load-shed-ladder.md) |
 | 工程治理 | O 系 R18 对账轮 | 快照补登前置第三例行（R13–R17 五类型：HalfMessageAudit/TtlProbeStateMachine/HotspotRebalancer/GapBackfillPlanner/LoadShedLadder）+ 全仓 clean verify + Wave 4 排程落图——R6 教训→R12 固化→R18 例行的对账节奏（spec 1817） | [spec 1817](docs/spec/1817-o-r18-reconciliation.md) |
+| 溢出保护 | 顺序读预读顾问 | ReadAheadAdvisor——尾链检测三态（SEQUENTIAL 相接链/RANDOM 跳读/COLD 样本不足）+预读指数放大封顶 8 倍（blockSize×2^min(链长−1,3)）、跳读零预读——Linux readahead 思想，预读窗随访问形状自适应（spec 1818） | [spec 1818](docs/spec/1818-read-ahead-advisor.md) |
 
 ## 快速开始
 
