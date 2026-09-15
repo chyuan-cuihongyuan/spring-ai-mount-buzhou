@@ -774,6 +774,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R16：ObservabilityAdvisor 非流式路径补测 | adviseCall 全链 13 用例（recordModelCallOutcome 22 missed 集中区：usage 三态/thinking 三态 PROVIDER_NOT_RETURNED 启发式与显式 provider/抑制分支/异常 ERROR）；分支 69%→75%（spec 1215） | [spec 1215](docs/spec/1215-advisor-call.md) |
 | 工程门禁 | R17：Advisor 残余分支清扫 | 流式+非流式 harness 复用追加 5 用例（metadata=null·result=null 防御/blank finishReason 不记/空串思维链无事件/usage 0 归一口径）；ObservabilityAdvisor 75%→77%（spec 1216） | [spec 1216](docs/spec/1216-residual-sweep.md) |
 | 工程门禁 | K 会话周期对账轮 R18 | 全仓 verify（隔离 worktree 强制重置基座）+ 工件链五项对账（R13–R17 五轮 52 用例增量回归）；沿 R6/R12 口径（spec 1217） | [spec 1217](docs/spec/1217-k-audit-r18.md) |
+| 工程门禁 | R19：流式语义定向补测 | ToolResponseMessage 占位符快照提取（evidence/spill 首次直接断言）/TTFT CAS 幂等恰一次/omitted-only 流块/空 Flux 防御；spec 1218 | [spec 1218](docs/spec/1218-stream-detail.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 
@@ -1109,6 +1110,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 会话治理 | 会话布隆粗筛 | SessionBloomFilter——「从未见过」确定性快判（false 即一定没见过，零假阴性契约；true 可能见过小概率误报）+确定性哈希可回放+fillRatio 饱和度重建建议——Bloom filter 思想，位图级内存换新会话零索引快路径（spec 1826） | [spec 1826](docs/spec/1826-session-bloom-filter.md) |
 | 会话治理 | 优雅停机排空预测 | DrainForecast——排空 makespan 预测：max(最长单会话剩余, ceil(总剩余÷并行度))×单位耗时+bottleneckSession 瓶颈直读+parallelismBound 主导方（workBound 催单点/parallelismBound 加并行延窗）——k8s drain/Envoy shutdown drain 思想，停机超时=预测×安全余量不拍常数（spec 1827） | [spec 1827](docs/spec/1827-drain-forecast.md) |
 | 工具执行 | 平滑加权轮询序列 | SmoothWeightedSequence——NGINX smooth WRR 逐字算法（current 累加-峰值派出-回收）生成派发序：权重比例保持且交错平滑（5:1:2 派 aabacaad 非 aaaaabc）+counts 直方+零权重不参与+确定性可回放——朴素 WRR 负载锯齿变平滑曲线（spec 1828） | [spec 1828](docs/spec/1828-smooth-weighted-sequence.md) |
+| 工程治理 | O 系 R30 对账轮 | 快照补登前置第五例行（R25–R29 五类型：SWR 策略/休眠分级/布隆粗筛/排空预测/平滑加权）+ 全仓 clean verify + 30/150 里程碑（1/5）+ GitHub 三次中断积压补推链（spec 1829） | [spec 1829](docs/spec/1829-o-r30-reconciliation.md) |
 
 ## 快速开始
 
