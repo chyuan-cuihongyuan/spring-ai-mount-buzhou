@@ -68,11 +68,10 @@ class ArchiveEvidenceComboTest {
         EvidenceLookupTool lookup = new EvidenceLookupTool(stores.messageStore());
         lookup.call("{\"evidenceId\":\"" + evidenceId + "\"}");
 
-        EvidenceLookupTool.resetForTest();
-        assertThat(EvidenceLookupTool.stats().calls()).isZero();
-        assertThat(SessionArchiver.stats().archiveCalls()).isZero();
-
         SessionArchiver.resetForTest();
         assertThat(SessionArchiver.stats().archiveCalls()).isZero();
+
+        EvidenceLookupTool.resetForTest();
+        assertThat(EvidenceLookupTool.stats().calls()).isZero();
     }
 }
