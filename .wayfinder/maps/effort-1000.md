@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [PII 出站脱敏读面的形状裁决](../tickets/T1703-piired-shape.md) — PiiEventRedactor 静态四计数（eventsProcessed/redacted/cleanPassthrough/failOpen）+ 嵌套 PiiEventRedStats + stats()/resetForTest()；守恒 eventsProcessed = 三结局桶；桶仅在 redactPayload 事件级落（每事件恰一次）。
 - [SemanticChunkIndex 操作读面的形态裁决](../tickets/T1695-chunkidx-op-stats-shape.md) — SemanticChunkIndex 静态四计数（indexCalls/locateCalls/skippedInvalid/chunksIndexed）+ 嵌套 ChunkIndexOpStats + stats()/resetForTest()；coverageStats 内容维度外的操作维度（搜索引擎索引/查询双计数）。
 - [evict×readRange 逐出复活组合测试轮的形状裁决](../tickets/T1693-evictread-shape.md) — 纯测试轮第十八弹：EvictReadBackComboTest 钉住逐出→回读复活→再逐出链双读面计数一致与各自守恒保持。
 - [readRange×Spotlight 组合测试轮的形状裁决](../tickets/T1683-readspot-shape.md) — 纯测试轮第十七弹：ReadRangeSpotlightComboTest 钉住溢出占位含标记段与包裹回读幂等（Spotlighting core 单一事实源）。
