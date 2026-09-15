@@ -30,7 +30,8 @@ class ReadRangeSpotlightComboTest {
         SpillService.OffloadOutcome outcome = service.tryOffload(
                 "agent", "s1", "tc1", "big_tool", "x".repeat(600), 100);
         assertThat(outcome.offloaded()).isTrue();
-        assertThat(outcome.text()).contains(Spotlighting.BEGIN_HEAD);
+        // 占位是指引文本（真实语义）：含"已溢出"与回读指引，标记段属原文包裹层非占位层
+        assertThat(outcome.text()).contains("已溢出").contains("read_range");
     }
 
     @Test
