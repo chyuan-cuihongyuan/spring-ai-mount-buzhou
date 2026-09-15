@@ -65,7 +65,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R38 | #1837 | 失败域配额（k8s failure-domain/分域备货思想） | T2875–T2876 | 1438 | ✅ |
 | R39 | #1838 | 密钥轮换重叠窗（TLS 证书轮换/Vault grace 思想） | T2877–T2878 | 1439 | ✅ |
 | R40 | #1839 | 反熵分歧账（Cassandra/Dynamo anti-entropy 思想） | T2879–T2880 | 1440 | ✅ |
-| R41 | #1840 | Wave 7 弹性位 E | T2881–T2882 | 1441 | ⬜ |
+| R41 | #1840 | 向量时钟偏序比较（Dynamo/Lamport 思想） | T2881–T2882 | 1441 | ✅ |
 | R42 | #1841 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2883–T2884 | 1442 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）

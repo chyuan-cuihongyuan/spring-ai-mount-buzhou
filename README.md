@@ -1123,6 +1123,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 成本治理 | 失败域配额 | FailureDomainQuota——预算按失败域分桶+全局保留兜底：admit 三态 FROM_BUCKET/BORROW_RESERVE/DENY+census 域普查（atCap/borrowing/tightest 最紧域/保留利用率）——k8s failure-domain/供应链分域备货思想，单域失败风暴不连坐健康域、备货总量封顶（spec 1837） | [spec 1837](docs/spec/1837-failure-domain-quota.md) |
 | 安全治理 | 密钥轮换重叠窗 | RotationOverlapWindow——凭据代际三态判（CURRENT 当前/GRACE 重叠窗内旧代仍有效——在飞数据兼容，含边界/EXPIRED 窗尽失效）+未来代 fail-fast+census 清扫进度——TLS 证书轮换/Vault grace 思想，无重叠窗的切换=旧钥数据瞬间全废（spec 1838） | [spec 1838](docs/spec/1838-rotation-overlap-window.md) |
 | 恢复韧性 | 反熵分歧账 | AntiEntropyDivergence——主副本键×版本比对四桶（onlyInPrimary 副本丢写/onlyInReplica 主被清/versionMismatch 冲突解候选/matched）+repairWorkload 三型合计+matchedRatio——Cassandra/Dynamo anti-entropy repair 思想，三型分歧修复动作不同分开数才排得了优先级（spec 1839） | [spec 1839](docs/spec/1839-anti-entropy-divergence.md) |
+| 并发治理 | 向量时钟偏序比较 | VectorClockOrder——无中心时钟因果三态判（BEFORE/AFTER 各分量≤且至少一严格小/CONCURRENT 互相各领——冲突解判定前提），缺席分量按 0 稀疏合法、相等退化「不后于」——Dynamo 向量时钟/Lamport happens-before 思想，墙钟偏移下真冲突与因果先后可分（spec 1840） | [spec 1840](docs/spec/1840-vector-clock-order.md) |
 
 ## 快速开始
 
