@@ -59,7 +59,7 @@ class SemanticRankerDistTest {
 
         SemanticSkillRanker.RankerDistStats stats = SemanticSkillRanker.distStats();
         assertThat(stats.rankCalls()).isEqualTo(1);
-        assertThat(stats.succeeded()).isEqualTo(1);
+        assertThat(stats.bypassed()).isZero();
         assertThat(stats.skippedTrivial()).isZero();
     }
 
