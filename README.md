@@ -1112,6 +1112,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具执行 | 平滑加权轮询序列 | SmoothWeightedSequence——NGINX smooth WRR 逐字算法（current 累加-峰值派出-回收）生成派发序：权重比例保持且交错平滑（5:1:2 派 aabacaad 非 aaaaabc）+counts 直方+零权重不参与+确定性可回放——朴素 WRR 负载锯齿变平滑曲线（spec 1828） | [spec 1828](docs/spec/1828-smooth-weighted-sequence.md) |
 | 工程治理 | O 系 R30 对账轮 | 快照补登前置第五例行（R25–R29 五类型：SWR 策略/休眠分级/布隆粗筛/排空预测/平滑加权）+ 全仓 clean verify + 30/150 里程碑（1/5）+ GitHub 三次中断积压补推链（spec 1829） | [spec 1829](docs/spec/1829-o-r30-reconciliation.md) |
 | 模型韧性 | 多级缓存命中读面 | MultiLevelCacheStats——两级（L1 进程内/L2 共享 store）逐层命中率+联合命中率+L1 失职率（L2 命中占非回源比——本可 L1 拦下的份额）——Caffeine multi-level/CPU L1-L2 思想，升容量/查预热/查键口径三分诊（spec 1830） | [spec 1830](docs/spec/1830-multilevel-cache-stats.md) |
+| 模型韧性 | 对冲延迟策略 | HedgeDelayPolicy——对冲阈值从延迟分布推导（最近秩 P95，样本不足退守地板不冒进）+decide 边界含上（elapsed≥阈即 SEND_HEDGE）——Google Tail at Scale hedged requests 思想，尾部 5% 才付双倍钱、中位数零对冲成本（spec 1831） | [spec 1831](docs/spec/1831-hedge-delay-policy.md) |
 
 ## 快速开始
 
