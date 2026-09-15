@@ -74,7 +74,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R47 | #1846 | 组提交账面（MySQL group commit/PG commit_delay 思想） | T2893–T2894 | 1447 | ✅ |
 | R48 | #1847 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2895–T2896 | 1448 | ✅ |
 | R49 | #1848 | Misra-Gries 频项素描（流式 heavy hitters 经典） | T2897–T2898 | 1449 | ✅ |
-| R50 | #1849 | Wave 9 弹性位 B | T2899–T2900 | 1450 | ⬜ |
+| R50 | #1849 | 水库采样（Knuth 算法 R 思想） | T2899–T2900 | 1450 | ✅ |
 | R51 | #1850 | Wave 9 弹性位 C | T2901–T2902 | 1451 | ⬜ |
 | R52 | #1851 | Wave 9 弹性位 D | T2903–T2904 | 1452 | ⬜ |
 | R53 | #1852 | Wave 9 弹性位 E | T2905–T2906 | 1453 | ⬜ |

@@ -1134,6 +1134,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 文件系统 | 组提交账面 | GroupCommitAccounting——合并刷盘收益账：amortizationRatio 摊薄倍数+savedFlushes 省刷数（×单价=SSD 寿命节省）+savingsNanos 净省（可为负——不划算面诚实）+savingsRatio——MySQL group commit/PostgreSQL commit_delay 思想，组提交开不开由数说话（spec 1846） | [spec 1846](docs/spec/1846-group-commit-accounting.md) |
 | 工程治理 | O 系 R48 对账轮 | 快照补登前置第八例行（R43–R47 五类型：隔离区普查/依赖图审计/重连阶梯/argv 预算门/组提交账面——guard/skills/mcp/tools/fs 五模块新拓）+ 全仓 clean verify + 八波节奏稳定（spec 1847） | [spec 1847](docs/spec/1847-o-r48-reconciliation.md) |
 | 认知可观测 | Misra-Gries 频项素描 | MisraGriesSketch——流式 heavy hitters：k−1 计数器计满抵消归零淘汰，O(k) 内存单遍找一切 >N/k 频繁项，计数为下界（真实−估计 ≤ N/k，热点不漏报），确定性可回放——经典流式算法思想，对照 Count-Min 概率口径（spec 1848） | [spec 1848](docs/spec/1848-misra-gries-sketch.md) |
+| 认知可观测 | 水库采样 | ReservoirSample——流长未知均匀无放回采样（Knuth 算法 R：前 k 入池、k/i 概率替换——终选概率恰 k/n 与到达序无关）+种子化 LCG 跨 JVM 重现可回放——诊断采样从「攒全量再随机/取前 N 到达序偏差」二选一变第三条路（spec 1849） | [spec 1849](docs/spec/1849-reservoir-sample.md) |
 
 ## 快速开始
 
