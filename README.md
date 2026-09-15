@@ -1100,6 +1100,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R18 对账轮 | 快照补登前置第三例行（R13–R17 五类型：HalfMessageAudit/TtlProbeStateMachine/HotspotRebalancer/GapBackfillPlanner/LoadShedLadder）+ 全仓 clean verify + Wave 4 排程落图——R6 教训→R12 固化→R18 例行的对账节奏（spec 1817） | [spec 1817](docs/spec/1817-o-r18-reconciliation.md) |
 | 溢出保护 | 顺序读预读顾问 | ReadAheadAdvisor——尾链检测三态（SEQUENTIAL 相接链/RANDOM 跳读/COLD 样本不足）+预读指数放大封顶 8 倍（blockSize×2^min(链长−1,3)）、跳读零预读——Linux readahead 思想，预读窗随访问形状自适应（spec 1818） | [spec 1818](docs/spec/1818-read-ahead-advisor.md) |
 | 成本治理 | 预算花费匀速曲线 | BudgetPacingCurve——匀速基线三态判（ON_PACE 带内/OVER_PACING 超前烧钱/UNDER_PACING 落后漏损）+deviation 偏离+runRate 运行率（期末烧几倍，-1 哨兵）——广告 spend pacing 思想，浮点噪声免疫边界（spec 1819） | [spec 1819](docs/spec/1819-budget-pacing-curve.md) |
+| 模型韧性 | 重启错峰计划 | RestartSpreadPlan——同批实例稳定哈希分槽错峰（同 id 永远同槽确定性可回放，delay∈[0,window)）+cohort 槽碰撞账/collisionRatio——memberlist/consul 协同重启+AWS jitter 思想，重启风暴（同刻重试打爆下游）确定性摊开（spec 1820） | [spec 1820](docs/spec/1820-restart-spread-plan.md) |
 
 ## 快速开始
 
