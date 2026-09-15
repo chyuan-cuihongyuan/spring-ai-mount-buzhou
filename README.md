@@ -1121,6 +1121,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R36 对账轮 | 快照补登前置第六例行（R31–R35 五类型：多级缓存/对冲延迟/环形缓冲/续读令牌/ETA 投影）+ 全仓 clean verify 一次过绿 + 六波节奏稳定入档（spec 1835） | [spec 1835](docs/spec/1835-o-r36-reconciliation.md) |
 | 溢出保护 | 库存周转读面 | TurnoverReadout——库存活性两读数：周转次数 turns（消费/库存，无库存 -1 哨兵、零消费 0=死库存）+耗尽视界 depletionHorizonMillis（库存/速率向上取整，零速率 -1）——供应链库存周转思想，周转贴地=TTL 激进、视界短=预热启动（spec 1836） | [spec 1836](docs/spec/1836-turnover-readout.md) |
 | 成本治理 | 失败域配额 | FailureDomainQuota——预算按失败域分桶+全局保留兜底：admit 三态 FROM_BUCKET/BORROW_RESERVE/DENY+census 域普查（atCap/borrowing/tightest 最紧域/保留利用率）——k8s failure-domain/供应链分域备货思想，单域失败风暴不连坐健康域、备货总量封顶（spec 1837） | [spec 1837](docs/spec/1837-failure-domain-quota.md) |
+| 安全治理 | 密钥轮换重叠窗 | RotationOverlapWindow——凭据代际三态判（CURRENT 当前/GRACE 重叠窗内旧代仍有效——在飞数据兼容，含边界/EXPIRED 窗尽失效）+未来代 fail-fast+census 清扫进度——TLS 证书轮换/Vault grace 思想，无重叠窗的切换=旧钥数据瞬间全废（spec 1838） | [spec 1838](docs/spec/1838-rotation-overlap-window.md) |
 
 ## 快速开始
 
