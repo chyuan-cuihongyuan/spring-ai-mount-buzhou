@@ -1084,6 +1084,13 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 错误治理 | 错误首见签名台账 | ErrorNoveltyLedger——record 返回是否首见+有界 256 FIFO 逐出（逐出后再现再「首见」诚实入档）+noveltyRatio——Sentry new-issue 追踪思想，回归探测第一信号：新签名=新病（spec 1721） | [spec 1721](docs/spec/1721-error-novelty-ledger.md) |
 | 恢复治理 | 回放时钟偏斜读面 | ReplaySkewStats——回放偏斜累积+负偏斜（时钟倒挂）分离计数+中位/最大（无正样本 −1）——Kafka consumer lag/NTP 偏斜思想，回放健康度与回放机时钟可信度双显形（spec 1722） | [spec 1722](docs/spec/1722-replay-skew-stats.md) |
 | 恢复治理 | 悬挂修复动作结果普查 | RepairOutcomeStats——REPLAYED/MARKED_FAILED/SKIPPED_GONE 三动作闭集+重放占比（无样本 −1）——Kubernetes events 自愈动作审计思想，与 DanglingTurnDetector 恢复双面（spec 1723） | [spec 1723](docs/spec/1723-repair-outcome-stats.md) |
+| 事实治理 | 事实读热分桶 | FactReadHistogram——逐键读取计数有界 512 超出并 _overflow_+冷(1)/温(2-4)/热(5-16)/灼(>16) 四档 census——Redis LFU 频次直方思想，缓存与衰减调参依据（spec 1724） | [spec 1724](docs/spec/1724-fact-read-histogram.md) |
+| 记忆治理 | 检索命中排名读面 | RetrievalRankStats——record(rank) 1 基+miss 分离+MRR 平均倒数排名（千分位累加防漂，无命中 −1）+Hit@1/@3——Elasticsearch rank_eval/RecSys MRR 思想，最终被用条目的排名质量（spec 1725） | [spec 1725](docs/spec/1725-retrieval-rank-stats.md) |
+| 记忆治理 | 情节保留普查 | EpisodeRetentionStats——STORED/EVICTED_TTL/EVICTED_CAPACITY 三闭集+批量记账+逐出占比（无样本 −1）——Kafka log retention 思想，「被时间赶走还是被挤走」归因（spec 1726） | [spec 1726](docs/spec/1726-episode-retention-stats.md) |
+| 记忆治理 | 摘要段落均衡读面 | SummaryBalanceStats——段落长度 imbalance=maxShare×k（1=均衡，k=单段独大）+极值段下标，段数<2 哨兵 −1——文档结构均衡审查思想，压缩保真补结构维（spec 1727） | [spec 1727](docs/spec/1727-summary-balance-stats.md) |
+| 记忆治理 | 压缩触发原因分布 | CompactionTriggerStats——IDLE/RATIO/MANUAL/CHECKPOINT 四因闭集+闲时占比（无样本 −1）——RocksDB/Cassandra compaction stats 思想，「闲时干活还是越线救火」显形，与 CompactionRatioStats 互补（spec 1728） | [spec 1728](docs/spec/1728-compaction-trigger-stats.md) |
+| 工具治理 | todo 返工周期读面 | TodoCycleStats——逐项重开计数有界 128 超出并 _overflow_+touchedItems/totalReopens/worstReopens——Jira reopened issues 思想，模型对同一项反复拉扎显形，与 TodoStalenessAudit 互补（spec 1729） | [spec 1729](docs/spec/1729-todo-cycle-stats.md) |
+| 工具治理 | 文件写型分类读面 | FileWriteKindStats——CREATE/OVERWRITE_UNCHANGED/OVERWRITE_CHANGED 三型闭集+实际变更占比（无样本 −1）——restic 备份变更分类思想，「全是不变覆盖」=模型空转写显形（spec 1730） | [spec 1730](docs/spec/1730-file-write-kind-stats.md) |
 
 ## 快速开始
 

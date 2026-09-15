@@ -2551,3 +2551,10 @@
 - `ErrorNoveltyLedger`（metrics 域——错误首见签名台账 FIFO 有界；嵌套 `NoveltyReport` 不另立面）
 - `ReplaySkewStats`（recovery 域——回放时钟偏斜+倒挂分离；嵌套 `SkewReport` 不另立面）
 - `RepairOutcomeStats`（recovery 域——悬挂修复三动作普查；嵌套 `RepairCensus`/`Action` 不另立面）
+- `FactReadHistogram`（fact 域——事实读热四档分桶+基数并桶；嵌套 `HeatCensus` 不另立面）
+- `RetrievalRankStats`（memory/recall 域——检索命中排名 MRR/Hit@k；嵌套 `RankReport` 不另立面）
+- `EpisodeRetentionStats`（memory/episodic 域——情节保留三事件普查；嵌套 `RetentionCensus`/`RetentionEvent` 不另立面）
+- `SummaryBalanceStats`（memory/summary 域——摘要段落失衡度纯函数；嵌套 `BalanceReport` 不另立面）
+- `CompactionTriggerStats`（memory/compact 域——压缩触发四因分布；嵌套 `TriggerCensus`/`Trigger` 不另立面）
+- `TodoCycleStats`（tools/todo 域——todo 返工周期三读数；嵌套 `CycleCensus` 不另立面）
+- `FileWriteKindStats`（tools/file 域——文件写型三分类+变更占比；嵌套 `WriteCensus`/`WriteKind` 不另立面）
