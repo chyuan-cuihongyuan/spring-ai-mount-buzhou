@@ -14,3 +14,6 @@
 | R7 | #1706 | 5182ef7c | ForkShapeStats fork 形态；session 六测批跑绿 |
 | R8 | #1707 | df0c5ca9 | SessionAgeHistogram 年龄直方 |
 | R9 | #1708 | 49d47623 | LeaseRenewalStats 续租抖动 |
+| R10 | #1709 | f2e98389 | MigrationOutcomeStats 迁移普查 |
+| R11 | #1710 | 094b9489 | EventGapDetector 时间间隙 |
+| R12 | #1711 | 5e1c6929 | TurnInterArrivalStats 轮间隔 |
