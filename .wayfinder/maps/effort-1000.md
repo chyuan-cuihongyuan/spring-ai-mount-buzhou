@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [memory 三读面大组合测试轮的形状裁决](../tickets/T1673-memtriple-shape.md) — 纯测试轮第十三弹：MemoryTripleReadoutTest 钉住 compact/episodic/fact 三读面全交叉互不串账与 reset 独立（memory 组合系列收口）。
 - [cipher×readBack 组合测试轮的形状裁决](../tickets/T1671-cipherread-shape.md) — 纯测试轮第十二弹：CipherReadBackComboTest 钉住加密回读的解密调用联动 + ReadRangeStats 守恒。
 - [双档读写四象限对照组合测试轮的形状裁决](../tickets/T1665-dualrw-shape.md) — 纯测试轮第十四弹：DualModeRwSymmetryTest 钉住读写对跨两档组装对称恒等 + 双守恒保持。
 - [todo×http 跨工具工作流组合测试轮的形状裁决](../tickets/T1667-todohttp-shape.md) — 纯测试轮第十五弹：TodoHttpComboTest 钉住同会话交叉调用下双读面独立互不串账 + reset 独立隔离。
