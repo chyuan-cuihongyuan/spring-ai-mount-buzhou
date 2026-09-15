@@ -401,11 +401,18 @@ public class ObservabilityAdvisor implements BaseAdvisor {
             }
             // impl-46：占位符/引用句柄提取（最小可用：正文模式匹配，spec 03 快照还原承诺）
             // 微压缩占位符格式：[evidence:<id>] / [spill:<uri>]（memory/spill 模块回注格式）
+            // TRM 正文在 responses（getText() 恒空）——逐响应拼接后匹配
             String evidenceId = null;
             String spillUri = null;
             if (m instanceof org.springframework.ai.chat.messages.ToolResponseMessage trm) {
-                String text = m.getText();
-                if (text != null) {
+                StringBuilder responsesText = new StringBuilder();
+                for (var r : trm.getResponses()) {
+                    if (r.responseData() != null) {
+                        responsesText.append(r.responseData()).append(' ');
+                    }
+                }
+                if (!responsesText.isEmpty()) {
+                    String text = responsesText.toString();
                     evidenceId = firstMatch(text, EVIDENCE_PATTERN);
                     spillUri = firstMatch(text, SPILL_PATTERN);
                 }
