@@ -75,7 +75,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R48 | #1847 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2895–T2896 | 1448 | ✅ |
 | R49 | #1848 | Misra-Gries 频项素描（流式 heavy hitters 经典） | T2897–T2898 | 1449 | ✅ |
 | R50 | #1849 | 水库采样（Knuth 算法 R 思想） | T2899–T2900 | 1450 | ✅ |
-| R51 | #1850 | Wave 9 弹性位 C | T2901–T2902 | 1451 | ⬜ |
+| R51 | #1850 | 墓碑占比读面（LSM tombstone/Cassandra compaction 思想） | T2901–T2902 | 1451 | ✅ |
 | R52 | #1851 | Wave 9 弹性位 D | T2903–T2904 | 1452 | ⬜ |
 | R53 | #1852 | Wave 9 弹性位 E | T2905–T2906 | 1453 | ⬜ |
 | R54 | #1853 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2907–T2908 | 1454 | ⬜ |
