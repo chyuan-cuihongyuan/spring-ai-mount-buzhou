@@ -77,7 +77,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R50 | #1849 | 水库采样（Knuth 算法 R 思想） | T2899–T2900 | 1450 | ✅ |
 | R51 | #1850 | 墓碑占比读面（LSM tombstone/Cassandra compaction 思想） | T2901–T2902 | 1451 | ✅ |
 | R52 | #1851 | 桶表容量阶梯（HashMap 负载因子/2 的幂惯例） | T2903–T2904 | 1452 | ✅ |
-| R53 | #1852 | Wave 9 弹性位 E | T2905–T2906 | 1453 | ⬜ |
+| R53 | #1852 | 截尾均值（统计学 trimmed mean/评审惯例） | T2905–T2906 | 1453 | ✅ |
 | R54 | #1853 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2907–T2908 | 1454 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）

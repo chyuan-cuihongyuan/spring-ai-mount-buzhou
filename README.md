@@ -1137,6 +1137,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 认知可观测 | 水库采样 | ReservoirSample——流长未知均匀无放回采样（Knuth 算法 R：前 k 入池、k/i 概率替换——终选概率恰 k/n 与到达序无关）+种子化 LCG 跨 JVM 重现可回放——诊断采样从「攒全量再随机/取前 N 到达序偏差」二选一变第三条路（spec 1849） | [spec 1849](docs/spec/1849-reservoir-sample.md) |
 | 清理治理 | 墓碑占比读面 | TombstoneRatioReadout——软删除积累双账：占比（墓碑/全量）+readAmplification 读放大（1/(1−ratio)，占比 0.5 即 2 倍每读跳一墓碑）+shouldCompact 阈判定（边界含上）——LSM-Tree tombstone/Cassandra compaction 思想，「删了但没真删」账面化（spec 1850） | [spec 1850](docs/spec/1850-tombstone-ratio-readout.md) |
 | 缓存基建 | 桶表容量阶梯 | BucketTableSizing——自建桶表容量三件套：suggestCapacity（⌈n/lf⌉ 向上取 2 的幂，位与取模基数）+verdict 扩容判定（装填度≥负载因子边界含——碰撞链超线性拐点前）+load 装填前瞻——HashMap 负载因子/2 的幂容量惯例（spec 1851） | [spec 1851](docs/spec/1851-bucket-table-sizing.md) |
+| 评测计量 | 截尾均值 | TrimmedMean——排序双侧各截 ⌊n×f⌋ 再均的稳健中枢（f∈[0,0.5)，零截退化算术均，空表 -1 哨兵）——统计学 trimmed mean/体育评审惯例（去最高最低再平均）思想，30s 卡顿不再把 100ms 中枢拉到 5s、不似中位数丢序信息（spec 1852） | [spec 1852](docs/spec/1852-trimmed-mean.md) |
 
 ## 快速开始
 
