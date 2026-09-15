@@ -73,7 +73,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R46 | #1845 | argv 预算门（execve ARG_MAX/MAX_ARG_STRLEN 思想） | T2891–T2892 | 1446 | ✅ |
 | R47 | #1846 | 组提交账面（MySQL group commit/PG commit_delay 思想） | T2893–T2894 | 1447 | ✅ |
 | R48 | #1847 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2895–T2896 | 1448 | ✅ |
-| R49 | #1848 | Wave 9 弹性位 A（前沿 grep 复核后定题） | T2897–T2898 | 1449 | ⬜ |
+| R49 | #1848 | Misra-Gries 频项素描（流式 heavy hitters 经典） | T2897–T2898 | 1449 | ✅ |
 | R50 | #1849 | Wave 9 弹性位 B | T2899–T2900 | 1450 | ⬜ |
 | R51 | #1850 | Wave 9 弹性位 C | T2901–T2902 | 1451 | ⬜ |
 | R52 | #1851 | Wave 9 弹性位 D | T2903–T2904 | 1452 | ⬜ |

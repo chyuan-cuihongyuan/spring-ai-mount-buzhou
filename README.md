@@ -1133,6 +1133,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具执行 | argv 预算门 | ArgvBudgetGate——命令参数体量双闸：总量闸（全部参数连 NUL 字节账 vs ARG_MAX 量级预算）+单参闸（vs MAX_ARG_STRLEN 量级上限，先于总量判定诊断价值高）——Linux execve E2BIG 前移到参数校验层，巨型 argv 注入面封顶（spec 1845） | [spec 1845](docs/spec/1845-argv-budget-gate.md) |
 | 文件系统 | 组提交账面 | GroupCommitAccounting——合并刷盘收益账：amortizationRatio 摊薄倍数+savedFlushes 省刷数（×单价=SSD 寿命节省）+savingsNanos 净省（可为负——不划算面诚实）+savingsRatio——MySQL group commit/PostgreSQL commit_delay 思想，组提交开不开由数说话（spec 1846） | [spec 1846](docs/spec/1846-group-commit-accounting.md) |
 | 工程治理 | O 系 R48 对账轮 | 快照补登前置第八例行（R43–R47 五类型：隔离区普查/依赖图审计/重连阶梯/argv 预算门/组提交账面——guard/skills/mcp/tools/fs 五模块新拓）+ 全仓 clean verify + 八波节奏稳定（spec 1847） | [spec 1847](docs/spec/1847-o-r48-reconciliation.md) |
+| 认知可观测 | Misra-Gries 频项素描 | MisraGriesSketch——流式 heavy hitters：k−1 计数器计满抵消归零淘汰，O(k) 内存单遍找一切 >N/k 频繁项，计数为下界（真实−估计 ≤ N/k，热点不漏报），确定性可回放——经典流式算法思想，对照 Count-Min 概率口径（spec 1848） | [spec 1848](docs/spec/1848-misra-gries-sketch.md) |
 
 ## 快速开始
 
