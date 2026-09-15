@@ -776,6 +776,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | K 会话周期对账轮 R18 | 全仓 verify（隔离 worktree 强制重置基座）+ 工件链五项对账（R13–R17 五轮 52 用例增量回归）；沿 R6/R12 口径（spec 1217） | [spec 1217](docs/spec/1217-k-audit-r18.md) |
 | 工程门禁 | R19：流式语义定向补测 | ToolResponseMessage 占位符快照提取（evidence/spill 首次直接断言）/TTFT CAS 幂等恰一次/omitted-only 流块/空 Flux 防御；spec 1218 | [spec 1218](docs/spec/1218-stream-detail.md) |
 | 工程门禁 | R24：流式 usage 组合与 null 防御 | completion-only 不记 prompt/全 null Usage 经 builder 归一 0/0 捕获（打点实证）/流中 null chatResponse 元素防御跳过；spec 1223 | [spec 1223](docs/spec/1223-stream-null-usages.md) |
+| 工程门禁 | R26：Advisor 细粒度残余清扫 | 流式 content=null chunk 防御（无 NPE/后续照常）+ TRM 占位符提取正反例（快照 evidence/spill 首次负例断言）；可达性分级豁免入档；spec 1225 | [spec 1225](docs/spec/1225-advisor-fine.md) |
 | 工程门禁 | K 会话周期对账轮 R23 | 全仓 verify（隔离 worktree 固定本地 HEAD）+ 工件链五项对账（R19–R22 四轮 25 用例增量回归）；沿 R6/R12/R18 口径（spec 1222） | [spec 1222](docs/spec/1222-k-audit-r23.md) |
 | 工程门禁 | K 会话周期对账轮 R25 | 全仓 verify（隔离 worktree）+ 工件链五项对账；漂移防护提前对账（距 R18 六轮、O 系 R32+ 高速落库）（spec 1224） | [spec 1224](docs/spec/1224-k-audit-r25.md) |
 | 工程门禁 | R21：BuzhouMemoryAdvisor 分支直测 | 写路径 fence（先于落库/抛错阻断零写入/恢复照常）+ Identity 去重 + USER/ToolResponse 写入与 ASSISTANT 过滤 + 无 fence 行为不变；分支 77%→95%（spec 1220） | [spec 1220](docs/spec/1220-memory-advisor-branches.md) |
@@ -1158,6 +1159,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工具执行 | 区间合并与空闲缝隙 | IntervalSchedule——占用段合并（重叠/相邻/嵌套归一取 max end，乱序容忍）+窗口内空闲缝（首前/区间间/尾后，越界裁剪）——日历调度 busy/free 惯例思想，总忙时直读、候选档期不再人肉拼（spec 1868） | [spec 1868](docs/spec/1868-interval-schedule.md) |
 | 指标治理 | 流式中位数保持器 | MedianKeeper——双堆对半结构（大顶+小顶，不变量：小半顶≤大半顶、差≤1）：add O(log n) 平衡、median O(1)（奇小半顶/偶双顶均值，空 -1 哨兵）——双堆经典结构思想，观测流当前中枢不再全量重排、长尾不拉走（spec 1869） | [spec 1869](docs/spec/1869-median-keeper.md) |
 | 工具执行 | 固定间隔下次触发 | NextFireSchedule——触发点钉在 epoch+k×interval 网格（停机不漂移：重启后 now=250 间隔 100 下次 300 非 350）+missedFires (lastAcked,now] 格点数补账显式——crontab/systemd timer 网格语义思想（spec 1870） | [spec 1870](docs/spec/1870-next-fire-schedule.md) |
+| 工程治理 | O 系 R72 对账轮 | 快照补登前置第十二例行（R67–R71 五类型：牺牲率/关键路径/区间调度/流式中位/网格触发）+ 全仓 clean verify + 十二波节奏稳定 + 逼近半程（spec 1871） | [spec 1871](docs/spec/1871-o-r72-reconciliation.md) |
 
 ## 快速开始
 

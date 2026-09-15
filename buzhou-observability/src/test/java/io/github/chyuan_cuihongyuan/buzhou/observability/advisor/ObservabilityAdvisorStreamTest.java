@@ -386,6 +386,21 @@ class ObservabilityAdvisorStreamTest {
     }
 
     @Test
+    void assistantTextNullChunkIsDefensive() {
+        AssistantMessage msg = AssistantMessage.builder().content(null).build();
+
+        org.assertj.core.api.Assertions.assertThatCode(() ->
+                advise(List.of(new ChatResponse(List.of(new Generation(msg))),
+                        textChunkWithFinish("answer", "stop", null)))
+        ).doesNotThrowAnyException();
+
+        // 文本 null 不进 reply 累加器（chunk2 "answer" 照常聚合）：
+        // 无 NPE、FINAL_REPLY 恰一次（chunk2 的合法产出）
+        assertThat(eventTypes().stream().filter(t -> t.equals("FINAL_REPLY")).count()).isEqualTo(1);
+        assertThat(lastSpan().attributes().get("finish_reason")).isEqualTo("stop");
+    }
+
+    @Test
     void resolveTurnParentFallsBackToSessionSpanThenNull() {
         // 有 session（setUp 已 onOpen）→ MODEL_CALL parent 非空
         advise(List.of(textChunkWithFinish("a", "stop", null)));

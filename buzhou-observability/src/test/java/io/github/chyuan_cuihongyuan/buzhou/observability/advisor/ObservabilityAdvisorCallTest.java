@@ -392,6 +392,40 @@ class ObservabilityAdvisorCallTest {
     }
 
     @Test
+    void snapshotPlaceholderExtractionPositiveAndNegative() {
+        org.springframework.ai.chat.messages.ToolResponseMessage withPattern =
+                org.springframework.ai.chat.messages.ToolResponseMessage.builder()
+                        .responses(List.of(new org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse(
+                                "id1", "read_file", "原文 [evidence:ev-7] 与 [spill:s-1/3]")))
+                        .build();
+        org.springframework.ai.chat.messages.ToolResponseMessage withoutPattern =
+                org.springframework.ai.chat.messages.ToolResponseMessage.builder()
+                        .responses(List.of(new org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse(
+                                "id2", "write_file", "普通文本无占位符")))
+                        .build();
+        ChatClientRequest req = new ChatClientRequest(new Prompt(List.of(
+                new UserMessage("hi"), withPattern, withoutPattern)), new HashMap<>());
+
+        advisor("gpt-4o", null, true, 32768)
+                .adviseCall(req, chainReturning(new ChatClientResponse(
+                        chatResponse(new AssistantMessage("答"), null, "stop"), new HashMap<>())));
+
+        var snapshots = recorder.items.stream()
+                .filter(i -> i instanceof io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PendingSnapshot)
+                .map(i -> ((io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PendingSnapshot) i).record())
+                .toList();
+        assertThat(snapshots).hasSize(1);
+        // 正例：模式命中 → evidence/spill 填充；反例：无模式 TRM → null/null
+        var toolMsgs = snapshots.get(0).messages().stream()
+                .filter(m -> "TOOL".equals(m.role()))
+                .toList();
+        assertThat(toolMsgs.stream().anyMatch(m -> "ev-7".equals(m.evidenceId())
+                && "s-1/3".equals(m.spillUri()))).isTrue();
+        assertThat(toolMsgs.stream().anyMatch(m ->
+                m.evidenceId() == null && m.spillUri() == null)).isTrue();
+    }
+
+    @Test
     void callChainExceptionMarksErrorAndRethrows() {
         ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
         RuntimeException boom = new RuntimeException("model boom");
