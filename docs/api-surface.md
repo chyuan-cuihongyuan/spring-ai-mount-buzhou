@@ -2616,3 +2616,11 @@
 - `BucketTableSizing`（cache 域——桶表容量三件套；嵌套 `Verdict`
   不另立面）
 - `TrimmedMean`（eval 域——截尾均值稳健中枢）
+- `WindowShiftDetector`（metrics 域——双窗口漂移双闸判；嵌套 `Shift`
+  不另立面）
+- `CouponCollectorProjection`（eval 域——收藏家覆盖期望）
+- `LittlesLawAudit`（metrics 域——L=λW 跨指标互证；嵌套 `Consistency`
+  不另立面）
+- `WorkConservationAudit`（exec 域——保工作性浪费审计；嵌套 `Slot`/
+  `Report` 不另立面）
+- `FrequencyDecay`（cache 域——频次衰减竞速）

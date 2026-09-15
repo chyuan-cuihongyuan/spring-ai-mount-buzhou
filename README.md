@@ -1144,6 +1144,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 利特尔法则一致性审计 | LittlesLawAudit——跨指标互证：impliedConcurrency(λ×W 毫秒换算内置)+consistency 容差判定（|L−λW|≤tol×max(|λW|,1) 零基线退化）——排队论 Little's Law 思想，稳态下并发/到达率/逗留必然互证，偏差即仪表失真或稳态破（spec 1856） | [spec 1856](docs/spec/1856-littles-law-audit.md) |
 | 工具执行 | 保工作性审计 | WorkConservationAudit——多队列调度浪费审计：逐时隙判违例（存在积压队列且有配额无积压的闲置队列）+violationRatio 违例率+wasteCoverageRatio 浪费覆盖比（闲置/积压，≥1 即重分配可救纯浪费）——调度理论 work conservation（WFQ/DRR 核心性质）思想，不公平可谈、不保工作不可恕（spec 1857） | [spec 1857](docs/spec/1857-work-conservation-audit.md) |
 | 缓存基建 | 频次衰减竞速 | FrequencyDecay——访问计数周期减半衰减（老热点自然退烧）+overtakePeriod 新热点顶替周期（命中×t>衰减值最小 t——缓存自适应性读数：过长=老赖着、过短=抖动）——Redis LFU counter decay 思想，确定性纯数学（spec 1858） | [spec 1858](docs/spec/1858-frequency-decay.md) |
+| 工程治理 | O 系 R60 对账轮 | 快照补登前置第十例行（R55–R59 五类型：双窗漂移/收藏家期望/利特尔互证/保工作性/频次衰减）+ 全仓 clean verify + 十波节奏稳定 + 40% 里程碑（spec 1859） | [spec 1859](docs/spec/1859-o-r60-reconciliation.md) |
 
 ## 快速开始
 

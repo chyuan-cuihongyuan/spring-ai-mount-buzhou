@@ -32,6 +32,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor
@@ -124,6 +125,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.QuotaExceededExceptio
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.RetryCategory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.AbRunJsonlExporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.BuiltInEvaluators
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.CouponCollectorProjection
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetExpectations
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetNearDuplicateStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetQualityAudit
@@ -229,6 +231,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TtlCachingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnDeadlineBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.WorkConservationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBalanceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
@@ -320,12 +323,14 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventOrderAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPairingAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPayloadSizeAudit
