@@ -1087,6 +1087,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R6 对账轮 | 全仓 clean verify 三门核账（覆盖/快照/对账）+ 快照补登四类型 + 并行吸收（J 系 skills 断链两连修复：11bc4d3a 改名滑手→005cc8f0/a8b7885d 并发对撞镜像断链→7fdb1611 和解）——kill 在途 verify 留部分编译态的教训入档（spec 1805） | [spec 1805](docs/spec/1805-o-r6-reconciliation.md) |
 | 恢复韧性 | 检查点滞后读面 | CheckpointLagReadout——逐会话产出/检查点水位差账目：totalLag（全会话重放成本）/maxLag（最坏单会话，-1 哨兵）/sessionsBeyond 越限计数/caughtUpRatio 追平率——Kafka consumer-group lag/SQLite WAL checkpoint 思想，崩溃重放成本与检查点节奏健康度直接读数（spec 1806） | [spec 1806](docs/spec/1806-checkpoint-lag-readout.md) |
 | 流量治理 | 追限事件会话化 | ViolationEpisodeMerger——追限时点按容忍窗切段（Episode start/end/hits/span）：episodes 段数/longest 最长段/hitsPerEpisode 平均密度——Prometheus 告警分组/GA session gap 会话化思想，散点抖动（加余量）与持续超载（扩容降级）分开读（spec 1807） | [spec 1807](docs/spec/1807-violation-episode-merger.md) |
+| 溢出保护 | 驱逐信号阈值门 | EvictionThresholdGate——两级阈值三态裁决：signal≥hard 立即逐（不受宽限豁免）/signal≥soft 宽限满即逐、未满 GRACE_PENDING+census 多信号三态普查——K8s eviction manager 思想，软阈给宿主自救窗、硬阈保命，临界点不抖动驱逐（spec 1808） | [spec 1808](docs/spec/1808-eviction-threshold-gate.md) |
 
 ## 快速开始
 
