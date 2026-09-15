@@ -779,6 +779,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R24：流式 usage 组合与 null 防御 | completion-only 不记 prompt/全 null Usage 经 builder 归一 0/0 捕获（打点实证）/流中 null chatResponse 元素防御跳过；spec 1223 | [spec 1223](docs/spec/1223-stream-null-usages.md) |
 | 工程门禁 | R28：adviseCall 路径 usage null 保留两侧 | NullableUsage 对称补齐（R24 流式先例到 call 路径）：completion-only prompt 跳过/双 null 两属性均跳过；spec 1227 | [spec 1227](docs/spec/1227-call-usage-null-retain.md) |
 | 工程门禁 | R30：Jcs 规范化全分支 | RFC 8785 自实现子集 10 用例（标量规范形/键字典序/转义全覆盖/整数约束/非法 JSON）；分支 97%（spec 1229） | [spec 1229](docs/spec/1229-jcs-canonicalization.md) |
+| 工程门禁 | R34：金丝雀候选限流两态 | 放行态（RPM=10 额度内双轮金丝雀照常直达备模型，主模型零调用）与耗尽态（RPM=1 时次轮 acquireOrThrow 抛 ModelRateLimitExceededException——全局限流窗语义实证）；spec 1233 | [spec 1233](docs/spec/1233-canary-quota.md) |
 | 工程门禁 | R32：金丝雀路径 e2e 直测 | canary 路由成功/终态失败链序回退主模型/canary-selected 事件 payload 钉 model+sessionId；金丝雀发布语义三件套（spec 1231） | [spec 1231](docs/spec/1231-canary-path-e2e.md) |
 | 工程门禁 | R29：GuardAuditConfig 解析全分支 | fromGuardMap 子 Map 解析 8 用例（null/非 Map 回退/trim+lower/容量与 min-verify 容错/blank key-dir/非法 KeyFile 过滤）；分支 17%→92%（spec 1228） | [spec 1228](docs/spec/1228-audit-config-parse.md) |
 | 工程门禁 | R31：ResilienceAdvisor 影子镜像 e2e | 主路成功后采样对照备模型 4 用例（镜像发生/失败全吞/候选空守卫/零采样守卫）；Istio mirror 思想容量预案信心面；spec 1230 | [spec 1230](docs/spec/1230-shadow-mirror-e2e.md) |
