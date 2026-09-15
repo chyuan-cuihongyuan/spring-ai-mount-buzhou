@@ -2600,3 +2600,12 @@
   `Divergence` 不另立面）
 - `VectorClockOrder`（concurrent 域——向量时钟因果三态判；嵌套
   `CausalOrder` 不另立面）
+- `QuarantineCensus`（guard 域——隔离区待审积压读数；嵌套 `Quarantined`/
+  `Census` 不另立面）
+- `SkillDependencyAudit`（skill 域——依赖图三病分诊；嵌套 `Edge`/`Audit`
+  不另立面）
+- `ReconnectBackoffLadder`（mcp 域——重连退避三段式；嵌套 `Verdict`
+  不另立面）
+- `ArgvBudgetGate`（tools 域——argv 体量双闸；嵌套 `Verdict` 不另立面）
+- `GroupCommitAccounting`（fs 域——组提交收益账；嵌套 `Account`
+  不另立面）

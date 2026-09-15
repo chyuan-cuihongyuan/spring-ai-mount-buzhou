@@ -1131,6 +1131,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | MCP 体系 | 重连退避阶梯 | ReconnectBackoffLadder——断线重连三段式策略面：指数爬升（100×2→100/200/400/800）+封顶钳制（溢出安全触顶先判后乘）+verdict RETRY/GIVE_UP（边界含——僵尸重连不永生）——Resilience4j retry/libpq 重连惯例思想（spec 1844） | [spec 1844](docs/spec/1844-reconnect-backoff-ladder.md) |
 | 工具执行 | argv 预算门 | ArgvBudgetGate——命令参数体量双闸：总量闸（全部参数连 NUL 字节账 vs ARG_MAX 量级预算）+单参闸（vs MAX_ARG_STRLEN 量级上限，先于总量判定诊断价值高）——Linux execve E2BIG 前移到参数校验层，巨型 argv 注入面封顶（spec 1845） | [spec 1845](docs/spec/1845-argv-budget-gate.md) |
 | 文件系统 | 组提交账面 | GroupCommitAccounting——合并刷盘收益账：amortizationRatio 摊薄倍数+savedFlushes 省刷数（×单价=SSD 寿命节省）+savingsNanos 净省（可为负——不划算面诚实）+savingsRatio——MySQL group commit/PostgreSQL commit_delay 思想，组提交开不开由数说话（spec 1846） | [spec 1846](docs/spec/1846-group-commit-accounting.md) |
+| 工程治理 | O 系 R48 对账轮 | 快照补登前置第八例行（R43–R47 五类型：隔离区普查/依赖图审计/重连阶梯/argv 预算门/组提交账面——guard/skills/mcp/tools/fs 五模块新拓）+ 全仓 clean verify + 八波节奏稳定（spec 1847） | [spec 1847](docs/spec/1847-o-r48-reconciliation.md) |
 
 ## 快速开始
 
