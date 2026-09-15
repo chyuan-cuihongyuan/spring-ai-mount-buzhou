@@ -37,6 +37,12 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R10 | #1809 | 扇出 pacing 计划（TCP BBR pacing/惊群避让思想） | T2819–T2820 | 1410 | ✅ |
 | R11 | #1810 | Prefetch 信用窗口（RabbitMQ basic.qos/AMQP credit 思想） | T2821–T2822 | 1411 | ✅ |
 | R12 | #1811 | 对账轮（全仓 mvn verify + 台账核账 + 合并 origin/main） | T2823–T2824 | 1412 | ✅ |
+| R13 | #1812 | 半消息审计（RocketMQ 事务半消息/回查思想） | T2825–T2826 | 1413 | ✅ |
+| R14 | #1813 | TTL 探针状态机（Consul health check TTL 思想） | T2827–T2828 | 1414 | ⬜ |
+| R15 | #1814 | 反热点重平衡建议（K8s descheduler 思想） | T2829–T2830 | 1415 | ⬜ |
+| R16 | #1815 | 回填计划（缺口补填 catch-up 思想） | T2831–T2832 | 1416 | ⬜ |
+| R17 | #1816 | Wave 3 弹性位（前沿 grep 复核后定题） | T2833–T2834 | 1417 | ⬜ |
+| R18 | #1817 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2835–T2836 | 1418 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
