@@ -1146,6 +1146,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 缓存基建 | 频次衰减竞速 | FrequencyDecay——访问计数周期减半衰减（老热点自然退烧）+overtakePeriod 新热点顶替周期（命中×t>衰减值最小 t——缓存自适应性读数：过长=老赖着、过短=抖动）——Redis LFU counter decay 思想，确定性纯数学（spec 1858） | [spec 1858](docs/spec/1858-frequency-decay.md) |
 | 工程治理 | O 系 R60 对账轮 | 快照补登前置第十例行（R55–R59 五类型：双窗漂移/收藏家期望/利特尔互证/保工作性/频次衰减）+ 全仓 clean verify + 十波节奏稳定 + 40% 里程碑（spec 1859） | [spec 1859](docs/spec/1859-o-r60-reconciliation.md) |
 | 指标治理 | 对数分桶直方图 | LogBucketHistogram——对数指数桶（桶 k 覆盖 [γ^k,γ^(k+1))，桶内相对差 ≤ γ−1）+quantile 桶序累计取几何中点，误差界随返回值声明（γ=1.25 即 ±12.5%）——HdrHistogram/DDSketch 思想，O(n) 一遍分位数免全排序、高段不失真（spec 1860） | [spec 1860](docs/spec/1860-log-bucket-histogram.md) |
+| 事务语义 | 写偏斜检测 | WriteSkewDetector——快照隔离组合不变量风险：skewRisk（双方读写非空 且 读集相交 且 写集不相交——写冲突检测拦不住）+scan 全对扫描风险对清单——数据库 write skew 异象（经典「值班医生」反例）思想，风险对直接映射冲突桌（spec 1861） | [spec 1861](docs/spec/1861-write-skew-detector.md) |
 
 ## 快速开始
 
