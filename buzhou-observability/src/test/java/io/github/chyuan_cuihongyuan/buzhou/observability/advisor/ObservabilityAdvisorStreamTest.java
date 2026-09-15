@@ -305,9 +305,10 @@ class ObservabilityAdvisorStreamTest {
         advise(List.of(
                 new ChatResponse(List.of(new Generation(AssistantMessage.builder().content("")
                         .properties(Map.of(ThinkingChainExtractor.ATTR_OMITTED, "true")).build()))),
-                textChunkWithFinish("answer", "stop", null))));
+                textChunkWithFinish("answer", "stop", null)));
 
-        assertThat(eventTypes()).doesNotContain("THINKING", "STREAM_FIRST_TOKEN");
+        // omitted-only 块不产生 THINKING；尾随真实内容块的 TTFT 属正常（生产语义对齐）
+        assertThat(eventTypes()).doesNotContain("THINKING");
         assertThat(lastSpan().attributes().get("thinking.available")).isNull();
     }
 
