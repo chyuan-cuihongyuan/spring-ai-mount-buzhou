@@ -1089,6 +1089,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 流量治理 | 追限事件会话化 | ViolationEpisodeMerger——追限时点按容忍窗切段（Episode start/end/hits/span）：episodes 段数/longest 最长段/hitsPerEpisode 平均密度——Prometheus 告警分组/GA session gap 会话化思想，散点抖动（加余量）与持续超载（扩容降级）分开读（spec 1807） | [spec 1807](docs/spec/1807-violation-episode-merger.md) |
 | 溢出保护 | 驱逐信号阈值门 | EvictionThresholdGate——两级阈值三态裁决：signal≥hard 立即逐（不受宽限豁免）/signal≥soft 宽限满即逐、未满 GRACE_PENDING+census 多信号三态普查——K8s eviction manager 思想，软阈给宿主自救窗、硬阈保命，临界点不抖动驱逐（spec 1808） | [spec 1808](docs/spec/1808-eviction-threshold-gate.md) |
 | 工具执行 | 扇出 pacing 计划 | FanoutPacingPlan——并行扇出起发排程：头部 headStart 名额立即发（TCP IW 语义）、尾部按间隔匀速放行（pacing）+totalSpanMillis/pacedRatio——TCP 拥塞控制思想，小扇出零延迟、大扇出不惊群，两极连续可调（spec 1809） | [spec 1809](docs/spec/1809-fanout-pacing-plan.md) |
+| 背压治理 | Prefetch 信用窗口 | PrefetchCreditWindow——在飞上限口径背压闸：tryAcquire 满窗即拒（totalExhausted 流控压力读数）/release 确认归还信用/stats 快照+utilization——RabbitMQ basic.qos/AMQP credit-based flow control 思想，免速率估计、下游多快上游多快（spec 1810） | [spec 1810](docs/spec/1810-prefetch-credit-window.md) |
 
 ## 快速开始
 
