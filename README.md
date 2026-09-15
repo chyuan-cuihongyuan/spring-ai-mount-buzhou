@@ -1094,6 +1094,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R12 对账轮 | 快照补登前置（R7–R11 五类型一次入账，R6 两遍 verify 教训固化）+ 全仓 clean verify 三门绿 + GitHub 中断期积压补推确认（fe350325..b69b9864）（spec 1811） | [spec 1811](docs/spec/1811-o-r12-reconciliation.md) |
 | 事务语义 | 半消息审计 | HalfMessageAudit——三态意图账目（HALF 滞留/COMMITTED 放行/ROLLED_BACK 丢弃）+staleHalves 超回查阈候选+resolutionRatio/pendingRatio——RocketMQ 事务消息思想，「发消息」与「做事务」原子性靠半消息两阶段+回查兜底（spec 1812） | [spec 1812](docs/spec/1812-half-message-audit.md) |
 | 健康治理 | TTL 探针状态机 | TtlProbeStateMachine——被动健康三态判（PASSING/STALE 过预警线/CRITICAL 到期，双边界含上）+freshness 剩余新鲜度（到期钳 0）+census 普查——Consul health check TTL 思想，过期靠时间自然到期零轮询、STALE 先兆可提前处置（spec 1813） | [spec 1813](docs/spec/1813-ttl-probe-state-machine.md) |
+| 溢出保护 | 热点重平衡建议器 | HotspotRebalancer——分片/卷间负载贪心搬迁建议：极差≤容差停手、单步量三重 min 封顶不越衡反转、并列 id 字典序确定性+spreadBefore/After/improvementRatio——K8s descheduler 思想，只消越容差热点不过度均衡（spec 1814） | [spec 1814](docs/spec/1814-hotspot-rebalancer.md) |
 
 ## 快速开始
 
