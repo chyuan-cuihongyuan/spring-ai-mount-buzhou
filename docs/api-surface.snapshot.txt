@@ -184,6 +184,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftWatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosBudgetGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosMonkeyHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CriticalPathLength
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunPlanJsonl
@@ -191,11 +192,13 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.FanoutPacingPlan
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.GradientLimiterHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.IntervalSchedule
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LaneLimitingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.LintSeverityGrader
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.MemoizedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.NegativeCachingToolCallback
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.NextFireSchedule
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeaseStats
@@ -326,6 +329,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MedianKeeper
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
@@ -774,6 +778,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ModelCa
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.advisor.ResilienceSessionObserver
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.budget.AgentCostLedgerHook
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.CacheSacrificeRatio
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ChunkingEmbeddingModel
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.MultiLevelCacheStats
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.NormalizingEmbeddingModel
