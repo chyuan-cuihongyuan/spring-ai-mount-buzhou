@@ -1078,6 +1078,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评测计量 | 评测集内容指纹 | EvalSetFingerprint——\n 规范形 SHA-256 指纹 sha256- 前缀+ORDERED/UNORDERED 双序口径——DVC/HuggingFace Datasets 数据集指纹思想，跨 run 分数对比先验同数据（spec 1704） | [spec 1704](docs/spec/1704-eval-set-fingerprint.md) |
 | 评测计量 | 门限边际直方 | EvalGateMargin——|rate−threshold| 逐 run 边际+min/max+withinBand 危险带计数（空哨兵 −1）——Google SRE 告警边际/SPRT 边际思想，「门过多悬」直接读数（spec 1705） | [spec 1705](docs/spec/1705-eval-gate-margin.md) |
 | 工程治理 | O 系对账门 | OSession1800LedgerAuditTest——150 轮工件链四面互证（spec 1800–1949 ↔ README 行 ↔ T 票对 ↔ impl，号段公式 R1 钉死：T2801+2(N−1800)/1401+(N−1800)）——LSession1700LedgerAuditTest 预防式对账同款，漂移落盘瞬间即红（spec 1800） | [spec 1800](docs/spec/1800-o-series-ledger-audit.md) |
+| 溢出保护 | Spill 压力失速读面 | SpillPressureStall——PSI 双档失速账目 some（≥1 会话失速=吞吐损失）/full（活跃全失速=进度损失）+峰值窗失速面（空观测 -1 哨兵）——Linux 内核 Pressure Stall Information 思想，压力不看水位看谁在等（spec 1801） | [spec 1801](docs/spec/1801-spill-pressure-stall.md) |
 
 ## 快速开始
 
