@@ -1156,6 +1156,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 缓存牺牲率 | CacheSacrificeRatio——插入驱逐比（牺牲率：全联理想 0、容量不足攀升）×命中率双条件颠簸分诊（牺牲高且命中低=白忙该扩容，任一哨兵无据不定罪）——体系结构缓存分析惯例（sacrifice ratio/thrashing）思想，满缓存换血与真颠簸不再同形（spec 1866） | [spec 1866](docs/spec/1866-cache-sacrifice-ratio.md) |
 | 工具执行 | 关键路径长度 | CriticalPathLength——并行 DAG 最长加权路径（Kahn 拓扑+EF DP：EF[v]=dur[v]+max(EF[pred])）=总时长下界+terminalTask 终点直读——项目管理 CPM 思想，缩非关键任务白花力气、关键任务延一秒总长延一秒（spec 1867） | [spec 1867](docs/spec/1867-critical-path-length.md) |
 | 工具执行 | 区间合并与空闲缝隙 | IntervalSchedule——占用段合并（重叠/相邻/嵌套归一取 max end，乱序容忍）+窗口内空闲缝（首前/区间间/尾后，越界裁剪）——日历调度 busy/free 惯例思想，总忙时直读、候选档期不再人肉拼（spec 1868） | [spec 1868](docs/spec/1868-interval-schedule.md) |
+| 指标治理 | 流式中位数保持器 | MedianKeeper——双堆对半结构（大顶+小顶，不变量：小半顶≤大半顶、差≤1）：add O(log n) 平衡、median O(1)（奇小半顶/偶双顶均值，空 -1 哨兵）——双堆经典结构思想，观测流当前中枢不再全量重排、长尾不拉走（spec 1869） | [spec 1869](docs/spec/1869-median-keeper.md) |
 
 ## 快速开始
 
