@@ -37,8 +37,40 @@ public final class SemanticChunkIndex {
     }
 
     /** 索引一个溢出制品的切片（按既有边界；异步调用方负责线程）。 */
+    // —— spec 1115 / impl 866：操作读面（搜索引擎索引/查询双计数思想；静态面理由
+    // 同 R46–R117 先例）。coverageStats 为内容维度，本读面为操作维度。
+    private static final java.util.concurrent.atomic.AtomicLong INDEX_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong LOCATE_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong SKIPPED_INVALID =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong CHUNKS_INDEXED =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 语义切片索引操作分布快照（spec 1115）。 */
+    public record ChunkIndexOpStats(long indexCalls, long locateCalls,
+                                    long skippedInvalid, long chunksIndexed) {
+    }
+
+    /** 只读快照。 */
+    public static ChunkIndexOpStats stats() {
+        return new ChunkIndexOpStats(INDEX_CALLS.get(), LOCATE_CALLS.get(),
+                SKIPPED_INVALID.get(), CHUNKS_INDEXED.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        INDEX_CALLS.set(0);
+        LOCATE_CALLS.set(0);
+        SKIPPED_INVALID.set(0);
+        CHUNKS_INDEXED.set(0);
+    }
+
     public void index(String uri, List<int[]> boundaries, String content) {
+        INDEX_CALLS.incrementAndGet();
         if (provider == null || uri == null || boundaries == null || content == null) {
+            SKIPPED_INVALID.incrementAndGet();
             return;
         }
         List<Chunk> chunks = new ArrayList<>();
@@ -52,12 +84,15 @@ public final class SemanticChunkIndex {
             chunks.add(new Chunk(uri, start, end - start,
                     excerptOf(text), provider.embed(text)));
         }
+        CHUNKS_INDEXED.addAndGet(chunks.size());
         byUri.put(uri, chunks);
     }
 
     /** 语义定位：跨全部已索引制品取 top-k（按 minScore 过滤，≤0 不滤）。 */
     public List<Hit> locate(String query, int k, double minScore) {
+        LOCATE_CALLS.incrementAndGet();
         if (provider == null || query == null || query.isBlank()) {
+            SKIPPED_INVALID.incrementAndGet();
             return List.of();
         }
         float[] queryVector = provider.embed(query);
