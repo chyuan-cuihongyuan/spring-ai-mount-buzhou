@@ -1048,6 +1048,14 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 
 | 技能治理 | SkillAdmin 管理操作分布 | SkillAdminApi 五操作计数（create/update/publish/disable/delete 静态面）——管理面治理审计基座，操作分布显形（spec 1085，J 会话 M 段产出） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 
+## 生产级纵深 XI（L 会话 1700 系增量）
+
+L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每项默认零行为变化或 opt-in）：
+
+| 分组 | 能力 | 一句话 | 详设 |
+|------|------|--------|------|
+| 评测计量 | 评测分数 MAD 鲁棒离散度 | EvalScoreMad——median/MAD（中位数绝对偏差）+修正 z 值（0.6745·|x−med|/MAD>3.5 Iglewicz–Hoaglin）离群 run 定位+Dispersion 三档（INSUFFICIENT n<3 哨兵/TIGHT MAD=0 收紧档偏离直接判离群/SPREAD）——Prometheus/Thanos 鲁棒统计思想，门→趋势（1444）→离散三维补齐（spec 1700） | [spec 1700](docs/spec/1700-eval-score-mad.md) |
+
 ## 快速开始
 
 > 当前版本 `0.1.0-SNAPSHOT`，尚未发布到 Maven Central。请先从源码构建安装到本地仓库：

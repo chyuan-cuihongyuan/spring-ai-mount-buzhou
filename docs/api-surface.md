@@ -2520,3 +2520,7 @@
 ## 跨会话新增公共类型补登二（R70 审计轮代登记，@since 1.0.0）
 - `BatchResponseBudgetHolder`（M 会话 1526 产出——批级工具结果回喂预算进程级开关）
 - `NegativeCachingHolder`（N 会话 1633 产出——负缓存进程级开关 Holder）
+
+## L 会话 1700 系新增公共类型（@since 1.0.0）
+- `EvalScoreMad`（eval 域——评测分数 MAD 鲁棒离散度读面：median/MAD/修正 z 值离群定位；
+  嵌套 `MadReport` 不另立面）
