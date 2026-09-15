@@ -1124,6 +1124,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 安全治理 | 密钥轮换重叠窗 | RotationOverlapWindow——凭据代际三态判（CURRENT 当前/GRACE 重叠窗内旧代仍有效——在飞数据兼容，含边界/EXPIRED 窗尽失效）+未来代 fail-fast+census 清扫进度——TLS 证书轮换/Vault grace 思想，无重叠窗的切换=旧钥数据瞬间全废（spec 1838） | [spec 1838](docs/spec/1838-rotation-overlap-window.md) |
 | 恢复韧性 | 反熵分歧账 | AntiEntropyDivergence——主副本键×版本比对四桶（onlyInPrimary 副本丢写/onlyInReplica 主被清/versionMismatch 冲突解候选/matched）+repairWorkload 三型合计+matchedRatio——Cassandra/Dynamo anti-entropy repair 思想，三型分歧修复动作不同分开数才排得了优先级（spec 1839） | [spec 1839](docs/spec/1839-anti-entropy-divergence.md) |
 | 并发治理 | 向量时钟偏序比较 | VectorClockOrder——无中心时钟因果三态判（BEFORE/AFTER 各分量≤且至少一严格小/CONCURRENT 互相各领——冲突解判定前提），缺席分量按 0 稀疏合法、相等退化「不后于」——Dynamo 向量时钟/Lamport happens-before 思想，墙钟偏移下真冲突与因果先后可分（spec 1840） | [spec 1840](docs/spec/1840-vector-clock-order.md) |
+| 工程治理 | O 系 R42 对账轮 | 快照补登前置第七例行（R37–R41 五类型：库存周转/失败域配额/轮换重叠窗/反熵分歧/向量时钟）+ 全仓 clean verify + 七波节奏稳定 + 共享检出特性入档（并行 push 携带本地提交）（spec 1841） | [spec 1841](docs/spec/1841-o-r42-reconciliation.md) |
 
 ## 快速开始
 

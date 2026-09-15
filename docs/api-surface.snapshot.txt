@@ -20,6 +20,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostAttributionLedge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostForecast
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.CostSpikeDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ElasticBudgetPool
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.FailureDomainQuota
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.FairnessIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelBudgetGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.ModelCostLedger
@@ -58,6 +59,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SuperstepBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreaker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreakerHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VectorClockOrder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WeightedRouter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BulkheadScalingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouAlertProperties
@@ -112,6 +114,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.ToolLoopProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingMessageStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.EncryptingSummaryStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.EnvelopeCipher
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.crypto.RotationOverlapWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouDataCorruptionException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.BuzhouException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode
@@ -356,6 +359,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.RollbackUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.ViolationEpisodeMerger
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.AntiEntropyDivergence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.CheckpointLagReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.FailureTurnSnapshots
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.GapBackfillPlanner
@@ -898,6 +902,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillUsage
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillWriteAmplifier
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.SpillWriteRateLimiter
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.StrReplaceTool
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.TurnoverReadout
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.BuzhouSpillAutoConfiguration
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.BuzhouSpillHealthAutoConfiguration
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.config.SpillHealth

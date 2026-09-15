@@ -2591,3 +2591,12 @@
   `ResumeToken`/`Verdict` 不另立面）
 - `EtaProjection`（eval 域——完成度 ETA 线性外推；嵌套 `Projection`
   不另立面）
+- `TurnoverReadout`（spill 域——库存周转/耗尽视界两读数）
+- `FailureDomainQuota`（budget 域——失败域分桶+保留兜底准入/普查；嵌套
+  `Admission`/`DomainUsage`/`DomainCensus` 不另立面）
+- `RotationOverlapWindow`（crypto 域——凭据轮换重叠窗三态+普查；嵌套
+  `EpochValidity`/`Census` 不另立面）
+- `AntiEntropyDivergence`（recovery 域——主副本分歧四桶账；嵌套
+  `Divergence` 不另立面）
+- `VectorClockOrder`（concurrent 域——向量时钟因果三态判；嵌套
+  `CausalOrder` 不另立面）
