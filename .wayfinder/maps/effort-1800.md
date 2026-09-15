@@ -83,7 +83,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R56 | #1855 | 收藏家覆盖期望（概率论 coupon collector 思想） | T2911–T2912 | 1456 | ✅ |
 | R57 | #1856 | 利特尔法则一致性审计（排队论 L=λW 思想） | T2913–T2914 | 1457 | ✅ |
 | R58 | #1857 | 保工作性审计（调度理论 work conservation 思想） | T2915–T2916 | 1458 | ✅ |
-| R59 | #1858 | Wave 10 弹性位 E | T2917–T2918 | 1459 | ⬜ |
+| R59 | #1858 | 频次衰减竞速（Redis LFU counter decay 思想） | T2917–T2918 | 1459 | ✅ |
 | R60 | #1859 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2919–T2920 | 1460 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）

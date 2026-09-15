@@ -1143,6 +1143,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 评测计量 | 收藏家覆盖期望 | CouponCollectorProjection——均匀抽样见全 k 类期望轮数 k×H(k)（调和级数长尾：收齐 10 类期望 ~29 轮非 10 轮）+expectedRemaining 随进度余轮递减——概率论 coupon collector 思想，覆盖测试轮数预算从拍到有期望依据（spec 1855） | [spec 1855](docs/spec/1855-coupon-collector-projection.md) |
 | 指标治理 | 利特尔法则一致性审计 | LittlesLawAudit——跨指标互证：impliedConcurrency(λ×W 毫秒换算内置)+consistency 容差判定（|L−λW|≤tol×max(|λW|,1) 零基线退化）——排队论 Little's Law 思想，稳态下并发/到达率/逗留必然互证，偏差即仪表失真或稳态破（spec 1856） | [spec 1856](docs/spec/1856-littles-law-audit.md) |
 | 工具执行 | 保工作性审计 | WorkConservationAudit——多队列调度浪费审计：逐时隙判违例（存在积压队列且有配额无积压的闲置队列）+violationRatio 违例率+wasteCoverageRatio 浪费覆盖比（闲置/积压，≥1 即重分配可救纯浪费）——调度理论 work conservation（WFQ/DRR 核心性质）思想，不公平可谈、不保工作不可恕（spec 1857） | [spec 1857](docs/spec/1857-work-conservation-audit.md) |
+| 缓存基建 | 频次衰减竞速 | FrequencyDecay——访问计数周期减半衰减（老热点自然退烧）+overtakePeriod 新热点顶替周期（命中×t>衰减值最小 t——缓存自适应性读数：过长=老赖着、过短=抖动）——Redis LFU counter decay 思想，确定性纯数学（spec 1858） | [spec 1858](docs/spec/1858-frequency-decay.md) |
 
 ## 快速开始
 
