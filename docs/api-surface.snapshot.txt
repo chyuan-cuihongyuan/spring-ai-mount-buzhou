@@ -2,6 +2,7 @@
 # 更新流程：-Dbuzhou.api-snapshot.regenerate=true 跑 regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.LoadShedLadder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.PrefetchCreditWindow
@@ -259,6 +260,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.PeriodBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.RetryBudgetHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.SloMultiWindowBurn
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.StoreFsckHealth
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.TtlProbeStateMachine
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.VirtualKeysHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.WatermarkHealth
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.hook.AtomicStateCounters
@@ -350,6 +352,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.ViolationEpisodeMerger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.CheckpointLagReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.FailureTurnSnapshots
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.GapBackfillPlanner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry
@@ -502,6 +505,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.spi.VirtualKeyBudgetBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEstimator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.HalfMessageAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.InstrumentedUnitOfWork
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.DeadLetterRedeliveryStats
@@ -846,6 +850,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.EvidenceRefValidity
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.FileSandbox
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.HandleLifecycleRegistry
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.HotTailViewProcessor
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.HotspotRebalancer
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.LongContentParam
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.LongContentParamPair
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.LongContentParams

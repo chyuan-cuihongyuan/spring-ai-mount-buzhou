@@ -1097,6 +1097,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 溢出保护 | 热点重平衡建议器 | HotspotRebalancer——分片/卷间负载贪心搬迁建议：极差≤容差停手、单步量三重 min 封顶不越衡反转、并列 id 字典序确定性+spreadBefore/After/improvementRatio——K8s descheduler 思想，只消越容差热点不过度均衡（spec 1814） | [spec 1814](docs/spec/1814-hotspot-rebalancer.md) |
 | 恢复韧性 | 缺口回填计划器 | GapBackfillPlanner——期望区间×在位集合的缺口闭区间清单（含首尾、升序合并）+largestGapSpan 瓶颈段长+missingRatio/complete——Kafka offset 补填/Prometheus backfill 思想，重放不重不漏先知道缺哪段、区间化可分批可并行（spec 1815） | [spec 1815](docs/spec/1815-gap-backfill-planner.md) |
 | 背压治理 | 负载脱落阶梯 | LoadShedLadder——过载分级甩负载：每级一脱落阈值（低阈值=低优先级先掉），负载因子越阈即该级拒新（含边界）+shedRatio/escalating——Envoy overload manager 思想，一刀切全拒变按优先级逐级甩（spec 1816） | [spec 1816](docs/spec/1816-load-shed-ladder.md) |
+| 工程治理 | O 系 R18 对账轮 | 快照补登前置第三例行（R13–R17 五类型：HalfMessageAudit/TtlProbeStateMachine/HotspotRebalancer/GapBackfillPlanner/LoadShedLadder）+ 全仓 clean verify + Wave 4 排程落图——R6 教训→R12 固化→R18 例行的对账节奏（spec 1817） | [spec 1817](docs/spec/1817-o-r18-reconciliation.md) |
 
 ## 快速开始
 

@@ -2553,3 +2553,13 @@
   嵌套 `TaskStart`/`Plan` 不另立面）
 - `PrefetchCreditWindow`（backpressure 域——在飞上限信用闸：满窗拒/确认
   归还/耗拒计数；嵌套 `Snapshot` 不另立面）
+- `HalfMessageAudit`（transaction 域——事务半消息三态审计+回查候选；嵌套
+  `IntentState`/`Intent`/`Census` 不另立面）
+- `TtlProbeStateMachine`（health 域——TTL 探针三态判+新鲜度+普查；嵌套
+  `ProbeState`/`ProbeSample`/`Census` 不另立面）
+- `HotspotRebalancer`（spill 域——热点贪心搬迁建议；嵌套 `NodeLoad`/`Move`/
+  `RebalancePlan` 不另立面）
+- `GapBackfillPlanner`（recovery 域——缺口闭区间回填计划；嵌套 `Gap`/
+  `BackfillPlan` 不另立面）
+- `LoadShedLadder`（backpressure 域——负载脱落阶梯裁决；嵌套 `Level`/
+  `ShedDecision` 不另立面）
