@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [evict×readRange 逐出复活组合测试轮的形状裁决](../tickets/T1693-evictread-shape.md) — 纯测试轮第十八弹：EvictReadBackComboTest 钉住逐出→回读复活→再逐出链双读面计数一致与各自守恒保持。
 - [readRange×Spotlight 组合测试轮的形状裁决](../tickets/T1683-readspot-shape.md) — 纯测试轮第十七弹：ReadRangeSpotlightComboTest 钉住溢出占位含标记段与包裹回读幂等（Spotlighting core 单一事实源）。
 - [evidence×episodic 独立性组合测试轮的形状裁决](../tickets/T1681-evidepi-shape.md) — 纯测试轮第十六弹：EvidenceEpisodicComboTest 钉住回查与情景记忆交叉互不串账与 reset 独立隔离。
 - [R110 周期预检轮的形状裁决](../tickets/T1679-r110-audit-shape.md) — R101–R109 对账零缺陷（纯测试组合系列七轮深度盘点）+ 首验一次通过 BUILD SUCCESS（质量纪律复利显现）。
