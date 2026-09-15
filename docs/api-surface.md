@@ -2573,3 +2573,11 @@
   `HeldResource`/`Waiter`/`Exposure` 不另立面）
 - `ChaosBudgetGate`（exec 域——混沌实验节律闸+使用账；嵌套 `Verdict`/
   `Window`/`Usage` 不另立面）
+- `StaleWhileRevalidatePolicy`（resilience/cache 域——SWR 三态判+陈旧度；
+  嵌套 `Serving` 不另立面）
+- `SessionHibernationPolicy`（session 域——闲置三档+画像+普查；嵌套
+  `Band`/`Policy`/`Census`/`BandProfile` 不另立面）
+- `SessionBloomFilter`（session 域——会话布隆粗筛，零假阴性契约）
+- `DrainForecast`（session 域——停机排空 makespan 预测；嵌套
+  `SessionWork`/`Forecast` 不另立面）
+- `SmoothWeightedSequence`（exec 域——NGINX 平滑加权派发序生成）

@@ -189,6 +189,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.PriorityLaneToolCallba
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.RetryingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeaseStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeases
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SmoothWeightedSequence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolArgsValidator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolCallCoalescer
@@ -390,6 +391,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCause
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelCauseDistribution
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelLatencyTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.CancelMode
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.DrainForecast
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EncryptedSessionExport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBackpressureStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.EventBreadcrumb
@@ -414,6 +416,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAffinity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAlreadyActiveException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyContext
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionAssemblyCustomizer
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionBloomFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionCapacityExceededException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionCloseStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionDisruptionBudget
@@ -431,6 +434,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeatureStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionFeaturesHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionForkListener
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionHibernationPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionIdEntropyAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionImportException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.session.SessionInterrupts
@@ -753,6 +757,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseC
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.ResponseCacheStore
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.SemanticCacheStore
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.cache.StaleWhileRevalidatePolicy
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.BuzhouModelCapabilityProperties
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.CapabilityDecisionAudit
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.capability.CapabilityGateAdvisor
