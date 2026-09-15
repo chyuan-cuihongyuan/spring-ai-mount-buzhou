@@ -694,6 +694,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具计量 | 双档 run_command 对账组合测试 | timeout 语义分叉钉住防修齐回归（spec 1082） | [spec 1082](docs/spec/1082-dualmode-contrast.md) |
 | 生命周期治理 | 会话归档操作读面 | 归档成功/空跳/下限拒四桶显形（spec 1075） | [spec 1075](docs/spec/1075-archiver-stats.md) |
 | 生命周期治理 | 归档×evidence 回查联动组合测试 | 归档后回查行为双读面守恒钉住（spec 1109） | [spec 1109](docs/spec/1109-archivevid-combo.md) |
+| 记忆治理 | compact_now×归档 生命周期组合测试 | 归档后 compact_now skipped 桶行为双读面守恒钉住（spec 1119） | [spec 1119](docs/spec/1119-archivecompact-combo.md) |
 | 生命周期治理 | 归档清理任务读面 | 清理轮次/累计产出/锁跳过三面显形（spec 1078） | [spec 1078](docs/spec/1078-purgejob-stats.md) |
 | 提示词治理 | 提示词注册表解析分布读面 | InMemoryPromptRegistry 嵌套 PromptResolutionStats（attempts/hits/misses 守恒，公共解析核心不重复计）+ resolutionStats()——解析显形谱系（spec 1039） | [spec 1039](docs/spec/1039-prompt-resolution-stats.md) |
 | 会话治理 | ExportManifest 子集校验 | verifySubset（增量搬运只核对提供的子集，规范化口径配对；空 contents fail-fast）——rsync --partial 思想（spec 941） | [spec 941](docs/spec/941-manifest-subset.md) |
