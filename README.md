@@ -775,6 +775,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R17：Advisor 残余分支清扫 | 流式+非流式 harness 复用追加 5 用例（metadata=null·result=null 防御/blank finishReason 不记/空串思维链无事件/usage 0 归一口径）；ObservabilityAdvisor 75%→77%（spec 1216） | [spec 1216](docs/spec/1216-residual-sweep.md) |
 | 工程门禁 | K 会话周期对账轮 R18 | 全仓 verify（隔离 worktree 强制重置基座）+ 工件链五项对账（R13–R17 五轮 52 用例增量回归）；沿 R6/R12 口径（spec 1217） | [spec 1217](docs/spec/1217-k-audit-r18.md) |
 | 工程门禁 | R19：流式语义定向补测 | ToolResponseMessage 占位符快照提取（evidence/spill 首次直接断言）/TTFT CAS 幂等恰一次/omitted-only 流块/空 Flux 防御；spec 1218 | [spec 1218](docs/spec/1218-stream-detail.md) |
+| 工程门禁 | R20：快照预算分解 + extraKeys 贯通 + 文本 null 防御 | budgetBreakdown 四键角色分桶首次断言（长度口径确定性）/custom_thinking 经 advisor 贯通 THINKING 事件/content=null 无 FINAL_REPLY 无 NPE；spec 1219 | [spec 1219](docs/spec/1219-snapshot-budget-extrakeys.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
 
@@ -1116,6 +1117,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 并发治理 | 覆写环形缓冲 | OverwritingRingBuffer——固定容量环形满则覆写最老（永不阻塞写入方）+overwrites 覆写计数可审计+items 最老到最新防御拷贝快照——LMAX Disruptor 思想，最近窗采样「不挡主路+丢得起有数」基建（spec 1832） | [spec 1832](docs/spec/1832-overwriting-ring-buffer.md) |
 | 会话治理 | 续读令牌编解码裁决 | ResumeTokenCodec——游标绑定数据指纹（encode/decode 回路）+check 三态 VALID/STALE_DATA（换代，重拉首页）/OUT_OF_RANGE（越界，查保留）——分页 continuation token/ETag 思想，指纹先行：底层数据换代后旧游标不再被当有效（spec 1833） | [spec 1833](docs/spec/1833-resume-token-codec.md) |
 | 评测计量 | 完成度 ETA 投影 | EtaProjection——长任务剩余时长线性外推（rate=done/elapsed，ETA=remaining/rate，除不尽向上取整保守）+projectedTotalMillis 总时长投影，无速率基准（done=0/elapsed=0）-1 诚实哨兵——CI 进度条/带宽估计思想，「还要多久」不再人肉心算、多时点对比发现尾段漂移（spec 1834） | [spec 1834](docs/spec/1834-eta-projection.md) |
+| 工程治理 | O 系 R36 对账轮 | 快照补登前置第六例行（R31–R35 五类型：多级缓存/对冲延迟/环形缓冲/续读令牌/ETA 投影）+ 全仓 clean verify 一次过绿 + 六波节奏稳定入档（spec 1835） | [spec 1835](docs/spec/1835-o-r36-reconciliation.md) |
 
 ## 快速开始
 

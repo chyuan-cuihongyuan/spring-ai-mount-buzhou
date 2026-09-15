@@ -326,6 +326,72 @@ class ObservabilityAdvisorCallTest {
     }
 
     @Test
+    void snapshotBudgetBreakdownBucketsByRole() {
+        ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
+        ChatClientRequest req = new ChatClientRequest(new Prompt(List.of(
+                new org.springframework.ai.chat.messages.SystemMessage("系统指令"),
+                new UserMessage("用户输入"),
+                new AssistantMessage("助手回复"))), new HashMap<>());
+
+        advisor.adviseCall(req, chainReturning(new ChatClientResponse(
+                chatResponse(new AssistantMessage("答"), null, "stop"), new HashMap<>())));
+
+        var snapshots = recorder.items.stream()
+                .filter(i -> i instanceof io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PendingSnapshot)
+                .map(i -> ((io.github.chyuan_cuihongyuan.buzhou.observability.pipeline.PendingSnapshot) i).record())
+                .toList();
+        assertThat(snapshots).hasSize(1);
+        var snap = snapshots.get(0);
+        Map<String, Object> budget = snap.budgetBreakdown();
+        // tokenEstimator 为长度口径（String.length）：SYSTEM"系统指令"(4) + USER"用户输入"(4) + ASSISTANT"助手回复"(4)
+        assertThat(budget.get("tokens.system")).isEqualTo(4);
+        assertThat(budget.get("tokens.user")).isEqualTo(4);
+        assertThat(budget.get("tokens.assistant")).isEqualTo(4);
+        assertThat(budget.get("tokens.total")).isEqualTo(12);
+        assertThat(budget.get("messages.count")).isEqualTo(3);
+        assertThat(snap.messages().stream().map(m -> m.role()))
+                .containsExactly("SYSTEM", "USER", "ASSISTANT");
+        assertThat(snap.messages().get(0).evidenceId()).isNull();
+    }
+
+    @Test
+    void thinkingExtraKeysFlowThroughAdvisorToThinkingEvent() {
+        recorder = new RecordingBase();
+        state = new ObservabilitySessionState(recorder, null, "sess-1", "agent", "app", "gpt");
+        state.onOpen();
+        state.onTurnStart(1, "hi");
+        ObservabilityAdvisor customAdvisor = new ObservabilityAdvisor(recorder,
+                new ObservabilityConfig(true, 200, Duration.ofSeconds(1), Duration.ofSeconds(5), 10000,
+                        true, List.of("custom_thinking"), 32768, false, true, false, null),
+                new ThinkingChainExtractor(List.of("custom_thinking"), 32768),
+                estimator(),
+                state, "any-model");
+        AssistantMessage msg = AssistantMessage.builder().content("答复")
+                .properties(Map.of("custom_thinking", "自定义厂商思维链"))
+                .build();
+
+        customAdvisor.adviseCall(request(), chainReturning(new ChatClientResponse(
+                chatResponse(msg, null, "stop"), new HashMap<>())));
+
+        assertThat(lastSpan().attributes().get("thinking.available")).isEqualTo("YES");
+        assertThat(eventTypes()).contains("THINKING");
+        assertThat(eventPayloads().stream().anyMatch(s -> s.contains("custom_thinking"))).isTrue();
+    }
+
+    @Test
+    void nullAssistantTextSuppressesReplyWithoutNpe() {
+        ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
+        AssistantMessage msg = AssistantMessage.builder().content(null).build();
+
+        org.assertj.core.api.Assertions.assertThatCode(() ->
+                advisor.adviseCall(request(), chainReturning(new ChatClientResponse(
+                        chatResponse(msg, null, "stop"), new HashMap<>())))
+        ).doesNotThrowAnyException();
+
+        assertThat(eventTypes()).doesNotContain("FINAL_REPLY");
+    }
+
+    @Test
     void callChainExceptionMarksErrorAndRethrows() {
         ObservabilityAdvisor advisor = advisor("gpt-4o", null, true, 32768);
         RuntimeException boom = new RuntimeException("model boom");
