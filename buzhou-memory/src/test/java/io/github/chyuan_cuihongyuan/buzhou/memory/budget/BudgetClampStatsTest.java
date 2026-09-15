@@ -63,8 +63,7 @@ class BudgetClampStatsTest {
     private io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetInput input(
             String systemPrompt, int reserve, int safety) {
         return new io.github.chyuan_cuihongyuan.buzhou.memory.budget.BudgetInput(
-                "model-x", systemPrompt, List.of(), List.of(msg("当前输入")),
-                null, 0.8, reserve, safety);
+                "model-x", systemPrompt, List.of(), "当前输入", null, List.of(), reserve, safety, 0.8);
     }
 
     @Test
