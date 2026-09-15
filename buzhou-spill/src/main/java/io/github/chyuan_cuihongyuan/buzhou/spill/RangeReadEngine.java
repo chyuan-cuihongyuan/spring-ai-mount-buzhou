@@ -20,11 +20,50 @@ public final class RangeReadEngine {
     private RangeReadEngine() {
     }
 
+    // —— spec 1113 / impl 864：引擎读面（存储引擎操作分布思想；静态面理由同
+    // R46–R115 先例）。守恒：engineCalls = 三模式桶之和。
+    private static final java.util.concurrent.atomic.AtomicLong ENGINE_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong BYTE_READS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong JSON_READS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong PAGE_READS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 引擎读面分布快照（spec 1113）。 */
+    public record EngineReadStats(long engineCalls, long byteReads, long jsonReads, long pageReads) {
+    }
+
+    /** 只读快照（守恒 engineCalls = 三模式桶之和）。 */
+    public static EngineReadStats stats() {
+        return new EngineReadStats(ENGINE_CALLS.get(), BYTE_READS.get(),
+                JSON_READS.get(), PAGE_READS.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        ENGINE_CALLS.set(0);
+        BYTE_READS.set(0);
+        JSON_READS.set(0);
+        PAGE_READS.set(0);
+    }
+
     public static RangeReadResult read(String content, RangeReadRequest request) {
+        ENGINE_CALLS.incrementAndGet();
         return switch (request.mode()) {
-            case BYTES -> readBytes(content, request);
-            case JSON -> readJson(content, request);
-            case PAGE -> readPage(content, request);
+            case BYTES -> {
+                BYTE_READS.incrementAndGet();
+                yield readBytes(content, request);
+            }
+            case JSON -> {
+                JSON_READS.incrementAndGet();
+                yield readJson(content, request);
+            }
+            case PAGE -> {
+                PAGE_READS.incrementAndGet();
+                yield readPage(content, request);
+            }
         };
     }
 
