@@ -1115,6 +1115,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 对冲延迟策略 | HedgeDelayPolicy——对冲阈值从延迟分布推导（最近秩 P95，样本不足退守地板不冒进）+decide 边界含上（elapsed≥阈即 SEND_HEDGE）——Google Tail at Scale hedged requests 思想，尾部 5% 才付双倍钱、中位数零对冲成本（spec 1831） | [spec 1831](docs/spec/1831-hedge-delay-policy.md) |
 | 并发治理 | 覆写环形缓冲 | OverwritingRingBuffer——固定容量环形满则覆写最老（永不阻塞写入方）+overwrites 覆写计数可审计+items 最老到最新防御拷贝快照——LMAX Disruptor 思想，最近窗采样「不挡主路+丢得起有数」基建（spec 1832） | [spec 1832](docs/spec/1832-overwriting-ring-buffer.md) |
 | 会话治理 | 续读令牌编解码裁决 | ResumeTokenCodec——游标绑定数据指纹（encode/decode 回路）+check 三态 VALID/STALE_DATA（换代，重拉首页）/OUT_OF_RANGE（越界，查保留）——分页 continuation token/ETag 思想，指纹先行：底层数据换代后旧游标不再被当有效（spec 1833） | [spec 1833](docs/spec/1833-resume-token-codec.md) |
+| 评测计量 | 完成度 ETA 投影 | EtaProjection——长任务剩余时长线性外推（rate=done/elapsed，ETA=remaining/rate，除不尽向上取整保守）+projectedTotalMillis 总时长投影，无速率基准（done=0/elapsed=0）-1 诚实哨兵——CI 进度条/带宽估计思想，「还要多久」不再人肉心算、多时点对比发现尾段漂移（spec 1834） | [spec 1834](docs/spec/1834-eta-projection.md) |
 
 ## 快速开始
 
