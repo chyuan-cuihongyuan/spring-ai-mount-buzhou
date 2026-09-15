@@ -1149,6 +1149,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 事务语义 | 写偏斜检测 | WriteSkewDetector——快照隔离组合不变量风险：skewRisk（双方读写非空 且 读集相交 且 写集不相交——写冲突检测拦不住）+scan 全对扫描风险对清单——数据库 write skew 异象（经典「值班医生」反例）思想，风险对直接映射冲突桌（spec 1861） | [spec 1861](docs/spec/1861-write-skew-detector.md) |
 | 缓存基建 | Rendezvous 哈希 | RendezvousHashing——键×节点确定性评分取最高的分片归属（HRW）：节点增删只影响原属它的 1/n 键（最小迁移数学保证），免一致性哈希环虚节点与环管理，无随机数可回放——Highest Random Weight 思想（spec 1862） | [spec 1862](docs/spec/1862-rendezvous-hashing.md) |
 | 护栏治理 | 凭据强度计 | CredentialStrengthMeter——已知凭据弱度评估：字符四类计数（小写/大写/数字/符号）×长度双条件阶梯（3 类×16 长 STRONG/3 类×12 长 FAIR/否则 WEAK）——NIST SP 800-63 长度优先+强度计惯例思想，与 SecretScanner（文本检测）互补成防泄漏+防弱钥对（spec 1863） | [spec 1863](docs/spec/1863-credential-strength-meter.md) |
+| 事件投递 | 可见性超时账 | VisibilityTimeoutAccounting——「至少一次」投递三段语义：取走即隐藏（防重复消费）+超时未确认重回队列（消费方死消息不丢，边界含上）+重投穷尽进死信（毒消息不死循环）+census 三段普查与最老在飞龄——AWS SQS visibility timeout 思想（spec 1864） | [spec 1864](docs/spec/1864-visibility-timeout-accounting.md) |
 
 ## 快速开始
 
