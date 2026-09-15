@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * spec 1136 / impl 875：SemanticSkillRanker 排序分布——正常排序（rankCalls）、
- * 跳过短路径（skippedTrivial）、降级（bypassed）、resetForTest 归零。
+ * 跳过短路径（skippedTrivial）、成功（succeeded）、resetForTest 归零。
  * 桩 EmbeddingModel 同 SemanticSkillRanker 既有测试。
  */
 class SemanticRankerDistTest {
@@ -59,7 +59,7 @@ class SemanticRankerDistTest {
 
         SemanticSkillRanker.RankerDistStats stats = SemanticSkillRanker.distStats();
         assertThat(stats.rankCalls()).isEqualTo(1);
-        assertThat(stats.bypassed()).isZero();
+        assertThat(stats.succeeded()).isEqualTo(1);
         assertThat(stats.skippedTrivial()).isZero();
     }
 
