@@ -1096,6 +1096,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 健康治理 | TTL 探针状态机 | TtlProbeStateMachine——被动健康三态判（PASSING/STALE 过预警线/CRITICAL 到期，双边界含上）+freshness 剩余新鲜度（到期钳 0）+census 普查——Consul health check TTL 思想，过期靠时间自然到期零轮询、STALE 先兆可提前处置（spec 1813） | [spec 1813](docs/spec/1813-ttl-probe-state-machine.md) |
 | 溢出保护 | 热点重平衡建议器 | HotspotRebalancer——分片/卷间负载贪心搬迁建议：极差≤容差停手、单步量三重 min 封顶不越衡反转、并列 id 字典序确定性+spreadBefore/After/improvementRatio——K8s descheduler 思想，只消越容差热点不过度均衡（spec 1814） | [spec 1814](docs/spec/1814-hotspot-rebalancer.md) |
 | 恢复韧性 | 缺口回填计划器 | GapBackfillPlanner——期望区间×在位集合的缺口闭区间清单（含首尾、升序合并）+largestGapSpan 瓶颈段长+missingRatio/complete——Kafka offset 补填/Prometheus backfill 思想，重放不重不漏先知道缺哪段、区间化可分批可并行（spec 1815） | [spec 1815](docs/spec/1815-gap-backfill-planner.md) |
+| 背压治理 | 负载脱落阶梯 | LoadShedLadder——过载分级甩负载：每级一脱落阈值（低阈值=低优先级先掉），负载因子越阈即该级拒新（含边界）+shedRatio/escalating——Envoy overload manager 思想，一刀切全拒变按优先级逐级甩（spec 1816） | [spec 1816](docs/spec/1816-load-shed-ladder.md) |
 
 ## 快速开始
 

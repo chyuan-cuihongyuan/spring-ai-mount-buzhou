@@ -41,7 +41,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R14 | #1813 | TTL 探针状态机（Consul health check TTL 思想） | T2827–T2828 | 1414 | ✅ |
 | R15 | #1814 | 反热点重平衡建议（K8s descheduler 思想） | T2829–T2830 | 1415 | ✅ |
 | R16 | #1815 | 回填计划（缺口补填 catch-up 思想） | T2831–T2832 | 1416 | ✅ |
-| R17 | #1816 | Wave 3 弹性位（前沿 grep 复核后定题） | T2833–T2834 | 1417 | ⬜ |
+| R17 | #1816 | 负载脱落阶梯（Envoy overload manager 思想） | T2833–T2834 | 1417 | ✅ |
 | R18 | #1817 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2835–T2836 | 1418 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
