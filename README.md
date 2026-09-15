@@ -779,6 +779,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R28：adviseCall 路径 usage null 保留两侧 | NullableUsage 对称补齐（R24 流式先例到 call 路径）：completion-only prompt 跳过/双 null 两属性均跳过；spec 1227 | [spec 1227](docs/spec/1227-call-usage-null-retain.md) |
 | 工程门禁 | R30：Jcs 规范化全分支 | RFC 8785 自实现子集 10 用例（标量规范形/键字典序/转义全覆盖/整数约束/非法 JSON）；分支 97%（spec 1229） | [spec 1229](docs/spec/1229-jcs-canonicalization.md) |
 | 工程门禁 | R29：GuardAuditConfig 解析全分支 | fromGuardMap 子 Map 解析 8 用例（null/非 Map 回退/trim+lower/容量与 min-verify 容错/blank key-dir/非法 KeyFile 过滤）；分支 17%→92%（spec 1228） | [spec 1228](docs/spec/1228-audit-config-parse.md) |
+| 工程门禁 | R31：ResilienceAdvisor 影子镜像 e2e | 主路成功后采样对照备模型 4 用例（镜像发生/失败全吞/候选空守卫/零采样守卫）；Istio mirror 思想容量预案信心面；spec 1230 | [spec 1230](docs/spec/1230-shadow-mirror-e2e.md) |
 | 工程门禁 | R27：T1867 TRM getText 语义核验 | javap 反编译定论（textContent 恒空为设计现状）+ 生产捕获走 getResponses responseData 源码比对；错误合同断言删除；spec 1226 | [spec 1226](docs/spec/1226-trm-gettext-verification.md) |
 | 工程门禁 | R26：Advisor 细粒度残余清扫 | 流式 content=null chunk 防御（无 NPE/后续照常）+ TRM 占位符提取正反例（快照 evidence/spill 首次负例断言）；可达性分级豁免入档；spec 1225 | [spec 1225](docs/spec/1225-advisor-fine.md) |
 | 工程门禁 | K 会话周期对账轮 R23 | 全仓 verify（隔离 worktree 固定本地 HEAD）+ 工件链五项对账（R19–R22 四轮 25 用例增量回归）；沿 R6/R12/R18 口径（spec 1222） | [spec 1222](docs/spec/1222-k-audit-r23.md) |
