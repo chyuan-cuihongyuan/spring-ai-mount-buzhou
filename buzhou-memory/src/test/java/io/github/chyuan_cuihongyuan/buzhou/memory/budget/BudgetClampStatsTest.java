@@ -35,7 +35,7 @@ class BudgetClampStatsTest {
     void normalBudgetCountsNormal() {
         calc.evaluate(input("系统提示", 1_000, 500));
 
-        DefaultBudgetCalculator.DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
+        DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
         assertThat(stats.evaluations()).isEqualTo(1);
         assertThat(stats.normalBudgets()).isEqualTo(1);
         assertThat(stats.negativeClamps()).isZero();
@@ -47,7 +47,7 @@ class BudgetClampStatsTest {
         var report = calc.evaluate(input("S".repeat(4_000), 9_000, 1_000));
         assertThat(report.historyBudget()).isZero();
 
-        DefaultBudgetCalculator.DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
+        DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
         assertThat(stats.evaluations()).isEqualTo(1);
         assertThat(stats.negativeClamps()).isEqualTo(1);
         assertThat(stats.normalBudgets()).isZero();
@@ -58,7 +58,7 @@ class BudgetClampStatsTest {
         calc.evaluate(input("正常", 200, 100));
         calc.evaluate(input("N".repeat(6_000), 8_000, 500));
 
-        DefaultBudgetCalculator.DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
+        DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
         assertThat(stats.evaluations())
                 .isEqualTo(stats.negativeClamps() + stats.normalBudgets());
         assertThat(stats.negativeClamps()).isGreaterThanOrEqualTo(1);
