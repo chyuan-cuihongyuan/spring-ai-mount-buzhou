@@ -38,13 +38,40 @@ public final class SemanticSkillRanker implements SkillRanker {
         return bypassed.get();
     }
 
+    // —— spec 1136 / impl 875：排序分布读面（R74 同款深化；静态面理由同 R46–R120
+    // 先例）。bypassed 为既有实例字段保持公共 API 不变。
+    private static final java.util.concurrent.atomic.AtomicLong RANK_CALLS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong SKIPPED_TRIVIAL =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong RANK_SUCCEEDED =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 排序分布快照（spec 1136）。 */
+    public record RankerDistStats(long rankCalls, long skippedTrivial, long bypassed) {
+    }
+
+    /** 只读快照。 */
+    public static RankerDistStats distStats() {
+        return new RankerDistStats(RANK_CALLS.get(), SKIPPED_TRIVIAL.get(), RANK_SUCCEEDED.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetDistForTest() {
+        RANK_CALLS.set(0);
+        SKIPPED_TRIVIAL.set(0);
+        RANK_SUCCEEDED.set(0);
+    }
+
     /**
      * 排序（cosine 降序、并列保原序稳定）：hint 为 null/空或嵌入失败 → 原样返回。
      */
     @Override
     public List<SkillMetadata> rank(List<SkillMetadata> candidates, String queryHint) {
+        RANK_CALLS.incrementAndGet();
         if (candidates == null || candidates.size() <= 1
                 || queryHint == null || queryHint.isBlank()) {
+            SKIPPED_TRIVIAL.incrementAndGet();
             return candidates;
         }
         float[] queryVector;
@@ -76,6 +103,7 @@ public final class SemanticSkillRanker implements SkillRanker {
         for (Scored s : scored) {
             ranked.add(candidates.get(s.index()));
         }
+        RANK_SUCCEEDED.incrementAndGet();
         return ranked;
     }
 
