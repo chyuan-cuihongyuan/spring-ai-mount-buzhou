@@ -4,6 +4,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.PrefetchCreditWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.SpawnAdmissionFloor
@@ -171,6 +172,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunPlanJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.FanoutPacingPlan
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.GradientLimiterHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.HarnessToolCallingManager
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.IdempotentToolRetryHolder
@@ -345,6 +347,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersionDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.RollbackUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.ViolationEpisodeMerger
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.CheckpointLagReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.FailureTurnSnapshots
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService
@@ -837,6 +841,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.CopyFileTool
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.CopyOnWriteGuardHook
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.DiskSpillStore
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.EvictHandleTool
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.EvictionThresholdGate
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.EvidenceRefValidity
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.FileSandbox
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.HandleLifecycleRegistry

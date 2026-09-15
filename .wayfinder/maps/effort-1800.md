@@ -36,7 +36,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R9 | #1808 | 驱逐信号阈值门（K8s soft 宽限/hard 即逐思想） | T2817–T2818 | 1409 | ✅ |
 | R10 | #1809 | 扇出 pacing 计划（TCP BBR pacing/惊群避让思想） | T2819–T2820 | 1410 | ✅ |
 | R11 | #1810 | Prefetch 信用窗口（RabbitMQ basic.qos/AMQP credit 思想） | T2821–T2822 | 1411 | ✅ |
-| R12 | #1811 | 对账轮（全仓 mvn verify + 台账核账 + 合并 origin/main） | T2823–T2824 | 1412 | ⬜ |
+| R12 | #1811 | 对账轮（全仓 mvn verify + 台账核账 + 合并 origin/main） | T2823–T2824 | 1412 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

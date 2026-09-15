@@ -2543,3 +2543,13 @@
   周期；嵌套 `CycleFacts`/`PromotionReport` 不另立面）
 - `PrefixBlockHitStats`（resilience/cache 域——前缀块命中读面：等长块跨请求复用账
   （尾块丢弃/请求内去重）；嵌套 `BlockReport` 不另立面）
+- `CheckpointLagReadout`（recovery 域——检查点滞后读面：totalLag/maxLag/
+  sessionsBeyond/caughtUpRatio；嵌套 `SessionLag`/`LagReport` 不另立面）
+- `ViolationEpisodeMerger`（ratelimit 域——追限事件会话化：段数/最长段/平均
+  密度；嵌套 `Episode`/`MergeReport` 不另立面）
+- `EvictionThresholdGate`（spill 域——两级阈值三态裁决+census；嵌套
+  `Thresholds`/`SignalSample`/`DecisionCensus`/`Decision` 不另立面）
+- `FanoutPacingPlan`（exec 域——扇出起发排程：头部 IW 免节流+尾部 pacing；
+  嵌套 `TaskStart`/`Plan` 不另立面）
+- `PrefetchCreditWindow`（backpressure 域——在飞上限信用闸：满窗拒/确认
+  归还/耗拒计数；嵌套 `Snapshot` 不另立面）
