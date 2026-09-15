@@ -32,7 +32,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R5 | #1804 | 语义缓存前缀块命中读面（vLLM block-level prefix cache） | T2809–T2810 | 1405 | ✅ |
 | R6 | #1805 | 对账轮（全仓 mvn verify + 台账核账 + 合并 origin/main） | T2811–T2812 | 1406 | ✅ |
 | R7 | #1806 | 检查点滞后读面（Kafka consumer lag / SQLite WAL checkpoint 思想） | T2813–T2814 | 1407 | ✅ |
-| R8 | #1807 | 追限区间合并（Prometheus 告警分组/相邻窗合并思想） | T2815–T2816 | 1408 | ⬜ |
+| R8 | #1807 | 追限区间合并（Prometheus 告警分组/相邻窗合并思想） | T2815–T2816 | 1408 | ✅ |
 | R9 | #1808 | 驱逐信号阈值门（K8s soft 宽限/hard 即逐思想） | T2817–T2818 | 1409 | ⬜ |
 | R10 | #1809 | 扇出 pacing 计划（TCP BBR pacing/惊群避让思想） | T2819–T2820 | 1410 | ⬜ |
 | R11 | #1810 | Wave 2 弹性位（前沿 grep 复核后定题） | T2821–T2822 | 1411 | ⬜ |

@@ -650,6 +650,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | J 系阶段对账审计 R70 | J 会话 R61–R69 工件对账 + 七域读面布局收口（spec 1070） | [spec 1070](docs/spec/1070-j-audit-r70.md) |
 | 工具计量 | http_request 受控头丢弃显形 | 黑名单头试探频次量化（spec 1071） | [spec 1071](docs/spec/1071-headerdrop-stats.md) |
 | 内容防御 | PII 检测引擎读面 | 引擎原生匹配数与业务上报数双层对账显形（spec 1072） | [spec 1072](docs/spec/1072-piidetector-stats.md) |
+| 内容防御 | PII 出站脱敏读面 | 出站事件脱敏三结局分布与 fail-open 显形（spec 1211） | [spec 1211](docs/spec/1211-pii-red-stats.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
@@ -1085,6 +1086,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 前缀块命中读面 | PrefixBlockHitStats——等长块切分的跨请求复用账（尾块不入账/请求内去重/radix 一次插入语义）+blockHitRatio——vLLM block-level prefix cache/SGLang radix 思想，整请求命中率与块命中率分开读，前缀投资有依据（spec 1804） | [spec 1804](docs/spec/1804-prefix-block-hit-stats.md) |
 | 工程治理 | O 系 R6 对账轮 | 全仓 clean verify 三门核账（覆盖/快照/对账）+ 快照补登四类型 + 并行吸收（J 系 skills 断链两连修复：11bc4d3a 改名滑手→005cc8f0/a8b7885d 并发对撞镜像断链→7fdb1611 和解）——kill 在途 verify 留部分编译态的教训入档（spec 1805） | [spec 1805](docs/spec/1805-o-r6-reconciliation.md) |
 | 恢复韧性 | 检查点滞后读面 | CheckpointLagReadout——逐会话产出/检查点水位差账目：totalLag（全会话重放成本）/maxLag（最坏单会话，-1 哨兵）/sessionsBeyond 越限计数/caughtUpRatio 追平率——Kafka consumer-group lag/SQLite WAL checkpoint 思想，崩溃重放成本与检查点节奏健康度直接读数（spec 1806） | [spec 1806](docs/spec/1806-checkpoint-lag-readout.md) |
+| 流量治理 | 追限事件会话化 | ViolationEpisodeMerger——追限时点按容忍窗切段（Episode start/end/hits/span）：episodes 段数/longest 最长段/hitsPerEpisode 平均密度——Prometheus 告警分组/GA session gap 会话化思想，散点抖动（加余量）与持续超载（扩容降级）分开读（spec 1807） | [spec 1807](docs/spec/1807-violation-episode-merger.md) |
 
 ## 快速开始
 
