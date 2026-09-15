@@ -1142,6 +1142,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 双窗口漂移检测 | WindowShiftDetector——近期窗 vs 基线窗均值漂移双闸判定：绝对闸（量级重要吗）×相对闸（比例重要吗，零基线退化绝对口径）同过才漂，SHIFTED_UP 变差/SHIFTED_DOWN 变好方向分开——Netflix/SRE 双窗口异常检测惯例，单闸二难（小基数刷屏 vs 缓变漏报）（spec 1854） | [spec 1854](docs/spec/1854-window-shift-detector.md) |
 | 评测计量 | 收藏家覆盖期望 | CouponCollectorProjection——均匀抽样见全 k 类期望轮数 k×H(k)（调和级数长尾：收齐 10 类期望 ~29 轮非 10 轮）+expectedRemaining 随进度余轮递减——概率论 coupon collector 思想，覆盖测试轮数预算从拍到有期望依据（spec 1855） | [spec 1855](docs/spec/1855-coupon-collector-projection.md) |
 | 指标治理 | 利特尔法则一致性审计 | LittlesLawAudit——跨指标互证：impliedConcurrency(λ×W 毫秒换算内置)+consistency 容差判定（|L−λW|≤tol×max(|λW|,1) 零基线退化）——排队论 Little's Law 思想，稳态下并发/到达率/逗留必然互证，偏差即仪表失真或稳态破（spec 1856） | [spec 1856](docs/spec/1856-littles-law-audit.md) |
+| 工具执行 | 保工作性审计 | WorkConservationAudit——多队列调度浪费审计：逐时隙判违例（存在积压队列且有配额无积压的闲置队列）+violationRatio 违例率+wasteCoverageRatio 浪费覆盖比（闲置/积压，≥1 即重分配可救纯浪费）——调度理论 work conservation（WFQ/DRR 核心性质）思想，不公平可谈、不保工作不可恕（spec 1857） | [spec 1857](docs/spec/1857-work-conservation-audit.md) |
 
 ## 快速开始
 
