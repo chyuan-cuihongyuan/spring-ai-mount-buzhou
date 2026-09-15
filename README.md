@@ -990,6 +990,7 @@ N 会话（effort #1600+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程质量 | 新公开类型 @since 补全 | N 系 15 个 API 快照入档类型的 Javadoc 补 @since——api-surface 面的文档一致性（spec 1644） | [spec 1644](docs/spec/1644-since-annotations.md) |
 | 工程门禁 | API 快照增量再生 | R27 后新增类型（GradientLimiterHolder 等）worktree 再生入档；同文件并行冲突化解（GuardModule.dangerousTools 双方同时加——M 系保留）（spec 1645） | [spec 1645](docs/spec/1645-snapshot-incremental.md) |
 | 工程门禁 | N 会话收口 | 50 轮自迭代终验——五族成果总账（孤类普查救活×10/pinning 治理×4/高价值思想特性×14/豁免族四消费者/质量运维×5）+ 隔离 worktree 全仓 verify（spec 1648） | [spec 1648](docs/spec/1648-n-session-closing.md) |
+| 观测治理 | ObservabilityAdvisor 流式路径分支补测（K 系 R13） | 本仓首个 Spring AI 流式 advisor 测试基建（StreamAdvisorChain stub harness）——此前 86 covered 分支全来自非流式路径（spec 1212） | [spec 1212](docs/spec/1212-advisor-stream.md) |
 | 评估闭环 | A/B 胜率 Wilson 置信区间 | ab.run.completed 事件加 winRateA 95% CI（decided 口径分母）——「0.7 胜率（CI [0.42,0.88]）」与「0.7 胜率」是两个结论强度；小样本/极端比例不越界不出负值（正态近似经典缺陷），与 SPRT 决策面互补（spec 1630） | [spec 1630](docs/spec/1630-wilson-interval.md) |
 | 韧性治理 | 退避抖动模式可配 | jitter-mode（EQUAL=既有 ±j 对称/FULL=[0,cap] 全随机——防重试风暴同步最优/DECORRELATED=[base,min(cap,prev×3)] 与前次去相关）——AWS「Exponential Backoff and Jitter」思想，默认 EQUAL 零行为（spec 1631） | [spec 1631](docs/spec/1631-jitter-mode.md) |
 | 工程门禁 | N 会话中期对账审计 | 26 轮跨 6 模块首跑隔离 worktree 全仓 verify——API 快照非破坏新增 10 类再生入档 + api-surface.md 同步；spec 1622 悬空补档；16xx 全工件双向实存（spec 1626） | [spec 1626](docs/spec/1626-n-session-mid-audit.md) |
