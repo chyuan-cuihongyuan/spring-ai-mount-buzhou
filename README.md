@@ -673,9 +673,11 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | evidence_lookup 证据回查读面 | 回查命中率与切片率双守恒显形（spec 1073） | [spec 1073](docs/spec/1073-evidlookup-stats.md) |
 | 记忆治理 | EpisodeLedger 双实例组合测试 | 跨实例计数累计与双守恒钉住（spec 1105） | [spec 1105](docs/spec/1105-dualinst-episodic.md) |
 | 预算治理 | 预算钳位读面 | 负预算钳 0 发生频次显形（spec 1133） | [spec 1133](docs/spec/1133-budgetclamp-stats.md) |
+| 预算治理 | 预算 needed 判定分布并入 | 压缩触发压力信号 neededTrue/False 显形（spec 1134） | [spec 1134](docs/spec/1134-budget-needed-ext.md) |
 | 记忆治理 | evidence×episodic 独立性组合测试 | 回查与情景记忆互不串账钉住（spec 1111） | [spec 1111](docs/spec/1111-evidepi-combo.md) |
 | 记忆治理 | memory 域双工具组合测试 | compact_now 与情景记忆读面互不串账钉住（spec 1087） | [spec 1087](docs/spec/1087-memorytools-readout.md) |
 | 记忆治理 | memory 三读面大组合测试 | compact/episodic/fact 三读面交叉互不串账收口（spec 1107） | [spec 1107](docs/spec/1107-memtriple-readout.md) |
+| 压缩治理 | 压缩检查点操作读面 | 安全网保存/回滚触发分布显形（spec 1135） | [spec 1135](docs/spec/1135-checkpoint-stats.md) |
 | 记忆治理 | compact×evidence 交叉组合测试 | 压缩前后回查计数一致钉住（spec 1096） | [spec 1096](docs/spec/1096-compact-evid-combo.md) |
 | 记忆治理 | memory 双台账组合测试 | fact/episodic 双台账读面互不串账钉住（spec 1088） | [spec 1088](docs/spec/1088-dualledger-readout.md) |
 | 工具计量 | 沙箱版 run_command 执行分布读面 | 沙箱档送达率与五拒绝桶守恒显形（spec 1074） | [spec 1074](docs/spec/1074-sandboxrun-stats.md) |
