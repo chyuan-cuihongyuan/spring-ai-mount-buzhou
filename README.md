@@ -1114,6 +1114,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 多级缓存命中读面 | MultiLevelCacheStats——两级（L1 进程内/L2 共享 store）逐层命中率+联合命中率+L1 失职率（L2 命中占非回源比——本可 L1 拦下的份额）——Caffeine multi-level/CPU L1-L2 思想，升容量/查预热/查键口径三分诊（spec 1830） | [spec 1830](docs/spec/1830-multilevel-cache-stats.md) |
 | 模型韧性 | 对冲延迟策略 | HedgeDelayPolicy——对冲阈值从延迟分布推导（最近秩 P95，样本不足退守地板不冒进）+decide 边界含上（elapsed≥阈即 SEND_HEDGE）——Google Tail at Scale hedged requests 思想，尾部 5% 才付双倍钱、中位数零对冲成本（spec 1831） | [spec 1831](docs/spec/1831-hedge-delay-policy.md) |
 | 并发治理 | 覆写环形缓冲 | OverwritingRingBuffer——固定容量环形满则覆写最老（永不阻塞写入方）+overwrites 覆写计数可审计+items 最老到最新防御拷贝快照——LMAX Disruptor 思想，最近窗采样「不挡主路+丢得起有数」基建（spec 1832） | [spec 1832](docs/spec/1832-overwriting-ring-buffer.md) |
+| 会话治理 | 续读令牌编解码裁决 | ResumeTokenCodec——游标绑定数据指纹（encode/decode 回路）+check 三态 VALID/STALE_DATA（换代，重拉首页）/OUT_OF_RANGE（越界，查保留）——分页 continuation token/ETag 思想，指纹先行：底层数据换代后旧游标不再被当有效（spec 1833） | [spec 1833](docs/spec/1833-resume-token-codec.md) |
 
 ## 快速开始
 

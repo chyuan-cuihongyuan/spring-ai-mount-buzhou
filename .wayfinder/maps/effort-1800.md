@@ -58,7 +58,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R31 | #1830 | 多级缓存命中读面（Caffeine multi-level 思想） | T2861–T2862 | 1431 | ✅ |
 | R32 | #1831 | 对冲延迟策略（Google Tail at Scale 思想） | T2863–T2864 | 1432 | ✅ |
 | R33 | #1832 | 覆写环形缓冲（LMAX Disruptor 思想） | T2865–T2866 | 1433 | ✅ |
-| R34 | #1833 | Wave 6 弹性位 D | T2867–T2868 | 1434 | ⬜ |
+| R34 | #1833 | 续读令牌编解码裁决（continuation token/ETag 思想） | T2867–T2868 | 1434 | ✅ |
 | R35 | #1834 | Wave 6 弹性位 E | T2869–T2870 | 1435 | ⬜ |
 | R36 | #1835 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2871–T2872 | 1436 | ⬜ |
 
