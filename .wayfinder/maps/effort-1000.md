@@ -19,6 +19,7 @@
 
 ## Decisions so far
 
+- [R110 周期预检轮的形状裁决](../tickets/T1679-r110-audit-shape.md) — R101–R109 对账零缺陷（纯测试组合系列七轮深度盘点）+ 首验一次通过 BUILD SUCCESS（质量纪律复利显现）。
 - [tools 五读面全矩阵组合测试轮的形状裁决](../tickets/T1675-toolsmatrix-shape.md) — 纯测试轮第十五弹：ToolsMatrixReadoutTest 钉住写/读/黑名单/SSRF 全交叉互不串账与 reset 独立（tools 组合系列收口）。
 - [memory 三读面大组合测试轮的形状裁决](../tickets/T1673-memtriple-shape.md) — 纯测试轮第十三弹：MemoryTripleReadoutTest 钉住 compact/episodic/fact 三读面全交叉互不串账与 reset 独立（memory 组合系列收口）。
 - [cipher×readBack 组合测试轮的形状裁决](../tickets/T1671-cipherread-shape.md) — 纯测试轮第十二弹：CipherReadBackComboTest 钉住加密回读的解密调用联动 + ReadRangeStats 守恒。
@@ -222,6 +223,8 @@
 | 99 | 租户沙箱×读写链路组合测试轮（租户面读写对称+越界拒） | 纯测试轮第十弹 | T1657–T1658 | 851 | 1099 | ✅ |
 | 100 | 周期预检轮·百轮节点：R91–R99 对账全绿 + 组合测试系列成型 + observability 反压环境 flake 处置 + 复跑 verify BUILD SUCCESS | 隔离重跑实证非缺陷 | T1659–T1660 | 852 | 1100 | ✅ |
 | 101 | SpillService 幂等复用读面（五分支守恒：新落盘/幂等复用/降级/阈值内） | 幂等重试复用率对账 | T1661–T1662 | 853 | 1101 | ✅ |
+| 110 | 周期预检轮：R101–R109 对账全绿 + 纯测试组合系列深度盘点 + 首验一次通过 BUILD SUCCESS | 质量纪律复利显现 | T1679–T1680 | 862 | 1110 | ✅ |
+| 111 | （开工时按缺口核查选题） | — | T1681–T1682 | 863 | 1111 |  |
 | 102 | 冒烟清单第三扩展轮（SkillAdmin/SpillService 纳入 17 读面冒烟） | 登记纪律持续闭环 | T1663–T1664 | 854 | 1102 | ✅ |
 | 106 | cipher×readBack 组合测试轮（解密调用随回读联动） | 纯测试轮第十二弹 | T1671–T1672 | 858 | 1106 | ✅ |
 | 107 | （开工时按缺口核查选题） | — | T1673–T1674 | 859 | 1107 |  |
