@@ -631,6 +631,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 记忆治理 | 情景记忆读写双守恒读面 | 情景库写入量与召回命中率显形，双守恒（spec 1055） | [spec 1055](docs/spec/1055-episodic-stats.md) |
 | 模型韧性 | 崩循环探测器类级水位读面 | OPEN 总量/封顶截断量/循环检出/恢复四计数显形（spec 1056） | [spec 1056](docs/spec/1056-crashloop-watch-stats.md) |
 | 技能治理 | skill_search 搜索判定读面 | 搜索命中率与零结果率显形，四桶守恒（spec 1057） | [spec 1057](docs/spec/1057-skillsearch-stats.md) |
+| 技能治理 | SemanticSkillRanker 排序分布深化 | 排序调用/跳过/降级三计数显形（spec 1136） | [spec 1136](docs/spec/1136-ranker-dist.md) |
 | 技能治理 | SkillAdmin×Search 可见性联动组合测试 | 发布/下架→搜索命中联动钉住（spec 1095） | [spec 1095](docs/spec/1095-adminsearch-combo.md) |
 | MCP 治理 | 工具集轮询提供器读面 | 热更新轮询三桶守恒显形，失败率可对账（spec 1058） | [spec 1058](docs/spec/1058-toolsetpoll-stats.md) |
 | 记忆治理 | compact_now 手动压缩判定读面 | 模型主动压缩采用率与四结局桶守恒显形（spec 1059） | [spec 1059](docs/spec/1059-compactnow-stats.md) |
@@ -1081,6 +1082,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 溢出保护 | Spill 压力失速读面 | SpillPressureStall——PSI 双档失速账目 some（≥1 会话失速=吞吐损失）/full（活跃全失速=进度损失）+峰值窗失速面（空观测 -1 哨兵）——Linux 内核 Pressure Stall Information 思想，压力不看水位看谁在等（spec 1801） | [spec 1801](docs/spec/1801-spill-pressure-stall.md) |
 | 工具执行 | 轮墙钟预算传播裁决 | TurnDeadlineBudget——轮总预算沿顺序调用链传播递减，获准超时=min(预估,剩余)截断、耗尽即拒（零耗也不例外，deadline 先于派发检查）+committedNanos/admissionRatio——gRPC deadline propagation/Temporal schedule-to-close 思想，轮墙钟不被 N 次单超时拖成 N 倍（spec 1802） | [spec 1802](docs/spec/1802-turn-deadline-budget.md) |
 | 记忆压缩 | 层代晋升审计 | MemoryPromotionAudit——微压缩→摘要/归档层间流动率（promotionRate/directArchiveRate）+过早晋升周期计数（有产出零原地保留的轮）——JVM 分代 GC 晋升诊断思想，晋升率常高=年轻代没拦住短命内容、过早晋升堆积=缓冲失效（spec 1803） | [spec 1803](docs/spec/1803-memory-promotion-audit.md) |
+| 模型韧性 | 前缀块命中读面 | PrefixBlockHitStats——等长块切分的跨请求复用账（尾块不入账/请求内去重/radix 一次插入语义）+blockHitRatio——vLLM block-level prefix cache/SGLang radix 思想，整请求命中率与块命中率分开读，前缀投资有依据（spec 1804） | [spec 1804](docs/spec/1804-prefix-block-hit-stats.md) |
 
 ## 快速开始
 

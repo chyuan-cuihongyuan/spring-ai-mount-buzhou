@@ -29,7 +29,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R2 | #1801 | Spill 压力失速读面（Linux PSI some/full 语义） | T2803–T2804 | 1402 | ✅ |
 | R3 | #1802 | 工具墙钟 deadline 传播预算（gRPC/Temporal deadline propagation） | T2805–T2806 | 1403 | ✅ |
 | R4 | #1803 | 记忆层代晋升审计（JVM 分代 GC promotion 思想） | T2807–T2808 | 1404 | ✅ |
-| R5 | #1804 | 语义缓存前缀块命中读面（vLLM block-level prefix cache） | T2809–T2810 | 1405 | ⬜ |
+| R5 | #1804 | 语义缓存前缀块命中读面（vLLM block-level prefix cache） | T2809–T2810 | 1405 | ✅ |
 | R6 | #1805 | 对账轮（全仓 mvn verify + 台账核账 + 合并 origin/main） | T2811–T2812 | 1406 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
