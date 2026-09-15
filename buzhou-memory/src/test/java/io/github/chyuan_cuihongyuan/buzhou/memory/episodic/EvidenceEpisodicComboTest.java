@@ -3,6 +3,8 @@ package io.github.chyuan_cuihongyuan.buzhou.memory.episodic;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemoryMessageStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.internal.memory.InMemorySessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.MessageStore;
+import io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage;
+import io.github.chyuan_cuihongyuan.buzhou.core.message.Role;
 import io.github.chyuan_cuihongyuan.buzhou.core.spi.SessionStateStore;
 import io.github.chyuan_cuihongyuan.buzhou.memory.tool.EvidenceLookupTool;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +35,7 @@ class EvidenceEpisodicComboTest {
         messageStore = new InMemoryMessageStore();
         evidenceId = UUID.randomUUID().toString();
         messageStore.append("s1", List.of(new BuzhouMessage(evidenceId, "s1", 1, 0,
-                io.github.chyuan_cuihongyuan.buzhou.core.message.Role.TOOL, "证据内容",
+                Role.TOOL, "证据内容",
                 List.of(), "call-1", null, null, Map.of(), Instant.now())));
     }
 
