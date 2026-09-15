@@ -45,7 +45,7 @@ class BudgetClampStatsTest {
     void hugeOverheadCountsClamp() {
         // 巨型系统提示 + 巨型 reserve → effective-overhead 为负 → 钳 0
         var report = calc.evaluate(input("S".repeat(4_000), 9_000, 1_000));
-        assertThat(report.availableForHistory()).isZero();
+        assertThat(report.historyBudget()).isZero();
 
         DefaultBudgetCalculator.DefaultBudgetCalculator.BudgetClampStats stats = DefaultBudgetCalculator.stats();
         assertThat(stats.evaluations()).isEqualTo(1);
