@@ -775,6 +775,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R17：Advisor 残余分支清扫 | 流式+非流式 harness 复用追加 5 用例（metadata=null·result=null 防御/blank finishReason 不记/空串思维链无事件/usage 0 归一口径）；ObservabilityAdvisor 75%→77%（spec 1216） | [spec 1216](docs/spec/1216-residual-sweep.md) |
 | 工程门禁 | K 会话周期对账轮 R18 | 全仓 verify（隔离 worktree 强制重置基座）+ 工件链五项对账（R13–R17 五轮 52 用例增量回归）；沿 R6/R12 口径（spec 1217） | [spec 1217](docs/spec/1217-k-audit-r18.md) |
 | 工程门禁 | R19：流式语义定向补测 | ToolResponseMessage 占位符快照提取（evidence/spill 首次直接断言）/TTFT CAS 幂等恰一次/omitted-only 流块/空 Flux 防御；spec 1218 | [spec 1218](docs/spec/1218-stream-detail.md) |
+| 工程门禁 | R24：流式 usage 组合与 null 防御 | completion-only 不记 prompt/全 null Usage 经 builder 归一 0/0 捕获（打点实证）/流中 null chatResponse 元素防御跳过；spec 1223 | [spec 1223](docs/spec/1223-stream-null-usages.md) |
 | 工程门禁 | K 会话周期对账轮 R23 | 全仓 verify（隔离 worktree 固定本地 HEAD）+ 工件链五项对账（R19–R22 四轮 25 用例增量回归）；沿 R6/R12/R18 口径（spec 1222） | [spec 1222](docs/spec/1222-k-audit-r23.md) |
 | 工程门禁 | R21：BuzhouMemoryAdvisor 分支直测 | 写路径 fence（先于落库/抛错阻断零写入/恢复照常）+ Identity 去重 + USER/ToolResponse 写入与 ASSISTANT 过滤 + 无 fence 行为不变；分支 77%→95%（spec 1220） | [spec 1220](docs/spec/1220-memory-advisor-branches.md) |
 | 工程门禁 | R22：HookAdvisor 切面分发直测 | beforeModel Block 短路/afterModel replaceResponse 回填/onModelError 决策树（Block 文本兜底/Replace 经链契约 ctx 回填/Continue 放行）+ 流式同构对称；分支 70%→100%（spec 1221） | [spec 1221](docs/spec/1221-hook-advisor-dispatch.md) |
@@ -1150,6 +1151,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 缓存基建 | Rendezvous 哈希 | RendezvousHashing——键×节点确定性评分取最高的分片归属（HRW）：节点增删只影响原属它的 1/n 键（最小迁移数学保证），免一致性哈希环虚节点与环管理，无随机数可回放——Highest Random Weight 思想（spec 1862） | [spec 1862](docs/spec/1862-rendezvous-hashing.md) |
 | 护栏治理 | 凭据强度计 | CredentialStrengthMeter——已知凭据弱度评估：字符四类计数（小写/大写/数字/符号）×长度双条件阶梯（3 类×16 长 STRONG/3 类×12 长 FAIR/否则 WEAK）——NIST SP 800-63 长度优先+强度计惯例思想，与 SecretScanner（文本检测）互补成防泄漏+防弱钥对（spec 1863） | [spec 1863](docs/spec/1863-credential-strength-meter.md) |
 | 事件投递 | 可见性超时账 | VisibilityTimeoutAccounting——「至少一次」投递三段语义：取走即隐藏（防重复消费）+超时未确认重回队列（消费方死消息不丢，边界含上）+重投穷尽进死信（毒消息不死循环）+census 三段普查与最老在飞龄——AWS SQS visibility timeout 思想（spec 1864） | [spec 1864](docs/spec/1864-visibility-timeout-accounting.md) |
+| 工程治理 | O 系 R66 对账轮 | 快照补登前置第十一例行（R61–R65 五类型：对数分桶/写偏斜/Rendezvous 哈希/凭据强度/可见性超时）+ 全仓 clean verify + R63 号漂移被对账门当场拦截入档（设计生效第二次活证）+ 显式退出码流程修正首次全程应用（spec 1865） | [spec 1865](docs/spec/1865-o-r66-reconciliation.md) |
 
 ## 快速开始
 

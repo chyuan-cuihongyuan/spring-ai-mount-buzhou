@@ -320,6 +320,71 @@ class ObservabilityAdvisorStreamTest {
         assertThat(eventTypes()).doesNotContain("STREAM_FIRST_TOKEN");
     }
 
+    /** 保留 null 侧的 Usage（DefaultUsage 将 null 归一 0——无法驱动 null 分支）。 */
+    private record NullableUsage(Integer prompt, Integer completion) implements Usage {
+        @Override
+        public Integer getPromptTokens() {
+            return prompt;
+        }
+
+        @Override
+        public Integer getCompletionTokens() {
+            return completion;
+        }
+
+        @Override
+        public Integer getTotalTokens() {
+            return 0;
+        }
+
+        @Override
+        public Object getNativeUsage() {
+            return this;
+        }
+    }
+
+    @Test
+    void completionOnlyUsageRecordsCompletionWithoutPrompt() {
+        Usage completionOnly = new NullableUsage(null, 3);
+
+        advise(List.of(
+                thinkingChunk("thought-1"),
+                textChunkWithFinish("answer", "stop", completionOnly)));
+
+        SpanRecord modelCall = lastSpan();
+        System.out.println("DEBUG-ATTRS=" + modelCall.attributes());
+        assertThat(modelCall.attributes().get("usage.completion_tokens")).isEqualTo(3);
+        assertThat(modelCall.attributes().get("usage.prompt_tokens")).isNull();
+    }
+
+    @Test
+    void allNullTokensViaMetadataNormalizeToZeroOnCapture() {
+        // 实证（R24 打点）：经 builder 的全 null Usage 到达 advisor 时已归一 0/0——
+        // lastUsage 捕获成立、outcome 记 0（「缺数不冒充」的边界由上游归一承担）
+        Usage allNull = new NullableUsage(null, null);
+
+        advise(List.of(
+                new ChatResponse(List.of(), ChatResponseMetadata.builder().usage(allNull).build()),
+                textChunkWithFinish("answer", "stop", null)));
+
+        SpanRecord modelCall = lastSpan();
+        assertThat(modelCall.attributes().get("usage.prompt_tokens")).isEqualTo(0);
+        assertThat(modelCall.attributes().get("usage.completion_tokens")).isEqualTo(0);
+    }
+
+    @Test
+    void nullChatResponseElementInStreamIsSkipped() {
+        List<ChatClientResponse> received = advisor
+                .adviseStream(request(), chain(Flux.concat(
+                        Flux.just(new ChatClientResponse(null, new HashMap<>())),
+                        responses(List.of(textChunkWithFinish("answer", "stop", null))))))
+                .collectList().block();
+
+        assertThat(received).hasSize(2); // null 元素被 doOnEach 消费但不影响后续
+        assertThat(lastSpan().status()).isEqualTo(SpanStatus.OK);
+        assertThat(lastSpan().attributes().get("finish_reason")).isEqualTo("stop");
+    }
+
     @Test
     void resolveTurnParentFallsBackToSessionSpanThenNull() {
         // 有 session（setUp 已 onOpen）→ MODEL_CALL parent 非空
