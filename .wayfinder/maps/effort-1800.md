@@ -50,7 +50,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R23 | #1822 | 混沌预算门（Chaos Monkey/Chaos Toolkit 思想） | T2845–T2846 | 1423 | ✅ |
 | R24 | #1823 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2847–T2848 | 1424 | ✅ |
 | R25 | #1824 | SWR 策略（HTTP Cache-Control/CDN 思想） | T2849–T2850 | 1425 | ✅ |
-| R26 | #1825 | Wave 5 弹性位 B | T2851–T2852 | 1426 | ⬜ |
+| R26 | #1825 | 会话休眠分级（k8s scale-to-zero 思想） | T2851–T2852 | 1426 | ✅ |
 | R27 | #1826 | Wave 5 弹性位 C | T2853–T2854 | 1427 | ⬜ |
 | R28 | #1827 | Wave 5 弹性位 D | T2855–T2856 | 1428 | ⬜ |
 | R29 | #1828 | Wave 5 弹性位 E | T2857–T2858 | 1429 | ⬜ |
