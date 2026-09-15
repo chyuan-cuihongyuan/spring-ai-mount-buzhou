@@ -109,3 +109,4 @@
 - 不追 100% 行覆盖指标——豁免类（装配期匿名样板）诚实入档而非硬凑。
 - 不触碰 I 会话（specs 90x / T125x-T145x / impl 65x-75x）与 J 会话（specs 100x-114x / T145x-T175x / impl 75x-90x）号段产物。
 - [R20 验证收口](../tickets/T1848-snapshot-budget-verify.md) — budgetBreakdown 四键角色分桶首次断言（impl-46 落地后零断言缺口的补齐）/custom_thinking 经 advisor 贯通 THINKING 事件/content=null 无 FINAL_REPLY 无 NPE；「从未被断言的产出字段即测试缺口」方法论再实证。
+- [R21 验证收口](../tickets/T1850-memory-advisor-verify.md) — BuzhouMemoryAdvisor 77%→95%（fence 先于落库/抛错阻断零写入/恢复照常/Identity 去重/ASSISTANT 过滤/无 fence 行为不变）；HookAdvisor 留 R22；BuzhouChatMemory/InMemoryMessageStore 真件复用。
