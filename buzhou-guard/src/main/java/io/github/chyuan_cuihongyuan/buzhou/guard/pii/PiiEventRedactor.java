@@ -38,22 +38,63 @@ public final class PiiEventRedactor implements SessionEventListener {
         this.customRules = customRules == null ? new CustomPiiRules(List.of()) : customRules;
     }
 
+    // —— spec 1211 / impl 876：出站脱敏读面（出站网关覆盖率思想；静态面理由同
+    // R46–R121 先例）。守恒：eventsProcessed = 三结局桶之和。
+    private static final java.util.concurrent.atomic.AtomicLong EVENTS_PROCESSED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong REDACTED =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong CLEAN_PASSTHROUGH =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong FAIL_OPEN =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    /** 出站脱敏分布快照（spec 1211）。 */
+    public record PiiEventRedStats(long eventsProcessed, long redacted,
+                                   long cleanPassthrough, long failOpen) {
+    }
+
+    /** 只读快照（守恒 eventsProcessed = redacted + cleanPassthrough + failOpen）。 */
+    public static PiiEventRedStats stats() {
+        return new PiiEventRedStats(EVENTS_PROCESSED.get(), REDACTED.get(),
+                CLEAN_PASSTHROUGH.get(), FAIL_OPEN.get());
+    }
+
+    /** 测试专用归零（生产禁用——计数器是进程生命周期水位）。 */
+    public static void resetForTest() {
+        EVENTS_PROCESSED.set(0);
+        REDACTED.set(0);
+        CLEAN_PASSTHROUGH.set(0);
+        FAIL_OPEN.set(0);
+    }
+
     @Override
     public void onEvent(SessionEvent event) {
+        EVENTS_PROCESSED.incrementAndGet();
         delegate.onEvent(new SessionEvent(event.type(), redactPayload(event.payload()),
                 event.occurredAt()));
     }
 
     /** 一层脱敏：String 值过检测器+自定义；非 String 原样；无命中同引用（嵌套递归留档）。 */
     private Map<String, Object> redactPayload(Map<String, Object> payload) {
+        boolean anyRedacted = false;
         Map<String, Object> out = new LinkedHashMap<>();
-        payload.forEach((key, value) -> {
-            if (value instanceof String text) {
-                out.put(key, redactText(text));
+        for (Map.Entry<String, Object> e : payload.entrySet()) {
+            if (e.getValue() instanceof String text) {
+                String after = redactText(text);
+                if (after != text) {
+                    anyRedacted = true;
+                }
+                out.put(e.getKey(), after);
             } else {
-                out.put(key, value); // 数字/布尔/空值天然安全
+                out.put(e.getKey(), e.getValue()); // 数字/布尔/空值天然安全
             }
-        });
+        }
+        if (anyRedacted) {
+            REDACTED.incrementAndGet();
+        } else {
+            CLEAN_PASSTHROUGH.incrementAndGet();
+        }
         return out;
     }
 
@@ -63,8 +104,14 @@ public final class PiiEventRedactor implements SessionEventListener {
             if (!customRules.isEmpty()) {
                 redacted = customRules.redact(redacted);
             }
-            return redacted == null ? text : redacted;
+            if (redacted != text) {
+                REDACTED.incrementAndGet();
+                return redacted;
+            }
+            CLEAN_PASSTHROUGH.incrementAndGet();
+            return text;
         } catch (RuntimeException e) {
+            FAIL_OPEN.incrementAndGet();
             return text; // fail-open：脱敏失败不阻断出站
         }
     }
