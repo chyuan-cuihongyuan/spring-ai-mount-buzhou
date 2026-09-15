@@ -1093,6 +1093,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 背压治理 | Prefetch 信用窗口 | PrefetchCreditWindow——在飞上限口径背压闸：tryAcquire 满窗即拒（totalExhausted 流控压力读数）/release 确认归还信用/stats 快照+utilization——RabbitMQ basic.qos/AMQP credit-based flow control 思想，免速率估计、下游多快上游多快（spec 1810） | [spec 1810](docs/spec/1810-prefetch-credit-window.md) |
 | 工程治理 | O 系 R12 对账轮 | 快照补登前置（R7–R11 五类型一次入账，R6 两遍 verify 教训固化）+ 全仓 clean verify 三门绿 + GitHub 中断期积压补推确认（fe350325..b69b9864）（spec 1811） | [spec 1811](docs/spec/1811-o-r12-reconciliation.md) |
 | 事务语义 | 半消息审计 | HalfMessageAudit——三态意图账目（HALF 滞留/COMMITTED 放行/ROLLED_BACK 丢弃）+staleHalves 超回查阈候选+resolutionRatio/pendingRatio——RocketMQ 事务消息思想，「发消息」与「做事务」原子性靠半消息两阶段+回查兜底（spec 1812） | [spec 1812](docs/spec/1812-half-message-audit.md) |
+| 健康治理 | TTL 探针状态机 | TtlProbeStateMachine——被动健康三态判（PASSING/STALE 过预警线/CRITICAL 到期，双边界含上）+freshness 剩余新鲜度（到期钳 0）+census 普查——Consul health check TTL 思想，过期靠时间自然到期零轮询、STALE 先兆可提前处置（spec 1813） | [spec 1813](docs/spec/1813-ttl-probe-state-machine.md) |
 
 ## 快速开始
 
