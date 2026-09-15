@@ -782,6 +782,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R34：金丝雀候选限流两态 | 放行态（RPM=10 额度内双轮金丝雀照常直达备模型，主模型零调用）与耗尽态（RPM=1 时次轮 acquireOrThrow 抛 ModelRateLimitExceededException——全局限流窗语义实证）；spec 1233 | [spec 1233](docs/spec/1233-canary-quota.md) |
 | 工程门禁 | R32：金丝雀路径 e2e 直测 | canary 路由成功/终态失败链序回退主模型/canary-selected 事件 payload 钉 model+sessionId；金丝雀发布语义三件套（spec 1231） | [spec 1231](docs/spec/1231-canary-path-e2e.md) |
 | 工程门禁 | R29：GuardAuditConfig 解析全分支 | fromGuardMap 子 Map 解析 8 用例（null/非 Map 回退/trim+lower/容量与 min-verify 容错/blank key-dir/非法 KeyFile 过滤）；分支 17%→92%（spec 1228） | [spec 1228](docs/spec/1228-audit-config-parse.md) |
+| 工程门禁 | R36：GuardModule$Builder 开关组合矩阵 | feature toggle 装配合同 10 用例（全关最小面/逐一开→hook 注册/enabled=false→移除/dangerousTool entry/fromYml 等价/allOn⊇allOff 超集）；spec 1231 | [spec 1231](docs/spec/1231-builder-branch-matrix.md) |
 | 工程门禁 | R31：ResilienceAdvisor 影子镜像 e2e | 主路成功后采样对照备模型 4 用例（镜像发生/失败全吞/候选空守卫/零采样守卫）；Istio mirror 思想容量预案信心面；spec 1230 | [spec 1230](docs/spec/1230-shadow-mirror-e2e.md) |
 | 工程门禁 | R27：T1867 TRM getText 语义核验 | javap 反编译定论（textContent 恒空为设计现状）+ 生产捕获走 getResponses responseData 源码比对；错误合同断言删除；spec 1226 | [spec 1226](docs/spec/1226-trm-gettext-verification.md) |
 | 工程门禁 | R26：Advisor 细粒度残余清扫 | 流式 content=null chunk 防御（无 NPE/后续照常）+ TRM 占位符提取正反例（快照 evidence/spill 首次负例断言）；可达性分级豁免入档；spec 1225 | [spec 1225](docs/spec/1225-advisor-fine.md) |
