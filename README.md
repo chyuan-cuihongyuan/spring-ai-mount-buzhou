@@ -653,6 +653,8 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 内容防御 | PII 出站脱敏读面 | 出站事件脱敏三结局分布与 fail-open 显形（spec 1211） | [spec 1211](docs/spec/1211-pii-red-stats.md) |
 | 过程治理 | O 系 R72 周期对账 | R67–R71 五个新公共类型快照补登 + 三门全绿 + Wave 13 排程；对账口径延续十二波惯例（spec 1871） | [spec 1871](docs/spec/1871-o-r72-reconciliation.md) |
 | 背压治理 | 突发信用账户 | BurstCreditAccount——基准速率蓄水封顶+突发透支水位+枯竭降速回基准（不拒不崩——限流拒绝之外的第三态）+burstHeadroomMillis 余量换算+exhaustions 枯竭计数——AWS CPU credit/T3 unlimited 语义，与 GCRA（拒绝）/PrefetchCreditWindow（在飞上限）三足（spec 1872） | [spec 1872](docs/spec/1872-burst-credit-account.md) |
+| 工具执行 | 调度松弛量 | ScheduleFloat——逐任务松弛量（最晚可延迟不拖总工期）：正向 ES+反向到汇距双向 DP，float=LS−ES（关键任务 0、非关键有缓冲可让路）——CPM float/slack 思想，与 CriticalPathLength 配对成下界+缓冲双面，float 分布=编排刚性度（spec 1873） | [spec 1873](docs/spec/1873-schedule-float.md) |
+| 工程门禁 | P 会话 2000 系对账门 | PSession2000LedgerAuditTest——150 轮工件链四面互证（spec 2000–2149 ↔ README 行 ↔ T3101+2(N−2000) 票对 ↔ impl 1551+(N−2000)），spec 起点断言 2000 严格递增，L/O 系预防式公式族第三应用（spec 2000） | [spec 2000](docs/spec/2000-psession-ledger-audit.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
