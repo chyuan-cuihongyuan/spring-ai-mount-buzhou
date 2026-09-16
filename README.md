@@ -716,6 +716,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程治理 | 确定性散列公共件 | DeterministicHash——FNV-1a 64+splitmix64 终结公共件化（DRY 收敛轮）：P 系五件（HLL/频率素描/布谷鸟/哈希环/SimHash）同款内联散列收敛单点——哈希值不变（五件既有 36 用例零改动全绿=同一性证明），散列口径不再五份拷贝漂移——收敛轮模式首档（同构拷贝提取+既有测试同一性证明）（spec 2057） | [spec 2057](docs/spec/2057-deterministic-hash.md) |
 | 评估治理 | 多重比较校正 | MultipleComparisonCorrection——多指标检验族错误率控制（Bonferroni/Holm 思想）：Bonferroni p×m≤α 最保守+Holm 逐步比 α/(m−j+1) 首次不显著即止（FWER 同控功效恒不弱于）+m=1 退化原始口径——多指标 A/B 的「显灵」指标（m=20 期望 1 个假阳性）控制件（spec 2058） | [spec 2058](docs/spec/2058-multiple-comparison-correction.md) |
 | 过程治理 | P 系 R60 周期对账 | Wave 10 五新类型快照补登（1046→1051，CONTEXT 945→950——n-gram/Top-K/五数/散列收敛/多重校正：统计工具族大成）+ 全仓 verify 三门绿（十波连续）+ 60/150=40%（spec 2059） | [spec 2059](docs/spec/2059-p-r60-reconciliation.md) |
+| 评估治理 | BH-FDR 校正 | FalseDiscoveryRate——假发现率控制（Benjamini-Hochberg 思想，spec 2058 留白补齐）：p 升序找最大 j 使 p(j)≤(j/m)q 前 j 全显著（截止序——孤立小 p 不救援），显著集合期望假阳性占比 ≤q——探索性评估宁多勿漏的高功效口径，与 Holm 配对（确证 FWER 紧/探索 FDR 松）——评估统计族四件齐（spec 2060） | [spec 2060](docs/spec/2060-false-discovery-rate.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
