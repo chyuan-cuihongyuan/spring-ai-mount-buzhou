@@ -100,7 +100,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R73 | #1872 | 突发信用账户（AWS CPU credit/T3 unlimited 语义） | T2945–T2946 | 1473 | ✅ |
 | R74 | #1873 | 调度松弛量（CPM float/slack 思想） | T2947–T2948 | 1474 | ✅ |
 | R75 | #1874 | 正则风险审计（OWASP ReDoS/SafeRegex 惯例） | T2949–T2950 | 1475 | ✅ |
-| R76 | #1875 | Wave 13 弹性位 D | T2951–T2952 | 1476 | ⬜ |
+| R76 | #1875 | 级联失败暴露读面（Hystrix 舱壁思想源头） | T2951–T2952 | 1476 | ✅ |
 | R77 | #1876 | Wave 13 弹性位 E | T2953–T2954 | 1477 | ⬜ |
 | R78 | #1877 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2955–T2956 | 1478 | ⬜ |
 
