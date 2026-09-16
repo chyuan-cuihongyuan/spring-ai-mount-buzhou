@@ -31,7 +31,7 @@ public final class SimHashFingerprint {
             if (token == null) {
                 throw new IllegalArgumentException("token 不能为 null");
             }
-            long h = hash64(token);
+            long h = DeterministicHash.hash64(token);
             for (int bit = 0; bit < Long.SIZE; bit++) {
                 if ((h >>> bit & 1L) == 1L) {
                     bitSums[bit] += 1;
@@ -62,18 +62,4 @@ public final class SimHashFingerprint {
         return hammingDistance(a, b) <= threshold;
     }
 
-    /** FNV-1a 64 + splitmix64 终结（与 HLL/频率素描同款确定性散列）。 */
-    private static long hash64(String s) {
-        long h = 0xcbf29ce484222325L;
-        for (int i = 0; i < s.length(); i++) {
-            h ^= s.charAt(i);
-            h *= 0x100000001b3L;
-        }
-        h ^= h >>> 33;
-        h *= 0xff51afd7ed558ccdL;
-        h ^= h >>> 33;
-        h *= 0xc4ceb9fe1a85ec53L;
-        h ^= h >>> 33;
-        return h;
-    }
 }

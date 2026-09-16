@@ -1,5 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.session;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash;
+
 /**
  * 布谷鸟过滤器（spec 2016 / T3133 / impl 1567）——Cuckoo filter 思想：
  * 指纹+双桶+踢出重排的近似成员过滤器——**可删除**（布伦的硬缺口：
@@ -52,8 +54,8 @@ public final class CuckooFilter {
             throw new IllegalArgumentException("item 不能为 null");
         }
         short fp = fingerprint(item);
-        int i1 = bucketIndex(hash64(item));
-        int i2 = i1 ^ bucketIndex(hash64(Short.toString(fp)));
+        int i1 = bucketIndex(DeterministicHash.hash64(item));
+        int i2 = i1 ^ bucketIndex(DeterministicHash.hash64(Short.toString(fp)));
         if (tryInsertTo(i1, fp) || tryInsertTo(i2, fp)) {
             size++;
             return true;
@@ -66,7 +68,7 @@ public final class CuckooFilter {
             short victim = buckets[bucket * BUCKET_SLOTS + slot];
             buckets[bucket * BUCKET_SLOTS + slot] = fp;
             fp = victim;
-            bucket = bucket ^ bucketIndex(hash64(Short.toString(fp)));
+            bucket = bucket ^ bucketIndex(DeterministicHash.hash64(Short.toString(fp)));
             if (tryInsertTo(bucket, fp)) {
                 size++;
                 return true;
@@ -82,8 +84,8 @@ public final class CuckooFilter {
             throw new IllegalArgumentException("item 不能为 null");
         }
         short fp = fingerprint(item);
-        int i1 = bucketIndex(hash64(item));
-        int i2 = i1 ^ bucketIndex(hash64(Short.toString(fp)));
+        int i1 = bucketIndex(DeterministicHash.hash64(item));
+        int i2 = i1 ^ bucketIndex(DeterministicHash.hash64(Short.toString(fp)));
         return bucketHas(i1, fp) || bucketHas(i2, fp);
     }
 
@@ -96,8 +98,8 @@ public final class CuckooFilter {
             throw new IllegalArgumentException("item 不能为 null");
         }
         short fp = fingerprint(item);
-        int i1 = bucketIndex(hash64(item));
-        int i2 = i1 ^ bucketIndex(hash64(Short.toString(fp)));
+        int i1 = bucketIndex(DeterministicHash.hash64(item));
+        int i2 = i1 ^ bucketIndex(DeterministicHash.hash64(Short.toString(fp)));
         int bucketWithFp = bucketHasSlot(i1, fp) >= 0 ? i1
                 : bucketHasSlot(i2, fp) >= 0 ? i2 : -1;
         if (bucketWithFp < 0) {
@@ -154,22 +156,8 @@ public final class CuckooFilter {
 
     /** 16bit 指纹（0 哨兵避开——+1 偏移）。 */
     private static short fingerprint(String item) {
-        short fp = (short) (hash64(item) & 0xFFFF);
+        short fp = (short) (DeterministicHash.hash64(item) & 0xFFFF);
         return fp == EMPTY ? 1 : fp;
     }
 
-    /** FNV-1a 64 + splitmix64 终结（与 HLL/频率素描同款确定性散列）。 */
-    private static long hash64(String s) {
-        long h = 0xcbf29ce484222325L;
-        for (int i = 0; i < s.length(); i++) {
-            h ^= s.charAt(i);
-            h *= 0x100000001b3L;
-        }
-        h ^= h >>> 33;
-        h *= 0xff51afd7ed558ccdL;
-        h ^= h >>> 33;
-        h *= 0xc4ceb9fe1a85ec53L;
-        h ^= h >>> 33;
-        return h;
-    }
 }

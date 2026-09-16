@@ -1,5 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.policy;
 
+import io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -45,7 +47,7 @@ public final class ConsistentHashRing {
         }
         nodeWeights.put(node, virtualNodes);
         for (int i = 0; i < virtualNodes; i++) {
-            ring.put(hash64(node + "#" + i), node);
+            ring.put(DeterministicHash.hash64(node + "#" + i), node);
         }
     }
 
@@ -56,7 +58,7 @@ public final class ConsistentHashRing {
         }
         nodeWeights.remove(node);
         for (int i = 0; i < virtualNodes; i++) {
-            ring.remove(hash64(node + "#" + i));
+            ring.remove(DeterministicHash.hash64(node + "#" + i));
         }
     }
 
@@ -68,7 +70,7 @@ public final class ConsistentHashRing {
         if (ring.isEmpty()) {
             return null;
         }
-        long h = hash64(key);
+        long h = DeterministicHash.hash64(key);
         Map.Entry<Long, String> ceiling = ring.ceilingEntry(h);
         return ceiling != null ? ceiling.getValue() : ring.firstEntry().getValue(); // 回绕
     }
@@ -83,18 +85,4 @@ public final class ConsistentHashRing {
         return ring.size();
     }
 
-    /** FNV-1a 64 + splitmix64 终结（与 HLL/频率素描同款确定性散列）。 */
-    private static long hash64(String s) {
-        long h = 0xcbf29ce484222325L;
-        for (int i = 0; i < s.length(); i++) {
-            h ^= s.charAt(i);
-            h *= 0x100000001b3L;
-        }
-        h ^= h >>> 33;
-        h *= 0xff51afd7ed558ccdL;
-        h ^= h >>> 33;
-        h *= 0xc4ceb9fe1a85ec53L;
-        h ^= h >>> 33;
-        return h;
-    }
 }

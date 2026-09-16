@@ -58,7 +58,7 @@ public final class HllCardinalitySketch {
         if (value == null) {
             throw new IllegalArgumentException("value 不能为 null");
         }
-        long h = hash64(value);
+        long h = DeterministicHash.hash64(value);
         int index = (int) (h >>> (Long.SIZE - precision));
         // 尾部 64−b 位的 rank：前导零数 + 1；全零封顶（64−b+1）
         int rank = Math.min(Long.SIZE - precision + 1,
@@ -114,18 +114,4 @@ public final class HllCardinalitySketch {
         };
     }
 
-    /** 确定性 64 位散列：FNV-1a 64 + splitmix64 终结混合（雪崩充分）。 */
-    private static long hash64(String s) {
-        long h = 0xcbf29ce484222325L;
-        for (int i = 0; i < s.length(); i++) {
-            h ^= s.charAt(i);
-            h *= 0x100000001b3L;
-        }
-        h ^= h >>> 33;
-        h *= 0xff51afd7ed558ccdL;
-        h ^= h >>> 33;
-        h *= 0xc4ceb9fe1a85ec53L;
-        h ^= h >>> 33;
-        return h;
-    }
 }

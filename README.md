@@ -713,6 +713,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测计量 | n-gram 特征提取 | NgramExtractor——文本定长滑窗特征集统一口径（信息检索 n-gram 思想）：charNgrams/wordNgrams 双口径（distinct 去重保首现——指纹供给 SimHash / 保留重复——频次）+短于 n 整段与词数不足原词诚实边界——散落内联（CanaryGuardHook 等）统一收敛件，与 SimHash/TextDistance 成三件套（特征+近似指纹+精确距离）（spec 2054） | [spec 2054](docs/spec/2054-ngram-extractor.md) |
 | 观测计量 | 有界 Top-K 收集器 | BoundedTopK——流式按值榜单 O(K) 内存（小顶堆守门员思想）：offer 与第 K 名守门员比——严格大于逐守入门否则落选（evicted/rejected 双计数），同分先入者保位；gatekeeperScore 入榜门槛实时读数（空榜 −∞）——万级流不存全集，与 ToolSlowLog 互补（按值留大 vs 时间窗留尾）（spec 2055） | [spec 2055](docs/spec/2055-bounded-top-k.md) |
 | 观测计量 | 五数概括与 IQR 围栏 | FiveNumberSummary——分布五点+稳健离群判定（Tukey 箱线图 EDA 思想）：min/Q1/中位/Q3/max（R-7 线性插值）+IQR+1.5×IQR 围栏+isOutlier——四分位不被极端值拉动，σ 口径自我掩蔽病（离群越大 σ 越大越难检）的根治——与卡方/熵成分布刻画三件（判定/量纲/五点离群）（spec 2056） | [spec 2056](docs/spec/2056-five-number-summary.md) |
+| 工程治理 | 确定性散列公共件 | DeterministicHash——FNV-1a 64+splitmix64 终结公共件化（DRY 收敛轮）：P 系五件（HLL/频率素描/布谷鸟/哈希环/SimHash）同款内联散列收敛单点——哈希值不变（五件既有 36 用例零改动全绿=同一性证明），散列口径不再五份拷贝漂移——收敛轮模式首档（同构拷贝提取+既有测试同一性证明）（spec 2057） | [spec 2057](docs/spec/2057-deterministic-hash.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |

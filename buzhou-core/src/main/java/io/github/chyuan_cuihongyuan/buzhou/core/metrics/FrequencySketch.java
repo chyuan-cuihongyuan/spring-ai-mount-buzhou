@@ -38,7 +38,7 @@ public final class FrequencySketch {
         if (key == null) {
             throw new IllegalArgumentException("key 不能为 null");
         }
-        long hash = hash64(key);
+        long hash = DeterministicHash.hash64(key);
         int i = (int) (hash & slotMask);
         int j = (i + 1) & slotMask;
         int vi = valueAt(i);
@@ -55,7 +55,7 @@ public final class FrequencySketch {
         if (key == null) {
             throw new IllegalArgumentException("key 不能为 null");
         }
-        long hash = hash64(key);
+        long hash = DeterministicHash.hash64(key);
         int i = (int) (hash & slotMask);
         int j = (i + 1) & slotMask;
         return Math.min(valueAt(i), valueAt(j));
@@ -74,18 +74,4 @@ public final class FrequencySketch {
         table[word] = (table[word] & ~(SLOT_MASK << offset)) | ((long) v << offset);
     }
 
-    /** FNV-1a 64 + splitmix64 终结（与 HllCardinalitySketch 同款确定性散列）。 */
-    private static long hash64(String s) {
-        long h = 0xcbf29ce484222325L;
-        for (int i = 0; i < s.length(); i++) {
-            h ^= s.charAt(i);
-            h *= 0x100000001b3L;
-        }
-        h ^= h >>> 33;
-        h *= 0xff51afd7ed558ccdL;
-        h ^= h >>> 33;
-        h *= 0xc4ceb9fe1a85ec53L;
-        h ^= h >>> 33;
-        return h;
-    }
 }
