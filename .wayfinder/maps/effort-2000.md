@@ -33,7 +33,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R6 | #2005 | 对账轮（快照补登 998→1006（P×4+O 代补×4）+ 全仓 verify 三门绿 + push 恢复补推） | T3111–T3112 | 1556 | ✅ |
 | R7 | #2006 | LWW 最后写入胜利寄存器（Dynamo/CRDT 思想） | T3113–T3114 | 1557 | ✅ |
 | R8 | #2007 | 频率素描（Caffeine W-TinyLFU 4bit Count-Min 思想） | T3115–T3116 | 1558 | ✅ |
-| R9 | #2008 | Wave 2 弹性位 C | T3117–T3118 | 1559 | ⬜ |
+| R9 | #2008 | 重试主机排除（Envoy retry host predicate 思想） | T3117–T3118 | 1559 | ✅ |
 | R10 | #2009 | Wave 2 弹性位 D | T3119–T3120 | 1560 | ⬜ |
 | R11 | #2010 | Wave 2 弹性位 E | T3121–T3122 | 1561 | ⬜ |
 | R12 | #2011 | 对账轮（全仓 mvn verify + 台账核账 + push 重试） | T3123–T3124 | 1562 | ⬜ |
