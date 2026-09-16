@@ -708,6 +708,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 策略治理 | Gumbel-max 采样器 | GumbelMaxSampler——按 logits 直接采样免归一化（Gumbel-max trick 思想）：argmax(logitsᵢ+Gumbelᵢ) 数学等价 softmax 采样无溢出精度坑+-∞ logit 永不中（禁选免掩码）+empiricalFrequencies 蒙特卡洛对账+RandomGenerator 注入全序列回放——与 UCB1 互补（随机化探索 vs 确定性置信上界）（spec 2049） | [spec 2049](docs/spec/2049-gumbel-max-sampler.md) |
 | 观测计量 | 香农熵读数 | ShannonEntropy——分布多样性连续量纲（Shannon 信息熵思想）：H=−Σp·log_b p（bits/nats 双口径，零频类不计）+normalizedEntropy ∈[0,1]（上界按非零类数——全集中 0/均匀 1 跨分布可比）——答案多样性/路由集中度的连续度量，与卡方互补（量纲 vs 判定）（spec 2050） | [spec 2050](docs/spec/2050-shannon-entropy.md) |
 | 评估治理 | 加权无放回抽样 | WeightedSample——按权重无放回抽 k 单遍化（Efraimidis-Spirakis A-Res 思想）：每元素 key=u^(1/w) 取前 k 大——O(n log k) 数学等价逐次无放回轮盘，权重 0 永不中，RandomGenerator 注入回放——分层采样/实验分组/金丝雀候选件，与 Gumbel-max 同族互补（k 样本 vs 单索引）（spec 2051） | [spec 2051](docs/spec/2051-weighted-sample.md) |
+| 观测计量 | 文本编辑距离 | TextDistance——文本差异精确口径（Levenshtein 经典 DP 思想）：插/删/改各计 1 两行滚动数组 O(min) 空间+相似比 1−dist/maxLen ∈[0,1] 归一+isNearMatch 阈值判定（0.8 默认）——键纠错/答案近似匹配/技能名容错统一口径，与 SimHash 互补（短文本精确阈值 vs 长文本近似筛查）（spec 2052） | [spec 2052](docs/spec/2052-text-distance.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
