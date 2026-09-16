@@ -720,6 +720,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测计量 | 单调队列滑窗极值 | SlidingExtremum——定长滑窗最大/最小 O(1) 摊销（单调双端队列经典算法思想）：入队弹掉永无出头之日的队尾（更老且不优——滑出后也轮不到），队首恒窗极值，序号自滑出免窗口数组——朴素每窗重扫 O(W) 的根治，尖峰检测/谷底配额流式底座（spec 2061） | [spec 2061](docs/spec/2061-sliding-extremum.md) |
 | 恢复治理 | 回绕序号比较 | SequenceOrder——long 序号回绕安全判序（TCP sequence number 回绕语义思想）：有符号差 b−a（溢出回绕即语义——回绕点符号仍正确）+超安全半环 2⁶² 即 INCOMPARABLE 诚实不臆答+forwardDistance 距离折算邻域（MAX→MIN 距 1）——朴素 a<b 在回绕点反转病（MIN<MAX=true 新者被判前）的根治，投递序号围栏比较的收敛方向（spec 2062） | [spec 2062](docs/spec/2062-sequence-order.md) |
 | 背压治理 | 层级令牌桶 | HierarchicalTokenBucket——两级限流父顶硬顶+子桶隔离（Linux HTB 思想）：tryConsume 父剩余×子剩余双闸（父空=总额硬顶子有币借不到；子空=自限父富余不给）通过双扣+refill 双封顶+snapshot 对账——租户各限但合打不破产品线总额，与单层桶/突发信用成限流三形态（spec 2063） | [spec 2063](docs/spec/2063-hierarchical-token-bucket.md) |
+| 恢复治理 | Z 序曲线 | ZOrderCurve——多维键一维化保局部性（Morton 码/Z-order 位交织思想）：x 偶位 y 奇位交织（int×32→long 恰容），格内紧致（x,y<2ⁿ → 标量<2²ⁿ——多维子空间落有界标量段，范围查询退化为区间扫描）+decode 互逆极值往返——多维键进一维索引（键序区间 SPI）局部性丢失的根治（spec 2064） | [spec 2064](docs/spec/2064-z-order-curve.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
