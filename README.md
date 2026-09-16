@@ -658,6 +658,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 模型韧性 | 级联失败暴露读面 | CascadeExposure——依赖边风险权重（流量占比×下游失败率=期望损失面）排序最脆边+活风险（下游不健康且权重>0 正在传导）vs 静风险（埋着）分诊+totalWeight 全图损失面——级联失败分析（Hystrix 舱壁思想源头）惯例，熔断逐点防护之外的拓扑脆性事前排序（spec 1875） | [spec 1875](docs/spec/1875-cascade-exposure.md) |
 | 工程门禁 | P 会话 2000 系对账门 | PSession2000LedgerAuditTest——150 轮工件链四面互证（spec 2000–2149 ↔ README 行 ↔ T3101+2(N−2000) 票对 ↔ impl 1551+(N−2000)），spec 起点断言 2000 严格递增，L/O 系预防式公式族第三应用（spec 2000） | [spec 2000](docs/spec/2000-psession-ledger-audit.md) |
 | 观测计量 | HLL 基数素描 | HllCardinalitySketch——定容寄存器流式 distinct 计数（FNV-1a 64+splitmix64 确定性散列，幂等 rank-max）+调和平均估计（小值域线性计数修正）+merge 逐位 max 并集聚合+1.04/√m 误差界读数——Redis HLL/Flajolet 思想，与布伦粗筛互补（基数 vs 存在性）（spec 2001） | [spec 2001](docs/spec/2001-hll-cardinality-sketch.md) |
+| 观测计量 | 指数直方图滑窗计数 | ExponentialWindowCounter——O(log N) 空间滑窗事件计数：(capacity, first, last) 三元组桶同容量≤2 合并翻倍（set 回原位保序）+过期惰性清出+全界内计全/跨界计半+errorBound 自描述误差界——Datar-Indyk 指数直方图思想，与精确窗计数器对照（省空间近似 vs 精确）（spec 2002） | [spec 2002](docs/spec/2002-exponential-window-counter.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
