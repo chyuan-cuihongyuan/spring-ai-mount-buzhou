@@ -48,6 +48,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R21 | #2020 | 冷启动豁免 φ 嫌疑门（K8s startup probe × φ-accrual 组合件） | T3141–T3142 | 1571 | ✅ |
 | R22 | #2021 | 就绪等待门（gRPC wait_for_ready 思想） | T3143–T3144 | 1572 | ✅ |
 | R23 | #2022 | 复制计数器（CRDT G/PN-Counter 思想） | T3145–T3146 | 1573 | ✅ |
+| R24 | #2023 | 对账轮（快照 +5（1016→1021）+ 全仓 verify 三门绿 + push 补推四积压） | T3147–T3148 | 1574 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

@@ -20,6 +20,9 @@
 - `public final class ToolInFlight`（spec 1005——工具在飞并发水位读面：current/peak 双水位 + AutoCloseable 租约恰一次）
 - `public final class PhiAccrualFailureDetector`（spec 2004——φ 累积故障嫌疑度：心跳正态模型连续 [0,12]）
 - `public final class StartupGraceTracker`（spec 2013——K8s 启动豁免窗：窗内失败豁免/毕业幂等）
+- `public final class GraceAwareFailureDetector`（spec 2020——φ×豁免组合件三态判定；嵌套 `Verdict`）
+- `public final class WaitForReadyGate`（spec 2021——gRPC wait_for_ready 四态就绪门；嵌套 `Outcome`/`GateStats`）
+- `public final class ReplicatedCounter`（spec 2022——CRDT G/PN 复制计数器）
 - `public final class LastWriteWinsRegister`（spec 2006——LWW 寄存器：(ts, writer) 定序+确定性平局仲裁；嵌套 `Timestamped`）
 - `public final class PreemptionLedger`（spec 2012——抢占双面账：浪费/节省/净收益；嵌套 `PreemptionStats`）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
@@ -102,6 +105,7 @@
 - `public record ToolPolicyMatchStats`（spec 1000——进程级决策快照，Σ三分类守恒 == match 调用数）
 - `public final class ToolPolicyMatcher`
 - `public final class FlagEvaluator`（spec 2009——OpenFeature 五态求值永不抛；嵌套 `Reason`/`FlagResolution`/`FlagDefinition`）
+- `public final class QosClassifier`（spec 2019——K8s QoS 三级声明分级；嵌套 `QosClass`/`ResourceRequest`）
 - `public final class ToolValidationFeedback`
 - `public final class WebhookEventForwarder`
 - `public interface AgentRuntime`
@@ -227,6 +231,7 @@
 - `public final class MemoryModule`
 - `public final class RecallSearch`
 - `public final class MemoryStrengthScore`（spec 2003——mem0 三分量记忆强度：recency/frequency/importance 统一排序键；嵌套 `Weights`）
+- `public final class RecallStrengthReranker`（spec 2018——recall 相关度×强度融合重排；嵌套 `StrengthMeta`）
 - `public final class SegmentBudgetPlanner`
 - `public final class SessionForks`
 - `public final class SleepTimeScheduler`
