@@ -694,6 +694,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 过程治理 | P 系 R36 周期对账 | Wave 6 五新类型快照补登（1026→1031，CONTEXT 925→930；tools/mcp 两模块首入 P 系）+ 全仓 verify 三门绿（六波连续）（spec 2035） | [spec 2035](docs/spec/2035-p-r36-reconciliation.md) |
 | 背压治理 | 双阈值迟滞水位门 | HysteresisWatermark——水位背压防抖（Netty write buffer watermark 思想）：超高水位停写、泄到低水位才恢复——两阈值间保持区状态延续不翻转（单阈值门抖动病根治）；toggleCount 翻转计数显形两阈值过近——与速率账户/准入门三形态互补（spec 2036） | [spec 2036](docs/spec/2036-hysteresis-watermark.md) |
 | 恢复治理 | 同步副本追踪器 | InSyncTracker——成员同步性以追上时刻锚定（Kafka ISR 思想）：caughtUp 记最后追平时刻（不回拨）+距今超滞后阈值即剔出 ISR+追平自动回归（无需人工清单）+shrinkEvents 收缩计数（下游消费力紧张显形——扩张不计）——与后台选主互补（谁干 vs 谁跟得上）（spec 2037） | [spec 2037](docs/spec/2037-in-sync-tracker.md) |
+| 观测计量 | SimHash 近重复指纹 | SimHashFingerprint——文本近重复 O(1) 位比较（Charikar SimHash 思想）：词元逐位散列每 bit 加权投票取符号 → 64 位指纹，相似文本汉明距离小（阈值 ≤3 默认判定）——万级条目近重复筛查不逐对比对；小词元集平局噪声诚实边界入档（≥16 词元较稳）——与数据集近重复读数正交互补（spec 2038） | [spec 2038](docs/spec/2038-simhash-fingerprint.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
