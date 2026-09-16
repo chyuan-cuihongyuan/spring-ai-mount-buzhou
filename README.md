@@ -656,6 +656,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工具执行 | 调度松弛量 | ScheduleFloat——逐任务松弛量（最晚可延迟不拖总工期）：正向 ES+反向到汇距双向 DP，float=LS−ES（关键任务 0、非关键有缓冲可让路）——CPM float/slack 思想，与 CriticalPathLength 配对成下界+缓冲双面，float 分布=编排刚性度（spec 1873） | [spec 1873](docs/spec/1873-schedule-float.md) |
 | 护栏治理 | 正则风险审计 | RegexRiskAudit——ReDoS 形态三档分级（嵌套量词 (a+)+ 指数回溯/量词组内交替/重叠交替分支翻倍；多形态叠加即 DANGEROUS）+findings 可解释+转义感知——OWASP 正则 DoS/SafeRegex 惯例思想，手写正则入库前静态防线（诚实边界：非完备启发式）（spec 1874） | [spec 1874](docs/spec/1874-regex-risk-audit.md) |
 | 工程门禁 | P 会话 2000 系对账门 | PSession2000LedgerAuditTest——150 轮工件链四面互证（spec 2000–2149 ↔ README 行 ↔ T3101+2(N−2000) 票对 ↔ impl 1551+(N−2000)），spec 起点断言 2000 严格递增，L/O 系预防式公式族第三应用（spec 2000） | [spec 2000](docs/spec/2000-psession-ledger-audit.md) |
+| 观测计量 | HLL 基数素描 | HllCardinalitySketch——定容寄存器流式 distinct 计数（FNV-1a 64+splitmix64 确定性散列，幂等 rank-max）+调和平均估计（小值域线性计数修正）+merge 逐位 max 并集聚合+1.04/√m 误差界读数——Redis HLL/Flajolet 思想，与布伦粗筛互补（基数 vs 存在性）（spec 2001） | [spec 2001](docs/spec/2001-hll-cardinality-sketch.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
