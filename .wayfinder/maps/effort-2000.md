@@ -45,6 +45,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R18 | #2017 | 对账轮（快照 +5（1011→1016）+ 全仓 verify 三门绿 + push） | T3135–T3136 | 1568 | ✅ |
 | R19 | #2018 | 检索强度重排接线（mem0 思想管线落地——spec 2003 接 recall） | T3137–T3138 | 1569 | ✅ |
 | R20 | #2019 | QoS 资源声明分级（K8s QoS Classes 思想） | T3139–T3140 | 1570 | ✅ |
+| R21 | #2020 | 冷启动豁免 φ 嫌疑门（K8s startup probe × φ-accrual 组合件） | T3141–T3142 | 1571 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
