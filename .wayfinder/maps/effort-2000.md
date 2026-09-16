@@ -37,6 +37,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R10 | #2009 | 特性开关求值器（OpenFeature 求值错误语义思想） | T3119–T3120 | 1560 | ✅ |
 | R11 | #2010 | 判定决策缓存（OPA/Cedar decision cache 思想） | T3121–T3122 | 1561 | ✅ |
 | R12 | #2011 | 对账轮（快照 +5（1006→1011）+ 全仓 verify 三门绿 + push 补推 R11 积压） | T3123–T3124 | 1562 | ✅ |
+| R13 | #2012 | 抢占重算账本（vLLM preemption/recompute 思想） | T3125–T3126 | 1563 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

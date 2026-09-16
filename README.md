@@ -668,6 +668,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 策略治理 | 特性开关求值器 | FlagEvaluator——求值永不抛出（OpenFeature 思想）：未注册 FLAG_NOT_FOUND 空值/targeting 命中 TARGETING_MATCH/未命中 STATIC/谓词炸 DEFAULT 兜底且 ERROR 同记——reasonCounts 五态分布让幽灵 flag 与谓词病灶分别显形（spec 2009） | [spec 2009](docs/spec/2009-flag-evaluator.md) |
 | 护栏治理 | 判定决策缓存 | DecisionCache——同输入判定 TTL 内短路（OPA/Cedar decision cache 思想）：过期惰性清除（expirations 与 misses 分计——过期非未见过）+重判回填刷新时间戳+超容 LRU 驱逐+invalidate 显式失效（策略热更新精准失效）+hitRate 缓存有效性证（命中率低该摘除直判）（spec 2010） | [spec 2010](docs/spec/2010-decision-cache.md) |
 | 过程治理 | P 系 R12 周期对账 | Wave 2 五新类型快照补登（1006→1011，CONTEXT 905→910）+ 全仓 verify 三门绿 + push 网络波动定式（内容轮不阻塞、对账轮集中补推）（spec 2011） | [spec 2011](docs/spec/2011-p-r12-reconciliation.md) |
+| 执行治理 | 抢占重算账本 | PreemptionLedger——抢占双面账：victim 已做作废（浪费面）+抢占方提前完成（收益面）同笔入账，netBenefit 负=降阈值信号、wasteRatio=抢占健康度、recomputeRate=victim 重算发生率（幂等一次）——vLLM preemption/recompute 思想，抢占阈值从拍脑袋变读账定夺（spec 2012） | [spec 2012](docs/spec/2012-preemption-ledger.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
