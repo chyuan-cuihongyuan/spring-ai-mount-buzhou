@@ -53,6 +53,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R26 | #2025 | 一致性哈希环（Dynamo/Ketama 虚节点思想） | T3151–T3152 | 1576 | ✅ |
 | R27 | #2026 | 加权公平调度器（网络 DRR deficit 轮询思想） | T3153–T3154 | 1577 | ✅ |
 | R28 | #2027 | EWMA 估计器（Netflix/Finagle 指标平滑口径） | T3155–T3156 | 1578 | ✅ |
+| R29 | #2028 | 并发组闸（GitHub Actions concurrency group 思想） | T3157–T3158 | 1579 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
