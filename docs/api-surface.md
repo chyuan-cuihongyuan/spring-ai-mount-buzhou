@@ -18,6 +18,9 @@
 - `public class HookTimingAggregator`（spec 647——hook 计时进程级聚合，Holder 模式）
 - `public class HookTimingHealth`（spec 647——hook-timing 健康段）
 - `public final class ToolInFlight`（spec 1005——工具在飞并发水位读面：current/peak 双水位 + AutoCloseable 租约恰一次）
+- `public final class PhiAccrualFailureDetector`（spec 2004——φ 累积故障嫌疑度：心跳正态模型连续 [0,12]）
+- `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
+- `public final class ScheduleFloat`（spec 1873——调度松弛量：CPM 双向 DP float=LS−ES）
 - `public record ToolTimeoutOverrideStats`（spec 1015——超时覆盖命中读面：hitsByPattern 0 = 幽灵覆盖配置）
 - `public final class ToolSlowLog`（spec 1001——工具慢调用榜：Redis SLOWLOG 严格阈值 + 有界 FIFO 环静态读面）
 - `public record TurnLatencyPercentiles`（spec 1010——轮次时延分位数读面：R-7 插值 p50/p95，percentiles() 读面）
@@ -28,6 +31,8 @@
 - `public class RetentionSweeper`
 - `public class RollingJsonlWriter`（spec 642——追加式 JSONL 大小轮转：64MB×3 默认开/≤0 显式关；spec 712 compressFromGeneration 压缩线）
 - `public final class RollingMaxCounter`（spec 708——时间桶滚动 max，时钟注入）
+- `public final class HllCardinalitySketch`（spec 2001——HLL 基数素描：定容寄存器 distinct 计数，merge 并集）
+- `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
 - `public final class ConfigDiff`（spec 719——生效配置三分类 diff 纯函数）
 - `public final class ForkLineageWalker`（spec 711——fork 谱系游走环防护）
 - `public final class SessionExportConditional`（spec 710——导出 unchanged 协商）
@@ -214,6 +219,7 @@
 - `public final class MemoryHealth`
 - `public final class MemoryModule`
 - `public final class RecallSearch`
+- `public final class MemoryStrengthScore`（spec 2003——mem0 三分量记忆强度：recency/frequency/importance 统一排序键；嵌套 `Weights`）
 - `public final class SegmentBudgetPlanner`
 - `public final class SessionForks`
 - `public final class SleepTimeScheduler`
@@ -352,6 +358,8 @@
 - `public record BuzhouMcpProperties`
 
 ## buzhou-guard
+
+- `public class RegexRiskAudit`（spec 1874——ReDoS 形态三档分级静态审计）
 
 - `public class BuzhouGuardAutoConfiguration`
 - `public class BuzhouGuardHealthAutoConfiguration`

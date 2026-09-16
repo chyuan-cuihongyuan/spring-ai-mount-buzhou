@@ -661,6 +661,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测计量 | 指数直方图滑窗计数 | ExponentialWindowCounter——O(log N) 空间滑窗事件计数：(capacity, first, last) 三元组桶同容量≤2 合并翻倍（set 回原位保序）+过期惰性清出+全界内计全/跨界计半+errorBound 自描述误差界——Datar-Indyk 指数直方图思想，与精确窗计数器对照（省空间近似 vs 精确）（spec 2002） | [spec 2002](docs/spec/2002-exponential-window-counter.md) |
 | 记忆治理 | 记忆强度三分量评分 | MemoryStrengthScore——mem0 思想：recency 2^(−Δt/半衰期) 衰减+frequency 对数饱和（边际递减）+importance [0,1] 钳制，加权和归一恒 [0,1]，Weights 三旋钮可偏置——recall 排序与压缩淘汰统一强度键（spec 2003） | [spec 2003](docs/spec/2003-memory-strength-score.md) |
 | 健康治理 | φ 累积故障嫌疑度 | PhiAccrualFailureDetector——心跳间隔滑动窗正态模型，φ=−log₁₀(P(此久未心跳|正常))∈[0,12] 连续嫌疑度取代二值跳变（std 下界防规律退化，样本不足恒 0，窗滑动重学节奏）——Hayashibara/Finagle φ-accrual 思想，φ>1 预警/φ>4 判失联分档（spec 2004） | [spec 2004](docs/spec/2004-phi-accrual-detector.md) |
+| 过程治理 | P 系 R6 周期对账 | Wave 1 四新类型 + O 系四类型代补登（快照 998→1006，CONTEXT 897→905）+ 全仓 verify 三门绿 + 对账门核账；R6k 对账节奏首例（spec 2005） | [spec 2005](docs/spec/2005-p-r6-reconciliation.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |

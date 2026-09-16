@@ -30,7 +30,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R3 | #2002 | 指数直方图滑窗聚合（EWMA/decay window 思想；原排梯度探测被 GradientAdaptiveLimiter 占坑换静脉） | T3105–T3106 | 1553 | ✅ |
 | R4 | #2003 | 记忆强度三分量评分（mem0 recency/frequency/importance 思想） | T3107–T3108 | 1554 | ✅ |
 | R5 | #2004 | φ 累积故障嫌疑度检测器（Hayashibara/Finagle φ-accrual 思想） | T3109–T3110 | 1555 | ✅ |
-| R6 | #2005 | 对账轮（全仓 mvn verify + 台账核账 + push 重试） | T3111–T3112 | 1556 | ⬜ |
+| R6 | #2005 | 对账轮（快照补登 998→1006（P×4+O 代补×4）+ 全仓 verify 三门绿 + push 恢复补推） | T3111–T3112 | 1556 | ✅ |
 | R7 | #2006 | Wave 2 弹性位 A | T3113–T3114 | 1557 | ⬜ |
 | R8 | #2007 | Wave 2 弹性位 B | T3115–T3116 | 1558 | ⬜ |
 | R9 | #2008 | Wave 2 弹性位 C | T3117–T3118 | 1559 | ⬜ |
