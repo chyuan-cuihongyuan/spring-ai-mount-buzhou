@@ -88,6 +88,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R61 | #2060 | BH-FDR 校正（Benjamini-Hochberg 假发现率控制思想） | T3221–T3222 | 1611 | ✅ |
 | R62 | #2061 | 单调队列滑窗极值（单调双端队列经典算法思想） | T3223–T3224 | 1612 | ✅ |
 | R63 | #2062 | 回绕序号比较（TCP sequence number 回绕语义思想） | T3225–T3226 | 1613 | ✅ |
+| R64 | #2063 | 层级令牌桶（Linux HTB 父顶硬顶思想） | T3227–T3228 | 1614 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
