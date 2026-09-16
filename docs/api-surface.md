@@ -23,6 +23,7 @@
 - `public final class GraceAwareFailureDetector`（spec 2020——φ×豁免组合件三态判定；嵌套 `Verdict`）
 - `public final class WaitForReadyGate`（spec 2021——gRPC wait_for_ready 四态就绪门；嵌套 `Outcome`/`GateStats`）
 - `public final class ReplicatedCounter`（spec 2022——CRDT G/PN 复制计数器）
+- `public final class Ucb1Selector`（spec 2032——多臂老虎机置信上界选择）
 - `public final class LastWriteWinsRegister`（spec 2006——LWW 寄存器：(ts, writer) 定序+确定性平局仲裁；嵌套 `Timestamped`）
 - `public final class PreemptionLedger`（spec 2012——抢占双面账：浪费/节省/净收益；嵌套 `PreemptionStats`）
 - `public final class AgingPriorityQueue`（spec 2024——OS aging 反饥饿：等待生息有效优先级）
@@ -111,6 +112,7 @@
 - `public final class FlagEvaluator`（spec 2009——OpenFeature 五态求值永不抛；嵌套 `Reason`/`FlagResolution`/`FlagDefinition`）
 - `public final class QosClassifier`（spec 2019——K8s QoS 三级声明分级；嵌套 `QosClass`/`ResourceRequest`）
 - `public final class ConsistentHashRing`（spec 2025——Dynamo/Ketama 虚节点环最小迁移）
+- `public final class RequiredChecksRollup`（spec 2031——GitHub required checks 聚合；嵌套 `CheckState`/`Rollup`/`RollupStats`）
 - `public final class ToolValidationFeedback`
 - `public final class WebhookEventForwarder`
 - `public interface AgentRuntime`
@@ -151,6 +153,7 @@
 - `public interface ToolCallContext`
 - `public interface ToolCallLog`
 - `public final class KeyCompaction`（spec 2014——Kafka 键压缩：maxSeq 胜+tombstone；嵌套 `Entry`/`CompactionResult`）
+- `public final class MaintenanceTrigger`（spec 2033——autovacuum 死数据清理触发双口径）
 - `public interface ToolSetProvider`
 - `public interface TurnContext`
 - `public interface TurnLoopContext`
@@ -361,6 +364,7 @@
 ## buzhou-mcp
 
 - `public class BuzhouMcpAutoConfiguration`
+- `public final class ToolProvenanceIndex`（spec 2034——MCP 双向账与孤儿显形）
 - `public class BuzhouMcpHealthAutoConfiguration`
 - `public class DbToolSetProvider`
 - `public class InMemoryToolSetSpecStore`
@@ -438,6 +442,7 @@
 ## buzhou-tools
 
 - `public class BuzhouToolsAutoConfiguration`
+- `public final class RedirectBudget`（spec 2030——curl max-redirs × 环检测；嵌套 `Decision`）
 - `public class CommandBlacklist`
 - `public class HttpRequestTool`
 - `public final class PerHostConcurrencyGuard`（spec 1603——host→CAS 计数 per-host 并发上限，超限快速失败转文本；opt-in `buzhou.tools.http-request.max-per-host`）
