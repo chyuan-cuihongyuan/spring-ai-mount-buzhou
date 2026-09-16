@@ -136,6 +136,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.QuotaExceededExceptio
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.RetryCategory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.AbRunJsonlExporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.BuiltInEvaluators
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.ChiSquareUniformity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.CouponCollectorProjection
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetExpectations
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetNearDuplicateStats
@@ -184,6 +185,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.SessionTrajectoryImpor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TrimmedMean
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WeightedSample
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WilsonInterval
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.AgingPriorityQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BackendLanePermit
@@ -356,8 +358,10 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TextDistance
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventOrderAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPairingAudit
@@ -380,6 +384,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeL
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider

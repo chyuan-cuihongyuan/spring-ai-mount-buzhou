@@ -47,6 +47,8 @@
 - `public final class HllCardinalitySketch`（spec 2001——HLL 基数素描：定容寄存器 distinct 计数，merge 并集）
 - `public final class FrequencySketch`（spec 2007——4bit Count-Min 频率门控，W-TinyLFU 准入）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
+- `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
+- `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）
 - `public final class MinRttTracker`（spec 2015——BBR min-RTT 滑窗基线）
 - `public final class EwmaEstimator`（spec 2027——EWMA 指标平滑）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
@@ -115,6 +117,7 @@
 - `public final class ToolPolicyMatcher`
 - `public final class FlagEvaluator`（spec 2009——OpenFeature 五态求值永不抛；嵌套 `Reason`/`FlagResolution`/`FlagDefinition`）
 - `public final class QosClassifier`（spec 2019——K8s QoS 三级声明分级；嵌套 `QosClass`/`ResourceRequest`）
+- `public final class GumbelMaxSampler`（spec 2049——免归一化 logits 采样）
 - `public final class ConsistentHashRing`（spec 2025——Dynamo/Ketama 虚节点环最小迁移）
 - `public final class RequiredChecksRollup`（spec 2031——GitHub required checks 聚合；嵌套 `CheckState`/`Rollup`/`RollupStats`）
 - `public final class ToolValidationFeedback`
@@ -734,6 +737,8 @@
 - `EvalRunner`（run(datasetName, evaluator)）/ `EvalRunResult`（passRate）/ `EvalRunItemResult`
 - `EvalPrunePolicy`（minItems+failRateThreshold，impl-654 / spec 901 失败率中途剪枝 opt-in）
 - `EvalPassAtK`（estimate 连乘无偏公式 / aggregate，impl-655 / spec 902）
+- `public final class WeightedSample`（spec 2051——Efraimidis-Spirakis 无放回抽样；嵌套 `Candidate`）
+- `public final class ChiSquareUniformity`（spec 2048——Pearson χ² 均匀性检验；嵌套 `ChiSquareResult`）
 - `EvalQueryService`（allRuns/runs/run/latestRun；只读）
 - `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
 
