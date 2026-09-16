@@ -64,6 +64,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R37 | #2036 | 双阈值迟滞水位门（Netty write buffer watermark 思想） | T3173–T3174 | 1587 | ✅ |
 | R38 | #2037 | 同步副本追踪器（Kafka ISR 追上时刻锚定思想） | T3175–T3176 | 1588 | ✅ |
 | R39 | #2038 | SimHash 近重复指纹（Charikar 加权投票指纹思想） | T3179–T3180 | 1589 | ✅ |
+| R40 | #2039 | 版本要求判定（npm semver range 六算子思想） | T3181–T3182 | 1590 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
