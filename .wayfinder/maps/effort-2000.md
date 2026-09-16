@@ -55,6 +55,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R28 | #2027 | EWMA 估计器（Netflix/Finagle 指标平滑口径） | T3155–T3156 | 1578 | ✅ |
 | R29 | #2028 | 并发组闸（GitHub Actions concurrency group 思想） | T3157–T3158 | 1579 | ✅ |
 | R30 | #2029 | 对账轮（快照 +5（1021→1026）+ 全仓 verify 三门绿 + push 补推；30/150=1/5 里程碑） | T3159–T3160 | 1580 | ✅ |
+| R31 | #2030 | 重定向预算（curl max-redirs × 环检测思想） | T3161–T3162 | 1581 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
