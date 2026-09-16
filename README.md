@@ -659,6 +659,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | P 会话 2000 系对账门 | PSession2000LedgerAuditTest——150 轮工件链四面互证（spec 2000–2149 ↔ README 行 ↔ T3101+2(N−2000) 票对 ↔ impl 1551+(N−2000)），spec 起点断言 2000 严格递增，L/O 系预防式公式族第三应用（spec 2000） | [spec 2000](docs/spec/2000-psession-ledger-audit.md) |
 | 观测计量 | HLL 基数素描 | HllCardinalitySketch——定容寄存器流式 distinct 计数（FNV-1a 64+splitmix64 确定性散列，幂等 rank-max）+调和平均估计（小值域线性计数修正）+merge 逐位 max 并集聚合+1.04/√m 误差界读数——Redis HLL/Flajolet 思想，与布伦粗筛互补（基数 vs 存在性）（spec 2001） | [spec 2001](docs/spec/2001-hll-cardinality-sketch.md) |
 | 观测计量 | 指数直方图滑窗计数 | ExponentialWindowCounter——O(log N) 空间滑窗事件计数：(capacity, first, last) 三元组桶同容量≤2 合并翻倍（set 回原位保序）+过期惰性清出+全界内计全/跨界计半+errorBound 自描述误差界——Datar-Indyk 指数直方图思想，与精确窗计数器对照（省空间近似 vs 精确）（spec 2002） | [spec 2002](docs/spec/2002-exponential-window-counter.md) |
+| 记忆治理 | 记忆强度三分量评分 | MemoryStrengthScore——mem0 思想：recency 2^(−Δt/半衰期) 衰减+frequency 对数饱和（边际递减）+importance [0,1] 钳制，加权和归一恒 [0,1]，Weights 三旋钮可偏置——recall 排序与压缩淘汰统一强度键（spec 2003） | [spec 2003](docs/spec/2003-memory-strength-score.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
