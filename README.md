@@ -706,6 +706,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 过程治理 | P 系 R48 周期对账 | Wave 8 五新类型快照补登（1036→1041，CONTEXT 935→940；observability 首入——九模块覆盖）+ 全仓 verify 三门绿（八波连续）+ 票号公式两波零漂移（spec 2047） | [spec 2047](docs/spec/2047-p-r48-reconciliation.md) |
 | 评估治理 | 卡方均匀性检验 | ChiSquareUniformity——分布均匀偏离可判定（Pearson χ² 思想）：χ²=Σ(O−E)²/E 配 0.05 显著水平内置临界值表（自由度 1–20），超临界即拒绝均匀——模型回答偏斜/哈希分桶负载/采样公平性的判定统一统计口径，不拍脑看图（spec 2048） | [spec 2048](docs/spec/2048-chi-square-uniformity.md) |
 | 策略治理 | Gumbel-max 采样器 | GumbelMaxSampler——按 logits 直接采样免归一化（Gumbel-max trick 思想）：argmax(logitsᵢ+Gumbelᵢ) 数学等价 softmax 采样无溢出精度坑+-∞ logit 永不中（禁选免掩码）+empiricalFrequencies 蒙特卡洛对账+RandomGenerator 注入全序列回放——与 UCB1 互补（随机化探索 vs 确定性置信上界）（spec 2049） | [spec 2049](docs/spec/2049-gumbel-max-sampler.md) |
+| 观测计量 | 香农熵读数 | ShannonEntropy——分布多样性连续量纲（Shannon 信息熵思想）：H=−Σp·log_b p（bits/nats 双口径，零频类不计）+normalizedEntropy ∈[0,1]（上界按非零类数——全集中 0/均匀 1 跨分布可比）——答案多样性/路由集中度的连续度量，与卡方互补（量纲 vs 判定）（spec 2050） | [spec 2050](docs/spec/2050-shannon-entropy.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |

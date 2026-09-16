@@ -75,6 +75,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R48 | #2047 | 对账轮（快照 +5（1036→1041，observability 首入）+ 全仓 verify 三门绿 + push 补推；48/150，票号两波零漂移） | T3195–T3196 | 1598 | ✅ |
 | R49 | #2048 | 卡方均匀性检验（Pearson χ² 拟合检验思想） | T3197–T3198 | 1599 | ✅ |
 | R50 | #2049 | Gumbel-max 采样器（Gumbel-max trick 重参数化采样思想） | T3199–T3200 | 1600 | ✅ |
+| R51 | #2050 | 香农熵读数（Shannon 信息熵思想） | T3201–T3202 | 1601 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
