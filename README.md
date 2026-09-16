@@ -701,6 +701,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 执行治理 | 刻度轮定时器 | TickWheelTimer——海量定时任务 O(1) 调度（Netty hashed wheel timer 思想，纯逻辑无线程）：任务按延迟散进轮槽（W=64 默认）+跨轮挂圈数 rounds=(delay−1)/W+advance tick 推进只查当前槽（圈数尽到期/未尽 −1 留槽）+幂等重调度+cancel——调用方驱动 tick 确定性可回放（spec 2042） | [spec 2042](docs/spec/2042-tick-wheel-timer.md) |
 | 韧性治理 | 快速重传触发器 | FastRetransmitTrigger——连续重复信号提前触发不等超时（TCP 3-dup-ACK 思想）：同签名信号连续达阈值（默认 3）即触发并清零新一轮+信号切换重计（uniqueSignals 显形问题漂移、dupSignals 显形聚焦）——同签名失败连现即提前换道，不白等慢超时窗口（spec 2043） | [spec 2043](docs/spec/2043-fast-retransmit-trigger.md) |
 | 背压治理 | 预热斜坡 | WarmupRamp——冷启动满速洪峰预热化（Guava warmup limiter 思想）：预热期内速率乘数从起始比例线性爬升到满速（默认 30s/10%），期满恒 1.0——新端点/连接池/模型路由上线不打挂冷下游；不可变纯函数时刻外注入，与突发信用成对（渐升起步 vs 突发透支）（spec 2044） | [spec 2044](docs/spec/2044-warmup-ramp.md) |
+| 观测治理 | 属性白名单过滤器 | AttributeWhitelist——导出前属性瘦身（OTel View/processor 思想）：白名单内保留盘外分属性计数丢弃（dropped 显形不静默——被丢热点该进白名单还是改埋点有据）+通配 allowAll 不断流+空表显式全拒可表达——体积/基数/敏感面三收口，与 tag 基数守卫互补（主动过滤 vs 计数告警）（spec 2045） | [spec 2045](docs/spec/2045-attribute-whitelist.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
