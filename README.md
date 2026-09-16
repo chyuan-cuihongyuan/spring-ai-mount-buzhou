@@ -692,6 +692,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 恢复治理 | 维护触发器 | MaintenanceTrigger——死数据清理触发时机双口径（Postgres autovacuum 思想）：死/活 ≥ 阈值（默认 20%，live=0 全死必清）或距上次触发 ≥ 最大间隔（默认 24h 低流量兜底防陈化）——比例触发省写放大、间隔兜底防永不达标；触发记账频率即维护健康度——与归档 TTL 治理互补（何时清 vs 清什么）（spec 2033） | [spec 2033](docs/spec/2033-maintenance-trigger.md) |
 | MCP 治理 | 工具溯源索引 | ToolProvenanceIndex——tool↔server 双向账与摘除后果显形（MCP 多 server 记账思想）：unregister 返回独供孤儿集合（共供不孤儿——其余 provider 仍在，摘 server 前影响面事前可见）+覆盖重注册（重连刷新先撤后铺）+conflictingTools 多源同名冲突面常驻显形（解析歧义源可治）——与目录差异报告互补（静态归属 vs 快照间变化）（spec 2034） | [spec 2034](docs/spec/2034-tool-provenance-index.md) |
 | 过程治理 | P 系 R36 周期对账 | Wave 6 五新类型快照补登（1026→1031，CONTEXT 925→930；tools/mcp 两模块首入 P 系）+ 全仓 verify 三门绿（六波连续）（spec 2035） | [spec 2035](docs/spec/2035-p-r36-reconciliation.md) |
+| 背压治理 | 双阈值迟滞水位门 | HysteresisWatermark——水位背压防抖（Netty write buffer watermark 思想）：超高水位停写、泄到低水位才恢复——两阈值间保持区状态延续不翻转（单阈值门抖动病根治）；toggleCount 翻转计数显形两阈值过近——与速率账户/准入门三形态互补（spec 2036） | [spec 2036](docs/spec/2036-hysteresis-watermark.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
