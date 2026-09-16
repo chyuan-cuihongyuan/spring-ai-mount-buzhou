@@ -680,6 +680,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 并发治理 | 就绪等待门 | WaitForReadyGate——依赖未就绪时的有预算中间态（gRPC wait_for_ready 思想）：四态询问（PASS/QUEUED 预算内排队/FAIL_FAST 立即失败/QUEUE_FULL 预算满拒绝防积压）+就绪批量排空（drained/drainBatches 对账）+再失就绪重计——冷启动窗口请求不弹掉且积压有界（spec 2021） | [spec 2021](docs/spec/2021-wait-for-ready-gate.md) |
 | 一致性 | 复制计数器 | ReplicatedCounter——多实例聚合计数免双计（CRDT G/PN-Counter 思想）：per-writer 分量（正计数负扣减合一）+merge 逐分量 max（at-least-once 重传不双计）+value=Σ分量——幂等/交换/结合三性质齐备，与 LWW 寄存器成对（值域定序 vs 计数收敛）（spec 2022） | [spec 2022](docs/spec/2022-replicated-counter.md) |
 | 过程治理 | P 系 R24 周期对账 | Wave 4 五新类型快照补登（1016→1021，CONTEXT 915→920）+ 全仓 verify 三门绿 + 接线轮/组合件模式首档（spec 2023） | [spec 2023](docs/spec/2023-p-r24-reconciliation.md) |
+| 执行治理 | 老化优先级队列 | AgingPriorityQueue——等待生息反饥饿（OS 调度 aging 思想）：有效优先级 = base + 等待秒×老化速率（默认 1 点/秒），等得够久的低优先级必反超新来的高优先级——饥饿有时间下界；同分 FIFO 保序、零速率退化静态、快照观测面不出队——与 SpawnPriority 正交互补（静态序+时间升值）（spec 2024） | [spec 2024](docs/spec/2024-aging-priority-queue.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
