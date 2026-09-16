@@ -19,7 +19,9 @@
 - `public class HookTimingHealth`（spec 647——hook-timing 健康段）
 - `public final class ToolInFlight`（spec 1005——工具在飞并发水位读面：current/peak 双水位 + AutoCloseable 租约恰一次）
 - `public final class PhiAccrualFailureDetector`（spec 2004——φ 累积故障嫌疑度：心跳正态模型连续 [0,12]）
+- `public final class StartupGraceTracker`（spec 2013——K8s 启动豁免窗：窗内失败豁免/毕业幂等）
 - `public final class LastWriteWinsRegister`（spec 2006——LWW 寄存器：(ts, writer) 定序+确定性平局仲裁；嵌套 `Timestamped`）
+- `public final class PreemptionLedger`（spec 2012——抢占双面账：浪费/节省/净收益；嵌套 `PreemptionStats`）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
 - `public final class ScheduleFloat`（spec 1873——调度松弛量：CPM 双向 DP float=LS−ES）
 - `public record ToolTimeoutOverrideStats`（spec 1015——超时覆盖命中读面：hitsByPattern 0 = 幽灵覆盖配置）
@@ -34,6 +36,7 @@
 - `public final class RollingMaxCounter`（spec 708——时间桶滚动 max，时钟注入）
 - `public final class HllCardinalitySketch`（spec 2001——HLL 基数素描：定容寄存器 distinct 计数，merge 并集）
 - `public final class FrequencySketch`（spec 2007——4bit Count-Min 频率门控，W-TinyLFU 准入）
+- `public final class MinRttTracker`（spec 2015——BBR min-RTT 滑窗基线）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
 - `public final class ConfigDiff`（spec 719——生效配置三分类 diff 纯函数）
 - `public final class ForkLineageWalker`（spec 711——fork 谱系游走环防护）
@@ -138,6 +141,7 @@
 - `public interface TokenEstimator`
 - `public interface ToolCallContext`
 - `public interface ToolCallLog`
+- `public final class KeyCompaction`（spec 2014——Kafka 键压缩：maxSeq 胜+tombstone；嵌套 `Entry`/`CompactionResult`）
 - `public interface ToolSetProvider`
 - `public interface TurnContext`
 - `public interface TurnLoopContext`
@@ -2591,6 +2595,7 @@
 - `SessionHibernationPolicy`（session 域——闲置三档+画像+普查；嵌套
   `Band`/`Policy`/`Census`/`BandProfile` 不另立面）
 - `SessionBloomFilter`（session 域——会话布隆粗筛，零假阴性契约）
+- `public final class CuckooFilter`（spec 2016——可删除近似成员筛：指纹双桶+踢出重排）
 - `DrainForecast`（session 域——停机排空 makespan 预测；嵌套
   `SessionWork`/`Forecast` 不另立面）
 - `SmoothWeightedSequence`（exec 域——NGINX 平滑加权派发序生成）
