@@ -663,6 +663,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 健康治理 | φ 累积故障嫌疑度 | PhiAccrualFailureDetector——心跳间隔滑动窗正态模型，φ=−log₁₀(P(此久未心跳|正常))∈[0,12] 连续嫌疑度取代二值跳变（std 下界防规律退化，样本不足恒 0，窗滑动重学节奏）——Hayashibara/Finagle φ-accrual 思想，φ>1 预警/φ>4 判失联分档（spec 2004） | [spec 2004](docs/spec/2004-phi-accrual-detector.md) |
 | 过程治理 | P 系 R6 周期对账 | Wave 1 四新类型 + O 系四类型代补登（快照 998→1006，CONTEXT 897→905）+ 全仓 verify 三门绿 + 对账门核账；R6k 对账节奏首例（spec 2005） | [spec 2005](docs/spec/2005-p-r6-reconciliation.md) |
 | 一致性 | LWW 最后写入胜利寄存器 | LastWriteWinsRegister——多写者无协调收敛：(timestamp, writerId) 字典序定胜负+ts 平局 writer 字典序确定性仲裁（无随机可回放）+完全幂等+merge 跨实例收敛+conflict/superseded 双对账面（时钟平局/乱序到达频率）——Dynamo/CRDT LWW 思想（spec 2006） | [spec 2006](docs/spec/2006-lww-register.md) |
+| 缓存治理 | 频率素描 | FrequencySketch——4bit Count-Min 计数板缓存准入门控：相邻两槽较小者 increment（防独占倾斜）+frequency=min 下界语义（碰撞只低估，同 key 反复 ≈n/2 序不变）+饱和 15 封顶——Caffeine W-TinyLFU 思想，newcomer<victim 拒准入防扫描污染，与 HLL/指数直方图三足（频率序/distinct 数/近窗数）（spec 2007） | [spec 2007](docs/spec/2007-frequency-sketch.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
