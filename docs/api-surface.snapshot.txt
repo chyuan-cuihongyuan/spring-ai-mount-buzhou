@@ -3,6 +3,7 @@
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.BurstCreditAccount
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.HysteresisWatermark
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.LoadShedLadder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
@@ -353,6 +354,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventOrderAudit
@@ -402,6 +404,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.AntiEntropyDiverge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.CheckpointLagReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.FailureTurnSnapshots
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.GapBackfillPlanner
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.InSyncTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.KeyCompaction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.MaintenanceTrigger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
@@ -899,6 +902,7 @@ buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillSource
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillStatus
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillUsageStats
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.SkillUsageStatsJsonl
+buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.VersionRequirement
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.classpath.ClasspathSkillEntry
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.classpath.ClasspathSkillScanner
 buzhou-skills|io.github.chyuan_cuihongyuan.buzhou.skill.classpath.ParsedSkillMd
@@ -922,6 +926,7 @@ buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.EvictHandleTool
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.EvictionThresholdGate
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.EvidenceRefValidity
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.FileSandbox
+buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.FreezableBuffer
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.HandleLifecycleRegistry
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.HotTailViewProcessor
 buzhou-spill|io.github.chyuan_cuihongyuan.buzhou.spill.HotspotRebalancer

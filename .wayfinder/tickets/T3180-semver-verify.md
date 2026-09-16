@@ -1,5 +1,5 @@
 ---
-id: T3182
+id: T3180
 title: 版本要求判定的验证裁决
 type: task
 status: closed

@@ -1,6 +1,6 @@
 # Spec 2040 — 可冻结分段缓冲（effort #2040，R41）
 
-> wayfinder map：`.wayfinder/maps/effort-2000.md`（T3183–T3184，impl 1591）。
+> wayfinder map：`.wayfinder/maps/effort-2000.md`（T3181–T3182，impl 1591）。
 > 借鉴：LSM memtable 不可变段切换——写满封冻、整段 flush。
 
 ## Problem Statement

@@ -1,5 +1,5 @@
 ---
-id: T3183
+id: T3181
 title: 可冻结分段缓冲的形状裁决
 type: task
 status: closed

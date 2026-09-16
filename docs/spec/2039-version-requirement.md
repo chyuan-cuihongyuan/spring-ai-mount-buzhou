@@ -1,6 +1,6 @@
 # Spec 2039 — 版本要求判定（effort #2039，R40）
 
-> wayfinder map：`.wayfinder/maps/effort-2000.md`（T3181–T3182，impl 1590）。
+> wayfinder map：`.wayfinder/maps/effort-2000.md`（T3179–T3180，impl 1590）。
 > 借鉴：npm semver range——^/~/>=/精确/* 六算子（0.x 锁定惯例）。
 
 ## Problem Statement

@@ -1,4 +1,4 @@
-# impl 1590 — 版本要求判定（spec 2039 / T3181–T3182 / R40）
+# impl 1590 — 版本要求判定（spec 2039 / T3179–T3180 / R40）
 
 纵切片：`VersionRequirement`（buzhou-skills 主）+
 `VersionRequirementTest`（九用例）。六算子、0.x 锁定、prerelease、

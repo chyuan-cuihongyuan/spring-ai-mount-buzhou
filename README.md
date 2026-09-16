@@ -697,6 +697,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测计量 | SimHash 近重复指纹 | SimHashFingerprint——文本近重复 O(1) 位比较（Charikar SimHash 思想）：词元逐位散列每 bit 加权投票取符号 → 64 位指纹，相似文本汉明距离小（阈值 ≤3 默认判定）——万级条目近重复筛查不逐对比对；小词元集平局噪声诚实边界入档（≥16 词元较稳）——与数据集近重复读数正交互补（spec 2038） | [spec 2038](docs/spec/2038-simhash-fingerprint.md) |
 | 技能治理 | 版本要求判定 | VersionRequirement——技能运行时要求兼容范围表达（npm semver range 思想）：^ 同主兼容含 0.x 锁定特例（^0.2.3 锁次/^0.0.3 锁补丁）、~ 次锁定、>=/> 含与不含界、精确、* 任意六算子；点分逐段短补 0（1.10>1.9 正确）+prerelease 低于同基段——错配显形在装载门口非运行深处（spec 2039） | [spec 2039](docs/spec/2039-version-requirement.md) |
 | 溢出治理 | 可冻结分段缓冲 | FreezableBuffer——spill 缓冲并发快照安全与整段 flush 兼得（LSM memtable 不可变段思想）：可变段写满自动封冻为不可变段（冻结后只读——flush 期间并发快照不失效）+drainFrozen 整段取走（写放大的批量化，段容量即批大小旋钮）+快照追加序稳定+frozenCount 待持久化积压面——与组提交账面互补（机制件 vs 收益面）（spec 2040） | [spec 2040](docs/spec/2040-freezable-buffer.md) |
+| 过程治理 | P 系 R42 周期对账 | Wave 7 五新类型快照补登（1031→1036，CONTEXT 930→935；skills/spill 两模块首入——P 系原语覆盖八模块）+ 全仓 verify 三门绿（七波连续）（spec 2041） | [spec 2041](docs/spec/2041-p-r42-reconciliation.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |

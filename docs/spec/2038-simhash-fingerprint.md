@@ -1,6 +1,6 @@
 # Spec 2038 — SimHash 近重复指纹（effort #2038，R39）
 
-> wayfinder map：`.wayfinder/maps/effort-2000.md`（T3179–T3180，impl 1589）。
+> wayfinder map：`.wayfinder/maps/effort-2000.md`（T3177–T3178，impl 1589）。
 > 借鉴：Charikar SimHash——特征加权投票指纹，近重复 O(1) 位比较。
 
 ## Problem Statement

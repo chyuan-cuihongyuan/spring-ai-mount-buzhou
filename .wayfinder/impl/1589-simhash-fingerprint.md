@@ -1,4 +1,4 @@
-# impl 1589 — SimHash 近重复指纹（spec 2038 / T3179–T3180 / R39）
+# impl 1589 — SimHash 近重复指纹（spec 2038 / T3177–T3178 / R39）
 
 纵切片：`SimHashFingerprint`（core/metrics 主）+
 `SimHashFingerprintTest`（八用例）。加权投票指纹、汉明距离、阈值

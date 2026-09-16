@@ -1,5 +1,5 @@
 ---
-id: T3184
+id: T3182
 title: 可冻结分段缓冲的验证裁决
 type: task
 status: closed

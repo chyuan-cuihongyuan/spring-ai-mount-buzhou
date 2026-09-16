@@ -30,6 +30,7 @@
 - `public final class WeightedFairScheduler`（spec 2026——DRR 加权公平：粘性轮内消费）
 - `public final class ConcurrencyGroupGate`（spec 2028——并发组互斥与取代；嵌套 `GroupOutcome`/`GroupStats`）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
+- `public final class HysteresisWatermark`（spec 2036——Netty 高停低续迟滞门）
 - `public final class ScheduleFloat`（spec 1873——调度松弛量：CPM 双向 DP float=LS−ES）
 - `public record ToolTimeoutOverrideStats`（spec 1015——超时覆盖命中读面：hitsByPattern 0 = 幽灵覆盖配置）
 - `public final class ToolSlowLog`（spec 1001——工具慢调用榜：Redis SLOWLOG 严格阈值 + 有界 FIFO 环静态读面）
@@ -43,6 +44,7 @@
 - `public final class RollingMaxCounter`（spec 708——时间桶滚动 max，时钟注入）
 - `public final class HllCardinalitySketch`（spec 2001——HLL 基数素描：定容寄存器 distinct 计数，merge 并集）
 - `public final class FrequencySketch`（spec 2007——4bit Count-Min 频率门控，W-TinyLFU 准入）
+- `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class MinRttTracker`（spec 2015——BBR min-RTT 滑窗基线）
 - `public final class EwmaEstimator`（spec 2027——EWMA 指标平滑）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
@@ -154,6 +156,7 @@
 - `public interface ToolCallLog`
 - `public final class KeyCompaction`（spec 2014——Kafka 键压缩：maxSeq 胜+tombstone；嵌套 `Entry`/`CompactionResult`）
 - `public final class MaintenanceTrigger`（spec 2033——autovacuum 死数据清理触发双口径）
+- `public final class InSyncTracker`（spec 2037——Kafka ISR 追上时刻锚定）
 - `public interface ToolSetProvider`
 - `public interface TurnContext`
 - `public interface TurnLoopContext`
@@ -259,6 +262,7 @@
 ## buzhou-spill
 
 - `public class BuzhouSpillAutoConfiguration`
+- `public final class FreezableBuffer`（spec 2040——LSM 可冻结分段缓冲）
 - `public class BuzhouSpillHealthAutoConfiguration`
 - `public class CopyFileTool`
 - `public class CopyOnWriteGuardHook`
@@ -335,6 +339,7 @@
 ## buzhou-skills
 
 - `public class BuzhouSkillsAutoConfiguration`
+- `public final class VersionRequirement`（spec 2039——npm semver 六算子；嵌套 `Operator`）
 - `public class ClasspathSkillScanner`
 - `public class DefaultSkillRegistry`
 - `public class InMemorySkillStore`

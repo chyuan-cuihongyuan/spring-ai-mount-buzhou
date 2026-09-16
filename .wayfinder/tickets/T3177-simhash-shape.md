@@ -1,5 +1,5 @@
 ---
-id: T3179
+id: T3177
 title: SimHash 近重复指纹的形状裁决
 type: task
 status: closed
