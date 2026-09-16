@@ -2633,3 +2633,11 @@
   不另立面）
 - `VisibilityTimeoutAccounting`（webhook 域——可见性超时三段账；嵌套
   `DeliveryFact`/`Census` 不另立面）
+- `CacheSacrificeRatio`（resilience/cache 域——插入驱逐比+颠簸分诊；嵌套
+  `CacheAccount` 不另立面）
+- `CriticalPathLength`（exec 域——DAG 最长加权路径；嵌套 `Task`/
+  `Dependency`/`Result` 不另立面）
+- `IntervalSchedule`（exec 域——区间合并与窗口缝隙；嵌套 `Interval`
+  不另立面）
+- `MedianKeeper`（metrics 域——双堆流式中位数）
+- `NextFireSchedule`（exec 域——网格触发与补账）
