@@ -49,6 +49,10 @@
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）
+- `public final class BoundedTopK`（spec 2055——小顶堆守门员流式 Top-K；嵌套 `Entry`/`TopKStats`）
+- `public final class FiveNumberSummary`（spec 2056——Tukey 五点+IQR 围栏；嵌套 `Summary`）
+- `public final class NgramExtractor`（spec 2054——n-gram 双口径特征）
+- `public final class DeterministicHash`（spec 2057——FNV+splitmix64 确定性散列公共件）
 - `public final class MinRttTracker`（spec 2015——BBR min-RTT 滑窗基线）
 - `public final class EwmaEstimator`（spec 2027——EWMA 指标平滑）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
@@ -739,6 +743,7 @@
 - `EvalPassAtK`（estimate 连乘无偏公式 / aggregate，impl-655 / spec 902）
 - `public final class WeightedSample`（spec 2051——Efraimidis-Spirakis 无放回抽样；嵌套 `Candidate`）
 - `public final class ChiSquareUniformity`（spec 2048——Pearson χ² 均匀性检验；嵌套 `ChiSquareResult`）
+- `public final class MultipleComparisonCorrection`（spec 2058——Bonferroni/Holm 族错误率；嵌套 `Verdict`）
 - `EvalQueryService`（allRuns/runs/run/latestRun；只读）
 - `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
 

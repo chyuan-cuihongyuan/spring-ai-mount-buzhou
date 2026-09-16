@@ -176,6 +176,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeAgreement
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeCalibration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgePositionBias
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.LlmJudgeEvaluator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.MultipleComparisonCorrection
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseEvalRunner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseJudge
@@ -339,14 +340,17 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.PromptComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.UserInputDuplicationAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoundedTopK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.EwmaEstimator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ExponentialWindowCounter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FiveNumberSummary
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FrequencySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HllCardinalitySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
@@ -357,6 +361,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessTrac
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
