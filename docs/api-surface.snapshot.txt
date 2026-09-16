@@ -58,6 +58,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptive
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JobDeadLetterLog
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LastWriteWinsRegister
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.OverwritingRingBuffer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PhiAccrualFailureDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityInversionExposure
@@ -331,6 +332,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ExponentialWindowCounter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FrequencySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HllCardinalitySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
@@ -361,6 +363,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanTreeTopol
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider
@@ -601,6 +604,7 @@ buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.config.GuardAuditConfig
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.config.GuardHealth
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.config.GuardModuleLifecycle
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.config.GuardPolicyConfig
+buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.decision.DecisionCache
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactAttachmentRenderer
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactCollectorHook
 buzhou-guard|io.github.chyuan_cuihongyuan.buzhou.guard.fact.FactDefinition
@@ -837,6 +841,7 @@ buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.Model
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitAdvisor
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.ratelimit.RateLimitKeyHotspot
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.BuzhouRoutingScheduleProperties
+buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RetryHostExclusion
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteDistributionReadout
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RouteStages
 buzhou-resilience|io.github.chyuan_cuihongyuan.buzhou.resilience.routing.RoutingHealthDampener

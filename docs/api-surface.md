@@ -19,6 +19,7 @@
 - `public class HookTimingHealth`（spec 647——hook-timing 健康段）
 - `public final class ToolInFlight`（spec 1005——工具在飞并发水位读面：current/peak 双水位 + AutoCloseable 租约恰一次）
 - `public final class PhiAccrualFailureDetector`（spec 2004——φ 累积故障嫌疑度：心跳正态模型连续 [0,12]）
+- `public final class LastWriteWinsRegister`（spec 2006——LWW 寄存器：(ts, writer) 定序+确定性平局仲裁；嵌套 `Timestamped`）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
 - `public final class ScheduleFloat`（spec 1873——调度松弛量：CPM 双向 DP float=LS−ES）
 - `public record ToolTimeoutOverrideStats`（spec 1015——超时覆盖命中读面：hitsByPattern 0 = 幽灵覆盖配置）
@@ -32,6 +33,7 @@
 - `public class RollingJsonlWriter`（spec 642——追加式 JSONL 大小轮转：64MB×3 默认开/≤0 显式关；spec 712 compressFromGeneration 压缩线）
 - `public final class RollingMaxCounter`（spec 708——时间桶滚动 max，时钟注入）
 - `public final class HllCardinalitySketch`（spec 2001——HLL 基数素描：定容寄存器 distinct 计数，merge 并集）
+- `public final class FrequencySketch`（spec 2007——4bit Count-Min 频率门控，W-TinyLFU 准入）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
 - `public final class ConfigDiff`（spec 719——生效配置三分类 diff 纯函数）
 - `public final class ForkLineageWalker`（spec 711——fork 谱系游走环防护）
@@ -96,6 +98,7 @@
 - `public record ToolPolicyMatchDecision`（spec 1000——单次匹配决策：toolName + Outcome(EXACT/GLOB/NONE) + matchedKey）
 - `public record ToolPolicyMatchStats`（spec 1000——进程级决策快照，Σ三分类守恒 == match 调用数）
 - `public final class ToolPolicyMatcher`
+- `public final class FlagEvaluator`（spec 2009——OpenFeature 五态求值永不抛；嵌套 `Reason`/`FlagResolution`/`FlagDefinition`）
 - `public final class ToolValidationFeedback`
 - `public final class WebhookEventForwarder`
 - `public interface AgentRuntime`
@@ -360,6 +363,7 @@
 ## buzhou-guard
 
 - `public class RegexRiskAudit`（spec 1874——ReDoS 形态三档分级静态审计）
+- `public final class DecisionCache`（spec 2010——OPA 决策缓存：TTL 短路+LRU+invalidate；嵌套 `CacheStats`）
 
 - `public class BuzhouGuardAutoConfiguration`
 - `public class BuzhouGuardHealthAutoConfiguration`
@@ -439,6 +443,7 @@
 ## buzhou-resilience
 
 - `public class BuzhouResilienceAutoConfiguration`
+- `public final class RetryHostExclusion`（spec 2008——Envoy 重试主机让位：冷却窗+全排除回退）
 - `public class BuzhouResilienceHealthAutoConfiguration`
 - `public class DefaultErrorClassifier`
 - `public class ModelCallInFlight`
