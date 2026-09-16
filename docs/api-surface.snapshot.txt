@@ -182,6 +182,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TrimmedMean
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WilsonInterval
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.AgingPriorityQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BackendLanePermit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.BatchResponseBudgetHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CanaryToolCallback
@@ -191,6 +192,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CatalogDriftWatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosBudgetGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ChaosMonkeyHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CommandBackend
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ConcurrencyGroupGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.CriticalPathLength
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DeprecatedToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.DryRunHook
@@ -244,6 +246,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TtlCachingToolCallback
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnDeadlineBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.WeightedFairScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.WorkConservationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBalanceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
@@ -336,6 +339,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.EwmaEstimator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ExponentialWindowCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FrequencySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HllCardinalitySketch
@@ -369,6 +373,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanTreeTopol
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding

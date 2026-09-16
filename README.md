@@ -685,6 +685,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 执行治理 | 加权公平调度器 | WeightedFairScheduler——多流权重公平分享（网络 DRR deficit 轮询思想）：粘性轮内消费（当前流积分可负担连续出队不重入账，用尽让出入账下一流 quantum×weight）——长期服务比 ≈ 权重比（3:1 长跑收敛），高权重多得不独占；空流入环 deficit 从零（空闲不积累特权）+servedByStream 公平对账——严格优先级饿死与轮询无权的中间态（spec 2026） | [spec 2026](docs/spec/2026-weighted-fair-scheduler.md) |
 | 观测计量 | EWMA 估计器 | EwmaEstimator——指标观测平滑层（Netflix/Finagle 口径）：首样本直接锚定+estimate=α×新+(1−α)×旧（α∈(0,1] 默认 0.2≈5 样本记忆，1 直通最新小 α 惯性大）——尖峰被稀释趋势仍跟随，告警调参 α 旋钮定灵敏度（spec 2027） | [spec 2027](docs/spec/2027-ewma-estimator.md) |
 | 执行治理 | 并发组闸 | ConcurrencyGroupGate——同组任务互斥与取代（GitHub Actions concurrency group 思想）：tryEnter 三态（属主授予/重入幂等/SUPERSEDED cancelInProgress 新者接管旧者取消——只留最新防堆积、BUSY_REJECTED 在跑者优先）+complete 属主栅栏（仅现属主释放，被取代者迟到完成拦下 fencedCompletions 竞态显形）——与就绪门互补（同类互斥 vs 依赖就绪姿态）（spec 2028） | [spec 2028](docs/spec/2028-concurrency-group-gate.md) |
+| 过程治理 | P 系 R30 周期对账 | Wave 5 五新类型快照补登（1021→1026，CONTEXT 920→925）+ 全仓 verify 三门绿（五波连续）+ 30/150=1/5 里程碑——调度原语族成谱系（spec 2029） | [spec 2029](docs/spec/2029-p-r30-reconciliation.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
