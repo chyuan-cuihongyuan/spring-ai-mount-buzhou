@@ -672,6 +672,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 健康治理 | 启动豁免窗追踪 | StartupGraceTracker——慢启动失败不计故障账（K8s startup probe 思想）：豁免窗内未毕业失败豁免/窗外或毕业或未锚定一律计账+首次成功即毕业幂等（豁免给冷启动不给僵尸）+重启重锚窗口重算+activeGraces 受宽容面——冷启动抖动不稀释 φ 检测器真故障信号（spec 2013） | [spec 2013](docs/spec/2013-startup-grace-tracker.md) |
 | 恢复治理 | 键压缩日志语义 | KeyCompaction——状态日志按键压缩取终态（Kafka log compaction 思想）：同 key 取 maxSeq（乱序幂等——保留者与输入顺序无关）+payload null 即 tombstone 墓碑显式删除（墓碑后复活/旧墓碑不遮新值）+compactionRatio 历史冗余对账——读取一遍压缩即终态，删除不再各自猜（spec 2014） | [spec 2014](docs/spec/2014-key-compaction.md) |
 | 观测计量 | 最小 RTT 滑窗滤波器 | MinRttTracker——对冲/超时的真时延基线（TCP BBR min-RTT 思想）：窗内最小（10 分钟默认——均值被队列膨胀污染，最小最贴真传播时延）+滑出惰性清除次小接管（网络恶化基线可上浮不永久过时）+lastFreshMinAt 新鲜度显形（持平不刷新）——与对冲延迟策略正交供其真基线（spec 2015） | [spec 2015](docs/spec/2015-min-rtt-tracker.md) |
+| 会话治理 | 布谷鸟过滤器 | CuckooFilter——近似成员筛可删除（Cuckoo filter 思想）：16bit 指纹双桶（i2=i1^hash(fp) 异或自定位）+双满轮流踢出重排（确定性无随机可回放；踢尽拒插计 overflowed 扩容信号）+delete 撤销指纹槽（布伦硬缺口——检疫集不再只增不减）+无假阴性——与布伦互补（见过吗不可撤 vs 还在吗可撤）（spec 2016） | [spec 2016](docs/spec/2016-cuckoo-filter.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |

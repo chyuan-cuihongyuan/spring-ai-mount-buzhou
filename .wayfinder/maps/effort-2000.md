@@ -41,6 +41,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R14 | #2013 | 启动豁免窗追踪（K8s startup probe 思想） | T3127–T3128 | 1564 | ✅ |
 | R15 | #2014 | 键压缩日志语义（Kafka log compaction 思想） | T3129–T3130 | 1565 | ✅ |
 | R16 | #2015 | 最小 RTT 滑窗滤波器（TCP BBR min-RTT 思想） | T3131–T3132 | 1566 | ✅ |
+| R17 | #2016 | 布谷鸟过滤器（Cuckoo filter 可删除近似成员思想） | T3133–T3134 | 1567 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
