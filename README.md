@@ -688,6 +688,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 过程治理 | P 系 R30 周期对账 | Wave 5 五新类型快照补登（1021→1026，CONTEXT 920→925）+ 全仓 verify 三门绿（五波连续）+ 30/150=1/5 里程碑——调度原语族成谱系（spec 2029） | [spec 2029](docs/spec/2029-p-r30-reconciliation.md) |
 | 工具治理 | 重定向预算 | RedirectBudget——HTTP 跟随重定向双防线（curl max-redirs × 环检测思想）：跳数预算硬界（超即停防恶意 302 拖死）+访问集环识破（A→B→A 配置错在预算空耗前识破，环跳不记账）+起点锚定（跳回 origin 即环）——与入参预算门同族（守出站跳数 vs 守入参规模）（spec 2030） | [spec 2030](docs/spec/2030-redirect-budget.md) |
 | 门禁治理 | 必选检查聚合 | RequiredChecksRollup——多检查质量门单结论聚合（GitHub required checks rollup 思想）：任一必选 FAILURE 一票否决（优先于 PENDING——已失败不必等挂起者）/任一必选 PENDING 含未报 → 门未关/全绿放行/空集恒开；可选检查不阻断但 optionalFailures 显形（退化早期预警）——一票否决与挂起优先级一处定义不再逐处漂移（spec 2031） | [spec 2031](docs/spec/2031-required-checks-rollup.md) |
+| 路由治理 | UCB1 选择器 | Ucb1Selector——选臂探索/利用平衡（多臂老虎机置信上界思想）：UCB = 均值 + c×√(2lnN/nᵢ)——尝试少的臂半径大自动探索，真值显形后收敛最优臂；未试臂优先每臂至少一试，不幸首抽不判死刑（半径护体）——均值贪心饿死病的根治原语，与延迟感知备模型排序互补（稳而全 vs 快而贪）（spec 2032） | [spec 2032](docs/spec/2032-ucb1-selector.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
