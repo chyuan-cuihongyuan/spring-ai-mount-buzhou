@@ -678,6 +678,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 策略治理 | QoS 资源声明分级 | QosClassifier——按声明三分（K8s QoS Classes 思想）：全维 request==limit 保额保量 GUARANTEED 背压受保护/有保底可突发 BURSTABLE/零声明 BEST_EFFORT 先让位（任一零声明拉低整体）+evictionRank 驱逐序+shouldYield 保护线让位判定——驱逐与保护由分级驱动不再逐实例拍脑袋（spec 2019） | [spec 2019](docs/spec/2019-qos-classifier.md) |
 | 健康治理 | 冷启动豁免 φ 嫌疑门 | GraceAwareFailureDetector——spec 2004 φ 检测 × spec 2013 豁免窗组合件：窗内失败不喂 φ（冷启动噪声不毒化故障基线，豁免账另记）、首拍成功即毕业；verdict 三态 HEALTHY/GRACE_HOLD（高嫌疑但豁免中观望）/CONFIRMED（毕业或窗外判失联）——宽容冷启动不放过真死（spec 2020） | [spec 2020](docs/spec/2020-grace-aware-failure-detector.md) |
 | 并发治理 | 就绪等待门 | WaitForReadyGate——依赖未就绪时的有预算中间态（gRPC wait_for_ready 思想）：四态询问（PASS/QUEUED 预算内排队/FAIL_FAST 立即失败/QUEUE_FULL 预算满拒绝防积压）+就绪批量排空（drained/drainBatches 对账）+再失就绪重计——冷启动窗口请求不弹掉且积压有界（spec 2021） | [spec 2021](docs/spec/2021-wait-for-ready-gate.md) |
+| 一致性 | 复制计数器 | ReplicatedCounter——多实例聚合计数免双计（CRDT G/PN-Counter 思想）：per-writer 分量（正计数负扣减合一）+merge 逐分量 max（at-least-once 重传不双计）+value=Σ分量——幂等/交换/结合三性质齐备，与 LWW 寄存器成对（值域定序 vs 计数收敛）（spec 2022） | [spec 2022](docs/spec/2022-replicated-counter.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
