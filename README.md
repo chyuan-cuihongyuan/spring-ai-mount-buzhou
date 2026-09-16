@@ -666,6 +666,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 缓存治理 | 频率素描 | FrequencySketch——4bit Count-Min 计数板缓存准入门控：相邻两槽较小者 increment（防独占倾斜）+frequency=min 下界语义（碰撞只低估，同 key 反复 ≈n/2 序不变）+饱和 15 封顶——Caffeine W-TinyLFU 思想，newcomer<victim 拒准入防扫描污染，与 HLL/指数直方图三足（频率序/distinct 数/近窗数）（spec 2007） | [spec 2007](docs/spec/2007-frequency-sketch.md) |
 | 韧性治理 | 重试主机排除 | RetryHostExclusion——重试不落同一坏端点：冷却窗（默认 30s）内失败者从候选剔除（序保持路由权重序不动），全排除回退全量（排除是偏好不是硬门，Envoy 语义）+再失败冷却顺延+excludedCount 全排除回退态显形——Envoy retry host predicate 思想，与离群驱逐互补（短窗让位 vs 长时统计排除）（spec 2008） | [spec 2008](docs/spec/2008-retry-host-exclusion.md) |
 | 策略治理 | 特性开关求值器 | FlagEvaluator——求值永不抛出（OpenFeature 思想）：未注册 FLAG_NOT_FOUND 空值/targeting 命中 TARGETING_MATCH/未命中 STATIC/谓词炸 DEFAULT 兜底且 ERROR 同记——reasonCounts 五态分布让幽灵 flag 与谓词病灶分别显形（spec 2009） | [spec 2009](docs/spec/2009-flag-evaluator.md) |
+| 护栏治理 | 判定决策缓存 | DecisionCache——同输入判定 TTL 内短路（OPA/Cedar decision cache 思想）：过期惰性清除（expirations 与 misses 分计——过期非未见过）+重判回填刷新时间戳+超容 LRU 驱逐+invalidate 显式失效（策略热更新精准失效）+hitRate 缓存有效性证（命中率低该摘除直判）（spec 2010） | [spec 2010](docs/spec/2010-decision-cache.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |

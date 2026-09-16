@@ -35,7 +35,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R8 | #2007 | 频率素描（Caffeine W-TinyLFU 4bit Count-Min 思想） | T3115–T3116 | 1558 | ✅ |
 | R9 | #2008 | 重试主机排除（Envoy retry host predicate 思想） | T3117–T3118 | 1559 | ✅ |
 | R10 | #2009 | 特性开关求值器（OpenFeature 求值错误语义思想） | T3119–T3120 | 1560 | ✅ |
-| R11 | #2010 | Wave 2 弹性位 E | T3121–T3122 | 1561 | ⬜ |
+| R11 | #2010 | 判定决策缓存（OPA/Cedar decision cache 思想） | T3121–T3122 | 1561 | ✅ |
 | R12 | #2011 | 对账轮（全仓 mvn verify + 台账核账 + push 重试） | T3123–T3124 | 1562 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
