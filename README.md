@@ -675,6 +675,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 会话治理 | 布谷鸟过滤器 | CuckooFilter——近似成员筛可删除（Cuckoo filter 思想）：16bit 指纹双桶（i2=i1^hash(fp) 异或自定位）+双满轮流踢出重排（确定性无随机可回放；踢尽拒插计 overflowed 扩容信号）+delete 撤销指纹槽（布伦硬缺口——检疫集不再只增不减）+无假阴性——与布伦互补（见过吗不可撤 vs 还在吗可撤）（spec 2016） | [spec 2016](docs/spec/2016-cuckoo-filter.md) |
 | 过程治理 | P 系 R18 周期对账 | Wave 3 五新类型快照补登（1011→1016，CONTEXT 910→915）+ 全仓 verify 三门绿（spec 2017） | [spec 2017](docs/spec/2017-p-r18-reconciliation.md) |
 | 记忆治理 | 检索强度重排接线 | RecallStrengthReranker——mem0 思想管线落地：finalScore = 0.7×相关度 + 0.3×记忆强度（MemoryStrengthScore 接进 recall 排序面——同相关度下新热记忆靠前，「相关且新鲜」优先）；开闭装饰不侵入 RecallSearch 本体，两极退化（1 纯相关度/0 纯强度），TIME 模式退化纯强度序（spec 2018） | [spec 2018](docs/spec/2018-recall-strength-reranker.md) |
+| 策略治理 | QoS 资源声明分级 | QosClassifier——按声明三分（K8s QoS Classes 思想）：全维 request==limit 保额保量 GUARANTEED 背压受保护/有保底可突发 BURSTABLE/零声明 BEST_EFFORT 先让位（任一零声明拉低整体）+evictionRank 驱逐序+shouldYield 保护线让位判定——驱逐与保护由分级驱动不再逐实例拍脑袋（spec 2019） | [spec 2019](docs/spec/2019-qos-classifier.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
