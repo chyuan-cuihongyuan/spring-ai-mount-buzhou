@@ -39,6 +39,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R12 | #2011 | 对账轮（快照 +5（1006→1011）+ 全仓 verify 三门绿 + push 补推 R11 积压） | T3123–T3124 | 1562 | ✅ |
 | R13 | #2012 | 抢占重算账本（vLLM preemption/recompute 思想） | T3125–T3126 | 1563 | ✅ |
 | R14 | #2013 | 启动豁免窗追踪（K8s startup probe 思想） | T3127–T3128 | 1564 | ✅ |
+| R15 | #2014 | 键压缩日志语义（Kafka log compaction 思想） | T3129–T3130 | 1565 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
