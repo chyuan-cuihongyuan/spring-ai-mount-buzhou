@@ -67,6 +67,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R40 | #2039 | 版本要求判定（npm semver range 六算子思想） | T3179–T3180 | 1590 | ✅ |
 | R41 | #2040 | 可冻结分段缓冲（LSM memtable 不可变段思想，spill 首入） | T3181–T3182 | 1591 | ✅ |
 | R42 | #2041 | 对账轮（快照 +5 + 票号 +2 漂移归位（对账门当场抓跳号——T3177 起八张归位）+ verify + push 补推；42/150 八模块覆盖） | T3183–T3184 | 1592 | ✅ |
+| R43 | #2042 | 刻度轮定时器（Netty hashed wheel timer 思想） | T3185–T3186 | 1593 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
