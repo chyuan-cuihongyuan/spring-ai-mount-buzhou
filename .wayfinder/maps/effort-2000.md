@@ -71,6 +71,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R44 | #2043 | 快速重传触发器（TCP 3-dup-ACK 思想） | T3187–T3188 | 1594 | ✅ |
 | R45 | #2044 | 预热斜坡（Guava warmup limiter 思想） | T3189–T3190 | 1595 | ✅ |
 | R46 | #2045 | 属性白名单过滤器（OTel View processor 思想，observability 首入） | T3191–T3192 | 1596 | ✅ |
+| R47 | #2046 | ETag 条件请求匹配（HTTP RFC 7232 思想） | T3193–T3194 | 1597 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
