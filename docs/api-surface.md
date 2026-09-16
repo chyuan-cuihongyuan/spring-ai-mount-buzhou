@@ -29,8 +29,10 @@
 - `public final class AgingPriorityQueue`（spec 2024——OS aging 反饥饿：等待生息有效优先级）
 - `public final class WeightedFairScheduler`（spec 2026——DRR 加权公平：粘性轮内消费）
 - `public final class ConcurrencyGroupGate`（spec 2028——并发组互斥与取代；嵌套 `GroupOutcome`/`GroupStats`）
+- `public final class TickWheelTimer`（spec 2042——Netty 刻度轮纯逻辑版）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
 - `public final class HysteresisWatermark`（spec 2036——Netty 高停低续迟滞门）
+- `public final class WarmupRamp`（spec 2044——Guava 预热斜坡乘数）
 - `public final class ScheduleFloat`（spec 1873——调度松弛量：CPM 双向 DP float=LS−ES）
 - `public record ToolTimeoutOverrideStats`（spec 1015——超时覆盖命中读面：hitsByPattern 0 = 幽灵覆盖配置）
 - `public final class ToolSlowLog`（spec 1001——工具慢调用榜：Redis SLOWLOG 严格阈值 + 有界 FIFO 环静态读面）
@@ -302,6 +304,7 @@
 ## buzhou-observability
 
 - `public abstract class BaseSpanRecorder`
+- `public final class AttributeWhitelist`（spec 2045——OTel 属性白名单；嵌套 `Filtered`）
 - `public class AsyncObservabilityPipeline`
 - `public class BuzhouObservabilityAutoConfiguration`
 - `public class DefaultSpanHandle`
@@ -467,6 +470,7 @@
 ## buzhou-resilience
 
 - `public class BuzhouResilienceAutoConfiguration`
+- `public final class FastRetransmitTrigger`（spec 2043——TCP 3-dup-ACK 触发；嵌套 `FastRetransmitStats`）
 - `public final class RetryHostExclusion`（spec 2008——Envoy 重试主机让位：冷却窗+全排除回退）
 - `public class BuzhouResilienceHealthAutoConfiguration`
 - `public class DefaultErrorClassifier`
@@ -1785,6 +1789,7 @@
   纯函数 EvalRunDiff 同型）
 
 - `WebhookDeliveryLatency`（嵌套 `Snapshot`）（514——416 分位族同法：
+- `public final class EntityTagMatcher`（spec 2046——RFC 7232 条件请求匹配）
   成功投递时延滚动窗 exact 最近秩 p50/p95/p99 零样本 null，forwarder
   setDeliveryLatency setter 接线默认 null 零变化）
 

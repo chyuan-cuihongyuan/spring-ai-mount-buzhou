@@ -65,9 +65,9 @@ public final class AttributeWhitelist {
         return new Filtered(retained, dropped);
     }
 
-    /** 白名单面（字典序快照；通配返回空——语义为全放非零放）。 */
-    public Set<String> allowedAttributes() {
-        return Set.copyOf(allowed);
+    /** 白名单面（字典序快照——TreeSet 兑现有序承诺；通配返回空——语义为全放非零放）。 */
+    public java.util.Set<String> allowedAttributes() {
+        return new java.util.TreeSet<>(allowed);
     }
 
     /** 是否通配模式。 */
