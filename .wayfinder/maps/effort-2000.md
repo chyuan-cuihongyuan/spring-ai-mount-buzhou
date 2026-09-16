@@ -79,6 +79,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R52 | #2051 | 加权无放回抽样（Efraimidis-Spirakis A-Res 思想） | T3203–T3204 | 1602 | ✅ |
 | R53 | #2052 | 文本编辑距离（Levenshtein 经典 DP 思想） | T3205–T3206 | 1603 | ✅ |
 | R54 | #2053 | 对账轮（快照 +5（1041→1046，统计/信息论族）+ 全仓 verify 三门绿 + push 补推；54/150） | T3207–T3208 | 1604 | ✅ |
+| R55 | #2054 | n-gram 特征提取（信息检索 n-gram 索引思想） | T3209–T3210 | 1605 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

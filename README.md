@@ -710,6 +710,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 评估治理 | 加权无放回抽样 | WeightedSample——按权重无放回抽 k 单遍化（Efraimidis-Spirakis A-Res 思想）：每元素 key=u^(1/w) 取前 k 大——O(n log k) 数学等价逐次无放回轮盘，权重 0 永不中，RandomGenerator 注入回放——分层采样/实验分组/金丝雀候选件，与 Gumbel-max 同族互补（k 样本 vs 单索引）（spec 2051） | [spec 2051](docs/spec/2051-weighted-sample.md) |
 | 观测计量 | 文本编辑距离 | TextDistance——文本差异精确口径（Levenshtein 经典 DP 思想）：插/删/改各计 1 两行滚动数组 O(min) 空间+相似比 1−dist/maxLen ∈[0,1] 归一+isNearMatch 阈值判定（0.8 默认）——键纠错/答案近似匹配/技能名容错统一口径，与 SimHash 互补（短文本精确阈值 vs 长文本近似筛查）（spec 2052） | [spec 2052](docs/spec/2052-text-distance.md) |
 | 过程治理 | P 系 R54 周期对账 | Wave 9 五新类型快照补登（1041→1046，CONTEXT 940→945——统计/信息论工具族：卡方/香农熵/Gumbel-max/加权抽样/编辑距离）+ 全仓 verify 三门绿（九波连续）（spec 2053） | [spec 2053](docs/spec/2053-p-r54-reconciliation.md) |
+| 观测计量 | n-gram 特征提取 | NgramExtractor——文本定长滑窗特征集统一口径（信息检索 n-gram 思想）：charNgrams/wordNgrams 双口径（distinct 去重保首现——指纹供给 SimHash / 保留重复——频次）+短于 n 整段与词数不足原词诚实边界——散落内联（CanaryGuardHook 等）统一收敛件，与 SimHash/TextDistance 成三件套（特征+近似指纹+精确距离）（spec 2054） | [spec 2054](docs/spec/2054-ngram-extractor.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
