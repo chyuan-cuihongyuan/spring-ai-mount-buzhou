@@ -690,6 +690,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 门禁治理 | 必选检查聚合 | RequiredChecksRollup——多检查质量门单结论聚合（GitHub required checks rollup 思想）：任一必选 FAILURE 一票否决（优先于 PENDING——已失败不必等挂起者）/任一必选 PENDING 含未报 → 门未关/全绿放行/空集恒开；可选检查不阻断但 optionalFailures 显形（退化早期预警）——一票否决与挂起优先级一处定义不再逐处漂移（spec 2031） | [spec 2031](docs/spec/2031-required-checks-rollup.md) |
 | 路由治理 | UCB1 选择器 | Ucb1Selector——选臂探索/利用平衡（多臂老虎机置信上界思想）：UCB = 均值 + c×√(2lnN/nᵢ)——尝试少的臂半径大自动探索，真值显形后收敛最优臂；未试臂优先每臂至少一试，不幸首抽不判死刑（半径护体）——均值贪心饿死病的根治原语，与延迟感知备模型排序互补（稳而全 vs 快而贪）（spec 2032） | [spec 2032](docs/spec/2032-ucb1-selector.md) |
 | 恢复治理 | 维护触发器 | MaintenanceTrigger——死数据清理触发时机双口径（Postgres autovacuum 思想）：死/活 ≥ 阈值（默认 20%，live=0 全死必清）或距上次触发 ≥ 最大间隔（默认 24h 低流量兜底防陈化）——比例触发省写放大、间隔兜底防永不达标；触发记账频率即维护健康度——与归档 TTL 治理互补（何时清 vs 清什么）（spec 2033） | [spec 2033](docs/spec/2033-maintenance-trigger.md) |
+| MCP 治理 | 工具溯源索引 | ToolProvenanceIndex——tool↔server 双向账与摘除后果显形（MCP 多 server 记账思想）：unregister 返回独供孤儿集合（共供不孤儿——其余 provider 仍在，摘 server 前影响面事前可见）+覆盖重注册（重连刷新先撤后铺）+conflictingTools 多源同名冲突面常驻显形（解析歧义源可治）——与目录差异报告互补（静态归属 vs 快照间变化）（spec 2034） | [spec 2034](docs/spec/2034-tool-provenance-index.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
