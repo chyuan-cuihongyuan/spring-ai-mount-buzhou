@@ -58,6 +58,7 @@ HDR Histogram（高动态范围直方图）、Netflix concurrency-limits 梯度�
 | R31 | #2030 | 重定向预算（curl max-redirs × 环检测思想） | T3161–T3162 | 1581 | ✅ |
 | R32 | #2031 | 必选检查聚合（GitHub required checks rollup 思想） | T3163–T3164 | 1582 | ✅ |
 | R33 | #2032 | UCB1 选择器（多臂老虎机置信上界思想） | T3165–T3166 | 1583 | ✅ |
+| R34 | #2033 | 维护触发器（Postgres autovacuum 死元组阈值思想） | T3167–T3168 | 1584 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
