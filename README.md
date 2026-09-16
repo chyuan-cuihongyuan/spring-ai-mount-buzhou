@@ -704,6 +704,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 观测治理 | 属性白名单过滤器 | AttributeWhitelist——导出前属性瘦身（OTel View/processor 思想）：白名单内保留盘外分属性计数丢弃（dropped 显形不静默——被丢热点该进白名单还是改埋点有据）+通配 allowAll 不断流+空表显式全拒可表达——体积/基数/敏感面三收口，与 tag 基数守卫互补（主动过滤 vs 计数告警）（spec 2045） | [spec 2045](docs/spec/2045-attribute-whitelist.md) |
 | 端点治理 | ETag 条件请求匹配 | EntityTagMatcher——查询/导出端点版本复用与乐观并发（HTTP RFC 7232 思想）：If-None-Match 命中回 304 省全量载荷（弱比较语义等价）+If-Match 未满足 412 前置拦截他人已改（强比较字节等价）+W/ 弱 ETag 语义等价与强 ETag 区分+* 通配——与续读令牌互补（版本复用 vs 分页续读）（spec 2046） | [spec 2046](docs/spec/2046-entity-tag-matcher.md) |
 | 过程治理 | P 系 R48 周期对账 | Wave 8 五新类型快照补登（1036→1041，CONTEXT 935→940；observability 首入——九模块覆盖）+ 全仓 verify 三门绿（八波连续）+ 票号公式两波零漂移（spec 2047） | [spec 2047](docs/spec/2047-p-r48-reconciliation.md) |
+| 评估治理 | 卡方均匀性检验 | ChiSquareUniformity——分布均匀偏离可判定（Pearson χ² 思想）：χ²=Σ(O−E)²/E 配 0.05 显著水平内置临界值表（自由度 1–20），超临界即拒绝均匀——模型回答偏斜/哈希分桶负载/采样公平性的判定统一统计口径，不拍脑看图（spec 2048） | [spec 2048](docs/spec/2048-chi-square-uniformity.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
