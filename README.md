@@ -741,6 +741,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 并发治理 | 批量攒批器 | BatchAccumulator——吞吐/延迟显式双旋钮（Kafka producer 攒批 batch.size+linger.ms 思想）：条数满或批龄 ≥linger 任一达标即冲——攒满大批摊薄单条开销（吞吐）与龄到即冲不等满（延迟上限显式可诺）；offer 满批信号+drain 保序重锚批龄+时间调用方传入（确定性免注入）+守恒对账面 totalOffered==totalFlushed+在批（溢出零丢失可断）——事件外发/指标上报/批量落盘的低摩擦前置件，纯判定与持有（调度归调用方）（spec 3016） | [spec 3016](docs/spec/3016-batch-accumulator.md) |
 | 过程治理 | Q 系 R18 周期对账 | Wave 3 五新类型快照补登（1065→1070，CONTEXT 964→969——拓扑/扫线/KMP/Fenwick/攒批）+ 全仓 verify 三门绿（Q 第三波）；Wave 3 零修复流出（rc 门禁提交前拦截 Fenwick 期望值笔误）（spec 3017） | [spec 3017](docs/spec/3017-q-r18-reconciliation.md) |
 | 并发治理 | Tarjan 强连通分量 | TarjanSccFinder——循环依赖指认到环成员（Tarjan 1982 index/lowlink+显式栈单遍思想）：components() 组件按凝聚图反拓扑序输出（sink 侧先出——被依赖方先列，分层清单即得）+cyclicVertices() 升序环成员（size>1 组件或自环单点——TopologicalSorter 只报有环不指认谁的留白补位）+迭代帧栈实现（2 万级深链不爆调用栈）+幂等可重放——初始化/工具/hook 循环依赖的显形件（spec 3018） | [spec 3018](docs/spec/3018-tarjan-scc-finder.md) |
+| 溢出治理 | TTL 确定性抖动 | TtlJitter——同批键到期时刻铺开免疫雷群（缓存防雷群 jitter 思想，memcached/AWS 实践）：r∈[−1,1] 由键哈希（复用 DeterministicHash 63 位归一）派生，TTL=base×(1+r·jitter) 带宽夹持+1ms 兜底——**按键确定性**：同一键跨实例跨重启恒同 TTL（副本一致+到期错开两得，无共享随机源可复算），不同键带宽内铺开——固定 TTL 同时到期集体回源（stampede）与随机抖动副本漂移两病的双根治（spec 3019） | [spec 3019](docs/spec/3019-ttl-jitter.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
