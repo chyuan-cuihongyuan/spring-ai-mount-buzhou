@@ -736,6 +736,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 过程治理 | Q 系 R12 周期对账 | Wave 2 五新类型快照补登（1060→1065，CONTEXT 959→964——P²/HLC/Morris/ARC/MinHash；cache 包首入 Q 系）+ 全仓 verify 三门绿（Q 第二波）；ARC |L1|≤c 不变量修复未流出红提交（rc 门禁生效）（spec 3011） | [spec 3011](docs/spec/3011-q-r12-reconciliation.md) |
 | 并发治理 | 拓扑排序器 | TopologicalSorter——依赖序确定性解析+环显形（Kahn 入度归零思想）：最小下标优先队列（字典序最小拓扑序——确定性可复算非入队序依赖）+SortResult(order,acyclic) 环诚实（有环给环外已排前缀不臆造全序）+自环即环+sort 幂等可重放——工具/hook/回退链依赖解析的地基件，与 CriticalPathLength（无环带权假定）互补（本件无权+环诚实）（spec 3012） | [spec 3012](docs/spec/3012-topological-sorter.md) |
 | 观测计量 | 扫线最大并发 | SweepLineIntervals——历史区间并发峰值精确单遍（计算几何扫线思想）：起 +1/止 −1 事件按时刻排，同刻 −1 先于 +1（半开 [start,end) 语义——相接不算并发，闭区间相邻段重复计数病的根治）+SweepResult(峰值并发,首发点,总数)（同峰取最早）——同时活跃会话/在途调用/占用配额的容量规划依据，两两判交 O(n²) 的根治；空集哨兵+零宽贡献零+破缺 fail-fast（spec 3013） | [spec 3013](docs/spec/3013-sweep-line-intervals.md) |
+| 策略治理 | KMP 字符串搜索 | KmpSearch——精确子串匹配线性时间（Knuth-Morris-Pratt 失配函数思想）：模式预构最长真前后缀表（lps），失配滑模式不回退主指针 O(n+m)——朴素回退最坏 O(n·m) 的根治；findAll 可重叠全命中（命中回退 lps 前缀继续——「aa」在「aaaa」中命中 0/1/2）+failureFunction 公共读数（对账/教学面）+空模式双约定（indexOf 0 JDK 同款/findAll 诚实拒绝）——敏感串/守卫规则/停用词匹配地基，多模式聚合 Aho-Corasick 留白（spec 3014） | [spec 3014](docs/spec/3014-kmp-search.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
