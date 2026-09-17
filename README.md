@@ -729,6 +729,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 策略治理 | top-p 核采样 | NucleusSampler——按累积质量自适应截断（GPT-2 nucleus sampling 思想）：softmax 降序取累积 ≥p 最小核（尖峰窄核/平坦宽核——top-k 一刀切盲区的根治）+核内重归一抽取+p→0 退化 top-1/p=1 全分布连续插值+keptCount 核大小确定性读数+−∞ 零质量永不中（禁选免掩码）+RandomGenerator 注入回放——与 GumbelMax/WeightedSample 成采样三件（spec 3004） | [spec 3004](docs/spec/3004-nucleus-sampler.md) |
 | 过程治理 | Q 系 R6 周期对账 | Wave 1 四新类型快照补登（1056→1060，CONTEXT 955→959——Welford/并查集/EDF/top-p）+ 全仓 verify 三门绿（Q 对账门首波）+ NucleusSampler 全 −∞ NaN 守卫收尾修复（spec 3005） | [spec 3005](docs/spec/3005-q-r6-reconciliation.md) |
 | 观测计量 | P² 流式分位数 | PSquareQuantile——O(1) 空间在线分位估计（Jain-Chlamtac P² 五标记思想）：min/p/2/p/(1+p)/2/max 标记位置账面+理想位 n'=1+(n−1)pᵢ 递推+cell 定位（越界直接改写端标记）+内部标记抛物线三点拟合主路径/越序退线性（保标记有序）每步 ±1 逼近——延迟 p99 免全样本留存（精确口径 O(n) 空间），光滑分布误差 O(1/n)；前 5 样本排序缓冲诚实口径+p∈(0,1) 开区间；与五数概括/Welford 成分布刻画三件（spec 3006） | [spec 3006](docs/spec/3006-p-square-quantile.md) |
+| 并发治理 | 混合逻辑时钟 | HybridLogicalClock——时间戳既贴物理又因果安全（CockroachDB HLC 思想）：(wall,counter) 二元组墙为骨计数为髓——tick 同墙计数+1/墙进清零严格单调+observe 三路 max 合并（远端超前吸收为基线/落后无感/物理回拨不倒）+物理钟 LongSupplier 注入——因果保持单向（happens-before ⇒ 严格小于）真并发判别归向量时钟，与 VectorClockOrder/SequenceOrder 成序刻画三件（spec 3007） | [spec 3007](docs/spec/3007-hybrid-logical-clock.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
