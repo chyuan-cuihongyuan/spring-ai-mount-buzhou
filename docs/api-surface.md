@@ -35,6 +35,7 @@
 - `public final class BatchAccumulator`（spec 3016——Kafka 攒批双阈值；泛型）
 - `public final class TarjanSccFinder`（spec 3018——Tarjan SCC+环成员指认；迭代帧栈）
 - `public final class TwoChoiceSelector`（spec 3022——Power of Two Choices 两问取轻）
+- `public final class ObservedRemoveSet`（spec 3027——OR-Set CRDT 观察删除集；泛型；嵌套 `Tag`）
 - `public final class ConcurrencyGroupGate`（spec 2028——并发组互斥与取代；嵌套 `GroupOutcome`/`GroupStats`）
 - `public final class TickWheelTimer`（spec 2042——Netty 刻度轮纯逻辑版）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
@@ -72,6 +73,7 @@
 - `public final class KmpSearch`（spec 3014——KMP 失配函数子串搜索）
 - `public final class FenwickTree`（spec 3015——树状数组点更新/前缀和）
 - `public final class HoltForecaster`（spec 3021——Holt 水平+趋势双参数平滑预测）
+- `public final class RabinKarpSearch`（spec 3025——Rabin-Karp 滚动哈希搜索）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
 - `public final class ConfigDiff`（spec 719——生效配置三分类 diff 纯函数）
 - `public final class ForkLineageWalker`（spec 711——fork 谱系游走环防护）
@@ -141,6 +143,7 @@
 - `public final class GumbelMaxSampler`（spec 2049——免归一化 logits 采样）
 - `public final class NucleusSampler`（spec 3004——top-p 核采样：累积质量最小核+重归一）
 - `public final class JumpConsistentHash`（spec 3020——Google jump hash 零内存分桶）
+- `public final class GaussianSampler`（spec 3026——Box-Muller 高斯采样）
 - `public final class ConsistentHashRing`（spec 2025——Dynamo/Ketama 虚节点环最小迁移）
 - `public final class RequiredChecksRollup`（spec 2031——GitHub required checks 聚合；嵌套 `CheckState`/`Rollup`/`RollupStats`）
 - `public final class ToolValidationFeedback`
@@ -420,6 +423,7 @@
 - `public final class DecisionCache`（spec 2010——OPA 决策缓存：TTL 短路+LRU+invalidate；嵌套 `CacheStats`）
 - `public final class AdaptiveReplacementCache`（spec 3009——ARC 四链自适应替换；泛型 K/V）
 - `public final class TtlJitter`（spec 3019——TTL 按键确定性抖动防雷群）
+- `public final class ClockEviction`（spec 3028——CLOCK 二次机会驱逐；泛型）
 
 - `public class BuzhouGuardAutoConfiguration`
 - `public class BuzhouGuardHealthAutoConfiguration`
@@ -768,6 +772,7 @@
 - `public final class ChiSquareUniformity`（spec 2048——Pearson χ² 均匀性检验；嵌套 `ChiSquareResult`）
 - `public final class MultipleComparisonCorrection`（spec 2058——Bonferroni/Holm 族错误率；嵌套 `Verdict`）
 - `public final class FalseDiscoveryRate`（spec 2060——BH-FDR 截止序）
+- `public final class GrubbsOutlier`（spec 3024——Grubbs 单离群检验；嵌套 `Result`）
 - `EvalQueryService`（allRuns/runs/run/latestRun；只读）
 - `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
 

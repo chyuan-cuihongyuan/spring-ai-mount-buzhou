@@ -37,6 +37,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.AdaptiveReplacementCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ClockEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
@@ -69,6 +70,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JobDeadLetterLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LastWriteWinsRegister
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ObservedRemoveSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.OverwritingRingBuffer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PhiAccrualFailureDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityInversionExposure
@@ -183,6 +185,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FalseDiscoveryRate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GateThresholdSensitivity
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GrubbsOutlier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeAgreement
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeCalibration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgePositionBias
@@ -379,6 +382,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MorrisCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RabinKarpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
@@ -409,6 +413,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeL
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GaussianSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.JumpConsistentHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
