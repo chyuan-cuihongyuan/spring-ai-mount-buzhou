@@ -33,6 +33,7 @@
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
 - `public final class HysteresisWatermark`（spec 2036——Netty 高停低续迟滞门）
 - `public final class WarmupRamp`（spec 2044——Guava 预热斜坡乘数）
+- `public final class HierarchicalTokenBucket`（spec 2063——HTB 父顶硬顶双闸）
 - `public final class ScheduleFloat`（spec 1873——调度松弛量：CPM 双向 DP float=LS−ES）
 - `public record ToolTimeoutOverrideStats`（spec 1015——超时覆盖命中读面：hitsByPattern 0 = 幽灵覆盖配置）
 - `public final class ToolSlowLog`（spec 1001——工具慢调用榜：Redis SLOWLOG 严格阈值 + 有界 FIFO 环静态读面）
@@ -52,6 +53,7 @@
 - `public final class BoundedTopK`（spec 2055——小顶堆守门员流式 Top-K；嵌套 `Entry`/`TopKStats`）
 - `public final class FiveNumberSummary`（spec 2056——Tukey 五点+IQR 围栏；嵌套 `Summary`）
 - `public final class NgramExtractor`（spec 2054——n-gram 双口径特征）
+- `public final class SlidingExtremum`（spec 2061——单调队列滑窗极值）
 - `public final class DeterministicHash`（spec 2057——FNV+splitmix64 确定性散列公共件）
 - `public final class MinRttTracker`（spec 2015——BBR min-RTT 滑窗基线）
 - `public final class EwmaEstimator`（spec 2027——EWMA 指标平滑）
@@ -166,6 +168,8 @@
 - `public final class KeyCompaction`（spec 2014——Kafka 键压缩：maxSeq 胜+tombstone；嵌套 `Entry`/`CompactionResult`）
 - `public final class MaintenanceTrigger`（spec 2033——autovacuum 死数据清理触发双口径）
 - `public final class InSyncTracker`（spec 2037——Kafka ISR 追上时刻锚定）
+- `public final class SequenceOrder`（spec 2062——TCP 回绕序号安全比较；嵌套 `Order`）
+- `public final class ZOrderCurve`（spec 2064——Morton 位交织；嵌套 `Point`）
 - `public interface ToolSetProvider`
 - `public interface TurnContext`
 - `public interface TurnLoopContext`
@@ -744,6 +748,7 @@
 - `public final class WeightedSample`（spec 2051——Efraimidis-Spirakis 无放回抽样；嵌套 `Candidate`）
 - `public final class ChiSquareUniformity`（spec 2048——Pearson χ² 均匀性检验；嵌套 `ChiSquareResult`）
 - `public final class MultipleComparisonCorrection`（spec 2058——Bonferroni/Holm 族错误率；嵌套 `Verdict`）
+- `public final class FalseDiscoveryRate`（spec 2060——BH-FDR 截止序）
 - `EvalQueryService`（allRuns/runs/run/latestRun；只读）
 - `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
 
