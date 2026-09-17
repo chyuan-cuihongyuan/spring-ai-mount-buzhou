@@ -83,7 +83,9 @@ public final class NucleusSampler {
             probs[i] = Math.exp(logits[i] - max);
             sum += probs[i];
         }
-        if (sum <= 0) {
+        if (!(sum > 0)) {
+            // NaN 安全：全 −∞ 时 −∞−(−∞)=NaN，sum<=0 对 NaN 恒 false 漏抛——
+            // 反向判定 !（sum>0）把 NaN 一并拒掉
             throw new IllegalArgumentException("全 −∞ logits 无可采样质量");
         }
         for (int i = 0; i < probs.length; i++) {
