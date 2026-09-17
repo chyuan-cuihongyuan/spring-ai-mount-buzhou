@@ -31,6 +31,8 @@
 - `public final class DisjointSet`（spec 3002——Union-Find 路径减半+按秩合并）
 - `public final class EdfScheduler`（spec 3003——EDF 最早截止期序+同刻 FIFO；嵌套 `Pending`）
 - `public final class HybridLogicalClock`（spec 3007——CockroachDB HLC 混合逻辑时钟；嵌套 `Hlc`）
+- `public final class TopologicalSorter`（spec 3012——Kahn 拓扑序+环诚实；嵌套 `SortResult`）
+- `public final class BatchAccumulator`（spec 3016——Kafka 攒批双阈值；泛型）
 - `public final class ConcurrencyGroupGate`（spec 2028——并发组互斥与取代；嵌套 `GroupOutcome`/`GroupStats`）
 - `public final class TickWheelTimer`（spec 2042——Netty 刻度轮纯逻辑版）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
@@ -64,6 +66,9 @@
 - `public final class PSquareQuantile`（spec 3006——P² 五标记流式分位）
 - `public final class MorrisCounter`（spec 3008——概率计数 log log n 空间）
 - `public final class MinHashSketch`（spec 3010——k 路最小哈希 Jaccard 素描）
+- `public final class SweepLineIntervals`（spec 3013——区间并发峰值扫线；嵌套 `Interval`/`SweepResult`）
+- `public final class KmpSearch`（spec 3014——KMP 失配函数子串搜索）
+- `public final class FenwickTree`（spec 3015——树状数组点更新/前缀和）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
 - `public final class ConfigDiff`（spec 719——生效配置三分类 diff 纯函数）
 - `public final class ForkLineageWalker`（spec 711——fork 谱系游走环防护）

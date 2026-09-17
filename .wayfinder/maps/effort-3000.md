@@ -51,6 +51,7 @@
 | R15 | #3014 | KMP 字符串搜索（Knuth-Morris-Pratt 失配函数思想） | T5029–T5030 | 2015 | ✅ |
 | R16 | #3015 | Fenwick 树（Binary Indexed Tree lowbit 思想） | T5031–T5032 | 2016 | ✅ |
 | R17 | #3016 | 批量攒批器（Kafka producer size+linger 双阈值思想） | T5033–T5034 | 2017 | ✅ |
+| R18 | #3017 | 对账轮（快照 +5（1065→1070）+ 全仓 verify 三门绿 + push；18/150=12%） | T5035–T5036 | 2018 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
