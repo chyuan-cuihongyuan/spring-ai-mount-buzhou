@@ -74,6 +74,7 @@
 | R38 | #3037 | lag-k 自相关（Box-Jenkins ACF 思想） | T5075–T5076 | 2038 | ✅ |
 | R39 | #3038 | top-k+温度采样（LLM 双旋钮思想） | T5077–T5078 | 2039 | ✅ |
 | R40 | #3039 | varint 编解码（Protobuf zigzag+LEB128 思想） | T5079–T5080 | 2040 | ✅ |
+| R41 | #3040 | 时间戳锁仲裁器（Rosenkrantz wait-die/wound-wait 思想） | T5081–T5082 | 2041 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
