@@ -67,6 +67,7 @@
 | R31 | #3030 | 时间轮定时器（Netty/Kafka hashed wheel 思想） | T5061–T5062 | 2031 | ✅ |
 | R32 | #3031 | 虚拟运行时间公平队列（Linux CFS vruntime 思想） | T5063–T5064 | 2032 | ✅ |
 | R33 | #3032 | Maglev 哈希（Google Maglev LB 置换表思想） | T5065–T5066 | 2033 | ✅ |
+| R34 | #3033 | 2Q 双队列缓存（Johnson-Shasha 二触分诊思想） | T5067–T5068 | 2034 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
