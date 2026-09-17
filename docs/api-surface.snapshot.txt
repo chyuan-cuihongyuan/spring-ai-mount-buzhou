@@ -40,6 +40,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TtlJitter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
@@ -75,9 +76,11 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ReplicatedCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.StartupGraceTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SuperstepBatch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TarjanSccFinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreaker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreakerHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TopologicalSorter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TwoChoiceSelector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.Ucb1Selector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VectorClockOrder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WaitForReadyGate
@@ -362,6 +365,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FenwickTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FiveNumberSummary
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FrequencySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HllCardinalitySketch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltForecaster
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KmpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
@@ -406,6 +410,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.JumpConsistentHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.NucleusSampler
