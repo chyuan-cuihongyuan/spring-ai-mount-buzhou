@@ -35,6 +35,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.PricingTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.AdaptiveReplacementCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
@@ -61,6 +62,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DisjointSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GraceAwareFailureDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptiveLimiter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.HybridLogicalClock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JobDeadLetterLog
@@ -364,8 +366,11 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessHold
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricFreshnessTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MetricNameAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MicrometerBuzhouMetrics
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinHashSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MorrisCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
