@@ -42,6 +42,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TtlJitter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TwoQueueCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
@@ -65,6 +66,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DisjointSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GraceAwareFailureDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptiveLimiter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.HashedWheelTimers
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.HybridLogicalClock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
@@ -85,6 +87,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TopologicalSorte
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TwoChoiceSelector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.Ucb1Selector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VectorClockOrder
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VirtualRuntimeQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WaitForReadyGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WeightedRouter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BulkheadScalingProperties
@@ -359,6 +362,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CrostonForecaster
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
@@ -417,6 +421,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GaussianSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.JumpConsistentHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.MaglevHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.NucleusSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider
