@@ -28,6 +28,8 @@
 - `public final class PreemptionLedger`（spec 2012——抢占双面账：浪费/节省/净收益；嵌套 `PreemptionStats`）
 - `public final class AgingPriorityQueue`（spec 2024——OS aging 反饥饿：等待生息有效优先级）
 - `public final class WeightedFairScheduler`（spec 2026——DRR 加权公平：粘性轮内消费）
+- `public final class DisjointSet`（spec 3002——Union-Find 路径减半+按秩合并）
+- `public final class EdfScheduler`（spec 3003——EDF 最早截止期序+同刻 FIFO；嵌套 `Pending`）
 - `public final class ConcurrencyGroupGate`（spec 2028——并发组互斥与取代；嵌套 `GroupOutcome`/`GroupStats`）
 - `public final class TickWheelTimer`（spec 2042——Netty 刻度轮纯逻辑版）
 - `public final class BurstCreditAccount`（spec 1872——突发信用账户：蓄水封顶+透支+枯竭降速）
@@ -57,6 +59,7 @@
 - `public final class DeterministicHash`（spec 2057——FNV+splitmix64 确定性散列公共件）
 - `public final class MinRttTracker`（spec 2015——BBR min-RTT 滑窗基线）
 - `public final class EwmaEstimator`（spec 2027——EWMA 指标平滑）
+- `public final class WelfordAccumulator`（spec 3001——Welford 在线均值/方差+Chan 合并）
 - `public final class ExponentialWindowCounter`（spec 2002——指数直方图滑窗计数：O(log N) 空间 + 误差自描述）
 - `public final class ConfigDiff`（spec 719——生效配置三分类 diff 纯函数）
 - `public final class ForkLineageWalker`（spec 711——fork 谱系游走环防护）
@@ -124,6 +127,7 @@
 - `public final class FlagEvaluator`（spec 2009——OpenFeature 五态求值永不抛；嵌套 `Reason`/`FlagResolution`/`FlagDefinition`）
 - `public final class QosClassifier`（spec 2019——K8s QoS 三级声明分级；嵌套 `QosClass`/`ResourceRequest`）
 - `public final class GumbelMaxSampler`（spec 2049——免归一化 logits 采样）
+- `public final class NucleusSampler`（spec 3004——top-p 核采样：累积质量最小核+重归一）
 - `public final class ConsistentHashRing`（spec 2025——Dynamo/Ketama 虚节点环最小迁移）
 - `public final class RequiredChecksRollup`（spec 2031——GitHub required checks 聚合；嵌套 `CheckState`/`Rollup`/`RollupStats`）
 - `public final class ToolValidationFeedback`

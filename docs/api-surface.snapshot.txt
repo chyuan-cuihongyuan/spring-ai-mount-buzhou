@@ -57,6 +57,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReloa
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DisjointSet
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GraceAwareFailureDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptiveLimiter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkheadStateBackend
@@ -370,6 +372,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TextDistance
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WelfordAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventOrderAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPairingAudit
@@ -395,6 +398,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.NucleusSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyLayerAttribution
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QosClassifier
