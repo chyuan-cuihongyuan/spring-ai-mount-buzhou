@@ -724,6 +724,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 过程治理 | P 系 R66 周期对账 | Wave 11 五新类型快照补登（1051→1056，CONTEXT 950→955——BH-FDR/单调队列/回绕序号/层级令牌桶/Z 序）+ 全仓 verify 三门绿（十一波连续）（spec 2065） | [spec 2065](docs/spec/2065-p-r66-reconciliation.md) |
 | 过程治理 | Q 系 R1 对账门落位 | QSession3000LedgerAuditTest 四面互证（spec 3000–3149 ↔ README 行 ↔ T5001+2(N−3000) 票对 ↔ impl 2001+(N−3000)，起点 3000 严格递增；P 系公式族第四应用）+ 3000 系总图开图（150 轮号段 fetch+本地双查后声明；P 雾区候选静脉不抢、P 余量号段不占）（spec 3000） | [spec 3000](docs/spec/3000-q-ledger-audit.md) |
 | 观测计量 | Welford 在线方差 | WelfordAccumulator——流式均值/方差单遍稳定（Welford 增量算法思想）：add 递推 mean/m2（delta 双用——先修均值再修矩）免「Σx²−n·mean²」两大数相抵（1e9 基线毫秒抖动场景朴素公式精度崩塌的根治）+merge Chan 并合并（分片各自累计后 pairwise 合并数学等价单遍全量，空侧双向恒等/交换律）+双分母口径（样本 n−1/总体 n）+空态/单点 NaN 诚实边界——与五数概括/EWMA 成分布刻画三件（spec 3001） | [spec 3001](docs/spec/3001-welford-variance.md) |
+| 并发治理 | 并查集 | DisjointSet——动态等价类传递闭包均摊近常量（Union-Find 路径减半+按秩合并思想，Tarjan α(n)）：union 声明同源（冗余合并 false 不动账面）+find 同根即连通（A=B、B=C ⇒ A=C 免 O(n²) 重扫）+componentCount 守恒读数+sizeOf 聚合+越界/容量 0 fail-fast——会话归并/重复键消解的地基件，与向量时钟（判先后）互补（本件判同源）（spec 3002） | [spec 3002](docs/spec/3002-disjoint-set.md) |
 | 技能治理 | Skill 管理操作读面 | create/update/publish/disable/delete 五操作独立计数显形（spec 1085） | [spec 1085](docs/spec/1085-skilladmin-stats.md) |
 | 跑飞防护 | Runaway 预算 hook 判定读面 | 三硬顶终止/放行/禁用守恒显形（spec 1076） | [spec 1076](docs/spec/1076-runaway-stats.md) |
 | 溢出治理 | read_range 回读判定读面 | 回读量与截断率分桶显形，五桶守恒（spec 1062） | [spec 1062](docs/spec/1062-readrange-stats.md) |
