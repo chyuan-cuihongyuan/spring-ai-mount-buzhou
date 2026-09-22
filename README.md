@@ -1303,6 +1303,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R96 对账轮 | 快照补登前置第十六例行（五类型 1101→1106）+ 全仓离线 verify 绿 + Wave 17 排程（spec 1895） | [spec 1895](docs/spec/1895-o-r96-reconciliation.md) |
 | 清理治理 | 事务号余量分级 | XidHeadroomGuard——urgency 四级判定（OK/WARN/CRITICAL/EXHAUSTED 边界含上）+headroom 余量读数超发负值诚实显示——Postgres xid wraparound 防线，单调编号耗尽前清理窗口有刻度（spec 1896） | [spec 1896](docs/spec/1896-xid-headroom-guard.md) |
 | 提示词工程 | 多类型载荷预算分账 | PayloadBudgetSplit——加权水填分配（轮级公平份额、小需求完整退出余量回流）+Allocation 逐类授予与 unmetDemand 合计——HTTP/2 流控水填语义，多模态共享预算「按需取用余量均摊」（spec 1897） | [spec 1897](docs/spec/1897-payload-budget-split.md) |
+| 缓存基建 | LRU-K 驱逐 | LruKEviction——倒数第 K 次访问最早者先逐+历史不足 K 视作 -∞ 新键先让路+K=1 平滑退化 LRU——Postgres 缓冲池语义，顺序扫描不再冲出热数据（扫描抗性）（spec 1898） | [spec 1898](docs/spec/1898-lru-k-eviction.md) |
 
 ## 快速开始
 
