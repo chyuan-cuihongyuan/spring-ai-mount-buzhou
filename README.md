@@ -1291,6 +1291,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R84 对账轮 | 快照补登前置第十四例行（五类型 1091→1096）+ 撞坑三连入档（两随机/Holt/预热均被并行会话占坑换静脉）+ 全仓离线 verify + Wave 15 排程（spec 1883） | [spec 1883](docs/spec/1883-o-r84-reconciliation.md) |
 | 模型韧性 | 滑动窗口计数器 | SlidingWindowCounter——两固定窗计数流逝比插值（prev×(1−r)+curr 本窗全计保守口径）+wouldExceed 满额拒绝准入——Cloudflare sliding window counter 语义，固定窗边界突发被上窗惯性修正且零状态（spec 1884） | [spec 1884](docs/spec/1884-sliding-window-counter.md) |
 | 并发治理 | 自保模式门 | SelfPreservationGate——续约率低于阈值停逐过期/达标自动退出+renewalRatio 读数+边界恰等正常逐——Eureka self-preservation 语义，分区期间「宁保数据不逐实例」防重启风暴（spec 1885） | [spec 1885](docs/spec/1885-self-preservation-gate.md) |
+| 认知可观测 | 时钟偏斜校正 | ClockSkewClamp——负偏斜平移起点时长保持→终点越界收缩下限 0 两级钳位+skewApplied 偏斜量+skewMillis 读数——Zipkin/Brave span 偏斜校正语义，观测树包含关系失真确定性修复（spec 1886） | [spec 1886](docs/spec/1886-clock-skew-clamp.md) |
 
 ## 快速开始
 
