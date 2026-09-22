@@ -1305,6 +1305,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 提示词工程 | 多类型载荷预算分账 | PayloadBudgetSplit——加权水填分配（轮级公平份额、小需求完整退出余量回流）+Allocation 逐类授予与 unmetDemand 合计——HTTP/2 流控水填语义，多模态共享预算「按需取用余量均摊」（spec 1897） | [spec 1897](docs/spec/1897-payload-budget-split.md) |
 | 缓存基建 | LRU-K 驱逐 | LruKEviction——倒数第 K 次访问最早者先逐+历史不足 K 视作 -∞ 新键先让路+K=1 平滑退化 LRU——Postgres 缓冲池语义，顺序扫描不再冲出热数据（扫描抗性）（spec 1898） | [spec 1898](docs/spec/1898-lru-k-eviction.md) |
 | 清理治理 | 乱序接纳窗 | OutOfOrderWindow——水位−窗宽三态判定（FRESH/LATE_ACCEPTED 就地接纳/TOO_OLD 拒收窗沿含下）+advance 水位取大单调——QuestDB out-of-order 语义，乱序容忍与定稿速度可换挡（spec 1899） | [spec 1899](docs/spec/1899-out-of-order-window.md) |
+| 清理治理 | 合并压力读面 | MergePressureReadout——pressure 活跃段/建议上限占比+verdict 三态（OK/WARN/REJECT 含上）+shouldRejectInsert 硬阀独立安全阀——ClickHouse too many parts 语义，写入碎片堆积有刻度拒绝不突袭（spec 1900） | [spec 1900](docs/spec/1900-merge-pressure-readout.md) |
 
 ## 快速开始
 
