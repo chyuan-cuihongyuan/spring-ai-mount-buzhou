@@ -1292,6 +1292,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 模型韧性 | 滑动窗口计数器 | SlidingWindowCounter——两固定窗计数流逝比插值（prev×(1−r)+curr 本窗全计保守口径）+wouldExceed 满额拒绝准入——Cloudflare sliding window counter 语义，固定窗边界突发被上窗惯性修正且零状态（spec 1884） | [spec 1884](docs/spec/1884-sliding-window-counter.md) |
 | 并发治理 | 自保模式门 | SelfPreservationGate——续约率低于阈值停逐过期/达标自动退出+renewalRatio 读数+边界恰等正常逐——Eureka self-preservation 语义，分区期间「宁保数据不逐实例」防重启风暴（spec 1885） | [spec 1885](docs/spec/1885-self-preservation-gate.md) |
 | 认知可观测 | 时钟偏斜校正 | ClockSkewClamp——负偏斜平移起点时长保持→终点越界收缩下限 0 两级钳位+skewApplied 偏斜量+skewMillis 读数——Zipkin/Brave span 偏斜校正语义，观测树包含关系失真确定性修复（spec 1886） | [spec 1886](docs/spec/1886-clock-skew-clamp.md) |
+| 指标治理 | 窃取时间读面 | StealTimeReadout——Δsteal/Δtotal 两采样差分占比+isContended 阈值判定+零流逝哨兵 0.0——Linux steal time 语义，宿主超卖下「CPU 不忙但慢」的唯一可见信号账面化（spec 1887） | [spec 1887](docs/spec/1887-steal-time-readout.md) |
 
 ## 快速开始
 
