@@ -1304,6 +1304,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 清理治理 | 事务号余量分级 | XidHeadroomGuard——urgency 四级判定（OK/WARN/CRITICAL/EXHAUSTED 边界含上）+headroom 余量读数超发负值诚实显示——Postgres xid wraparound 防线，单调编号耗尽前清理窗口有刻度（spec 1896） | [spec 1896](docs/spec/1896-xid-headroom-guard.md) |
 | 提示词工程 | 多类型载荷预算分账 | PayloadBudgetSplit——加权水填分配（轮级公平份额、小需求完整退出余量回流）+Allocation 逐类授予与 unmetDemand 合计——HTTP/2 流控水填语义，多模态共享预算「按需取用余量均摊」（spec 1897） | [spec 1897](docs/spec/1897-payload-budget-split.md) |
 | 缓存基建 | LRU-K 驱逐 | LruKEviction——倒数第 K 次访问最早者先逐+历史不足 K 视作 -∞ 新键先让路+K=1 平滑退化 LRU——Postgres 缓冲池语义，顺序扫描不再冲出热数据（扫描抗性）（spec 1898） | [spec 1898](docs/spec/1898-lru-k-eviction.md) |
+| 清理治理 | 乱序接纳窗 | OutOfOrderWindow——水位−窗宽三态判定（FRESH/LATE_ACCEPTED 就地接纳/TOO_OLD 拒收窗沿含下）+advance 水位取大单调——QuestDB out-of-order 语义，乱序容忍与定稿速度可换挡（spec 1899） | [spec 1899](docs/spec/1899-out-of-order-window.md) |
 
 ## 快速开始
 
