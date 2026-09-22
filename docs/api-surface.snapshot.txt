@@ -394,6 +394,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MorrisCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.QuantileAggregationBias
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RabinKarpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
@@ -402,7 +403,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.StealTimeReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SweepLineIntervals
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TailAmplification
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TextDistance
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WaitProfileAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WelfordAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.ClockSkewClamp
@@ -440,6 +443,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyLayerAttribution
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QosClassifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QuotaAlarmGate
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RampProfile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RequiredChecksRollup
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchDecision
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchStats
@@ -626,6 +630,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.CharHeuristicTokenEst
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowResolver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.HalfMessageAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.IdempotencyKeyGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.InstrumentedUnitOfWork
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.QuorumConsistency
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.WriteSkewDetector

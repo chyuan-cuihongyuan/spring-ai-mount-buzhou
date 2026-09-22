@@ -120,7 +120,13 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R93 | #1892 | 阶梯加压计划（k6/Gatling ramping stages 语义） | T2985–T2986 | 1493 | ✅ |
 | R94 | #1893 | 幂等键指纹（Stripe idempotency-key 存储语义） | T2987–T2988 | 1494 | ✅ |
 | R95 | #1894 | 尾时延放大读面（Go/reddit tail amplification 惯例） | T2989–T2990 | 1495 | ✅ |
-| R96 | #1895 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2991–T2992 | 1496 | ⬜ |
+| R96 | #1895 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2991–T2992 | 1496 | ✅ |
+| R97 | #1896 | 缩放稳定窗（K8s HPA stabilization window 语义） | T2993–T2994 | 1497 | ⬜ |
+| R98 | #1897 | 告警抑制规则（Alertmanager 同标签高低级抑制语义） | T2995–T2996 | 1498 | ⬜ |
+| R99 | #1898 | LRU-K 驱逐（Postgres 缓存扫描抗性语义） | T2997–T2998 | 1499 | ⬜ |
+| R100 | #1899 | 乱序接纳窗（QuestDB 最近数据乱序容忍语义） | T2999–T3000 | 1500 | ⬜ |
+| R101 | #1900 | 合并压力读面（ClickHouse too many parts 语义） | T3001–T3002 | 1501 | ⬜ |
+| R102 | #1901 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T3003–T3004 | 1502 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
