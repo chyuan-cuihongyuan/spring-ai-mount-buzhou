@@ -39,6 +39,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.AdaptiveReplacementCa
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ClockEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.LruKEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ScanCursorCodec
@@ -393,6 +394,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinHashSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MorrisCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.OutOfOrderWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.QuantileAggregationBias
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RabinKarpSearch
@@ -450,6 +452,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.TopKSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PayloadBudgetSplit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistrySnapshot
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptTemplate
@@ -470,6 +473,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.GapBackfillPlanner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.InSyncTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.KeyCompaction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.MaintenanceTrigger
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.MergePressureReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRecoveryService
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RunRegistry
@@ -482,6 +486,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallLogEntry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcome
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ToolCallOutcomeStats
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.XidHeadroomGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.ZOrderCurve
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.AdvisoryFileLock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.retention.ArchivePurgeJob

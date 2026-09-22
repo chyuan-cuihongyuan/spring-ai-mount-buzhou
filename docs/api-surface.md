@@ -2742,3 +2742,5 @@
 - `RampProfile`（policy 域——压测负载曲线台阶插值与声明）
 - `IdempotencyKeyGuard`（transaction 域——幂等键三态判定与 TTL）
 - `TailAmplification`（metrics 域——并行扇出分位幂次放大与 SLO 反解）
+- `OutOfOrderWindow`（metrics 域——迟到数据三态接纳窗；嵌套 `Accept` 不另立面）
+- `MergePressureReadout`（recovery 域——合并积压压力刻度与插入硬阀；嵌套 `Pressure` 不另立面）
