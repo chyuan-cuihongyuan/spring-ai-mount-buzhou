@@ -1302,6 +1302,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 尾时延放大读面 | TailAmplification——endToEndProbability q^N 幂次放大+requiredPerBoxQuantile SLO 反解单盒分位——The Tail at Scale 语义，q=0.99×100 盒→端到端仅 36.6%，单盒 99 分位挡不住大面积慢（spec 1894） | [spec 1894](docs/spec/1894-tail-amplification.md) |
 | 工程治理 | O 系 R96 对账轮 | 快照补登前置第十六例行（五类型 1101→1106）+ 全仓离线 verify 绿 + Wave 17 排程（spec 1895） | [spec 1895](docs/spec/1895-o-r96-reconciliation.md) |
 | 清理治理 | 事务号余量分级 | XidHeadroomGuard——urgency 四级判定（OK/WARN/CRITICAL/EXHAUSTED 边界含上）+headroom 余量读数超发负值诚实显示——Postgres xid wraparound 防线，单调编号耗尽前清理窗口有刻度（spec 1896） | [spec 1896](docs/spec/1896-xid-headroom-guard.md) |
+| 提示词工程 | 多类型载荷预算分账 | PayloadBudgetSplit——加权水填分配（轮级公平份额、小需求完整退出余量回流）+Allocation 逐类授予与 unmetDemand 合计——HTTP/2 流控水填语义，多模态共享预算「按需取用余量均摊」（spec 1897） | [spec 1897](docs/spec/1897-payload-budget-split.md) |
 
 ## 快速开始
 
