@@ -2734,3 +2734,8 @@
 - `CoordinatedOmissionAudit`（metrics 域——协同遗漏阶梯补账四读数）
 - `ErasureCodingBudget`（policy 域——EC(k,m) 冗余四读数）
 - `QuotaAlarmGate`（policy 域——etcd NOSPACE 写拒读放显式恢复门）
+- `SlidingWindowCounter`（ratelimit 域——两固定窗插值滑窗速率与准入判定）
+- `SelfPreservationGate`（concurrent 域——续约率阈值自保停逐门）
+- `ClockSkewClamp`（observability 域——父子区间偏斜两级钳位；嵌套 `ClampedSpan` 不另立面）
+- `StealTimeReadout`（metrics 域——窃取时间差分占比与争用判定）
+- `PoolSizeHeuristic`（concurrent 域——连接池容量公式与预算拆分）

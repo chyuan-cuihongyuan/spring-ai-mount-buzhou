@@ -114,7 +114,13 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R87 | #1886 | 时钟偏斜校正（Zipkin 父子 span 钳位语义） | T2973–T2974 | 1487 | ✅ |
 | R88 | #1887 | 窃取时间读面（Linux CPU steal 虚拟化争用语义） | T2975–T2976 | 1488 | ✅ |
 | R89 | #1888 | 连接池容量启发（HikariCP cores×2+spindles 公式） | T2977–T2978 | 1489 | ✅ |
-| R90 | #1889 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2979–T2980 | 1490 | ⬜ |
+| R90 | #1889 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2979–T2980 | 1490 | ✅ |
+| R91 | #1890 | 阻塞期审计（Oracle busy-wait vs blocking wait 语义） | T2981–T2982 | 1491 | ⬜ |
+| R92 | #1891 | 分位数聚合偏差审计（Prometheus/M3 分位不可加语义；卡方已被占坑换静脉） | T2983–T2984 | 1492 | ⬜ |
+| R93 | #1892 | 阶梯加压计划（k6/Gatling ramping stages 语义） | T2985–T2986 | 1493 | ⬜ |
+| R94 | #1893 | 幂等键指纹（Stripe idempotency-key 存储语义） | T2987–T2988 | 1494 | ⬜ |
+| R95 | #1894 | 尾时延放大读面（Go/reddit tail amplification 惯例） | T2989–T2990 | 1495 | ⬜ |
+| R96 | #1895 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2991–T2992 | 1496 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

@@ -76,9 +76,11 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LastWriteWinsReg
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ObservedRemoveSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.OverwritingRingBuffer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PhiAccrualFailureDetector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PoolSizeHeuristic
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityInversionExposure
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ReplicatedCounter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SelfPreservationGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.StartupGraceTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SuperstepBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TarjanSccFinder
@@ -397,11 +399,13 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.StealTimeReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SweepLineIntervals
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TextDistance
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WelfordAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.ClockSkewClamp
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventOrderAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPairingAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventPayloadSizeAudit
@@ -452,6 +456,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersion
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptVersionDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.RollbackUsageStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.UsageTrackingPromptRegistry
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.SlidingWindowCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.TurnRateLimitHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.ratelimit.ViolationEpisodeMerger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.AntiEntropyDivergence

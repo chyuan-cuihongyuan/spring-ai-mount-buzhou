@@ -1294,6 +1294,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 认知可观测 | 时钟偏斜校正 | ClockSkewClamp——负偏斜平移起点时长保持→终点越界收缩下限 0 两级钳位+skewApplied 偏斜量+skewMillis 读数——Zipkin/Brave span 偏斜校正语义，观测树包含关系失真确定性修复（spec 1886） | [spec 1886](docs/spec/1886-clock-skew-clamp.md) |
 | 指标治理 | 窃取时间读面 | StealTimeReadout——Δsteal/Δtotal 两采样差分占比+isContended 阈值判定+零流逝哨兵 0.0——Linux steal time 语义，宿主超卖下「CPU 不忙但慢」的唯一可见信号账面化（spec 1887） | [spec 1887](docs/spec/1887-steal-time-readout.md) |
 | 并发治理 | 连接池容量启发 | PoolSizeHeuristic——optimalSize cores×2+spindles 公式+splitBudget 预算均衡拆分余数摊平+saturationRatio 饱和度读数——HikariCP wiki 反直觉结论，连接数超过线程可驱动数只会更慢（spec 1888） | [spec 1888](docs/spec/1888-pool-size-heuristic.md) |
+| 工程治理 | O 系 R90 对账轮 | 快照补登前置第十五例行（五类型 1096→1101）+ 全仓离线 verify 绿 + 90/150=60% 里程碑 + Wave 16 排程（spec 1889） | [spec 1889](docs/spec/1889-o-r90-reconciliation.md) |
 
 ## 快速开始
 
