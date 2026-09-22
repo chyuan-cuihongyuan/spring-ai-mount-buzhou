@@ -113,7 +113,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R86 | #1885 | 自保模式门（Eureka 续约率阈值停逐语义） | T2971–T2972 | 1486 | ✅ |
 | R87 | #1886 | 时钟偏斜校正（Zipkin 父子 span 钳位语义） | T2973–T2974 | 1487 | ✅ |
 | R88 | #1887 | 窃取时间读面（Linux CPU steal 虚拟化争用语义） | T2975–T2976 | 1488 | ✅ |
-| R89 | #1888 | 连接池容量启发（HikariCP cores×2+spindles 公式） | T2977–T2978 | 1489 | ⬜ |
+| R89 | #1888 | 连接池容量启发（HikariCP cores×2+spindles 公式） | T2977–T2978 | 1489 | ✅ |
 | R90 | #1889 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2979–T2980 | 1490 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
