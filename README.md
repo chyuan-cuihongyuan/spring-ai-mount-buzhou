@@ -1281,6 +1281,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 流式中位数保持器 | MedianKeeper——双堆对半结构（大顶+小顶，不变量：小半顶≤大半顶、差≤1）：add O(log n) 平衡、median O(1)（奇小半顶/偶双顶均值，空 -1 哨兵）——双堆经典结构思想，观测流当前中枢不再全量重排、长尾不拉走（spec 1869） | [spec 1869](docs/spec/1869-median-keeper.md) |
 | 工具执行 | 固定间隔下次触发 | NextFireSchedule——触发点钉在 epoch+k×interval 网格（停机不漂移：重启后 now=250 间隔 100 下次 300 非 350）+missedFires (lastAcked,now] 格点数补账显式——crontab/systemd timer 网格语义思想（spec 1870） | [spec 1870](docs/spec/1870-next-fire-schedule.md) |
 | 工程治理 | O 系 R72 对账轮 | 快照补登前置第十二例行（R67–R71 五类型：牺牲率/关键路径/区间调度/流式中位/网格触发）+ 全仓 clean verify + 十二波节奏稳定 + 逼近半程（spec 1871） | [spec 1871](docs/spec/1871-o-r72-reconciliation.md) |
+| 事务语义 | 法定人数一致性 | QuorumConsistency——R+W>N 强一致判定（读集写集必交）+overlapCount 交集数（负值钳 0=无保证）+读写可容忍故障余量+consistentAvailability 一致性可用余量——Dynamo/Cassandra quorum 交集语义，配置前有账评审有据（spec 1876） | [spec 1876](docs/spec/1876-quorum-consistency.md) |
 
 ## 快速开始
 
