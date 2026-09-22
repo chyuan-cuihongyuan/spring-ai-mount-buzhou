@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.metrics;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -13,6 +14,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 字典序）；kind 前缀隔离。借鉴：Sentry fingerprint。
  */
 class ErrorSignaturesTest {
+
+    @BeforeEach
+    void clearGlobal() {
+        // 前置清场：套件里更早的装配/会话测试会往 global 记签名——
+        // 「global 为空」的隔离断言须顺序无关
+        ErrorSignatures.global().reset();
+    }
 
     @AfterEach
     void cleanup() {

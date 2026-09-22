@@ -1,6 +1,7 @@
 package io.github.chyuan_cuihongyuan.buzhou.core.metrics;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -16,8 +17,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class MetricFreshnessHolderTest {
 
+    @BeforeEach
     @AfterEach
     void reset() {
+        // 前置清场：套件里更早的 Spring 上下文测试（BuzhouCoreAutoConfiguration
+        // 装配链）会往全局 Holder 注入 tracker——隔离断言须顺序无关
         MetricFreshnessHolder.install(null);
     }
 

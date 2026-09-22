@@ -2,7 +2,9 @@ package io.github.chyuan_cuihongyuan.buzhou.tools.command;
 
 import io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.condition.OS;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +15,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * impl-49 / spec 14 §E 加固面测试：取消路径杀整棵进程树、环境变量白名单。
+ * 探针命令走 POSIX 工具链（env/cut/tr/sleep，经 /bin/sh 起进程）——
+ * Windows 无 /bin/sh（CreateProcess error=2），仅 Unix 族启用。
  */
+@EnabledOnOs({OS.LINUX, OS.MAC})
 class RunCommandHardeningTest {
 
     @TempDir

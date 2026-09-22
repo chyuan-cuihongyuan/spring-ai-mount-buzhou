@@ -31,8 +31,8 @@ class TenantSandboxTest {
         assertThatThrownBy(() -> alpha.resolveForWrite("../tenants/beta/attack"))
                 .isInstanceOf(SandboxViolationException.class);
 
-        // 本租户内合法路径：落在 tenants/alpha 下
-        assertThat(alpha.root().toString()).endsWith("tenants/alpha");
+        // 本租户内合法路径：落在 tenants/alpha 下（分隔符归一到 '/'——Windows '\'）
+        assertThat(alpha.root().toString().replace('\\', '/')).endsWith("tenants/alpha");
         assertThat(alpha.resolve("notes/2026.txt").startsWith(alpha.root())).isTrue();
         assertThat(alpha.resolve("notes.txt").startsWith(alpha.root())).isTrue();
     }
@@ -54,13 +54,13 @@ class TenantSandboxTest {
         assertThatThrownBy(() -> FileSandbox.forTenant(Path.of("."), "-lead"))
                 .isInstanceOf(IllegalArgumentException.class); // 首字符必须字母数字
 
-        // 合法面：单字符、连字符、32 位封顶
-        assertThat(FileSandbox.forTenant(Path.of("."), "a").root().toString())
-                .endsWith("tenants/a");
-        assertThat(FileSandbox.forTenant(Path.of("."), "tenant-01").root().toString())
-                .endsWith("tenants/tenant-01");
-        assertThat(FileSandbox.forTenant(Path.of("."), "x".repeat(32)).root().toString())
-                .endsWith("tenants/" + "x".repeat(32));
+        // 合法面：单字符、连字符、32 位封顶（分隔符归一到 '/'——Windows '\'）
+        assertThat(FileSandbox.forTenant(Path.of("."), "a").root().toString()
+                .replace('\\', '/')).endsWith("tenants/a");
+        assertThat(FileSandbox.forTenant(Path.of("."), "tenant-01").root().toString()
+                .replace('\\', '/')).endsWith("tenants/tenant-01");
+        assertThat(FileSandbox.forTenant(Path.of("."), "x".repeat(32)).root().toString()
+                .replace('\\', '/')).endsWith("tenants/" + "x".repeat(32));
     }
 
     @Test

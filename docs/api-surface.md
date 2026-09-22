@@ -2728,3 +2728,4 @@
   不另立面）
 - `MedianKeeper`（metrics 域——双堆流式中位数）
 - `NextFireSchedule`（exec 域——网格触发与补账）
+- `QuorumConsistency`（transaction 域——法定人数四读数：强一致判定/交集/容错余量/一致性可用余量）

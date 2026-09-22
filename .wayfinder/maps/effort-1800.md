@@ -102,7 +102,13 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R75 | #1874 | 正则风险审计（OWASP ReDoS/SafeRegex 惯例） | T2949–T2950 | 1475 | ✅ |
 | R76 | #1875 | 级联失败暴露读面（Hystrix 舱壁思想源头） | T2951–T2952 | 1476 | ✅ |
 | R77 | #1876 | 法定人数一致性（Dynamo/Cassandra quorum 交集语义） | T2953–T2954 | 1477 | ✅ |
-| R78 | #1877 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2955–T2956 | 1478 | ⬜ |
+| R78 | #1877 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2955–T2956 | 1478 | ✅ |
+| R79 | #1878 | 两次随机选择（Power of Two Choices 负载均衡） | T2957–T2958 | 1479 | ⬜ |
+| R80 | #1879 | 协同遗漏校正审计（Gil Tene Coordinated Omission 思想） | T2959–T2960 | 1480 | ⬜ |
+| R81 | #1880 | Holt 趋势预测（Holt-Winters 双参数平滑思想） | T2961–T2962 | 1481 | ⬜ |
+| R82 | #1881 | 冷启动预热放行（Guava RateLimiter/Sentinel warm-up 思想） | T2963–T2964 | 1482 | ⬜ |
+| R83 | #1882 | Wave 14 弹性位 E（前沿 grep 复核后定题） | T2965–T2966 | 1483 | ⬜ |
+| R84 | #1883 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2967–T2968 | 1484 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

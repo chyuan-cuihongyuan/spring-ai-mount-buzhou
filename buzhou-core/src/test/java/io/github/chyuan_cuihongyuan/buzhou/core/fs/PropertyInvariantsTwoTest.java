@@ -32,7 +32,9 @@ class PropertyInvariantsTwoTest {
     void validTenantRootsIsolated() {
         String good = randomGoodTenantId();
         FileSandbox sandbox = FileSandbox.forTenant(java.nio.file.Path.of("."), good);
-        assertThat(sandbox.root().toString()).endsWith("tenants/" + good);
+        // 分隔符归一到 '/' 再断言后缀（Windows File.separator 是 '\'）
+        String root = sandbox.root().toString().replace('\\', '/');
+        assertThat(root).endsWith("tenants/" + good);
         assertThat(sandbox.resolve("a/b.txt").startsWith(sandbox.root())).isTrue();
     }
 
