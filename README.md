@@ -1287,6 +1287,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 协同遗漏校正审计 | CoordinatedOmissionAudit——expectedInterval 阶梯补账（450/100→4 样本）+omittedCount 被掩盖发送机会+blindWindow 协同静默窗+coverageRatio 原始覆盖真实需求比例——Gil Tene Coordinated Omission/HdrHistogram 思想，慢响应推迟发送的分位数盲区找回（spec 1879） | [spec 1879](docs/spec/1879-coordinated-omission-audit.md) |
 | 缓存基建 | SCAN 游标编解码 | ScanCursorCodec——位反转空间 +1 游标（v′=rev(rev(v)+1) 绕满精确归 0）+isComplete+cycleLength——Redis SCAN 语义白盒面，全周游不重不漏、rehash 桶序对齐迁移序可证（bits=2 序 0→2→1→3→0 实证）（spec 1880） | [spec 1880](docs/spec/1880-scan-cursor-codec.md) |
 | 存储规划 | 纠删码冗余预算 | ErasureCodingBudget——usableRatio k/(k+m)+tolerableFailures 可丢片数+repairReads 修复读放大+totalShards 部署下限——MinIO/Ceph EC(k,m) 语义，EC(4,2) vs 三副本同容忍省 1/3 容量的账面化（spec 1881） | [spec 1881](docs/spec/1881-erasure-coding-budget.md) |
+| 存储规划 | 配额空间告警门 | QuotaAlarmGate——写满触发 NOSPACE 写拒读放+告警期一票拒绝+usageRatio 水位可感+acknowledge 释放达标才复位——etcd NOSPACE 只读语义，清理不足恢复写的抖动被门物理拦住（spec 1882） | [spec 1882](docs/spec/1882-quota-alarm-gate.md) |
 
 ## 快速开始
 
