@@ -1295,6 +1295,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 窃取时间读面 | StealTimeReadout——Δsteal/Δtotal 两采样差分占比+isContended 阈值判定+零流逝哨兵 0.0——Linux steal time 语义，宿主超卖下「CPU 不忙但慢」的唯一可见信号账面化（spec 1887） | [spec 1887](docs/spec/1887-steal-time-readout.md) |
 | 并发治理 | 连接池容量启发 | PoolSizeHeuristic——optimalSize cores×2+spindles 公式+splitBudget 预算均衡拆分余数摊平+saturationRatio 饱和度读数——HikariCP wiki 反直觉结论，连接数超过线程可驱动数只会更慢（spec 1888） | [spec 1888](docs/spec/1888-pool-size-heuristic.md) |
 | 工程治理 | O 系 R90 对账轮 | 快照补登前置第十五例行（五类型 1096→1101）+ 全仓离线 verify 绿 + 90/150=60% 里程碑 + Wave 16 排程（spec 1889） | [spec 1889](docs/spec/1889-o-r90-reconciliation.md) |
+| 指标治理 | 阻塞期审计 | WaitProfileAudit——会话时间构成三分账（onCpu/锁等/IO 等）账面守恒+dominantClass 主导状态固定序并列+blockingRatio 阻塞占比——Oracle ASH 语义，「算得慢还是等得久」第一分诊面（spec 1890） | [spec 1890](docs/spec/1890-wait-profile-audit.md) |
 
 ## 快速开始
 
