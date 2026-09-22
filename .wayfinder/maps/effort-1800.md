@@ -128,7 +128,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R101 | #1900 | 合并压力读面（ClickHouse too many parts 语义） | T3001–T3002 | 1501 | ✅ |
 | R102 | #1901 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T3003–T3004 | 1502 | ✅ |
 | R103 | #1902 | 波动系数读面（金融 CV 变异系数语义） | T3005–T3006 | 1503 | ✅ |
-| R104 | #1903 | 环形令牌轮转（DNS round-robin 加权语义） | T3007–T3008 | 1504 | ⬜ |
+| R104 | #1903 | 自适应抖动缓冲（VoIP/WebRTC playout 自适应语义；环形轮转与 SmoothWeightedSequence 撞坑换静脉） | T3007–T3008 | 1504 | ✅ |
 | R105 | #1904 | 双票决一致性（拜占庭票数下限语义） | T3009–T3010 | 1505 | ⬜ |
 | R106 | #1905 | 快速重传触发（TCP duplicate ACK 语义） | T3011–T3012 | 1506 | ⬜ |
 | R107 | #1906 | 键值分片偏斜审计（ShardSpark 倾斜语义） | T3013–T3014 | 1507 | ⬜ |

@@ -1308,6 +1308,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 清理治理 | 合并压力读面 | MergePressureReadout——pressure 活跃段/建议上限占比+verdict 三态（OK/WARN/REJECT 含上）+shouldRejectInsert 硬阀独立安全阀——ClickHouse too many parts 语义，写入碎片堆积有刻度拒绝不突袭（spec 1900） | [spec 1900](docs/spec/1900-merge-pressure-readout.md) |
 | 工程治理 | O 系 R102 对账轮 | 快照补登前置第十七例行（五类型 1106→1111）+ 全仓离线 verify 绿 + Wave 18 排程（spec 1901） | [spec 1901](docs/spec/1901-o-r102-reconciliation.md) |
 | 指标治理 | 波动系数读面 | CoefficientOfVariation——cv stddev/|mean| 无量纲化（mean=0 fail-fast 不哑算）+band 三档（STABLE/MODERATE/VOLATILE 边界严格小于）——金融 CV 语义，绝对波动跨规模不可比的根治（spec 1902） | [spec 1902](docs/spec/1902-coefficient-of-variation.md) |
+| 背压治理 | 自适应抖动缓冲 | JitterBuffer——requiredDelay 覆盖分位延迟（升序第 ⌈target×n⌉ 个）+coverageRatio 实际覆盖占比——VoIP/WebRTC 自适应抖动缓冲语义，出队空转与延迟陪绑的换挡杆（spec 1903） | [spec 1903](docs/spec/1903-jitter-buffer.md) |
 
 ## 快速开始
 
