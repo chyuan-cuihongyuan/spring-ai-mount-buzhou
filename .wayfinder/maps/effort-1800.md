@@ -143,7 +143,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R116 | #1915 | 百分位排位（样本内 percentile rank 语义） | T3031–T3032 | 1516 | ✅ |
 | R117 | #1916 | API 弃用日落生命周期（Stripe/GitHub 版本日落语义） | T3033–T3034 | 1517 | ✅ |
 | R118 | #1917 | 重试风暴哨兵（重试占比阈值判定语义） | T3035–T3036 | 1518 | ✅ |
-| R119 | #1918 | 有界旧读（Cosmos DB bounded staleness 语义） | T3037–T3038 | 1519 | ⬜ |
+| R119 | #1918 | 有界旧读（Cosmos DB bounded staleness 语义） | T3037–T3038 | 1519 | ✅ |
 | R120 | #1920 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T3039–T3040 | 1520 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
