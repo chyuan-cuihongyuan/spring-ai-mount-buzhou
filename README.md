@@ -1283,6 +1283,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R72 对账轮 | 快照补登前置第十二例行（R67–R71 五类型：牺牲率/关键路径/区间调度/流式中位/网格触发）+ 全仓 clean verify + 十二波节奏稳定 + 逼近半程（spec 1871） | [spec 1871](docs/spec/1871-o-r72-reconciliation.md) |
 | 事务语义 | 法定人数一致性 | QuorumConsistency——R+W>N 强一致判定（读集写集必交）+overlapCount 交集数（负值钳 0=无保证）+读写可容忍故障余量+consistentAvailability 一致性可用余量——Dynamo/Cassandra quorum 交集语义，配置前有账评审有据（spec 1876） | [spec 1876](docs/spec/1876-quorum-consistency.md) |
 | 工程治理 | O 系 R78 对账轮 | 快照补登前置第十三例行（QuorumConsistency 入 1091 行档；共享 regenerate 一并吸收 Q 系五类型）+ R73–R75 号段实撞吸收（远端先落为准改挂 R77）+ 全仓 clean verify + Wave 14 排程（spec 1877） | [spec 1877](docs/spec/1877-o-r78-reconciliation.md) |
+| 调度容量 | 装箱平衡 | BinPackBalance——FFD 降序保序稳定装箱（首个可容箱放不下开新）+PackResult 箱数逐箱载荷+wasteRatio 装箱浪费率——K8s/Mesos bin-packing 语义，批任务扩容预算与缩容收益事前有账（最优 NP-hard，FFD ≤11/9 OPT）（spec 1878） | [spec 1878](docs/spec/1878-bin-pack-balance.md) |
 
 ## 快速开始
 
