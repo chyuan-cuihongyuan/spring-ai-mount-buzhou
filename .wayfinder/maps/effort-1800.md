@@ -131,7 +131,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R104 | #1903 | 自适应抖动缓冲（VoIP/WebRTC playout 自适应语义；环形轮转与 SmoothWeightedSequence 撞坑换静脉） | T3007–T3008 | 1504 | ✅ |
 | R105 | #1904 | 票数下限判定（Paxos/BFT 拜占庭票数下限语义） | T3009–T3010 | 1505 | ✅ |
 | R106 | #1905 | 分块压缩策略（TimescaleDB chunk 压缩语义；快速重传已被 resilience 占坑换静脉） | T3011–T3012 | 1506 | ✅ |
-| R107 | #1906 | 键值分片偏斜审计（ShardSpark 倾斜语义） | T3013–T3014 | 1507 | ⬜ |
+| R107 | #1906 | 键值分片偏斜审计（Spark data skew 语义） | T3013–T3014 | 1507 | ✅ |
 | R108 | #1907 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T3015–T3016 | 1508 | ⬜ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
