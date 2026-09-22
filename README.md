@@ -1289,6 +1289,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 存储规划 | 纠删码冗余预算 | ErasureCodingBudget——usableRatio k/(k+m)+tolerableFailures 可丢片数+repairReads 修复读放大+totalShards 部署下限——MinIO/Ceph EC(k,m) 语义，EC(4,2) vs 三副本同容忍省 1/3 容量的账面化（spec 1881） | [spec 1881](docs/spec/1881-erasure-coding-budget.md) |
 | 存储规划 | 配额空间告警门 | QuotaAlarmGate——写满触发 NOSPACE 写拒读放+告警期一票拒绝+usageRatio 水位可感+acknowledge 释放达标才复位——etcd NOSPACE 只读语义，清理不足恢复写的抖动被门物理拦住（spec 1882） | [spec 1882](docs/spec/1882-quota-alarm-gate.md) |
 | 工程治理 | O 系 R84 对账轮 | 快照补登前置第十四例行（五类型 1091→1096）+ 撞坑三连入档（两随机/Holt/预热均被并行会话占坑换静脉）+ 全仓离线 verify + Wave 15 排程（spec 1883） | [spec 1883](docs/spec/1883-o-r84-reconciliation.md) |
+| 模型韧性 | 滑动窗口计数器 | SlidingWindowCounter——两固定窗计数流逝比插值（prev×(1−r)+curr 本窗全计保守口径）+wouldExceed 满额拒绝准入——Cloudflare sliding window counter 语义，固定窗边界突发被上窗惯性修正且零状态（spec 1884） | [spec 1884](docs/spec/1884-sliding-window-counter.md) |
 
 ## 快速开始
 
