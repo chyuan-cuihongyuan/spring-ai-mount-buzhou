@@ -1313,6 +1313,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 清理治理 | LSM 写放大读面 | WriteAmplificationFactor——waf 落盘/逻辑写入比值+compactionDebtRatio 压实债占比+needsThrottle 风暴限速建议——RocksDB/LSM 语义，「盘在为谁工作」有账分得清写多还是重写多（spec 1914） | [spec 1914](docs/spec/1914-write-amplification-factor.md) |
 | 评测计量 | 百分位排位 | PercentileRank——rank 样本内 ≤ value 占比（极值钳 0.0/1.0）+percentileOf ×100 直读——统计学 percentile rank 语义，「这次 12s 算慢吗」相对排位同一把尺（spec 1915） | [spec 1915](docs/spec/1915-percentile-rank.md) |
 | 调度容量 | API 弃用日落生命周期 | ApiSunsetLifecycle——phase 三段（ACTIVE/DEPRECATED 警告/SUNSET 拒绝，边界含上）+daysRemainingMillis 倒计时钳 0——Stripe/GitHub 版本日落语义，弃用灰色期有刻度（spec 1916） | [spec 1916](docs/spec/1916-api-sunset-lifecycle.md) |
+| 模型韧性 | 重试风暴哨兵 | RetryStormSentinel——retryRatio 重试占比读数+isStorm 阈值判定边界含上——SRE 重试风暴惯例，放大系数 Σpⁿ 的风暴提前一刻告警；RetryBudget 事前预算互补（spec 1917） | [spec 1917](docs/spec/1917-retry-storm-sentinel.md) |
 | 背压治理 | 自适应抖动缓冲 | JitterBuffer——requiredDelay 覆盖分位延迟（升序第 ⌈target×n⌉ 个）+coverageRatio 实际覆盖占比——VoIP/WebRTC 自适应抖动缓冲语义，出队空转与延迟陪绑的换挡杆（spec 1903） | [spec 1903](docs/spec/1903-jitter-buffer.md) |
 | 事务语义 | 票数下限判定 | QuorumThreshold——majority ⌊N/2⌋+1 简单多数+byzantineTolerance ⌊(N−1)/3⌋ 坏票容忍+byzantineSize 3f+1 最小投票者——Paxos/BFT 票数公式，崩溃/拜占庭两档混淆的配置错误一行拦住（spec 1904） | [spec 1904](docs/spec/1904-quorum-threshold.md) |
 | 清理治理 | 分块压缩策略 | ChunkCompressionPolicy——shouldCompress 块龄阈值含上+savingsEstimate original×(1−1/ratio)+readPenaltyFactor 读放大诚实面——TimescaleDB chunk 压缩语义，历史治理从删除单路到压缩换空间（spec 1905） | [spec 1905](docs/spec/1905-chunk-compression-policy.md) |
