@@ -106,7 +106,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R79 | #1878 | 装箱平衡（K8s/Mesos bin-packing FFD 语义；原选题两随机已被 Q-3022 占坑换静脉） | T2957–T2958 | 1479 | ✅ |
 | R80 | #1879 | 协同遗漏校正审计（Gil Tene Coordinated Omission 思想） | T2959–T2960 | 1480 | ✅ |
 | R81 | #1880 | SCAN 游标编解码（Redis 位反转递增白盒面；原选题 Holt 已被 Q-3023 波占坑换静脉） | T2961–T2962 | 1481 | ✅ |
-| R82 | #1881 | 冷启动预热放行（Guava RateLimiter/Sentinel warm-up 思想） | T2963–T2964 | 1482 | ⬜ |
+| R82 | #1881 | 纠删码冗余预算（MinIO/Ceph EC(k,m) 数学；原选题预热已被 Q 系 WarmupRamp 占坑换静脉） | T2963–T2964 | 1482 | ✅ |
 | R83 | #1882 | Wave 14 弹性位 E（前沿 grep 复核后定题） | T2965–T2966 | 1483 | ⬜ |
 | R84 | #1883 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T2967–T2968 | 1484 | ⬜ |
 
