@@ -2744,3 +2744,8 @@
 - `TailAmplification`（metrics 域——并行扇出分位幂次放大与 SLO 反解）
 - `OutOfOrderWindow`（metrics 域——迟到数据三态接纳窗；嵌套 `Accept` 不另立面）
 - `MergePressureReadout`（recovery 域——合并积压压力刻度与插入硬阀；嵌套 `Pressure` 不另立面）
+- `CoefficientOfVariation`（metrics 域——波动系数无量纲读数与三档；嵌套 `Volatility` 不另立面）
+- `ShardSkewAudit`（policy 域——分片偏斜比与重分片触发）
+- `QuorumThreshold`（transaction 域——多数派与拜占庭票数下限）
+- `ChunkCompressionPolicy`（cleanup 域——冷块压缩判定与收益代价）
+- `JitterBuffer`（backpressure 域——覆盖分位播放延迟）

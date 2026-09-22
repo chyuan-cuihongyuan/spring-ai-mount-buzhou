@@ -5,6 +5,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.BurstCreditAcc
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.HierarchicalTokenBucket
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.HysteresisWatermark
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.JitterBuffer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.LoadShedLadder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
@@ -45,6 +46,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ScanCursorCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TtlJitter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TwoQueueCache
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.ChunkCompressionPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
@@ -370,6 +372,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CoefficientOfVariation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CoordinatedOmissionAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CrostonForecaster
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash
@@ -447,6 +450,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QosClassifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QuotaAlarmGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RampProfile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RequiredChecksRollup
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ShardSkewAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchDecision
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatcher
@@ -638,6 +642,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.HalfMessageAudi
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.IdempotencyKeyGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.InstrumentedUnitOfWork
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.QuorumConsistency
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.QuorumThreshold
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.WriteSkewDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.DeadLetterRedeliveryStats
