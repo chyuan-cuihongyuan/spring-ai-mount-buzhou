@@ -1314,6 +1314,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 调度容量 | 分片偏斜审计 | ShardSkewAudit——skewRatio max/avg 偏斜比+needsReshard 重分片触发判定（全零负载 fail-fast）——Spark data skew 语义，热分片双倍承担量化主动式而非事后式（spec 1906） | [spec 1906](docs/spec/1906-shard-skew-audit.md) |
 | 工程治理 | O 系 R108 对账轮 | 快照补登前置第十八例行（五类型 1111→1116）+ 全仓离线 verify 绿 + Wave 19 排程（spec 1907） | [spec 1907](docs/spec/1907-o-r108-reconciliation.md) |
 | 并发治理 | 雪花 ID 分解 | SnowflakeIdDecompose——decompose 41 位时戳+10 位机器+12 位序列按位拆解+compose 逆组装 roundtrip 自洽——Twitter Snowflake 布局，时间有序 ID 自描述信息排障不查库（spec 1908） | [spec 1908](docs/spec/1908-snowflake-id-decompose.md) |
+| 并发治理 | 闲谈收敛估算 | GossipConvergence——roundsToConverge ⌈log_{f+1} N⌉+informedAfter 知情数封顶+fanoutFor 反解——SWIM/memberlist gossip 指数传播语义，传播轮数与心跳流量配比事前有数（spec 1909） | [spec 1909](docs/spec/1909-gossip-convergence.md) |
 
 ## 快速开始
 
