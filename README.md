@@ -1298,6 +1298,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 阻塞期审计 | WaitProfileAudit——会话时间构成三分账（onCpu/锁等/IO 等）账面守恒+dominantClass 主导状态固定序并列+blockingRatio 阻塞占比——Oracle ASH 语义，「算得慢还是等得久」第一分诊面（spec 1890） | [spec 1890](docs/spec/1890-wait-profile-audit.md) |
 | 指标治理 | 分位数聚合偏差审计 | QuantileAggregationBias——naiveAverage 分位平均可示众+biasRatio 符号化偏差（低报危险侧）+isMateriallyBiased 容差判定——Prometheus/M3 分位不可加语义，分片 p99 平均可差 −40% 的 SLA 口径审计（spec 1891） | [spec 1891](docs/spec/1891-quantile-aggregation-bias.md) |
 | 性能基线 | 阶梯加压计划 | RampProfile——台阶内线性爬坡插值+末台阶后保持+totalDuration/peakTarget 声明——k6/Gatling ramping stages 语义，压测负载曲线先声明后执行采样点与档位一一对应（spec 1892） | [spec 1892](docs/spec/1892-ramp-profile.md) |
+| 事务语义 | 幂等键判定面 | IdempotencyKeyGuard——decide 三态（FIRST 首见/REPLAY 同键同参/CONFLICT 同键异参=idempotency_error）+isExpired TTL 恰到期失效——Stripe 语义，复用旧键改参数的副作用错配物理拦住；与 501 Advisor 存储重放面互补（spec 1893） | [spec 1893](docs/spec/1893-idempotency-key-guard.md) |
 
 ## 快速开始
 
