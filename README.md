@@ -1284,6 +1284,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 事务语义 | 法定人数一致性 | QuorumConsistency——R+W>N 强一致判定（读集写集必交）+overlapCount 交集数（负值钳 0=无保证）+读写可容忍故障余量+consistentAvailability 一致性可用余量——Dynamo/Cassandra quorum 交集语义，配置前有账评审有据（spec 1876） | [spec 1876](docs/spec/1876-quorum-consistency.md) |
 | 工程治理 | O 系 R78 对账轮 | 快照补登前置第十三例行（QuorumConsistency 入 1091 行档；共享 regenerate 一并吸收 Q 系五类型）+ R73–R75 号段实撞吸收（远端先落为准改挂 R77）+ 全仓 clean verify + Wave 14 排程（spec 1877） | [spec 1877](docs/spec/1877-o-r78-reconciliation.md) |
 | 调度容量 | 装箱平衡 | BinPackBalance——FFD 降序保序稳定装箱（首个可容箱放不下开新）+PackResult 箱数逐箱载荷+wasteRatio 装箱浪费率——K8s/Mesos bin-packing 语义，批任务扩容预算与缩容收益事前有账（最优 NP-hard，FFD ≤11/9 OPT）（spec 1878） | [spec 1878](docs/spec/1878-bin-pack-balance.md) |
+| 指标治理 | 协同遗漏校正审计 | CoordinatedOmissionAudit——expectedInterval 阶梯补账（450/100→4 样本）+omittedCount 被掩盖发送机会+blindWindow 协同静默窗+coverageRatio 原始覆盖真实需求比例——Gil Tene Coordinated Omission/HdrHistogram 思想，慢响应推迟发送的分位数盲区找回（spec 1879） | [spec 1879](docs/spec/1879-coordinated-omission-audit.md) |
 
 ## 快速开始
 
