@@ -2749,3 +2749,8 @@
 - `QuorumThreshold`（transaction 域——多数派与拜占庭票数下限）
 - `ChunkCompressionPolicy`（cleanup 域——冷块压缩判定与收益代价）
 - `JitterBuffer`（backpressure 域——覆盖分位播放延迟）
+- `SnowflakeIdDecompose`（concurrent 域——雪花 ID 编解码；嵌套 `Decomposed` 不另立面）
+- `GossipConvergence`（concurrent 域——闲谈传播轮数与 fanout 反解）
+- `RandomEarlyDrop`（backpressure 域——RED 三段丢弃曲线；嵌套 `Zone` 不另立面）
+- `ClientThrottleProbability`（ratelimit 域——首发侧自适应拒发概率）
+- `ProbeBudget`（health 域——探测流量占比预算；嵌套 `Verdict` 不另立面）

@@ -1309,6 +1309,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 工程治理 | O 系 R102 对账轮 | 快照补登前置第十七例行（五类型 1106→1111）+ 全仓离线 verify 绿 + Wave 18 排程（spec 1901） | [spec 1901](docs/spec/1901-o-r102-reconciliation.md) |
 | 指标治理 | 波动系数读面 | CoefficientOfVariation——cv stddev/|mean| 无量纲化（mean=0 fail-fast 不哑算）+band 三档（STABLE/MODERATE/VOLATILE 边界严格小于）——金融 CV 语义，绝对波动跨规模不可比的根治（spec 1902） | [spec 1902](docs/spec/1902-coefficient-of-variation.md) |
 | 健康治理 | 探测流量预算 | ProbeBudget——probeShare 探测 QPS/容量 QPS 占比+verdict 两态边界含上——SRE 健康检查预算惯例，「探活变压死」事前可见（spec 1912） | [spec 1912](docs/spec/1912-probe-budget.md) |
+| 工程治理 | O 系 R114 对账轮 | 快照补登前置第十九例行（五类型 1116→1121）+ 全仓离线 verify 绿 + Wave 20 排程（spec 1913） | [spec 1913](docs/spec/1913-o-r114-reconciliation.md) |
 | 背压治理 | 自适应抖动缓冲 | JitterBuffer——requiredDelay 覆盖分位延迟（升序第 ⌈target×n⌉ 个）+coverageRatio 实际覆盖占比——VoIP/WebRTC 自适应抖动缓冲语义，出队空转与延迟陪绑的换挡杆（spec 1903） | [spec 1903](docs/spec/1903-jitter-buffer.md) |
 | 事务语义 | 票数下限判定 | QuorumThreshold——majority ⌊N/2⌋+1 简单多数+byzantineTolerance ⌊(N−1)/3⌋ 坏票容忍+byzantineSize 3f+1 最小投票者——Paxos/BFT 票数公式，崩溃/拜占庭两档混淆的配置错误一行拦住（spec 1904） | [spec 1904](docs/spec/1904-quorum-threshold.md) |
 | 清理治理 | 分块压缩策略 | ChunkCompressionPolicy——shouldCompress 块龄阈值含上+savingsEstimate original×(1−1/ratio)+readPenaltyFactor 读放大诚实面——TimescaleDB chunk 压缩语义，历史治理从删除单路到压缩换空间（spec 1905） | [spec 1905](docs/spec/1905-chunk-compression-policy.md) |
