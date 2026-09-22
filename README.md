@@ -1313,6 +1313,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 清理治理 | 分块压缩策略 | ChunkCompressionPolicy——shouldCompress 块龄阈值含上+savingsEstimate original×(1−1/ratio)+readPenaltyFactor 读放大诚实面——TimescaleDB chunk 压缩语义，历史治理从删除单路到压缩换空间（spec 1905） | [spec 1905](docs/spec/1905-chunk-compression-policy.md) |
 | 调度容量 | 分片偏斜审计 | ShardSkewAudit——skewRatio max/avg 偏斜比+needsReshard 重分片触发判定（全零负载 fail-fast）——Spark data skew 语义，热分片双倍承担量化主动式而非事后式（spec 1906） | [spec 1906](docs/spec/1906-shard-skew-audit.md) |
 | 工程治理 | O 系 R108 对账轮 | 快照补登前置第十八例行（五类型 1111→1116）+ 全仓离线 verify 绿 + Wave 19 排程（spec 1907） | [spec 1907](docs/spec/1907-o-r108-reconciliation.md) |
+| 并发治理 | 雪花 ID 分解 | SnowflakeIdDecompose——decompose 41 位时戳+10 位机器+12 位序列按位拆解+compose 逆组装 roundtrip 自洽——Twitter Snowflake 布局，时间有序 ID 自描述信息排障不查库（spec 1908） | [spec 1908](docs/spec/1908-snowflake-id-decompose.md) |
 
 ## 快速开始
 

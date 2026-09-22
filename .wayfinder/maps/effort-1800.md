@@ -133,7 +133,7 @@ Linux PSI（压力失速 some/full）、gRPC/Temporal（deadline 传播/活动�
 | R106 | #1905 | 分块压缩策略（TimescaleDB chunk 压缩语义；快速重传已被 resilience 占坑换静脉） | T3011–T3012 | 1506 | ✅ |
 | R107 | #1906 | 键值分片偏斜审计（Spark data skew 语义） | T3013–T3014 | 1507 | ✅ |
 | R108 | #1907 | 对账轮（全仓 mvn verify + 台账核账 + 快照补登前置） | T3015–T3016 | 1508 | ✅ |
-| R109 | #1908 | 雪花 ID 分解（Twitter Snowflake 时间戳+机器+序列提取语义） | T3017–T3018 | 1509 | ⬜ |
+| R109 | #1908 | 雪花 ID 分解（Twitter Snowflake 时间戳+机器+序列提取语义） | T3017–T3018 | 1509 | ✅ |
 | R110 | #1909 | 闲谈收敛估算（SWIM ⌈log_f N⌉ 轮收敛语义） | T3019–T3020 | 1510 | ⬜ |
 | R111 | #1910 | 随机早期丢弃（RED AQM 队列概率 drop 语义） | T3021–T3022 | 1511 | ⬜ |
 | R112 | #1911 | 复制延迟读面（Kafka ISR/MySQL Seconds_Behind 语义） | T3023–T3024 | 1512 | ⬜ |
