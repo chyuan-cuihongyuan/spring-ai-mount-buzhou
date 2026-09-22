@@ -1316,6 +1316,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 并发治理 | 雪花 ID 分解 | SnowflakeIdDecompose——decompose 41 位时戳+10 位机器+12 位序列按位拆解+compose 逆组装 roundtrip 自洽——Twitter Snowflake 布局，时间有序 ID 自描述信息排障不查库（spec 1908） | [spec 1908](docs/spec/1908-snowflake-id-decompose.md) |
 | 并发治理 | 闲谈收敛估算 | GossipConvergence——roundsToConverge ⌈log_{f+1} N⌉+informedAfter 知情数封顶+fanoutFor 反解——SWIM/memberlist gossip 指数传播语义，传播轮数与心跳流量配比事前有数（spec 1909） | [spec 1909](docs/spec/1909-gossip-convergence.md) |
 | 背压治理 | 随机早期丢弃 | RandomEarlyDrop——三段曲线（minTh 下 0/线性/maxTh 上 maxP）+zone 三区预警读数——RED 经典 AQM 语义，尾丢的成批同步突丢摊成均匀提前丢（spec 1910） | [spec 1910](docs/spec/1910-random-early-drop.md) |
+| 模型韧性 | 客户端自适应节流 | ClientThrottleProbability——rejectProbability max(0,(req−K×acc)/(req+1)) 健康期零干扰过载期爬升+shouldDrop dice 注入回放——Google SRE 自适应节流公式，首发侧就地衰减重试风暴（spec 1911） | [spec 1911](docs/spec/1911-client-throttle-probability.md) |
 
 ## 快速开始
 
