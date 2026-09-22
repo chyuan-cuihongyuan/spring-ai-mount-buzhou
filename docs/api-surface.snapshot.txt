@@ -41,6 +41,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ClockEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ScanCursorCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TtlJitter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TwoQueueCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
@@ -366,6 +367,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CoordinatedOmissionAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CrostonForecaster
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
@@ -416,10 +418,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanParentInt
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanRecorder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanStatus
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanTreeTopology
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BinPackBalance
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ErasureCodingBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GaussianSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
@@ -431,6 +435,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.NucleusSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyConfigProvider
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyLayerAttribution
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QosClassifier
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QuotaAlarmGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RequiredChecksRollup
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchDecision
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchStats
