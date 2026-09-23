@@ -2754,3 +2754,8 @@
 - `RandomEarlyDrop`（backpressure 域——RED 三段丢弃曲线；嵌套 `Zone` 不另立面）
 - `ClientThrottleProbability`（ratelimit 域——首发侧自适应拒发概率）
 - `ProbeBudget`（health 域——探测流量占比预算；嵌套 `Verdict` 不另立面）
+- `WriteAmplificationFactor`（cleanup 域——LSM 写放大与压实债读数）
+- `PercentileRank`（eval 域——样本内百分位排位）
+- `ApiSunsetLifecycle`（policy 域——弃用三段生命周期；嵌套 `Phase` 不另立面）
+- `RetryStormSentinel`（backpressure 域——重试占比风暴判定）
+- `BoundedStaleness`（transaction 域——读旧度合同判定；嵌套 `Staleness` 不另立面）
