@@ -102,7 +102,12 @@
 - `public final class HintedHandoff`（spec 5010——暂代记账 FIFO 回放）
 - `public final class DoubleWriteBuffer`（spec 5012——InnoDB 崩溃恢复暂存）
 - `public final class GroupCommitLog`（spec 5013——WAL 组提交持久上沿；嵌套 `GroupSync`）
+- `public final class IntervalTree`（spec 5022——居中区间树 stabbing 查询；嵌套 `Interval`）
+- `public final class MemTable`（spec 5024——LSM 可变内存表满表滚动）
+- `public final class SkipList`（spec 5025——概率多层链有序表）
 - `public final class DelayScheduling`（spec 5014——Spark 本地性等待预算；嵌套 `Verdict`）
+- `public final class WeightedRoundRobin`（spec 5026——nginx 平滑加权轮询）
+- `public final class DeficitRoundRobin`（spec 5027——DRR 亏空记账调度）
 - `public final class SieveCache`（spec 5015——SIEVE lazy promotion 驱逐）
 - `public final class TwoPhaseCoordinator`（spec 5016——2PC 投票裁决状态机；嵌套 `Phase`）
 - `public final class ReadRepair`（spec 5018——读时择优+陈旧回写；嵌套 `Report`/`Stitch`）
