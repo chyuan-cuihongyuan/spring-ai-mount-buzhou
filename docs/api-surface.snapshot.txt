@@ -100,6 +100,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreak
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TopologicalSorter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TwoChoiceSelector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.Ucb1Selector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.UuidV7Monotonic
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VectorClockOrder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VirtualRuntimeQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WaitForReadyGate
@@ -370,8 +371,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ConversationShapeAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Crc32C
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.CrockfordBase32
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.DanglingTurnDetector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.DeltaFrameOfReference
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.EliasGammaCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.HuffmanCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.PromptComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord

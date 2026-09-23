@@ -60,6 +60,11 @@
 - `public final class CountMinSketch`（spec 4001——Count-Min 素材计数：任意键点查近似，单侧高估）
 - `public final class SpaceSavingTopK`（spec 4002——Space-Saving 频繁项 top-k：淘汰继承，读数即答案；嵌套 `Entry`）
 - `public final class BoyerMooreMajority`（spec 4003——MJRTY 配对抵消多数表决，单遍常数内存）
+- `public final class HuffmanCodec`（spec 4006——规范 Huffman 前缀码：码本只存码长；嵌套 `Encoded`）
+- `public final class Crc32C`（spec 4007——CRC-32C 表驱动校验：标准检验向量锚定）
+- `public final class DeltaFrameOfReference`（spec 4008——增量+基准帧列存编码；嵌套 `Encoded`）
+- `public final class CrockfordBase32`（spec 4009——人类可转录 Base32+mod-37 校验符）
+- `public final class UuidV7Monotonic`（spec 4010——RFC 9562 时间有序 UUID+借位伪时序）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）
