@@ -1317,6 +1317,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 事务语义 | 有界旧读 | BoundedStaleness——stalenessMillis 读旧度（时钟偏斜钳 0）+verdict 两态 ≤ bound 边界含上——Cosmos DB bounded staleness 档，「旧但有界」的可售合同判定（spec 1918） | [spec 1918](docs/spec/1918-bounded-staleness.md) |
 | 工程治理 | O 系 R120 对账轮 | 快照补登前置第二十例行（五类型 1121→1126）+ 全仓离线 verify 绿 + Wave 21 排程（spec 1919） | [spec 1919](docs/spec/1919-o-r120-reconciliation.md) |
 | 健康治理 | 复合健康分 | HealthScoreComposite——composite 加权合成 0–100 单一分+band 三档判级（≥80 HEALTHY/≥50 DEGRADED 含下）——监控面板复合健康分惯例，「总体健康吗」一句话可答告警级即判级（spec 1920） | [spec 1920](docs/spec/1920-health-score-composite.md) |
+| 指标治理 | 时钟抖动测量 | ClockJitterMeter——record 滚动窗口采样偏差+jitterMillis 总体标准差（样本不足哨兵 -1.0）+meanOffsetMillis 偏斜分量——NTP discipline 惯例，偏斜可校抖动只可测与 ClockSkewClamp 成对（spec 1921） | [spec 1921](docs/spec/1921-clock-jitter-meter.md) |
 | 背压治理 | 自适应抖动缓冲 | JitterBuffer——requiredDelay 覆盖分位延迟（升序第 ⌈target×n⌉ 个）+coverageRatio 实际覆盖占比——VoIP/WebRTC 自适应抖动缓冲语义，出队空转与延迟陪绑的换挡杆（spec 1903） | [spec 1903](docs/spec/1903-jitter-buffer.md) |
 | 事务语义 | 票数下限判定 | QuorumThreshold——majority ⌊N/2⌋+1 简单多数+byzantineTolerance ⌊(N−1)/3⌋ 坏票容忍+byzantineSize 3f+1 最小投票者——Paxos/BFT 票数公式，崩溃/拜占庭两档混淆的配置错误一行拦住（spec 1904） | [spec 1904](docs/spec/1904-quorum-threshold.md) |
 | 清理治理 | 分块压缩策略 | ChunkCompressionPolicy——shouldCompress 块龄阈值含上+savingsEstimate original×(1−1/ratio)+readPenaltyFactor 读放大诚实面——TimescaleDB chunk 压缩语义，历史治理从删除单路到压缩换空间（spec 1905） | [spec 1905](docs/spec/1905-chunk-compression-policy.md) |
