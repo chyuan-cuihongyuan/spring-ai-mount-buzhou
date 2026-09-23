@@ -75,6 +75,11 @@
 - `public final class CoopBudget`（spec 4020——tokio 协作预算让出）
 - `public final class WorkStealingSplit`（spec 4021——偷半裁决+冷端搬运）
 - `public final class TailSamplingPolicy`（spec 4022——尾采样金料通道+预算；嵌套 `Verdict`）
+- `public final class TopologySpreadPlacer`（spec 4024——maxSkew 跨域散布裁决）
+- `public final class SupervisorRestartIntensity`（spec 4025——OTP 重启强度闩锁升级）
+- `public final class SpeculativeStragglerPolicy`（spec 4026——straggler 副本竞争裁决；嵌套 `TaskStats`）
+- `public final class StableMatching`（spec 4027——Gale-Shapley 延迟接受稳定匹配）
+- `public final class DynamicSnitchPenalty`（spec 4028——EWMA+罚分副本降权）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）

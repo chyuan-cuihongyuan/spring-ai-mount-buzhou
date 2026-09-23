@@ -263,6 +263,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ScheduleFloat
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeaseStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SecretLeases
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SmoothWeightedSequence
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.SpeculativeStragglerPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TickWheelTimer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolArgsValidator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.ToolBaggage
@@ -466,6 +467,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DynamicSnitchPenalty
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ErasureCodingBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GaussianSampler
@@ -482,10 +484,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QuotaAlarmGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RampProfile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RequiredChecksRollup
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ShardSkewAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.StableMatching
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchDecision
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.TopKSampler
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.TopologySpreadPlacer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.InMemoryPromptRegistry
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PayloadBudgetSplit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.prompt.PromptRegistry
@@ -536,6 +540,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.RepetitionDetectorH
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayBudgetRenderer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayCounters
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.RunawayHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.SupervisorRestartIntensity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.ToolLoopBreakerHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.TurnHeartbeat
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.runaway.TurnHeartbeatHook
