@@ -80,6 +80,11 @@
 - `public final class SpeculativeStragglerPolicy`（spec 4026——straggler 副本竞争裁决；嵌套 `TaskStats`）
 - `public final class StableMatching`（spec 4027——Gale-Shapley 延迟接受稳定匹配）
 - `public final class DynamicSnitchPenalty`（spec 4028——EWMA+罚分副本降权）
+- `public final class Eip1559BaseFee`（spec 4030——EIP-1559 弹性基础费调节）
+- `public final class DifficultyRetarget`（spec 4031——Bitcoin ±4× 钳制重定）
+- `public final class AncestorFeerate`（spec 4032——CPFP 祖先包聚合费率；嵌套 `Tx`）
+- `public final class SemVerOrder`（spec 4033——semver 2.0 §11 优先级；嵌套 `Version`）
+- `public final class JsonPatchApplier`（spec 4034——RFC 6902 六操作原子应用）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）

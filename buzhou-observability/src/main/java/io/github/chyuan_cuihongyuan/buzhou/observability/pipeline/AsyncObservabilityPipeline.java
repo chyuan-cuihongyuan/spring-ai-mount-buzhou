@@ -90,10 +90,15 @@ public class AsyncObservabilityPipeline extends BaseSpanRecorder implements Auto
     @Override
     public void flush() {
         FlushToken token = new FlushToken();
+        boolean enqueued = false;
         try {
-            queue.put(token);
+            // impl 2136 硬化：token 入队同样限时（此前 put 无界——全仓负载下 drain 滞留时
+            // close 挂死实测 40min；flushTimeout 须全覆盖 flush 路径），超时直接同步兜底。
+            enqueued = queue.offer(token, config.flushTimeout().toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+        if (!enqueued) {
             drainBatch();
             return;
         }
