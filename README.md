@@ -1317,6 +1317,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 事务语义 | 有界旧读 | BoundedStaleness——stalenessMillis 读旧度（时钟偏斜钳 0）+verdict 两态 ≤ bound 边界含上——Cosmos DB bounded staleness 档，「旧但有界」的可售合同判定（spec 1918） | [spec 1918](docs/spec/1918-bounded-staleness.md) |
 | 工程治理 | O 系 R120 对账轮 | 快照补登前置第二十例行（五类型 1121→1126）+ 全仓离线 verify 绿 + Wave 21 排程（spec 1919） | [spec 1919](docs/spec/1919-o-r120-reconciliation.md) |
 | 健康治理 | 复合健康分 | HealthScoreComposite——composite 加权合成 0–100 单一分+band 三档判级（≥80 HEALTHY/≥50 DEGRADED 含下）——监控面板复合健康分惯例，「总体健康吗」一句话可答告警级即判级（spec 1920） | [spec 1920](docs/spec/1920-health-score-composite.md) |
+| 工程治理 | O 系 R126 对账轮 | 快照补登前置第二十一例行（五类型 1126→1133）+ 全仓离线 verify 绿 + Wave 22 排程（spec 1925） | [spec 1925](docs/spec/1925-o-r126-reconciliation.md) |
 | 指标治理 | 时钟抖动测量 | ClockJitterMeter——record 滚动窗口采样偏差+jitterMillis 总体标准差（样本不足哨兵 -1.0）+meanOffsetMillis 偏斜分量——NTP discipline 惯例，偏斜可校抖动只可测与 ClockSkewClamp 成对（spec 1921） | [spec 1921](docs/spec/1921-clock-jitter-meter.md) |
 | 模型韧性 | 降级链配置校验 | FallbackChainValidator——四规则静态校验（主非空/备链非空/无重复/主不在备链）错误列表全收集+isSane 便捷判定——Resilience4j/LiteLLM 惯例，配置错误启动期拦住而非首次降级暴雷（spec 1922） | [spec 1922](docs/spec/1922-fallback-chain-validator.md) |
 | 并发治理 | 事件循环滞后探针 | EventLoopLagProbe——lagMillis 调度与执行时刻差（负滞后钳 0）+saturated 判定边界含上——Node.js event loop lag 惯例，任务延迟飙升归因下游前先看调度器还灵不灵（spec 1923） | [spec 1923](docs/spec/1923-event-loop-lag-probe.md) |

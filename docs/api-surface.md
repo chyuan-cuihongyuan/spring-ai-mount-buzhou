@@ -2759,3 +2759,8 @@
 - `ApiSunsetLifecycle`（policy 域——弃用三段生命周期；嵌套 `Phase` 不另立面）
 - `RetryStormSentinel`（backpressure 域——重试占比风暴判定）
 - `BoundedStaleness`（transaction 域——读旧度合同判定；嵌套 `Staleness` 不另立面）
+- `HealthScoreComposite`（health 域——多维加权健康分与判级；嵌套 `Band` 不另立面）
+- `ApiSunsetLifecycle`（policy 域——弃用三段生命周期；嵌套 `Phase` 不另立面）
+- `RetryStormSentinel`（backpressure 域——重试占比风暴判定）
+- `BoundedStaleness`（transaction 域——读旧度合同判定；嵌套 `Staleness` 不另立面）
+- `IdleConnectionReaper`（concurrent 域——闲置连接收割判定）
