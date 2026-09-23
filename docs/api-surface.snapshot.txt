@@ -1,6 +1,7 @@
 # api-surface 黄金快照（impl-179 生成；模块|全限定名，字典序）
 # 更新流程：-Dbuzhou.api-snapshot.regenerate=true 跑 regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.BoundedMailbox
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.BurstCreditAccount
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.CoDelController
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.DisruptorRingBuffer
@@ -422,6 +423,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FrequencySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HllCardinalitySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltForecaster
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltWintersIndex
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HotKeyDetector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.IntervalTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KmpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
@@ -445,6 +448,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SpaceSavingTopK
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SparseIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.StealTimeReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SweepLineIntervals
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
@@ -711,6 +715,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.InstrumentedUni
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.MvccVisibility
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.QuorumConsistency
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.QuorumThreshold
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.ReadRepair
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.TwoPhaseCoordinator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.WriteSkewDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties

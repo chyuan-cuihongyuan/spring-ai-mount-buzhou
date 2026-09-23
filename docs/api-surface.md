@@ -105,6 +105,11 @@
 - `public final class DelayScheduling`（spec 5014——Spark 本地性等待预算；嵌套 `Verdict`）
 - `public final class SieveCache`（spec 5015——SIEVE lazy promotion 驱逐）
 - `public final class TwoPhaseCoordinator`（spec 5016——2PC 投票裁决状态机；嵌套 `Phase`）
+- `public final class ReadRepair`（spec 5018——读时择优+陈旧回写；嵌套 `Report`/`Stitch`）
+- `public final class HotKeyDetector`（spec 5019——确定性采样热点告警）
+- `public final class BoundedMailbox`（spec 5020——容量信箱+溢出策略；嵌套 `OverflowPolicy`）
+- `public final class SparseIndex`（spec 5021——块首键二分定位；嵌套 `Block`）
+- `public final class IntervalTree`（spec 5022——居中区间树 stabbing 查询；嵌套 `Interval`）
 - `public final class ScalarKalmanFilter`（spec 4036——标量卡尔曼预测/更新+增益闭环）
 - `public final class HoltWintersIndex`（spec 4037——Holt-Winters 季节指数+预测）
 - `public final class TheilSenSlope`（spec 4038——成对斜率中位数稳健拟合；嵌套 `Fit`）
