@@ -36,7 +36,7 @@
 | R2 | #4001 | Count-Min 素描（Cassandra/ClickHouse 流式计数思想） | T6003–T6004 | 2102 | ✅ |
 | R3 | #4002 | Space-Saving 频繁项 top-k（Metwally 2005 思想） | T6005–T6006 | 2103 | ✅ |
 | R4 | #4003 | Boyer-Moore 多数表决（MJRTY 1991 流式多数思想） | T6007–T6008 | 2104 | ✅ |
-| R5 | #4004 | KS 两样本检验（Kolmogorov-Smirnov 分布对比思想） | T6009–T6010 | 2105 | ⏳ |
+| R5 | #4004 | KS 两样本检验（Kolmogorov-Smirnov 分布对比思想） | T6009–T6010 | 2105 | ✅ |
 | R6 | #4005 | 对账轮（快照 +5 + 全仓离线 verify 三门绿；6/50=12%） | T6011–T6012 | 2106 | ⏳ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
