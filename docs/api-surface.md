@@ -70,6 +70,11 @@
 - `public final class BitcaskKeydir`（spec 4014——追加日志死区回收账；嵌套 `MergePlan`）
 - `public final class SlabClassPacker`（spec 4015——slab 几何档槽装箱+记账）
 - `public final class HnswBeamSearch`（spec 4016——稠密向量 HNSW 分层近邻）
+- `public final class CoDelController`（spec 4018——sojourn AQM+Queue 门面；嵌套 `Queue`）
+- `public final class QuicAmplificationWindow`（spec 4019——未验证对端 ×3 反放大信用窗）
+- `public final class CoopBudget`（spec 4020——tokio 协作预算让出）
+- `public final class WorkStealingSplit`（spec 4021——偷半裁决+冷端搬运）
+- `public final class TailSamplingPolicy`（spec 4022——尾采样金料通道+预算；嵌套 `Verdict`）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）

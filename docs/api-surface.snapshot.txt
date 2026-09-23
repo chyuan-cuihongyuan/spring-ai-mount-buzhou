@@ -2,6 +2,7 @@
 # 更新流程：-Dbuzhou.api-snapshot.regenerate=true 跑 regenerateSnapshot → 人工核对 diff → api-surface.md 同步入档
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.Buzhou
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.BurstCreditAccount
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.CoDelController
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.ErrorBudgetPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.HierarchicalTokenBucket
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.HysteresisWatermark
@@ -10,6 +11,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.LoadShedLadder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.MaintenanceCordon
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.OverloadPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.PrefetchCreditWindow
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.QuicAmplificationWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RandomEarlyDrop
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.backpressure.RetryBudgetHolder
@@ -72,6 +74,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BatchAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReload
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CoopBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DisjointSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
@@ -109,6 +112,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VectorClockOrder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.VirtualRuntimeQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WaitForReadyGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WeightedRouter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.WorkStealingSplit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BulkheadScalingProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouAlertProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.config.BuzhouArchiveProperties
@@ -455,6 +459,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanParentInt
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanRecorder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanStatus
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.SpanTreeTopology
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.TailSamplingPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ApiSunsetLifecycle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BinPackBalance
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
