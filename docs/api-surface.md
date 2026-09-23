@@ -95,6 +95,11 @@
 - `public final class FisherYatesShuffle`（spec 5002——Durstenfeld 无偏洗牌）
 - `public final class BoundedLoadRing`（spec 5003——有界负载一致哈希）
 - `public final class FencingTokenGuard`（spec 5004——Chubby 世代令牌写守卫；嵌套 `Verdict`）
+- `public final class TicketLock`（spec 5006——Linux 票据锁 FIFO 公平自旋）
+- `public final class SeqLock`（spec 5007——奇偶序号乐观读锁）
+- `public final class DisruptorRingBuffer`（spec 5008——LMAX 预分配序标环）
+- `public final class ClockSweepCache`（spec 5009——使用计数环形指针驱逐）
+- `public final class HintedHandoff`（spec 5010——暂代记账 FIFO 回放）
 - `public final class ScalarKalmanFilter`（spec 4036——标量卡尔曼预测/更新+增益闭环）
 - `public final class HoltWintersIndex`（spec 4037——Holt-Winters 季节指数+预测）
 - `public final class TheilSenSlope`（spec 4038——成对斜率中位数稳健拟合；嵌套 `Fit`）
