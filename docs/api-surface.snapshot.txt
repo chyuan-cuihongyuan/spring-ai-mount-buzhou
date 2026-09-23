@@ -472,6 +472,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BinPackBalance
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyChangeListener
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.CacheControlDirectives
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.CommitGraph
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DifficultyRetarget

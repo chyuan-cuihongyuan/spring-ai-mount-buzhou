@@ -90,6 +90,7 @@
 - `public final class RopeBuffer`（spec 4044——Rope 权重树文本缓冲）
 - `public final class SchemaEvolution`（spec 4045——Avro 读写模式解析；嵌套 `Schema`/`Plan` 等）
 - `public final class BanEscalation`（spec 4046——fail2ban 滑窗判禁+前科递升；嵌套 `Verdict`）
+- `public final class CacheControlDirectives`（spec 4048——RFC 9111 指令解析+新鲜度裁决；嵌套 `Directives`）
 - `public final class ScalarKalmanFilter`（spec 4036——标量卡尔曼预测/更新+增益闭环）
 - `public final class HoltWintersIndex`（spec 4037——Holt-Winters 季节指数+预测）
 - `public final class TheilSenSlope`（spec 4038——成对斜率中位数稳健拟合；嵌套 `Fit`）
