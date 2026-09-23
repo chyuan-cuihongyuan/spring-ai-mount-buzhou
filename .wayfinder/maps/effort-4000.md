@@ -60,6 +60,7 @@
 | R26 | #4025 | 监督者重启强度（Erlang/OTP max_intensity 思想） | T6051–T6052 | 2126 | ✅ |
 | R27 | #4026 | 推测执行裁决（Spark speculative execution 思想） | T6053–T6054 | 2127 | ✅ |
 | R28 | #4027 | 稳定匹配（Gale-Shapley 延迟接受思想） | T6055–T6056 | 2128 | ✅ |
+| R29 | #4028 | 动态 snitch 惩罚（Cassandra badness 思想） | T6057–T6058 | 2129 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
