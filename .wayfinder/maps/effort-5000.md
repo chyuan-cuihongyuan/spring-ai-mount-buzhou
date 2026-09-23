@@ -57,6 +57,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S25 | #5024 | MemTable 内存表（LSM 可变表+满表滚动思想） | T6149–T6150 | 2175 | ✅ |
 | S26 | #5025 | Skip List 跳跃表（Pugh 概率多层链思想） | T6151–T6152 | 2176 | ✅ |
 | S27 | #5026 | 平滑加权轮询（nginx smooth WRR 思想） | T6153–T6154 | 2177 | ✅ |
+| S28 | #5027 | Deficit Round Robin 亏空调度（Shreedhar-Varghese 思想） | T6155–T6156 | 2178 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
