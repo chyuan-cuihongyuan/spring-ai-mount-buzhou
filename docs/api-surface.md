@@ -91,6 +91,10 @@
 - `public final class SchemaEvolution`（spec 4045——Avro 读写模式解析；嵌套 `Schema`/`Plan` 等）
 - `public final class BanEscalation`（spec 4046——fail2ban 滑窗判禁+前科递升；嵌套 `Verdict`）
 - `public final class CacheControlDirectives`（spec 4048——RFC 9111 指令解析+新鲜度裁决；嵌套 `Directives`）
+- `public final class RoaringBitSet`（spec 5001——容器化自适应压缩位图）
+- `public final class FisherYatesShuffle`（spec 5002——Durstenfeld 无偏洗牌）
+- `public final class BoundedLoadRing`（spec 5003——有界负载一致哈希）
+- `public final class FencingTokenGuard`（spec 5004——Chubby 世代令牌写守卫；嵌套 `Verdict`）
 - `public final class ScalarKalmanFilter`（spec 4036——标量卡尔曼预测/更新+增益闭环）
 - `public final class HoltWintersIndex`（spec 4037——Holt-Winters 季节指数+预测）
 - `public final class TheilSenSlope`（spec 4038——成对斜率中位数稳健拟合；嵌套 `Fit`）

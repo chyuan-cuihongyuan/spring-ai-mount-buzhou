@@ -41,6 +41,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.SpendRateRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.TokenBudgetHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.budget.VirtualKeys
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.AdaptiveReplacementCache
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BoundedLoadRing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ClockEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
@@ -432,6 +433,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.OutOfOrderWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.QuantileAggregationBias
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RabinKarpSearch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RoaringBitSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ScalarKalmanFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
@@ -479,6 +481,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DifficultyRetarget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DynamicSnitchPenalty
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.Eip1559BaseFee
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ErasureCodingBudget
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FisherYatesShuffle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.FlagEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GaussianSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
@@ -692,6 +695,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.token.TableContextWindowRes
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.BoundedStaleness
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.CompensatingBatch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.FallbackChainValidator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.FencingTokenGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.HalfMessageAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.IdempotencyKeyGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.InstrumentedUnitOfWork
