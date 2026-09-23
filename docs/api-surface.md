@@ -100,6 +100,11 @@
 - `public final class DisruptorRingBuffer`（spec 5008——LMAX 预分配序标环）
 - `public final class ClockSweepCache`（spec 5009——使用计数环形指针驱逐）
 - `public final class HintedHandoff`（spec 5010——暂代记账 FIFO 回放）
+- `public final class DoubleWriteBuffer`（spec 5012——InnoDB 崩溃恢复暂存）
+- `public final class GroupCommitLog`（spec 5013——WAL 组提交持久上沿；嵌套 `GroupSync`）
+- `public final class DelayScheduling`（spec 5014——Spark 本地性等待预算；嵌套 `Verdict`）
+- `public final class SieveCache`（spec 5015——SIEVE lazy promotion 驱逐）
+- `public final class TwoPhaseCoordinator`（spec 5016——2PC 投票裁决状态机；嵌套 `Phase`）
 - `public final class ScalarKalmanFilter`（spec 4036——标量卡尔曼预测/更新+增益闭环）
 - `public final class HoltWintersIndex`（spec 4037——Holt-Winters 季节指数+预测）
 - `public final class TheilSenSlope`（spec 4038——成对斜率中位数稳健拟合；嵌套 `Fit`）
