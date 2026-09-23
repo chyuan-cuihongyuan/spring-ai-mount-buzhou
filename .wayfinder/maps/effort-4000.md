@@ -48,6 +48,7 @@
 | R14 | #4013 | 尺寸分层合并挑选（Cassandra STC 思想） | T6027–T6028 | 2114 | ✅ |
 | R15 | #4014 | Bitcask 键目录合并（Riak 追加日志思想） | T6029–T6030 | 2115 | ✅ |
 | R16 | #4015 | Slab 类装箱（Memcached slab allocator 思想） | T6031–T6032 | 2116 | ✅ |
+| R17 | #4016 | HNSW 贪心层搜索（Malkov 2016/hnswlib 思想） | T6033–T6034 | 2117 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
