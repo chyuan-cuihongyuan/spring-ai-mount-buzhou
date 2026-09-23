@@ -65,6 +65,11 @@
 - `public final class DeltaFrameOfReference`（spec 4008——增量+基准帧列存编码；嵌套 `Encoded`）
 - `public final class CrockfordBase32`（spec 4009——人类可转录 Base32+mod-37 校验符）
 - `public final class UuidV7Monotonic`（spec 4010——RFC 9562 时间有序 UUID+借位伪时序）
+- `public final class ZoneMapPruner`（spec 4012——区块 min/max 剪枝；嵌套 `Zone`）
+- `public final class SizeTieredMergePicker`（spec 4013——尺寸分层压实成组；嵌套 `Candidate`）
+- `public final class BitcaskKeydir`（spec 4014——追加日志死区回收账；嵌套 `MergePlan`）
+- `public final class SlabClassPacker`（spec 4015——slab 几何档槽装箱+记账）
+- `public final class HnswBeamSearch`（spec 4016——稠密向量 HNSW 分层近邻）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）

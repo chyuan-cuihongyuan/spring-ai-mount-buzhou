@@ -46,14 +46,17 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.LruKEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ScanCursorCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.SlabClassPacker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TtlJitter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.TwoQueueCache
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.BitcaskKeydir
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.ChunkCompressionPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionArchiver
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionAvailabilityFloor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleaner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupContributor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SessionCleanupResult
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.SizeTieredMergePicker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StateTtlCoverage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsck
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreFsckHousekeeper
@@ -61,6 +64,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.StoreIntegrityRepor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.TombstoneRatioReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.TurnSequenceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.WriteAmplificationFactor
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.ZoneMapPruner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AdaptiveBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkheadReporter
@@ -369,6 +373,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.leak.ResourceLeakDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.HnswBeamSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ConversationShapeAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Crc32C
