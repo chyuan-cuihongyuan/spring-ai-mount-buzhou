@@ -15,30 +15,36 @@ class BoyerMooreMajorityTest {
 
     @Test
     void trueMajorityShouldSurviveCancellation() {
-        assertThat(BoyerMooreMajority.majorityOf(
-                List.of("a", "a", "b", "a", "c", "a"))).isEqualTo("a");   // 4/6 > 1/2
+        String found = BoyerMooreMajority.majorityOf(List.of("a", "a", "b", "a", "c", "a"));
+        assertThat(found).isEqualTo("a");   // 4/6 > 1/2
     }
 
     @Test
     void exactHalfShouldBeStalemateNotMajority() {
-        assertThat(BoyerMooreMajority.majorityOf(List.of("a", "a", "b", "b"))).isNull();
-        assertThat(BoyerMooreMajority.majorityOf(List.of("a", "b", "c"))).isNull();
+        String half = BoyerMooreMajority.majorityOf(List.of("a", "a", "b", "b"));
+        assertThat(half).isNull();
+        String scattered = BoyerMooreMajority.majorityOf(List.of("a", "b", "c"));
+        assertThat(scattered).isNull();
     }
 
     @Test
     void candidateShouldReEstablishAfterFullCancellation() {
         // a+1 → b 抵消 → b 立 → a 抵消 → a 立；核验 a=3 > 5/2
-        assertThat(BoyerMooreMajority.majorityOf(List.of("a", "b", "b", "a", "a")))
-                .isEqualTo("a");
+        String reEstablished = BoyerMooreMajority.majorityOf(List.of("a", "b", "b", "a", "a"));
+        assertThat(reEstablished).isEqualTo("a");
         // 首元素全程被围剿：x=1 其余均异——核验否决
-        assertThat(BoyerMooreMajority.majorityOf(List.of("x", "a", "b", "c", "d"))).isNull();
+        String ambushed = BoyerMooreMajority.majorityOf(List.of("x", "a", "b", "c", "d"));
+        assertThat(ambushed).isNull();
     }
 
     @Test
     void emptyAndSingletonShouldBehave() {
-        assertThat(BoyerMooreMajority.majorityOf(List.of())).isNull();
-        assertThat(BoyerMooreMajority.majorityOf(List.of("only"))).isEqualTo("only");
-        assertThat(BoyerMooreMajority.majorityOf(List.of(7, 7, 9))).isEqualTo(7);   // 泛型直证
+        String empty = BoyerMooreMajority.majorityOf(List.of());
+        assertThat(empty).isNull();
+        String singleton = BoyerMooreMajority.majorityOf(List.of("only"));
+        assertThat(singleton).isEqualTo("only");
+        Integer numeric = BoyerMooreMajority.majorityOf(List.of(7, 7, 9));
+        assertThat(numeric).isEqualTo(7);   // 泛型直证
     }
 
     @Test
