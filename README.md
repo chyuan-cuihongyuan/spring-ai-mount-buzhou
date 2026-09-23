@@ -1320,6 +1320,7 @@ L 会话（effort #1700+ 号段，借鉴 GitHub >10K star 项目）增量（每�
 | 指标治理 | 时钟抖动测量 | ClockJitterMeter——record 滚动窗口采样偏差+jitterMillis 总体标准差（样本不足哨兵 -1.0）+meanOffsetMillis 偏斜分量——NTP discipline 惯例，偏斜可校抖动只可测与 ClockSkewClamp 成对（spec 1921） | [spec 1921](docs/spec/1921-clock-jitter-meter.md) |
 | 模型韧性 | 降级链配置校验 | FallbackChainValidator——四规则静态校验（主非空/备链非空/无重复/主不在备链）错误列表全收集+isSane 便捷判定——Resilience4j/LiteLLM 惯例，配置错误启动期拦住而非首次降级暴雷（spec 1922） | [spec 1922](docs/spec/1922-fallback-chain-validator.md) |
 | 并发治理 | 事件循环滞后探针 | EventLoopLagProbe——lagMillis 调度与执行时刻差（负滞后钳 0）+saturated 判定边界含上——Node.js event loop lag 惯例，任务延迟飙升归因下游前先看调度器还灵不灵（spec 1923） | [spec 1923](docs/spec/1923-event-loop-lag-probe.md) |
+| 并发治理 | 空闲连接收割 | IdleConnectionReaper——reapCandidates 闲置 ≥ maxIdle 入选最久排前+idleMillis 闲置时长读数——HikariCP idle reaper 语义，长生命周期连接堆积统一收割判定（spec 1924） | [spec 1924](docs/spec/1924-idle-connection-reaper.md) |
 | 背压治理 | 自适应抖动缓冲 | JitterBuffer——requiredDelay 覆盖分位延迟（升序第 ⌈target×n⌉ 个）+coverageRatio 实际覆盖占比——VoIP/WebRTC 自适应抖动缓冲语义，出队空转与延迟陪绑的换挡杆（spec 1903） | [spec 1903](docs/spec/1903-jitter-buffer.md) |
 | 事务语义 | 票数下限判定 | QuorumThreshold——majority ⌊N/2⌋+1 简单多数+byzantineTolerance ⌊(N−1)/3⌋ 坏票容忍+byzantineSize 3f+1 最小投票者——Paxos/BFT 票数公式，崩溃/拜占庭两档混淆的配置错误一行拦住（spec 1904） | [spec 1904](docs/spec/1904-quorum-threshold.md) |
 | 清理治理 | 分块压缩策略 | ChunkCompressionPolicy——shouldCompress 块龄阈值含上+savingsEstimate original×(1−1/ratio)+readPenaltyFactor 读放大诚实面——TimescaleDB chunk 压缩语义，历史治理从删除单路到压缩换空间（spec 1905） | [spec 1905](docs/spec/1905-chunk-compression-policy.md) |
