@@ -41,6 +41,7 @@
 | R7 | #4006 | Huffman 前缀码（Huffman 1952+deflate 规范码思想） | T6013–T6014 | 2107 | ✅ |
 | R8 | #4007 | CRC-32C 校验（Castagnoli/iSCSI/LevelDB 思想） | T6015–T6016 | 2108 | ✅ |
 | R9 | #4008 | 增量+基准帧编码（Parquet/ORC 列存 delta 思想） | T6017–T6018 | 2109 | ✅ |
+| R10 | #4009 | Crockford Base32（Crockford 2001 人类可转录思想） | T6019–T6020 | 2110 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
