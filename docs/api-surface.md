@@ -57,6 +57,9 @@
 - `public final class RollingMaxCounter`（spec 708——时间桶滚动 max，时钟注入）
 - `public final class HllCardinalitySketch`（spec 2001——HLL 基数素描：定容寄存器 distinct 计数，merge 并集）
 - `public final class FrequencySketch`（spec 2007——4bit Count-Min 频率门控，W-TinyLFU 准入）
+- `public final class CountMinSketch`（spec 4001——Count-Min 素材计数：任意键点查近似，单侧高估）
+- `public final class SpaceSavingTopK`（spec 4002——Space-Saving 频繁项 top-k：淘汰继承，读数即答案；嵌套 `Entry`）
+- `public final class BoyerMooreMajority`（spec 4003——MJRTY 配对抵消多数表决，单遍常数内存）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）
@@ -778,6 +781,7 @@
 - `public final class MultipleComparisonCorrection`（spec 2058——Bonferroni/Holm 族错误率；嵌套 `Verdict`）
 - `public final class FalseDiscoveryRate`（spec 2060——BH-FDR 截止序）
 - `public final class GrubbsOutlier`（spec 3024——Grubbs 单离群检验；嵌套 `Result`）
+- `public final class KsTwoSample`（spec 4004——KS 两样本全分布对比；嵌套 `Result`）
 - `EvalQueryService`（allRuns/runs/run/latestRun；只读）
 - `FeedbackExporter.isNegative` / `decode` 由包内提 `public`（回流单一事实源口径；行为零变化）
 
