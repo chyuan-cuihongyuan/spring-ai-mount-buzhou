@@ -85,6 +85,11 @@
 - `public final class AncestorFeerate`（spec 4032——CPFP 祖先包聚合费率；嵌套 `Tx`）
 - `public final class SemVerOrder`（spec 4033——semver 2.0 §11 优先级；嵌套 `Version`）
 - `public final class JsonPatchApplier`（spec 4034——RFC 6902 六操作原子应用）
+- `public final class ScalarKalmanFilter`（spec 4036——标量卡尔曼预测/更新+增益闭环）
+- `public final class HoltWintersIndex`（spec 4037——Holt-Winters 季节指数+预测）
+- `public final class TheilSenSlope`（spec 4038——成对斜率中位数稳健拟合；嵌套 `Fit`）
+- `public final class DdSketch`（spec 4039——对数桶相对误差分位草图）
+- `public final class MvccVisibility`（spec 4040——MVCC 快照可见性；嵌套 `Snapshot`/`RowVersion`）
 - `public final class SimHashFingerprint`（spec 2038——Charikar 近重复指纹）
 - `public final class TextDistance`（spec 2052——Levenshtein 精确口径 + 相似比 + 阈值近匹配）
 - `public final class ShannonEntropy`（spec 2050——香农熵 bits/nats + 归一化）

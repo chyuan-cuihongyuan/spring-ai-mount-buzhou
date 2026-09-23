@@ -42,9 +42,13 @@ class AsyncObservabilityPipelineTest {
         try (AsyncObservabilityPipeline pipeline = new AsyncObservabilityPipeline(store, config, null)) {
             SpanContext ctx = new SpanContext("s1", "session-bp", 1);
             pipeline.emit(ctx, EventType.FINAL_REPLY, Map.of("i", 1)); // 占满容量（drain 取走前排后仍被 latch 卡）
+            // impl 2142 确定性硬化：先证 drain 已进入 saveEvents 被 latch 卡住（负载下
+            // drain 可能尚未起跑/尚未取件——此前的裸时序在满载下翻车：断言失败后
+            // close→flush 兜底 drain 再撞未释放 latch 即挂死），之后再填队必然阻塞
+            await().atMost(5, TimeUnit.SECONDS).until(() -> store.saveLatchStarted.getCount() == 0);
             pipeline.emit(ctx, EventType.FINAL_REPLY, Map.of("i", 2));
 
-            // 第 2 条已入队/阻塞中（drain 被 store 卡住）——再发一条必然阻塞主链
+            // 第 2 条已入队（drain 被 store 卡住）——再发一条必然阻塞主链
             Thread producer = new Thread(() ->
                     pipeline.emit(ctx, EventType.FINAL_REPLY, Map.of("i", 3)));
             producer.start();
@@ -174,7 +178,9 @@ class AsyncObservabilityPipelineTest {
             if (latch != null) {
                 saveLatchStarted.countDown();
                 try {
-                    latch.await();
+                    // impl 2142：限时等待——close/flush 的兜底 drain 会同步调到本方法，
+                    // 无界 await 在断言翻车路径上会挂死整个套件（上限 5s 自恢复）
+                    latch.await(5, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }

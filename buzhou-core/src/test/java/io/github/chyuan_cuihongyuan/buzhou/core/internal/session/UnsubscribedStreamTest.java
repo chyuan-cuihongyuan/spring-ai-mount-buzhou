@@ -24,6 +24,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class UnsubscribedStreamTest {
 
+    /** impl 2142：单飞闸释放竞速的限时重试上限（秒）。 */
+    private static final long RETRY_SECONDS = 5L;
+
     /** 未订阅：不占单飞闸——后续 chat 照常（既往残留 +1 会卡死闸至 close）。 */
     @Test
     void unsubscribedStreamDoesNotOccupyTurnSlot() {
@@ -52,9 +55,22 @@ class UnsubscribedStreamTest {
         assertThat(flux.collectList().block().getFirst().getResult().getOutput().getText())
                 .isEqualTo("第一次");
 
-        // 第一次已终结（闸释放）→ 第二次订阅会重新开轮（defer 体重放）——本例脚本仍有第二条回复
-        assertThat(flux.collectList().block().getFirst().getResult().getOutput().getText())
-                .isEqualTo("第二次");
+        // 第一次已终结（闸释放）→ 第二次订阅会重新开轮（defer 体重放）——本例脚本仍有第二条回复。
+        // impl 2142 确定性硬化：block() 返回与闸释放（doFinally）跨线程竞速，满载下
+        // 第二次订阅可能撞 TURN_IN_FLIGHT——限时重试同一断言（语义不变：终结后再订阅=新轮）
+        long retryDeadline = System.nanoTime()
+                + java.util.concurrent.TimeUnit.SECONDS.toNanos(RETRY_SECONDS);
+        while (true) {
+            try {
+                assertThat(flux.collectList().block().getFirst().getResult().getOutput().getText())
+                        .isEqualTo("第二次");
+                break;
+            } catch (RuntimeException | AssertionError attempt) {
+                if (System.nanoTime() > retryDeadline) {
+                    throw attempt;
+                }
+            }
+        }
         session.close();
     }
 
