@@ -33,7 +33,7 @@
 | R | effort | 主题 | 票 | impl | 状态 |
 |---|---|---|---|---|---|
 | R1 | #4000 | 4000 系对账门落位（RSession4000LedgerAuditTest 四面互证） | T6001–T6002 | 2101 | ✅ |
-| R2 | #4001 | Count-Min 素描（Cassandra/ClickHouse 流式计数思想） | T6003–T6004 | 2102 | ⏳ |
+| R2 | #4001 | Count-Min 素描（Cassandra/ClickHouse 流式计数思想） | T6003–T6004 | 2102 | ✅ |
 | R3 | #4002 | Space-Saving 频繁项 top-k（Metwally 2005 思想） | T6005–T6006 | 2103 | ⏳ |
 | R4 | #4003 | Boyer-Moore 多数表决（MJRTY 1991 流式多数思想） | T6007–T6008 | 2104 | ⏳ |
 | R5 | #4004 | KS 两样本检验（Kolmogorov-Smirnov 分布对比思想） | T6009–T6010 | 2105 | ⏳ |
