@@ -38,14 +38,18 @@ public final class UuidV7Monotonic {
         this(System::currentTimeMillis, new Random());
     }
 
-    /** 生成下一个 v7：新毫秒计数器随机重置、同毫秒 +1、溢出向时间戳借位。 */
+    /**
+     * 生成下一个 v7：真实钟前进（或追上伪时序）→ 计数器随机重置；
+     * 同毫秒 +1；计数器溢出向时间戳借位（伪时序 +1ms——真钟未追上
+     * 前维持伪时序，有序性不断）。
+     */
     public synchronized UUID next() {
         long now = clockMillis.getAsLong();
-        if (now != lastTs) {
+        if (now > lastTs) {
             lastTs = now;
             counter = random.nextInt(COUNTER_MAX + 1);
         } else if (counter == COUNTER_MAX) {
-            lastTs = ++now;   // 借位：伪时序推进 1ms，有序性不断
+            lastTs = lastTs + 1;   // 借位：伪时序推进，真钟落后期间继续沿用
             counter = 0;
         } else {
             counter++;
