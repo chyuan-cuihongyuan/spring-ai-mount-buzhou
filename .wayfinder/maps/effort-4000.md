@@ -47,6 +47,7 @@
 | R13 | #4012 | 区块 min/max 剪枝（DuckDB zone map/Parquet 统计思想） | T6025–T6026 | 2113 | ✅ |
 | R14 | #4013 | 尺寸分层合并挑选（Cassandra STC 思想） | T6027–T6028 | 2114 | ✅ |
 | R15 | #4014 | Bitcask 键目录合并（Riak 追加日志思想） | T6029–T6030 | 2115 | ✅ |
+| R16 | #4015 | Slab 类装箱（Memcached slab allocator 思想） | T6031–T6032 | 2116 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
