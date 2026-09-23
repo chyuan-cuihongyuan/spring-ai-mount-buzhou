@@ -54,6 +54,7 @@
 | R20 | #4019 | QUIC 反放大窗（RFC 9000 §8.1 防放大思想） | T6039–T6040 | 2120 | ✅ |
 | R21 | #4020 | tokio 协作预算（coop budget 让出思想） | T6041–T6042 | 2121 | ✅ |
 | R22 | #4021 | 工作窃取对半分割（Cilk/Go scheduler steal-half 思想） | T6043–T6044 | 2122 | ✅ |
+| R23 | #4022 | 尾采样策略（OTel tail-based sampling 思想） | T6045–T6046 | 2123 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
