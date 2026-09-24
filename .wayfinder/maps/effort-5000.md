@@ -75,6 +75,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S43 | #5042 | Xor Filter 异或过滤器（Graf-Lemire 思想） | T6185–T6186 | 2193 | ✅ |
 | S44 | #5043 | CRDT PN-Counter 正负计数器（Riak/Redis CRDT 思想） | T6187–T6188 | 2194 | ✅ |
 | S45 | #5044 | Segment Tree 线段树（ZKW 2n 迭代实现思想） | T6189–T6190 | 2195 | ✅ |
+| S46 | #5045 | Robin Hood Hash Table 劫富济贫哈希表（探测距离均衡思想） | T6191–T6192 | 2196 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
