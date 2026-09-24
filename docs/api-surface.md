@@ -109,6 +109,11 @@
 - `public final class WeightedRoundRobin`（spec 5026——nginx 平滑加权轮询）
 - `public final class DeficitRoundRobin`（spec 5027——DRR 亏空记账调度）
 - `public final class RadixTree`（spec 5034——压缩前缀树最长前缀匹配；嵌套 `Match`）
+- `public final class BlockedSlidingCounter`（spec 5040——分块滑窗近似计数双界）
+- `public final class SlruCache`（spec 5039——试用期/保护期双段 LRU）
+- `public final class ShuffleSharding`（spec 5038——租户×分片子集爆炸半径隔离）
+- `public final class DistributedSnapshot`（spec 5037——Chandy-Lamport 一致快照；嵌套 `SnapshotResult`）
+- `public final class EpochReclamation`（spec 5036——EBR 时代守卫延迟回收；嵌套 `Guard`）
 - `public final class ContentDefinedChunking`（spec 5033——FastCDC 内容定义分块；嵌套 `Chunk`）
 - `public final class BPlusTree`（spec 5032——B+ 树有序索引；嵌套 `Entry`）
 - `public final class LeveledCompaction`（spec 5031——层容量阶梯压实挑选；嵌套 `LevelTable`/`CompactionPlan`）
