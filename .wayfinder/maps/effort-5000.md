@@ -70,6 +70,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S38 | #5037 | Distributed Snapshot 一致快照（Chandy-Lamport 标记快照思想） | T6175–T6176 | 2188 | ✅ |
 | S39 | #5038 | Shuffle Sharding 洗牌分片（AWS 爆炸半径隔离思想） | T6177–T6178 | 2189 | ✅ |
 | S40 | #5039 | Segmented LRU 分段缓存（PostgreSQL/Caffeine 双段思想） | T6179–T6180 | 2190 | ✅ |
+| S41 | #5040 | Blocked Sliding Counter 分块滑窗计数器（√N 分块近似面；勘误换自 DG 指数直方图） | T6181–T6182 | 2191 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
