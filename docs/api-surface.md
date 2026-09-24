@@ -108,6 +108,12 @@
 - `public final class DelayScheduling`（spec 5014——Spark 本地性等待预算；嵌套 `Verdict`）
 - `public final class WeightedRoundRobin`（spec 5026——nginx 平滑加权轮询）
 - `public final class DeficitRoundRobin`（spec 5027——DRR 亏空记账调度）
+- `public final class RadixTree`（spec 5034——压缩前缀树最长前缀匹配；嵌套 `Match`）
+- `public final class ContentDefinedChunking`（spec 5033——FastCDC 内容定义分块；嵌套 `Chunk`）
+- `public final class BPlusTree`（spec 5032——B+ 树有序索引；嵌套 `Entry`）
+- `public final class LeveledCompaction`（spec 5031——层容量阶梯压实挑选；嵌套 `LevelTable`/`CompactionPlan`）
+- `public final class WoundWaitGate`（spec 5030——wait-die/wound-wait 死锁预防时序裁决；嵌套 `Mode`/`Verdict`）
+- `public final class SegmentLog`（spec 5028——分段日志滚动+最旧段淘汰；S36 勘误补行——S30 漏登）
 - `public final class SieveCache`（spec 5015——SIEVE lazy promotion 驱逐）
 - `public final class TwoPhaseCoordinator`（spec 5016——2PC 投票裁决状态机；嵌套 `Phase`）
 - `public final class ReadRepair`（spec 5018——读时择优+陈旧回写；嵌套 `Report`/`Stitch`）

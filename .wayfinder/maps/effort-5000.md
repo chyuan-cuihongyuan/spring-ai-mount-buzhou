@@ -65,6 +65,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S33 | #5032 | B+ Tree 有序索引（MySQL InnoDB 叶层全键值思想） | T6165–T6166 | 2183 | ✅ |
 | S34 | #5033 | Content-Defined Chunking 内容定义分块（restic/rclone FastCDC 思想） | T6167–T6168 | 2184 | ✅ |
 | S35 | #5034 | Radix Tree 基数树最长前缀路由（go-chi/httprouter 压缩前缀树思想） | T6169–T6170 | 2185 | ✅ |
+| S36 | #5035 | 对账轮（快照 +5（1193→1198）+ S31 换静脉勘误收档 + 全仓 verify 三门绿；36/50=72%） | T6171–T6172 | 2186 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
@@ -73,7 +74,11 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Wave 3（S13–S17）：存储引擎族——leveled 压实 / Merkle 反熵 / fencing token / clock-sweep / GCRA。
 - Wave 4（S19–S23）：执行并发族——Disruptor 环 / ticket lock / seqlock / epoch 回收 / 延迟调度。
 - Wave 5（S25–S29）：治理族——hinted handoff / ISR 伸缩 / deadline 预算 / 自适应并发 / doublewrite。
-- S6/S12/S18/S24 = 对账轮；S30–S50 后续波次（雾区）。
+- Wave 6（S31–S35）：事务时序/存储/索引/切块/路由——WoundWaitGate / LeveledCompaction / BPlusTree / ContentDefinedChunking / RadixTree（S31 勘误：JumpHash 撞 spec 3020 换静脉）✅。
+- Wave 7（S37–S41）：并发观测族——EBR epoch 回收 / Chandy-Lamport 标记快照 / Shuffle Sharding / SLRU 分段缓存 / ExponentialHistogram 滑窗计数。
+- Wave 8（S43–S47）：近似协同族——XorFilter / CRDT PN-Counter / SegmentTree / Robin Hood 开放寻址 / TinyLFU 准入。
+- Wave 9（S49）：PairingHeap 配对堆（独件）。
+- S6/S12/S18/S24/S30/S36/S42/S48 = 对账轮；S50 = 收口对账轮。
 - 每轮落轮前 grep 复核是否已被并行会话占坑，占坑即换静脉下一候选。
 
 ## Out of scope

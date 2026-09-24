@@ -315,6 +315,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.InMemorySharedFactStor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFact
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactFootprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.ContentDefinedChunking
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.GroupCommitAccounting
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter
@@ -400,6 +401,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.UserInputDuplicationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.VarintCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Autocorrelation
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BPlusTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoundedTopK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoyerMooreMajority
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
@@ -509,6 +511,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PolicyLayerAttributi
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QosClassifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.QuotaAlarmGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RampProfile
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RadixTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RequiredChecksRollup
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.RopeBuffer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.SchemaEvolution
@@ -547,6 +550,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.GroupCommitLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.HintedHandoff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.InSyncTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.KeyCompaction
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.LeveledCompaction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.MaintenanceTrigger
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.MergePressureReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.recovery.RecoverySupport
@@ -722,6 +726,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.QuorumConsisten
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.QuorumThreshold
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.ReadRepair
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.TwoPhaseCoordinator
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.WoundWaitGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.transaction.WriteSkewDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.BuzhouWebhookProperties
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.webhook.DeadLetterRedeliveryStats
