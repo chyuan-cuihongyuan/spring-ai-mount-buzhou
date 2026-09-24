@@ -79,6 +79,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S47 | #5046 | TinyLFU Admission 准入策略（Caffeine W-TinyLFU 准入面思想） | T6193–T6194 | 2197 | ✅ |
 | S48 | #5047 | 对账轮（快照 +5（1203→1208）+ 全仓 verify 三门绿；48/50=96%） | T6195–T6196 | 2198 | ✅ |
 | S49 | #5048 | Pairing Heap 配对堆（Fredman-Sedgewick 可合并堆思想） | T6197–T6198 | 2199 | ✅ |
+| S50 | #5049 | 收口对账轮（快照 +1（1208→1209）+ 全仓 verify 三门绿 + 50/50=100% 终验） | T6199–T6200 | 2200 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
@@ -91,7 +92,8 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Wave 7（S37–S41）：并发观测族——EBR epoch 回收 / Chandy-Lamport 标记快照 / Shuffle Sharding / SLRU 分段缓存 / ExponentialHistogram 滑窗计数。
 - Wave 8（S43–S47）：近似协同族——XorFilter / CRDT PN-Counter / SegmentTree / Robin Hood 开放寻址 / TinyLFU 准入。
 - Wave 9（S49）：PairingHeap 配对堆（独件）。
-- S6/S12/S18/S24/S30/S36/S42/S48 = 对账轮；S50 = 收口对账轮。
+- Wave 9（S49）：PairingHeap 配对堆（独件）✅。
+- S6/S12/S18/S24/S30/S36/S42/S48 = 对账轮；S50 = 收口对账轮（50/50=100% 全闭合）。
 - 每轮落轮前 grep 复核是否已被并行会话占坑，占坑即换静脉下一候选。
 
 ## Out of scope
