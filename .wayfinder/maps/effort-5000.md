@@ -60,6 +60,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S28 | #5027 | Deficit Round Robin 亏空调度（Shreedhar-Varghese 思想） | T6155–T6156 | 2178 | ✅ |
 | S29 | #5028 | Segment Log 分段日志（Kafka 段滚动+最旧段淘汰思想） | T6157–T6158 | 2179 | ✅ |
 | S30 | #5029 | 对账轮（快照 +5（1188→1193）+ 全仓 verify 三门绿；30/50=60%） | T6159–T6160 | 2180 | ✅ |
+| S31 | #5030 | Jump Hash 跳跃一致哈希（Google Lamping-Veach 论文思想） | T6161–T6162 | 2181 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
