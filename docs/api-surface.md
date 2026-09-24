@@ -110,6 +110,11 @@
 - `public final class DeficitRoundRobin`（spec 5027——DRR 亏空记账调度）
 - `public final class RadixTree`（spec 5034——压缩前缀树最长前缀匹配；嵌套 `Match`）
 - `public final class BlockedSlidingCounter`（spec 5040——分块滑窗近似计数双界）
+- `public final class TinyLfuAdmission`（spec 5046——频次裁决准入+老化）
+- `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
+- `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
+- `public final class SegmentTree`（spec 5044——ZKW 2n 区间和/点更新）
+- `public final class XorFilter`（spec 5042——三槽异或静态成员过滤器）
 - `public final class SlruCache`（spec 5039——试用期/保护期双段 LRU）
 - `public final class ShuffleSharding`（spec 5038——租户×分片子集爆炸半径隔离）
 - `public final class DistributedSnapshot`（spec 5037——Chandy-Lamport 一致快照；嵌套 `SnapshotResult`）
