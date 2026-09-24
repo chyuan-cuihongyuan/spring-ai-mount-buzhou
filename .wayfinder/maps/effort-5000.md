@@ -76,6 +76,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S44 | #5043 | CRDT PN-Counter 正负计数器（Riak/Redis CRDT 思想） | T6187–T6188 | 2194 | ✅ |
 | S45 | #5044 | Segment Tree 线段树（ZKW 2n 迭代实现思想） | T6189–T6190 | 2195 | ✅ |
 | S46 | #5045 | Robin Hood Hash Table 劫富济贫哈希表（探测距离均衡思想） | T6191–T6192 | 2196 | ✅ |
+| S47 | #5046 | TinyLFU Admission 准入策略（Caffeine W-TinyLFU 准入面思想） | T6193–T6194 | 2197 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
