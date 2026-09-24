@@ -60,7 +60,7 @@ S 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | S28 | #5027 | Deficit Round Robin 亏空调度（Shreedhar-Varghese 思想） | T6155–T6156 | 2178 | ✅ |
 | S29 | #5028 | Segment Log 分段日志（Kafka 段滚动+最旧段淘汰思想） | T6157–T6158 | 2179 | ✅ |
 | S30 | #5029 | 对账轮（快照 +5（1188→1193）+ 全仓 verify 三门绿；30/50=60%） | T6159–T6160 | 2180 | ✅ |
-| S31 | #5030 | Jump Hash 跳跃一致哈希（Google Lamping-Veach 论文思想） | T6161–T6162 | 2181 | ✅ |
+| S31 | #5030 | Wait-Die/Wound-Wait 死锁预防时序裁决（PostgreSQL/DB2 经典思想；勘误换静脉——原拟 Jump Hash 撞 spec 3020） | T6161–T6162 | 2181 | ✅ |
 | S32 | #5031 | Leveled Compaction 分层压实挑选（LevelDB/RocksDB 层容量阶梯思想） | T6163–T6164 | 2182 | ✅ |
 | S33 | #5032 | B+ Tree 有序索引（MySQL InnoDB 叶层全键值思想） | T6165–T6166 | 2183 | ✅ |
 | S34 | #5033 | Content-Defined Chunking 内容定义分块（restic/rclone FastCDC 思想） | T6167–T6168 | 2184 | ✅ |
