@@ -52,6 +52,7 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T16 | #6016 | Bit Packing 固定位宽打包（Parquet/ORC 列存思想） | T6231–T6232 | 2216 | ✅ |
 | T17 | #6017 | Dictionary Encoding 字典编码（Parquet/ORC 列存思想） | T6233–T6234 | 2217 | ✅ |
 | T18 | #6018 | 对账轮（快照 +10（1218→1228，Wave3×5+Wave4 预载×5）+ 全仓 verify 三门绿；18/50=36%） | T6235–T6236 | 2218 | ✅ |
+| T19 | #6018 | KD-Tree 二维最近邻（scikit-learn kd-tree 思想；源码 T18 预载） | T6237–T6238 | 2219 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
