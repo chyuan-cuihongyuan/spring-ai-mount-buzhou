@@ -73,6 +73,7 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T37 | #6036 | Counting Bloom Filter 计数布隆过滤器（Bloom 计数变体思想；勘误：原拟 GkSketch 不可自洽移回雾区） | T6273–T6274 | 2237 | ✅ |
 | T38 | #6037 | Stable Bloom Filter 稳定布隆过滤器（流式衰减思想） | T6275–T6276 | 2238 | ✅ |
 | T39 | #6039 | Weighted Reservoir Sampler 加权蓄水池采样（A-Chao 思想） | T6277–T6278 | 2239 | ✅ |
+| T40 | #6040 | Median Finder 双堆中位数流（流式中位数经典思想） | T6279–T6280 | 2240 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
