@@ -50,6 +50,7 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T14 | #6014 | Gorilla XOR 浮点压缩（Facebook Gorilla/Prometheus 思想） | T6227–T6228 | 2214 | ✅ |
 | T15 | #6015 | Simple8b 位打包（InfluxDB 时序列存思想） | T6229–T6230 | 2215 | ✅ |
 | T16 | #6016 | Bit Packing 固定位宽打包（Parquet/ORC 列存思想） | T6231–T6232 | 2216 | ✅ |
+| T17 | #6017 | Dictionary Encoding 字典编码（Parquet/ORC 列存思想） | T6233–T6234 | 2217 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
