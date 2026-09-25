@@ -73,8 +73,11 @@ class LeaseRenewalReadoutTest {
         assertThat(guard.renewQuietly()).isTrue();
         var stats = guard.renewalStats();
         assertThat(stats.renewals()).isEqualTo(2);
-        // 立即续期时剩余≈TTL——水位不会被第二次更大的剩余值抬高
-        assertThat(stats.minRemainingAtRenewalMillis()).isEqualTo(first);
+        // 立即续期时剩余≈TTL——水位不会被第二次更大的剩余值抬高。
+        // spec 6023 环境确定性清零：跨毫秒时钟粒度下第二次续约
+        // 剩余可比 first 小 1ms（min 取下确界）——合同本意是
+        // 「min 不被抬高」，改 ≤ 断言。
+        assertThat(stats.minRemainingAtRenewalMillis()).isLessThanOrEqualTo(first);
         assertThat(first).isLessThanOrEqualTo(600).isGreaterThan(0);
         guard.close();
     }
