@@ -112,6 +112,10 @@
 - `public final class BlockedSlidingCounter`（spec 5040——分块滑窗近似计数双界）
 - `public final class TinyLfuAdmission`（spec 5046——频次裁决准入+老化）
 - `public final class PairingHeap`（spec 5048——O(1) meld 可合并最小堆）
+- `public final class SplayTree`（spec 6001——访问即伸展自调整有序映射）
+- `public final class Treap`（spec 6002——随机优先级期望平衡树堆）
+- `public final class SparseTable`（spec 6003——倍增表 O(1) 静态区间最值）
+- `public final class MonotonicDeque`（spec 6004——滑窗最值摊还 O(1) 单调队列）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
 - `public final class SegmentTree`（spec 5044——ZKW 2n 区间和/点更新）
