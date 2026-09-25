@@ -116,6 +116,11 @@
 - `public final class Treap`（spec 6002——随机优先级期望平衡树堆）
 - `public final class SparseTable`（spec 6003——倍增表 O(1) 静态区间最值）
 - `public final class MonotonicDeque`（spec 6004——滑窗最值摊还 O(1) 单调队列）
+- `public final class AhoCorasick`（spec 6006——Trie+失配链多模式一次扫；嵌套 `Match`）
+- `public final class MyersDiff`（spec 6007——O(ND) 最短编辑脚本；嵌套 `Edit`）
+- `public final class BkTree`（spec 6008——BK 度量树邻域剪枝索引）
+- `public final class SuffixArray`（spec 6009——倍增后缀数组+Kasai LCP）
+- `public final class PieceTable`（spec 6010——原稿+片表增量文本缓冲）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
 - `public final class SegmentTree`（spec 5044——ZKW 2n 区间和/点更新）

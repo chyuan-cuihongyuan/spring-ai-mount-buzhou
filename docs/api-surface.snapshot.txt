@@ -324,6 +324,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fact.SharedFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.ContentDefinedChunking
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.FileSandbox
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.GroupCommitAccounting
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.PieceTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate
@@ -406,8 +407,10 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.UserInputDuplicationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.VarintCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.AhoCorasick
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Autocorrelation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BPlusTree
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BkTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BlockedSlidingCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoundedTopK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoyerMooreMajority
@@ -447,6 +450,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinHashSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinRttTracker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MonotonicDeque
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MorrisCounter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MyersDiff
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.OutOfOrderWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
@@ -465,6 +469,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SpaceSavingTopK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SparseIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SparseTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.StealTimeReadout
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SuffixArray
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SweepLineIntervals
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TailAmplification
