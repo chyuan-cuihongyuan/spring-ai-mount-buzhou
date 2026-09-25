@@ -35,6 +35,7 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T | effort | 主题 | 票 | impl | 状态 |
 |---|---|---|---|---|---|
 | T1 | #6000 | 6000 系对账门落位（TSession6000LedgerAuditTest 七应用） | T6201–T6202 | 2201 | ✅ |
+| T2 | #6001 | Splay Tree 伸展树（Sleator-Tarjan 自调整 BST 思想） | T6203–T6204 | 2202 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
