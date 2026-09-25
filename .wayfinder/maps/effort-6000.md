@@ -44,6 +44,7 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T8 | #6007 | Myers O(ND) Diff（git diff 最短编辑脚本思想） | T6215–T6216 | 2208 | ✅ |
 | T9 | #6008 | BK 树（Burkhard-Keller 度量树剪枝思想） | T6217–T6218 | 2209 | ✅ |
 | T10 | #6009 | Suffix Array 后缀数组（Manber-Myer 倍增+Kasai LCP 思想） | T6219–T6220 | 2210 | ✅ |
+| T11 | #6010 | Piece Table 文本缓冲（VSCode/Word 片表思想） | T6221–T6222 | 2211 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
