@@ -1,4 +1,4 @@
-# Spec 6015 — Simple8b 位打包（effort #6015，T15）
+# Spec 6014 — Simple8b 位打包（effort #6015，T15）
 
 > wayfinder map：`.wayfinder/maps/effort-6000.md`（T6229–T6230，impl 2215）。
 > 借鉴：Simple8b 思想（InfluxDB/时序列存同源）。

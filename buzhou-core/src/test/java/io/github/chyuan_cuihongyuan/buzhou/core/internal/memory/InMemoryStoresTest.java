@@ -70,13 +70,18 @@ class InMemoryStoresTest {
     void leaseExpiresNaturally() {
         InMemorySessionLeaseStore store = new InMemorySessionLeaseStore();
         store.tryAcquire("s1", "owner-A", Duration.ofMillis(1));
-        assertThat(store.tryAcquire("s1", "owner-B", Duration.ofSeconds(90)).acquired()).isFalse();
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        // spec 6017 环境确定性清零：1ms TTL 下两条相邻语句间隙
+        // 可能超过租约寿命（满载/JIT 假红）——改为轮询等自然
+        // 到期，语义不变（租约自然过期后可再获取）。
+        long deadline = System.currentTimeMillis() + 5_000;
+        boolean reacquired = false;
+        while (System.currentTimeMillis() < deadline) {
+            if (store.tryAcquire("s1", "owner-B", Duration.ofSeconds(90)).acquired()) {
+                reacquired = true;
+                break;
+            }
         }
-        assertThat(store.tryAcquire("s1", "owner-B", Duration.ofSeconds(90)).acquired()).isTrue();
+        assertThat(reacquired).as("1ms 租约 5s 内自然过期且可再获取").isTrue();
     }
 
     @Test

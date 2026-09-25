@@ -8,14 +8,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * spec 6016：BitPacking 合同——固定位宽无缝串接打包。
+ * spec 6015：BitPacking 合同——固定位宽无缝串接打包。
  * 多位宽往返全等（含跨字取值）；字数公式钉住；fail-fast。
  */
 class BitPackingTest {
 
     @Test
     void roundTripAcrossWidths() {
-        Random rng = new Random(6016L);
+        Random rng = new Random(6015L);
         for (int width : new int[]{0, 1, 3, 7, 31, 32, 33, 63}) {
             long[] values = new long[100];
             long limit = switch (width) {

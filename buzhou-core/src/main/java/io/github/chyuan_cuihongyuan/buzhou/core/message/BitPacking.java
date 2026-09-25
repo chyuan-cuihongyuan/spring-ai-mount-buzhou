@@ -3,14 +3,14 @@ package io.github.chyuan_cuihongyuan.buzhou.core.message;
 import java.util.Arrays;
 
 /**
- * Bit Packing 固定位宽打包（spec 6016 / T6231 / impl 2216）——
+ * Bit Packing 固定位宽打包（spec 6015 / T6231 / impl 2216）——
  * Parquet/ORC 列存 bit-packing 思想：**统一位宽无缝串接**——
  * 每值占定宽 w 位、首尾相接跨字排布（64 位字边界不浪费），
  * 压缩率 = w/64 精确可控——全量 long 直存（值域窄时放大）
  * 的病解。跨字拼接取值 O(1)（双字移位合并）；位级定构
  * （同输入同打包流——可审计）。
  *
- * <p>与 Simple8b（spec 6015）互补：单一固定宽 vs 混合自适应
+ * <p>与 Simple8b（spec 6014）互补：单一固定宽 vs 混合自适应
  * 档位；与 VarintCodec 不同面：字节流变长 vs 位域定宽。
  * 值域 [0, 2^w)。
  */

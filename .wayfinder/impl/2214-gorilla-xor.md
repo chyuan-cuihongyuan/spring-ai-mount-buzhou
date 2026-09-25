@@ -1,4 +1,4 @@
-# impl 2214 — T 会话 T14 Gorilla XOR 浮点压缩（spec 6014 / T6227–T6228 / T14）
+# impl 2214 — T 会话 T14 Gorilla XOR 浮点压缩（spec 6013 / T6227–T6228 / T14）
 
 纵切片：GorillaXor（core/message）——三态控制位流 + rawBits
 按位无损 + 压缩率对账（初稿骨架半成品重写为完整实现；

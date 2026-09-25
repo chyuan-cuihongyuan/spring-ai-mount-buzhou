@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-窄值域整数列怎么精确按位压缩？（spec 6016 /
+窄值域整数列怎么精确按位压缩？（spec 6015 /
 effort #6016 / T16）
 
 ## Resolution

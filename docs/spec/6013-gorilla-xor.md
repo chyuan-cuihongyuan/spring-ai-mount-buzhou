@@ -1,4 +1,4 @@
-# Spec 6014 — Gorilla XOR 浮点压缩（effort #6014，T14）
+# Spec 6013 — Gorilla XOR 浮点压缩（effort #6014，T14）
 
 > wayfinder map：`.wayfinder/maps/effort-6000.md`（T6227–T6228，impl 2214）。
 > 借鉴：Facebook Gorilla/Prometheus TSDB 思想。

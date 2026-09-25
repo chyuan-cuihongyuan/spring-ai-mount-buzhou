@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-T14 合同怎么逐一验绿？（spec 6014 / effort #6014 / T14）
+T14 合同怎么逐一验绿？（spec 6013 / effort #6014 / T14）
 
 ## Resolution
 

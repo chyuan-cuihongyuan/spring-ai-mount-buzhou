@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * spec 6013：EliasFano 合同——单调序列高低位联合位图编码。
+ * spec 6012：EliasFano 合同——单调序列高低位联合位图编码。
  * 随机密度 oracle 往返全等；低位宽密度依赖；存储上界；
  * fail-fast。
  */

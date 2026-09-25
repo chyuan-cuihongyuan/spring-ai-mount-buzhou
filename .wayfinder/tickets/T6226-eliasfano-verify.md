@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-T13 合同怎么逐一验绿？（spec 6013 / effort #6013 / T13）
+T13 合同怎么逐一验绿？（spec 6012 / effort #6013 / T13）
 
 ## Resolution
 

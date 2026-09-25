@@ -121,6 +121,16 @@
 - `public final class BkTree`（spec 6008——BK 度量树邻域剪枝索引）
 - `public final class SuffixArray`（spec 6009——倍增后缀数组+Kasai LCP）
 - `public final class PieceTable`（spec 6010——原稿+片表增量文本缓冲）
+- `public final class EliasFano`（spec 6012——单调序列高低位联合位图编码）
+- `public final class GorillaXor`（spec 6013——浮点 XOR 三态位流压缩）
+- `public final class Simple8b`（spec 6014——16 档选择子位打包）
+- `public final class BitPacking`（spec 6015——固定位宽无缝串接打包）
+- `public final class DictionaryEncoding`（spec 6016——字典表+窄下标列编码）
+- `public final class KdTree`（spec 6018——交替轴中位数分割最近邻；嵌套 `Nearest`）
+- `public final class QuadTree`（spec 6019——象限递归分割区域查询；嵌套 `Point`/`Rect`）
+- `public final class Geohash`（spec 6020——经纬二分交织 Base32 网格编码；嵌套 `Box`）
+- `public final class HilbertCurve`（spec 6021——空间填充曲线双射+局部性）
+- `public final class InterpolationSearch`（spec 6022——值域内插探测查找）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
 - `public final class SegmentTree`（spec 5044——ZKW 2n 区间和/点更新）

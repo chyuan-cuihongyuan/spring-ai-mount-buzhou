@@ -3,7 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.message;
 import java.util.Arrays;
 
 /**
- * Gorilla XOR 浮点压缩（spec 6014 / T6227 / impl 2214）——
+ * Gorilla XOR 浮点压缩（spec 6013 / T6227 / impl 2214）——
  * Facebook Gorilla/Prometheus TSDB 思想：**相邻浮点 XOR 流的
  * 三态控制位压缩**——与前值同值只记一位 0；有效位落在前值
  * 前导/尾随零窗内复用窗（'10'+有效位）；否则记新窗（'11'+

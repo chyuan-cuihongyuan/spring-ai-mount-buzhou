@@ -3,7 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.message;
 import java.util.Arrays;
 
 /**
- * Elias-Fano 单调序列编码（spec 6013 / T6225 / impl 2213）——
+ * Elias-Fano 单调序列编码（spec 6012 / T6225 / impl 2213）——
  * Elias-Fano 思想（Lucene/倒排索引同源）：**单调不减 long 序列
  * 的近信息论下界压缩**——按 lowerWidth = max(0, ⌈log₂(U/n)⌉)
  * 拆高低位：低位定宽直存，高位用「值+下标」联合位图（每值一个

@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-单调序列怎么近下界压缩且 O(1) 访问？（spec 6013 /
+单调序列怎么近下界压缩且 O(1) 访问？（spec 6012 /
 effort #6013 / T13）
 
 ## Resolution

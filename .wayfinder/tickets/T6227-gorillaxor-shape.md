@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-时序浮点流怎么位级无损高压缩？（spec 6014 /
+时序浮点流怎么位级无损高压缩？（spec 6013 /
 effort #6014 / T14）
 
 ## Resolution

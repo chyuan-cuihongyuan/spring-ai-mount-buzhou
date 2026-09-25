@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-低基数列怎么基数收缩换窄域？（spec 6017 /
+低基数列怎么基数收缩换窄域？（spec 6016 /
 effort #6017 / T17）
 
 ## Resolution

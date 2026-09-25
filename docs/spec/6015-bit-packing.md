@@ -1,4 +1,4 @@
-# Spec 6016 — Bit Packing 固定位宽打包（effort #6016，T16）
+# Spec 6015 — Bit Packing 固定位宽打包（effort #6016，T16）
 
 > wayfinder map：`.wayfinder/maps/effort-6000.md`（T6231–T6232，impl 2216）。
 > 借鉴：Parquet/ORC bit-packing 思想。

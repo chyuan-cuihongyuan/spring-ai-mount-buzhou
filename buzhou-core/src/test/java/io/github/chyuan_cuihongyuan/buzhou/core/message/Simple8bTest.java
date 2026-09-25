@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * spec 6015：Simple8b 合同——60 位载荷 16 档变长打包。
+ * spec 6014：Simple8b 合同——60 位载荷 16 档变长打包。
  * 混合量级往返全等；全零档压缩钉住；解码字数守恒；确定性；
  * fail-fast。
  */
@@ -16,7 +16,7 @@ class Simple8bTest {
 
     @Test
     void mixedMagnitudeRoundTrip() {
-        Random rng = new Random(6015L);
+        Random rng = new Random(6014L);
         long[] values = new long[500];
         for (int i = 0; i < values.length; i++) {
             int bucket = rng.nextInt(4);

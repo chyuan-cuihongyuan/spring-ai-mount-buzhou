@@ -3,7 +3,7 @@ package io.github.chyuan_cuihongyuan.buzhou.core.message;
 import java.util.Arrays;
 
 /**
- * Simple8b 位打包（spec 6015 / T6229 / impl 2215）——
+ * Simple8b 位打包（spec 6014 / T6229 / impl 2215）——
  * Simple8b 思想（InfluxDB/时序列存同源）：**60 位载荷按
  * 16 档选择子变长打包**——4 位选择子定（值数×位宽）档位，
  * 多个小整数共居一个 64 位字（全零档单字容纳 240 值）——

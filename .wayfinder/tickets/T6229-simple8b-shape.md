@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-小整数列怎么字对齐多值共居？（spec 6015 /
+小整数列怎么字对齐多值共居？（spec 6014 /
 effort #6015 / T15）
 
 ## Resolution

@@ -10,7 +10,7 @@ created: 2026-09-26
 
 ## Question
 
-T16 合同怎么逐一验绿？（spec 6016 / effort #6016 / T16）
+T16 合同怎么逐一验绿？（spec 6015 / effort #6016 / T16）
 
 ## Resolution
 

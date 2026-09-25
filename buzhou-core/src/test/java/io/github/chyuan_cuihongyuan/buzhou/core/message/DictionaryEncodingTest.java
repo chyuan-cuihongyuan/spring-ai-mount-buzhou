@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * spec 6017：DictionaryEncoding 合同——低基数列字典+变窄
+ * spec 6016：DictionaryEncoding 合同——低基数列字典+变窄
  * 下标双层编码。往返全等+首次出现序字典+位宽公式+压缩率
  * +fail-fast。
  */
@@ -18,7 +18,7 @@ class DictionaryEncodingTest {
 
     @Test
     void lowCardinalityRoundTrip() {
-        Random rng = new Random(6017L);
+        Random rng = new Random(6016L);
         long[] column = new long[300];
         for (int i = 0; i < column.length; i++) {
             column[i] = rng.nextInt(5) * 1000L;

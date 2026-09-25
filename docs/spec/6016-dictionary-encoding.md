@@ -1,4 +1,4 @@
-# Spec 6017 — Dictionary Encoding 字典编码（effort #6017，T17）
+# Spec 6016 — Dictionary Encoding 字典编码（effort #6017，T17）
 
 > wayfinder map：`.wayfinder/maps/effort-6000.md`（T6233–T6234，impl 2217）。
 > 借鉴：Parquet/ORC 字典编码思想。

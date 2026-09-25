@@ -1,4 +1,4 @@
-# Spec 6013 — Elias-Fano 单调序列编码（effort #6013，T13）
+# Spec 6012 — Elias-Fano 单调序列编码（effort #6013，T13）
 
 > wayfinder map：`.wayfinder/maps/effort-6000.md`（T6225–T6226，impl 2213）。
 > 借鉴：Elias-Fano 编码思想（Lucene/倒排索引同源）。

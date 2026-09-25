@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * spec 6014：GorillaXor 合同——浮点序列 XOR 三态位流压缩。
+ * spec 6013：GorillaXor 合同——浮点序列 XOR 三态位流压缩。
  * 光滑序列无损+高压缩率；随机序列无损；特殊值按位保留；
  * 确定性位流；fail-fast。
  */

@@ -1,4 +1,4 @@
-# impl 2216 — T 会话 T16 Bit Packing 固定位宽打包（spec 6016 / T6231–T6232 / T16）
+# impl 2216 — T 会话 T16 Bit Packing 固定位宽打包（spec 6015 / T6231–T6232 / T16）
 
 纵切片：BitPacking（core/message）——无缝串接+跨字合并取值
 +九档位宽 oracle（初版 63 位域 limit=1<<63 溢出负数误判，

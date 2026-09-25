@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Dictionary Encoding 字典编码（spec 6017 / T6233 / impl 2217）——
+ * Dictionary Encoding 字典编码（spec 6016 / T6233 / impl 2217）——
  * Parquet/ORC 列存字典编码思想：**低基数列拆「字典表+变窄
  * 下标列」**——首次出现序登记字典（值→下标），下标列以
  * ⌈log₂(去重数)⌉ 位定宽打包（组合 {@link BitPacking}）——
