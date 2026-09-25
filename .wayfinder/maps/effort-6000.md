@@ -69,6 +69,8 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T33 | #6032 | Extendible Hashing 可扩目录哈希（Fagin 思想） | T6265–T6266 | 2233 | ✅ |
 | T34 | #6033 | Elevator Scan 电梯扫掠（磁盘调度 LOOK 思想；源码 T30 预载） | T6267–T6268 | 2234 | ✅ |
 | T35 | #6034 | Arena Allocator 竞技场分配器（Netty/Flink arena 思想；源码 T30 预载） | T6269–T6270 | 2235 | ✅ |
+| T36 | #6035 | 对账轮（快照 +5（1233→1238）+ 全仓 verify 三门绿；36/50=72%） | T6271–T6272 | 2236 | ✅ |
+| T37 | #6036 | Counting Bloom Filter 计数布隆过滤器（Bloom 计数变体思想；勘误：原拟 GkSketch 不可自洽移回雾区） | T6273–T6274 | 2237 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
