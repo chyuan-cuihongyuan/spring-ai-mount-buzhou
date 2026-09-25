@@ -59,6 +59,10 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T23 | #6022 | Interpolation Search 插值查找（分布感知探测思想；源码 T18 预载） | T6245–T6246 | 2223 | ✅ |
 | T24 | #6023 | 对账轮（核账封波+全仓 verify 三门绿；24/50=48%） | T6247–T6248 | 2224 | ✅ |
 | T25 | #6024 | MPSC 有界队列（JCTools MpscArrayQueue 思想） | T6249–T6250 | 2225 | ✅ |
+| T26 | #6025 | Striped Lock 条带锁（Guava Striped 思想；源码 T24 预载） | T6251–T6252 | 2226 | ✅ |
+| T27 | #6026 | Indexed Heap 索引堆（Dijkstra/Prim decrease-key 思想；源码 T24 预载） | T6253–T6254 | 2227 | ✅ |
+| T28 | #6027 | Stride Scheduler 步幅调度（MIT exokernel 思想；源码 T24 预载） | T6255–T6256 | 2228 | ✅ |
+| T29 | #6028 | MLFQ 多级反馈队列（OS 调度经典思想；源码 T24 预载） | T6257–T6258 | 2229 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
