@@ -67,6 +67,8 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T31 | #6030 | Buddy Allocator 伙伴分配器（Linux buddy 思想） | T6261–T6262 | 2231 | ✅ |
 | T32 | #6031 | External Merge Sort 外归并排序（Spark 外部排序思想） | T6263–T6264 | 2232 | ✅ |
 | T33 | #6032 | Extendible Hashing 可扩目录哈希（Fagin 思想） | T6265–T6266 | 2233 | ✅ |
+| T34 | #6033 | Elevator Scan 电梯扫掠（磁盘调度 LOOK 思想；源码 T30 预载） | T6267–T6268 | 2234 | ✅ |
+| T35 | #6034 | Arena Allocator 竞技场分配器（Netty/Flink arena 思想；源码 T30 预载） | T6269–T6270 | 2235 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
