@@ -131,6 +131,11 @@
 - `public final class Geohash`（spec 6020——经纬二分交织 Base32 网格编码；嵌套 `Box`）
 - `public final class HilbertCurve`（spec 6021——空间填充曲线双射+局部性）
 - `public final class InterpolationSearch`（spec 6022——值域内插探测查找）
+- `public final class MpscQueue`（spec 6024——多生产者单消费者有界 FIFO）
+- `public final class StripedLock`（spec 6025——键分条降争用锁池）
+- `public final class IndexedHeap`（spec 6026——位置映射+decrease-key 堆）
+- `public final class StrideScheduler`（spec 6027——确定性比例份额调度）
+- `public final class Mlfq`（spec 6028——多级反馈队列；嵌套 `Dispatch`）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
 - `public final class SegmentTree`（spec 5044——ZKW 2n 区间和/点更新）
