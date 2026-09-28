@@ -346,6 +346,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.GroupCommitAccounting
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.PieceTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.RollingJsonlWriter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.SandboxViolationException
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.fs.WriteAheadLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.AlertRuleEngine
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.health.ArchiveHealth
@@ -425,6 +426,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.DeltaFrameOfReferen
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.DictionaryEncoding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.EliasFano
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.EliasGammaCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.GolombRiceCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.GorillaXor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.HuffmanCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.PromptComposition
@@ -451,6 +453,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CoordinatedOmission
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CountMinSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CountingBloomFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CrostonForecaster
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DamerauLevenshtein
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DdSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
@@ -466,6 +469,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltForecaster
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltWintersIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HotKeyDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.IntervalTree
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.InvertedIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KmpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
@@ -495,6 +499,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SkipList
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Soundex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SpaceSavingTopK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SparseIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SparseTable

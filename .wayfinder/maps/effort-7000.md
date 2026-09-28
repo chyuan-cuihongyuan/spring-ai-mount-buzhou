@@ -58,6 +58,7 @@ U 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | U21 | #7020 | GolombRiceCodec 编码（Golomb/Rice 思想） | U7241–U7242 | 2272 | ✅ |
 | U22 | #7021 | WriteAheadLog 写前日志（PostgreSQL WAL/AOF 思想） | U7243–U7244 | 2273 | ✅ |
 | U23 | #7022 | DamerauLevenshtein 距离（Lowrance-Wagner 思想） | U7245–U7246 | 2274 | ✅ |
+| U24 | #7023 | 对账轮（快照 +5（1263→1268）+ 全仓 verify 三门绿；48%；跳房子/IntervalHeap 静脉勘误退雾区入档） | U7247–U7248 | 2275 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
