@@ -52,6 +52,12 @@ U 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | U15 | #7014 | PointInPolygon 点在多边形（射线法思想） | U7229–U7230 | 2266 | ✅ |
 | U16 | #7015 | BresenhamLine 直线光栅（Bresenham 1965 思想） | U7231–U7232 | 2267 | ✅ |
 | U17 | #7016 | Manacher 最长回文（Manacher 1975 思想） | U7233–U7234 | 2268 | ✅ |
+| U18 | #7017 | 对账轮（快照 +5（1258→1263）+ 全仓 verify 三门绿；36%） | U7235–U7236 | 2269 | ✅ |
+| U19 | #7018 | Soundex 语音编码（NARA 规范思想；Wave 4 文本存储族） | U7237–U7238 | 2270 | ✅ |
+| U20 | #7019 | InvertedIndex 倒排索引（Lucene/ES 思想） | U7239–U7240 | 2271 | ✅ |
+| U21 | #7020 | GolombRiceCodec 编码（Golomb/Rice 思想） | U7241–U7242 | 2272 | ✅ |
+| U22 | #7021 | WriteAheadLog 写前日志（PostgreSQL WAL/AOF 思想） | U7243–U7244 | 2273 | ✅ |
+| U23 | #7022 | DamerauLevenshtein 距离（Lowrance-Wagner 思想） | U7245–U7246 | 2274 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
