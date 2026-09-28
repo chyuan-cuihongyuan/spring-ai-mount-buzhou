@@ -80,6 +80,7 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T44 | #6044 | Lottery Scheduler 彩票调度（Waldspurger 彩票思想；源码对账补账批预入档） | T6287–T6288 | 2244 | ✅ |
 | T45 | #6045 | WaitForGraph 等待图死锁检测（DB2/SQL Server 锁表面思想） | T6289–T6290 | 2245 | ✅ |
 | T46 | #6046 | VanEmdeBoas 有界宇宙树（van Emde Boas 1975 思想） | T6291–T6292 | 2246 | ✅ |
+| T47 | #6047 | PowerOfTwoChoices 二择一负载均衡（Mitzenmacher 思想；Wave 7 遗珠补位） | T6293–T6294 | 2247 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

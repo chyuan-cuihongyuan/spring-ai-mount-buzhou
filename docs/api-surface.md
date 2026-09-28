@@ -150,6 +150,7 @@
 - `public final class LotteryScheduler`（spec 6044——票数比例加权随机调度）
 - `public final class WaitForGraph`（spec 6045——增量加边死锁环检测）
 - `public final class VanEmdeBoas`（spec 6046——O(log log u) 有界宇宙集合）
+- `public final class PowerOfTwoChoices`（spec 6047——二择一取轻负载放置）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
 - `public final class SegmentTree`（spec 5044——ZKW 2n 区间和/点更新）
