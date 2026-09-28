@@ -1,6 +1,6 @@
 # Spec 6039 — Weighted Reservoir Sampler 加权蓄水池采样（effort #6039，T39）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6277–T6278，impl 2239）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6279–T6278，impl 2239）。
 > 借鉴：A-Chao 加权蓄水池思想。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 6045 — WaitForGraph 等待图死锁检测（effort #6045，T45）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6289–T6290，impl 2245）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6291–T6290，impl 2245）。
 > 借鉴：DB2/SQL Server 锁管理器 lock-wait graph 思想。
 
 ## Problem Statement

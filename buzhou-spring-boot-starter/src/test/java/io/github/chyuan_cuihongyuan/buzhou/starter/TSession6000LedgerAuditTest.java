@@ -26,9 +26,12 @@ class TSession6000LedgerAuditTest {
     private static final Path IMPL_DIR = REPO.resolve(".wayfinder/impl");
     private static final Path README = REPO.resolve("README.md");
 
-    /** T 系号段：50 轮 = spec 6000–6049（2201+ 留给后续会话，不入对账）。 */
+    /**
+     * T 系号段：50 轮。勘误（T50 入档）：T37 撞号平移回填后
+     * effort=6000+T，T50 落 spec 6050——系列上界随收口扩至 6050。
+     */
     private static final int SERIES_MIN = 6000;
-    private static final int SERIES_MAX = 6049;
+    private static final int SERIES_MAX = 6050;
 
     /** 票号公式：spec N → shape 票 = 6201+2(N−6000)，verify = shape+1。 */
     private static int shapeTicketFor(int spec) {

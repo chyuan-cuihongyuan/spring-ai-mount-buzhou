@@ -1,6 +1,6 @@
 # Spec 6042 — T 系 T42 周期对账（effort #6042，T42）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6283–T6284，impl 2242）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6285–T6284，impl 2242）。
 > 对账门六十七号（T 系第七波）：Wave 7 快照补登 + 全仓 verify
 > + 台账核账。
 

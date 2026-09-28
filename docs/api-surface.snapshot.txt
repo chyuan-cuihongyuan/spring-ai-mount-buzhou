@@ -83,6 +83,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingA
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CoopBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DijkstraShortestPath
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DisjointSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EpochReclamation

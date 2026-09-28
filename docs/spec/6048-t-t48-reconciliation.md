@@ -1,6 +1,6 @@
 # Spec 6048 — T 系 T48 周期对账（effort #6048，T48）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6295–T6296，impl 2248）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6297–T6296，impl 2248）。
 > 周期对账轮（8/50=96% 前哨——T42 后第七波）。
 
 ## Scope

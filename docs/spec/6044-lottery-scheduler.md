@@ -1,6 +1,6 @@
 # Spec 6044 — Lottery Scheduler 彩票调度（effort #6044，T44）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6287–T6288，impl 2244）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6289–T6288，impl 2244）。
 > 借鉴：Waldspurger 彩票调度思想。源码于对账补账批预入档。
 
 ## Problem Statement

@@ -1,6 +1,6 @@
 # Spec 6040 — Median Finder 双堆中位数流（effort #6040，T40）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6279–T6280，impl 2240）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6281–T6280，impl 2240）。
 > 借鉴：流式中位数双堆经典思想。
 
 ## Problem Statement

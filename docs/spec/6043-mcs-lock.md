@@ -1,6 +1,6 @@
 # Spec 6043 — MCS Lock 队列锁（effort #6043，T43）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6285–T6286，impl 2243）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6287–T6286，impl 2243）。
 > 借鉴：Linux 内核 MCS 锁思想。源码于 T42 对账批预入档。
 
 ## Problem Statement

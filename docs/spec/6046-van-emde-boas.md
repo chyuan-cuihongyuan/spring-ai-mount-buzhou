@@ -1,6 +1,6 @@
 # Spec 6046 — VanEmdeBoas 有界宇宙树（effort #6046，T46）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6291–T6292，impl 2246）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6293–T6292，impl 2246）。
 > 借鉴：van Emde Boas 1975 有界宇宙树思想。
 
 ## Problem Statement

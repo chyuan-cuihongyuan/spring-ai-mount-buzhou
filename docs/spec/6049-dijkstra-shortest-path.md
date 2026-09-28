@@ -1,6 +1,6 @@
 # Spec 6049 — Dijkstra 最短路（effort #6049，T49）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6297–T6298，impl 2250）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6299–T6298，impl 2250）。
 > 借鉴：Dijkstra 1959 贪心已决集思想（Neo4j GDS/导航引擎同源）。
 
 ## Problem Statement

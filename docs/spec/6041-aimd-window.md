@@ -1,6 +1,6 @@
 # Spec 6041 — AIMD Window 加性增/乘性减窗口（effort #6041，T41）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6281–T6282，impl 2241）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6283–T6282，impl 2241）。
 > 借鉴：TCP 拥塞避免思想。源码本轮入档。
 
 ## Problem Statement

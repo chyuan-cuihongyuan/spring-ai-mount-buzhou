@@ -1,7 +1,7 @@
 # Effort #6000 总图 — T 会话 6000 系 50 轮自迭代（能力自补充与自进化第十弹）
 
 > 会话：T（A–S 字母已占用：S=5000 已收口）；本轮直推 main 逐轮 commit（GitHub 离线时本地逐轮 commit、对账轮补 push）。
-> 号段（本地全档实查空闲：specs 6000+ 全空、tickets T6201+ 全空、impl 2201+ 全空；S 系 5000 段已收口封卷）：**efforts #6000–#6049（50 轮）、specs 6000–6049、票 T6201–T6300（每轮 shape+verify 一对，shape=6201+2(N−6000)）、impl 2201–2250（impl = 2201+(N−6000)）**。
+> 号段（本地全档实查空闲：specs 6000+ 全空、tickets T6201+ 全空、impl 2201+ 全空；S 系 5000 段已收口封卷）：**efforts #6000–#6049（50 轮）、specs 6000–6049、票 T6201–T6300（每轮 shape+verify 一对，shape=6201+2(N−6000)）、impl 2201–2250（impl = 2201+(N−6000)）**；勘误（T50 入档）：T37 撞号平移后 effort=6000+T，T39 起票据/impl 实际位整体后移一位（spec 6038 跳号），T50 收口落 6050/T6301–T6302/2251，且 T39–T49 工件号已按公式平移回填（T18 先例）。
 > 纪律：每轮四步（map→spec→tickets→implement）+ 双门（模块测试 + 全局三门：覆盖门/快照门/对账门）+ 一轮一 commit；**每 6 轮一对账轮**（T6k：快照批补登 + 全仓离线 verify + 台账核账）；README 纵深行逐轮即时登记（SpecCoverageTest 双向门）。
 > 对账门：T1 即落 `TSession6000LedgerAuditTest`（SSession5000LedgerAuditTest 同款公式族第七应用）：spec N → shape 票 6201+2(N−6000) / verify=+1 / impl 2201+(N−6000)，spec 起点断言 6000 严格递增。
 
@@ -72,17 +72,18 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T36 | #6035 | 对账轮（快照 +5（1233→1238）+ 全仓 verify 三门绿；36/50=72%） | T6271–T6272 | 2236 | ✅ |
 | T37 | #6036 | Counting Bloom Filter 计数布隆过滤器（Bloom 计数变体思想；勘误：原拟 GkSketch 不可自洽移回雾区） | T6273–T6274 | 2237 | ✅ |
 | T38 | #6037 | Stable Bloom Filter 稳定布隆过滤器（流式衰减思想） | T6275–T6276 | 2238 | ✅ |
-| T39 | #6039 | Weighted Reservoir Sampler 加权蓄水池采样（A-Chao 思想） | T6277–T6278 | 2239 | ✅ |
-| T40 | #6040 | Median Finder 双堆中位数流（流式中位数经典思想） | T6279–T6280 | 2240 | ✅ |
-| T41 | #6041 | AIMD Window 加性增/乘性减窗口（TCP 拥塞避免思想） | T6281–T6282 | 2241 | ✅ |
-| T42 | #6042 | 对账轮（快照 +6（1238→1244，含 McsLock 预载）+ 全仓 verify 三门绿；42/50=84%） | T6283–T6284 | 2242 | ✅ |
-| T43 | #6043 | MCS Lock 队列锁（Linux 内核 MCS 锁思想；源码 T42 预载） | T6285–T6286 | 2243 | ✅ |
-| T44 | #6044 | Lottery Scheduler 彩票调度（Waldspurger 彩票思想；源码对账补账批预入档） | T6287–T6288 | 2244 | ✅ |
-| T45 | #6045 | WaitForGraph 等待图死锁检测（DB2/SQL Server 锁表面思想） | T6289–T6290 | 2245 | ✅ |
-| T46 | #6046 | VanEmdeBoas 有界宇宙树（van Emde Boas 1975 思想） | T6291–T6292 | 2246 | ✅ |
-| T47 | #6047 | PowerOfTwoChoices 二择一负载均衡（Mitzenmacher 思想；Wave 7 遗珠补位） | T6293–T6294 | 2247 | ✅ |
-| T48 | #6048 | 对账轮（快照 +4（1244→1248）+ 全仓 verify 三门绿；含 TwoChoiceSelector 同族声明补登勘误；48/50=96%） | T6295–T6296 | 2248 | ✅ |
-| T49 | #6049 | Dijkstra 最短路（Dijkstra 1959 贪心已决集思想；复用同包 IndexedHeap） | T6297–T6298 | 2250 | ✅ |
+| T39 | #6039 | Weighted Reservoir Sampler 加权蓄水池采样（A-Chao 思想） | T6279–T6278 | 2239 | ✅ |
+| T40 | #6040 | Median Finder 双堆中位数流（流式中位数经典思想） | T6281–T6280 | 2240 | ✅ |
+| T41 | #6041 | AIMD Window 加性增/乘性减窗口（TCP 拥塞避免思想） | T6283–T6282 | 2241 | ✅ |
+| T42 | #6042 | 对账轮（快照 +6（1238→1244，含 McsLock 预载）+ 全仓 verify 三门绿；42/50=84%） | T6285–T6284 | 2242 | ✅ |
+| T43 | #6043 | MCS Lock 队列锁（Linux 内核 MCS 锁思想；源码 T42 预载） | T6287–T6286 | 2243 | ✅ |
+| T44 | #6044 | Lottery Scheduler 彩票调度（Waldspurger 彩票思想；源码对账补账批预入档） | T6289–T6288 | 2244 | ✅ |
+| T45 | #6045 | WaitForGraph 等待图死锁检测（DB2/SQL Server 锁表面思想） | T6291–T6290 | 2245 | ✅ |
+| T46 | #6046 | VanEmdeBoas 有界宇宙树（van Emde Boas 1975 思想） | T6293–T6292 | 2246 | ✅ |
+| T47 | #6047 | PowerOfTwoChoices 二择一负载均衡（Mitzenmacher 思想；Wave 7 遗珠补位） | T6295–T6294 | 2247 | ✅ |
+| T48 | #6048 | 对账轮（快照 +4（1244→1248）+ 全仓 verify 三门绿；含 TwoChoiceSelector 同族声明补登勘误；48/50=96%） | T6297–T6296 | 2248 | ✅ |
+| T49 | #6049 | Dijkstra 最短路（Dijkstra 1959 贪心已决集思想；复用同包 IndexedHeap） | T6299–T6298 | 2250 | ✅ |
+| T50 | #6050 | 收口对账轮（快照 +1（1248→1249）+ 对账门范围勘误扩至 6050 + 全仓 verify 三门绿 + push 封卷；T 会话 50/50） | T6301–T6302 | 2251 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

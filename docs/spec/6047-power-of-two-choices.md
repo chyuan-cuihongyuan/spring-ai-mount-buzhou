@@ -1,6 +1,6 @@
 # Spec 6047 — PowerOfTwoChoices 二择一负载均衡（effort #6047，T47）
 
-> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6293–T6294，impl 2247）。
+> wayfinder map：`.wayfinder/maps/effort-6000.md`（T6295–T6294，impl 2247）。
 > 借鉴：Mitzenmacher「The Power of Two Random Choices」思想（Wave 7 遗珠补位）。
 
 ## Problem Statement
