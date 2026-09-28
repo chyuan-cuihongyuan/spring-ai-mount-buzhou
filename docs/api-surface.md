@@ -131,6 +131,7 @@
 - `public final class KdTree`（spec 6018——交替轴中位数分割最近邻；嵌套 `Nearest`）
 - `public final class QuadTree`（spec 6019——象限递归分割区域查询；嵌套 `Point`/`Rect`）
 - `public final class Geohash`（spec 6020——经纬二分交织 Base32 网格编码；嵌套 `Box`）
+- `public final class ActivitySelectionGreedy`（spec 7045——最早结束贪心活动选择）
 - `public final class HilbertCurve`（spec 6021——空间填充曲线双射+局部性）
 - `public final class InterpolationSearch`（spec 6022——值域内插探测查找）
 - `public final class MpscQueue`（spec 6024——多生产者单消费者有界 FIFO）
@@ -211,6 +212,7 @@
 - `public final class DamerauLevenshtein`（spec 7022——四算子编辑距离）
 - `public final class EulerianPath`（spec 7031——Hierholzer 一笔画）
 - `public final class QuickSelect`（spec 7033——BFPRT 确定性第 k 小）
+- `public final class LargestRectangleHistogram`（spec 7043——单调栈最大矩形）
 - `public final class SnowflakeIdGenerator`（spec 7036——分段发号+回拨守卫）
 - `public final class KahanSummator`（spec 7032——补偿求和）
 - `public final class ZobristHashing`（spec 7034——表驱动异或哈希）
@@ -224,6 +226,8 @@
 - `public final class ShamirSecretSharing`（spec 7024——GF(257) 门限秘密共享）
 - `public final class FastModPow`（spec 7037——平方-乘模幂）
 - `public final class Manacher`（spec 7016——线性最长回文子串）
+- `public final class TernarySearch`（spec 7042——单峰三分极值）
+- `public final class FloydCycleDetector`（spec 7044——O(1) 空间判圈）
 - `public final class ZArray`（spec 7001——Z-box 区间复用线性前缀）
 - `public final class SqrtDecomposition`（spec 7002——块摘要区间统计）
 - `public final class AvlTree`（spec 7003——严格平衡自平衡 BST）
