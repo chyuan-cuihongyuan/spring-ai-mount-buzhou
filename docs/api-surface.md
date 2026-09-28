@@ -208,6 +208,11 @@
 - `public final class Soundex`（spec 7018——发音部位归并编码）
 - `public final class InvertedIndex`（spec 7019——词项→posting 布尔召回）
 - `public final class DamerauLevenshtein`（spec 7022——四算子编辑距离）
+- `public final class PatienceLis`（spec 7025——耐心排序 LIS）
+- `public final class TimeBucketReservoir`（spec 7026——滑动时间窗样本库）
+- `public final class Bm25Ranker`（spec 7027——BM25 相关性评分）
+- `public final class SortedRunMerge`（spec 7028——LSM k 路归并+墓碑）
+- `public final class ShamirSecretSharing`（spec 7024——GF(257) 门限秘密共享）
 - `public final class Manacher`（spec 7016——线性最长回文子串）
 - `public final class ZArray`（spec 7001——Z-box 区间复用线性前缀）
 - `public final class SqrtDecomposition`（spec 7002——块摘要区间统计）
