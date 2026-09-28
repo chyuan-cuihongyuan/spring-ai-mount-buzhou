@@ -194,6 +194,7 @@
 - `public final class SweepLineIntervals`（spec 3013——区间并发峰值扫线；嵌套 `Interval`/`SweepResult`）
 - `public final class KmpSearch`（spec 3014——KMP 失配函数子串搜索）
 - `public final class ZArray`（spec 7001——Z-box 区间复用线性前缀）
+- `public final class SqrtDecomposition`（spec 7002——块摘要区间统计）
 - `public final class FenwickTree`（spec 3015——树状数组点更新/前缀和）
 - `public final class HoltForecaster`（spec 3021——Holt 水平+趋势双参数平滑预测）
 - `public final class RabinKarpSearch`（spec 3025——Rabin-Karp 滚动哈希搜索）
