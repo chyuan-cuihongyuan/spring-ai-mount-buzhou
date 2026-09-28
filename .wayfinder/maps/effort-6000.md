@@ -81,6 +81,7 @@ T 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | T45 | #6045 | WaitForGraph 等待图死锁检测（DB2/SQL Server 锁表面思想） | T6289–T6290 | 2245 | ✅ |
 | T46 | #6046 | VanEmdeBoas 有界宇宙树（van Emde Boas 1975 思想） | T6291–T6292 | 2246 | ✅ |
 | T47 | #6047 | PowerOfTwoChoices 二择一负载均衡（Mitzenmacher 思想；Wave 7 遗珠补位） | T6293–T6294 | 2247 | ✅ |
+| T48 | #6048 | 对账轮（快照 +4（1244→1248）+ 全仓 verify 三门绿；含 TwoChoiceSelector 同族声明补登勘误；48/50=96%） | T6295–T6296 | 2248 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

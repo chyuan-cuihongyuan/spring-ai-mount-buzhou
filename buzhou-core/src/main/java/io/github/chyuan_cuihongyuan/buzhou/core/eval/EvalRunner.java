@@ -34,6 +34,15 @@ public final class EvalRunner {
 
     private static final System.Logger LOGGER = System.getLogger(EvalRunner.class.getName());
 
+    /**
+     * 勘误（T48 入档）：run 起始时刻的进程内严格单调地板——Windows 时钟粒度粗（可低至 ~15ms tick），
+     * 相邻 run 落同一 tick 时 checkFingerprintChange 的 isBefore 找不到「最近历史 run」，
+     * 指纹变更信号失效（真实变更被漏报）。同 tick 强制 +1ms 保证严格递增——合同
+     * 语义不变（startedAt 仍是真实时钟近似），只是排序可靠。
+     */
+    private static final java.util.concurrent.atomic.AtomicReference<java.time.Instant> LAST_RUN_STARTED =
+            new java.util.concurrent.atomic.AtomicReference<>(java.time.Instant.EPOCH);
+
     static final int ACTUAL_PREVIEW_LIMIT = 2048;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -316,7 +325,20 @@ public final class EvalRunner {
     }
 
     /** 执行一次评估 run（dataset 未建 fail-fast 挂 EVAL_OPERATION_INVALID）。 */
-    public EvalRunResult run(String datasetName, Evaluator evaluator) {
+        /** 同 tick 地板：与上一 run 同刻时强制 +1ms（严格单调——见字段勘误注）。 */
+    private static java.time.Instant monotonicStartedAt() {
+        java.time.Instant now = java.time.Instant.now();
+        java.time.Instant prev;
+        do {
+            prev = LAST_RUN_STARTED.get();
+            if (!now.isAfter(prev)) {
+                now = prev.plusNanos(1_000_000L);
+            }
+        } while (!LAST_RUN_STARTED.compareAndSet(prev, now));
+        return now;
+    }
+
+public EvalRunResult run(String datasetName, Evaluator evaluator) {
         return run(datasetName, evaluator, 1); // spec 68：默认串行零变化
     }
 
@@ -402,7 +424,7 @@ public final class EvalRunner {
         cancelRequested = false; // spec 1505：run 开始清零——上轮残留取消不污染新 run
         this.progress = new EvalRunProgress(runId, 0, items.size(), false); // spec 1534
         try (var registration = EvalRunRegistry.global().begin(EvalRunRegistry.KIND_EVAL, runId)) {
-        Instant startedAt = Instant.now();
+        Instant startedAt = monotonicStartedAt();
         int workers = Math.max(1, Math.min(32, parallelism)); // clamp 1..32
         java.util.concurrent.atomic.AtomicLong spent =
                 new java.util.concurrent.atomic.AtomicLong(); // spec 520：预算累计（字符估算）
