@@ -220,6 +220,7 @@
 - `public final class TimeBucketReservoir`（spec 7026——滑动时间窗样本库）
 - `public final class Bm25Ranker`（spec 7027——BM25 相关性评分）
 - `public final class SortedRunMerge`（spec 7028——LSM k 路归并+墓碑）
+- `public final class KadaneMaxSubarray`（spec 7048——单遍最大子段和）
 - `public final class ChiSquareUniformity`（spec 7038——χ² 拟合优度审计）
 - `public final class GrayCodeSequence`（spec 7039——反射格雷码序列）
 - `public final class JosephusPermutation`（spec 7040——约瑟夫环出列序）
