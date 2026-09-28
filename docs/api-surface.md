@@ -136,6 +136,18 @@
 - `public final class IndexedHeap`（spec 6026——位置映射+decrease-key 堆）
 - `public final class StrideScheduler`（spec 6027——确定性比例份额调度）
 - `public final class Mlfq`（spec 6028——多级反馈队列；嵌套 `Dispatch`）
+- `public final class BuddyAllocator`（spec 6030——2 的幂分裂/伙伴合并分配器）
+- `public final class ExternalMergeSort`（spec 6031——游程+多路归并外部排序）
+- `public final class ExtendibleHashing`（spec 6032——目录翻倍+单桶分裂哈希）
+- `public final class ElevatorScan`（spec 6033——LOOK 扫掠服务排序）
+- `public final class ArenaAllocator`（spec 6034——bump 水位+整池回收竞技场）
+- `public final class CountingBloomFilter`（spec 6036——k 哈希计数数组可删除布隆）
+- `public final class StableBloomFilter`（spec 6037——流式衰减位阵布隆）
+- `public final class WeightedReservoirSampler`（spec 6039——A-Chao 加权蓄水池采样）
+- `public final class MedianFinder`（spec 6040——双堆夹逼流式中位数）
+- `public final class AimdWindow`（spec 6041——加性增/乘性减自适应窗口）
+- `public final class McsLock`（spec 6043——每等待者本地自旋队列锁；嵌套 `Node`）
+- `public final class LotteryScheduler`（spec 6044——票数比例加权随机调度）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
 - `public final class SegmentTree`（spec 5044——ZKW 2n 区间和/点更新）
