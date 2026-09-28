@@ -38,6 +38,8 @@ U 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | U1 | #7000 | 7000 系对账门落位（USession7000LedgerAuditTest 八应用） | U7201–U7202 | 2252 | ✅ |
 | U2 | #7001 | Z Array Z 数组（Gusfield Z 算法思想） | U7203–U7204 | 2253 | ✅ |
 | U3 | #7002 | SqrtDecomposition 分块分解（MO’s 同源思想） | U7205–U7206 | 2254 | ✅ |
+| U4 | #7003 | AvlTree AVL 树（Adelson-Velsky 1962 思想） | U7207–U7208 | 2255 | ✅ |
+| U5 | #7004 | RunLengthCodec 行程编码（PNG/传真 G3 思想） | U7209–U7210 | 2256 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 

@@ -125,6 +125,7 @@
 - `public final class GorillaXor`（spec 6013——浮点 XOR 三态位流压缩）
 - `public final class Simple8b`（spec 6014——16 档选择子位打包）
 - `public final class BitPacking`（spec 6015——固定位宽无缝串接打包）
+- `public final class RunLengthCodec`（spec 7004——(count,value) 行程折叠）
 - `public final class DictionaryEncoding`（spec 6016——字典表+窄下标列编码）
 - `public final class KdTree`（spec 6018——交替轴中位数分割最近邻；嵌套 `Nearest`）
 - `public final class QuadTree`（spec 6019——象限递归分割区域查询；嵌套 `Point`/`Rect`）
@@ -195,6 +196,7 @@
 - `public final class KmpSearch`（spec 3014——KMP 失配函数子串搜索）
 - `public final class ZArray`（spec 7001——Z-box 区间复用线性前缀）
 - `public final class SqrtDecomposition`（spec 7002——块摘要区间统计）
+- `public final class AvlTree`（spec 7003——严格平衡自平衡 BST）
 - `public final class FenwickTree`（spec 3015——树状数组点更新/前缀和）
 - `public final class HoltForecaster`（spec 3021——Holt 水平+趋势双参数平滑预测）
 - `public final class RabinKarpSearch`（spec 3025——Rabin-Karp 滚动哈希搜索）
