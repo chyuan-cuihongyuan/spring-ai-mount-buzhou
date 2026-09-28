@@ -482,6 +482,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HotKeyDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.IntervalTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.InvertedIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.JosephusPermutation
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KadaneMaxSubarray
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KahanSummator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KmpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
