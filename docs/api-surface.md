@@ -157,6 +157,10 @@
 - `public final class KruskalMst`（spec 7008——贪心+并查集最小生成树）
 - `public final class ArticulationPoints`（spec 7009——割点桥低链接审计）
 - `public final class LcaLifting`（spec 7010——倍增表树祖先查询）
+- `public final class ConvexHull`（spec 7012——monotone chain 凸包）
+- `public final class ClosestPair`（spec 7013——分治最近点对）
+- `public final class PointInPolygon`（spec 7014——射线法魔属判定）
+- `public final class BresenhamLine`（spec 7015——整数光栅走格）
 - `public final class PowerOfTwoChoices`（spec 6047——二择一取轻负载放置）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）
@@ -199,6 +203,7 @@
 - `public final class MinHashSketch`（spec 3010——k 路最小哈希 Jaccard 素描）
 - `public final class SweepLineIntervals`（spec 3013——区间并发峰值扫线；嵌套 `Interval`/`SweepResult`）
 - `public final class KmpSearch`（spec 3014——KMP 失配函数子串搜索）
+- `public final class Manacher`（spec 7016——线性最长回文子串）
 - `public final class ZArray`（spec 7001——Z-box 区间复用线性前缀）
 - `public final class SqrtDecomposition`（spec 7002——块摘要区间统计）
 - `public final class AvlTree`（spec 7003——严格平衡自平衡 BST）

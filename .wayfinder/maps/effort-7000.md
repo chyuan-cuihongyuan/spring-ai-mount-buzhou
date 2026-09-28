@@ -47,6 +47,11 @@ U 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | U10 | #7009 | ArticulationPoints 割点桥检测（Tarjan 低链接思想） | U7219–U7220 | 2261 | ✅ |
 | U11 | #7010 | LcaLifting 倍增 LCA（二倍增祖先跳思想） | U7221–U7222 | 2262 | ✅ |
 | U12 | #7011 | 对账轮（快照 +5（1253→1258）+ 全仓 verify 三门绿；避让记录入档；24%） | U7223–U7224 | 2263 | ✅ |
+| U13 | #7012 | ConvexHull 凸包（Andrew monotone chain 思想；Wave 3 几何族） | U7225–U7226 | 2264 | ✅ |
+| U14 | #7013 | ClosestPair 最近点对（Bentley-Shamos 分治思想） | U7227–U7228 | 2265 | ✅ |
+| U15 | #7014 | PointInPolygon 点在多边形（射线法思想） | U7229–U7230 | 2266 | ✅ |
+| U16 | #7015 | BresenhamLine 直线光栅（Bresenham 1965 思想） | U7231–U7232 | 2267 | ✅ |
+| U17 | #7016 | Manacher 最长回文（Manacher 1975 思想） | U7233–U7234 | 2268 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
