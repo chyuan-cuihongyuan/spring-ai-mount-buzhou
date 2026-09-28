@@ -57,7 +57,18 @@ class ShadowMirrorEndToEndTest {
 
         assertThat(session.chat("hi")).isEqualTo("primary-reply");
         // 主路成功后采样对照：备模型被旁路调用一次（用户无感）
-        assertThat(secondary.seenPrompts).hasSize(1);
+        // 勘误（U36 入档）：镜像走 executor 异步——即断言与提交竞态，
+        // 满载下稳定落败——2s 轮询等待（合同语义不变：仍断言恰一次）
+        long deadline = System.nanoTime() + Duration.ofSeconds(2).toNanos();
+        while (secondary.seenPrompts.size() < 1 && System.nanoTime() < deadline) {
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException brokenWait) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        assertThat(secondary.seenPrompts).hasSize(1);        assertThat(secondary.seenPrompts).hasSize(1);
         session.close();
     }
 

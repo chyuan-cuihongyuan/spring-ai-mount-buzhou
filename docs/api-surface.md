@@ -140,6 +140,7 @@
 - `public final class Mlfq`（spec 6028——多级反馈队列；嵌套 `Dispatch`）
 - `public final class BuddyAllocator`（spec 6030——2 的幂分裂/伙伴合并分配器）
 - `public final class ExternalMergeSort`（spec 6031——游程+多路归并外部排序）
+- `public final class XxHash64`（spec 7030——四累加器雪崩哈希）
 - `public final class WriteAheadLog`（spec 7021——分段 CRC 写前日志）
 - `public final class ExtendibleHashing`（spec 6032——目录翻倍+单桶分裂哈希）
 - `public final class ElevatorScan`（spec 6033——LOOK 扫掠服务排序）
@@ -208,6 +209,10 @@
 - `public final class Soundex`（spec 7018——发音部位归并编码）
 - `public final class InvertedIndex`（spec 7019——词项→posting 布尔召回）
 - `public final class DamerauLevenshtein`（spec 7022——四算子编辑距离）
+- `public final class EulerianPath`（spec 7031——Hierholzer 一笔画）
+- `public final class QuickSelect`（spec 7033——BFPRT 确定性第 k 小）
+- `public final class KahanSummator`（spec 7032——补偿求和）
+- `public final class ZobristHashing`（spec 7034——表驱动异或哈希）
 - `public final class PatienceLis`（spec 7025——耐心排序 LIS）
 - `public final class TimeBucketReservoir`（spec 7026——滑动时间窗样本库）
 - `public final class Bm25Ranker`（spec 7027——BM25 相关性评分）

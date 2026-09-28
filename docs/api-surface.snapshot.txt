@@ -90,6 +90,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DijkstraShortest
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DisjointSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EpochReclamation
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EulerianPath
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EventLoopLagProbe
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.FloydWarshall
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GossipConvergence
@@ -118,6 +119,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PhiAccrualFailur
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PoolSizeHeuristic
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityInversionExposure
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.QuickSelect
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ReplicatedCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SelfPreservationGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SeqLock
@@ -437,6 +439,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Simple8b
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ToolCallRecord
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.UserInputDuplicationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.VarintCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.XxHash64
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.AhoCorasick
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Autocorrelation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BPlusTree
@@ -472,6 +475,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltWintersIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HotKeyDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.IntervalTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.InvertedIndex
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KahanSummator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KmpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
@@ -522,6 +526,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WelfordAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.XorFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZArray
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZobristHashing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.ClockSkewClamp
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.DistributedSnapshot
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.EventOrderAudit
