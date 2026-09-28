@@ -152,6 +152,11 @@
 - `public final class WaitForGraph`（spec 6045——增量加边死锁环检测）
 - `public final class VanEmdeBoas`（spec 6046——O(log log u) 有界宇宙集合）
 - `public final class DijkstraShortestPath`（spec 6049——非负权单源最短路）
+- `public final class BellmanFord`（spec 7006——负权单源最短路+负环检测）
+- `public final class FloydWarshall`（spec 7007——全对最短路闭包）
+- `public final class KruskalMst`（spec 7008——贪心+并查集最小生成树）
+- `public final class ArticulationPoints`（spec 7009——割点桥低链接审计）
+- `public final class LcaLifting`（spec 7010——倍增表树祖先查询）
 - `public final class PowerOfTwoChoices`（spec 6047——二择一取轻负载放置）
 - `public final class CrdtPnCounter`（spec 5043——无协调可合并正负计数）
 - `public final class RobinHoodHashTable`（spec 5045——距离换位开放寻址表）

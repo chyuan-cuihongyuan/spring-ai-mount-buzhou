@@ -41,6 +41,11 @@ U 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | U4 | #7003 | AvlTree AVL 树（Adelson-Velsky 1962 思想） | U7207–U7208 | 2255 | ✅ |
 | U5 | #7004 | RunLengthCodec 行程编码（PNG/传真 G3 思想） | U7209–U7210 | 2256 | ✅ |
 | U6 | #7005 | 对账轮（快照 +4（1249→1253）+ 全仓 verify 三门绿；6/50=12%） | U7211–U7212 | 2257 | ✅ |
+| U7 | #7006 | BellmanFord 负权最短路（Bellman/Ford 全松弛思想；Wave 2 提前） | U7213–U7214 | 2258 | ✅ |
+| U8 | #7007 | FloydWarshall 全对最短路（Floyd 1962 闭包思想） | U7215–U7216 | 2259 | ✅ |
+| U9 | #7008 | KruskalMst 最小生成树（Kruskal 1956 贪心思想） | U7217–U7218 | 2260 | ✅ |
+| U10 | #7009 | ArticulationPoints 割点桥检测（Tarjan 低链接思想） | U7219–U7220 | 2261 | ✅ |
+| U11 | #7010 | LcaLifting 倍增 LCA（二倍增祖先跳思想） | U7221–U7222 | 2262 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
