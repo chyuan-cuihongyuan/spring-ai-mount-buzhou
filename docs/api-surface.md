@@ -125,6 +125,7 @@
 - `public final class GorillaXor`（spec 6013——浮点 XOR 三态位流压缩）
 - `public final class Simple8b`（spec 6014——16 档选择子位打包）
 - `public final class BitPacking`（spec 6015——固定位宽无缝串接打包）
+- `public final class GolombRiceCodec`（spec 7020——商 unary+余数 k 位变长码）
 - `public final class RunLengthCodec`（spec 7004——(count,value) 行程折叠）
 - `public final class DictionaryEncoding`（spec 6016——字典表+窄下标列编码）
 - `public final class KdTree`（spec 6018——交替轴中位数分割最近邻；嵌套 `Nearest`）
@@ -139,6 +140,7 @@
 - `public final class Mlfq`（spec 6028——多级反馈队列；嵌套 `Dispatch`）
 - `public final class BuddyAllocator`（spec 6030——2 的幂分裂/伙伴合并分配器）
 - `public final class ExternalMergeSort`（spec 6031——游程+多路归并外部排序）
+- `public final class WriteAheadLog`（spec 7021——分段 CRC 写前日志）
 - `public final class ExtendibleHashing`（spec 6032——目录翻倍+单桶分裂哈希）
 - `public final class ElevatorScan`（spec 6033——LOOK 扫掠服务排序）
 - `public final class ArenaAllocator`（spec 6034——bump 水位+整池回收竞技场）
@@ -203,6 +205,9 @@
 - `public final class MinHashSketch`（spec 3010——k 路最小哈希 Jaccard 素描）
 - `public final class SweepLineIntervals`（spec 3013——区间并发峰值扫线；嵌套 `Interval`/`SweepResult`）
 - `public final class KmpSearch`（spec 3014——KMP 失配函数子串搜索）
+- `public final class Soundex`（spec 7018——发音部位归并编码）
+- `public final class InvertedIndex`（spec 7019——词项→posting 布尔召回）
+- `public final class DamerauLevenshtein`（spec 7022——四算子编辑距离）
 - `public final class Manacher`（spec 7016——线性最长回文子串）
 - `public final class ZArray`（spec 7001——Z-box 区间复用线性前缀）
 - `public final class SqrtDecomposition`（spec 7002——块摘要区间统计）
