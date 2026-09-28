@@ -59,6 +59,12 @@ U 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | U22 | #7021 | WriteAheadLog 写前日志（PostgreSQL WAL/AOF 思想） | U7243–U7244 | 2273 | ✅ |
 | U23 | #7022 | DamerauLevenshtein 距离（Lowrance-Wagner 思想） | U7245–U7246 | 2274 | ✅ |
 | U24 | #7023 | 对账轮（快照 +5（1263→1268）+ 全仓 verify 三门绿；48%；跳房子/IntervalHeap 静脉勘误退雾区入档） | U7247–U7248 | 2275 | ✅ |
+| U25 | #7024 | ShamirSecretSharing 门限共享（Shamir 1979 思想；Wave 5 加密族） | U7249–U7250 | 2276 | ✅ |
+| U26 | #7025 | PatienceLis 耐心 LIS（耐心排序思想） | U7251–U7252 | 2277 | ✅ |
+| U27 | #7026 | TimeBucketReservoir 时间桶样本库（Dropwizard 思想） | U7253–U7254 | 2278 | ✅ |
+| U28 | #7027 | Bm25Ranker 评分器（Okapi BM25 思想） | U7255–U7256 | 2279 | ✅ |
+| U29 | #7028 | SortedRunMerge 键序合并（LevelDB/RocksDB 思想） | U7257–U7258 | 2280 | ✅ |
+| U30 | #7029 | 对账轮（快照 +5（1268→1273）+ 全仓 verify 三门绿；60%） | U7259–U7260 | 2281 | ✅ |
 
 ## Not yet specified（雾区——候选静脉见「借鉴定源」，前沿推进后逐波毕业成排程行）
 
