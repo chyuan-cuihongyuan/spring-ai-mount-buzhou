@@ -211,13 +211,18 @@
 - `public final class DamerauLevenshtein`（spec 7022——四算子编辑距离）
 - `public final class EulerianPath`（spec 7031——Hierholzer 一笔画）
 - `public final class QuickSelect`（spec 7033——BFPRT 确定性第 k 小）
+- `public final class SnowflakeIdGenerator`（spec 7036——分段发号+回拨守卫）
 - `public final class KahanSummator`（spec 7032——补偿求和）
 - `public final class ZobristHashing`（spec 7034——表驱动异或哈希）
 - `public final class PatienceLis`（spec 7025——耐心排序 LIS）
 - `public final class TimeBucketReservoir`（spec 7026——滑动时间窗样本库）
 - `public final class Bm25Ranker`（spec 7027——BM25 相关性评分）
 - `public final class SortedRunMerge`（spec 7028——LSM k 路归并+墓碑）
+- `public final class ChiSquareUniformity`（spec 7038——χ² 拟合优度审计）
+- `public final class GrayCodeSequence`（spec 7039——反射格雷码序列）
+- `public final class JosephusPermutation`（spec 7040——约瑟夫环出列序）
 - `public final class ShamirSecretSharing`（spec 7024——GF(257) 门限秘密共享）
+- `public final class FastModPow`（spec 7037——平方-乘模幂）
 - `public final class Manacher`（spec 7016——线性最长回文子串）
 - `public final class ZArray`（spec 7001——Z-box 区间复用线性前缀）
 - `public final class SqrtDecomposition`（spec 7002——块摘要区间统计）
