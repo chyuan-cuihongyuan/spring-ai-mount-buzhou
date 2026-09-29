@@ -82,9 +82,9 @@ V 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | V45 | #8045 | GotohAlignment 仿射间隙对齐（Gotoh 1982 思想） | V8091–V8092 | 2347 | ✅ |
 | V46 | #8046 | SaxCodec SAX 符号聚合近似（Lin 2003 思想） | V8093–V8094 | 2348 | ✅ |
 | V47 | #8047 | PaaCodec 分段聚合近似（Keogh 2001 思想） | V8095–V8096 | 2349 | ✅ |
-| V48 | #8047 | 对账轮（快照 +5 + 全仓 verify 三门绿；96%） | V8095–V8096 | 2349 | ⬜ |
-| V49 | #8048 | SkylineProblem 天际线轮廓（sweep line 离散事件思想；独件） | V8097–V8098 | 2350 | ⬜ |
-| V50 | #8049 | 收口对账轮（快照补登 + 全仓 verify 三门绿 + push 封卷；V 会话 50/50） | V8099–V8100 | 2351 | ⬜ |
+| V48 | #8048 | 对账轮（快照 +5 + 组合定向 verify 绿；96%；号段勘误：8039 弃号顺延——V50 spec 8050 溢出上界 1 位诚实声明） | V8097–V8098 | 2350 | ✅ |
+| V49 | #8049 | SkylineProblem 天际线轮廓（sweep line 离散事件思想；独件） | V8099–V8100 | 2351 | ✅ |
+| V50 | #8050 | 收口对账轮（快照 +1 + 组合定向 verify 绿 + push 封卷；V 会话 50/50） | V8101–V8102 | 2352 | ✅ |
 
 > 备选池（撞坑即换）：MorseCodec 莫尔斯电码 / LzwCodec LZW（GIF 思想）/ DeltaCodec 增量编码 / ShellSorter 希尔排序 / MinWindowSubstring 最小覆盖子串 / ExpDecayReservoir 指数衰减样本库 / FastInverseSqrt 平方根倒数（Quake III）/ WinnowFingerprint winnow 指纹 / KShingleCodec k-shingle / SimulatedAnnealing 模拟退火 / BranchAndBound 分支限界 / TspTwoOpt 2-opt / GaleShapleyMatcher 稳定婚姻 / CronFieldParser cron 五域 / PidController PID / MillerRabin 素性检测 / ChineseRemainder 中国剩余定理 / KaratsubaMultiplication 卡拉茨巴乘法 / DiffieHellmanExchange DH 密钥交换 / XorShift64 伪随机。
 

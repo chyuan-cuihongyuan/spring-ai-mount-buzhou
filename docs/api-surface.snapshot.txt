@@ -550,6 +550,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SegmentTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SkipList
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SkylineProblem
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SmithWaterman
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SortedRunMerge

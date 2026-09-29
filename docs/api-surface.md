@@ -446,6 +446,7 @@
 - `public final class GotohAlignment`（spec 8045——仿射间隙三矩阵）
 - `public final class SaxCodec`（spec 8046——z 归一+分位符号化）
 - `public final class PaaCodec`（spec 8047——等宽分段均值降维）
+- `public final class SkylineProblem`（spec 8049——扫线天际线关键点序列）
 
 ## buzhou-memory
 
