@@ -59,12 +59,12 @@ V 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | V22 | #8021 | LfuEviction LFU 驱逐（O'Neil 1993 思想） | V8043–V8044 | 2323 | ✅ |
 | V23 | #8022 | RadixSorter 基数排序（LSD 打孔卡思想） | V8045–V8046 | 2324 | ✅ |
 | V24 | #8023 | 对账轮（快照 +3 + 全仓 verify 三门绿；48%） | V8047–V8048 | 2325 | ✅ |
-| V25 | #8024 | ThompsonSampler 汤普森采样（Thompson 1933 思想） | V8049–V8050 | 2326 | ⬜ |
-| V26 | #8025 | AliasMethod 别名法 O(1) 加权采样（Walker–Vose 思想） | V8051–V8052 | 2327 | ⬜ |
-| V27 | #8026 | PoissonSampler 泊松采样（Knuth 1969 思想） | V8053–V8054 | 2328 | ⬜ |
-| V28 | #8027 | RejectionSampler 拒绝采样（von Neumann 思想） | V8055–V8056 | 2329 | ⬜ |
-| V29 | #8028 | CusumDetector CUSUM 变点检测（Page 1954 思想） | V8057–V8058 | 2330 | ⬜ |
-| V30 | #8029 | 对账轮（快照 +5 + 全仓 verify 三门绿；60%） | V8059–V8060 | 2331 | ⬜ |
+| V25 | #8024 | ThompsonSampler 汤普森采样（Thompson 1933 思想） | V8049–V8050 | 2326 | ✅ |
+| V26 | #8025 | AliasMethod 别名法 O(1) 加权采样（Walker–Vose 思想） | V8051–V8052 | 2327 | ✅ |
+| V27 | #8026 | PoissonSampler 泊松采样（Knuth 1969 思想） | V8053–V8054 | 2328 | ✅ |
+| V28 | #8027 | RejectionSampler 拒绝采样（von Neumann 思想） | V8055–V8056 | 2329 | ✅ |
+| V29 | #8028 | CusumDetector CUSUM 变点检测（Page 1954 思想） | V8057–V8058 | 2330 | ✅ |
+| V30 | #8029 | 对账轮（快照 +5 + 全仓 verify 三门绿；60%） | V8059–V8060 | 2331 | ✅ |
 | V31 | #8030 | KMeansClustering K 均值聚类（MacQueen 思想） | V8061–V8062 | 2332 | ⬜ |
 | V32 | #8031 | DbScanClusterer 密度聚类（Ester 1996 思想） | V8063–V8064 | 2333 | ⬜ |
 | V33 | #8032 | PowerIteration 幂迭代主特征向量（PageRank 思想） | V8065–V8066 | 2334 | ⬜ |

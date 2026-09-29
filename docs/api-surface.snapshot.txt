@@ -345,8 +345,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemo
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.WeightedFairScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.WorkConservationAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.AliasMethod
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBalanceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.PoissonSampler
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.RejectionSampler
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ThompsonSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportBundle
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.ExportDedupeStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.export.PostmortemBundle
@@ -475,6 +479,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CoordinatedOmission
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CountMinSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CountingBloomFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CrostonForecaster
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CusumDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DamerauLevenshtein
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DdSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash

@@ -426,6 +426,11 @@
 - `public final class LeftistHeap`（spec 8019——npl 左偏可合并堆）
 - `public final class LfuEviction`（spec 8021——频次桶+最低频先入桶放逐）
 - `public final class RadixSorter`（spec 8022——LSD 字节位稳定分桶排序）
+- `public final class ThompsonSampler`（spec 8024——Beta 后验采样多臂选择）
+- `public final class AliasMethod`（spec 8025——桶+别名双掷 O(1) 加权采样）
+- `public final class PoissonSampler`（spec 8026——Knuth 乘法法事件计数采样）
+- `public final class RejectionSampler`（spec 8027——包络拒绝非标准分布采样）
+- `public final class CusumDetector`（spec 8028——双单边累计偏移变点检测）
 
 ## buzhou-memory
 
