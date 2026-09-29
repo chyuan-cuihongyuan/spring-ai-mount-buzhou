@@ -418,6 +418,9 @@
 - `public final class GraphColoring`（spec 8010——度降序 (Δ+1) 有界着色）
 - `public final class HopscotchHashTable`（spec 8012——邻域位图常数探测哈希表）
 - `public final class PerfectHash`（spec 8013——静态键集两级零碰撞定位）
+- `public final class MinWindowSubstring`（spec 8014——需求计数+双指针最小覆盖窗口）
+- `public final class SipHash24`（spec 8015——密钥化 64 位 PRF 哈希）
+- `public final class Base58Codec`（spec 8016——58 字符无歧义转录编码）
 
 ## buzhou-memory
 

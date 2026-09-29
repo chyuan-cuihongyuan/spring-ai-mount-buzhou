@@ -47,12 +47,12 @@ V 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | V10 | #8009 | TreeDiameter 树的直径（双 BFS 思想） | V8019–V8020 | 2311 | ✅ |
 | V11 | #8010 | GraphColoring 图着色（Welsh–Powell 思想） | V8021–V8022 | 2312 | ✅ |
 | V12 | #8011 | 对账轮（快照 +5 + 全仓 verify 三门绿；24%） | V8023–V8024 | 2313 | ✅ |
-| V13 | #8012 | HopscotchHashTable 跳房子哈希（Herlihy 2008 思想；U 遗珠认领） | V8025–V8026 | 2314 | ⬜ |
-| V14 | #8013 | PerfectHash 完美哈希（CHM 思想） | V8027–V8028 | 2315 | ⬜ |
-| V15 | #8014 | QuotientFilter 商过滤器（Bender 2012 思想） | V8029–V8030 | 2316 | ⬜ |
-| V16 | #8015 | SipHash 密钥化哈希（Aumasson–Bernstein 思想） | V8031–V8032 | 2317 | ⬜ |
-| V17 | #8016 | Base58Codec Base58 编码（Bitcoin 思想） | V8033–V8034 | 2318 | ⬜ |
-| V18 | #8017 | 对账轮（快照 +5 + 全仓 verify 三门绿；36%） | V8035–V8036 | 2319 | ⬜ |
+| V13 | #8012 | HopscotchHashTable 跳房子哈希（Herlihy 2008 思想；U 遗珠认领） | V8025–V8026 | 2314 | ✅ |
+| V14 | #8013 | PerfectHash 完美哈希（CHM 思想） | V8027–V8028 | 2315 | ✅ |
+| V15 | #8014 | MinWindowSubstring 最小覆盖子串（滑动窗口思想；QuotientFilter 退雾区补位） | V8029–V8030 | 2316 | ✅ |
+| V16 | #8015 | SipHash 密钥化哈希（Aumasson–Bernstein 思想） | V8031–V8032 | 2317 | ✅ |
+| V17 | #8016 | Base58Codec Base58 编码（Bitcoin 思想） | V8033–V8034 | 2318 | ✅ |
+| V18 | #8017 | 对账轮（快照 +3 + 全仓 verify 三门绿；36%） | V8035–V8036 | 2319 | ✅ |
 | V19 | #8018 | IntervalHeap 双端优先队列（Atkinson 1986 思想；U 遗珠认领） | V8037–V8038 | 2320 | ⬜ |
 | V20 | #8019 | LeftistHeap 左偏可合并堆（Crane 1972 思想） | V8039–V8040 | 2321 | ⬜ |
 | V21 | #8020 | FibonacciHeap 斐波那契堆（Fredman–Tarjan 思想） | V8041–V8042 | 2322 | ⬜ |
