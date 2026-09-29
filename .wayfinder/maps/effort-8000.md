@@ -71,11 +71,11 @@ V 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | V34 | #8033 | ViterbiDecoder 维特比解码（Viterbi 1967 思想） | V8067–V8068 | 2335 | ✅ |
 | V35 | #8034 | JaroWinklerSimilarity 相似度（Jaro–Winkler 思想） | V8069–V8070 | 2336 | ✅ |
 | V36 | #8035 | 对账轮（快照 +5 + 全仓 verify 三门绿；72%） | V8071–V8072 | 2337 | ✅ |
-| V37 | #8036 | FeistelNetwork 费斯妥网络（Feistel 1973 思想） | V8073–V8074 | 2338 | ⬜ |
-| V38 | #8037 | ConstantTimeEquals 常数时间比较（timing attack 防御思想） | V8075–V8076 | 2339 | ⬜ |
-| V39 | #8038 | TotpGenerator TOTP 动态口令（RFC 6238 思想） | V8077–V8078 | 2340 | ⬜ |
-| V40 | #8039 | ReedSolomon 里德-所罗门纠错（Reed–Solomon 思想） | V8079–V8080 | 2341 | ⬜ |
-| V41 | #8040 | HammingCode 海明 SECDED 纠错（Hamming 1950 思想） | V8081–V8082 | 2342 | ⬜ |
+| V37 | #8036 | FeistelNetwork 费斯妥网络（Feistel 1973 思想） | V8073–V8074 | 2338 | ✅ |
+| V38 | #8037 | ConstantTimeEquals 常数时间比较（timing attack 防御思想） | V8075–V8076 | 2339 | ✅ |
+| V39 | #8038 | TotpGenerator TOTP 动态口令（RFC 6238 思想） | V8077–V8078 | 2340 | ✅ |
+| V40 | #8040 | HammingCode 海明 SECDED 纠错（Hamming 1950 思想；ReedSolomon 退雾区调序补位） | V8081–V8082 | 2342 | ✅ |
+| V41 | #8041 | ChineseRemainder 中国剩余定理（孙子算经/CRT 思想） | V8083–V8084 | 2343 | ✅ |
 | V42 | #8041 | 对账轮（快照 +5 + 全仓 verify 三门绿；84%） | V8083–V8084 | 2343 | ⬜ |
 | V43 | #8042 | NeedlemanWunsch 全局对齐（Needleman–Wunsch 思想） | V8085–V8086 | 2344 | ⬜ |
 | V44 | #8043 | SmithWaterman 局部对齐（Smith–Waterman 思想） | V8087–V8088 | 2345 | ⬜ |

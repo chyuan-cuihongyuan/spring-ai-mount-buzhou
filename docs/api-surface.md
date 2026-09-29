@@ -436,6 +436,11 @@
 - `public final class PowerIteration`（spec 8032——幂迭代主特征向量）
 - `public final class ViterbiDecoder`（spec 8033——HMM 最可能路径解码）
 - `public final class JaroWinklerSimilarity`（spec 8034——匹配窗+前缀加成相似度）
+- `public final class FeistelNetwork`（spec 8036——分半交替可逆置乱）
+- `public final class ConstantTimeEquals`（spec 8037——XOR 折叠常数时间比较）
+- `public final class TotpGenerator`（spec 8038——HMAC 动态截断时间步口令）
+- `public final class HammingCode`（spec 8040——(8,4) SECDED 纠错）
+- `public final class ChineseRemainder`（spec 8041——同余方程组逆元合并）
 
 ## buzhou-memory
 
