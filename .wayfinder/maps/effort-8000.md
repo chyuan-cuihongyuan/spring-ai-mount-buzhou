@@ -77,11 +77,11 @@ V 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | V40 | #8040 | HammingCode 海明 SECDED 纠错（Hamming 1950 思想；ReedSolomon 退雾区调序补位） | V8081–V8082 | 2342 | ✅ |
 | V41 | #8041 | ChineseRemainder 中国剩余定理（孙子算经/CRT 思想） | V8083–V8084 | 2343 | ✅ |
 | V42 | #8041 | 对账轮（快照 +5 + 全仓 verify 三门绿；84%） | V8083–V8084 | 2343 | ⬜ |
-| V43 | #8042 | NeedlemanWunsch 全局对齐（Needleman–Wunsch 思想） | V8085–V8086 | 2344 | ⬜ |
-| V44 | #8043 | SmithWaterman 局部对齐（Smith–Waterman 思想） | V8087–V8088 | 2345 | ⬜ |
-| V45 | #8044 | GotohAlignment 仿射间隙对齐（Gotoh 1982 思想） | V8089–V8090 | 2346 | ⬜ |
-| V46 | #8045 | SaxCodec SAX 符号聚合近似（Lin 2003 思想） | V8091–V8092 | 2347 | ⬜ |
-| V47 | #8046 | PaaCodec 分段聚合近似（Keogh 2001 思想） | V8093–V8094 | 2348 | ⬜ |
+| V43 | #8043 | NeedlemanWunsch 全局比对（Needleman & Wunsch 1970 思想） | V8087–V8088 | 2345 | ✅ |
+| V44 | #8044 | SmithWaterman 局部比对（Smith & Waterman 1981 思想） | V8089–V8090 | 2346 | ✅ |
+| V45 | #8045 | GotohAlignment 仿射间隙对齐（Gotoh 1982 思想） | V8091–V8092 | 2347 | ✅ |
+| V46 | #8046 | SaxCodec SAX 符号聚合近似（Lin 2003 思想） | V8093–V8094 | 2348 | ✅ |
+| V47 | #8047 | PaaCodec 分段聚合近似（Keogh 2001 思想） | V8095–V8096 | 2349 | ✅ |
 | V48 | #8047 | 对账轮（快照 +5 + 全仓 verify 三门绿；96%） | V8095–V8096 | 2349 | ⬜ |
 | V49 | #8048 | SkylineProblem 天际线轮廓（sweep line 离散事件思想；独件） | V8097–V8098 | 2350 | ⬜ |
 | V50 | #8049 | 收口对账轮（快照补登 + 全仓 verify 三门绿 + push 封卷；V 会话 50/50） | V8099–V8100 | 2351 | ⬜ |

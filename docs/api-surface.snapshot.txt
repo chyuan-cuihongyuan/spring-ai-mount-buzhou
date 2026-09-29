@@ -264,6 +264,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FalseDiscoveryRate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GateThresholdSensitivity
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GotohAlignment
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GrubbsOutlier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeAgreement
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeCalibration
@@ -530,9 +531,11 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MinWindowSubstring
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MonotonicDeque
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MorrisCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.MyersDiff
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NeedlemanWunsch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.OutOfOrderWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PaaCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PatienceLis
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PerfectHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.QuantileAggregationBias
@@ -541,12 +544,14 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RadixSorter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RoaringBitSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RobinHoodHashTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SaxCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ScalarKalmanFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SegmentTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ShannonEntropy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SimHashFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SkipList
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SmithWaterman
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SortedRunMerge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Soundex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SpaceSavingTopK

@@ -441,6 +441,11 @@
 - `public final class TotpGenerator`（spec 8038——HMAC 动态截断时间步口令）
 - `public final class HammingCode`（spec 8040——(8,4) SECDED 纠错）
 - `public final class ChineseRemainder`（spec 8041——同余方程组逆元合并）
+- `public final class NeedlemanWunsch`（spec 8043——全局比对 DP+回溯）
+- `public final class SmithWaterman`（spec 8044——局部比对归零回溯）
+- `public final class GotohAlignment`（spec 8045——仿射间隙三矩阵）
+- `public final class SaxCodec`（spec 8046——z 归一+分位符号化）
+- `public final class PaaCodec`（spec 8047——等宽分段均值降维）
 
 ## buzhou-memory
 
