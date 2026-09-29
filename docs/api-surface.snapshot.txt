@@ -48,6 +48,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.BucketTableSizing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ClockEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.ClockSweepCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.FrequencyDecay
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.HopscotchHashTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.LruKEviction
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.PromptPrefixCache
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cache.RendezvousHashing
@@ -81,12 +82,14 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ArticulationPoin
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AvlTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BatchAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BellmanFord
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BipartiteChecker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReload
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CoopBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DijkstraShortestPath
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DinicMaxFlow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DisjointSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EpochReclamation
@@ -96,6 +99,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.FloydWarshall
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GossipConvergence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GraceAwareFailureDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptiveLimiter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GraphColoring
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.HashedWheelTimers
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.HybridLogicalClock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.IdleConnectionReaper
@@ -138,6 +142,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreak
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ToolCircuitBreakerHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TopologicalSorter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.Treap
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TreeDiameter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.TwoChoiceSelector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.Ucb1Selector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.UuidV7Monotonic
@@ -446,11 +451,13 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.XxHash64
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.AhoCorasick
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Autocorrelation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BPlusTree
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BitapSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BkTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BlockedSlidingCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Bm25Ranker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoundedTopK
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoyerMooreMajority
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BoyerMooreSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
@@ -474,6 +481,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FenwickTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FiveNumberSummary
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FloydCycleDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FrequencySketch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.GlobMatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.GrayCodeSequence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HllCardinalitySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltForecaster
@@ -485,6 +493,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.JosephusPermutation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KadaneMaxSubarray
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KahanSummator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KmpSearch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LevenshteinAutomaton
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LittlesLawAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.LogBucketHistogram
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Manacher
@@ -503,6 +512,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.OutOfOrderWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PatienceLis
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PerfectHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.QuantileAggregationBias
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RabinKarpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RoaringBitSet
@@ -582,6 +592,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GaussianSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.Geohash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.GumbelMaxSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.HilbertCurve
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.HungarianMatcher
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.JsonPatchApplier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.JumpConsistentHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.KdTree

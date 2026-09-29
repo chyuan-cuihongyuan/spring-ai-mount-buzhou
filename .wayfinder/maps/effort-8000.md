@@ -36,17 +36,17 @@ V 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | V | effort | 主题 | 票 | impl | 状态 |
 |---|---|---|---|---|---|
 | V1 | #8000 | 8000 系对账门落位（VSession8000LedgerAuditTest 九应用） | V8001–V8002 | 2302 | ✅ |
-| V2 | #8001 | BoyerMooreSearch 坏字符/好后缀搜索（Boyer–Moore 1977 思想） | V8003–V8004 | 2303 | ⬜ |
-| V3 | #8002 | BitapSearch 位并行匹配（Baeza-Yates–Gonnet 思想） | V8005–V8006 | 2304 | ⬜ |
-| V4 | #8003 | LevenshteinAutomaton 编辑距离自动机（Schulz–Mihov 思想） | V8007–V8008 | 2305 | ⬜ |
-| V5 | #8004 | GlobMatcher 通配符匹配（POSIX fnmatch 思想） | V8009–V8010 | 2306 | ⬜ |
-| V6 | #8005 | 对账轮（快照 +4 + 全仓 verify 三门绿；6/50=12%） | V8011–V8012 | 2307 | ⬜ |
-| V7 | #8006 | DinicMaxFlow 最大流（Dinic 1970 思想） | V8013–V8014 | 2308 | ⬜ |
-| V8 | #8007 | HungarianMatcher 指派匹配（Kuhn 1955 思想） | V8015–V8016 | 2309 | ⬜ |
-| V9 | #8008 | BipartiteChecker 二分图染色（Kőnig 思想） | V8017–V8018 | 2310 | ⬜ |
-| V10 | #8009 | TreeDiameter 树的直径（双 BFS 思想） | V8019–V8020 | 2311 | ⬜ |
-| V11 | #8010 | GraphColoring 图着色（Welsh–Powell 思想） | V8021–V8022 | 2312 | ⬜ |
-| V12 | #8011 | 对账轮（快照 +5 + 全仓 verify 三门绿；24%） | V8023–V8024 | 2313 | ⬜ |
+| V2 | #8001 | BoyerMooreSearch 坏字符/好后缀搜索（Boyer–Moore 1977 思想） | V8003–V8004 | 2303 | ✅ |
+| V3 | #8002 | BitapSearch 位并行匹配（Baeza-Yates–Gonnet 思想） | V8005–V8006 | 2304 | ✅ |
+| V4 | #8003 | LevenshteinAutomaton 编辑距离自动机（Schulz–Mihov 思想） | V8007–V8008 | 2305 | ✅ |
+| V5 | #8004 | GlobMatcher 通配符匹配（POSIX fnmatch 思想） | V8009–V8010 | 2306 | ✅ |
+| V6 | #8005 | 对账轮（快照 +4 + 全仓 verify 三门绿；6/50=12%） | V8011–V8012 | 2307 | ✅ |
+| V7 | #8006 | DinicMaxFlow 最大流（Dinic 1970 思想） | V8013–V8014 | 2308 | ✅ |
+| V8 | #8007 | HungarianMatcher 指派匹配（Kuhn 1955 思想） | V8015–V8016 | 2309 | ✅ |
+| V9 | #8008 | BipartiteChecker 二分图染色（Kőnig 思想） | V8017–V8018 | 2310 | ✅ |
+| V10 | #8009 | TreeDiameter 树的直径（双 BFS 思想） | V8019–V8020 | 2311 | ✅ |
+| V11 | #8010 | GraphColoring 图着色（Welsh–Powell 思想） | V8021–V8022 | 2312 | ✅ |
+| V12 | #8011 | 对账轮（快照 +5 + 全仓 verify 三门绿；24%） | V8023–V8024 | 2313 | ✅ |
 | V13 | #8012 | HopscotchHashTable 跳房子哈希（Herlihy 2008 思想；U 遗珠认领） | V8025–V8026 | 2314 | ⬜ |
 | V14 | #8013 | PerfectHash 完美哈希（CHM 思想） | V8027–V8028 | 2315 | ⬜ |
 | V15 | #8014 | QuotientFilter 商过滤器（Bender 2012 思想） | V8029–V8030 | 2316 | ⬜ |

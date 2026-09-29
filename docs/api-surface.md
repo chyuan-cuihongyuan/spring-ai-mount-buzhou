@@ -407,6 +407,17 @@
 - `public final class GradientAdaptiveLimiter`（spec 1617——延迟梯度自适应并发闸，双 EMA 混合调整）
 - `public final class CatalogDriftHolder`（spec 1613——工具目录漂移看门狗进程级 Holder）
 - `public final class NegativeCachingToolCallback`（spec 1616——工具失败负缓存装饰器，DNS negative caching）
+- `public final class BoyerMooreSearch`（spec 8001——坏字符+强好后缀双启发全命中搜索）
+- `public final class BitapSearch`（spec 8002——Shift-And 位并行搜索，≤63 位宽）
+- `public final class LevenshteinAutomaton`（spec 8003——模式侧 k-容差活性状态行接受判定）
+- `public final class GlobMatcher`（spec 8004——fnmatch 四原语通配匹配）
+- `public final class DinicMaxFlow`（spec 8006——分层图+阻塞流最大流值面）
+- `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
+- `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
+- `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
+- `public final class GraphColoring`（spec 8010——度降序 (Δ+1) 有界着色）
+- `public final class HopscotchHashTable`（spec 8012——邻域位图常数探测哈希表）
+- `public final class PerfectHash`（spec 8013——静态键集两级零碰撞定位）
 
 ## buzhou-memory
 
