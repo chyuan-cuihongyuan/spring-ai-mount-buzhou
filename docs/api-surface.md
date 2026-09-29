@@ -421,6 +421,11 @@
 - `public final class MinWindowSubstring`（spec 8014——需求计数+双指针最小覆盖窗口）
 - `public final class SipHash24`（spec 8015——密钥化 64 位 PRF 哈希）
 - `public final class Base58Codec`（spec 8016——58 字符无歧义转录编码）
+- `public final class BinomialHeap`（spec 8020——度互异森林进位可合并堆）
+- `public final class IntervalHeap`（spec 8018——min-max 双端优先队列）
+- `public final class LeftistHeap`（spec 8019——npl 左偏可合并堆）
+- `public final class LfuEviction`（spec 8021——频次桶+最低频先入桶放逐）
+- `public final class RadixSorter`（spec 8022——LSD 字节位稳定分桶排序）
 
 ## buzhou-memory
 
