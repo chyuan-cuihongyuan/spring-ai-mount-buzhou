@@ -431,6 +431,11 @@
 - `public final class PoissonSampler`（spec 8026——Knuth 乘法法事件计数采样）
 - `public final class RejectionSampler`（spec 8027——包络拒绝非标准分布采样）
 - `public final class CusumDetector`（spec 8028——双单边累计偏移变点检测）
+- `public final class KMeansClustering`（spec 8030——k-means++ 播种+Lloyd 迭代聚类）
+- `public final class DbScanClusterer`（spec 8031——ε 邻域密度可达聚类）
+- `public final class PowerIteration`（spec 8032——幂迭代主特征向量）
+- `public final class ViterbiDecoder`（spec 8033——HMM 最可能路径解码）
+- `public final class JaroWinklerSimilarity`（spec 8034——匹配窗+前缀加成相似度）
 
 ## buzhou-memory
 

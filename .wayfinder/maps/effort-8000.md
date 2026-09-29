@@ -65,12 +65,12 @@ V 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | V28 | #8027 | RejectionSampler 拒绝采样（von Neumann 思想） | V8055–V8056 | 2329 | ✅ |
 | V29 | #8028 | CusumDetector CUSUM 变点检测（Page 1954 思想） | V8057–V8058 | 2330 | ✅ |
 | V30 | #8029 | 对账轮（快照 +5 + 全仓 verify 三门绿；60%） | V8059–V8060 | 2331 | ✅ |
-| V31 | #8030 | KMeansClustering K 均值聚类（MacQueen 思想） | V8061–V8062 | 2332 | ⬜ |
-| V32 | #8031 | DbScanClusterer 密度聚类（Ester 1996 思想） | V8063–V8064 | 2333 | ⬜ |
-| V33 | #8032 | PowerIteration 幂迭代主特征向量（PageRank 思想） | V8065–V8066 | 2334 | ⬜ |
-| V34 | #8033 | ViterbiDecoder 维特比解码（Viterbi 1967 思想） | V8067–V8068 | 2335 | ⬜ |
-| V35 | #8034 | JaroWinklerSimilarity 相似度（Jaro–Winkler 思想） | V8069–V8070 | 2336 | ⬜ |
-| V36 | #8035 | 对账轮（快照 +5 + 全仓 verify 三门绿；72%） | V8071–V8072 | 2337 | ⬜ |
+| V31 | #8030 | KMeansClustering K 均值聚类（MacQueen 思想） | V8061–V8062 | 2332 | ✅ |
+| V32 | #8031 | DbScanClusterer 密度聚类（Ester 1996 思想） | V8063–V8064 | 2333 | ✅ |
+| V33 | #8032 | PowerIteration 幂迭代主特征向量（PageRank 思想） | V8065–V8066 | 2334 | ✅ |
+| V34 | #8033 | ViterbiDecoder 维特比解码（Viterbi 1967 思想） | V8067–V8068 | 2335 | ✅ |
+| V35 | #8034 | JaroWinklerSimilarity 相似度（Jaro–Winkler 思想） | V8069–V8070 | 2336 | ✅ |
+| V36 | #8035 | 对账轮（快照 +5 + 全仓 verify 三门绿；72%） | V8071–V8072 | 2337 | ✅ |
 | V37 | #8036 | FeistelNetwork 费斯妥网络（Feistel 1973 思想） | V8073–V8074 | 2338 | ⬜ |
 | V38 | #8037 | ConstantTimeEquals 常数时间比较（timing attack 防御思想） | V8075–V8076 | 2339 | ⬜ |
 | V39 | #8038 | TotpGenerator TOTP 动态口令（RFC 6238 思想） | V8077–V8078 | 2340 | ⬜ |

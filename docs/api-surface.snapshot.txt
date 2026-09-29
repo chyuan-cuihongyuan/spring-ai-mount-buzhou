@@ -226,6 +226,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.CouponCollectorProject
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetExpectations
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetNearDuplicateStats
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetQualityAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DbScanClusterer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EtaProjection
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalCaseAmplifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalCoverageMatrix
@@ -262,6 +263,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GrubbsOutlier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeAgreement
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeCalibration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgePositionBias
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.KMeansClustering
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.KsTwoSample
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.LlmJudgeEvaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.MultipleComparisonCorrection
@@ -270,11 +272,13 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseJudge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseSprtPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PercentileRank
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PowerIteration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.RagasEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.SessionTrajectoryImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TrimmedMean
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnErrorSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.TurnSamplerHook
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.ViterbiDecoder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WeightedSample
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.WilsonInterval
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.AgingPriorityQueue
@@ -500,6 +504,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltWintersIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HotKeyDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.IntervalTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.InvertedIndex
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.JaroWinklerSimilarity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.JosephusPermutation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KadaneMaxSubarray
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KahanSummator
