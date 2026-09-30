@@ -47,12 +47,12 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X9 | #10008 | CholeskyDecomposition 正定三角分解（LAPACK 思想） | X10017–X10018 | 2411 | ✅ |
 | X10 | #10009 | QrHouseholder 镜像反射 QR（LAPACK 思想） | X10019–X10020 | 2412 | ✅ |
 | X11 | #10010 | ConjugateGradient 共轭梯度迭代（Hestenes–Stiefel 思想） | X10021–X10022 | 2413 | ✅ |
-| X12 | #10011 | 对账轮（快照批补登 + verify 三门绿；24%） | X10023–X10024 | 2414 | ⬜ |
-| X13 | #10012 | DelaunayTriangulation Bowyer–Watson 增量剖分（CGAL 思想） | X10025–X10026 | 2415 | ⬜ |
-| X14 | #10013 | SutherlandHodgman 多边形裁剪（OpenGL 思想） | X10027–X10028 | 2416 | ⬜ |
-| X15 | #10014 | DouglasPeucker 轨迹抽稀（Mapbox/GDAL 思想） | X10029–X10030 | 2417 | ⬜ |
-| X16 | #10015 | CatmullRomSpline 张量插值样条（THREE.js 思想） | X10031–X10032 | 2418 | ⬜ |
-| X17 | #10016 | MarchingSquares 等值线提取（d3-contour 思想） | X10033–X10034 | 2419 | ⬜ |
+| X12 | #10011 | 对账轮（快照批补登 + verify 三门绿；24%） | X10023–X10024 | 2414 | ✅ |
+| X13 | #10012 | DelaunayTriangulation Bowyer–Watson 增量剖分（CGAL 思想） | X10025–X10026 | 2415 | ✅ |
+| X14 | #10013 | SutherlandHodgman 多边形裁剪（OpenGL 思想） | X10027–X10028 | 2416 | ✅ |
+| X15 | #10014 | DouglasPeucker 轨迹抽稀（Mapbox/GDAL 思想） | X10029–X10030 | 2417 | ✅ |
+| X16 | #10015 | CatmullRomSpline 张量插值样条（THREE.js 思想） | X10031–X10032 | 2418 | ✅ |
+| X17 | #10016 | MarchingSquares 等值线提取（d3-contour 思想） | X10033–X10034 | 2419 | ✅ |
 | X18 | #10017 | 对账轮（快照批补登 + verify 三门绿；36%） | X10035–X10036 | 2420 | ⬜ |
 | X19 | #10018 | ForwardBackward HMM 前向后向（Rabiner 思想——Viterbi 已占镜像面） | X10037–X10038 | 2421 | ⬜ |
 | X20 | #10019 | BaumWelch EM 参数重估（Baum 思想） | X10039–X10040 | 2422 | ⬜ |

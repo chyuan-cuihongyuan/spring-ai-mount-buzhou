@@ -97,6 +97,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CentroidDecompos
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CholeskyDecomposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ConjugateGradient
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CoopBudget
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelaunayTriangulation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DijkstraShortestPath
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DinicMaxFlow
@@ -648,6 +649,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BindingPolicyStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BranchAndBound
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.BresenhamLine
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.CacheControlDirectives
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.CatmullRomSpline
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ClosestPair
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.CommitGraph
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ConsistentHashRing
@@ -656,6 +658,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.CronFieldParser
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DeficitRoundRobin
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DelayScheduling
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DifficultyRetarget
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DouglasPeucker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.DynamicSnitchPenalty
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.Eip1559BaseFee
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ElevatorScan
@@ -673,6 +676,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.JumpConsistentHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.KdTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.LayeredPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.MaglevHash
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.MarchingSquares
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.McpServerBinding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.NucleusSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.PidController
@@ -693,6 +697,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ShardSkewAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ShuffleSharding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.SimulatedAnnealing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.StableMatching
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.SutherlandHodgman
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ThreeWayMerge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchDecision
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.policy.ToolPolicyMatchStats
