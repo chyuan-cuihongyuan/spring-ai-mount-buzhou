@@ -15,7 +15,7 @@ W 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 
 - **图匹配与割族**：Hopcroft–Karp 二分图最大匹配（1973 O(E√V)）、Edmonds–Karp BFS 增广最大流（1972——与 Dinic（8012）同族不同面）、Stoer–Wagner 无向全局最小割（1997 网络分区容错思想）、Bron–Kerbosch 极大团枚举（1973 带 pivot——社区发现/图分析思想）
 - **树结构与剖解族**：Borůvka 森林合并 MST（1926——与 Kruskal 边排序不同面：全森林最小边同步合并的并行骨架）、重链剖分 HLD（树上路径查询）、重心剖分（点分治）、笛卡尔树（Treap 静态形态/RMQ↔LCA）、替罪羊树（重建式自平衡 BST）
-- **编码压缩族**：LZW 字典压缩（GIF/UNIX compress 思想）、BWT 变换（bzip2 思想）、MTF 变换（bzip2 思想）、ZigZag 有符号映射（Protobuf 思想——与 VarintCodec 无符号 varint 同族不同面）、rANS 熵编码（Zstd ANS 思想）
+- **编码压缩族**：LZW 字典压缩（GIF/UNIX compress 思想）、BWT 变换（bzip2 思想）、MTF 变换（bzip2 思想）、LZ77 滑窗引用压缩（Ziv–Lempel 1977——回窗 (offset,length) 引用 vs LZW（LZ78 系）字典生长——VarintCodec 已含 zigzag 故换替补）、rANS 熵编码（Zstd ANS 思想）
 - **序列指纹与自动机族**：winnowing 指纹（MOSS 查重思想）、TF-IDF 词频-逆文档频率向量化（scikit-learn/Solr/ES 思想——BM25 已占不同面）、后缀自动机（Blumer 1985）、回文树 Eertree（Apostolico 思想）、莫尔斯编解码（电报独件）
 - **随机化与 bandit 族**：EXP3 对抗 bandit（Auer 2001）、梯度偏好 bandit（Sutton & Barto）、Metropolis–Hastings MCMC（1953）、置换检验 PermutationTest（Fisher 频率学派镜像——bootstrap 已占）、Jackknife 刀切（Quenouille 1949）
 - **数论与数值族**：Miller–Rabin 素性检测（BigInteger 同思想）、Karatsuba 分治乘法（1960）、平方根倒数速算（Quake III 0x5f3759df 思想）、Weiszfeld 几何中位数（1937）、de Casteljau 贝塞尔曲线（1959）
@@ -51,7 +51,7 @@ W 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | W13 | #9012 | LzwCodec LZW 字典压缩（GIF 思想） | W9025–W9026 | 2365 | ⬜ |
 | W14 | #9013 | BurrowsWheelerTransform BWT 变换（bzip2 思想） | W9027–W9028 | 2366 | ⬜ |
 | W15 | #9014 | MoveToFrontTransform MTF 变换（bzip2 思想） | W9029–W9030 | 2367 | ⬜ |
-| W16 | #9015 | ZigZagCodec 有符号 ZigZag 映射（Protobuf 思想） | W9031–W9032 | 2368 | ⬜ |
+| W16 | #9015 | Lz77Codec 滑窗引用压缩（LZ77 思想——VarintCodec 已含 zigzag 换替补） | W9031–W9032 | 2368 | ⬜ |
 | W17 | #9016 | AnsCodec rANS 熵编码（Zstd ANS 思想） | W9033–W9034 | 2369 | ⬜ |
 | W18 | #9017 | 对账轮（快照批补登 + verify 三门绿；36%） | W9035–W9036 | 2370 | ⬜ |
 | W19 | #9018 | WinnowFingerprint winnowing 指纹（MOSS 思想） | W9037–W9038 | 2371 | ⬜ |
