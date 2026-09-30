@@ -36,11 +36,11 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 
 | X | effort | 主题 | 票 | impl | 状态 |
 |---|---|---|---|---|---|
-| X1 | #10000 | 10000 系对账门落位（XSession10000LedgerAuditTest 第十一应用） | X10001–X10002 | 2403 | ⬜ |
-| X2 | #10001 | InterpolativeCoding 二分内插编码（Moffat–Stuiver 思想——EliasFano 已占换替补） | X10003–X10004 | 2404 | ⬜ |
-| X3 | #10002 | QuotientFilter 商指纹近似成员（Facebook/ScyllaDB 思想） | X10005–X10006 | 2405 | ⬜ |
-| X4 | #10003 | BinaryFuseFilter 二进制熔合过滤器（xorfilter 思想） | X10007–X10008 | 2406 | ⬜ |
-| X5 | #10004 | SimHashLsh 位指纹海明分段（Manku 2007 思想——MinHashSketch 已占换替补） | X10009–X10010 | 2407 | ⬜ |
+| X1 | #10000 | 10000 系对账门落位（XSession10000LedgerAuditTest 第十一应用） | X10001–X10002 | 2403 |✅ |
+| X2 | #10001 | InterpolativeCoding 二分内插编码（Moffat–Stuiver 思想——EliasFano 已占换替补） | X10003–X10004 | 2404 |✅ |
+| X3 | #10002 | QuotientFilter 商指纹近似成员（Facebook/ScyllaDB 思想） | X10005–X10006 | 2405 |✅ |
+| X4 | #10003 | BinaryFuseFilter 二进制熔合过滤器（xorfilter 思想） | X10007–X10008 | 2406 |✅ |
+| X5 | #10004 | SimHashLsh 位指纹海明分段（Manku 2007 思想——MinHashSketch 已占换替补） | X10009–X10010 | 2407 |✅ |
 | X6 | #10005 | 对账轮（快照批补登 + verify 三门绿；6/50=12%） | X10011–X10012 | 2408 | ⬜ |
 | X7 | #10006 | GaussianElimination 部分主元消元（NumPy/JAMA 思想） | X10013–X10014 | 2409 | ⬜ |
 | X8 | #10007 | LUDecomposition Doolittle 分解（LAPACK 思想） | X10015–X10016 | 2410 | ⬜ |

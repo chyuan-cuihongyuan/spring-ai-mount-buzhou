@@ -452,6 +452,10 @@
 - `public final class TspTwoOpt`（core/policy；spec 9045——边交换去交叉闭合环游优化器）
 - `public final class BranchAndBound`（core/policy；spec 9046——DFS+LP 松弛界精确 0/1 背包）
 - `public final class AStarSearch`（core/concurrent；spec 9048——f=g+h 优先队列启发式最短路）
+- `public final class InterpolativeCoding`（spec 10001——中点递归上下文定宽位流压缩）
+- `public final class QuotientFilter`（spec 10002——商余分家+三 meta 位移位簇成员面）
+- `public final class BinaryFuseFilter`（spec 10003——三段熔合窗口+逆剥离静态构造）
+- `public final class SimHashLsh`（spec 10004——分块倒排+验距精确集）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）

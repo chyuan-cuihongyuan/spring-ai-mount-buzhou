@@ -84,6 +84,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ArticulationPoin
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AvlTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BatchAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BellmanFord
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BinaryFuseFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BinomialHeap
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BipartiteChecker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BoruvkaMst
@@ -117,6 +118,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InMemoryLeaderElector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.IndexedHeap
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InterpolationSearch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InterpolativeCoding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.IntervalHeap
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JobDeadLetterLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.KruskalMst
@@ -137,10 +139,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PoolSizeHeuristi
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityInversionExposure
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.QuickSelect
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.QuotientFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ReplicatedCounter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ScapegoatTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SelfPreservationGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SeqLock
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SimHashLsh
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SnowflakeIdDecompose
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SnowflakeIdGenerator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.SplayTree
