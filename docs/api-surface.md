@@ -441,6 +441,11 @@
 - `public final class FastInverseSqrt`（core/metrics；spec 9032——魔数 0x5f3759df 位型初值+一次牛顿速算）
 - `public final class GeometricMedian`（core/policy；spec 9033——Weiszfeld 加权重心迭代几何中位数）
 - `public final class BezierCurve`（core/policy；spec 9034——de Casteljau 逐层插值+折线化）
+- `public final class MurmurHash3`（core/metrics；spec 9036——x86 32 位三轮混合高速哈希）
+- `public final class DiffieHellmanExchange`（spec 9037——素域 g^(ab) 双向同达协商三原语）
+- `public final class XorShift64`（core/metrics；spec 9038——13,7,17 三移位异或 RNG）
+- `public final class SplitMix64`（core/metrics；spec 9039——黄金比例定序+最终化可分裂随机）
+- `public final class BitonicSorter`（core/metrics；spec 9040——双调递归清洁固定比较器网络）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
