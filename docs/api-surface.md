@@ -416,6 +416,11 @@
 - `public final class EdmondsKarpMaxFlow`（spec 9002——BFS 最短增广路逐条饱和最大流）
 - `public final class StoerWagnerMinCut`（spec 9003——最大邻接序阶段制无向全局最小割）
 - `public final class BronKerboschCliques`（spec 9004——三集递归+pivot 剪枝极大团枚举）
+- `public final class BoruvkaMst`（spec 9006——全分量同步出边合并 MST）
+- `public final class HeavyLightDecomposition`（spec 9007——重链剖分纯剖解面 O(log V) 路径段）
+- `public final class CentroidDecomposition`（spec 9008——重心递归分块点分治）
+- `public final class CartesianTree`（spec 9009——单调栈 O(n) 笛卡尔树+RMQ↔LCA 桥）
+- `public final class ScapegoatTree`（spec 9010——α=0.75 推平重建自平衡有序集）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
