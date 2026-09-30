@@ -76,6 +76,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.TombstoneRatioReado
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.TurnSequenceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.WriteAmplificationFactor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.cleanup.ZoneMapPruner
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AStarSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AdaptiveBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkhead
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AgentBulkheadReporter

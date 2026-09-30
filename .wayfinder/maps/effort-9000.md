@@ -1,4 +1,4 @@
-# Effort #9000 总图 — W 会话 9000 系 50 轮自迭代（能力自补充与自进化第十三弹）
+# Effort #9000 总图 — W 会话 9000 系 50 轮自迭代（能力自补充与自进化第十三弹）【已收口 2026-09-30：50/50——spec 9000–9049 / W9001–W9100 / impl 2353–2402 全档闭环；40 组件+9 对账+1 门轮；快照 1328→1368；X 会话（10000 系）另开新图】
 
 > 会话：W（A–V 字母已占用：V=8000 已收口封卷——V50 收口声明「W 会话（9000 系）另开新图」）；本轮直推 main 逐轮 commit（GitHub 离线时本地逐轮 commit、对账轮补 push）。
 > 号段（本地全档实查空闲：specs 9000+ 全空、tickets W9001+ 全空、impl 2353+ 全空；V 系 8000 段已收口封卷）：**efforts #9000–#9049（50 轮）、specs 9000–9049、票 W9001–W9100（每轮 shape+verify 一对，shape=9001+2(N−9000)）、impl 2353–2402（impl = 2353+(N−9000)）**。
@@ -85,7 +85,7 @@ W 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | W47 | #9046 | BranchAndBound 分支限界（Land–Doig 思想） | W9093–W9094 | 2399 | ⬜ |
 | W48 | #9047 | 对账轮（快照批补登 + verify 三门绿；96%） | W9095–W9096 | 2400 | ⬜ |
 | W49 | #9048 | AStarSearch A\* 启发式寻路（Hart 1968 独件） | W9097–W9098 | 2401 | ⬜ |
-| W50 | #9049 | 收口对账轮（快照补登 + verify 绿 + push 封卷；W 会话 50/50） | W9099–W9100 | 2402 | ⬜ |
+| W50 | #9049 | 收口对账轮（快照补登 + verify 绿 + push 封卷；W 会话 50/50） | W9099–W9100 | 2402 | ✅ |
 
 > 备选池（撞坑即换）：Fletcher32 校验和 / MurmurHash3 / PCG 随机 / MiddleSquareWeyl / PrimeSieveAtkin 素数筛 / TonelliShanks 平方剩余 / FisherYates 已占避让 / GaleShapley 已占（StableMatching）避让 / Treap 已占避让 / 中点圆 / XiaolinWu 抗锯齿直线 / CatmullRom 样条 / 自然三次样条 / ExpDecayReservoir / ParticleFilter 粒子滤波 / QuineMcCluskey 简化 / Huffman 已占避让。
 

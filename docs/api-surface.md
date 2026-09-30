@@ -451,6 +451,7 @@
 - `public final class SimulatedAnnealing`（core/policy；spec 9044——exp(−Δ/T) 接受+几何降温最优化器）
 - `public final class TspTwoOpt`（core/policy；spec 9045——边交换去交叉闭合环游优化器）
 - `public final class BranchAndBound`（core/policy；spec 9046——DFS+LP 松弛界精确 0/1 背包）
+- `public final class AStarSearch`（core/concurrent；spec 9048——f=g+h 优先队列启发式最短路）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
