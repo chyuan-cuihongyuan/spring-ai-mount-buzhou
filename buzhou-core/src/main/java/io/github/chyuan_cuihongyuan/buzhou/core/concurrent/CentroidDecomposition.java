@@ -69,6 +69,15 @@ public final class CentroidDecomposition {
         int[] centroidParent = new int[nodeCount];
         int[] componentSize = new int[nodeCount];
         Arrays.fill(centroidParent, -1);
+        // 连通+无环校验：n−1 边下非单连通分量即断图或带环
+        DisjointSet dsu = new DisjointSet(nodeCount);
+        for (int[] edge : edges) {
+            dsu.union(edge[0], edge[1]);
+        }
+        if (dsu.componentCount() != 1) {
+            throw new IllegalArgumentException("非连通或带环（分量 "
+                    + dsu.componentCount() + "/" + nodeCount + "）");
+        }
         int[] rootBox = {-1};
         decompose(0, -1, nodeCount, head, next, to, removed, parent, size,
                 centroidParent, componentSize, rootBox);

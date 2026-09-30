@@ -79,7 +79,7 @@ class CentroidDecompositionTest {
                 .hasMessageContaining("树边数");
         assertThatThrownBy(() -> CentroidDecomposition.of(4,
                 new int[][]{{0, 1}, {1, 2}, {2, 0}}))
-                .hasMessageContaining("n−1");
+                .hasMessageContaining("非连通或带环");
         assertThatThrownBy(() -> CentroidDecomposition.of(3, new int[][]{{0, 1}}))
                 .hasMessageContaining("n−1");
     }
