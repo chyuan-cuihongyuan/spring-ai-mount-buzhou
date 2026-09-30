@@ -41,12 +41,12 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X3 | #10002 | QuotientFilter 商指纹近似成员（Facebook/ScyllaDB 思想） | X10005–X10006 | 2405 |✅ |
 | X4 | #10003 | BinaryFuseFilter 二进制熔合过滤器（xorfilter 思想） | X10007–X10008 | 2406 |✅ |
 | X5 | #10004 | SimHashLsh 位指纹海明分段（Manku 2007 思想——MinHashSketch 已占换替补） | X10009–X10010 | 2407 |✅ |
-| X6 | #10005 | 对账轮（快照批补登 + verify 三门绿；6/50=12%） | X10011–X10012 | 2408 | ⬜ |
-| X7 | #10006 | GaussianElimination 部分主元消元（NumPy/JAMA 思想） | X10013–X10014 | 2409 | ⬜ |
-| X8 | #10007 | LUDecomposition Doolittle 分解（LAPACK 思想） | X10015–X10016 | 2410 | ⬜ |
-| X9 | #10008 | CholeskyDecomposition 正定三角分解（LAPACK 思想） | X10017–X10018 | 2411 | ⬜ |
-| X10 | #10009 | QrHouseholder 镜像反射 QR（LAPACK 思想） | X10019–X10020 | 2412 | ⬜ |
-| X11 | #10010 | ConjugateGradient 共轭梯度迭代（Hestenes–Stiefel 思想） | X10021–X10022 | 2413 | ⬜ |
+| X6 | #10005 | 对账轮（快照批补登 + verify 三门绿；6/50=12%） | X10011–X10012 | 2408 | ✅ |
+| X7 | #10006 | GaussianElimination 部分主元消元（NumPy/JAMA 思想） | X10013–X10014 | 2409 | ✅ |
+| X8 | #10007 | LUDecomposition Doolittle 分解（LAPACK 思想） | X10015–X10016 | 2410 | ✅ |
+| X9 | #10008 | CholeskyDecomposition 正定三角分解（LAPACK 思想） | X10017–X10018 | 2411 | ✅ |
+| X10 | #10009 | QrHouseholder 镜像反射 QR（LAPACK 思想） | X10019–X10020 | 2412 | ✅ |
+| X11 | #10010 | ConjugateGradient 共轭梯度迭代（Hestenes–Stiefel 思想） | X10021–X10022 | 2413 | ✅ |
 | X12 | #10011 | 对账轮（快照批补登 + verify 三门绿；24%） | X10023–X10024 | 2414 | ⬜ |
 | X13 | #10012 | DelaunayTriangulation Bowyer–Watson 增量剖分（CGAL 思想） | X10025–X10026 | 2415 | ⬜ |
 | X14 | #10013 | SutherlandHodgman 多边形裁剪（OpenGL 思想） | X10027–X10028 | 2416 | ⬜ |

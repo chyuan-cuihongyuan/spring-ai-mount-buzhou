@@ -456,6 +456,11 @@
 - `public final class QuotientFilter`（spec 10002——商余分家+三 meta 位移位簇成员面）
 - `public final class BinaryFuseFilter`（spec 10003——三段熔合窗口+逆剥离静态构造）
 - `public final class SimHashLsh`（spec 10004——分块倒排+验距精确集）
+- `public final class GaussianElimination`（spec 10006——部分主元消元回代+行列式）
+- `public final class LUDecomposition`（spec 10007——PA=LU 分解复用面）
+- `public final class CholeskyDecomposition`（spec 10008——对称正定 LLᵀ 平方根分解）
+- `public final class QrHouseholder`（spec 10009——镜像反射经济型 QR+最小二乘）
+- `public final class ConjugateGradient`（spec 10010——SPD 共轭方向迭代解法）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）

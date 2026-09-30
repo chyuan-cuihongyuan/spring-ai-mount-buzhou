@@ -94,6 +94,8 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingA
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BuzhouThreadFactory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CartesianTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CentroidDecomposition
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CholeskyDecomposition
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ConjugateGradient
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CoopBudget
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DijkstraShortestPath
@@ -105,6 +107,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EpochReclamation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EulerianPath
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EventLoopLagProbe
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.FloydWarshall
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GaussianElimination
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GossipConvergence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GraceAwareFailureDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.GradientAdaptiveLimiter
@@ -122,6 +125,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InterpolativeCod
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.IntervalHeap
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JobDeadLetterLog
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.KruskalMst
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LUDecomposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LargestRectangleHistogram
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LastWriteWinsRegister
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LcaLifting
@@ -138,6 +142,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PhiAccrualFailur
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PoolSizeHeuristic
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityInversionExposure
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PriorityLane
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.QrHouseholder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.QuickSelect
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.QuotientFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ReplicatedCounter
