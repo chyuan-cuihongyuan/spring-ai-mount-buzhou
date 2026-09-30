@@ -412,6 +412,10 @@
 - `public final class LevenshteinAutomaton`（spec 8003——模式侧 k-容差活性状态行接受判定）
 - `public final class GlobMatcher`（spec 8004——fnmatch 四原语通配匹配）
 - `public final class DinicMaxFlow`（spec 8006——分层图+阻塞流最大流值面）
+- `public final class HopcroftKarpMatcher`（spec 9001——分层 BFS+当前弧 DFS 阶段制二分图最大匹配）
+- `public final class EdmondsKarpMaxFlow`（spec 9002——BFS 最短增广路逐条饱和最大流）
+- `public final class StoerWagnerMinCut`（spec 9003——最大邻接序阶段制无向全局最小割）
+- `public final class BronKerboschCliques`（spec 9004——三集递归+pivot 剪枝极大团枚举）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
