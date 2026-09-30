@@ -275,6 +275,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GateThresholdSensitivity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GotohAlignment
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GrubbsOutlier
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JackknifeEstimator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeAgreement
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgeCalibration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.JudgePositionBias
@@ -287,6 +288,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseGate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseJudge
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PairwiseSprtPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PercentileRank
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PermutationTest
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.PowerIteration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.RagasEvaluators
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.SessionTrajectoryImporter
@@ -365,8 +367,11 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.TurnMemoHook
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.WeightedFairScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.exec.WorkConservationAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.AliasMethod
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.Exp3Bandit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBalanceAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ExperimentBucketer
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.GradientBandit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.MetropolisHastings
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.PoissonSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.RejectionSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.experiment.ThompsonSampler

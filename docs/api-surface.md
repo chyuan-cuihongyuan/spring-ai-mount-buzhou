@@ -431,6 +431,11 @@
 - `public final class SuffixAutomaton`（spec 9020——endpos 等价类最小 DFA 在线构造）
 - `public final class PalindromeTree`（spec 9021——双根 Eertree 互异回文在线收集）
 - `public final class MorseCodec`（spec 9022——ITU-R M.1677 A-Z/0-9 莫尔斯信令编解码）
+- `public final class Exp3Bandit`（spec 9024——混合分布+指数权重对抗 bandit 纯函数面）
+- `public final class GradientBandit`（spec 9025——softmax 偏好梯度 bandit 纯函数面）
+- `public final class MetropolisHastings`（spec 9026——对称游走密度比 MCMC 采样）
+- `public final class PermutationTest`（spec 9027——标签重排蒙特卡洛双侧 p 值）
+- `public final class JackknifeEstimator`（spec 9028——任意统计量 leave-one-out 刀切三读数）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
