@@ -436,6 +436,11 @@
 - `public final class MetropolisHastings`（spec 9026——对称游走密度比 MCMC 采样）
 - `public final class PermutationTest`（spec 9027——标签重排蒙特卡洛双侧 p 值）
 - `public final class JackknifeEstimator`（spec 9028——任意统计量 leave-one-out 刀切三读数）
+- `public final class MillerRabinPrimality`（spec 9030——12 见证基 long 域确定性素性判定）
+- `public final class KaratsubaMultiplication`（spec 9031——对半分裂三次子乘大数乘法）
+- `public final class FastInverseSqrt`（core/metrics；spec 9032——魔数 0x5f3759df 位型初值+一次牛顿速算）
+- `public final class GeometricMedian`（core/policy；spec 9033——Weiszfeld 加权重心迭代几何中位数）
+- `public final class BezierCurve`（core/policy；spec 9034——de Casteljau 逐层插值+折线化）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
