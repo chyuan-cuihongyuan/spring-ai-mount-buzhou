@@ -72,7 +72,7 @@ W 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | W34 | #9033 | GeometricMedian 几何中位数（Weiszfeld 思想） | W9067–W9068 | 2386 | ⬜ |
 | W35 | #9034 | BezierCurve 贝塞尔曲线（de Casteljau 思想） | W9069–W9070 | 2387 | ⬜ |
 | W36 | #9035 | 对账轮（快照批补登 + verify 三门绿；72%） | W9071–W9072 | 2388 | ⬜ |
-| W37 | #9036 | HotpCounter 计数器动态口令（RFC 4226——Totp 姊妹） | W9073–W9074 | 2389 | ⬜ |
+| W37 | #9036 | MurmurHash3 x86 32 位高速哈希（Appleby 思想——HOTP 已含于 TotpGenerator 换替补） | W9073–W9074 | 2389 | ⬜ |
 | W38 | #9037 | DiffieHellmanExchange DH 密钥交换（Diffie–Hellman 思想） | W9075–W9076 | 2390 | ⬜ |
 | W39 | #9038 | XorShift64 伪随机数（Marsaglia 思想） | W9077–W9078 | 2391 | ⬜ |
 | W40 | #9039 | SplitMix64 可分裂随机（JDK SplittableRandom 同款） | W9079–W9080 | 2392 | ⬜ |
