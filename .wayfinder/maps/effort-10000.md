@@ -13,7 +13,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 
 已实现带避让：每轮落轮前 find/grep 快照复核（W-9000 全 50 轮、V-8000/U-7000/T-6000/S-5000/R-4000 及更早 A–W 系全量）；雾区候选不抢。本轮候选静脉（占坑即换下一候选，备选池见排程表脚注）：
 
-- **紧凑结构与过滤器族**：Elias–Fano 单调序列编码（Lucene/ block-max WAND 思想——RoaringBitSet 已占换替补）、QuotientFilter 商指纹过滤器（Facebook/ScyllaDB 思想——CuckooFilter/XorFilter 已占不同面）、BinaryFuseFilter 二进制熔合过滤器（xorfilter 思想——布隆后继）、SimHashLsh 位指纹海明分段（Google/Manku 2007 思想——MinHashSketch 已占不同面）
+- **紧凑结构与过滤器族**：InterpolativeCoding 二分内插编码（Moffat–Stuiver 2000/Lucene block postings 思想——EliasFano 已占（core/message）换替补）、QuotientFilter 商指纹过滤器（Facebook/ScyllaDB 思想——CuckooFilter/XorFilter 已占不同面）、BinaryFuseFilter 二进制熔合过滤器（xorfilter 思想——布隆后继）、SimHashLsh 位指纹海明分段（Google/Manku 2007 思想——SimHashFingerprint 已占不同面：指纹计算 vs 分段索引匹配；MinHashSketch 亦占）
 - **数值线性代数族**：GaussianElimination 部分主元消元（NumPy linalg/JAMA 思想）、LUDecomposition Doolittle 分解（LAPACK getrf 思想）、CholeskyDecomposition 正定三角分解（LAPACK potrf 思想）、QrHouseholder 镜像反射 QR（LAPACK geqrf 思想）、ConjugateGradient 共轭梯度迭代（Hestenes–Stiefel/SciPy cg 思想）
 - **几何计算族**：DelaunayTriangulation Bowyer–Watson 增量剖分（CGAL/scipy.spatial 思想）、SutherlandHodgman 多边形裁剪（OpenGL 游戏引擎思想）、DouglasPeucker 轨迹抽稀（Mapbox/GDAL 思想）、CatmullRomSpline 张量样条（THREE.js/游戏引擎思想）、MarchingSquares 等值线提取（d3-contour 思想）
 - **序列组学与 HMM 族**：ForwardBackward 前向后向概率（Rabiner 1989——Viterbi 已占的软对齐镜像面）、BaumWelch EM 参数重估（Baum 1970 思想）、NussinovFolder RNA 二级结构 DP（Nussinov–Jacobson 1980/ViennaRNA 思想）、DeBruijnAssembler 德布鲁因图组装（SPAdes/Velvet 思想）、CenterStarAligner 中心星法多序列比对（ClustalW 思想——NeedlemanWunsch/SmithWaterman/Gotoh 已占不同面）
@@ -29,6 +29,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - 直推 main 逐轮 commit；每轮定向 `git add` 自有文件；对账轮尝试 push（离线则记「离线」）。
 - X1 = 对账门落位轮；X6k（6/12/18/24/30/36/42/48）= 对账轮；X50 = 收口对账轮。
 - X1 开工前 README 概念级复核勘误（find 快照漏检三处概念撞名）：RoaringBitSet 已占（位图分桶）→ X2 换 EliasFanoCoding；MinHashSketch 已占（签名）→ X5 换 SimHashLsh（位指纹+海明分段——Google 网页去重思想，与 MinHash 签名不同面）；TarjanSccFinder 已占（lowlink）→ X31 换 KosarajuScc（双 DFS——同域不同面口径沿 EdmondsKarp/Dinic 先例）。HilbertCurve/JumpConsistentHash/CartesianTree 与 HilbertTransform/JumpPointSearch/DecisionTreeCart 异域异面不冲。40 组件全档 find 复核空闲。
+- X2 落轮前 find 快照复核再勘误：**EliasFano 已占（core/message——首查名单漏检「Elias」词根）**→ X2 再换 InterpolativeCoding（二分内插编码——Moffat–Stuiver 2000 思想）；InterpolationSearch/SimHashFingerprint 与 InterpolativeCoding/SimHashLsh 异面不冲（查找 vs 编码 / 指纹计算 vs 分段索引）。教训入档：词根级 KW 复核替代名单级精确比对（`.scratch` 脚本固定化）。
 - 全仓 verify 遇已入档满载偶红 flaky 按协议排除重跑（R48/V48/W 口径延续）；从根跑为准。
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
@@ -36,7 +37,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X | effort | 主题 | 票 | impl | 状态 |
 |---|---|---|---|---|---|
 | X1 | #10000 | 10000 系对账门落位（XSession10000LedgerAuditTest 第十一应用） | X10001–X10002 | 2403 | ⬜ |
-| X2 | #10001 | EliasFanoCoding 单调序列紧凑编码（Lucene 思想——RoaringBitSet 已占换替补） | X10003–X10004 | 2404 | ⬜ |
+| X2 | #10001 | InterpolativeCoding 二分内插编码（Moffat–Stuiver 思想——EliasFano 已占换替补） | X10003–X10004 | 2404 | ⬜ |
 | X3 | #10002 | QuotientFilter 商指纹近似成员（Facebook/ScyllaDB 思想） | X10005–X10006 | 2405 | ⬜ |
 | X4 | #10003 | BinaryFuseFilter 二进制熔合过滤器（xorfilter 思想） | X10007–X10008 | 2406 | ⬜ |
 | X5 | #10004 | SimHashLsh 位指纹海明分段（Manku 2007 思想——MinHashSketch 已占换替补） | X10009–X10010 | 2407 | ⬜ |
