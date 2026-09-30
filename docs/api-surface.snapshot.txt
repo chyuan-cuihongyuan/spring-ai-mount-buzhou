@@ -455,8 +455,10 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DecayingFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.DefaultFactStore
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.FactDecayPolicy
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.memory.HnswBeamSearch
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.AnsCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Base58Codec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BitPacking
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BurrowsWheelerTransform
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.BuzhouMessage
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.ConversationShapeAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Crc32C
@@ -469,6 +471,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.EliasGammaCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.GolombRiceCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.GorillaXor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.HuffmanCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Lz77Codec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.LzwCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.MoveToFrontTransform
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.PromptComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.RunLengthCodec

@@ -421,6 +421,11 @@
 - `public final class CentroidDecomposition`（spec 9008——重心递归分块点分治）
 - `public final class CartesianTree`（spec 9009——单调栈 O(n) 笛卡尔树+RMQ↔LCA 桥）
 - `public final class ScapegoatTree`（spec 9010——α=0.75 推平重建自平衡有序集）
+- `public final class LzwCodec`（spec 9012——自适应字典 LZW 压缩）
+- `public final class BurrowsWheelerTransform`（spec 9013——循环旋转排序可逆重排+LF 映射逆）
+- `public final class MoveToFrontTransform`（spec 9014——256 表位次输出+移表首可逆局部性变换）
+- `public final class Lz77Codec`（spec 9015——滑窗贪心最长回引 LZSS token 面）
+- `public final class AnsCodec`（spec 9016——静态 rANS 非对称数系熵编码自包含流）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
