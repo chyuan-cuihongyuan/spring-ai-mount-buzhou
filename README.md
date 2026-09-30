@@ -1231,6 +1231,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 序列组学 | Forward-Backward 前向后向 | ForwardBackward——缩放 α/β 联合递推的 HMM 全路径似然（Rabiner 1989 思想——htk/hts 语音同源）：α 前向/β 后向/逐步缩放 c_t 防下溢、ln 似然=∑ln c_t——Viterbi 最优路径的「全路径似然」镜像面，BaumWelch 期望统计基座；维数/观测越域/负概率/零概率序列 fail-fast（伞世界手锚 P=0.209+30 随机模型与全路径穷举逐一对拍全等+500 步长序列缩放稳定+确定性）；与 Viterbi（已占）同域不同面：全路径似然 vs 最优单路径（spec 10018） | [spec 10018](docs/spec/10018-forward-backward.md) |
 | 序列组学 | Baum-Welch EM 重估 | BaumWelch——E 步 γ/ξ 期望计数+M 步极大似然闭式重估 A/B/π 的 EM 训练（Baum 1970 思想——语音/生信 HMM 同源）：似然单调不减 EM 保证+行随机归一+ForwardBackward（10018）消费面；迭代上限/维数 fail-fast（EM 单调不减圣像 10 随机模型×5 轮+单步重估与全路径穷举后验逐元素互证 1e-6+行随机归一核验+确定性）；与 KMeans（已占）异域同 EM 家族（spec 10019） | [spec 10019](docs/spec/10019-baum-welch.md) |
 | 序列组学 | Nussinov RNA 折叠 | NussinovFolder——区间 DP 四向递推（不配/单配/双分裂）+回溯无假结配对集的 RNA 二级结构折叠（Nussinov–Jacobson 1980 思想——ViennaRNA 同源）：Watson–Crick+GU 摆动计分+最小发夹环长 3 约束——能量模型之前的碱基对计数奠基 DP；非 ACGU/长度不足 fail-fast（发夹手锚 GGGAAACCC=3 对+无配序列 0 对+配对两两无假结核验+最小环长核验+计数/配对集自洽+确定性）；与 NeedlemanWunsch（已占）同 DP 家族异面：区间折叠 vs 线性对齐（spec 10020） | [spec 10020](docs/spec/10020-nussinov-folder.md) |
+| 序列组学 | DeBruijn 图组装 | DeBruijnAssembler——读段切 k-mer、(k−1)-mer 顶点+k-mer 有向边、欧拉起点判定+Hierholzer 标准栈式路径重构的基因组组装（Idury–Waterman 1995/SPAdes–Velvet 思想）：重叠排序 O(n²) 全比对的病解互补面；欧拉条件破坏（分支/断链/度差顶点数≠0/2）fail-fast+非 ACGT/k 越域/读段过短 fail-fast+邻接 TreeMap 确定序（完美重叠重构圣像 ACGTTGCAAT k=4+读段序无关+重复 k-mer 重边+确定性）；开发勘误三处入档（弹栈序漏逆置/imports 误删/重复读段倍增破欧拉测试口径）；与 CenterStarAligner（10022）同族不同面：图重构 vs 多序列比对（spec 10021） | [spec 10021](docs/spec/10021-debruijn-assembler.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
