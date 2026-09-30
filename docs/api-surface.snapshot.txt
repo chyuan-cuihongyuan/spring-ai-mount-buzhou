@@ -97,6 +97,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CentroidDecompos
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CholeskyDecomposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ConjugateGradient
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.CoopBudget
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DeBruijnAssembler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelaunayTriangulation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DelayedJobQueue
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DijkstraShortestPath
@@ -136,6 +137,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.McsLock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.MedianFinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.Mlfq
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.MpscQueue
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.NussinovFolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ObservedRemoveSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.OverwritingRingBuffer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.PairingHeap
@@ -248,7 +250,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.ErrorCode
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.QuotaExceededException
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.error.RetryCategory
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.AbRunJsonlExporter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.BaumWelch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.BuiltInEvaluators
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.CenterStarAligner
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.ChiSquareUniformity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.CouponCollectorProjection
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.DatasetExpectations
@@ -286,6 +290,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.EvalSetFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.Evaluator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FalseDiscoveryRate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.FeedbackImporter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.ForwardBackward
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GateThresholdSensitivity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GotohAlignment
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.eval.GrubbsOutlier

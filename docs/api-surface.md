@@ -462,6 +462,11 @@
 - `public final class QrHouseholder`（spec 10009——镜像反射经济型 QR+最小二乘）
 - `public final class ConjugateGradient`（spec 10010——SPD 共轭方向迭代解法）
 - `public final class DelaunayTriangulation`（spec 10012——Bowyer–Watson 空外接圆增量剖分）
+- `public final class ForwardBackward`（core/eval；spec 10018——缩放 α/β 全路径似然）
+- `public final class BaumWelch`（core/eval；spec 10019——EM 期望计数闭式重估）
+- `public final class NussinovFolder`（spec 10020——区间 DP 无假结折叠）
+- `public final class DeBruijnAssembler`（spec 10021——欧拉路径基因组重构）
+- `public final class CenterStarAligner`（core/eval；spec 10022——中心星法 MSA）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）

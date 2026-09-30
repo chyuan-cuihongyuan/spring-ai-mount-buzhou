@@ -53,12 +53,12 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X15 | #10014 | DouglasPeucker 轨迹抽稀（Mapbox/GDAL 思想） | X10029–X10030 | 2417 | ✅ |
 | X16 | #10015 | CatmullRomSpline 张量插值样条（THREE.js 思想） | X10031–X10032 | 2418 | ✅ |
 | X17 | #10016 | MarchingSquares 等值线提取（d3-contour 思想） | X10033–X10034 | 2419 | ✅ |
-| X18 | #10017 | 对账轮（快照批补登 + verify 三门绿；36%） | X10035–X10036 | 2420 | ⬜ |
-| X19 | #10018 | ForwardBackward HMM 前向后向（Rabiner 思想——Viterbi 已占镜像面） | X10037–X10038 | 2421 | ⬜ |
-| X20 | #10019 | BaumWelch EM 参数重估（Baum 思想） | X10039–X10040 | 2422 | ⬜ |
-| X21 | #10020 | NussinovFolder RNA 二级结构 DP（Nussinov 思想） | X10041–X10042 | 2423 | ⬜ |
-| X22 | #10021 | DeBruijnAssembler 德布鲁因图组装（SPAdes 思想） | X10043–X10044 | 2424 | ⬜ |
-| X23 | #10022 | CenterStarAligner 中心星法 MSA（ClustalW 思想） | X10045–X10046 | 2425 | ⬜ |
+| X18 | #10017 | 对账轮（快照批补登 + verify 三门绿；36%） | X10035–X10036 | 2420 | ✅ |
+| X19 | #10018 | ForwardBackward HMM 前向后向（Rabiner 思想——Viterbi 已占镜像面） | X10037–X10038 | 2421 | ✅ |
+| X20 | #10019 | BaumWelch EM 参数重估（Baum 思想） | X10039–X10040 | 2422 | ✅ |
+| X21 | #10020 | NussinovFolder RNA 二级结构 DP（Nussinov 思想） | X10041–X10042 | 2423 | ✅ |
+| X22 | #10021 | DeBruijnAssembler 德布鲁因图组装（SPAdes 思想） | X10043–X10044 | 2424 | ✅ |
+| X23 | #10022 | CenterStarAligner 中心星法 MSA（ClustalW 思想） | X10045–X10046 | 2425 | ✅ |
 | X24 | #10023 | 对账轮（快照批补登 + verify 三门绿；48%） | X10047–X10048 | 2426 | ⬜ |
 | X25 | #10024 | SobolSequence Sobol 低差异（SciPy qmc 思想） | X10049–X10050 | 2427 | ⬜ |
 | X26 | #10025 | HaltonSequence 逆根低差异（SciPy qmc 思想） | X10051–X10052 | 2428 | ⬜ |
