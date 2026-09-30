@@ -1210,6 +1210,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 工程门禁 | R20：快照预算分解 + extraKeys 贯通 + 文本 null 防御 | budgetBreakdown 四键角色分桶首次断言（长度口径确定性）/custom_thinking 经 advisor 贯通 THINKING 事件/content=null 无 FINAL_REPLY 无 NPE；spec 1219 | [spec 1219](docs/spec/1219-snapshot-budget-extrakeys.md) |
 | 工程门禁 | R11 分支批次 4：边缘分支清扫 | ThinkingChainExtractor 76%→90%（extraKeys 过滤/maxChars 钳制/omitted 字符串形态）+ DefaultSpanHandle 63%→88%（attributes 批量导入/双 close 幂等/显式终态优先）；Advisor 流式 harness 单列（spec 1210） | [spec 1210](docs/spec/1210-branch-uplift-batch4.md) |
 | 工程门禁 | K 会话周期对账轮 R12 | 全仓 verify（隔离 worktree）+ 工件链五项对账（R8–R11 增量回归）；R13 议程 = Advisor 流式 harness（spec 1211） | [spec 1211](docs/spec/1211-k-audit-r12.md) |
+| 过程治理 | X 系 X1 对账门落位 | XSession10000LedgerAuditTest 第十一应用——五位数号段（10000–10049）公式族：spec N → shape 票 10001+2(N−10000)/verify=+1/impl 2403+(N−10000) 四面互证（spec↔README↔票↔impl）+ README 覆盖断言接管（10000 系五位数在 SpecCoverageTest \d{1,4} 正则之外）+ 范围自扩展扫现有 spec 驱动 + 号段声明先行（A–W 字母已占用接续；GitHub fetch 离线 TLS 握手失败入档——本地全档实查 specs 10000+/tickets X10001+/impl 2403+ 全空）+ 8 波 40 组件预排（紧凑结构与过滤器/数值线性代数/几何计算/序列组学与 HMM/随机与准蒙特卡洛/图结构进阶/信号与频谱/经典机器学习 + JPS 独件）+ 占坑复核三换入档（RoaringBitSet 已占→EliasFanoCoding/MinHashSketch 已占→SimHashLsh/TarjanSccFinder 已占→KosarajuScc）（spec 10000） | [spec 10000](docs/spec/10000-x-series-ledger-audit.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
