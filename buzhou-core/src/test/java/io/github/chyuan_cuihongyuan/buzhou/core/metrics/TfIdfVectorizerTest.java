@@ -60,7 +60,7 @@ class TfIdfVectorizerTest {
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> TfIdfVectorizer.of(List.of()))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> TfIdfVectorizer.of(List.of((List<String>) null)))
+        assertThatThrownBy(() -> TfIdfVectorizer.of(java.util.Collections.singletonList(null)))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> TfIdfVectorizer.cosineSimilarity(new double[2], new double[3]))
                 .isInstanceOf(IllegalArgumentException.class);
