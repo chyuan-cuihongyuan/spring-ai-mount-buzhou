@@ -446,6 +446,11 @@
 - `public final class XorShift64`（core/metrics；spec 9038——13,7,17 三移位异或 RNG）
 - `public final class SplitMix64`（core/metrics；spec 9039——黄金比例定序+最终化可分裂随机）
 - `public final class BitonicSorter`（core/metrics；spec 9040——双调递归清洁固定比较器网络）
+- `public final class CronFieldParser`（core/policy；spec 9042——五域位集展开 cron 文法+触发判定）
+- `public final class PidController`（core/policy；spec 9043——三增益+抗饱和反馈控制器）
+- `public final class SimulatedAnnealing`（core/policy；spec 9044——exp(−Δ/T) 接受+几何降温最优化器）
+- `public final class TspTwoOpt`（core/policy；spec 9045——边交换去交叉闭合环游优化器）
+- `public final class BranchAndBound`（core/policy；spec 9046——DFS+LP 松弛界精确 0/1 背包）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）
