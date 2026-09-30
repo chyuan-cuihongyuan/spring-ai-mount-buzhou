@@ -426,6 +426,11 @@
 - `public final class MoveToFrontTransform`（spec 9014——256 表位次输出+移表首可逆局部性变换）
 - `public final class Lz77Codec`（spec 9015——滑窗贪心最长回引 LZSS token 面）
 - `public final class AnsCodec`（spec 9016——静态 rANS 非对称数系熵编码自包含流）
+- `public final class WinnowFingerprint`（spec 9018——k-gram 滚动哈希+宽 w 最小哈希指纹）
+- `public final class TfIdfVectorizer`（spec 9019——平滑 TF-IDF 文档向量+cosine 面）
+- `public final class SuffixAutomaton`（spec 9020——endpos 等价类最小 DFA 在线构造）
+- `public final class PalindromeTree`（spec 9021——双根 Eertree 互异回文在线收集）
+- `public final class MorseCodec`（spec 9022——ITU-R M.1677 A-Z/0-9 莫尔斯信令编解码）
 - `public final class HungarianMatcher`（spec 8007——位势法 O(n³) 指派双面）
 - `public final class BipartiteChecker`（spec 8008——交替染色二分判定双面）
 - `public final class TreeDiameter`（spec 8009——子树 DP 双端点拼链直径）

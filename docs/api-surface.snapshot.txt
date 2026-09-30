@@ -473,6 +473,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.GorillaXor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.HuffmanCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Lz77Codec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.LzwCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.MorseCodec
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.MoveToFrontTransform
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.PromptComposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.Role
@@ -550,6 +551,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.NgramExtractor
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.OutOfOrderWindow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PSquareQuantile
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PaaCodec
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PalindromeTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PatienceLis
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PerfectHash
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.QuantileAggregationBias
@@ -576,16 +578,19 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SqrtDecomposition
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.StableBloomFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.StealTimeReadout
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SuffixArray
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SuffixAutomaton
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SweepLineIntervals
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TagCardinalityGuard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TailAmplification
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TernarySearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TextDistance
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TfIdfVectorizer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TheilSenSlope
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TimeBucketReservoir
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WaitProfileAudit
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WelfordAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WinnowFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.XorFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZArray
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZobristHashing
