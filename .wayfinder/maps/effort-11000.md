@@ -46,6 +46,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Y19 BiconnectedComponents 落地：回边双向重复压栈勘误入档（后发现侧单压——三角形 3 边不重）；6 测绿。
 - Y20 BridgeFinder 落地：重边非桥口径；int[] 身份比较勘误入档（既有同类先例）；6 测绿。
 - Y21 换静脉勘误入档：GomoryHu Gusfield 简化口径修正步记忆面未过随机图全对真割圣像（单对树值 6≠真割 7）——换 ErdosGallai 图序列可图化判定（Havel–Hakimi 神像干净可验）。（HH 神像首版贪心重复消点二次勘误——排序前 d 减一标准式后 200 序全等）；6 测绿。
+- Y22 换静脉勘误入档：KargerContraction 随机化域的确定性测试面不稳（圣像 flake 风险）——换 MatrixChainOrder 区间 DP（暴力枚举神像确定性可验）。；5 测绿（CLRS 15125+暴力枚举圣像）。
 
 ## 排程表（预排 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -72,7 +73,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | Y19 | #11018 | BiconnectedComponents 双连通分量（Tarjan 思想） | Y11037–Y11038 | 2471 | ✅ |
 | Y20 | #11019 | BridgeFinder 桥检测（Tarjan 思想） | Y11039–Y11040 | 2472 | ✅ |
 | Y21 | #11020 | ErdosGallai 图序列可图化（Erdős–Gallai 1960 思想——GomoryHu 记忆面勘误换静脉） | Y11041–Y11042 | 2473 | ✅ |
-| Y22 | #11021 | KargerContraction 随机收缩最小割（Karger 思想） | Y11043–Y11044 | 2474 | ⬜ |
+| Y22 | #11021 | MatrixChainOrder 矩阵链区间 DP（CLRS 思想——Karger 随机化测试面勘误换静脉） | Y11043–Y11044 | 2474 | ✅ |
 | Y23 | #11022 | SlopeOne 协同过滤（Lemire–Maclachlan 思想） | Y11045–Y11046 | 2475 | ⬜ |
 | Y24 | #11023 | 对账轮（快照批补登 + verify 三门绿；48%） | Y11047–Y11048 | 2476 | ⬜ |
 | Y25 | #11024 | BrierScore 概率评分（Brier 1950 思想） | Y11049–Y11050 | 2477 | ⬜ |
