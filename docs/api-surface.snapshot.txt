@@ -569,6 +569,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HoltWintersIndex
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HotKeyDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.IntervalTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.InvertedIndex
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.IsotonicCalibration
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.JaroWinklerSimilarity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.JosephusPermutation
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.KadaneMaxSubarray
@@ -606,9 +607,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PcgXshRr
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PeakDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PerceptronClassifier
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PerfectHash
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.PlattScaling
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.QuantileAggregationBias
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RabinKarpSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RadixSorter
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RansacSampler
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ReservoirSampling
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RoaringBitSet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RobinHoodHashTable
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.RollingMaxCounter
@@ -650,6 +654,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WinnowFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.XorFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.XorShift64
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.YuleWalker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZArray
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZeroCrossingRate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZobristHashing

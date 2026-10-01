@@ -497,6 +497,11 @@
 - `public final class ZeroCrossingRate`（core/metrics；spec 11008——相邻符号变化比率）
 - `public final class AutocorrelationPitch`（core/metrics；spec 11009——自相关滞后峰基音）
 - `public final class DurbinLevinson`（core/metrics；spec 11010——AR 反射系数递推）
+- `public final class YuleWalker`（core/metrics；spec 11012——自协方差域 AR 主方程）
+- `public final class ReservoirSampling`（core/metrics；spec 11013——Algorithm R 均匀水塘）
+- `public final class RansacSampler`（core/metrics；spec 11014——共识最大线拟合）
+- `public final class IsotonicCalibration`（core/metrics；spec 11015——PAVA 保序回归）
+- `public final class PlattScaling`（core/metrics；spec 11016——Newton sigmoid 校准）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）
