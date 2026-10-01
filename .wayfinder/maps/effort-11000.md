@@ -43,6 +43,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Y16 IsotonicCalibration 落地：PAVA 守恒/非降双断言圣像；6 测绿。
 - Y17 PlattScaling 落地：消费 GaussianElimination 库内互喂第三例；已知参数复原圣像；5 测绿。
 - Y18 对账轮（Wave 3 收口）：五新类型快照批补登 1417→1422 + api-surface.md +5 + CONTEXT 同步 + 三门绿 + 五组件 27 测全绿。
+- Y19 BiconnectedComponents 落地：回边双向重复压栈勘误入档（后发现侧单压——三角形 3 边不重）；6 测绿。
 
 ## 排程表（预排 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -66,7 +67,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | Y16 | #11015 | IsotonicCalibration 保序回归（PAVA 思想） | Y11031–Y11032 | 2468 | ✅ |
 | Y17 | #11016 | PlattScaling Platt 校准（Platt 1999 思想） | Y11033–Y11034 | 2469 | ✅ |
 | Y18 | #11017 | 对账轮（快照批补登 + verify 三门绿；36%） | Y11035–Y11036 | 2470 | ✅ |
-| Y19 | #11018 | BiconnectedComponents 双连通分量（Tarjan 思想） | Y11037–Y11038 | 2471 | ⬜ |
+| Y19 | #11018 | BiconnectedComponents 双连通分量（Tarjan 思想） | Y11037–Y11038 | 2471 | ✅ |
 | Y20 | #11019 | BridgeFinder 桥检测（Tarjan 思想） | Y11039–Y11040 | 2472 | ⬜ |
 | Y21 | #11020 | GomoryHu 割树（Gomory–Hu 1961 思想） | Y11041–Y11042 | 2473 | ⬜ |
 | Y22 | #11021 | KargerContraction 随机收缩最小割（Karger 思想） | Y11043–Y11044 | 2474 | ⬜ |
