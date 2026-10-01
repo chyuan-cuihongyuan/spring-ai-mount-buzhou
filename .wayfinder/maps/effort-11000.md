@@ -40,6 +40,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Y13 YuleWalker 落地：消费 DurbinLevinson 库内互喂第二例；ρ 与 r0 域一致性勘误入档（测试混拼归一化/未归一域）；5 测绿。
 - Y14 ReservoirSampling 落地：均匀覆盖圣像 0.1±0.035（1000 次）；int/double 断言类型勘误入档；5 测绿。
 - Y15 RansacSampler 落地：20% 外点污染直线复原圣像；4 测绿。
+- Y16 IsotonicCalibration 落地：PAVA 守恒/非降双断言圣像；6 测绿。
 
 ## 排程表（预排 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -60,7 +61,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | Y13 | #11012 | YuleWalker 方程（Yule 1927 思想） | Y11025–Y11026 | 2465 | ✅ |
 | Y14 | #11013 | ReservoirSampling 水塘抽样（Vitter 1985 思想） | Y11027–Y11028 | 2466 | ✅ |
 | Y15 | #11014 | RansacSampler 随机抽样一致（Fischler–Bolles 思想） | Y11029–Y11030 | 2467 | ✅ |
-| Y16 | #11015 | IsotonicCalibration 保序回归（PAVA 思想） | Y11031–Y11032 | 2468 | ⬜ |
+| Y16 | #11015 | IsotonicCalibration 保序回归（PAVA 思想） | Y11031–Y11032 | 2468 | ✅ |
 | Y17 | #11016 | PlattScaling Platt 校准（Platt 1999 思想） | Y11033–Y11034 | 2469 | ⬜ |
 | Y18 | #11017 | 对账轮（快照批补登 + verify 三门绿；36%） | Y11035–Y11036 | 2470 | ⬜ |
 | Y19 | #11018 | BiconnectedComponents 双连通分量（Tarjan 思想） | Y11037–Y11038 | 2471 | ⬜ |
