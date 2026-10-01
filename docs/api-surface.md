@@ -477,6 +477,11 @@
 - `public final class PushRelabelMaxFlow`（core/concurrent；spec 10032——preflow+FIFO discharge 推重标）
 - `public final class KShortestPaths`（core/concurrent；spec 10033——Yen spur 偏离 K 最短路）
 - `public final class DominatorTree`（core/concurrent；spec 10034——CHK 迭代数据流支配树）
+- `public final class FftIterative`（core/metrics；spec 10036——位反转+蝶形基-2 DIT）
+- `public final class DctType2`（core/metrics；spec 10037——正交归一 DCT-II）
+- `public final class HilbertTransform`（core/metrics；spec 10038——FFT 单边化解析包络）
+- `public final class PeakDetector`（core/metrics；spec 10039——等高线 prominence 峰检测）
+- `public final class LombScargle`（core/metrics；spec 10040——不均匀采样频谱）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）
