@@ -502,6 +502,11 @@
 - `public final class RansacSampler`（core/metrics；spec 11014——共识最大线拟合）
 - `public final class IsotonicCalibration`（core/metrics；spec 11015——PAVA 保序回归）
 - `public final class PlattScaling`（core/metrics；spec 11016——Newton sigmoid 校准）
+- `public final class BiconnectedComponents`（core/concurrent；spec 11018——disc/low 边栈块）
+- `public final class BridgeFinder`（core/concurrent；spec 11019——割边判定）
+- `public final class ErdosGallai`（core/concurrent；spec 11020——度序列可图化）
+- `public final class MatrixChainOrder`（core/concurrent；spec 11021——区间 DP 标乘）
+- `public final class SlopeOne`（core/metrics；spec 11022——线性偏离协同过滤）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）

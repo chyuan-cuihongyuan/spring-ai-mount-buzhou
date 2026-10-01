@@ -84,10 +84,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ArticulationPoin
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.AvlTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BatchAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BellmanFord
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BiconnectedComponents
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BinaryFuseFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BinomialHeap
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BipartiteChecker
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BoruvkaMst
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BridgeFinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BronKerboschCliques
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadHotReload
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.BulkheadScalingAdvisor
@@ -107,6 +109,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.DominatorTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdfScheduler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EdmondsKarpMaxFlow
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EpochReclamation
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.ErdosGallai
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EulerianPath
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.EventLoopLagProbe
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.FloydWarshall
@@ -137,6 +140,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LastWriteWinsReg
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LcaLifting
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LeftistHeap
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.LotteryScheduler
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.MatrixChainOrder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.McsLock
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.MedianFinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.Mlfq
@@ -625,6 +629,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SkipList
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SkylineProblem
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SliceSampler
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlidingExtremum
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SlopeOne
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SmithWaterman
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SobolSequence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.SortedRunMerge
