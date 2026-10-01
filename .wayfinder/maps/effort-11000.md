@@ -31,6 +31,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Y4 HaarWavelet 落地：[1,2,3,4] 手锚+Parseval 守恒；布局拼接重写勘误入档（首版 arraycopy 残渣——细节收集+粗到细组装重写）；5 测绿。
 - Y5 GoertzelAlgorithm 落地：DFT 频仓模平方 1e-6 交叉互证；测试频率口径勘误入档（100Hz 非整周期泄漏——改 125Hz 整 32 周期）；5 测绿。
 - Y6 对账轮（Wave 1 收口）：四新类型快照批补登 1408→1412 + api-surface.md +4 + CONTEXT 同步 + 三门绿（X/Y 双对账门 8/8）+ 四组件 24 测全绿。
+- Y7 DaubechiesD4 落地：双消失矩手锚勘误入档（周期回绕窗破坏线性零细节——n=8 不回绕窗锚）；6 测绿。
 
 ## 排程表（预排 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -42,7 +43,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | Y4 | #11003 | HaarWavelet 小波（Haar 1909 思想） | Y11007–Y11008 | 2456 | ✅ |
 | Y5 | #11004 | GoertzelAlgorithm 单频检测（Goertzel 1958 思想） | Y11009–Y11010 | 2457 | ✅ |
 | Y6 | #11005 | 对账轮（快照批补登 + verify 三门绿；12%） | Y11011–Y11012 | 2458 | ✅ |
-| Y7 | #11006 | DaubechiesD4 小波（Daubechies 1988 思想） | Y11013–Y11014 | 2459 | ⬜ |
+| Y7 | #11006 | DaubechiesD4 小波（Daubechies 1988 思想） | Y11013–Y11014 | 2459 | ✅ |
 | Y8 | #11007 | Cepstrum 倒频谱（Bogert 1963 思想） | Y11015–Y11016 | 2460 | ⬜ |
 | Y9 | #11008 | ZeroCrossingRate 过零率（语音/MIR 思想） | Y11017–Y11018 | 2461 | ⬜ |
 | Y10 | #11009 | AutocorrelationPitch 自相关基音（Rabiner 思想） | Y11019–Y11020 | 2462 | ⬜ |
