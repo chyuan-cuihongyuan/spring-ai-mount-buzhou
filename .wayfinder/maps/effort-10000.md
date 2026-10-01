@@ -42,6 +42,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - X38 DctType2 落地：基正交归一+Parseval 守恒+常数/斜坡手锚；6 测绿。
 - X39 HilbertTransform 落地：消费 FftIterative 流程内自组合（共轭-变换-共轭逆变换）；5 测绿。
 - X40 PeakDetector 落地：等高线 prominence 双峰手锚（5/3）；7 测绿。
+- X41 LombScargle 落地：白噪极值口径勘误入档（91 频点 max 期望 ln91≈4.5——0.9 阈值统计口径错误放宽 8）；5 测绿。
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -87,7 +88,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X38 | #10037 | DctType2 DCT-II 变换（JPEG 思想） | X10075–X10076 | 2440 | ✅ |
 | X39 | #10038 | HilbertTransform 解析信号包络（SciPy 思想——HilbertCurve 已占异面） | X10077–X10078 | 2441 | ✅ |
 | X40 | #10039 | PeakDetector prominence 峰检测（SciPy find_peaks 思想） | X10079–X10080 | 2442 | ✅ |
-| X41 | #10040 | LombScargle 不均匀采样频谱（Lomb 1976 思想） | X10081–X10082 | 2443 | ⬜ |
+| X41 | #10040 | LombScargle 不均匀采样频谱（Lomb 1976 思想） | X10081–X10082 | 2443 | ✅ |
 | X42 | #10041 | 对账轮（快照批补登 + verify 三门绿；84%） | X10083–X10084 | 2444 | ⬜ |
 | X43 | #10042 | NaiveBayesClassifier 多项式朴素贝叶斯（scikit-learn 思想） | X10085–X10086 | 2445 | ⬜ |
 | X44 | #10043 | PerceptronClassifier 感知机（Rosenblatt 1958 思想） | X10087–X10088 | 2446 | ⬜ |
