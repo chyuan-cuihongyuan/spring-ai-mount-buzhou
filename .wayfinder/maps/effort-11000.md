@@ -28,6 +28,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Y1 对账门落位：YSession11000LedgerAuditTest 落地（第十二应用）+ 总图 50 轮排程；spec 11000 起算零缺位。
 - Y2 VanDerCorput 落地：基 2/基 3 手锚+分层均匀圣像；6 测绿。
 - Y3 WalshHadamard 落地：对合 H(H(x))=nx+Parseval n 倍；6 测绿。
+- Y4 HaarWavelet 落地：[1,2,3,4] 手锚+Parseval 守恒；布局拼接重写勘误入档（首版 arraycopy 残渣——细节收集+粗到细组装重写）；5 测绿。
 
 ## 排程表（预排 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -36,7 +37,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | Y1 | #11000 | 11000 系对账门落位（YSession11000LedgerAuditTest 第十二应用） | Y11001–Y11002 | 2453 | ✅ |
 | Y2 | #11001 | VanDerCorput 逆根序列（van der Corput 1935 思想） | Y11003–Y11004 | 2454 | ✅ |
 | Y3 | #11002 | WalshHadamard 变换（Walsh 1923 思想） | Y11005–Y11006 | 2455 | ✅ |
-| Y4 | #11003 | HaarWavelet 小波（Haar 1909 思想） | Y11007–Y11008 | 2456 | ⬜ |
+| Y4 | #11003 | HaarWavelet 小波（Haar 1909 思想） | Y11007–Y11008 | 2456 | ✅ |
 | Y5 | #11004 | GoertzelAlgorithm 单频检测（Goertzel 1958 思想） | Y11009–Y11010 | 2457 | ⬜ |
 | Y6 | #11005 | 对账轮（快照批补登 + verify 三门绿；12%） | Y11011–Y11012 | 2458 | ⬜ |
 | Y7 | #11006 | DaubechiesD4 小波（Daubechies 1988 思想） | Y11013–Y11014 | 2459 | ⬜ |
