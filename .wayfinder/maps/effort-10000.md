@@ -34,6 +34,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - X30 对账轮（Wave 5 收口）：五新类型快照批补登 1387→1392（SobolSequence/HaltonSequence/LatinHypercube/PcgXshRr/SliceSampler——core/metrics×5）+ api-surface.md +5 + CONTEXT 同步 + 三门绿 + 五组件测全绿 + push 对账（fetch 已恢复连通）。
 - X31 KosarajuScc 落地：CLRS 手锚+30 随机图与 TarjanSccFinder 分区交叉互证；push 仍 TLS 失败（离线口径延续，X36 对账轮重试）。
 - X32 TwoSatSolver 落地：字面量编码勘误入档（0 起址 −0≡0 无法表达否定→改 1 起址 DIMACS 惯例）——蕴涵图+KosarajuScc 缩点+Kahn 赋值，6 测绿（植入解 50 式圣像）。
+- X33 PushRelabelMaxFlow 落地：CLRS 手锚+30 随机图（反平行/平行边）与 DinicMaxFlow 流值交叉互证；discharge 护栏口径勘误入档（计数按 discharge 轮非重标次）。
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -71,7 +72,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X30 | #10029 | 对账轮（快照批补登 + verify 三门绿；60%） | X10059–X10060 | 2432 | ✅ |
 | X31 | #10030 | KosarajuScc 双 DFS 强连通分量（Kosaraju–Sharir 思想——TarjanSccFinder 已占换替补） | X10061–X10062 | 2433 | ✅ |
 | X32 | #10031 | TwoSatSolver SCC 缩点 2-SAT（Aspvall 思想） | X10063–X10064 | 2434 | ✅ |
-| X33 | #10032 | PushRelabelMaxFlow 推重标最大流（Goldberg–Tarjan 思想） | X10065–X10066 | 2435 | ⬜ |
+| X33 | #10032 | PushRelabelMaxFlow 推重标最大流（Goldberg–Tarjan 思想） | X10065–X10066 | 2435 | ✅ |
 | X34 | #10033 | KShortestPaths Yen 偏离 K 最短路（Yen 1971 思想） | X10067–X10068 | 2436 | ⬜ |
 | X35 | #10034 | DominatorTree Lengauer–Tarjan 支配树（LLVM 思想） | X10069–X10070 | 2437 | ⬜ |
 | X36 | #10035 | 对账轮（快照批补登 + verify 三门绿；72%） | X10071–X10072 | 2438 | ⬜ |
