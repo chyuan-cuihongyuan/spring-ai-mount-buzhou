@@ -492,6 +492,11 @@
 - `public final class WalshHadamard`（core/metrics；spec 11002——原位蝶形 Hadamard）
 - `public final class HaarWavelet`（core/metrics；spec 11003——正交 Haar 全分解）
 - `public final class GoertzelAlgorithm`（core/metrics；spec 11004——单频功率检测）
+- `public final class DaubechiesD4`（core/metrics；spec 11006——四系数紧支正交小波）
+- `public final class Cepstrum`（core/metrics；spec 11007——对数幅度谱 IFFT 实倒谱）
+- `public final class ZeroCrossingRate`（core/metrics；spec 11008——相邻符号变化比率）
+- `public final class AutocorrelationPitch`（core/metrics；spec 11009——自相关滞后峰基音）
+- `public final class DurbinLevinson`（core/metrics；spec 11010——AR 反射系数递推）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）

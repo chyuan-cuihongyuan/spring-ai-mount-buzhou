@@ -36,6 +36,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Y9 ZeroCrossingRate 落地：正弦理论值 100/999 手锚+零值沿用口径；5 测绿。
 - Y10 AutocorrelationPitch 落地：倍频程歧义消解勘误入档（纯周期 2 倍滞后同峰——近峰 1% 容差取最小滞后+测试频率整周期口径两处）；5 测绿。
 - Y11 DurbinLevinson 落地：AR(2) 往返互证+E(p)=σ² 归一化口径勘误入档；5 测绿。
+- Y12 对账轮（Wave 2 收口）：五新类型快照批补登 1412→1417 + api-surface.md +5 + CONTEXT 同步 + 三门绿 + 五组件 27 测全绿。
 
 ## 排程表（预排 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -52,7 +53,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | Y9 | #11008 | ZeroCrossingRate 过零率（语音/MIR 思想） | Y11017–Y11018 | 2461 | ✅ |
 | Y10 | #11009 | AutocorrelationPitch 自相关基音（Rabiner 思想） | Y11019–Y11020 | 2462 | ✅ |
 | Y11 | #11010 | DurbinLevinson AR 递推（Levinson–Durbin 思想） | Y11021–Y11022 | 2463 | ✅ |
-| Y12 | #11011 | 对账轮（快照批补登 + verify 三门绿；24%） | Y11023–Y11024 | 2464 | ⬜ |
+| Y12 | #11011 | 对账轮（快照批补登 + verify 三门绿；24%） | Y11023–Y11024 | 2464 | ✅ |
 | Y13 | #11012 | YuleWalker 方程（Yule 1927 思想） | Y11025–Y11026 | 2465 | ⬜ |
 | Y14 | #11013 | ReservoirSampling 水塘抽样（Vitter 1985 思想） | Y11027–Y11028 | 2466 | ⬜ |
 | Y15 | #11014 | RansacSampler 随机抽样一致（Fischler–Bolles 思想） | Y11029–Y11030 | 2467 | ⬜ |

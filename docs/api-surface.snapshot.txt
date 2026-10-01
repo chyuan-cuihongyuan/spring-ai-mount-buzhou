@@ -516,6 +516,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.message.XxHash64
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.AdamOptimizer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.AhoCorasick
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Autocorrelation
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.AutocorrelationPitch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BPlusTree
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BitapSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BitonicSorter
@@ -529,6 +530,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetrics
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsBinder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolder
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.BuzhouMetricsHolderInstaller
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.Cepstrum
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ChiSquareUniformity
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ClockJitterMeter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CoefficientOfVariation
@@ -538,10 +540,12 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CountingBloomFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CrostonForecaster
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.CusumDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DamerauLevenshtein
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DaubechiesD4
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DctType2
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DdSketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DecisionTreeCart
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DeterministicHash
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.DurbinLevinson
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignatures
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ErrorSignaturesJsonl
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.EwmaEstimator
@@ -647,6 +651,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WinnowFingerprint
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.XorFilter
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.XorShift64
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZArray
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZeroCrossingRate
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.ZobristHashing
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.ClockSkewClamp
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.observability.DistributedSnapshot
