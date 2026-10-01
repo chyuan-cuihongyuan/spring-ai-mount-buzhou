@@ -127,6 +127,7 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InterpolationSea
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.InterpolativeCoding
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.IntervalHeap
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JobDeadLetterLog
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.JumpPointSearch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.KShortestPaths
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.KosarajuScc
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.concurrent.KruskalMst

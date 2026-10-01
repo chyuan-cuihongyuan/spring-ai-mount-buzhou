@@ -487,6 +487,7 @@
 - `public final class LinearRegression`（core/metrics；spec 10044——截距内联正规方程 OLS）
 - `public final class AdamOptimizer`（core/metrics；spec 10045——矩 EMA+bias 修正自适应步长）
 - `public final class DecisionTreeCart`（core/metrics；spec 10046——加权基尼不升即裂分类树）
+- `public final class JumpPointSearch`（core/concurrent；spec 10048——跳点识别+octile A* 网格寻路）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）
