@@ -467,6 +467,11 @@
 - `public final class NussinovFolder`（spec 10020——区间 DP 无假结折叠）
 - `public final class DeBruijnAssembler`（spec 10021——欧拉路径基因组重构）
 - `public final class CenterStarAligner`（core/eval；spec 10022——中心星法 MSA）
+- `public final class SobolSequence`（core/metrics；spec 10024——方向数字+Gray 码 (t,m,s)-网点）
+- `public final class HaltonSequence`（core/metrics；spec 10025——互素基逆根数位重排）
+- `public final class LatinHypercube`（core/metrics；spec 10026——层置换+层内一格一点）
+- `public final class PcgXshRr`（core/metrics；spec 10027——LCG+XSH-RR 输出置换）
+- `public final class SliceSampler`（core/metrics；spec 10028——辅助竖切+步出收缩 MCMC）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）

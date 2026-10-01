@@ -1239,6 +1239,7 @@ F 会话（50 轮自迭代，借鉴高价值开源项目思想）的精选主线
 | 随机与准蒙特卡洛 | 拉丁超立方采样 | LatinHypercube——每维 [0,1) 等分 n 层、Fisher–Yates 层置换+层内均匀一格一点的拉丁超立方采样（McKay–Beckman–Conover 1979 思想——SciPy qmc.LatinHypercube 同源）：每层恰一点保证边际全覆盖——纯随机采样层聚集的病解互补；种子驱动确定（同种子同采样/异种子异样）+维数/样本数 fail-fast（3 维 20 样本逐维每层恰一点圣像+值域+种子双面核验）；与 Sobol/Halton（10024/10025）同域不同面：种子随机化 vs 确定序列（spec 10026） | [spec 10026](docs/spec/10026-latin-hypercube.md) |
 | 随机与准蒙特卡洛 | PCG-XSH-RR 随机数 | PcgXshRr——64 位 LCG 状态（标准乘子+流奇增量）+XSH-RR 输出置换（异或移位+右旋）的感知置换随机数（O'Neill 2014 思想——pcg-random 同源）：小状态通过统计检验——朴素 LCG 低位短周期的病解互补；流 ID 分离序列+种子预热一步（标准 pcg32 口径）+nextInt/nextDouble/nextLong 三读数（确定性复现+16 桶 16 万抽卡方 15 自由度<45+异流序列分歧+值域核验）；与 SplitMix64/XorShift64（已占）同域不同面：LCG+输出置换 vs 纯混合函数（spec 10027） | [spec 10027](docs/spec/10027-pcg-xsh-rr.md) |
 | 随机与准蒙特卡洛 | 切片采样 | SliceSampler——辅助竖切（y=ln f−Exp(1)）+步出扩区+收缩拒绝的单变量 MCMC 采样（Neal 2003 思想——PyMC/NumPyro 同源）：无提议分布免接受率调参——Metropolis–Hastings 的调参面病解互补；对数密度接口防下溢+步出 32 步重尾护栏+null 密度/非正步宽/计数越域/初始密度非正 fail-fast（标准正态矩圣像 2 万样本 mean±0.1/var±0.2+有界均匀域界内核验+确定性）；与 MetropolisHastings（已占）同域不同面：无提议分布 vs 接受率调参；Wave 5 随机与准蒙特卡洛族收束件（spec 10028） | [spec 10028](docs/spec/10028-slice-sampler.md) |
+| 过程治理 | X 系 X30 周期对账 | Wave 5 收口五新类型快照批补登（1387→1392：SobolSequence/HaltonSequence/LatinHypercube/PcgXshRr/SliceSampler——core/metrics×5）+ api-surface.md 同步 +5 行 + CONTEXT 计数同步（1392×13）+ 三门绿（覆盖门+快照门 reactor 再生 diff=+5 精确+对账门：spec 10000–10029 零缺位）+ 五组件测全绿 + 30/50=60% 里程碑；Wave 5 开发勘误三处入档（Sobol 无符号掩码+Halton 逆根手锚+PCG 种子预热口径）（spec 10029） | [spec 10029](docs/spec/10029-x-x30-reconciliation.md) |
 
 ## 生产级纵深 VIII（G 会话 700 系增量）
 
