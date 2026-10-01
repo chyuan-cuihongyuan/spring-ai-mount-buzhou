@@ -34,6 +34,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - Y7 DaubechiesD4 落地：双消失矩手锚勘误入档（周期回绕窗破坏线性零细节——n=8 不回绕窗锚）；6 测绿。
 - Y8 Cepstrum 落地：消费 FftIterative 自组合第三例；倒谱峰位勘误入档（64/拉赫 128 双峰族）；4 测绿。
 - Y9 ZeroCrossingRate 落地：正弦理论值 100/999 手锚+零值沿用口径；5 测绿。
+- Y10 AutocorrelationPitch 落地：倍频程歧义消解勘误入档（纯周期 2 倍滞后同峰——近峰 1% 容差取最小滞后+测试频率整周期口径两处）；5 测绿。
 
 ## 排程表（预排 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -48,7 +49,7 @@ Y 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | Y7 | #11006 | DaubechiesD4 小波（Daubechies 1988 思想） | Y11013–Y11014 | 2459 | ✅ |
 | Y8 | #11007 | Cepstrum 倒频谱（Bogert 1963 思想） | Y11015–Y11016 | 2460 | ✅ |
 | Y9 | #11008 | ZeroCrossingRate 过零率（语音/MIR 思想） | Y11017–Y11018 | 2461 | ✅ |
-| Y10 | #11009 | AutocorrelationPitch 自相关基音（Rabiner 思想） | Y11019–Y11020 | 2462 | ⬜ |
+| Y10 | #11009 | AutocorrelationPitch 自相关基音（Rabiner 思想） | Y11019–Y11020 | 2462 | ✅ |
 | Y11 | #11010 | DurbinLevinson AR 递推（Levinson–Durbin 思想） | Y11021–Y11022 | 2463 | ⬜ |
 | Y12 | #11011 | 对账轮（快照批补登 + verify 三门绿；24%） | Y11023–Y11024 | 2464 | ⬜ |
 | Y13 | #11012 | YuleWalker 方程（Yule 1927 思想） | Y11025–Y11026 | 2465 | ⬜ |
