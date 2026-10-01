@@ -472,6 +472,11 @@
 - `public final class LatinHypercube`（core/metrics；spec 10026——层置换+层内一格一点）
 - `public final class PcgXshRr`（core/metrics；spec 10027——LCG+XSH-RR 输出置换）
 - `public final class SliceSampler`（core/metrics；spec 10028——辅助竖切+步出收缩 MCMC）
+- `public final class KosarajuScc`（core/concurrent；spec 10030——正图完成序+逆图收桶双 DFS）
+- `public final class TwoSatSolver`（core/concurrent；spec 10031——蕴涵图 SCC 缩点 2-SAT）
+- `public final class PushRelabelMaxFlow`（core/concurrent；spec 10032——preflow+FIFO discharge 推重标）
+- `public final class KShortestPaths`（core/concurrent；spec 10033——Yen spur 偏离 K 最短路）
+- `public final class DominatorTree`（core/concurrent；spec 10034——CHK 迭代数据流支配树）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）
