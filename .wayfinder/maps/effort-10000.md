@@ -48,6 +48,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - X44 PerceptronClassifier 落地：单步手锚勘误入档（错分拖界后首样本翻 0——手算锚重写为单样本两例无更新/错分面）；5 测绿。（二次勘误：零权重激活恒 0——(−3,−3) 亦平局归 1）
 - X45 LinearRegression 落地：消费 GaussianElimination（10006）流程间自组合第二例；手锚数据勘误入档（两特征 y 与声称平面不一致——(1,0) 应 3）；5 测绿。
 - X46 AdamOptimizer 落地：对角二次碗解析解收敛+首步手算锚；5 测绿。
+- X47 DecisionTreeCart 落地：分裂规则勘误入档（严格下降裂不了 XOR 零增益根——放宽不升即裂对齐 sklearn 口径）；6 测绿。
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -99,7 +100,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X44 | #10043 | PerceptronClassifier 感知机（Rosenblatt 1958 思想） | X10087–X10088 | 2446 | ✅ |
 | X45 | #10044 | LinearRegression OLS 正规方程（NumPy lstsq 思想） | X10089–X10090 | 2447 | ✅ |
 | X46 | #10045 | AdamOptimizer 自适应矩估计（Kingma–Ba 2015 思想） | X10091–X10092 | 2448 | ✅ |
-| X47 | #10046 | DecisionTreeCart CART 基尼树（Breiman 1984 思想） | X10093–X10094 | 2449 | ⬜ |
+| X47 | #10046 | DecisionTreeCart CART 基尼树（Breiman 1984 思想） | X10093–X10094 | 2449 | ✅ |
 | X48 | #10047 | 对账轮（快照批补登 + verify 三门绿；96%） | X10095–X10096 | 2450 | ⬜ |
 | X49 | #10048 | JumpPointSearch 跳点搜索网格寻路（Harabor 2011 独件——A\* 同根不同面） | X10097–X10098 | 2451 | ⬜ |
 | X50 | #10049 | 收口对账轮（快照补登 + verify 绿 + push 封卷；X 会话 50/50） | X10099–X10100 | 2452 | ⬜ |
