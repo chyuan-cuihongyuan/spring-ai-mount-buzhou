@@ -50,6 +50,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - X46 AdamOptimizer 落地：对角二次碗解析解收敛+首步手算锚；5 测绿。
 - X47 DecisionTreeCart 落地：分裂规则勘误入档（严格下降裂不了 XOR 零增益根——放宽不升即裂对齐 sklearn 口径）；6 测绿。
 - X48 对账轮（Wave 8 收口）：五新类型快照批补登 1402→1407（NaiveBayes/Perceptron/LinearRegression/Adam/DecisionTreeCart——core/metrics×5）+ api-surface.md +5 + CONTEXT 同步 + 三门绿 + 五组件 26 测全绿。
+- X49 JumpPointSearch 落地勘误两处入档（禁切角域强制邻格双链复杂度超时预算换原 paper 切角允许口径+起点无剪枝预播种漏配死路面）；7 测绿（20 随机格 Dijkstra 等价圣像）。
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -103,7 +104,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X46 | #10045 | AdamOptimizer 自适应矩估计（Kingma–Ba 2015 思想） | X10091–X10092 | 2448 | ✅ |
 | X47 | #10046 | DecisionTreeCart CART 基尼树（Breiman 1984 思想） | X10093–X10094 | 2449 | ✅ |
 | X48 | #10047 | 对账轮（快照批补登 + verify 三门绿；96%） | X10095–X10096 | 2450 | ✅ |
-| X49 | #10048 | JumpPointSearch 跳点搜索网格寻路（Harabor 2011 独件——A\* 同根不同面） | X10097–X10098 | 2451 | ⬜ |
+| X49 | #10048 | JumpPointSearch 跳点搜索网格寻路（Harabor 2011 独件——原 paper 切角允许口径） | X10097–X10098 | 2451 | ✅ |
 | X50 | #10049 | 收口对账轮（快照补登 + verify 绿 + push 封卷；X 会话 50/50） | X10099–X10100 | 2452 | ⬜ |
 
 > 备选池（撞坑即换）：InterpolationSearch 已占避让 / VanDerCorput 逆根独件 / FaureSequence / Niederreiter / KroneckerSubstitution / WalshHadamard / HaarWavelet / Daubechies / GoertzelAlgorithm / Cepstrum / ZeroCrossingRate / AutocorrelationPitch / DurbinLevinson / BurgMethod / YuleWalker / TheilSen 估计 / RansacSampler / IsotonicCalibration / PlattScaling / BridgeFinder / BiconnectedComponents / GomoryHu / KargerContraction / EulerTourTree / LinkCutTree / VelvetOverlap / TripolarBridge。
