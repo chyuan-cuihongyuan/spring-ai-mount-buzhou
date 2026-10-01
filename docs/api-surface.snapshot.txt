@@ -554,7 +554,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FiveNumberSummary
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FloydCycleDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.FrequencySketch
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.GlobMatcher
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.GoertzelAlgorithm
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.GrayCodeSequence
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HaarWavelet
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HaltonSequence
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HilbertTransform
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.HllCardinalitySketch
@@ -636,7 +638,9 @@ buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TextDistance
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TfIdfVectorizer
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TheilSenSlope
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.TimeBucketReservoir
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.VanDerCorput
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WaitProfileAudit
+buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WalshHadamard
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WelfordAccumulator
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WindowShiftDetector
 buzhou-core|io.github.chyuan_cuihongyuan.buzhou.core.metrics.WinnowFingerprint

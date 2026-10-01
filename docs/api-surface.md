@@ -488,6 +488,10 @@
 - `public final class AdamOptimizer`（core/metrics；spec 10045——矩 EMA+bias 修正自适应步长）
 - `public final class DecisionTreeCart`（core/metrics；spec 10046——加权基尼不升即裂分类树）
 - `public final class JumpPointSearch`（core/concurrent；spec 10048——跳点识别+octile A* 网格寻路）
+- `public final class VanDerCorput`（core/metrics；spec 11001——基 b 逆根一维低差异）
+- `public final class WalshHadamard`（core/metrics；spec 11002——原位蝶形 Hadamard）
+- `public final class HaarWavelet`（core/metrics；spec 11003——正交 Haar 全分解）
+- `public final class GoertzelAlgorithm`（core/metrics；spec 11004——单频功率检测）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）
