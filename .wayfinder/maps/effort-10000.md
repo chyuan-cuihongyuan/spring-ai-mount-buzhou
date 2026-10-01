@@ -32,6 +32,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - X2 落轮前 find 快照复核再勘误：**EliasFano 已占（core/message——首查名单漏检「Elias」词根）**→ X2 再换 InterpolativeCoding（二分内插编码——Moffat–Stuiver 2000 思想）；InterpolationSearch/SimHashFingerprint 与 InterpolativeCoding/SimHashLsh 异面不冲（查找 vs 编码 / 指纹计算 vs 分段索引）。教训入档：词根级 KW 复核替代名单级精确比对（`.scratch` 脚本固定化）。
 - 全仓 verify 遇已入档满载偶红 flaky 按协议排除重跑（R48/V48/W 口径延续）；从根跑为准。
 - X30 对账轮（Wave 5 收口）：五新类型快照批补登 1387→1392（SobolSequence/HaltonSequence/LatinHypercube/PcgXshRr/SliceSampler——core/metrics×5）+ api-surface.md +5 + CONTEXT 同步 + 三门绿 + 五组件测全绿 + push 对账（fetch 已恢复连通）。
+- X31 KosarajuScc 落地：CLRS 手锚+30 随机图与 TarjanSccFinder 分区交叉互证；push 仍 TLS 失败（离线口径延续，X36 对账轮重试）。
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -67,7 +68,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X28 | #10027 | PcgXshRr PCG 感知机置换（O'Neill 思想） | X10055–X10056 | 2430 | ⬜ |
 | X29 | #10028 | SliceSampler 切片采样（Neal 2003 思想） | X10057–X10058 | 2431 | ⬜ |
 | X30 | #10029 | 对账轮（快照批补登 + verify 三门绿；60%） | X10059–X10060 | 2432 | ✅ |
-| X31 | #10030 | KosarajuScc 双 DFS 强连通分量（Kosaraju–Sharir 思想——TarjanSccFinder 已占换替补） | X10061–X10062 | 2433 | ⬜ |
+| X31 | #10030 | KosarajuScc 双 DFS 强连通分量（Kosaraju–Sharir 思想——TarjanSccFinder 已占换替补） | X10061–X10062 | 2433 | ✅ |
 | X32 | #10031 | TwoSatSolver SCC 缩点 2-SAT（Aspvall 思想） | X10063–X10064 | 2434 | ⬜ |
 | X33 | #10032 | PushRelabelMaxFlow 推重标最大流（Goldberg–Tarjan 思想） | X10065–X10066 | 2435 | ⬜ |
 | X34 | #10033 | KShortestPaths Yen 偏离 K 最短路（Yen 1971 思想） | X10067–X10068 | 2436 | ⬜ |
