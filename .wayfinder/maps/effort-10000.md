@@ -39,6 +39,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - X35 DominatorTree 落地勘误入档：Lengauer–Tarjan 1979 半支配点伪码记忆面未过暴力删除法对拍神像（Python 3000 随机图 610 红——内联桶清算/分离两段两变体皆红）——「不可自洽即换静脉」换 Cooper–Harvey–Kennedy 2001 迭代数据流面（LLVM 同源同题），Python 对拍 0/3000 后移植 Java，6 测绿。
 - X36 对账轮（Wave 6 收口）：五新类型快照批补登 1392→1397（KosarajuScc/TwoSatSolver/PushRelabelMaxFlow/KShortestPaths/DominatorTree——core/concurrent×5）+ api-surface.md +5 + CONTEXT 同步 + 三门绿 + 五组件测全绿；对账门先行侦测 README 未登记行（自扩展门防漏价值实证）。
 - X37 FftIterative 落地：O(n²) 直接 DFT 交叉互证 1e-9+Parseval 守恒；7 测绿；X38-X39 信号族推进。
+- X38 DctType2 落地：基正交归一+Parseval 守恒+常数/斜坡手锚；6 测绿。
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -81,7 +82,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X35 | #10034 | DominatorTree 支配树（LLVM 思想——LT 勘误换 CHK 面） | X10069–X10070 | 2437 | ✅ |
 | X36 | #10035 | 对账轮（快照批补登 + verify 三门绿；72%） | X10071–X10072 | 2438 | ✅ |
 | X37 | #10036 | FftIterative 迭代快速傅里叶（SciPy 思想） | X10073–X10074 | 2439 | ✅ |
-| X38 | #10037 | DctType2 DCT-II 变换（JPEG 思想） | X10075–X10076 | 2440 | ⬜ |
+| X38 | #10037 | DctType2 DCT-II 变换（JPEG 思想） | X10075–X10076 | 2440 | ✅ |
 | X39 | #10038 | HilbertTransform 解析信号包络（SciPy 思想——HilbertCurve 已占异面） | X10077–X10078 | 2441 | ⬜ |
 | X40 | #10039 | PeakDetector prominence 峰检测（SciPy find_peaks 思想） | X10079–X10080 | 2442 | ⬜ |
 | X41 | #10040 | LombScargle 不均匀采样频谱（Lomb 1976 思想） | X10081–X10082 | 2443 | ⬜ |
