@@ -482,6 +482,11 @@
 - `public final class HilbertTransform`（core/metrics；spec 10038——FFT 单边化解析包络）
 - `public final class PeakDetector`（core/metrics；spec 10039——等高线 prominence 峰检测）
 - `public final class LombScargle`（core/metrics；spec 10040——不均匀采样频谱）
+- `public final class NaiveBayesClassifier`（core/metrics；spec 10042——Laplace 平滑对数后验词袋分类）
+- `public final class PerceptronClassifier`（core/metrics；spec 10043——错分驱动在线超平面）
+- `public final class LinearRegression`（core/metrics；spec 10044——截距内联正规方程 OLS）
+- `public final class AdamOptimizer`（core/metrics；spec 10045——矩 EMA+bias 修正自适应步长）
+- `public final class DecisionTreeCart`（core/metrics；spec 10046——加权基尼不升即裂分类树）
 - `public final class SutherlandHodgman`（core/policy；spec 10013——凸窗逐边扫割裁剪）
 - `public final class DouglasPeucker`（core/policy；spec 10014——最大垂距递归抽稀）
 - `public final class CatmullRomSpline`（core/policy；spec 10015——过点张量插值样条）
