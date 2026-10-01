@@ -45,6 +45,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 - X41 LombScargle 落地：白噪极值口径勘误入档（91 频点 max 期望 ln91≈4.5——0.9 阈值统计口径错误放宽 8）；5 测绿。
 - X42 对账轮（Wave 7 收口）：五新类型快照批补登 1397→1402（FftIterative/DctType2/HilbertTransform/PeakDetector/LombScargle——core/metrics×5）+ api-surface.md +5 + CONTEXT 同步 + 三门绿 + 五组件 30 测全绿。
 - X43 NaiveBayesClassifier 落地：未见词 logUnseen 预存口径勘误入档（predict 分支丢 total 项——fit 时预存修）；5 测绿。
+- X44 PerceptronClassifier 落地：单步手锚勘误入档（错分拖界后首样本翻 0——手算锚重写为单样本两例无更新/错分面）；5 测绿。（二次勘误：零权重激活恒 0——(−3,−3) 亦平局归 1）
 
 ## 排程表（预排全 50 轮——落轮前 grep 复核占坑即换，状态逐轮翻转）
 
@@ -93,7 +94,7 @@ X 会话四步闭环持续推进：从高价值开源项目（>10K stars）借�
 | X41 | #10040 | LombScargle 不均匀采样频谱（Lomb 1976 思想） | X10081–X10082 | 2443 | ✅ |
 | X42 | #10041 | 对账轮（快照批补登 + verify 三门绿；84%） | X10083–X10084 | 2444 | ✅ |
 | X43 | #10042 | NaiveBayesClassifier 多项式朴素贝叶斯（scikit-learn 思想） | X10085–X10086 | 2445 | ✅ |
-| X44 | #10043 | PerceptronClassifier 感知机（Rosenblatt 1958 思想） | X10087–X10088 | 2446 | ⬜ |
+| X44 | #10043 | PerceptronClassifier 感知机（Rosenblatt 1958 思想） | X10087–X10088 | 2446 | ✅ |
 | X45 | #10044 | LinearRegression OLS 正规方程（NumPy lstsq 思想） | X10089–X10090 | 2447 | ⬜ |
 | X46 | #10045 | AdamOptimizer 自适应矩估计（Kingma–Ba 2015 思想） | X10091–X10092 | 2448 | ⬜ |
 | X47 | #10046 | DecisionTreeCart CART 基尼树（Breiman 1984 思想） | X10093–X10094 | 2449 | ⬜ |
